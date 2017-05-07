@@ -326,26 +326,32 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 };
 
 
-//---------------`fft`, `rfft` --------------------------
+//---------------`fft` --------------------------
 // Fast Fourier Transform (FFT)
 //
 // #### Usage
 //
 // ```
-// si.bus(N) : rfft(N) : si.bus(N);
 // si.cbus(N) : fft(N) : si.cbus(N);
 // ```
 //
 // Where:
 //
 // * N is the FFT size (power of 2)
-// * `rfft` input is a bank of N real signals (real-input FFT)
 // * `fft` input is a bank of N complex signals each specified by real and imaginary parts:
 //   (r1,i1), (r2,i2), ...
 // * Output is a bank of N complex signals giving the complex spectrum over time
+//
+// To feed a real input signal for FFT analysis, say this:
+// `process = signal : an.rtocv(N) : an.fft(N); // real (scalar) signal to complex vector signal : fft
+//
+// See `rfft_analyzer_c` in `analyzers.lib` for a more detailed usage example.  You can also
+// use `rfft_spectral_level(N,tau,dB_offset)` in `analyzers.lib` to display the power spectrum
+// of a real signal.
+// See `fft_spectral_level_demo(N)` in `demos.lib` for an example GUI for rfft_spectral_level().
+//
 //---------------------------------------------------
- fft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N)                : an.fftb(N); // shuffle off to the butterflies
-rfft(N) = si.bus(N)  : an.  bit_reverse_shuffle(N) : an.rvtocv(N) : an.fftb(N);
+fft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.fftb(N); // shuffle off to the butterflies:
 fftb(1) = _,_; // each complex number is represented as (real,imag)
 fftb(N) = si.cbus(N) : (fftb(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fftb(int(N)>>1)
 	  <: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
@@ -356,6 +362,11 @@ with {
     w(k) = 2.0*ma.PI*float(k)/float(N);
   };
 };
+
+// `rfft`
+// Slow to compile: rfft(N) = si.bus(N) : an.bit_reverse_shuffle(N) : an.rvtocv(N) : an.fftb(N);
+// Order of magnitude faster to compile but takes a scalar input, so too different from fft:
+// rfft(N) = an.rtocv(N) : an.fft(N);
 
 //---------------`ifft`--------------------------
 // Inverse Fast Fourier Transform (IFFT)
