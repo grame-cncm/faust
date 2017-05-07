@@ -407,7 +407,7 @@ with {
 };
 
 // ========== FFT Analyzers ==========
-rfft_analyzer_c(N) = an.rtorv(N) : an.fft(N) : an.c_select_pos_freqs(N); // complex spectral bins 0 to N/2
+rfft_analyzer_c(N) = an.rtocv(N) : an.fft(N) : an.c_select_pos_freqs(N); // complex spectral bins 0 to N/2
 rfft_analyzer_db(N) = an.rfft_analyzer_c(N) : an.c_magdb(N/2+1); // assumes real input
 rfft_analyzer_magsq(N) = an.rfft_analyzer_c(N) : an.c_magsq(N/2+1); // assumes real input
 
