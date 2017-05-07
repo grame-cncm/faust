@@ -337,18 +337,27 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 //
 // Where:
 //
-// * N is the FFT size (power of 2)
-// * `fft` input is a bank of N complex signals each specified by real and imaginary parts:
-//   (r1,i1), (r2,i2), ...
-// * Output is a bank of N complex signals giving the complex spectrum over time
+// * `si.cbus(N)` is a bus of N complex signals, each specified by real and imaginary parts:
+//   (r0,i0), (r1,i1), (r2,i2), ...
+// * `N` is the FFT size (must be a power of 2: 2,4,8,16,...)
+// * `fft(N)` performs a length `N` FFT for complex signals (radix 2)
+// * The output is a bank of N complex signals containing the complex spectrum over time:
+//   (R0, I0), (R1,I1), ...
+//   - The dc component is (R0,I0), where I0=0 for real input signals.
 //
-// To feed a real input signal for FFT analysis, say this:
-// `process = signal : an.rtocv(N) : an.fft(N); // real (scalar) signal to complex vector signal : fft
+// FFTs of Real Signals:
 //
-// See `rfft_analyzer_c` in `analyzers.lib` for a more detailed usage example.  You can also
-// use `rfft_spectral_level(N,tau,dB_offset)` in `analyzers.lib` to display the power spectrum
-// of a real signal.
-// See `fft_spectral_level_demo(N)` in `demos.lib` for an example GUI for rfft_spectral_level().
+// * To perform a sliding FFT over a real input signal, you can say
+// ```
+// process = signal : an.rtocv(N) : an.fft(N);
+// ```
+// where `an.rtocv` converts a real (scalar) signal to a complex vector signal having a zero imaginary part.
+//
+//   * See `an.rfft_analyzer_c` (in `analyzers.lib`) and related functions for more detailed usage examples.
+//
+//   * Use `an.rfft_spectral_level(N,tau,dB_offset)` to display the power spectrum of a real signal.
+//
+//   * See `dm.fft_spectral_level_demo(N)` in `demos.lib` for an example GUI driving `an.rfft_spectral_level()`.
 //
 //---------------------------------------------------
 fft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.fftb(N); // shuffle off to the butterflies:
