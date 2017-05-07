@@ -985,7 +985,7 @@ with{
 	relT60=0.010; // 10 ms release (decay-to-zero) time
 };
 
-fft_spectral_level_demo(N) =  an.fft_spectral_level(N,tau,dB_offset)
+fft_spectral_level_demo(N) =  an.rfft_spectral_level(N,tau,dB_offset)
 with{
 	ctl_group(x)  = hgroup("[1] FFT SPECTRUM ANALYZER CONTROLS", x);
 	tau = ctl_group(hslider("[0] Level Averaging Time [unit:ms] [scale:log]

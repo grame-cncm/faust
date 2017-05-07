@@ -7,11 +7,19 @@ declare license "STK-4.3";
 import("stdfaust.lib");
 
 N = 8;
+
 input = par(i,N,float(i==1),0.0); // delayed impulse
-output = input : an.fft(N); // Sliding FFT of input, rectangular window
-outputMagSq = output : an.cSumSq(N); // Sliding power spectrum
+output = input : an.fft(N); // Sliding complex FFT of input, rectangular window
+
+//input = par(i,N,float(i==1)); // delayed impulse
+//output = input : an.rfft(N); // Sliding real FFT of input, rectangular window
+
+outputMagSq = output : an.c_magsq(N); // Sliding power spectrum
+
+//inputHat = output : an.irfft(N); // Inverse real FFT = input signal to within roundoff error
 inputHat = output : an.ifft(N); // Inverse FFT = input signal to within roundoff error
-error = input, (inputHat : par(i,2*N,*(-1))) :>  an.cSumSq(N) : par(i,N,sqrt); // L2 norm of error
+
+error = input, (inputHat : par(i,2*N,*(-1))) :>  an.c_magsq(N) : par(i,N,sqrt); // L2 norm of error
 process = error; // see also: input, output, outputMagSq, inputHat;
 
 // USAGE:
@@ -27,3 +35,4 @@ process = error; // see also: input, output, outputMagSq, inputHat;
 //   output6[i] = (FAUSTFLOAT)2.0227457e-18f;
 //   output7[i] = (FAUSTFLOAT)7.273337e-17f;
 //   ...
+

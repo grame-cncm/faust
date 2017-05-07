@@ -309,8 +309,14 @@ c_select_pos_freqs(N) = si.cbus(N) : par(i,N/2+1,(_,_)),par(i,N/2-1,(!,!)) : si.
   select_pos_freqs(2) = _,_; // both dc and SR/2 included
   select_pos_freqs(N) = si. bus(N) : par(i,N/2+1, _),   par(i,N/2-1, !)    : si. bus(N/2+1); // real power spectra etc.
 
-bit_reverse_selector(N,0) = 0; bit_reverse_selector(N,i) = int(int(N)>>1)*(i&1) + bit_reverse_selector(int(N)>>1,(i>>1));
+rtorv(N,x) = par(i,N,x@i); // convert real scalar signal to length N real vector
+rtocv(N,x) = par(i,N,(x@i,0)); // convert real scalar signal to length N complex vector with 0 imag part
+rvtocv(N) = si.bus(N), par(i,N,0) : ro.interleave(N,2); // convert real N-vector to complex with 0 imag part
 
+bit_reverse_selector(N,0) = 0;
+bit_reverse_selector(N,i) = int(int(N)>>1)*(i&1) + bit_reverse_selector(int(N)>>1,(i>>1));
+
+// decimation in time does this to the input:
 bit_reverse_shuffle(N) = si.bus(N) <: par(i,N,bit_reverse_permuter(N,i)) with {
     bit_reverse_permuter(N,k) = ba.selector(bit_reverse_selector(N,k),N);
 };
@@ -320,27 +326,31 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 };
 
 
-//---------------`fft`--------------------------
+//---------------`fft`, `rfft` --------------------------
 // Fast Fourier Transform (FFT)
 //
 // #### Usage
 //
 // ```
+// si.bus(N) : rfft(N) : si.bus(N);
 // si.cbus(N) : fft(N) : si.cbus(N);
 // ```
 //
 // Where:
 //
 // * N is the FFT size (power of 2)
-// * Input is a bank of N complex signals represented as interleaved real and imaginary parts:
+// * `rfft` input is a bank of N real signals (real-input FFT)
+// * `fft` input is a bank of N complex signals each specified by real and imaginary parts:
 //   (r1,i1), (r2,i2), ...
 // * Output is a bank of N complex signals giving the complex spectrum over time
 //---------------------------------------------------
-fft(1) = _,_; // each complex number is represented as (real,imag)
-fft(N) = si.cbus(N) : c_bit_reverse_shuffle(N) // decimation in time does this to the input
-         : (fft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fft(int(N)>>1)
-	<: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
+ fft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N)                : an.fftb(N); // shuffle off to the butterflies
+rfft(N) = si.bus(N)  : an.  bit_reverse_shuffle(N) : an.rvtocv(N) : an.fftb(N);
+fftb(1) = _,_; // each complex number is represented as (real,imag)
+fftb(N) = si.cbus(N) : (fftb(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fftb(int(N)>>1)
+	  <: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
 with {
+  // Half of these multiplies can go away since w(k) = - w(k+N/2), and others as well (1,j,-j,-1,...)
   twiddleOdd(N) = par(k,N,si.cmul(cos(w(k)),0-sin(w(k))))
   with {
     w(k) = 2.0*ma.PI*float(k)/float(N);
@@ -363,25 +373,30 @@ with {
 //   (R1,I1), (R2,I2), ...
 // * Output is a bank of N complex signals giving the complex signal in the time domain.
 //---------------------------------------------------
-ifft(1) = _,_;
-ifft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N)
-         : (ifft(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifft(int(N)>>1)
+ifft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.ifftb(N); // input is shuffled off to the butterflies:
+ifftb(1) = _,_;
+ifftb(N) = si.cbus(N) : (ifftb(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifftb(int(N)>>1)
 	<: (si.cbus(N):twiddleOddConj(N))) :> si.cbus(N) : par(i,2*N,/(2.0))
 with {
-  twiddleOddConj(N) = par(k,N,si.cmul(cos(w(k)),0+sin(w(k))))
+  // Half of these multiplies can go away since w(k) = - w(k+N/2), and others as well (1,j,-j,-1,...)
+  twiddleOddConj(N) = par(k,N,si.cmul(cos(w(k)),sin(w(k))))
   with {
     w(k) = 2.0*ma.PI*float(k)/float(N);
   };
 };
 
-fft_analyzer_db(N,x) = par(i,N,(x@i,0)) : an.fft(N) : an.c_select_pos_freqs(N) : an.c_magdb(N/2+1); // assumes real input
-fft_analyzer_magsq(N,x) = par(i,N,(x@i,0)) : an.fft(N) : an.c_select_pos_freqs(N) : an.c_magsq(N/2+1); // assumes real input
+// ========== FFT Analyzers ==========
+rfft_analyzer_c(N) = an.rtorv(N) : an.rfft(N) : an.c_select_pos_freqs(N); // complex spectral bins 0 to N/2
+rfft_analyzer_db(N) = an.rfft_analyzer_c(N) : an.c_magdb(N/2+1); // assumes real input
+rfft_analyzer_magsq(N) = an.rfft_analyzer_c(N) : an.c_magsq(N/2+1); // assumes real input
 
-fft_spectral_level(N,tau,dB_offset) = _<: _, an.fft_analyzer_db(N) : _,(display:>_):attach with {
+rfft_spectral_level(N,tau,dB_offset) = _<: _, an.rfft_analyzer_db(N) : _,(display:>_):attach with {
   display = par(i,N/2+1,dbmeter(i));
   dbmeter(i) = si.smooth(ba.tau2pole(tau)) : +(dB_offset) : meter(i);
-    meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB] [tooltip: FFT Spectral Band Level in dB]", -50, 10));
-  speclevel_group(x)  = hgroup("[0] FFT SPECTRUM ANALYZER, %N bands [tooltip: fft_spectral_level in Faust's analyzers.lib]", x);
+    meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB]
+	       [tooltip: FFT Spectral Band Level in dB]", -50, 10));
+  speclevel_group(x)  = hgroup("[0] FFT SPECTRUM ANALYZER, %N bands 
+			[tooltip: fft_spectral_level in Faust's analyzers.lib]", x);
 };
 
 // end jos section
