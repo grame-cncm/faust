@@ -108,9 +108,9 @@ extern bool gDumpNorm;
 Tree ScalarCompiler::prepare(Tree LS)
 {
 startTiming("ScalarCompiler::prepare");
- startTiming("first simplification");
-    LS = simplify(LS);
- endTiming("first simplification");
+//  startTiming("first simplification");
+//     LS = simplify(LS);
+//  endTiming("first simplification");
  startTiming("deBruijn2Sym");
 	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
  endTiming("deBruijn2Sym");
