@@ -114,7 +114,7 @@ for p in $FILES; do
 
     cd "$TMP"
 
-    $CXX $CXXFLAGS -fbracket-depth=512 -ffast-math $FAUSTLIB/faustbench.cpp $LIBS -o $dspName
+    $CXX $CXXFLAGS -I ../../ -fbracket-depth=512 -ffast-math $FAUSTLIB/faustbench.cpp $LIBS -o $dspName
 
     # run bench
    ./$dspName
