@@ -250,8 +250,13 @@ libfaustworker.wasm : $(common_objects) $(object_ba_wasm) libmain.o
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a
 
-libfaustinterp.a : $(common_objects) $(object_ba_interp) libmain.o
+ifeq ($(system), Darwin)
+    libfaustinterp.a : $(common_objects) $(object_ba_interp) libmain.o
 	libtool $(LIBFLAGS) $(common_objects) $(object_ba_interp) libmain.o -static -o libfaustinterp.a
+else
+    libfaustinterp.a :
+ 	# nothing for now
+endif
 
 libfaustplugin.a : $(object_ba_interp_plugin)
 	libtool $(LIBFLAGS) $(object_ba_interp_plugin) -static -o libfaustplugin.a
