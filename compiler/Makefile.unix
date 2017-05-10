@@ -314,7 +314,7 @@ parser :
 clean :
 	rm -f $(common_objects) $(backend_objects) main.o libmain.o faust$(EXE) \
         libfaust-wasm.js libfaust-wasm.wasm libfaustworker-wasm.js libfaustworker-wasm.wasm \
-        libfaust.a libfaustinterp.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) \
+        libfaust.a libfaustinterp.a libfaustplugin.a libfaust.js libfaustworker.js libfaust.$(LIB_EXT) \
 	*.il *.dpi *.spi */*.il */*.dpi */*.spi *~ */*~
 	rm -rf doc
 
