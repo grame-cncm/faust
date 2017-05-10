@@ -27,6 +27,7 @@
 #define JuceParameterUI_H
 
 #include "../JuceLibraryCode/JuceHeader.h"
+
 #include "faust/gui/GUI.h"
 
 // Link AudioParameterBool with on/off parameter

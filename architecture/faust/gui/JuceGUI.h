@@ -27,8 +27,10 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "../JuceLibraryCode/JuceHeader.h"
 #include <stack>
+
+#include "../JuceLibraryCode/JuceHeader.h"
+
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
