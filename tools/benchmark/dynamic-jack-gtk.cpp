@@ -102,6 +102,8 @@ int main(int argc, char *argv[])
     dsp* DSP = 0;
     mydsp_poly* dsp_poly = NULL;
     MidiUI* midiinterface = 0;
+    
+    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
    
     std::string error_msg;
     

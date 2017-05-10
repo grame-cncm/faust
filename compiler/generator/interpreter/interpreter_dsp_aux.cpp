@@ -93,14 +93,14 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                                                                     error_msg,
                                                                     true);
             if (dsp_factory_aux) {
-                return NULL;
-            } else {
                 dsp_factory_aux->setName(name_app);
                 factory = new interpreter_dsp_factory(dsp_factory_aux);
                 gInterpreterFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 factory->setDSPCode(expanded_dsp_content);
                 return factory;
+            } else {
+                return NULL;
             }
         }
     }

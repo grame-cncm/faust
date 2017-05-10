@@ -39,6 +39,8 @@ int main(int argc, char* argv[])
     if (isopt(argv, "-vec")) index += 2;
     int buffer_size = lopt(argv, "-vec", 512);
     
+    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    
     try {
         dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", buffer_size);
         double value;

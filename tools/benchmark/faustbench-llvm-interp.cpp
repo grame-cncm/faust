@@ -37,6 +37,8 @@ int main(int argc, char* argv[])
         return 0;
     }
     
+    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    
     dsp_factory* factory1 = 0;
     dsp_factory* factory2 = 0;
   
