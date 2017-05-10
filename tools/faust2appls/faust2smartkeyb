@@ -177,7 +177,7 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 			sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
 			sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
             # Put OSC in project in all cases, even if not compiled
-            cp -r $FAUSTLIB/osclib "$BUILDDIR"/Faust
+            # cp -r $FAUSTLIB/osclib "$BUILDDIR"/Faust
         fi
 	fi
 fi

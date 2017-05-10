@@ -250,7 +250,7 @@ cbus(1) = (_,_);
 cbus(n) = par(i, n, (_,_));
 
 //--------------------------------`cmul`-------------------------------------
-// multiple two complex signals pointwise.
+// multiply two complex signals pointwise.
 // `cmul` is a standard Faust function.
 //
 // #### Usage
@@ -288,7 +288,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // ```
 //----------------------------------------------------
 // Author: Jonatan Liljedahl
-// Licens: STK-4.3
+// License: STK-4.3
 // MarkDown: Romain Michon
 lag_ud(up,dn) = _ <: ((>,ba.tau2pole(up),ba.tau2pole(dn):select2),_:si.smooth) ~ _;
 
