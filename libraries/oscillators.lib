@@ -781,9 +781,9 @@ with {
 };
 
 
-//================ Waveguide-Resonator-Based Osccilators================
+//================ Waveguide-Resonator-Based Oscillators ================
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
-//======================================================================
+//=======================================================================
 
 //-----------------`oscw`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude

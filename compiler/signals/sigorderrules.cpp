@@ -134,11 +134,11 @@ static int infereSigOrder(Tree sig)
 	
 	else if (isSigNumEntry(sig))				return 2;
 		
-	else if (isSigHBargraph(sig, l, x, y, s1)) 	return O(s1);
+	else if (isSigHBargraph(sig, l, x, y, s1)) 	return max(2,O(s1)); 	// at least a user interface
 		
-	else if (isSigVBargraph(sig, l, x, y, s1)) 	return O(s1);
-		
-	else if (isSigAttach(sig, s1, s2)) 			return O(s1);
+	else if (isSigVBargraph(sig, l, x, y, s1))	return max(2, O(s1)); 	// at least a user interface
+
+	else if (isSigAttach(sig, s1, s2)) 			return max(1,O(s1));	// at least a constant
 				
 	else if (isRec(sig, var, body))				throw faustexception("ERROR infering signal order : isRec\n"); //return 3;  // not supposed to happen.
 				

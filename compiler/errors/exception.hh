@@ -24,8 +24,11 @@
 
 #include <stdexcept>
 #include <iostream>
-#include <execinfo.h>
 #include <unistd.h>
+
+#ifndef EMCC
+#include <execinfo.h>
+#endif
 
 class faustexception : public std::runtime_error {
 
@@ -69,8 +72,10 @@ class faustexception : public std::runtime_error {
 inline void faustassert(bool cond)
 {
     if (!cond) {
+    #ifndef EMCC
         void* array[20];
         backtrace_symbols_fd(array, backtrace(array, 20), STDERR_FILENO);
+    #endif
         throw faustexception("assert: please report the failing DSP file to Faust developers.\n");
     }
 }

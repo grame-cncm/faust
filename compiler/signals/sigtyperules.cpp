@@ -323,9 +323,9 @@ static Type infereSigType(Tree sig, Tree env)
 	else if (isSigNumEntry(sig,label,cur,min,max,step))
 												return castInterval(gGlobal->TGUI,interval(tree2float(min),tree2float(max)));
 
-    else if (isSigHBargraph(sig, l, x, y, s1))  return T(s1,env);
+    else if (isSigHBargraph(sig, l, x, y, s1))  return T(s1, env)->promoteVariability(kBlock);
 
-    else if (isSigVBargraph(sig, l, x, y, s1))  return T(s1,env);
+    else if (isSigVBargraph(sig, l, x, y, s1))  return T(s1, env)->promoteVariability(kBlock);
 
     else if (isSigAttach(sig, s1, s2))          { T(s2,env); return T(s1,env); }
 
