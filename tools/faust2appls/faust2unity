@@ -123,7 +123,7 @@ for f in $FILES; do
     if [ "$IOS" = "1" ]; then
         # compile faust to c++
         faust -i -a unity.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
-        $CXX $CXXFLAGS -DPLUGINNAME="$NAME" -std=c++11 -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
+        $CXX $CXXFLAGS -DPLUGINNAME="$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
         libtool $NAME.o -o libaudioplugin$NAME.a
         rm $NAME.o $NAME.cpp
     else
