@@ -49,4 +49,4 @@ branches:
   - master-dev
   - master
 
-script: CXX=$COMPILER, make && make httpd
+script:  make CXX=$COMPILER -j4 && make CXX=$COMPILER httpd
