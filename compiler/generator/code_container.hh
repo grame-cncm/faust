@@ -36,6 +36,7 @@
 #include "garbageable.hh"
 #include "json_instructions.hh"
 #include "dsp_factory.hh"
+#include "export.hh"
 
 class TextInstVisitor;
 
