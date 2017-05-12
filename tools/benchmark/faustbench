@@ -20,6 +20,7 @@ fi
 
 if [[ $(uname) == Darwin ]]; then
     LIBS=-lc++
+    CXXFLAGS+=-fbracket-depth=512
 fi
 
 while [ $1 ]
@@ -114,7 +115,7 @@ for p in $FILES; do
 
     cd "$TMP"
 
-    $CXX $CXXFLAGS -I ../../ -fbracket-depth=512 -ffast-math $FAUSTLIB/faustbench.cpp $LIBS -o $dspName
+    $CXX $CXXFLAGS -I . -I ../../ -ffast-math $FAUSTLIB/faustbench.cpp $LIBS -o $dspName
 
     # run bench
    ./$dspName
