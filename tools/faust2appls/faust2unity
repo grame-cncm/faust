@@ -126,6 +126,7 @@ for f in $FILES; do
         $CXX $CXXFLAGS -DPLUGINNAME="$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
         libtool $NAME.o -o libaudioplugin$NAME.a
         rm $NAME.o $NAME.cpp
+		echo "libaudioplugin$NAME.a;"
     else
 
         BNAME=AudioPlugin${NAME} # should be capitalize
