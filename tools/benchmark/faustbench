@@ -15,7 +15,7 @@ fi
 
 # Set default value for CXXFLAGS
 if [ "$CXXFLAGS" = "" ]; then
-    CXXFLAGS=-Ofast
+    CXXFLAGS="-Ofast -march=native"
 fi
 
 if [[ $(uname) == Darwin ]]; then
