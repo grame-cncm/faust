@@ -58,9 +58,55 @@ class llvm_dsp_factory;
 
 class FaustObjectCache;
 
+// Public C++ interface
+
+class EXPORT llvm_dsp : public dsp {
+    
+    private:
+        
+        llvm_dsp_factory* fFactory;
+        dsp_imp* fDSP;
+    
+    public:
+        
+        llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp);
+        virtual ~llvm_dsp();
+    
+        void destroy(MemoryFree manager, void* arg);
+        
+        virtual int getNumInputs();
+        
+        virtual int getNumOutputs();
+        
+        virtual void buildUserInterface(UI* ui_interface);
+        
+        virtual void buildUserInterface(UIGlue* glue);
+        
+        virtual int getSampleRate();
+        
+        virtual void init(int samplingRate);
+        
+        virtual void instanceInit(int samplingRate);
+        
+        virtual void instanceConstants(int samplingRate);
+        
+        virtual void instanceResetUserInterface();
+        
+        virtual void instanceClear();
+        
+        virtual llvm_dsp* clone();
+        
+        virtual void metadata(Meta* m);
+        
+        virtual void metadata(MetaGlue* glue);
+        
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+};
+
 class llvm_dsp_factory_aux : public dsp_factory_imp {
 
-    friend class llvm_dsp_aux;
+    friend class llvm_dsp;
     
     private:
     
@@ -83,6 +129,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         deleteDspFun fDelete;
         getNumInputsFun fGetNumInputs;
         getNumOutputsFun fGetNumOutputs;
+        getSizeFun fGetSize;
         buildUserInterfaceFun fBuildUserInterface;
         initFun fInit;
         initFun fInstanceInit;
@@ -158,7 +205,11 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         void setIsDouble(bool is_double) { fIsDouble = is_double; }
    
-        dsp* createDSPInstance(dsp_factory* factory);
+        llvm_dsp* createDSPInstance(dsp_factory* factory);
+    
+        llvm_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
+    
+        void deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg);
     
         void write(std::ostream* out, bool binary, bool small = false);
     
@@ -169,99 +220,14 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         static int gInstance;
 };
 
-class llvm_dsp_aux : public dsp {
-
-    private:
-
-        llvm_dsp_factory_aux* fFactory;
-        llvm_dsp_imp* fDSP;
-                 
-    public:
-        
-        llvm_dsp_aux(llvm_dsp_factory_aux* factory, llvm_dsp_imp* dsp);
-        virtual ~llvm_dsp_aux();
-    
-        virtual int getNumInputs();
-    
-        virtual int getNumOutputs();
-    
-        virtual void buildUserInterface(UI* ui_interface);
-    
-        virtual void buildUserInterface(UIGlue* glue);
-    
-        virtual int getSampleRate();
-    
-        virtual void init(int samplingRate);
-    
-        virtual void instanceInit(int samplingRate);
-    
-        virtual void instanceConstants(int samplingRate);
-    
-        virtual void instanceResetUserInterface();
-    
-        virtual void instanceClear();
-    
-        virtual dsp* clone() { faustassert(false); return nullptr; } // to be implemented by subclass
-    
-        virtual void metadata(Meta* m);
-    
-        virtual void metadata(MetaGlue* glue);
-    
-        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-        
-        llvm_dsp_factory_aux* getFactory() { return fFactory; }
- 
-};
-
-// Public classes
-
-class EXPORT llvm_dsp : public dsp {
-    
-    private:
-    
-        llvm_dsp_aux* fDSP;
-        llvm_dsp_factory* fFactory;
-    
-    public:
-    
-        llvm_dsp(llvm_dsp_aux* dsp, llvm_dsp_factory* factory)
-            :fDSP(dsp), fFactory(factory)
-        {}
-    
-        virtual ~llvm_dsp();
-        
-        int getNumInputs();
-        
-        int getNumOutputs();
-        
-        void buildUserInterface(UI* ui_interface);
-        
-        int getSampleRate();
-        
-        void init(int samplingRate);
-        
-        void instanceInit(int samplingRate);
-    
-        void instanceConstants(int samplingRate);
-    
-        void instanceResetUserInterface();
-        
-        void instanceClear();
-        
-        llvm_dsp* clone();
-        
-        void metadata(Meta* m);
-        
-        void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-    
-};
+// Public C++ interface
 
 class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     
     private:
-        
+    
         llvm_dsp_factory_aux* fFactory;
-        
+    
         virtual ~llvm_dsp_factory()
         {
             delete fFactory;
@@ -285,7 +251,11 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         std::string getTarget() { return fFactory->getTarget(); }
         
         llvm_dsp* createDSPInstance();
-        
+    
+        llvm_dsp* createDSPInstance(MemoryNew manager, void* arg);
+    
+        void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg);
+    
         void write(std::ostream* out, bool binary, bool small = false) {}
         
         std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
@@ -304,10 +274,10 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         {
             fFactory->writeDSPFactoryToMachineFile(machine_code_path, target);
         }
+    
+        llvm_dsp_factory_aux* getFactory() { return fFactory; }
 
 };
-
-// Public C++ interface
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 

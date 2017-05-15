@@ -675,6 +675,17 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     fBuilder->ClearInsertionPoint();
 }
 
+void LLVMCodeContainer::generateGetSize(LlvmValue size)
+{
+    VECTOR_OF_TYPES llvm_getSize_args;
+    FunctionType* llvm_getSize_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
+    Function* llvm_getSize = Function::Create(llvm_getSize_type, GlobalValue::ExternalLinkage, "getSize" + fKlassName, fModule);
+    
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getSize);
+    ReturnInst::Create(getContext(), size, return_block);
+    verifyFunction(*llvm_getSize);
+}
+
 void LLVMCodeContainer::produceInternal()
 {
     // Creates DSP structure
@@ -766,6 +777,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateBuildUserInterfaceBegin();
     generateUserInterface(fCodeProducer);
     generateBuildUserInterfaceEnd();
+    
+    generateGetSize(fTypeBuilder.getSize());
 
     // Compute
     generateCompute();

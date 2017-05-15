@@ -197,6 +197,8 @@ static void runFactory(dsp_factory* factory, const string& file)
     } catch (...) {
         cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
+    
+    delete DSP;
 }
 
 inline bool endsWith(std::string const& value, std::string const& ending)

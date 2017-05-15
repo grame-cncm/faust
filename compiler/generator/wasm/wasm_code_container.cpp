@@ -337,7 +337,7 @@ void WASMCodeContainer::produceClass()
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
     
-    // Generate JSON and getDSPSize
+    // Generate JSON and getSize
     tab(n, fHelper); fHelper << "/* Helper code generated with FAUST version " << FAUSTVERSION << " */\n";
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
         tab(n+1, fHelper);

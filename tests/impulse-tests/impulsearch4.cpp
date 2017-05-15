@@ -99,11 +99,27 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
-static void runFactory(dsp_factory* factory, const string& file)
+
+// Standard memory manager
+static void* malloc_manager(size_t size, void* arg)
+{
+    return malloc(size);
+}
+static void free_manager(void* ptr, void* arg)
+{
+    free(ptr);
+}
+
+static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false)
 {
     char rcfilename[256];
+    dsp* DSP = nullptr;
     
-    dsp* DSP = factory->createDSPInstance();
+    if (is_mem_alloc) {
+        DSP = factory->createDSPInstance(malloc_manager, nullptr);
+    } else {
+        DSP = factory->createDSPInstance();
+    }
     if (!DSP) {
         exit(-1);
     }
@@ -197,8 +213,14 @@ static void runFactory(dsp_factory* factory, const string& file)
     } catch (...) {
         cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
+    
+    if (is_mem_alloc) {
+        factory->deleteDSPInstance(DSP, free_manager, nullptr);
+    } else {
+        delete DSP;
+    }
 }
-            
+
 int main(int argc, char* argv[])
 {
     int argc1 = argc - 2;
@@ -219,6 +241,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     {
@@ -231,6 +254,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     {
@@ -243,6 +267,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
    
     {
@@ -255,6 +280,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     {
@@ -267,6 +293,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     {
@@ -279,6 +306,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     {
@@ -291,6 +319,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
     
     return 0;

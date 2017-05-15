@@ -369,7 +369,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
      
-    // Generate JSON and getDSPSize
+    // Generate JSON and getSize
     tab(n, *fOut); *fOut << "function getSize" << fKlassName << "() {";
         tab(n+1, *fOut);
         *fOut << "return " << gGlobal->gASMJSVisitor->getStructSize() << ";";

@@ -286,6 +286,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         Module* fModule;
         IRBuilder<>* fBuilder;
+        LlvmValue fSize;
    
         // DSP structure creation
         std::map<string, int> fDSPFieldsNames;
@@ -302,14 +303,14 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         // UI structure creation
         llvm::PointerType* fStruct_UI_ptr;
         LlvmValue fUIInterface_ptr;
-
+    
         llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
         {
             StructType* struct_type = StructType::create(fModule->getContext(), name);
             struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
             return struct_type;
         }
-
+    
         virtual void generateFreeDsp(llvm::PointerType* dsp_type_ptr, bool internal)
         {
             // free
@@ -579,6 +580,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                             fDSPFieldsCounter(0),
                             fPrefix(prefix)
         {
+            fSize = nullptr;
             fBuilder = new IRBuilder<>(fModule->getContext());
             
             initTypes(module);
@@ -597,6 +599,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             delete fDataLayout;
         #endif
         }
+    
+    
+        LlvmValue getSize() { return fSize; }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -670,6 +675,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             if (generate_ui) {
                 generateBuildUserInterface(dsp_type_ptr);
             }
+            
+            fSize =  genInt32(fModule, fDataLayout->getTypeSizeInBits(dsp_type));
 
             return dsp_type_ptr;
         }

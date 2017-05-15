@@ -84,6 +84,7 @@ class llvm_dsp : public dsp {
 /**
  * DSP factory class.
  */
+
 class llvm_dsp_factory : public dsp_factory {
 
      public:
@@ -91,24 +92,30 @@ class llvm_dsp_factory : public dsp_factory {
         virtual ~llvm_dsp_factory();
         
         /**
-        *  Returns factory name :
+        *  Return factory name:
         *  either the name declared in DSP with [declare name "foo"] syntax
         *  or 'filename' (if createDSPFactoryFromFile is used)
         *  or 'name_app' (if createDSPFactoryFromString is used)
         */
         std::string getName();
         
-        /* Returns factory LLVM target */
+        /* Return factory LLVM target */
         std::string getTarget();
         
-        /* Returns factory SHA key */
+        /* Return factory SHA key */
         std::string getSHAKey();
   
-        /* Returns factory expanded DSP code */
+        /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */
+        /* Create a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */
         llvm_dsp* createDSPInstance();
+    
+        /* Create a new dsp instance, to be deleted with deleteDSPInstance */
+        llvm_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
+    
+        /* Delete a dsp instance, using the MemoryFree manager*/
+        llvm_dsp* deleteDSPInstance(dsp_factory* factory, MemoryFree manager, void* arg);
 
 };
 

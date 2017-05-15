@@ -988,20 +988,22 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
     
 };
 
+// Public C++ interface
+
 class EXPORT interpreter_dsp : public dsp {
     
     private:
         
-        interpreter_dsp_base* fDSP;
         interpreter_dsp_factory* fFactory;
+        interpreter_dsp_base* fDSP;
  
     public:
     
-        interpreter_dsp(interpreter_dsp_aux<float>* dsp, interpreter_dsp_factory* factory)
-            :fDSP(dsp), fFactory(factory)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float>* dsp)
+            :fFactory(factory), fDSP(dsp)
         {}
-        interpreter_dsp(interpreter_dsp_aux<double>* dsp, interpreter_dsp_factory* factory)
-            :fDSP(dsp), fFactory(factory)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double>* dsp)
+            :fFactory(factory), fDSP(dsp)
         {}
     
         virtual ~interpreter_dsp();
@@ -1032,8 +1034,6 @@ class EXPORT interpreter_dsp : public dsp {
     
 };
 
-// Public C++ interface
-
 class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartable {
     
     protected:
@@ -1057,9 +1057,13 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         
         std::string getDSPCode() { return fFactory->getDSPCode(); }
         void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
-        
+    
         interpreter_dsp* createDSPInstance();
-        
+    
+        interpreter_dsp* createDSPInstance(MemoryNew manager, void* arg) { return nullptr; }
+    
+        void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg) {}
+    
         void write(std::ostream* out, bool binary = false, bool small = false) { fFactory->write(out, binary, small); }
     
 };
@@ -1067,8 +1071,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
 template <class T>
 dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(dsp_factory* factory)
 {
-    return new interpreter_dsp(new interpreter_dsp_aux<T>(this), dynamic_cast<interpreter_dsp_factory*>(factory));
-    //return new interpreter_dsp(new interpreter_dsp_aux_down<T>(this, 2), dynamic_cast<interpreter_dsp_factory*>(factory));
+    return new interpreter_dsp(dynamic_cast<interpreter_dsp_factory*>(factory), new interpreter_dsp_aux<T>(this));
+    //return new interpreter_dsp(dynamic_cast<interpreter_dsp_factory*>(factory), new interpreter_dsp_aux_down<T>(this, 2));
 }
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);

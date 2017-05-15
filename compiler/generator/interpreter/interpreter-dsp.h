@@ -87,7 +87,7 @@ class interpreter_dsp_factory : public dsp_factory {
         virtual ~interpreter_dsp_factory();
     
         /**
-         *  Returns factory name :
+         *  Return factory name:
          *  either the name declared in DSP with [declare name "foo"] syntax
          *  or 'filename' (if createInterpreterDSPFactoryFromFile is used)
          *  or 'name_app' (if createInterpreterDSPFactoryFromString is used)
@@ -100,13 +100,19 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Creates a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */
+        /* Create a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */
         interpreter_dsp* createDSPInstance();
-  
+    
+        /* Create a new dsp instance, to be deleted with deleteDSPInstance */
+        interpreter_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
+        
+        /* Delete a dsp instance, using the MemoryFree manager*/
+        interpreter_dsp* deleteDSPInstance(dsp_factory* factory, MemoryFree manager, void* arg);
+
 };
 
 /**
- * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source), 
+ * Get the Faust DSP factory associated with a given SHA key (created from the 'expanded' DSP source),
  * if already allocated in the factories cache and increment it's reference counter. You will have to explicitly
  * use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no more needed.
  *

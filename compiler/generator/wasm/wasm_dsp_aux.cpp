@@ -104,7 +104,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
         
         // 'Binary' string, so directly copy its content
-        string code = factory->getCode();
+        string code = factory->getBinaryCode();
         res->fCodeSize = code.size();
         res->fCode = (char*)malloc(res->fCodeSize);
         memcpy(res->fCode, code.c_str(), res->fCodeSize);

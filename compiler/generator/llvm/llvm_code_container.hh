@@ -97,6 +97,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         void generateBuildUserInterfaceBegin();
         void generateBuildUserInterfaceEnd();
+    
+        void generateGetSize(LlvmValue size);
 
         void addGenericButton(const string& label, const string& zone, const string& button_type);
         void addGenericSlider(const string& label,

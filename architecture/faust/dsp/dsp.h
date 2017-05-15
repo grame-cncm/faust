@@ -179,6 +179,9 @@ class decorator_dsp : public dsp {
  * DSP factory class
  */
 
+typedef void* (* MemoryNew) (size_t size, void* arg);
+typedef void (* MemoryFree) (void* ptr, void* arg);
+
 class dsp_factory {
     
     protected:
@@ -192,6 +195,8 @@ class dsp_factory {
         virtual std::string getSHAKey() = 0;
         virtual std::string getDSPCode() = 0;
         virtual dsp* createDSPInstance() = 0;
+        virtual dsp* createDSPInstance(MemoryNew manager, void* arg) = 0;
+        virtual void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg) = 0;
     
 };
 
