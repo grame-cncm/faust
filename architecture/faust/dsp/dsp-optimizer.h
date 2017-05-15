@@ -38,14 +38,14 @@
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
 */
-
+template <typename SAMPLE_TYPE>
 class dsp_optimizer {
 
     private:
         
         time_bench* fBench;
 
-        FAUSTFLOAT* fBuffer;    // a buffer of fNV * fVSize samples
+        SAMPLE_TYPE* fBuffer;    // a buffer of fNV * fVSize samples
 
         unsigned int fNV;        // number of vectors in BIG buffer (should exceed cache)
         unsigned int fITER;      // number of iterations per measure
@@ -85,10 +85,10 @@ class dsp_optimizer {
             return (err != -1);
         }
 
-        void allocBuffers(int numOutChan, FAUSTFLOAT** outChannel)
+        void allocBuffers(int numOutChan, SAMPLE_TYPE** outChannel)
         {
             unsigned int BSIZE = fNV * fVSIZE;
-            fBuffer = (FAUSTFLOAT*)calloc(BSIZE, sizeof(FAUSTFLOAT));
+            fBuffer = (SAMPLE_TYPE*)calloc(BSIZE, sizeof(SAMPLE_TYPE));
             
             int R0_0 = 0;
             for (int j = 0; j < BSIZE; j++) {
@@ -99,11 +99,11 @@ class dsp_optimizer {
             
             // Allocate output channels (not initialized)
             for (int i = 0; i < numOutChan; i++) {
-                outChannel[i] = (FAUSTFLOAT*)calloc(fVSIZE, sizeof(FAUSTFLOAT));
+                outChannel[i] = (SAMPLE_TYPE*)calloc(fVSIZE, sizeof(SAMPLE_TYPE));
             }
         }
 
-        void freeBuffers(int numOutChan, FAUSTFLOAT** outChannel)
+        void freeBuffers(int numOutChan, SAMPLE_TYPE** outChannel)
         {
             for (int i = 0; i < numOutChan; i++) {
                 free(outChannel[i]);
@@ -112,7 +112,7 @@ class dsp_optimizer {
             free(fBuffer);
         }
 
-        FAUSTFLOAT* nextVect()
+        SAMPLE_TYPE* nextVect()
         {
             fIDX = (1 + fIDX) % fNV;
             return &fBuffer[fIDX * fVSIZE];
@@ -123,8 +123,8 @@ class dsp_optimizer {
             int numInChan = fDSP->getNumInputs();
             int numOutChan = fDSP->getNumOutputs();
             
-            FAUSTFLOAT* inChannel[numInChan];
-            FAUSTFLOAT* outChannel[numOutChan];
+            SAMPLE_TYPE* inChannel[numInChan];
+            SAMPLE_TYPE* outChannel[numOutChan];
             
             fBench->openMeasure();
             
@@ -140,7 +140,8 @@ class dsp_optimizer {
                 // Allocate new input buffers to avoid L2 cache
                 for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
                 fBench->startMeasure();
-                fDSP->compute(fVSIZE, inChannel, outChannel);
+                // Force FAUSTFLOAT type even if dynamic one is different...
+                fDSP->compute(fVSIZE, (FAUSTFLOAT**)inChannel, (FAUSTFLOAT**)outChannel);
                 fBench->stopMeasure();
             }
             
@@ -155,17 +156,21 @@ class dsp_optimizer {
         void init()
         {
             setRealtimePriority();
-            
+         
             // Scalar mode
             std::vector <std::string> t0;
+            if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t0.push_back("-double"); }
             t0.push_back("-scal");
             fOptionsTable.push_back(t0);
+            
+            SAMPLE_TYPE var;
             
             // vec -lv 0
             for (int size = 4; size <= fVSIZE; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
@@ -179,6 +184,7 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
@@ -192,6 +198,7 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
@@ -206,6 +213,7 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");
@@ -220,6 +228,7 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("0");
@@ -234,6 +243,7 @@ class dsp_optimizer {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
+                if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t1.push_back("-double"); }
                 t1.push_back("-vec");
                 t1.push_back("-lv");
                 t1.push_back("1");

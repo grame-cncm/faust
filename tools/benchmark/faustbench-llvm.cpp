@@ -28,28 +28,39 @@
 
 using namespace std;
 
+template <typename T>
+static void bench(dsp_optimizer<T> optimizer, const string& name)
+{
+    double value;
+    vector<string> options = optimizer.findOptimizedParameters(value);
+    cout << "Best value is for '" << name << "' is : " << value << " with ";
+    for (int i = 0; i < options.size(); i++) {
+        cout << options[i] << " ";
+    }
+    cout << endl;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "faustbench-llvm <foo.dsp>" << endl;
+        cout << "faustbench-llvm [-double] <foo.dsp>" << endl;
         return 0;
     }
     
     int index = 1;
+    bool is_double = false;
+    if ((is_double = isopt(argv, "-double"))) index += 1;
     if (isopt(argv, "-vec")) index += 2;
     int buffer_size = lopt(argv, "-vec", 512);
     
     std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
     
     try {
-        dsp_optimizer optimizer(argv[index], "/usr/local/share/faust", "", buffer_size);
-        double value;
-        vector<string> options = optimizer.findOptimizedParameters(value);
-        cout << "Best value is for '" << argv[1] << "' is : " << value << " with ";
-        for (int i = 0; i < options.size(); i++) {
-            cout << options[i] << " ";
+        if (is_double) {
+            bench(dsp_optimizer<double>(argv[index], "/usr/local/share/faust", "", buffer_size), argv[1]);
+        } else {
+            bench(dsp_optimizer<float>(argv[index], "/usr/local/share/faust", "", buffer_size), argv[1]);
         }
-        cout << endl;
     } catch (...) {}
     
   	return 0;
