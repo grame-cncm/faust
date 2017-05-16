@@ -45,6 +45,7 @@ typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
 class clist : public std::list<uiItem*>
 {
+    
     public:
     
         virtual ~clist();
@@ -195,8 +196,8 @@ class uiOwnedItem : public uiItem {
  * Callback Item
  */
 
-struct uiCallbackItem : public uiItem
-{
+struct uiCallbackItem : public uiItem {
+    
 	uiCallback	fCallback;
 	void*		fData;
 	
