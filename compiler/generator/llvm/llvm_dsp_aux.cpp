@@ -599,8 +599,10 @@ int llvm_dsp_factory_aux::getOptlevel()
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &FPM,
-                                    unsigned OptLevel, unsigned SizeLevel) 
+static void AddOptimizationPasses(PassManagerBase &MPM,
+                                  FUNCTION_PASS_MANAGER &FPM,
+                                  unsigned OptLevel,
+                                  unsigned SizeLevel)
 {
     FPM.add(createVerifierPass());                  // Verify that input is correct
     
@@ -623,7 +625,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM, FUNCTION_PASS_MANAGER &F
     #if defined(LLVM_40)
         Builder.Inliner = createAlwaysInlinerLegacyPass();
     #else
-         Builder.Inliner = createAlwaysInlinerPass();
+        Builder.Inliner = createAlwaysInlinerPass();
     #endif
     }
       
@@ -750,6 +752,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : cpu);
     #else
         builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : StringRef(cpu));
+        //std::cout << "llvm::sys::getHostCPUName()" << llvm::sys::getHostCPUName().data() << std::endl;
     #endif
         
         TargetOptions targetOptions;

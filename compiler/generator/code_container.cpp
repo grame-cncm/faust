@@ -656,8 +656,11 @@ void CodeContainer::processFIR(void)
     }
     
     // Sort struct fields by size and type
+    // 05/16/17 : deactivated since it slows down the code...
+    /*
     fDeclarationInstructions->fCode.sort(sortArrayDeclarations);
     fDeclarationInstructions->fCode.sort(sortTypeDeclarations);
+    */
 }
 
 BlockInst* CodeContainer::flattenFIR(void)
