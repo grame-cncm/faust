@@ -85,7 +85,7 @@ extern "C" int bench_all(const char* name)
     vector<double> measures;
     vector<string> options;
     
-    cout << "DSP bench of " << name << " compiled in C++" << endl;
+    cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
     
     options.push_back("-scal");
     
