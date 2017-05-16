@@ -439,13 +439,15 @@ static Type infereReadTableType(Type tbl, Type ri)
         error << "ERROR infering read table type, wrong write index type : " << ri << endl;
         throw faustexception(error.str());
 	}
+    Type temp = makeSimpleType(
+        tbl->nature(),
+        ri->variability(),
+        kInit | ri->computability(),
+        ri->vectorability(),
+        tbl->boolean(),
+        tbl->getInterval());
 
-	Type temp =  tt->content()->promoteVariability(ri->variability()|tt->variability())
-	  ->promoteComputability(ri->computability()|tt->computability())
-	  ->promoteVectorability(ri->vectorability()|tt->vectorability())
-	  ->promoteBoolean(ri->boolean()|tt->boolean());
-
-	return temp;
+    return temp;
 }
 
 static Type infereDocConstantTblType(Type size, Type init)
