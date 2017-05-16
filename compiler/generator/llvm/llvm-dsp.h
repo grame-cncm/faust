@@ -108,10 +108,13 @@ class llvm_dsp_factory : public dsp_factory {
         /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Create a new dsp instance, to be deleted with C++ 'delete' before the DSP factory is itself deleted */
+        /* Create a new dsp instance, to be deleted with C++ 'delete' (before the DSP factory is itself deleted) */
         llvm_dsp* createDSPInstance();
     
-        /* Create a new dsp instance, to be deleted with deleteDSPInstance */
+        /* 
+         * Create a new dsp instance, allocted with MemoryNew manager, to be deleted with deleteDSPInstance 
+         * (before the DSP factory is itself deleted) 
+         */
         llvm_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
     
         /* Delete a dsp instance, using the MemoryFree manager*/
