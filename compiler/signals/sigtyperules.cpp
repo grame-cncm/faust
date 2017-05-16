@@ -457,8 +457,9 @@ static Type infereWriteTableType(Type tbl, Type wi, Type wd)
  */
 static Type infereReadTableType(Type tbl, Type ri)
 {
-	TableType*	tt = isTableType(tbl);
-	if (tt == 0) {
+    //cout << "infereReadTableType (" << *tbl << ", " << *ri << ")" << endl;
+    TableType *tt = isTableType(tbl);
+    if (tt == 0) {
 		cerr << "ERROR inferring read table type, wrong table type : " << tbl << endl;
 		exit(1);
 	}
@@ -467,14 +468,17 @@ static Type infereReadTableType(Type tbl, Type ri)
 		cerr << "ERROR inferring read table type, wrong write index type : " << ri << endl;
 		exit(1);
 	}
+    Type temp = makeSimpleType(
+        tbl->nature(),
+        ri->variability(),
+        kInit | ri->computability(),
+        ri->vectorability(),
+        tbl->boolean(),
+        tbl->getInterval());
 
-	Type temp =  tt->content()->promoteVariability(ri->variability()|tt->variability())
-	  ->promoteComputability(ri->computability()|tt->computability())
-	  ->promoteVectorability(ri->vectorability()|tt->vectorability())
-	  ->promoteBoolean(ri->boolean()|tt->boolean())
-	  ;
+    //cout << "infereReadTableType (" << *tbl << ", " << *ri << ") -> " << *temp << endl;
 
-	return temp;
+    return temp;
 
 }
 

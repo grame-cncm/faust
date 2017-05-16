@@ -35,9 +35,15 @@
 using namespace std;
 
 #if defined(__GNUC__) && __GNUC__ >= 4
-# define FAUST_EXPORT __attribute__((visibility("default")))
+    #define FAUST_EXPORT __attribute__((visibility("default")))
 #else
-# define FAUST_EXPORT  SC_API_EXPORT
+    #define FAUST_EXPORT  SC_API_EXPORT
+#endif
+
+#ifdef WIN32
+    #define STRDUP _strdup
+#else
+    #define STRDUP strdup
 #endif
 
 //----------------------------------------------------------------------------
@@ -238,7 +244,7 @@ static std::string normalizeClassName(const std::string& name);
 
 void initState(const std::string& name, int sampleRate)
 {
-    g_unitName = strdup(name.c_str());
+    g_unitName = STRDUP(name.c_str());
 
     mydsp* dsp = new FAUSTCLASS;
     ControlCounter* cc = new ControlCounter;
@@ -321,9 +327,9 @@ inline static void copyBuffer(float* dst, int n, float* src)
 inline static void Faust_updateControls(Faust* unit)
 {
     Control* controls = unit->mControls;
-    int numControls   = unit->mNumControls;
-    int curControl    = unit->mDSP->getNumInputs();
-    for (int i=0; i < numControls; ++i) {
+    size_t numControls = unit->mNumControls;
+    int curControl = unit->mDSP->getNumInputs();
+    for (int i = 0; i < numControls; ++i) {
         float value = IN0(curControl);
         (controls++)->update(value);
         curControl++;
