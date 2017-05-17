@@ -109,13 +109,13 @@ static bool hasMIDISync()
 
 int main(int argc, char *argv[])
 {
-	char name[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char name[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
-    
+    snprintf(name, 255, "%s", basename(argv[0]));
+    snprintf(rcfilename, 255, "%s/.%src", home, name);
+
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 128);
      
@@ -144,20 +144,20 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
-    
+
 #endif
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
- 
+
     QApplication myApp(argc, argv);
-    
-	QTGUI* interface = new QTGUI();
-	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
-    
+
+    QTGUI* interface = new QTGUI();
+    FUI* finterface	= new FUI();
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(finterface);
+
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
     MidiUI midiinterface(&midi_handler);
@@ -169,46 +169,50 @@ int main(int argc, char *argv[])
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
- #endif
+#endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(name, argc, argv);
+    DSP->buildUserInterface(oscinterface);
 #endif
-    
-	portaudio audio(srate, fpb);
-	audio.init(name, DSP);
-	finterface->recallState(rcfilename);
-	audio.start();
-    
+
+    portaudio audio(srate, fpb);
+    audio.init(name, DSP);
+    finterface->recallState(rcfilename);
+    audio.start();
+
     printf("ins %d\n", audio.get_num_inputs());
     printf("outs %d\n", audio.get_num_outputs());
-    
+
 #ifdef HTTPCTRL
-	httpdinterface.run();
+    httpdinterface.run();
 #ifdef QRCODECTRL
     interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface->run();
-	
+    interface->run();
+
     myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     interface->stop();
-    
-	audio.stop();
-	finterface->saveState(rcfilename);
-    
-  	return 0;
+
+#ifdef MIDICTRL
+    midiinterface.stop();
+#endif
+
+    audio.stop();
+    finterface->saveState(rcfilename);
+
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

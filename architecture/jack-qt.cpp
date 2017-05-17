@@ -240,6 +240,10 @@ int main(int argc, char *argv[])
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
     interface.stop();
+    
+#ifdef MIDICTRL
+    midiinterface->stop();
+#endif
 
     audio.stop();
     finterface.saveState(rcfilename);

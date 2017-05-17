@@ -365,12 +365,15 @@ int main(int argc, char *argv[])
 
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
+#ifdef MIDICTRL
+    midiinterface.stop();
+#endif
     interface.stop();
-    
-	audio.stop();
-	finterface.saveState(rcfilename);
 
-  	return 0;
+    audio.stop();
+    finterface.saveState(rcfilename);
+
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
