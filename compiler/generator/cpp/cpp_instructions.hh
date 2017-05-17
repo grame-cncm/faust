@@ -103,9 +103,9 @@ class CPPInstVisitor : public TextInstVisitor {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
+                *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ")";
             } else {
-                *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << "," << "&" << inst->fZone << ")"; 
+                *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ")"; 
             }
             EndLine();
         }
