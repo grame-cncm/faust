@@ -17,6 +17,7 @@ dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 
 install:
 
+	cp faustbench /usr/local/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk  /usr/local/bin || echo dynamic-jack-gtk not found
 	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  /usr/local/bin || echo dynamic-jack-gtk-plugin not found
 	([ -e faustbench-llvm ]) && cp faustbench-llvm /usr/local/bin || echo faustbench-llvm not found

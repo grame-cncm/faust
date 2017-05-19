@@ -756,13 +756,22 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     #endif
         
         TargetOptions targetOptions;
-        //targetOptions.NoFramePointerElim = true;
-        //targetOptions.LessPreciseFPMADOption = true;
-        /*
+        
+        // -fastmath is activated at IR level, and needs to be setup at JIT level also
+        
+     #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+        targetOptions.LessPreciseFPMADOption = true;
+        targetOptions.AllowFPOpFusion = FPOpFusion::Fast;
         targetOptions.UnsafeFPMath = true;
         targetOptions.NoInfsFPMath = true;
         targetOptions.NoNaNsFPMath = true;
-        */
+        targetOptions.GuaranteedTailCallOpt = true;
+    #endif
+    
+    #if defined(LLVM_40)
+        targetOptions.NoTrappingFPMath = true;
+        targetOptions.FPDenormalMode = FPDenormal::IEEE;
+    #endif
         
         targetOptions.GuaranteedTailCallOpt = true;
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
