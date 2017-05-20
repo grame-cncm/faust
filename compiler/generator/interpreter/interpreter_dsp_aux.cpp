@@ -136,11 +136,29 @@ EXPORT interpreter_dsp::~interpreter_dsp()
     delete fDSP;
 }
 
+void interpreter_dsp::destroy(MemoryFree manager, void* arg)
+{
+    gInterpreterFactoryTable.removeDSP(fFactory, this);
+    manager(fDSP, arg);
+}
+
 EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
     gInterpreterFactoryTable.addDSP(this, dsp);
     return reinterpret_cast<interpreter_dsp*>(dsp);
+}
+
+EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance(MemoryNew manager, void* arg)
+{
+    dsp* dsp = fFactory->createDSPInstance(this, manager, arg);
+    gInterpreterFactoryTable.addDSP(this, dsp);
+    return reinterpret_cast<interpreter_dsp*>(dsp);
+}
+
+EXPORT void interpreter_dsp_factory::deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg)
+{
+    fFactory->deleteDSPInstance(this, dsp, manager, arg);
 }
 
 // Read/write
