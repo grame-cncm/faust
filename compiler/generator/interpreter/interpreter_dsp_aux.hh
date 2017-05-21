@@ -74,7 +74,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                                 const std::string& sha_key,
                                 const std::vector<std::string>& pathname_list,
                                 int version_num,
-                                int inputs, int ouputs,
+                                int inputs, int outputs,
                                 int int_heap_size, int real_heap_size,
                                 int sr_offset,
                                 int count_offset,
@@ -91,7 +91,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     :dsp_factory_imp(name, sha_key, "", pathname_list),
     fVersion(version_num),
     fNumInputs(inputs),
-    fNumOutputs(ouputs),
+    fNumOutputs(outputs),
     fIntHeapSize(int_heap_size),
     fRealHeapSize(real_heap_size),
     fSROffset(sr_offset),
@@ -638,14 +638,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 	
     protected:
     
-        //interpreter_dsp_factory_aux<T>* fFactory;
-    
+        /*
         FIRBlockInstruction<T>* fStaticInitBlock;
         FIRBlockInstruction<T>* fInitBlock;
         FIRBlockInstruction<T>* fResetUIBlock;
         FIRBlockInstruction<T>* fClearBlock;
         FIRBlockInstruction<T>* fComputeBlock;
         FIRBlockInstruction<T>* fComputeDSPBlock;
+        */
     
         std::map<int, int> fIntMap;
         std::map<int, T> fRealMap;
@@ -680,12 +680,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             std::cout << "size " << fFactory->fComputeDSPBlock->size() << std::endl;
             */
          
+            /*
             this->fStaticInitBlock = 0;
             this->fInitBlock = 0;
             this->fResetUIBlock = 0;
             this->fClearBlock = 0;
             this->fComputeBlock = 0;
             this->fComputeDSPBlock = 0;
+            */
         #ifdef INTERPRETER_TRACE
             this->fInitialized = false;
         #endif
@@ -718,7 +720,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
         virtual int getSampleRate()
         {
-            return this->fIntMap[this->fSROffset];
+            return this->fIntMap[this->fFactory->fSROffset];
         }
     
         // to be implemented by subclass
@@ -757,10 +759,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         virtual void instanceConstants(int samplingRate)
         {
             // Store samplingRate in specialization fIntMap
-            this->fIntMap[this->fSROffset] = samplingRate;
+            this->fIntMap[this->fFactory->fSROffset] = samplingRate;
             
             // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-            this->fIntHeap[this->fSROffset] = samplingRate;
+            this->fIntHeap[this->fFactory->fSROffset] = samplingRate;
             
             // Execute state init instructions
             this->ExecuteBlock(this->fFactory->fInitBlock);
@@ -869,7 +871,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
                 }
                 
                 // Set count in 'count' variable at the correct offset in fIntHeap
-                this->fIntHeap[this->fCountOffset] = count;
+                this->fIntHeap[this->fFactory->fCountOffset] = count;
                 
                 // Executes the 'control' block
                 this->ExecuteBlock(this->fFactory->fComputeBlock);
@@ -940,10 +942,10 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
         {
             // Allocate and set downsampled inputs/outputs
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-                this->fInputs[i] = new T[2048];
+                this->fInputs[i] = (this->fFactory->getMemoryManager()) ? static_cast<T*>(this->fFactory->allocate(sizeof(T) * 2048)) :  new T[2048];
             }
             for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-                this->fOutputs[i] = new T[2048];
+                this->fOutputs[i] = (this->fFactory->getMemoryManager()) ? static_cast<T*>(this->fFactory->allocate(sizeof(T) * 2048)) :  new T[2048];
             }
         }
         
@@ -951,10 +953,10 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T> {
         {
             // Delete downsampled inputs/outputs
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-                delete [] this->fInputs[i];
+                (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fInputs[i]) : delete [] this->fInputs[i];
             }
             for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-                delete [] this->fOutputs[i];
+                (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fOutputs[i]) : delete [] this->fOutputs[i];
             }
         }
     

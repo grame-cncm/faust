@@ -53,11 +53,6 @@ class FIRInterpreter  {
         int* fIntHeap;
         T* fRealHeap;
     
-        int fRealHeapSize;
-        int fIntHeapSize;
-        int fSROffset;
-        int fCountOffset;
-    
         int fRealStackSize;
         int fIntStackSize;
     
@@ -167,9 +162,9 @@ class FIRInterpreter  {
         
         inline int assert_int_heap(InstructionIT it, int index, int size = -1)
         {
-            if ((index < 0) || (index >= fIntHeapSize) || (size > 0 && index >= size)) {
+            if ((index < 0) || (index >= fFactory->fIntHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_int_heap : fIntHeapSize " << fIntHeapSize  << " index " << index << " size " << size << std::endl;
+                std::cout << "assert_int_heap : fIntHeapSize " << fFactory->fIntHeapSize  << " index " << index << " size " << size << std::endl;
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
@@ -180,9 +175,9 @@ class FIRInterpreter  {
         
         inline int assert_real_heap(InstructionIT it, int index, int size = -1)
         {
-            if ((index < 0) || (index >= fRealHeapSize) || (size > 0 && index >= size)) {
+            if ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && index >= size)) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_real_heap : fRealHeapSize " << fRealHeapSize  << " index " << index << " size " << size << std::endl;
+                std::cout << "assert_real_heap : fRealHeapSize " << fFactory->fRealHeapSize  << " index " << index << " size " << size << std::endl;
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
@@ -2452,23 +2447,17 @@ class FIRInterpreter  {
             
             fFactory = factory;
             
-            // HEAP
-            fRealHeapSize = factory->fRealHeapSize;
-            fIntHeapSize = factory->fIntHeapSize;
-            fSROffset = factory->fSROffset;
-            fCountOffset = factory->fCountOffset;
-            
-            if (factory->getMemoryManager()) {
-                fRealHeap = static_cast<T*>(factory->allocate(sizeof(T) * fRealHeapSize));
-                fIntHeap = static_cast<int*>(factory->allocate(sizeof(T) * fIntHeapSize));
+            if (fFactory->getMemoryManager()) {
+                fRealHeap = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
+                fIntHeap = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
             } else {
-                fRealHeap = new T[fRealHeapSize];
-                fIntHeap = new int[fIntHeapSize];
+                fRealHeap = new T[fFactory->fRealHeapSize];
+                fIntHeap = new int[fFactory->fIntHeapSize];
             }
             
             // Initialise HEAP with 0
-            memset(fRealHeap, 0, fRealHeapSize * sizeof(T));
-            memset(fIntHeap, 0, fIntHeapSize * sizeof(int));
+            memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));
+            memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
             
             // Stack
             fRealStackSize = 512;
