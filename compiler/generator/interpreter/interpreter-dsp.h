@@ -100,17 +100,21 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Create a new dsp instance, to be deleted with C++ 'delete' (before the DSP factory is itself deleted) */
-        interpreter_dsp* createDSPInstance();
-    
         /*
-         * Create a new dsp instance, allocted with MemoryNew manager, to be deleted with deleteDSPInstance
+         * Create a new DSP instance, to be deleted with C++ 'delete',
+         * or deleteDSPInstance if a custom memory manager has been setup
          * (before the DSP factory is itself deleted)
          */
-        interpreter_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
+        interpreter_dsp* createDSPInstance();
         
-        /* Delete a dsp instance, using the MemoryFree manager*/
-        interpreter_dsp* deleteDSPInstance(dsp_factory* factory, MemoryFree manager, void* arg);
+        /* Delete the DSP instance, to be used when a custom memory manager has been setup (using setMemoryManager) */
+        void deleteDSPInstance(dsp* dsp);
+        
+        /* Set a custom memory manager */
+        void setMemoryManager(dsp_memory_manager* manager);
+        
+        /* Return the currently set custom memory manager */
+        dsp_memory_manager* getMemoryManager();
 
 };
 

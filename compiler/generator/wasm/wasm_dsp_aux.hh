@@ -58,10 +58,10 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
     
         wasm_dsp* createDSPInstance() { return nullptr; }
+       void deleteDSPInstance(dsp* dsp) {}
     
-        wasm_dsp* createDSPInstance(MemoryNew manager, void* arg) { return nullptr; }
-    
-        void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg) {}
+        void setMemoryManager(dsp_memory_manager* manager) {}
+        dsp_memory_manager* getMemoryManager() { return nullptr; }
     
         void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
         void writeAux(std::ostream* out, bool binary, bool small = false) { fFactory->writeAux(out, binary, small); }

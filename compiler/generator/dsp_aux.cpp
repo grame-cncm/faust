@@ -212,10 +212,29 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     return "\"" + res3 + "\"";
 }
 
+void* dsp_factory_imp::allocate(size_t size)
+{
+    if (fManager) {
+        return fManager->allocate(size);
+    } else {
+        faustassert(false);
+        return nullptr;
+    }
+}
+
+void dsp_factory_imp::destroy(void* ptr)
+{
+    if (fManager) {
+        fManager->destroy(ptr);
+    } else {
+        faustassert(false);
+    }
+}
+
 // External libfaust API
 
-EXPORT string expandDSPFromFile(const string& filename, 
-                                int argc, const char* argv[], 
+EXPORT string expandDSPFromFile(const string& filename,
+                                int argc, const char* argv[],
                                 string& sha_key,
                                 string& error_msg)
 {

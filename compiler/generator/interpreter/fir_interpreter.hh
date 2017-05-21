@@ -39,11 +39,16 @@
 
 //#define INTERPRETER_TRACE 1
 
+template <class T>
+struct interpreter_dsp_factory_aux;
+
 // FIR bytecode interpreter
 template <class T>
 class FIRInterpreter  {
     
     protected:
+    
+        interpreter_dsp_factory_aux<T>* fFactory;
     
         int* fIntHeap;
         T* fRealHeap;
@@ -2435,7 +2440,7 @@ class FIRInterpreter  {
     
     public:
     
-        FIRInterpreter(int int_heap_size, int real_heap_size, int sr_offset, int count_offset)
+        FIRInterpreter(interpreter_dsp_factory_aux<T>* factory)
         {
             /*
             std::cout << "FIRInterpreter :"
@@ -2445,17 +2450,25 @@ class FIRInterpreter  {
                     << " count_offset " << count_offset << std::endl;
             */
             
+            fFactory = factory;
+            
             // HEAP
-            fRealHeapSize = real_heap_size;
-            fIntHeapSize = int_heap_size;
-            fSROffset = sr_offset;
-            fCountOffset = count_offset;
-            fRealHeap = new T[real_heap_size];
-            fIntHeap = new int[int_heap_size];
+            fRealHeapSize = factory->fRealHeapSize;
+            fIntHeapSize = factory->fIntHeapSize;
+            fSROffset = factory->fSROffset;
+            fCountOffset = factory->fCountOffset;
+            
+            if (factory->getMemoryManager()) {
+                fRealHeap = static_cast<T*>(factory->allocate(sizeof(T) * fRealHeapSize));
+                fIntHeap = static_cast<int*>(factory->allocate(sizeof(T) * fIntHeapSize));
+            } else {
+                fRealHeap = new T[fRealHeapSize];
+                fIntHeap = new int[fIntHeapSize];
+            }
             
             // Initialise HEAP with 0
-            memset(fRealHeap, 0, real_heap_size * sizeof(T));
-            memset(fIntHeap, 0, int_heap_size * sizeof(int));
+            memset(fRealHeap, 0, fRealHeapSize * sizeof(T));
+            memset(fIntHeap, 0, fIntHeapSize * sizeof(int));
             
             // Stack
             fRealStackSize = 512;
@@ -2464,8 +2477,13 @@ class FIRInterpreter  {
     
         virtual ~FIRInterpreter()
         {
-            delete [] fRealHeap;
-            delete [] fIntHeap;
+            if (fFactory->getMemoryManager()) {
+                fFactory->destroy(fRealHeap);
+                fFactory->destroy(fIntHeap);
+            } else {
+                delete [] fRealHeap;
+                delete [] fIntHeap;
+            }
         }
     
         // Freeze values

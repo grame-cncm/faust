@@ -34,11 +34,9 @@
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 
+struct dsp_memory_manager;
 class dsp_factory;
 class dsp;
-
-typedef void* (* MemoryNew) (size_t size, void* arg);
-typedef void (* MemoryFree) (void* ptr, void* arg);
 
 /*
  In order to better separate compilation and execution for dynamic backends (LLVM, interpreter, asm.js, WebAssembly).
@@ -63,9 +61,14 @@ class dsp_factory_base {
         virtual void setDSPCode(const std::string& code) = 0;
     
         virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
-        virtual dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg) = 0;
     
-        virtual void deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg) = 0;
+        virtual void deleteDSPInstance(dsp* dsp) = 0;
+    
+        virtual void setMemoryManager(dsp_memory_manager* manager) = 0;
+        virtual dsp_memory_manager* getMemoryManager() = 0;
+    
+        virtual void* allocate(size_t size) = 0;
+        virtual void destroy(void* ptr) = 0;
     
         virtual void metadata(Meta* meta) = 0;
     
@@ -90,6 +93,7 @@ class dsp_factory_imp : public dsp_factory_base {
         std::string fSHAKey;
         std::string fExpandedDSP;
         std::vector<std::string> fPathnameList;
+        dsp_memory_manager* fManager;
     
     public:
     
@@ -97,13 +101,13 @@ class dsp_factory_imp : public dsp_factory_base {
                         const std::string& sha_key,
                         const std::string& dsp,
                         const std::vector<std::string>& pathname_list)
-            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fPathnameList(pathname_list)
+            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fPathnameList(pathname_list), fManager(nullptr)
         {}
     
         dsp_factory_imp(const std::string& name,
                         const std::string& sha_key,
                         const std::string& dsp)
-            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp)
+            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fManager(nullptr)
         {}
         
         virtual ~dsp_factory_imp()
@@ -134,10 +138,15 @@ class dsp_factory_imp : public dsp_factory_base {
         void setDSPCode(const std::string& code) { fExpandedDSP = code; }
     
         virtual dsp* createDSPInstance(dsp_factory* factory) { faustassert(false); return nullptr; }
-        virtual dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg) { faustassert(false);  return nullptr; }
     
-        virtual void deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg) { faustassert(false); }
-        
+        virtual void deleteDSPInstance(dsp* dsp) { faustassert(false); }
+    
+        virtual void setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
+        virtual dsp_memory_manager* getMemoryManager() { return fManager; }
+    
+        virtual void* allocate(size_t size);
+        virtual void destroy(void* ptr);
+    
         virtual void metadata(Meta* meta) { faustassert(false); }
     
         virtual void write(std::ostream* out, bool binary = false, bool small = false) {}

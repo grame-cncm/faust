@@ -92,10 +92,10 @@ class llvm_dsp_factory : public dsp_factory {
         virtual ~llvm_dsp_factory();
         
         /**
-        *  Return factory name:
-        *  either the name declared in DSP with [declare name "foo"] syntax
-        *  or 'filename' (if createDSPFactoryFromFile is used)
-        *  or 'name_app' (if createDSPFactoryFromString is used)
+         *  Return factory name:
+         *  either the name declared in DSP with [declare name "foo"] syntax
+         *  or 'filename' (if createDSPFactoryFromFile is used)
+         *  or 'name_app' (if createDSPFactoryFromString is used)
         */
         std::string getName();
         
@@ -108,18 +108,21 @@ class llvm_dsp_factory : public dsp_factory {
         /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /* Create a new dsp instance, to be deleted with C++ 'delete' (before the DSP factory is itself deleted) */
+        /* 
+         * Create a new DSP instance, to be deleted with C++ 'delete', 
+         * or deleteDSPInstance if a custom memory manager has been setup
+         * (before the DSP factory is itself deleted)
+         */
         llvm_dsp* createDSPInstance();
     
-        /* 
-         * Create a new dsp instance, allocted with MemoryNew manager, to be deleted with deleteDSPInstance 
-         * (before the DSP factory is itself deleted) 
-         */
-        llvm_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
+        /* Delete the DSP instance, to be used when a custom memory manager has been setup (using setMemoryManager) */
+        void deleteDSPInstance(dsp* dsp);
     
-        /* Delete a dsp instance, using the MemoryFree manager*/
-        llvm_dsp* deleteDSPInstance(dsp_factory* factory, MemoryFree manager, void* arg);
-
+        /* Set a custom memory manager */
+        void setMemoryManager(dsp_memory_manager* manager);
+    
+        /* Return the currently set custom memory manager */
+        dsp_memory_manager* getMemoryManager();
 };
 
 /**

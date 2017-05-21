@@ -70,17 +70,21 @@ inline std::string pathToContent(const std::string& path)
     return result;
 }
 
-// Standard memory manager
-static void* malloc_manager(size_t size, void* arg)
-{
-    std::cout << "malloc_manager : " << size << std::endl;
-    return malloc(size);
-}
-static void free_manager(void* ptr, void* arg)
-{
-    std::cout << "free_manager : " << ptr << std::endl;
-    free(ptr);
-}
+struct malloc_memory_manager : public dsp_memory_manager {
+    
+    void* allocate(size_t size)
+    {
+        void* res = malloc(size);
+        std::cout << "malloc_manager : " << size << " " << res << std::endl;
+        return res;
+    }
+    virtual void destroy(void* ptr)
+    {
+        std::cout << "free_manager : " << ptr << std::endl;
+        free(ptr);
+    }
+    
+};
 
 int main(int argc, char *argv[])
 {
@@ -90,6 +94,7 @@ int main(int argc, char *argv[])
     
     bool midi_sync = false;
     int nvoices = 0;
+    malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
     #ifdef INTERP_PLUGIN
@@ -137,8 +142,8 @@ int main(int argc, char *argv[])
 #endif
     
     if (factory) {
-        //DSP = factory->createDSPInstance();
-        DSP = factory->createDSPInstance(malloc_manager, nullptr);
+        factory->setMemoryManager(&manager);
+        DSP = factory->createDSPInstance();
         assert(DSP);
     } else {
         std::cout << "Cannot create factory : " << error_msg << std::endl;
@@ -206,7 +211,9 @@ int main(int argc, char *argv[])
     finterface->saveState(rcfilename);
     
     //delete DSP;
-    factory->deleteDSPInstance(DSP, free_manager, nullptr);
+    factory->deleteDSPInstance(DSP);
+    
+    //DSP->~dsp();
     
     delete interface;
     delete finterface;

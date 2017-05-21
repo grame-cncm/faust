@@ -99,27 +99,34 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
-
 // Standard memory manager
-static void* malloc_manager(size_t size, void* arg)
-{
-    return malloc(size);
-}
-static void free_manager(void* ptr, void* arg)
-{
-    free(ptr);
-}
+struct malloc_memory_manager : public dsp_memory_manager {
+    
+    void* allocate(size_t size)
+    {
+        void* res = malloc(size);
+        //std::cout << "malloc_manager : " << size << " " << res << std::endl;
+        return res;
+    }
+    virtual void destroy(void* ptr)
+    {
+        //std::cout << "free_manager : " << ptr << std::endl;
+        free(ptr);
+    }
+    
+};
 
 static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false)
 {
     char rcfilename[256];
     dsp* DSP = nullptr;
+    malloc_memory_manager manager;
     
     if (is_mem_alloc) {
-        DSP = factory->createDSPInstance(malloc_manager, nullptr);
-    } else {
-        DSP = factory->createDSPInstance();
+        factory->setMemoryManager(&manager);
     }
+    
+    DSP = factory->createDSPInstance();
     if (!DSP) {
         exit(-1);
     }
@@ -214,11 +221,7 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
         cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
     
-    if (is_mem_alloc) {
-        factory->deleteDSPInstance(DSP, free_manager, nullptr);
-    } else {
-        delete DSP;
-    }
+    factory->deleteDSPInstance(DSP);
 }
 
 int main(int argc, char* argv[])

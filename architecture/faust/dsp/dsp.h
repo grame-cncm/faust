@@ -176,11 +176,19 @@ class decorator_dsp : public dsp {
 };
 
 /**
- * DSP factory class
+ * DSP memory manager.
  */
 
-typedef void* (* MemoryNew) (size_t size, void* arg);
-typedef void (* MemoryFree) (void* ptr, void* arg);
+struct dsp_memory_manager {
+    
+    virtual void* allocate(size_t size) = 0;
+    virtual void destroy(void* ptr) = 0;
+    
+};
+
+/**
+ * DSP factory class.
+ */
 
 class dsp_factory {
     
@@ -195,8 +203,10 @@ class dsp_factory {
         virtual std::string getSHAKey() = 0;
         virtual std::string getDSPCode() = 0;
         virtual dsp* createDSPInstance() = 0;
-        virtual dsp* createDSPInstance(MemoryNew manager, void* arg) = 0;
-        virtual void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg) = 0;
+        virtual void deleteDSPInstance(dsp* dsp) = 0;
+    
+        virtual void setMemoryManager(dsp_memory_manager* manager) = 0;
+        virtual dsp_memory_manager* getMemoryManager() = 0;
     
 };
 

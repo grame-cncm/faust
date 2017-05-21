@@ -604,9 +604,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     }
     
     dsp* createDSPInstance(dsp_factory* factory);
-    dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
-    
-    void deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg);
     
 };
 
@@ -641,7 +638,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 	
     protected:
     
-        interpreter_dsp_factory_aux<T>* fFactory;
+        //interpreter_dsp_factory_aux<T>* fFactory;
     
         FIRBlockInstruction<T>* fStaticInitBlock;
         FIRBlockInstruction<T>* fInitBlock;
@@ -660,15 +657,18 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     public:
     
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T>* factory)
-        : FIRInterpreter<T>(factory->fIntHeapSize, factory->fRealHeapSize,
-                            factory->fSROffset, factory->fCountOffset)
+        : FIRInterpreter<T>(factory)
         {
-            fFactory = factory;
-            this->fInputs = new T*[fFactory->fNumInputs];
-            this->fOutputs = new T*[fFactory->fNumOutputs];
+            if (this->fFactory->getMemoryManager()) {
+                this->fInputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
+                this->fOutputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumOutputs));
+            } else {
+                this->fInputs = new T*[this->fFactory->fNumInputs];
+                this->fOutputs = new T*[this->fFactory->fNumOutputs];
+            }
             
             // Comment to allow specialization...
-            fFactory->optimize();
+            this->fFactory->optimize();
             
             /*
             fFactory->fStaticInitBlock->write(&std::cout, false);
@@ -693,14 +693,22 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
         virtual ~interpreter_dsp_aux()
         {
-            delete [] this->fInputs;
-            delete [] this->fOutputs;
+            if (this->fFactory->getMemoryManager()) {
+                this->fFactory->destroy(this->fInputs);
+                this->fFactory->destroy(this->fOutputs);
+            } else {
+                delete [] this->fInputs;
+                delete [] this->fOutputs;
+            }
+            
+            /*
             delete this->fStaticInitBlock;
             delete this->fInitBlock;
             delete this->fResetUIBlock;
             delete this->fClearBlock;
             delete this->fComputeBlock;
             delete this->fComputeDSPBlock;
+            */
         }
     
         virtual void metadata(Meta* meta)
@@ -743,7 +751,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         virtual void classInit(int samplingRate)
         {
             // Execute static init instructions
-            this->ExecuteBlock(fFactory->fStaticInitBlock);
+            this->ExecuteBlock(this->fFactory->fStaticInitBlock);
         }
         
         virtual void instanceConstants(int samplingRate)
@@ -755,19 +763,19 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fIntHeap[this->fSROffset] = samplingRate;
             
             // Execute state init instructions
-            this->ExecuteBlock(fFactory->fInitBlock);
+            this->ExecuteBlock(this->fFactory->fInitBlock);
         }
     
         virtual void instanceResetUserInterface()
         {
             // Execute reset UI instructions
-            this->ExecuteBlock(fFactory->fResetUIBlock);
+            this->ExecuteBlock(this->fFactory->fResetUIBlock);
         }
 
         virtual void instanceClear()
         {
             // Execute clear instructions
-            this->ExecuteBlock(fFactory->fClearBlock);
+            this->ExecuteBlock(this->fFactory->fClearBlock);
         }
     
         virtual void instanceInit(int samplingRate)
@@ -837,7 +845,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         virtual void buildUserInterface(UIGeneric* glue)
         {
             //std::cout << "buildUserInterface" << std::endl;
-            this->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
+            this->ExecuteBuildUserInterface(this->fFactory->fUserInterfaceBlock, glue);
         }
     
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
@@ -864,10 +872,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
                 this->fIntHeap[this->fCountOffset] = count;
                 
                 // Executes the 'control' block
-                this->ExecuteBlock(fFactory->fComputeBlock);
+                this->ExecuteBlock(this->fFactory->fComputeBlock);
                 
                 // Executes the 'DSP' block
-                this->ExecuteBlock(fFactory->fComputeDSPBlock);
+                this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
             }
         }
     
@@ -1011,8 +1019,6 @@ class EXPORT interpreter_dsp : public dsp {
     
         virtual ~interpreter_dsp();
     
-        void destroy(MemoryFree manager, void* arg);
-
         int getNumInputs();
     
         int getNumOutputs();
@@ -1065,9 +1071,12 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     
         interpreter_dsp* createDSPInstance();
     
-        interpreter_dsp* createDSPInstance(MemoryNew manager, void* arg);
+        void deleteDSPInstance(dsp* dsp);
     
-        void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg);
+        void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
+        dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
+    
+        dsp_factory_base* getFactory() { return fFactory; }
     
         void write(std::ostream* out, bool binary = false, bool small = false) { fFactory->write(out, binary, small); }
     
@@ -1076,23 +1085,17 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
 template <class T>
 dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(dsp_factory* factory)
 {
-    return new interpreter_dsp(dynamic_cast<interpreter_dsp_factory*>(factory), new interpreter_dsp_aux<T>(this));
-    //return new interpreter_dsp(dynamic_cast<interpreter_dsp_factory*>(factory), new interpreter_dsp_aux_down<T>(this, 2));
-}
-
-template <class T>
-dsp* interpreter_dsp_factory_aux<T>::createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg)
-{
-     return new (manager(sizeof(interpreter_dsp), arg))
-        interpreter_dsp(dynamic_cast<interpreter_dsp_factory*>(factory),
-                        new (manager(sizeof(interpreter_dsp_aux<T>), arg)) interpreter_dsp_aux<T>(this));
-}
-
-template <class T>
-void interpreter_dsp_factory_aux<T>::deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg)
-{
-    dynamic_cast<interpreter_dsp*>(dsp)->destroy(manager, arg);
-    manager(dsp, arg);
+    interpreter_dsp_factory* tmp = dynamic_cast<interpreter_dsp_factory*>(factory);
+    faustassert(tmp);
+    
+    if (tmp->getMemoryManager()) {
+        return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
+            interpreter_dsp(tmp,
+                new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T>)))
+                    interpreter_dsp_aux<T>(this));
+    } else {
+        return new interpreter_dsp(tmp, new interpreter_dsp_aux<T>(this));
+    }
 }
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);

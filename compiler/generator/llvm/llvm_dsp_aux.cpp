@@ -1038,23 +1038,27 @@ void llvm_dsp_factory_aux::metadata(MetaGlue* glue)
     return fMetadata(glue);
 }
 
+/*
 llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 {
     dsp_imp* dsp = fNew();
     return (dsp) ? new llvm_dsp(dynamic_cast<llvm_dsp_factory*>(factory), dsp) : nullptr;
 }
+*/
 
-llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg)
+llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 {
-    dsp_imp* dsp = reinterpret_cast<dsp_imp*>(manager(fGetSize(), arg));
-    return (dsp) ? new (manager(sizeof(llvm_dsp), arg)) llvm_dsp(dynamic_cast<llvm_dsp_factory*>(factory), dsp) : nullptr;
-}
-
-void llvm_dsp_factory_aux::deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg)
-{
-    faustassert(dynamic_cast<llvm_dsp*>(dsp));
-    dynamic_cast<llvm_dsp*>(dsp)->destroy(manager, arg);
-    manager(dsp, arg);
+    llvm_dsp_factory* tmp = dynamic_cast<llvm_dsp_factory*>(factory);
+    faustassert(tmp);
+    
+    if (tmp->getFactory()->getMemoryManager()) {
+        dsp_imp* dsp = reinterpret_cast<dsp_imp*>(tmp->getFactory()->allocate(fGetSize()));
+        return (dsp) ? new (tmp->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(tmp, dsp) : nullptr;
+    } else {
+        // LLVM module memory code
+        dsp_imp* dsp = fNew();
+        return (dsp) ? new llvm_dsp(tmp, dsp) : nullptr;
+    }
 }
 
 // Instance
@@ -1066,14 +1070,13 @@ llvm_dsp::~llvm_dsp()
 {
     gLLVMFactoryTable.removeDSP(fFactory, this);
     TLock lock(gDSPFactoriesLock);
-    fFactory->getFactory()->fDelete(fDSP);
-}
-
-void llvm_dsp::destroy(MemoryFree manager, void* arg)
-{
-    gLLVMFactoryTable.removeDSP(fFactory, this);
-    TLock lock(gDSPFactoriesLock);
-    manager(fDSP, arg);
+    
+    if (fFactory->getMemoryManager()) {
+        fFactory->getFactory()->destroy(fDSP);
+    } else {
+        // LLVM module memory code
+        fFactory->getFactory()->fDelete(fDSP);
+    }
 }
 
 void llvm_dsp::metadata(Meta* m)
@@ -1588,16 +1591,17 @@ EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
     return reinterpret_cast<llvm_dsp*>(dsp);
 }
 
-EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance(MemoryNew manager, void* arg)
+EXPORT void llvm_dsp_factory::deleteDSPInstance(dsp* dsp)
 {
-    dsp* dsp = fFactory->createDSPInstance(this, manager, arg);
-    gLLVMFactoryTable.addDSP(this, dsp);
-    return reinterpret_cast<llvm_dsp*>(dsp);
-}
-
-EXPORT void llvm_dsp_factory::deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg)
-{
-    fFactory->deleteDSPInstance(this, dsp, manager, arg);
+    llvm_dsp* tmp = dynamic_cast<llvm_dsp*>(dsp);
+    faustassert(tmp);
+    
+    if (fFactory->getMemoryManager()) {
+        tmp->~llvm_dsp();
+        fFactory->destroy(tmp);
+    } else {
+        delete dsp;
+    }
 }
 
 // Public C interface : lock management is done by called C++ API

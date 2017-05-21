@@ -99,9 +99,31 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
-static void runFactory(dsp_factory* factory, const string& file)
+// Standard memory manager
+struct malloc_memory_manager : public dsp_memory_manager {
+    
+    void* allocate(size_t size)
+    {
+        void* res = malloc(size);
+        //std::cout << "malloc_manager : " << size << " " << res << std::endl;
+        return res;
+    }
+    virtual void destroy(void* ptr)
+    {
+        //std::cout << "free_manager : " << ptr << std::endl;
+        free(ptr);
+    }
+    
+};
+
+static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false)
 {
     char rcfilename[256];
+    malloc_memory_manager manager;
+    
+    if (is_mem_alloc) {
+        factory->setMemoryManager(&manager);
+    }
     
     dsp* DSP = factory->createDSPInstance();
     if (!DSP) {
@@ -198,7 +220,7 @@ static void runFactory(dsp_factory* factory, const string& file)
         cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
     
-    delete DSP;
+    factory->deleteDSPInstance(DSP);
 }
 
 inline bool endsWith(std::string const& value, std::string const& ending)
@@ -229,6 +251,7 @@ int main(int argc, char* argv[])
                 exit(-1);
             }
             runFactory(factory, argv[1]);
+            runFactory(factory, argv[1], true);
         }
         
         {
@@ -240,6 +263,7 @@ int main(int argc, char* argv[])
                 exit(-1);
             }
             runFactory(factory, argv[1]);
+            runFactory(factory, argv[1], true);
         }
         
         {
@@ -251,6 +275,7 @@ int main(int argc, char* argv[])
                 exit(-1);
             }
             runFactory(factory, argv[1]);
+            runFactory(factory, argv[1], true);
         }
       
     } else {
@@ -262,6 +287,7 @@ int main(int argc, char* argv[])
             exit(-1);
         }
         runFactory(factory, argv[1]);
+        runFactory(factory, argv[1], true);
     }
   
     return 0;

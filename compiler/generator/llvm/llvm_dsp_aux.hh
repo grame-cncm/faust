@@ -72,8 +72,6 @@ class EXPORT llvm_dsp : public dsp {
         llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp);
         virtual ~llvm_dsp();
     
-        void destroy(MemoryFree manager, void* arg);
-        
         virtual int getNumInputs();
         
         virtual int getNumOutputs();
@@ -207,10 +205,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
    
         llvm_dsp* createDSPInstance(dsp_factory* factory);
     
-        llvm_dsp* createDSPInstance(dsp_factory* factory, MemoryNew manager, void* arg);
-    
-        void deleteDSPInstance(dsp_factory* factory, dsp* dsp, MemoryFree manager, void* arg);
-    
         void write(std::ostream* out, bool binary, bool small = false);
     
         void metadata(Meta* m);
@@ -252,9 +246,10 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         
         llvm_dsp* createDSPInstance();
     
-        llvm_dsp* createDSPInstance(MemoryNew manager, void* arg);
+        void deleteDSPInstance(dsp* dsp);
     
-        void deleteDSPInstance(dsp* dsp, MemoryFree manager, void* arg);
+        void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
+        dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
     
         void write(std::ostream* out, bool binary, bool small = false) {}
         
