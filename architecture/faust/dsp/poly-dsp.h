@@ -333,7 +333,7 @@ struct dsp_voice_group {
             fVoiceGroup->buildUserInterface(ui_interface);
             ui_interface->closeBox();
 
-            // In not group, also add individual voices UI
+            // If not grouped, also add individual voices UI
             if (!fGroupControl) {
                 for (int i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];

@@ -203,8 +203,8 @@ int main(int argc, char *argv[])
      
     audio.start();
 
-    std::cout << "ins " << audio.get_num_inputs() << std::endl;
-    std::cout << "outs " << audio.get_num_outputs() << std::endl;
+    std::cout << "ins " << audio.getNumInputs() << std::endl;
+    std::cout << "outs " << audio.getNumOutputs() << std::endl;
  
 #ifdef HTTPCTRL
     httpdinterface.run();

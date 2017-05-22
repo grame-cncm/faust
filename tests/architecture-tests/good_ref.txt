@@ -514,5 +514,5 @@ sample out 0.089997
 sample out 0.099997
 sample out 0.109997
 sample out 0.119997
-ins -1
-outs -1
+ins 0
+outs 1

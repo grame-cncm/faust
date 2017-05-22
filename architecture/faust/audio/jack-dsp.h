@@ -129,7 +129,7 @@ class jackaudio : public audio {
         }
 
         // Save client connections
-        virtual bool save_connections()
+        virtual bool saveConnections()
         {
             if (fClient) {
                 fConnections.clear();
@@ -163,7 +163,7 @@ class jackaudio : public audio {
         }
 
         // Load client connections
-        void load_connections()
+        void loadConnections()
         {
             std::list<std::pair<std::string, std::string> >::const_iterator it;
             for (it = fConnections.begin(); it != fConnections.end(); it++) {
@@ -241,7 +241,7 @@ class jackaudio : public audio {
         virtual bool init(const char* name, dsp* dsp)
         {
             if (init(name)) {
-                if (dsp) { set_dsp(dsp); }
+                if (dsp) { setDsp(dsp); }
                 return true;
             } else {
                 return false;
@@ -303,9 +303,9 @@ class jackaudio : public audio {
             }
 
             if (fConnections.size() > 0) {
-                load_connections();
+                loadConnections();
             } else if (fAutoConnect) {
-                default_connections();
+                defaultConnections();
             }
 
             return true;
@@ -314,7 +314,7 @@ class jackaudio : public audio {
         virtual void stop()
         {
             if (fClient) {
-                save_connections();
+                saveConnections();
                 jack_deactivate(fClient);
             }
         }
@@ -325,25 +325,25 @@ class jackaudio : public audio {
             fShutdownArg = arg;
         }
 
-        virtual int get_buffer_size() { return jack_get_buffer_size(fClient); }
-        virtual int get_sample_rate() { return jack_get_sample_rate(fClient); }
+        virtual int getBufferSize() { return jack_get_buffer_size(fClient); }
+        virtual int getSampleRate() { return jack_get_sample_rate(fClient); }
 
-        virtual int get_num_inputs()
+        virtual int getNumInputs()
         {
             return fPhysicalInputs.size();
         }
 
-        virtual int get_num_outputs()
+        virtual int getNumOutputs()
         {
             return fPhysicalOutputs.size();
         }
 
         // Additional public API
 
-        jack_client_t* get_client() { return fClient; }
+        jack_client_t* getClient() { return fClient; }
 
         // Connect to physical inputs/outputs
-        void default_connections()
+        void defaultConnections()
         {
             // To avoid feedback at launch time, don't connect hardware inputs
             /*
@@ -356,7 +356,7 @@ class jackaudio : public audio {
             }
         }
 
-        virtual void set_dsp(dsp* dsp)
+        virtual void setDsp(dsp* dsp)
         {
             fDSP = dsp;
 
@@ -378,22 +378,22 @@ class jackaudio : public audio {
         {
             if (driver) {
                 // Connection between drivers
-                jack_port_t* src_port = get_output_port(src);
-                jack_port_t* dst_port = driver->get_input_port(src);
+                jack_port_t* src_port = getOutputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(src);
                 if (src_port && dst_port) {
                     jack_connect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
                 }
             } else if (reverse) {
                 // Connection to physical input
                 if (src > fPhysicalInputs.size()) return;
-                jack_port_t* dst_port = get_input_port(dst);
+                jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     jack_connect(fClient, fPhysicalInputs[src], jack_port_name(dst_port));
                 }
             } else {
                 // Connection to physical output
                 if (dst > fPhysicalOutputs.size()) return;
-                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     jack_connect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst]);
                 }
@@ -404,34 +404,34 @@ class jackaudio : public audio {
         {
             if (driver) {
                 // Connection between drivers
-                jack_port_t* src_port = get_output_port(src);
-                jack_port_t* dst_port = driver->get_input_port(src);
+                jack_port_t* src_port = getOutputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(src);
                 if (src_port && dst_port) {
                     jack_disconnect(fClient, jack_port_name(src_port), jack_port_name(dst_port));
                 }
             } else if (reverse) {
                 // Connection to physical input
                 if (src > fPhysicalInputs.size()) return;
-                jack_port_t* dst_port = get_input_port(dst);
+                jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     jack_disconnect(fClient, fPhysicalInputs[src], jack_port_name(dst_port));
                 }
             } else {
                 // Connection to physical output
                 if (dst > fPhysicalOutputs.size()) return;
-                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     jack_disconnect(fClient, jack_port_name(src_port), fPhysicalOutputs[dst]);
                 }
             }
         }
 
-        bool is_connected(jackaudio* driver, int src, int dst, bool reverse)
+        bool isConnected(jackaudio* driver, int src, int dst, bool reverse)
         {
             if (driver) {
                 // Connection between drivers
-                jack_port_t* src_port = get_output_port(src);
-                jack_port_t* dst_port = driver->get_input_port(src);
+                jack_port_t* src_port = getOutputPort(src);
+                jack_port_t* dst_port = driver->getInputPort(src);
                 if (src_port && dst_port) {
                     return jack_port_connected_to(src_port, jack_port_name(dst_port));
                 } else {
@@ -440,7 +440,7 @@ class jackaudio : public audio {
             } else if (reverse) {
                 // Connection to physical input
                 if (src > fPhysicalInputs.size()) return false;
-                jack_port_t* dst_port = get_input_port(dst);
+                jack_port_t* dst_port = getInputPort(dst);
                 if (dst_port) {
                     return jack_port_connected_to(dst_port, fPhysicalInputs[src]);
                 } else {
@@ -449,7 +449,7 @@ class jackaudio : public audio {
             } else {
                 // Connection to physical output
                 if (dst > fPhysicalOutputs.size()) return false;
-                jack_port_t* src_port = get_output_port(src);
+                jack_port_t* src_port = getOutputPort(src);
                 if (src_port) {
                     return jack_port_connected_to(src_port, fPhysicalOutputs[dst]);
                 } else {
@@ -458,8 +458,8 @@ class jackaudio : public audio {
             }
         }
 
-        jack_port_t* get_input_port(int port)  { return (port >= 0 && port < fInputPorts.size()) ? fInputPorts[port] : 0; }
-        jack_port_t* get_output_port(int port) { return (port >= 0 && port < fOutputPorts.size()) ? fOutputPorts[port] : 0; }
+        jack_port_t* getInputPort(int port)  { return (port >= 0 && port < fInputPorts.size()) ? fInputPorts[port] : 0; }
+        jack_port_t* getOutputPort(int port) { return (port >= 0 && port < fOutputPorts.size()) ? fOutputPorts[port] : 0; }
 
 };
 
@@ -472,9 +472,9 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
         jack_port_t* fInputMidiPort;       // JACK input MIDI port
         jack_port_t* fOutputMidiPort;      // JACK output MIDI port
 
-        virtual bool save_connections()
+        virtual bool saveConnections()
         {
-            if (jackaudio::save_connections()) { // Audio connections can be saved, so try MIDI
+            if (jackaudio::saveConnections()) { // Audio connections can be saved, so try MIDI
                 
                 if (fInputMidiPort) {
                     const char** connected_port = jack_port_get_all_connections(fClient, fInputMidiPort);
@@ -571,7 +571,7 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
         virtual bool init(const char* name, dsp* dsp, bool midi = false)
         {
             if (jackaudio::init(name)) {
-                if (dsp) { set_dsp(dsp); }
+                if (dsp) { setDsp(dsp); }
                 if (midi) {
                     fInputMidiPort = jack_port_register(fClient, "midi_in_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsInput, 0);
                     fOutputMidiPort = jack_port_register(fClient, "midi_out_1", JACK_DEFAULT_MIDI_TYPE, JackPortIsOutput, 0);

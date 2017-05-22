@@ -142,8 +142,11 @@ class dummyaudio : public audio {
             }
         }
 
-        virtual int get_buffer_size() { return fBufferSize; }
-        virtual int get_sample_rate() { return fSampleRate; }
+        virtual int getBufferSize() { return fBufferSize; }
+        virtual int getSampleRate() { return fSampleRate; }
+    
+        virtual int getNumInputs() { return fDSP->getNumInputs(); }
+        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
     
 };
 					

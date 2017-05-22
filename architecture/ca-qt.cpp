@@ -343,8 +343,8 @@ int main(int argc, char *argv[])
 	sensors.start();
 #endif
 	
-    printf("ins %d\n", audio.get_num_inputs());
-    printf("outs %d\n", audio.get_num_outputs());
+    printf("ins %d\n", audio.getNumInputs());
+    printf("outs %d\n", audio.getNumOutputs());
 
 #ifdef HTTPCTRL
 	httpdinterface.run();
@@ -365,12 +365,15 @@ int main(int argc, char *argv[])
 
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
+#ifdef MIDICTRL
+    midiinterface.stop();
+#endif
     interface.stop();
-    
-	audio.stop();
-	finterface.saveState(rcfilename);
 
-  	return 0;
+    audio.stop();
+    finterface.saveState(rcfilename);
+
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

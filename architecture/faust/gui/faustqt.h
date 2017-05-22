@@ -1624,7 +1624,7 @@ public:
         QObject::connect(w, SIGNAL(valueChanged(double)), c, SLOT(setValue(double)));
         if (label && label[0]) closeBox();
         checkForTooltip(zone, w);
-        clearMetadata();
+        // Metadata is not cleared here, since it will be by the enclosing element calling addNumDisplay
     }
     
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
