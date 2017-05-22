@@ -459,7 +459,8 @@ class MidiUI : public GUI, public midi
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midi_handler* fMidiHandler;
-        
+        bool fDelete;
+    
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
         {
             if (fMetaAux.size() > 0) {
@@ -497,15 +498,17 @@ class MidiUI : public GUI, public midi
 
     public:
 
-        MidiUI(midi_handler* midi_handler)
+        MidiUI(midi_handler* midi_handler, bool delete_handler = false)
         {
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
+            fDelete = delete_handler;
         }
  
         virtual ~MidiUI() 
         { 
             fMidiHandler->removeMidiIn(this);
+            if (fDelete) delete fMidiHandler;
         }
         
         bool run() { return fMidiHandler->start_midi(); }

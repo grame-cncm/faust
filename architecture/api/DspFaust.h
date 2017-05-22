@@ -36,7 +36,11 @@ class DspFaust
         FaustPolyEngine* fPolyEngine;
         
     #if OSCCTRL
+    #if JUCE_DRIVER
+        JuceOSCUI* fOSCInterface;
+    #else
         OSCUI* fOSCInterface;
+    #endif
     #endif
         
     #if MIDICTRL
