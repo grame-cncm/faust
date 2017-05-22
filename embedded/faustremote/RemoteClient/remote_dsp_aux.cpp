@@ -500,12 +500,12 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
             setupBuffers(input, output, i*fBufferSize);
             // Hack : do not transmit control in polyphonic mode
             if (fFactory->fPoly == "0") {
-                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+                ControlUI::encodeMidiControl(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
             }
             processMidiOutBuffer(fControlInputs[1], true);
             sendSlice(fBufferSize);
             recvSlice(fBufferSize);
-            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
+            ControlUI::decodeMidiControl(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
             processMidiInBuffer(fControlOutputs[1]);
         }
         
@@ -513,13 +513,13 @@ void remote_dsp_aux::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
             setupBuffers(input, output, i*fBufferSize);
             // Hack : do not transmit control in polyphonic mode
             if (fFactory->fPoly == "0") {
-                ControlUI::encode_midi_control(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
+                ControlUI::encodeMidiControl(fControlInputs[0], fJSONDecoder->fInControl, fJSONDecoder->fInputItems);
             }
             processMidiOutBuffer(fControlInputs[1], true);
             fillBufferWithZerosOffset(getNumInputs(), lastCycle, fBufferSize-lastCycle, fAudioInputs);
             sendSlice(lastCycle);
             recvSlice(lastCycle);
-            ControlUI::decode_midi_control(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
+            ControlUI::decodeMidiControl(fControlOutputs[0], fJSONDecoder->fOutControl, fJSONDecoder->fOutputItems);
             processMidiInBuffer(fControlOutputs[1]);
         }
         
