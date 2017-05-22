@@ -181,8 +181,8 @@ int main(int argc, char *argv[])
     finterface->recallState(rcfilename);
     audio.start();
 
-    printf("ins %d\n", audio.get_num_inputs());
-    printf("outs %d\n", audio.get_num_outputs());
+    printf("ins %d\n", audio.getNumInputs());
+    printf("outs %d\n", audio.getNumOutputs());
 
 #ifdef HTTPCTRL
     httpdinterface.run();

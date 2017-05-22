@@ -1447,7 +1447,7 @@ class TCoreAudioRenderer
             }
         }
     
-        void set_dsp(dsp* DSP)
+        void setDsp(dsp* DSP)
         {
             fDSP = DSP;
         }
@@ -1483,7 +1483,7 @@ class coreaudio : public audio {
                 printf("Cannot open CoreAudio device\n");
                 return false;
             }
-            fAudioDevice.set_dsp(DSP);
+            fAudioDevice.setDsp(DSP);
             // If -1 was given, fSampleRate will be changed by OpenDefault
             DSP->init(fSampleRate);
             return true;
@@ -1503,11 +1503,11 @@ class coreaudio : public audio {
             fAudioDevice.Stop();
         }
         
-        virtual int get_buffer_size() { return fAudioDevice.GetBufferSize(); }
-        virtual int get_sample_rate() { return fAudioDevice.GetSampleRate(); }
+        virtual int getBufferSize() { return fAudioDevice.GetBufferSize(); }
+        virtual int getSampleRate() { return fAudioDevice.GetSampleRate(); }
         
-        virtual int get_num_inputs() { return fAudioDevice.GetNumInputs(); }
-        virtual int get_num_outputs() { return fAudioDevice.GetNumOutputs(); }
+        virtual int getNumInputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int getNumOutputs() { return fAudioDevice.GetNumOutputs(); }
 
 };
 

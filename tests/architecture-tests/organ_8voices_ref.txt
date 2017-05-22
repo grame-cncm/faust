@@ -515,5 +515,5 @@ sample out 0.234453
 sample out 0.250515
 sample out 0.263599
 sample out 0.273989
-ins -1
-outs -1
+ins 0
+outs 1

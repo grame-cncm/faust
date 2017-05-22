@@ -108,8 +108,10 @@ class oscdsp : public audio, public oscfaust::OSCIO {
 		}
 		compute (nvalues / inChans);
 	}
-	int	numOutputs() const	{ return fDsp ? fDsp->getNumOutputs() : 0; }
-	int	numInputs() const	{ return fDsp ? fDsp->getNumInputs() : 0; }
+    
+    int	getNumInputs() const	{ return fDsp ? fDsp->getNumInputs() : 0; }
+	int	getNumOutputs() const	{ return fDsp ? fDsp->getNumOutputs() : 0; }
+	
 };
 
 #endif

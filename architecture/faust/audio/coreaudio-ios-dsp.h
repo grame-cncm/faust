@@ -287,7 +287,7 @@ class TiPhoneCoreAudioRenderer
                 }
             }
             
-    #if NOAGC
+        #if NOAGC
             // If input is used, disable AGC
             if (audioCategory == kAudioSessionCategory_RecordAudio || audioCategory == kAudioSessionCategory_PlayAndRecord) {
                 
@@ -320,7 +320,7 @@ class TiPhoneCoreAudioRenderer
                     }
                 }
             }
-    #endif
+        #endif
             
             return NO_ERR;
         }
@@ -679,6 +679,9 @@ class TiPhoneCoreAudioRenderer
                 return NO_ERR;
             }
         }
+    
+        int GetNumInputs() { return fHWNumInChans; }
+        int GetNumOutputs() { return fHWNumOutChans; }
 
 };
 
@@ -731,8 +734,11 @@ class iosaudio : public audio {
             fAudioDevice.Stop();
         }
         
-        virtual int get_buffer_size() { return fBufferSize; }
-        virtual int get_sample_rate() { return fSampleRate; }
+        virtual int getBufferSize() { return fBufferSize; }
+        virtual int getSampleRate() { return fSampleRate; }
+    
+        virtual int getNumInputs() { return fAudioDevice.GetNumInputs(); }
+        virtual int getNumOutputs() { return fAudioDevice.GetNumOutputs(); }
     
 };
 
