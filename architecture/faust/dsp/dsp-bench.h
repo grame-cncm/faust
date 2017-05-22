@@ -308,7 +308,7 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(500, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            int cout = int (500 * (duration_in_sec * 1e6 / duration));
+            int cout = int(500 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             
             // Then allocate final time_bench object with proper 'count' parameter

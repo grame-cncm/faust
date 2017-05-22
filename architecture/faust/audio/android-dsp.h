@@ -454,22 +454,22 @@ class androidaudio : public audio {
             }
         }
     
-        virtual int get_buffer_size()
+        virtual int getBufferSize()
         {
             return fBufferSize;
         }
         
-        virtual int get_sample_rate()
+        virtual int getSampleRate()
         {
             return fSampleRate;
         }
         
-        virtual int get_num_inputs()
+        virtual int getNumInputs()
         {
             return fNumInChans;
         }
         
-        virtual int get_num_outputs()
+        virtual int getNumOutputs()
         {
             return fNumOutChans;
         }

@@ -114,7 +114,7 @@ class rtaudio : public audio {
         virtual bool init(const char* name, dsp* DSP)
         {
             if (init(name, DSP->getNumInputs(), DSP->getNumOutputs())) {
-                set_dsp(DSP);
+                setDsp(DSP);
                 return true;
             } else {
                 return false;
@@ -157,7 +157,7 @@ class rtaudio : public audio {
             return true;
         }
         
-        void set_dsp(dsp* DSP)
+        void setDsp(dsp* DSP)
         {
             fDsp = DSP;
             
@@ -191,22 +191,22 @@ class rtaudio : public audio {
             }
         }
         
-        virtual int get_buffer_size() 
+        virtual int getBufferSize() 
         { 
             return fBufferSize; 
         }
         
-        virtual int get_sample_rate() 
+        virtual int getSampleRate()
         { 
             return fSampleRate; 
         }
         
-        virtual int get_num_inputs() 
+        virtual int getNumInputs()
         {
             return fDevNumInChans;
         }
         
-        virtual int get_num_outputs() 
+        virtual int getNumOutputs()
         {
             return fDevNumOutChans;
         }

@@ -217,8 +217,8 @@ int main(int argc, char *argv[])
      
     audio.start();
 
-    printf("ins %d\n", audio.get_num_inputs());
-    printf("outs %d\n", audio.get_num_outputs());
+    printf("ins %d\n", audio.getNumInputs());
+    printf("outs %d\n", audio.getNumOutputs());
 
 #ifdef HTTPCTRL
     httpdinterface.run();
@@ -240,6 +240,10 @@ int main(int argc, char *argv[])
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
     interface.stop();
+    
+#ifdef MIDICTRL
+    midiinterface->stop();
+#endif
 
     audio.stop();
     finterface.saveState(rcfilename);

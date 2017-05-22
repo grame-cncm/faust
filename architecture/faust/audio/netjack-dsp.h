@@ -62,35 +62,35 @@ class netjackaudio : public audio
         jack_master_t fResult;
 
     #ifdef RESTART_CB_API
-        static int net_restart(void* arg) 
+        static int netRestart(void* arg)
         {
             printf("Network failure, restart...\n");
-            return static_cast<netjackaudio*>(arg)->restart_cb();
+            return static_cast<netjackaudio*>(arg)->restartCb();
         }
     #else 
-        static void net_shutdown(void* arg) 
+        static void netShutdown(void* arg)
         {
             printf("Network failure, shutdown...\n");
             static_cast<netjackaudio*>(arg)->shutdown_cb();
         }
     #endif
     
-        static int net_sample_rate(jack_nframes_t nframes, void* arg) 
+        static int netSampleRate(jack_nframes_t nframes, void* arg)
         {
-            return static_cast<netjackaudio*>(arg)->set_sample_rate(nframes);
+            return static_cast<netjackaudio*>(arg)->setSampleRate(nframes);
         }
         
-        static int net_buffer_size(jack_nframes_t nframes, void* arg) 
+        static int netBufferSize(jack_nframes_t nframes, void* arg)
         {
-            return static_cast<netjackaudio*>(arg)->set_buffer_size(nframes);
+            return static_cast<netjackaudio*>(arg)->setBufferSize(nframes);
         }
         
-        static void net_error(int error_code, void* arg)
+        static void netError(int error_code, void* arg)
         {
-            return static_cast<netjackaudio*>(arg)->error_cb(error_code);
+            return static_cast<netjackaudio*>(arg)->errorCb(error_code);
         }
         
-        static int net_process(jack_nframes_t buffer_size,
+        static int netProcess(jack_nframes_t buffer_size,
                                int,
                                float** audio_inputs,
                                int,
@@ -105,17 +105,17 @@ class netjackaudio : public audio
             return 0;
         }
 
-        bool init_aux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        bool initAux(const char* name, dsp* DSP, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
         {
-            if (init_aux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
-                set_dsp(DSP);
+            if (initAux(name, audio_inputs, audio_outputs, midi_inputs, midi_outputs)) {
+                setDsp(DSP);
                 return true;
             } else {
                 return false;
             }
         }
     
-        bool init_aux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs) 
+        bool initAux(const char* name, int audio_inputs, int audio_outputs, int midi_inputs, int midi_outputs)
         {
             jack_slave_t request = {
                 audio_inputs,
@@ -134,40 +134,40 @@ class netjackaudio : public audio
                 return false;
             }
 
-            jack_set_net_slave_process_callback(fNet, net_process, this);
+            jack_set_net_slave_process_callback(fNet, netProcess, this);
         #ifdef RESTART_CB_API
-            jack_set_net_slave_restart_callback(fNet, net_restart, this);
+            jack_set_net_slave_restart_callback(fNet, netRestart, this);
         #else
-            jack_set_net_slave_shutdown_callback(fNet, net_shutdown, this);
+            jack_set_net_slave_shutdown_callback(fNet, netShutdown, this);
         #endif
-            jack_set_net_slave_sample_rate_callback(fNet, net_sample_rate, this);
+            jack_set_net_slave_sample_rate_callback(fNet, netSampleRate, this);
             
-            jack_set_net_slave_buffer_size_callback(fNet, net_buffer_size, this);
+            jack_set_net_slave_buffer_size_callback(fNet, netBufferSize, this);
             
-            jack_set_net_slave_error_callback(fNet, net_error, this);
+            jack_set_net_slave_error_callback(fNet, netError, this);
 
             return true;
         }
     
         // Possibly to be redefined by subclasses
         
-        virtual int restart_cb()
+        virtual int restartCb()
         {
             return 0;
         }
        
-        virtual void shutdown_cb()
+        virtual void shutdownCb()
         {}
         
-        virtual void error_cb(int error_code)
+        virtual void errorCb(int error_code)
         {}
        
-        virtual int set_sample_rate(jack_nframes_t nframes)
+        virtual int setSampleRate(jack_nframes_t nframes)
         {
             return 0;
         }
         
-        virtual int set_buffer_size(jack_nframes_t nframes)
+        virtual int setBufferSize(jack_nframes_t nframes)
         {
             return 0;
         }
@@ -194,7 +194,7 @@ class netjackaudio : public audio
 
         virtual bool init(const char* name, dsp* DSP) 
         {
-            return init_aux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
+            return initAux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
         }
 
         virtual bool start() 
@@ -213,19 +213,22 @@ class netjackaudio : public audio
             }
         }
         
-        virtual bool is_connexion_active()
+        virtual bool isConnexionActive()
         {
             return jack_net_slave_is_active(fNet);
         }
 
-        void set_dsp(dsp* DSP) 
+        void setDsp(dsp* DSP)
         {
             fDSP = DSP;
             fDSP->init(fResult.sample_rate);
         }
         
-        virtual int get_buffer_size() { return fResult.buffer_size; }
-        virtual int get_sample_rate() { return fResult.sample_rate; }
+        virtual int getBufferSize() { return fResult.buffer_size; }
+        virtual int getSampleRate() { return fResult.sample_rate; }
+    
+        virtual int getNumInputs() { return fDSP->getNumInputs(); }
+        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
 
 };
 
@@ -253,13 +256,13 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
             }
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-            decode_control(audio_inputs[0], fResult.buffer_size);
+            decodeControl(audio_inputs[0], fResult.buffer_size);
             
             // "count" may be less than buffer_size
             fDSP->compute(count, inputs_tmp, outputs_tmp);
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-            encode_control(audio_outputs[0], fResult.buffer_size);
+            encodeControl(audio_outputs[0], fResult.buffer_size);
         }
         
     public:
@@ -271,13 +274,18 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         virtual ~netjackaudio_control() 
         {}
     
+        bool isConnexionActive()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+    
         virtual bool init(const char* name, dsp* dsp) 
         {
             dsp->buildUserInterface(this);
-            return init_aux(name, dsp, dsp->getNumInputs() + 1, dsp->getNumOutputs() + 1, 0, 0); // One more audio port for control
+            return initAux(name, dsp, dsp->getNumInputs() + 1, dsp->getNumOutputs() + 1, 0, 0); // One more audio port for control
         }
     
-        virtual int restart_cb()
+        virtual int restartCb()
         {
             return -1;
         }
@@ -308,7 +316,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
             }
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-            decode_midi_control(midi_inputs[0], fResult.buffer_size);
+            decodeMidiControl(midi_inputs[0], fResult.buffer_size);
             
             // Decode MIDI messages
             processMidiInBuffer(midi_inputs[1]);
@@ -317,7 +325,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
             fDSP->compute(count, inputs_tmp, outputs_tmp);
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
-            encode_midi_control(midi_outputs[0], fResult.buffer_size);
+            encodeMidiControl(midi_outputs[0], fResult.buffer_size);
             
             // Encode MIDI messages
             processMidiOutBuffer(midi_outputs[1], true);
@@ -332,14 +340,19 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
         virtual ~netjackaudio_midicontrol() 
         {}
     
+        bool isConnexionActive()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+    
         virtual bool init(const char* name, dsp* dsp) 
         {
             dsp->buildUserInterface(this);
             // One MIDI channel for control, and one MIDI channel for messages in both direction
-            return init_aux(name, dsp, dsp->getNumInputs(), dsp->getNumOutputs(), 2, 2);
+            return initAux(name, dsp, dsp->getNumInputs(), dsp->getNumOutputs(), 2, 2);
         }
     
-        virtual int restart_cb()
+        virtual int restartCb()
         {
             return -1;
         }
