@@ -27,7 +27,7 @@
 #include "faust/gui/meta.h"
 
 //**************************************************************
-// OSC configuration
+// OSC configuration (hardcoded for now...)
 //**************************************************************
 
 #define OSC_IP_ADDRESS  "192.168.1.1"

@@ -26,6 +26,7 @@
 class FaustPolyEngine;
 class MidiUI;
 class OSCUI;
+class JuceOSCUI;
 class audio;
 
 class DspFaust
