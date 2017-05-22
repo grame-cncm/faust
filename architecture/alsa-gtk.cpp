@@ -111,10 +111,10 @@ int main(int argc, char *argv[])
     char rcfilename[256];
     char* home = getenv("HOME");
     mydsp_poly* dsp_poly = NULL;
-	
+
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 255, "%s/.%src", home, name);
-	
+
 #ifdef POLY
     int poly = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
@@ -141,18 +141,18 @@ int main(int argc, char *argv[])
 #else
     DSP = new mydsp();
 #endif
-    
+
 #endif
      
-	if (DSP == 0) {
+    if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
-		exit(1);
-	}
+        exit(1);
+    }
 
-	GUI* interface 	= new GTKUI(name, &argc, &argv);
-	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
+    GUI* interface = new GTKUI(name, &argc, &argv);
+    FUI* finterface = new FUI();
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(finterface);
 
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
@@ -163,49 +163,53 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-	DSP->buildUserInterface(httpdinterface);
+    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(name, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(name, argc, argv);
+    DSP->buildUserInterface(oscinterface);
 #endif
 
-	alsaaudio audio (argc, argv, DSP);
-	audio.init(name, DSP);
-	finterface->recallState(rcfilename);	
-	audio.start();
-	
+    alsaaudio audio (argc, argv, DSP);
+    audio.init(name, DSP);
+    finterface->recallState(rcfilename);	
+    audio.start();
+
 #ifdef HTTPCTRL
-	httpdinterface->run();
+    httpdinterface->run();
 #endif
-	
+
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface->run();
-	
-	audio.stop();
-	finterface->saveState(rcfilename);
-    
+    interface->run();
+
+#ifdef MIDICTRL
+    midiinterface.stop();
+#endif
+
+    audio.stop();
+    finterface->saveState(rcfilename);
+
     // desallocation
     delete interface;
     delete finterface;
 #ifdef HTTPCTRL
-	 delete httpdinterface;
+    delete httpdinterface;
 #endif
 #ifdef OSCCTRL
-	 delete oscinterface;
+    delete oscinterface;
 #endif
 
-  	return 0;
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

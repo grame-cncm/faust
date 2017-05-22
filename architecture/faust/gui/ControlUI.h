@@ -62,7 +62,7 @@ class ControlUI : public UI {
         
     public:
        
-        void encode_control(float* control_buffer, unsigned int frames)
+        void encodeControl(float* control_buffer, unsigned int frames)
         { 
             assert(fControlOut.size() <= frames);
             
@@ -71,7 +71,7 @@ class ControlUI : public UI {
             }
         }
         
-        void decode_control(float* control_buffer, unsigned int frames)
+        void decodeControl(float* control_buffer, unsigned int frames)
         {
             assert(fControlIn.size() <= frames);
             
@@ -80,7 +80,7 @@ class ControlUI : public UI {
             }
         }
         
-        void encode_midi_control(void* midi_control_buffer, unsigned int frames)
+        void encodeMidiControl(void* midi_control_buffer, unsigned int frames)
         { 
             assert(fControlOut.size() <= frames);
             jack_midi_reset_buffer(midi_control_buffer);
@@ -92,7 +92,7 @@ class ControlUI : public UI {
             }
         }
     
-        static void encode_midi_control(void* midi_control_buffer, float* control_buffer, int count)
+        static void encodeMidiControl(void* midi_control_buffer, float* control_buffer, int count)
         {
             jack_midi_reset_buffer(midi_control_buffer);
             
@@ -103,7 +103,7 @@ class ControlUI : public UI {
             }
         }
         
-        void decode_midi_control(void* midi_control_buffer, unsigned int frames)
+        void decodeMidiControl(void* midi_control_buffer, unsigned int frames)
         {
             assert(jack_midi_get_event_count(midi_control_buffer) <= frames);
             
@@ -114,7 +114,7 @@ class ControlUI : public UI {
             }
         }
         
-        static void decode_midi_control(void* midi_control_buffer, float* control_buffer, int count)
+        static void decodeMidiControl(void* midi_control_buffer, float* control_buffer, int count)
         {
             assert(jack_midi_get_event_count(midi_control_buffer) <= count);
             

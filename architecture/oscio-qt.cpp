@@ -42,7 +42,6 @@
 #include "faust/misc.h"
 #include "faust/audio/osc-dsp.h"
 
-
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
@@ -72,10 +71,10 @@ ztimedmap GUI::gTimedZoneMap;
 
 *******************************************************************************
 *******************************************************************************/
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
-	char	name[256], dst[258];
-	char	rcfilename[256];
+	char name[256], dst[258];
+	char rcfilename[256];
 
 	char* home = getenv("HOME");
 	snprintf(name, 255, "%s", basename(argv[0]));

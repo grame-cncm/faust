@@ -210,12 +210,12 @@ struct AudioInterface : public AudioParam
 		err = snd_pcm_open( &fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0 ); check_error(err)
 
 		// setup output device parameters
-		err = snd_pcm_hw_params_malloc	( &fOutputParams ); 		check_error(err)
+		err = snd_pcm_hw_params_malloc(&fOutputParams); check_error(err)
 		setAudioParams(fOutputDevice, fOutputParams);
 
 		fCardOutputs = fSoftOutputs;
 		snd_pcm_hw_params_set_channels_near(fOutputDevice, fOutputParams, &fCardOutputs);
-		err = snd_pcm_hw_params (fOutputDevice, fOutputParams );	check_error(err);
+		err = snd_pcm_hw_params(fOutputDevice, fOutputParams ); check_error(err);
 
 		// allocate alsa output buffers
 		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
@@ -248,7 +248,7 @@ struct AudioInterface : public AudioParam
 			// set the number of physical inputs close to what we need
 			err = snd_pcm_hw_params_malloc	( &fInputParams ); 	check_error(err);
 			setAudioParams(fInputDevice, fInputParams);
-			fCardInputs 	= fSoftInputs;
+			fCardInputs = fSoftInputs;
 			snd_pcm_hw_params_set_channels_near(fInputDevice, fInputParams, &fCardInputs);
 			err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error(err);
 
@@ -289,12 +289,12 @@ struct AudioInterface : public AudioParam
 		int	err;
 
 		// set params record with initial values
-		err = snd_pcm_hw_params_any	( stream, params );
+		err = snd_pcm_hw_params_any(stream, params);
 		check_error_msg(err, "unable to init parameters")
 
 		// set alsa access mode (and fSampleAccess field) either to non interleaved or interleaved
 
-		err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED );
+		err = snd_pcm_hw_params_set_access(stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED );
 		if (err) {
 			err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
 			check_error_msg(err, "unable to set access mode neither to non-interleaved or to interleaved");
@@ -312,10 +312,10 @@ struct AudioInterface : public AudioParam
 		snd_pcm_hw_params_set_rate_near (stream, params, &fFrequency, 0);
 
 		// set period and period size (buffering)
-		err = snd_pcm_hw_params_set_period_size	(stream, params, fBuffering, 0);
+		err = snd_pcm_hw_params_set_period_size(stream, params, fBuffering, 0);
 		check_error_msg(err, "period size not available");
 
-		err = snd_pcm_hw_params_set_periods (stream, params, fPeriods, 0);
+		err = snd_pcm_hw_params_set_periods(stream, params, fPeriods, 0);
 		check_error_msg(err, "number of periods not available");
 	}
 
@@ -571,6 +571,9 @@ struct AudioInterface : public AudioParam
 #endif
 		printf("--------------\n");
 	}
+    
+    int getNumInputs() { return fCardInputs; }
+    int getNumOutputs() { return fCardOutputs; }
 
 };
 
@@ -674,26 +677,28 @@ class alsaaudio : public audio
  		return true;
 	}
 
-	virtual bool start()
+    virtual bool start()
     {
-		fRunning = true;
-		if (pthread_create(&fAudioThread, 0, __run, this)) {
-			fRunning = false;
+        fRunning = true;
+        if (pthread_create(&fAudioThread, 0, __run, this)) {
+            fRunning = false;
         }
-		return fRunning;
-	}
+        return fRunning;
+    }
 
-	virtual void stop() {
-		if (fRunning) {
-			fRunning = false;
-			pthread_join(fAudioThread, 0);
-		}
-	}
+    virtual void stop()
+    {
+        if (fRunning) {
+            fRunning = false;
+            pthread_join(fAudioThread, 0);
+        }
+    }
     
-    virtual int get_buffer_size() { return fAudio->buffering(); }
-    virtual int get_sample_rate() { return fAudio->frequency(); }
+    virtual int getBufferSize() { return fAudio->buffering(); }
+    virtual int getSampleRate() { return fAudio->frequency(); }
 
-	virtual void run() {
+	virtual void run()
+    {
 		bool rt = setRealtimePriority();
 		printf(rt ? "RT : ":"NRT: "); fAudio->shortinfo();
         AVOIDDENORMALS;
@@ -713,6 +718,10 @@ class alsaaudio : public audio
 			}
 		}
 	}
+    
+    virtual int getNumInputs() { return fAudio->getNumInputs(); }
+    virtual int getNumOutputs() { return fAudio->getNumOutputs(); }
+
 };
 
 void* __run (void* ptr)

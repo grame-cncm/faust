@@ -131,20 +131,20 @@ class ofaudio : public audio, public ofBaseSoundInput, public ofBaseSoundOutput 
     
         void shutdown(shutdown_callback cb, void* arg) {}
 
-        int get_buffer_size()
+        int getBufferSize()
         {
             return fStream.getBufferSize();
         }
     
-        int get_sample_rate()
+        int getSampleRate()
         {
             return fStream.getSampleRate();
         }
 
-        int get_num_inputs() { return fStream.getNumInputChannels(); }
-        int get_num_outputs() { return fStream.getNumOutputChannels(); }
+        int getNumInputs() { return fStream.getNumInputChannels(); }
+        int getNumOutputs() { return fStream.getNumOutputChannels(); }
 
-        float get_cpu_load() { return 0.f; }
+        float getCPULoad() { return 0.f; }
 };
 					
 #endif

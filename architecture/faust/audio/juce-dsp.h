@@ -100,20 +100,20 @@ class juceaudio : public audio, private AudioAppComponent {
             shutdownAudio();
         }
         
-        int get_buffer_size() override
+        int getBufferSize() override
         {
             return int(deviceManager.getCurrentAudioDevice()->getCurrentBufferSizeSamples());
         }
         
-        int get_sample_rate() override
+        int getSampleRate() override
         {
             return int(deviceManager.getCurrentAudioDevice()->getCurrentSampleRate());
         }
         
-        int get_num_inputs() override { return deviceManager.getCurrentAudioDevice()->getActiveInputChannels().toInteger(); }
-        int get_num_outputs() override { return deviceManager.getCurrentAudioDevice()->getActiveOutputChannels().toInteger(); }
+        int getNumInputs() override { return deviceManager.getCurrentAudioDevice()->getActiveInputChannels().toInteger(); }
+        int getNumOutputs() override { return deviceManager.getCurrentAudioDevice()->getActiveOutputChannels().toInteger(); }
         
-        float get_cpu_load() override { return float(deviceManager.getCpuUsage()); }
+        float getCPULoad() override { return float(deviceManager.getCpuUsage()); }
 };
 
 #endif
