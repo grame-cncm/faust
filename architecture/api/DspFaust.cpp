@@ -81,7 +81,7 @@
 
 #if MIDICTRL 
 #if JACK_DRIVER
-    // Nothing to add since jack.h contains MIDI
+    // Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
     #include "faust/midi/juce-midi.h"
 #else
