@@ -719,8 +719,8 @@ class alsaaudio : public audio
 		}
 	}
     
-    virtual int getNumInputs() { return fAudio->GetNumInputs(); }
-    virtual int getNumOutputs() { return fAudio->GetNumOutputs(); }
+    virtual int getNumInputs() { return fAudio->getNumInputs(); }
+    virtual int getNumOutputs() { return fAudio->getNumOutputs(); }
 
 };
 
