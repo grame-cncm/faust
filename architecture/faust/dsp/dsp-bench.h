@@ -326,6 +326,7 @@ class measure_dsp : public decorator_dsp {
             }
             delete[] fOutputs;
             delete fBench;
+            // DSP is deallocated by the decorator_dsp class.
         }
     
         /**

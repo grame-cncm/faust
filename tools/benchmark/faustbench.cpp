@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 #include <math.h>
 
 #include "faust/gui/UI.h"
@@ -71,6 +72,8 @@
 
 using namespace std;
 
+#define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
+
 static double bench(dsp* dsp, const string& name)
 {
     dsp->init(48000);
@@ -87,43 +90,43 @@ extern "C" int bench_all(const char* name)
     
     cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
     
-    options.push_back("-scal");
+    options.push_back(ADD_DOUBLE + "-scal");
     
-    options.push_back("-vec -lv 0 -vs 4");
-    options.push_back("-vec -lv 0 -vs 8");
-    options.push_back("-vec -lv 0 -vs 16");
-    options.push_back("-vec -lv 0 -vs 32");
-    options.push_back("-vec -lv 0 -vs 64");
-    options.push_back("-vec -lv 0 -vs 128");
-    options.push_back("-vec -lv 0 -vs 256");
-    options.push_back("-vec -lv 0 -vs 512");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 16");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 64");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 128");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 256");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 512");
     
-    options.push_back("-vec -lv 0 -vs 4 -g");
-    options.push_back("-vec -lv 0 -vs 8 -g");
-    options.push_back("-vec -lv 0 -vs 16 -g");
-    options.push_back("-vec -lv 0 -vs 32 -g");
-    options.push_back("-vec -lv 0 -vs 64 -g");
-    options.push_back("-vec -lv 0 -vs 128 -g");
-    options.push_back("-vec -lv 0 -vs 256 -g");
-    options.push_back("-vec -lv 0 -vs 512 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 16 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 64 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 128 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 256 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 512 -g");
     
-    options.push_back("-vec -lv 1 -vs 4");
-    options.push_back("-vec -lv 1 -vs 8");
-    options.push_back("-vec -lv 1 -vs 16");
-    options.push_back("-vec -lv 1 -vs 32");
-    options.push_back("-vec -lv 1 -vs 64");
-    options.push_back("-vec -lv 1 -vs 128");
-    options.push_back("-vec -lv 1 -vs 256");
-    options.push_back("-vec -lv 1 -vs 512");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 4");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 8");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 16");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 64");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 128");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512");
     
-    options.push_back("-vec -lv 1 -vs 4 -g");
-    options.push_back("-vec -lv 1 -vs 8 -g");
-    options.push_back("-vec -lv 1 -vs 16 -g");
-    options.push_back("-vec -lv 1 -vs 32 -g");
-    options.push_back("-vec -lv 1 -vs 64 -g");
-    options.push_back("-vec -lv 1 -vs 128 -g");
-    options.push_back("-vec -lv 1 -vs 256 -g");
-    options.push_back("-vec -lv 1 -vs 512 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 4 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 8 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 16 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 64 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 128 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512 -g");
     
     int ind = 0;
     
