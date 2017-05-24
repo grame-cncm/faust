@@ -186,7 +186,7 @@ mkdir -p $tmpdir/$lv2name
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
 faust -i -a "$FAUSTLIB/$arch" -cn "$clsname" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
-$CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
+$CXX -shared $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$lv2name/$soname" || exit 1
 if [ -n "$plugin_gui" ]; then
 # Compile the UI module.
 mkdir -p $uitmpdir
@@ -357,7 +357,7 @@ EOF
 fi
 # This compiles the plugin to an executable which is run to generate the
 # plugin-specific part of the manifest.
-$CXX $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
+$CXX $CXXFLAGS -DDLLEXT="\"$dllext\"" $FAUSTTOOLSFLAGS -I"$ABSDIR" $CPPFLAGS "$tmpdir/$cppname" -o "$tmpdir/$clsname" || exit 1
 "$tmpdir/$clsname" > "$tmpdir/$lv2name/$clsname.ttl"
 rm -f "$tmpdir/$clsname"
 fi
