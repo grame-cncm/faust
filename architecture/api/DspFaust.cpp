@@ -105,16 +105,17 @@ ztimedmap GUI::gTimedZoneMap;
 
 DspFaust::DspFaust()
 {
+    audio* driver = 0;
 #if JACK_DRIVER
     // JACK has its own sample rate and buffer size
 #if MIDICTRL
-    audio* driver = new jackaudio_midi();
+    driver = new jackaudio_midi();
 #else
-    audio* driver = new jackaudio();
+    driver = new jackaudio();
 #endif
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    audio* driver = new juceaudio();
+    driver = new juceaudio();
 #else
     std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
