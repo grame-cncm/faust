@@ -264,7 +264,7 @@ extern "C"
             int res = 0;
             audio* driver = createDriver();
             if (driver && driver->init("dummy", 0)) {
-                res = driver->get_num_inputs();
+                res = driver->getNumInputs();
                 delete driver;
             }
             return res;
@@ -283,7 +283,7 @@ extern "C"
             int res = 0;
             audio* driver = createDriver();
             if (driver && driver->init("dummy", 0)) {
-                res = driver->get_num_inputs();
+                res = driver->getNumInputs();
                 delete driver;
             }
             return res;
@@ -342,13 +342,13 @@ extern "C"
       
         if (driver1 == NULL) {
             // Connection test with physical input
-            return driver2->is_connected(driver1, src, dst, true);
+            return driver2->isConnected(driver1, src, dst, true);
         } else if (driver2 == NULL) {
             // Connection test with physical output
-            return driver1->is_connected(driver2, src, dst, false);
+            return driver1->isConnected(driver2, src, dst, false);
         } else {
             // Connection test between Dsp
-            return driver1->is_connected(driver2, src, dst, false);
+            return driver1->isConnected(driver2, src, dst, false);
         }
     #endif
     }
