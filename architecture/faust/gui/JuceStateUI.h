@@ -30,11 +30,11 @@
 
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 
 // A class to save/restore DSP state using JUCE
 
-class JuceStateUI : public UI {
+class JuceStateUI : public GenericUI {
 
     private:
 
@@ -72,13 +72,6 @@ class JuceStateUI : public UI {
             }
         }
 
-        // -- widget's layouts
-
-        virtual void openTabBox(const char* label) {};
-        virtual void openHorizontalBox(const char* label) {}
-        virtual void openVerticalBox(const char* label) {}
-        virtual void closeBox() {}
-
         // -- active widgets
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
@@ -86,17 +79,7 @@ class JuceStateUI : public UI {
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); };
-        
-        // -- passive widgets
-
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
-
-        // -- metadata declarations
-
-        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
-
-
+    
 };
 
 #endif

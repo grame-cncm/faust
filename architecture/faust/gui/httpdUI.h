@@ -31,7 +31,7 @@
 #include <sstream>
 
 #include "faust/gui/HTTPDControler.h"
-#include "faust/gui/UI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/misc.h"
 
@@ -338,49 +338,6 @@ class httpdClientUI : public GUI, public PathBuilder, public httpdUIAux
 /*
 Creates a httpdServerUI or httpdClientUI depending of the presence of '-server URL' parameter.
 */
-
-//----------------------------------------------------------------
-//  Generic decorator
-//----------------------------------------------------------------
-
-class DecoratorUI : public UI
-{
-    protected:
-
-        UI* fUI;
-
-    public:
-
-        DecoratorUI(UI* ui = 0):fUI(ui)
-        {}
-
-        virtual ~DecoratorUI() { delete fUI; }
-
-        // -- widget's layouts
-        virtual void openTabBox(const char* label)          { fUI->openTabBox(label); }
-        virtual void openHorizontalBox(const char* label)   { fUI->openHorizontalBox(label); }
-        virtual void openVerticalBox(const char* label)     { fUI->openVerticalBox(label); }
-        virtual void closeBox()                             { fUI->closeBox(); }
-
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)         { fUI->addButton(label, zone); }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)    { fUI->addCheckButton(label, zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-            { fUI->addVerticalSlider(label, zone, init, min, max, step); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-            { fUI->addHorizontalSlider(label, zone, init, min, max, step); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-            { fUI->addNumEntry(label, zone, init, min, max, step); }
-
-        // -- passive widgets
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            { fUI->addHorizontalBargraph(label, zone, min, max); }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-            { fUI->addVerticalBargraph(label, zone, min, max); }
-
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) { fUI->declare(zone, key, val); }
-
-};
 
 class httpdUI : public DecoratorUI
 {
