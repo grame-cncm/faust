@@ -57,7 +57,7 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 The build steps are the same for all the versions of Faust (Faust0 and Faust2). While Faust0 has no dependencies, the following elements are required to build Faust2:
 
-* `llvm/clang` (> 3.1 / <= 3.9) (has to be installed in universal mode [32/64 bits] on OSX), so using : `sudo port install llvm-3.xx +universal`)
+* `llvm/clang` (> 3.4 / <= 4.0) (has to be installed in universal mode [32/64 bits] on OSX), so using : `sudo port install llvm-3.xx +universal`)
 * `openssl` (has to be installed in universal mode [32/64 bits] on OSX)
 
 ### Linux and MacOSX 
@@ -72,7 +72,7 @@ To build Faust on MacOSX or Linux, just run the following commands from the root
 
 #### Using Visual Studio
 
-Open the Faust Visual Studio solution in `/faust/windows/faust_vs2012.sln` with Visual Studio 2012 ore greater and run "Build". Both Debug/Release targets are supported.
+Open the Faust Visual Studio solution in `/faust/windows/faust_vs2012.sln` with Visual Studio 2012 or greater and run "Build". Both Debug/Release targets are supported.
 
 #### Using Qt
 

@@ -303,12 +303,15 @@ class measure_dsp : public decorator_dsp {
             :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
             init();
+            
+            // Creates a first time_bench object to estimate the proper 'count' number of measure to do later
             fBench = new time_bench(500, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            int cout = int (500 * (duration_in_sec * 1e6 / duration));
-            //std::cout << "duration = " << duration << " count = " << cout << std::endl;
+            int cout = int(500 * (duration_in_sec * 1e6 / duration));
             delete fBench;
+            
+            // Then allocate final time_bench object with proper 'count' parameter
             fBench = new time_bench(cout, 10);
         }
     
@@ -322,11 +325,13 @@ class measure_dsp : public decorator_dsp {
                 delete [] fOutputs[i];
             }
             delete[] fOutputs;
+            delete fBench;
+            // DSP is deallocated by the decorator_dsp class.
         }
     
-        /*
-            Measure the duration of the compute call
-        */
+        /**
+         *  Measure the duration of the compute call
+         */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fBench->startMeasure();
@@ -339,12 +344,11 @@ class measure_dsp : public decorator_dsp {
             compute(count, inputs, outputs);
         }
     
-        /*
-            Measure the duration of 'count' (given in constructor) calls to compute
-        */
+        /**
+         *  Measure the duration of 'count' calls to compute
+         */
         void computeAll()
         {
-            AVOIDDENORMALS;
             do {
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());

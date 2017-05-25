@@ -1,13 +1,4 @@
 /************************************************************************
-    IMPORTANT NOTE : this file contains two clearly delimited sections :
-    the ARCHITECTURE section (in two parts) and the USER section. Each section
-    is governed by its own copyright and license. Please check individually
-    each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
@@ -37,6 +28,8 @@
 
 #include <string.h>
 #include "faust/dsp/dsp.h"
+
+// Adapts a DSP for a different number of inputs/outputs
 
 class dsp_adapter : public decorator_dsp {
     
@@ -104,6 +97,79 @@ class dsp_adapter : public decorator_dsp {
             adaptBuffers(inputs, outputs);
             fDSP->compute(count, fAdaptedInputs, fAdaptedOutputs);
         }
+};
+
+// Adapts a DSP for a different sample size
+
+template <typename SAMPLE_TYPE>
+class dsp_sample_adapter : public decorator_dsp {
+    
+    protected:
+    
+        SAMPLE_TYPE** fAdaptedInputs;
+        SAMPLE_TYPE** fAdaptedOutputs;
+    
+        void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
+        {
+            for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
+                for (int frame = 0; frame < count; frame++) {
+                    fAdaptedInputs[chan][frame] = SAMPLE_TYPE(inputs[chan][frame]);
+                }
+            }
+        }
+    
+        void adaptOutputsBuffers(int count, FAUSTFLOAT** outputs)
+        {
+            for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
+                for (int frame = 0; frame < count; frame++) {
+                    outputs[chan][frame] = SAMPLE_TYPE(fAdaptedOutputs[chan][frame]);
+                }
+            }
+        }
+    
+    public:
+    
+        dsp_sample_adapter(dsp* dsp):decorator_dsp(dsp)
+        {
+            fAdaptedInputs = new SAMPLE_TYPE*[dsp->getNumInputs()];
+            for (int i = 0; i < dsp->getNumInputs(); i++) {
+                fAdaptedInputs[i] = new SAMPLE_TYPE[4096];
+            }
+            
+            fAdaptedOutputs = new SAMPLE_TYPE*[dsp->getNumOutputs()];
+            for (int i = 0; i < dsp->getNumOutputs(); i++) {
+                fAdaptedOutputs[i] = new SAMPLE_TYPE[4096];
+            }
+        }
+    
+        virtual ~dsp_sample_adapter()
+        {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                delete [] fAdaptedInputs[i];
+            }
+            delete [] fAdaptedInputs;
+            
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                delete [] fAdaptedOutputs[i];
+            }
+            delete [] fAdaptedOutputs;
+        }
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            adaptInputBuffers(count, inputs);
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses SAMPLE_TYPE
+            fDSP->compute(count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
+            adaptOutputsBuffers(count, outputs);
+        }
+    
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
+        {
+            adaptInputBuffers(count, inputs);
+            // DSP base class uses FAUSTFLOAT** type, so reinterpret_cast has to be used even if the real DSP uses SAMPLE_TYPE
+            fDSP->compute(date_usec, count, reinterpret_cast<FAUSTFLOAT**>(fAdaptedInputs), reinterpret_cast<FAUSTFLOAT**>(fAdaptedOutputs));
+            adaptOutputsBuffers(count, outputs);
+       }
 };
 
 #endif

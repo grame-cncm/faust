@@ -94,33 +94,64 @@ DELIM
 
 CUR=$(pwd)
 
-for F in $@; do
-	SRCDIR=$(dirname "$F")
-    FNAME=$(basename "$F")
+for p in $@; do
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2unity [-ios] <file.dsp>"
+        echo "Use '-ios' to create an iOS static library"
+        exit
+    fi
+
+    if [ $p = "-ios" ]; then
+        IOS=1
+        CXXFLAGS="-arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+done
+
+for f in $FILES; do
+	SRCDIR=$(dirname "$f")
+    FNAME=$(basename "$f")
 	NAME=${FNAME%.dsp}
-	BNAME=AudioPlugin${NAME}	# should be capitalize 		
 
-	 # creates a temporary dir 
-    TDR=$(mktemp -d faust.XXX)
+    if [ "$IOS" = "1" ]; then
+        # compile faust to c++
+        faust -i -a unity.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
+        $CXX $CXXFLAGS -DPLUGINNAME="$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
+        libtool $NAME.o -o libaudioplugin$NAME.a
+        rm $NAME.o $NAME.cpp
+		echo "libaudioplugin$NAME.a;"
+    else
 
-	# creates the bundle inside
-	BNDL="$TDR/$BNAME.bundle"
-	MOS="$BNDL/Contents/MacOS/"
-	mkdir -p "$MOS"
+        BNAME=AudioPlugin${NAME} # should be capitalize
 
-	# temporaire pour tests
-	#cp AudioThru.cpp "$MOS/$NAME.cpp" || exit
-	faust -i -a ./unity.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
-	
-	$CXX $CXXFLAGS $LDFLAGS -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
-	rm "$MOS/$NAME.cpp"
-	createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || exit
+        # creates a temporary dir
+        TDR=$(mktemp -d faust.XXX)
 
-	rm -rf "$SRCDIR/$BNAME.bundle"
-	mv "$BNDL" "$SRCDIR/"
-	rm -rf $TDR
+        # creates the bundle inside
+        BNDL="$TDR/$BNAME.bundle"
+        MOS="$BNDL/Contents/MacOS/"
+        mkdir -p "$MOS"
 
-	echo "$SRCDIR/$BNAME.bundle;"
+        # compile faust to c++
+        faust -i -a unity.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
 
+        $CXX $CXXFLAGS $LDFLAGS -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
+        rm "$MOS/$NAME.cpp"
+        createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || exit
+
+        rm -rf "$SRCDIR/$BNAME.bundle"
+        mv "$BNDL" "$SRCDIR/"
+        rm -rf $TDR
+
+        echo "$SRCDIR/$BNAME.bundle;"
+
+    fi
 
 done

@@ -59,13 +59,13 @@ class audio {
 	virtual void stop()                                     = 0;
     virtual void shutdown(shutdown_callback cb, void* arg)  {}
     
-    virtual int get_buffer_size() = 0;
-    virtual int get_sample_rate() = 0;
+    virtual int getBufferSize() = 0;
+    virtual int getSampleRate() = 0;
     
-    virtual int get_num_inputs() { return -1; }
-    virtual int get_num_outputs() { return -1; }
+    virtual int getNumInputs() = 0;
+    virtual int getNumOutputs() = 0;
     
-    virtual float get_cpu_load() { return 0.f; }
+    virtual float getCPULoad() { return 0.f; }
 };
 					
 #endif

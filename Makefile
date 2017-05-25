@@ -1,4 +1,4 @@
-version := 0.9.96
+version := 0.9.99
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -113,7 +113,7 @@ install :
 	# install iOS
 	rm -rf $(prefix)/share/faust/iOS
 	cp -r architecture/iOS $(prefix)/share/faust/
-	cp -r architecture/osclib $(prefix)/share/faust/iOS
+	cp -r architecture/osclib $(prefix)/share/faust
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
 	# install smartKeyboard
 	rm -rf $(prefix)/share/faust/smartKeyboard

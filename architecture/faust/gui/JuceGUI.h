@@ -27,8 +27,10 @@
 #define FAUSTFLOAT float
 #endif
 
-#include "../JuceLibraryCode/JuceHeader.h"
 #include <stack>
+
+#include "../JuceLibraryCode/JuceHeader.h"
+
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 #include "faust/gui/ValueConverter.h"
@@ -676,7 +678,9 @@ class uiButton : public uiComponent, private juce::Button::Listener
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fButton.triggerClick();
+            if (v == FAUSTFLOAT(1)) {
+                fButton.triggerClick();
+            }
         }
 
         /** Set the good coordinates and size to the juce::TextButton widget whenever the layout size changes. */

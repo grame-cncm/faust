@@ -1,0 +1,45 @@
+# Vega Makefile header for OS X
+
+OPTIMIZATIONFLAG=-O2
+#OPTIMIZATIONFLAG=-g
+
+OPENMPFLAG=
+#OPENMPFLAG=-fopenmp -DUSE_OPENMP
+
+CXX=g++
+CXXFLAGS=-Wall -Wno-write-strings -flax-vector-conversions $(OPTIMIZATIONFLAG) $(OPENMPFLAG)
+CXXLD=$(CXX)
+LDFLAGS=$(OPTIMIZATIONFLAG) $(OPENMPFLAG)
+
+RM=rm -f
+DYLIB_FLAG=-dynamiclib
+DYLIB_EXT=dylib
+
+L=$(R)/libraries
+
+LIBRARIES_DIR=$(L)
+
+# argument $(1) is a list of library names (e.g. "integrator minivector")
+GET_LIB_MAKEFILES=$(addsuffix /Makefile, $(addprefix $(R)/libraries/, $(1)))
+GET_LIB_FILENAMES=$(join $(addprefix $(R)/libraries/, $(1)), $(addsuffix .a, $(addprefix /lib, $(notdir $(1)) )))
+
+INCLUDE=-I$(LIBRARIES_DIR)/include
+
+LIBRARYPATH=-L$(LIBRARIES_DIR)/lib
+OPENGL_LIBS=-framework OpenGL
+STANDARD_LIBS= $(OPENGL_LIBS) -framework Foundation -framework Accelerate -lz -lm $(LIBRARYPATH)
+
+# MKL paths
+PARDISO_DIR=/opt/intel/compilers_and_libraries_2017/mac/mkl
+PARDISO_INCLUDE=-I$(PARDISO_DIR)/include
+PARDISO_LIB=-Wl,-rpath,$(PARDISO_DIR)/lib -Wl,-rpath,/opt/intel/compilers_and_libraries_2017/mac/lib -L/opt/intel/compilers_and_libraries_2017/mac/lib -L$(PARDISO_DIR)/lib -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5
+
+# the following assumes that Intel MKL is used both for Pardiso and BLAS/LAPACK (don't change)
+BLASLAPACK_DIR=$(PARDISO_DIR)
+BLASLAPACK_INCLUDE=$(PARDISO_INCLUDE)
+BLASLAPACK_LIB=$(PARDISO_LIB)
+
+# ARPACK
+ARPACK_LIB=-L/opt/local/lib -larpack
+# If you use homebrew: 
+# ARPACK_LIB=-L/usr/local/Cellar/arpack/3.4.0/lib -larpack

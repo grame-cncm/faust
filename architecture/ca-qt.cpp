@@ -40,6 +40,7 @@
 
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
@@ -296,6 +297,9 @@ int main(int argc, char *argv[])
     
 #endif
     
+    // To test dsp_sample_adapter
+    //DSP = new dsp_sample_adapter<float>(DSP);
+    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -339,8 +343,8 @@ int main(int argc, char *argv[])
 	sensors.start();
 #endif
 	
-    printf("ins %d\n", audio.get_num_inputs());
-    printf("outs %d\n", audio.get_num_outputs());
+    printf("ins %d\n", audio.getNumInputs());
+    printf("outs %d\n", audio.getNumOutputs());
 
 #ifdef HTTPCTRL
 	httpdinterface.run();
@@ -361,12 +365,15 @@ int main(int argc, char *argv[])
 
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
+#ifdef MIDICTRL
+    midiinterface.stop();
+#endif
     interface.stop();
-    
-	audio.stop();
-	finterface.saveState(rcfilename);
 
-  	return 0;
+    audio.stop();
+    finterface.saveState(rcfilename);
+
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

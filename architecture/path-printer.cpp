@@ -36,7 +36,7 @@ ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char *argv[] )
 {
-  FaustPolyEngine fPolyEngine(new dummy_audio());
+  FaustPolyEngine fPolyEngine(new dummyaudio());
 
   std::cout << "## Parameters List\n\n";
   

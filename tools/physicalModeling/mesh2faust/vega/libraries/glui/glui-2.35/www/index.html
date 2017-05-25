@@ -1,0 +1,209 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+  <meta name="Author" content="Nigel Stewart,  Paul Rademacher">
+  <meta name="KeyWords" content="GLUI, OpenGL, GLUT, C++, User Interface">
+  <title>GLUI User Interface Library</title>
+</head>
+<body text="#000000" bgcolor="#FFFFFF" style="font-family: Arial,Helvetica; margin: 1em">
+
+<table>
+<tr>
+
+<td width="100%">
+<p align="center">
+<a href="http://glui.sourceforge.net"><img src="title.jpg" alt="GLUI User Interface Library" width="391" height="40" border="0"></a><br><br>
+<b>Version 2.2</b><br><br>
+Written by <a HREF="http://www.cs.unc.edu/~rademach">Paul Rademacher</a><br>
+Maintained by <a href="http://www.nigels.com/">Nigel Stewart</a>
+</p>
+</td>
+
+<td width="10"/>
+
+<td align="center">
+<font size=-1>GLUI<br/><a href="http://glui.sourceforge.net">Homepage</a></font><br/>
+<br/>
+
+<font size=-3>Sourceforge:</font><br/>
+<font size=-2>
+<a href="http://sourceforge.net/projects/glui">Summary</a><br/>
+<a href="http://sourceforge.net/news/?group_id=92496">News</a><br/>
+<a href="http://sourceforge.net/forum/?group_id=92496">Forums</a><br/>
+<a href="http://sourceforge.net/tracker/?group_id=92496&amp;atid=600952">Bugs</a><br/>
+<a href="http://cvs.sourceforge.net/viewcvs.py/glui/glui/src/">CVS</a><br/>
+<a href="http://sourceforge.net/project/showfiles.php?group_id=92496">Files</a><br/>
+<br/>
+Mirrors<br/><a href="http://sf.gds.tuwien.ac.at/g/gl/glui/">[at]</a><br/>
+
+</font>
+<br/>
+
+<a href="http://sourceforge.net">
+<img src="http://sourceforge.net/sflogo.php?group_id=92496" width="88" height="31" border="0" alt="SourceForge Logo"></a>
+<br/><br/>
+<a href="http://validator.w3.org/check?uri=referer">
+<img border="0" src="valid-html401.png" alt="Valid HTML 4.01!" height="31" width="88"></a>
+
+</td>
+</tr></table>
+
+<h3>Status</h3>
+
+<p>
+<b>March 2005</b><br>
+GLUI website migration to SourceForge.<br>
+Some new features are being merged into CVS.<br>
+</p>
+
+<p>
+<b>October 2003</b><br>
+GLUI is being migrated to SourceForge.<br>
+Source code is now available via <a href="https://sourceforge.net/cvs/?group_id=92496">CVS</a>.<br>
+<a href="https://sourceforge.net/forum/forum.php?forum_id=319502">Help</a>,
+<a href="https://sourceforge.net/forum/forum.php?forum_id=319503">developer</a>,
+and
+<a href="https://sourceforge.net/forum/forum.php?forum_id=319501">open</a>
+discussion forums have been established.<br>
+<a href="https://sourceforge.net/tracker/?group_id=92496&amp;atid=600952">Bug Tracking</a>
+is also available.
+</p>
+
+<p>
+<b>25th November 2002</b><br>
+Version 2.2 is available.<br>
+This is an update for gcc 3.2.<br>
+There are no feature enhancements or incompatibilities with 2.1.<br>
+<a href="#download">Download</a> GLUI 2.2
+</p>
+
+<hr>
+
+<h3>What is GLUI?</h3>
+
+<p align="justify">
+GLUI is a GLUT-based C++ user interface library which provides
+controls such as buttons, checkboxes, radio buttons, and spinners
+to OpenGL applications. It is window-system independent, relying
+on GLUT to handle all system-dependent issues, such as window
+and mouse management.
+</p>
+
+<p>Features of the GLUI User Interface Library include:</p>
+
+<ul>
+<li>Complete integration with GLUT toolkit</li>
+<li>Simple creation of a new user interface window with a single line of code</li>
+<li>Support for multiple user interface windows</li>
+<li>Standard user interface controls such as:
+   <ul>
+   <li>Buttons</li>
+   <li>Checkboxes for boolean variables</li>
+   <li>Radio Buttons for mutually-exclusive options</li>
+   <li>Editable text boxes for inputting text, integers, and floating-point values</li>
+   <li>Spinners for interactively manipulating integer and floating-point values</li>
+   <li>Static text fields</li>
+   <li>Panels for grouping sets of controls</li>
+   <li>Separator lines to help visually organize groups of controls</li>
+   </ul>
+<li>Controls can generate callbacks when their values change</li>
+<li>Variables can be linked to controls and automatically updated when the value of the control changes (<I>"live variables"</I>)</li>
+<li>Controls can be automatically synchronized to reflect changes in live variables</li>
+<li>Controls can trigger GLUT redisplay events when their values change</li>
+<li>Layout and sizing of controls is automatic</li>
+<li>Controls can be grouped into columns</li>
+<li>User can cycle through controls using Tab key</li>
+</ul>
+
+<h3>What does GLUI look like?</h3>
+
+<p>
+Here's an example GLUI window, showing the different controls.  This
+window is rendered entirely in OpenGL.  It therefore looks the same on
+PCs, Macs, SGIs, and other Unixes, using either SGI's implementation
+of OpenGL, Microsoft's, or Mesa's.
+</p>
+
+<p align="center"><img src="image1.png" alt="GLUI OpenGL Interface" width="401" height="252" border="0"></p>
+
+<hr>
+
+<h3>New in Version 2</h3>
+
+<p>GLUI version 2 includes the following new features and controls:</p>
+
+<ul>
+<li>GLUI controls within the main graphics window.</li>
+<li>Functions for cleanly destroying GLUI windows and subwindows.</li>
+<li>Functions for hiding and showing GLUI windows and subwindows.</li>
+<li>A sync_live_all() for automatically synchronizing all live variables in all GLUI windows simultaneously.</li>
+<li>Rollouts - collapsible panels for reducing screen clutter.</li>
+<li>Listboxes - allows the user to choose an item from a list of strings.</li>
+<li>Rotation and translation controllers - for easily receiving 3D interaction input from the user.</li>
+</ul>
+
+<p>Here is a screenshot (from Windows) showing all the GLUI version 2.0 controls:</p>
+<p align="center"><img src="screen2.png" alt="Windows GLUI" width="548" height="315" border="0"></p>
+
+<p>And another screenshot (from X-Windows/Mwm), showing the new features, including
+GLUI subwindows docked inside the main graphics window.</p>
+<p align="center"><img src="screen3.png" alt="X-Windows GLUI" width="585" height="312" border="0"></p>
+
+<hr>
+
+<h3><A NAME="download">Download GLUI</a></h3>
+
+<p>Version 2.2</p>
+
+	<ul>
+		<li>Source: <a href="http://prdownloads.sourceforge.net/glui/glui_v2_2.tgz?download">glui_v2_2.tgz</a></li>
+		<li>Source: <a href="http://prdownloads.sourceforge.net/glui/glui_v2_2.zip?download">glui_v2_2.zip</a></li>
+		<li>DevPak: <a href="http://prdownloads.sourceforge.net/glui/glui.2.2-1.DevPak?download">glui.2.2-1.DevPak</a></li>
+		<li>Manual: <a href="http://prdownloads.sourceforge.net/glui/glui_manual_v2_beta.pdf?download">glui_manual_v2_beta.pdf</a></li>
+	</ul>
+
+<p>Files <a href="http://sourceforge.net/project/showfiles.php?group_id=92496"> hosted by SourceForge</a></p>
+
+<p> Versions previous to GLUI 2.2 <a href="http://www.cs.unc.edu/~rademach/glui/">are available</a>.</p>
+
+<hr>
+
+<h3>License Information</h3>
+
+<p>
+GLUI is licensed under <a HREF="http://www.gnu.org/copyleft/lesser.html">LGPL</a>.
+</p>
+
+<hr>
+
+<h3>Projects Using GLUI</h3>
+
+<ul>
+    <li><a href="http://doris.sourceforge.net/">Doris</a> - a script driven OpenGL viewer using Lua.</li>
+</ul>
+
+<hr>
+
+<h3>Wish List</h3>
+
+<ul>
+    <li>Convert documentation to LaTeX</li>
+	<li>Doxygen documentation</li>
+	<li>Feature request: Floating controls over a 3D canvas</li>
+</ul>
+
+<hr>
+
+<h3>Links</h3>
+
+<ul>
+<li>Paul Rademacher's <a href="http://www.cs.unc.edu/~rademach/glui/">original GLUI page</a>.</li>
+<li>European <a href="http://gd.tuwien.ac.at/hci/glui/">GLUI mirror</a> page.</li>
+<li>GLUI <a href="http://freshmeat.net/projects/glui/">freshmeat</a> page.</li>
+<li><a href="http://www.opengl.org">OpenGL.org</a></li>
+</ul>
+
+</body>
+</html>

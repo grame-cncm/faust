@@ -89,7 +89,7 @@ with {
  frl = max(20,min(10000,fr)); // limit fr to reasonable 20-10k Hz range
  w1 = 2*ma.PI*frl; // frequency-scaling parameter for bilinear xform
  // Equivalent: w1 = 1; s = 2*PI*frl;
- kmax = sqrt(2)*0.999; // 0.999 gives stability margin (tf2 is unprotected)
+ kmax = sqrt(2)*0.99999; // 0.99999 gives stability margin (tf2 is unprotected)
  k = min(kmax,sqrt(2)*res); // fourth root of Moog VCF feedback gain
  b0 = s^2;
  s2k = sqrt(2) * k;
@@ -103,7 +103,7 @@ moog_vcf_2bn(res,fr) = fi.tf2snp(0,0,b0,a11,a01,w1) : fi.tf2snp(0,0,b0,a12,a02,w
 with {
  s = 1; // minus the open-loop location of all four poles
  w1 = 2*ma.PI*max(fr,20); // frequency-scaling parameter for bilinear xform
- k = sqrt(2)*0.999*res; // fourth root of Moog VCF feedback gain
+ k = sqrt(2)*0.99999*res; // fourth root of Moog VCF feedback gain
  b0 = s^2;
  s2k = sqrt(2) * k;
  a11 = s * (2 + s2k);

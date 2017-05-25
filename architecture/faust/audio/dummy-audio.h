@@ -47,13 +47,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <iostream>
+#include <iomanip>
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
 
 #define BUFFER_TO_RENDER 10
 
-class dummy_audio : public audio {
+class dummyaudio : public audio {
 
     private:
 
@@ -66,15 +68,16 @@ class dummy_audio : public audio {
         FAUSTFLOAT** fOutChannel;  
 
         int fCount;
+        bool fIsSample;
 
     public:
 
-        dummy_audio(int count = 10)
+        dummyaudio(int sr, int bs, int count = 10, bool sample = false)
+            :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
+        dummyaudio(int count = 10)
             :fSampleRate(48000), fBufferSize(512), fCount(count) {}
-        dummy_audio(int srate, int bsize, int count = 10)
-            :fSampleRate(srate), fBufferSize(bsize), fCount(count) {}
     
-        virtual ~dummy_audio() 
+        virtual ~dummyaudio() 
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 delete[] fInChannel[i];
@@ -120,15 +123,30 @@ class dummy_audio : public audio {
         {
             fDSP->compute(fBufferSize, fInChannel, fOutChannel);
             if (fDSP->getNumInputs() > 0) {
-                printf("First in = %f \n", fInChannel[0][0]);
+                if (fIsSample) {
+                    for (int frame = 0; frame < fBufferSize; frame++) {
+                        std::cout << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
+                    }
+                } else {
+                    std::cout << std::setprecision(6) << "sample in " << fInChannel[0][0] << std::endl;
+                }
             }
             if (fDSP->getNumOutputs() > 0) {
-                printf("First out = %f \n", fOutChannel[0][0]);
+                if (fIsSample) {
+                    for (int frame = 0; frame < fBufferSize; frame++) {
+                        std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
+                    }
+                } else {
+                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][0] << std::endl;
+                }
             }
         }
 
-        virtual int get_buffer_size() { return fBufferSize; }
-        virtual int get_sample_rate() { return fSampleRate; }
+        virtual int getBufferSize() { return fBufferSize; }
+        virtual int getSampleRate() { return fSampleRate; }
+    
+        virtual int getNumInputs() { return fDSP->getNumInputs(); }
+        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
     
 };
 					

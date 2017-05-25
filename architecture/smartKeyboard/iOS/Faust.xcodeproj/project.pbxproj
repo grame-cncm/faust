@@ -342,9 +342,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = XN9RP996NW;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					"$(PROJECT_DIR)/Faust/osclib/oscpack",
+					"$(PROJECT_DIR)/Faust/osclib/faust",
+					"$(PROJECT_DIR)/Faust/osclib",
+				);
 				INFOPLIST_FILE = Faust/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Faust/osclib/faust",
+					"$(PROJECT_DIR)/Faust/osclib",
+					"$(PROJECT_DIR)/Faust/osclib/oscpack",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = ccrma.Faust;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -355,9 +367,21 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = XN9RP996NW;
+				HEADER_SEARCH_PATHS = (
+					/usr/local/include,
+					"$(PROJECT_DIR)/Faust/osclib/oscpack",
+					"$(PROJECT_DIR)/Faust/osclib/faust",
+					"$(PROJECT_DIR)/Faust/osclib",
+				);
 				INFOPLIST_FILE = Faust/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 10.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Faust/osclib/faust",
+					"$(PROJECT_DIR)/Faust/osclib",
+					"$(PROJECT_DIR)/Faust/osclib/oscpack",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = ccrma.Faust;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -73,11 +73,15 @@ bool TThreads::start (int priority)
 //_____________________________________________________________________
 void TThreads::quit ()
 {
+#ifndef android
 	if (fThread) {
 		void *threadRet; 
 		pthread_cancel (fThread);
 		pthread_join (fThread, &threadRet);
 		fThread = 0;
 	}
+#else
+#warning "pthread_cancel not implemented on android"
+#endif
 }
 #endif

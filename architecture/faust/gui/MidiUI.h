@@ -93,65 +93,55 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
 /*******************************************************************************
  * MidiUI : Faust User Interface
  * This class decodes MIDI meta data and maps incoming MIDI messages to them.
- * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend 
+ * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
  * start/stop/clock meta data is handled.
  ******************************************************************************/
- 
-class uiMidiItem : public uiItem {
- 
-    protected:
-    
-         midi* fMidiOut;
-         bool fInputCtrl;
 
-    public:
+class uiMidi {
     
-        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input)
-            :uiItem(ui, zone), fMidiOut(midi_out), fInputCtrl(input) {}
-        virtual ~uiMidiItem() {}
- 
+    protected:
+        
+        midi* fMidiOut;
+        bool fInputCtrl;
+        
+    public:
+        
+        uiMidi(midi* midi_out, bool input):fMidiOut(midi_out), fInputCtrl(input)
+        {}
+    
+        virtual ~uiMidi()
+        {}
+    
 };
- 
-class uiMidiTimedItem : public uiMidiItem
-{
-    protected:
+
+class uiMidiItem : public uiMidi, public uiItem {
     
-        bool fDelete;
-   
     public:
-       
-        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
-            :uiMidiItem(midi_out, ui, zone, input)
-        {
-            if (GUI::gTimedZoneMap.find(fZone) == GUI::gTimedZoneMap.end()) {
-                GUI::gTimedZoneMap[fZone] = ringbuffer_create(8192);
-                fDelete = true;
-            } else {
-                fDelete = false;
-            }
-        }
         
-        virtual ~uiMidiTimedItem() 
-        {
-            ztimedmap::iterator it;
-            if (fDelete && ((it = GUI::gTimedZoneMap.find(fZone)) != GUI::gTimedZoneMap.end())) {
-                ringbuffer_free((*it).second);
-                GUI::gTimedZoneMap.erase(it);
-            }
-        }
-
-        void modifyZone(double date, FAUSTFLOAT v) 	
-        { 
-            size_t res;
-            DatedControl dated_val(date, v);
-            if ((res = ringbuffer_write(GUI::gTimedZoneMap[fZone], (const char*)&dated_val, sizeof(DatedControl))) != sizeof(DatedControl)) {
-                std::cerr << "ringbuffer_write error DatedControl" << std::endl;
-            }
-        }
-        
-        // TODO
+        uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidi(midi_out, input), uiItem(ui, zone)
+        {}
+    
+        virtual ~uiMidiItem()
+        {}
+    
         virtual void reflectZone() {}
+    
+};
 
+class uiMidiTimedItem : public uiMidi, public uiTimedItem {
+    
+    public:
+        
+        uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
+            :uiMidi(midi_out, input), uiTimedItem(ui, zone)
+        {}
+        
+        virtual ~uiMidiTimedItem()
+        {}
+    
+        virtual void reflectZone() {}
+    
 };
 
 // MIDI sync
@@ -420,13 +410,13 @@ class uiMidiKeyPress : public uiMidiItem
 
     private:
         
-        int fKeyOn;
+        int fKey;
         LinearValueConverter fConverter;
   
     public:
     
         uiMidiKeyPress(midi* midi_out, int key, GUI* ui, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
-            :uiMidiItem(midi_out, ui, zone, input), fKeyOn(key), fConverter(0., 127., double(min), double(max))
+            :uiMidiItem(midi_out, ui, zone, input), fKey(key), fConverter(0., 127., double(min), double(max))
         {}
         virtual ~uiMidiKeyPress()
         {}
@@ -435,7 +425,7 @@ class uiMidiKeyPress : public uiMidiItem
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
-            fMidiOut->keyPress(0, fKeyOn, fConverter.faust2ui(v));
+            fMidiOut->keyPress(0, fKey, fConverter.faust2ui(v));
         }
         
         void modifyZone(int v) 	
@@ -469,7 +459,8 @@ class MidiUI : public GUI, public midi
         std::vector<std::pair <std::string, std::string> > fMetaAux;
         
         midi_handler* fMidiHandler;
-        
+        bool fDelete;
+    
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
         {
             if (fMetaAux.size() > 0) {
@@ -507,15 +498,17 @@ class MidiUI : public GUI, public midi
 
     public:
 
-        MidiUI(midi_handler* midi_handler)
+        MidiUI(midi_handler* midi_handler, bool delete_handler = false)
         {
             fMidiHandler = midi_handler;
             fMidiHandler->addMidiIn(this);
+            fDelete = delete_handler;
         }
  
         virtual ~MidiUI() 
         { 
             fMidiHandler->removeMidiIn(this);
+            if (fDelete) delete fMidiHandler;
         }
         
         bool run() { return fMidiHandler->start_midi(); }
@@ -614,9 +607,9 @@ class MidiUI : public GUI, public midi
         
         void keyPress(double date, int channel, int pitch, int press) 
         {
-            if (fKeyPressTable.find(press) != fKeyPressTable.end()) {
-                for (unsigned int i = 0; i < fKeyPressTable[press].size(); i++) {
-                    fKeyPressTable[press][i]->modifyZone(FAUSTFLOAT(press));
+            if (fKeyPressTable.find(pitch) != fKeyPressTable.end()) {
+                for (unsigned int i = 0; i < fKeyPressTable[pitch].size(); i++) {
+                    fKeyPressTable[pitch][i]->modifyZone(FAUSTFLOAT(press));
                 }
             } 
         }
