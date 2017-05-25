@@ -68,7 +68,7 @@ faust2api -coreaudio yourFaustCode.dsp
 
 The `-midi` option can be used to add RtMidi support to the API.
 
-The `-osc` option can be used to add OSC support to the API. 
+The `-osc` option can be used to add OSC support to the API.
 
 ### ALSA Support
 
@@ -154,13 +154,6 @@ In this case, we're creating an object with a maximum number of 12 polyphonic vo
 #### MIDI Enabled Polyphonic Object
 
 To create a polyphonic object controllable by a MIDI keyboard, run the previous command but make sure that the `freq`, `gain` and `gate` parameters are declared in your Faust code. E.g:
-
-	import("stdfaust.lib");
-	freq = nentry("freq",200,40,2000,0.01) : si.polySmooth(gate,0.999,2);
-	gain = nentry("gain",1,0,1,0.01) : si.polySmooth(gate,0.999,2);
-	gate = button("gate") : si.smoo;
-	cutoff = nentry("cutoff",5000,40,2000,0.01) : si.polySmooth(gate,0.999,2);
-	process = vgroup("synth",os.sawtooth(freq)*gain*gate : fi.lowpass(3,cutoff) <: _,_);
 
 ```
 f = hslider("freq",300,50,2000,0.01);
