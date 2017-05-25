@@ -90,7 +90,7 @@ To turn a Faust code into a Jack API, just run the following command:
 faust2api -jack yourFaustCode.dsp
 ```
 
-The `-midi` option can be used to add RtMidi support to the API.
+The `-midi` option can be used to add JACK MIDI support to the API.
 
 The `-osc` option can be used to add OSC support to the API.
 
@@ -134,9 +134,9 @@ To turn a Faust code into a JUCE API, just run the following command:
 faust2api -juce yourFaustCode.dsp
 ```
 
-The `-midi` option can be used to add RtMidi support to the API.
+The `-midi` option can be used to add JUCE MIDI support to the API.
 
-The `-osc` option can be used to add OSC support to the API.
+The `-osc` option can be used to add JUCE OSC support to the API.
 
 ### Customizing the API
 
