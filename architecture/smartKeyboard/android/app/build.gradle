@@ -1,3 +1,5 @@
+def OSCCTRL=false
+
 apply plugin: 'com.android.application'
 
 android {
@@ -29,6 +31,14 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
+        }
+    }
+    if(OSCCTRL) {
+        sourceSets {
+            main {
+                // let gradle pack the shared library into apk
+                jniLibs.srcDirs = ['/usr/local/share/faust/osclib/android/libs']
+            }
         }
     }
     externalNativeBuild {
