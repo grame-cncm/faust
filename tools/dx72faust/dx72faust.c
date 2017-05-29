@@ -116,17 +116,16 @@ struct dx7_globals {
   char NAME[10];
 } global;
 
-// function to get rid of spaces in a char
-void deblank(char* input)
+// function to get rid of problematic characters in a string
+void format(char* input)
 {
   int i,j;
   char *output=input;
   for (i = 0, j = 0; i<strlen(input); i++,j++){
-    if (input[i]!=' '){
-      output[j]=input[i];
-    }
-    else{
-      j--;
+    if (input[i] != ' ' && input[i] != '.' && input[i] != '-'){
+        output[j]=input[i];
+    } else{
+        j--;
     }
   }
   output[j]=0;
@@ -176,7 +175,7 @@ int main(argc,argv)
       fread(&global, 16L, 1, fpin);
       fread(&name, 10, 1, fpin);
       name[10] = '\0';
-      deblank(name);
+      format(name);
       total = 0;
 
       fprintf(fpout,"// NAME: %s\n",name);
