@@ -232,7 +232,7 @@ bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, con
 {
 #if OSCCTRL
 #if JUCE_DRIVER
-    // Nothing got now
+    // Nothing for now
     return false;
 #else
     if (isRunning()) {
