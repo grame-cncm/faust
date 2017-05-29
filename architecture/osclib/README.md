@@ -1,4 +1,4 @@
-# FAUST OSC Library (Copyright 2011 (c) Grame)
+# FAUST OSC Library
 
 ## Compiling the Faust OSC library
 
@@ -22,7 +22,7 @@ The compiler output is a set of static libraries placed in the 'osclib/android/l
 
 The library provides a single interface file: OSCControler.h. The following options should be used to compile: -Iosclib/faust/include -Losclib -loscpack -lOSCFaust
 
-See the [ReadMe](/faust/README.md) file for more details about the library.
+See the [ReadMe](/architecture/osclib/faust/README.md) file for more details about the library.
 
 
 ## Examples

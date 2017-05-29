@@ -1,4 +1,4 @@
-# FAUST OSC Library (Copyright 2011 (c) Grame)
+# FAUST OSC Library
 
 ## Note about the OSC messages and address space
 
