@@ -145,14 +145,14 @@ int main(argc,argv)
     unsigned short x,y,z,SCL_LEFT_CURVE,SCL_RIGHT_CURVE,OSC_DETUNE,OSC_RATE_SCALE;
     unsigned short KEY_VEL_SENS,AMP_MOD_SENS,FREQ_COARSE,OSC_MODE;
     char header[6];
-    char out[7];
+    char out[256];
     int total, count=0,op=0;
-    float frequency; // comuted frequency
-    char name[11]; // preset name
-    int nVoices = 32; // preset file always contain 32 voices
+    float frequency;    // computed frequency
+    char name[11];      // preset name
+    int nVoices = 32;   // preset file always contain 32 voices
 
     // loading preset file
-    if ( (fpin = fopen(argv[1],"rb")) == 0 ) {
+    if ((fpin = fopen(argv[1],"rb")) == 0) {
 	     printf("Cannot open file %s\n",argv[1]);
 	     exit(1);
     }
@@ -164,7 +164,7 @@ int main(argc,argv)
       printf("Couldn't open %s\n",out);
       exit(1);
     }
-
+  
     // Writing library header
     fprintf(fpout,"// Faust DX7 presets library created from %s\n\n",argv[1]);
     fprintf(fpout,"import(\"stdfaust.lib\");\n\n");
