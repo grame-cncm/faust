@@ -278,7 +278,7 @@ class FaustPolyEngine {
     
         /*
          * buildUserInterface(ui)
-         * Calls the polyphonic of monophonic buildUserInterface with the ui parameter.
+         * Calls the polyphonic or monophonic buildUserInterface with the ui parameter.
          */
         void buildUserInterface(UI* ui_interface)
         {

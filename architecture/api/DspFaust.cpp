@@ -30,7 +30,7 @@
 // OSC configuration (hardcoded for now...)
 //**************************************************************
 
-#define OSC_IP_ADDRESS  "192.168.1.1"
+#define OSC_IP_ADDRESS  "192.168.1.112"
 #define OSC_IN_PORT     "5510"
 #define OSC_OUT_PORT    "5511"
 
