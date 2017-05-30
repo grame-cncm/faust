@@ -119,22 +119,22 @@ struct dx7_globals {
 // function to get rid of problematic characters in a string
 void format(char* input)
 {
-  int i,j;
-  char *output=input;
-  for (i = 0, j = 0; i<strlen(input); i++,j++){
-    if (input[i] != ' ' && input[i] != '.' && input[i] != '-'){
-        output[j]=input[i];
-    } else{
-        j--;
+    int i,j;
+    char *output = input;
+    for (i = 0, j = 0; i < strlen(input); i++,j++) {
+        if ((input[i] >= 'a' && input[i] <= 'z')
+            || (input[i] >= 'A' && input[i] <= 'Z')
+            || (input[i] >= '0' && input[i] <= '9')) {
+            output[j] = input[i];
+        } else{
+            j--;
+        }
     }
-  }
-  output[j]=0;
+    output[j] = 0;
 }
 
-int main(argc,argv)
-  int argc;
-  char *argv[];
-  {
+int main(int argc, char *argv[])
+{
     if(strcmp(argv[1],"-h") == 0 || strcmp(argv[1],"--help") == 0){
       printf("dx72faust: simple program to convert a dx7 .syx preset file into a Faust library.\n");
       printf("Usage: dx72faust presetFile.syx\n");
@@ -152,8 +152,8 @@ int main(argc,argv)
 
     // loading preset file
     if ((fpin = fopen(argv[1],"rb")) == 0) {
-	     printf("Cannot open file %s\n",argv[1]);
-	     exit(1);
+        printf("Cannot open file %s\n",argv[1]);
+        exit(1);
     }
     fread(&header, 6L, 1, fpin);
 
@@ -163,7 +163,7 @@ int main(argc,argv)
       printf("Couldn't open %s\n",out);
       exit(1);
     }
-  
+
     // Writing library header
     fprintf(fpout,"// Faust DX7 presets library created from %s\n\n",argv[1]);
     fprintf(fpout,"import(\"stdfaust.lib\");\n\n");
@@ -182,7 +182,7 @@ int main(argc,argv)
       fprintf(fpout,"// ALGORITHM: %02d\n",global.ALGORITHM+1);
 
       fprintf(fpout,"dx7_%s(freq,gain,gate) = \n",name);
-      fprintf(fpout,"dx.dx7_algo(%i,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)\nwith{\n",global.ALGORITHM);
+  fprintf(fpout,"dx.dx7_algo(%i,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)\nwith{\n",global.ALGORITHM);
 
       fprintf(fpout,"\tegR1(n) = ba.take(n+1,(");
       for (op=5;op>=0;op--) {
