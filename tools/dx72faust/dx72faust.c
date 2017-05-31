@@ -145,11 +145,11 @@ int main(int argc, char *argv[])
     unsigned short KEY_VEL_SENS,AMP_MOD_SENS,FREQ_COARSE,OSC_MODE;
     char header[6];
     char out[256];
-    int total, count=0,op=0;
+    int count,op;
     float frequency;    // computed frequency
     char name[11];      // preset name
     int nVoices = 32;   // preset file always contain 32 voices
-
+  
     // loading preset file
     if ((fpin = fopen(argv[1],"rb")) == 0) {
         printf("Cannot open file %s\n",argv[1]);
@@ -169,15 +169,14 @@ int main(int argc, char *argv[])
     fprintf(fpout,"import(\"stdfaust.lib\");\n\n");
 
     // Parsing presets and converting them into Faust functions
-    for (count=0;count<nVoices;count++) {
-      op=0;
+    for (count = 0; count < nVoices; count++) {
+      op = 0;
       fread((&(operator[op])), 17L, 6, fpin);
       fread(&global, 16L, 1, fpin);
       fread(&name, 10, 1, fpin);
       name[10] = '\0';
       format(name);
-      total = 0;
-
+   
       fprintf(fpout,"// NAME: %s\n",name);
       fprintf(fpout,"// ALGORITHM: %02d\n",global.ALGORITHM+1);
 
@@ -185,108 +184,108 @@ int main(int argc, char *argv[])
   fprintf(fpout,"dx.dx7_algo(%i,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)\nwith{\n",global.ALGORITHM);
 
       fprintf(fpout,"\tegR1(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_R1);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegR2(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_R2);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegR3(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_R3);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegR4(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_R4);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegL1(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_L1);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegL2(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_L2);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegL3(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_L3);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tegL4(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OP_EG_L4);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\toutLevel(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OUTPUT_LEV);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tkeyVelSens(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].KEY_VEL_SENS);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\tampModSens(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].AMP_MOD_SENS);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\topMode(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OSC_MODE);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\topFreq(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         frequency = FreqTableCoarse[operator[op].OSC_MODE][operator[op].FREQ_COARSE] * FreqTableFine[operator[op].OSC_MODE][operator[op].FREQ_FINE];
         fprintf(fpout,"%f",frequency);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\topDetune(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",((int)operator[op].OSC_DETUNE)-7);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 
       fprintf(fpout,"\topRateScale(n) = ba.take(n+1,(");
-      for (op=5;op>=0;op--) {
+      for (op = 5; op >= 0; op--) {
         fprintf(fpout,"%d",operator[op].OSC_RATE_SCALE);
-        if(op!=0) fprintf(fpout,",");
+        if (op != 0) fprintf(fpout,",");
       }
       fprintf(fpout,"));\n");
 

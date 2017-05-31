@@ -1,9 +1,9 @@
--20 0x00/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude
-49 0x00/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency
-0.1 0x00/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento
-0 0x00/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass
-0 0x00/0x00/CUBIC_NONLINEARITY_cubicnl/Drive
-0 0x00/0x00/CUBIC_NONLINEARITY_cubicnl/Offset
-100 0x00/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time
-50 0x00/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset
+-20 cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Amplitude
+49 cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Frequency
+0.1 cubic_distortion/0x00/SINE_WAVE_OSCILLATOR_oscrs/Portamento
+0 cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Bypass
+0 cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Drive
+0 cubic_distortion/0x00/CUBIC_NONLINEARITY_cubicnl/Offset
+100 cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time
+50 cubic_distortion/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset
 

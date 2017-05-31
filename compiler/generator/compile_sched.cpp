@@ -53,7 +53,7 @@ void SchedulerCompiler::compileMultiSignal (Tree L)
     // Build tasks list 
     fClass->buildTasksList();
     
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
  	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
