@@ -304,7 +304,7 @@ namespace BinaryConsts {
     
     enum Meta {
         Magic = 0x6d736100,
-        Version = 0x01
+        Version = 0x01  // First official version
     };
     
     enum Section {
@@ -481,7 +481,7 @@ struct LocalVarDesc {
     
 };
 
-// Count local variables (stack/loop) with their types : to be used at the begining of each block
+// Count local variables (stack/loop) with their types : to be used at the beginning of each block
 // Funargs variables are indexed first
 struct LocalVariableCounter : public DispatchVisitor {
     

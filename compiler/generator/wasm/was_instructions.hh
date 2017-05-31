@@ -60,11 +60,11 @@ struct WASInst {
         Typed::VarType fType;
     };
     
-    // Description math functions
+    // Description of math functions
     struct MathFunDesc {
         
         enum Gen { kWAS,    // Implemented in wasm definition
-            kExtMath,       // Implemented in JS Math
+            kExtMath,       // Implemented in JS Math context
             kIntWAS,        // Manually implemented in wast/wasm backends
             kExtWAS };      // Manually implemented in JS
         

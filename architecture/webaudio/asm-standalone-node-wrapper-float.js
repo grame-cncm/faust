@@ -441,8 +441,8 @@ console.log("number_of_frames  : ", nbsamples);
 
 // Check getSampleRate
 if (DSP.getSampleRate() !== sample_rate) {
-   console.error("ERROR in getSampleRate");
-	process.exit(1);
+    console.error("ERROR in getSampleRate");
+    process.exit(1);
 }
 
 // Check setParamValue/getParamValue

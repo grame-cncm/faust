@@ -46,7 +46,7 @@ using namespace std;
 
         loop (....count....)
         {
-            toto : use of var outside the loop
+            toto: use of var outside the loop
 
             field: kStruct variable
 
@@ -57,22 +57,21 @@ using namespace std;
 
     ==> local var outside the loop : function parameter
     ==> var insided the loop : stay the same
-    ==> "count" of the loop :  function parameter
+    ==> "count" of the loop : function parameter
     ==> field: kStruct variable : stay the same
-    ==> global variables :  stay the same
+    ==> global variables : stay the same
 
     void extracted_loop(int toto, int count, .....)
     {
         loop (....count....)
         {
-            toto : use of var from paramater list
+            toto: use of var from paramater list
 
             field: kStruct variable
 
             float titi = ....  (local var inside the loop)
             loop_code
         }
-
     }
 
     void extracted_loop(int count, float** inputs, float** ouputs)
