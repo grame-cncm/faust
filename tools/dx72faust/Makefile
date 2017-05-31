@@ -1,7 +1,7 @@
-CC=gcc
+CXX=g++
 
-all: dx72faust.c
-	$(CC) -o dx72faust dx72faust.c
+all: dx72faust.cpp
+	$(CXX) -o dx72faust dx72faust.cpp
 
 clean:
 	rm dx72faust

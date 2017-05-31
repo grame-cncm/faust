@@ -19,7 +19,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(2,2,3,1,1,1));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,1,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -45,7 +45,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(2,1,1,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,1,0,0,7));
 	feedback = 6 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -71,7 +71,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,2));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.500000,0.500000,0.500000,0.500000,0.500000));
+	opFreq(n) = ba.take(n+1,(0.5,0.5,0.5,0.5,0.5,0.5));
 	opDetune(n) = ba.take(n+1,(0,4,-1,2,1,5));
 	opRateScale(n) = ba.take(n+1,(0,4,0,0,0,4));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -81,7 +81,7 @@ with{
 };
 
 // NAME: BRASS4
-// ALGORITHM: 02
+// ALGORITHM: 2
 dx7_BRASS4(freq,gain,gate) = 
 dx.dx7_algo(1,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -97,7 +97,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.500000,0.500000,0.500000,0.500000,3.000000));
+	opFreq(n) = ba.take(n+1,(0.5,0.5,0.5,0.5,0.5,3));
 	opDetune(n) = ba.take(n+1,(-3,6,2,-6,3,7));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 5 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -107,7 +107,7 @@ with{
 };
 
 // NAME: BRASSENS
-// ALGORITHM: 09
+// ALGORITHM: 9
 dx7_BRASSENS(freq,gain,gate) = 
 dx.dx7_algo(8,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -123,7 +123,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.500000,0.500000,0.500000,0.500000,1.000000));
+	opFreq(n) = ba.take(n+1,(0.5,0.5,0.5,0.5,0.5,1));
 	opDetune(n) = ba.take(n+1,(-2,7,7,6,-6,-6));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 6 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -133,7 +133,7 @@ with{
 };
 
 // NAME: BRASS5THS
-// ALGORITHM: 02
+// ALGORITHM: 2
 dx7_BRASS5THS(freq,gain,gate) = 
 dx.dx7_algo(1,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -149,7 +149,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,1,0,1,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.500000,1.500000,1.500000,1.500000));
+	opFreq(n) = ba.take(n+1,(1,1,1.5,1.5,1.5,1.5));
 	opDetune(n) = ba.take(n+1,(0,-7,4,-2,0,2));
 	opRateScale(n) = ba.take(n+1,(2,1,2,1,1,1));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -175,7 +175,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.500000,0.500000,0.500000,0.500000,3.000000));
+	opFreq(n) = ba.take(n+1,(0.5,0.5,0.5,0.5,0.5,3));
 	opDetune(n) = ba.take(n+1,(0,3,2,-4,3,7));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -201,7 +201,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,1,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(3,3,3,3,3,3));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.540000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(0.5,0.54,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(2,2,3,3,3,1));
 	feedback = 5 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -227,7 +227,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(3,0,3,3,3,3));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,0.820000,1.000000,1.000000,1.000000,1.010000));
+	opFreq(n) = ba.take(n+1,(1,0.82,1,1,1,1.01));
 	opDetune(n) = ba.take(n+1,(0,7,0,0,0,-6));
 	opRateScale(n) = ba.take(n+1,(2,2,2,2,2,1));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -253,7 +253,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,2,0,0,0,1));
 	ampModSens(n) = ba.take(n+1,(3,1,3,3,3,2));
 	opMode(n) = ba.take(n+1,(1,0,1,1,1,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.413000,1.413000,1.413000,1.010000));
+	opFreq(n) = ba.take(n+1,(1,1,1.413,1.413,1.413,1.01));
 	opDetune(n) = ba.take(n+1,(-7,7,-3,0,3,-4));
 	opRateScale(n) = ba.take(n+1,(2,2,2,2,2,2));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -279,7 +279,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,3,6,3,4,7));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(-2,4,2,-1,3,3));
 	opRateScale(n) = ba.take(n+1,(2,2,3,0,0,0));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -305,7 +305,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(2,1,4,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,3,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -331,7 +331,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,2,3,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,7,7,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,2,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -357,7 +357,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,3,6,3,4,7));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(-2,4,2,-1,3,3));
 	opRateScale(n) = ba.take(n+1,(2,2,3,0,0,0));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -383,7 +383,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,0,1,1,1,6));
 	ampModSens(n) = ba.take(n+1,(0,1,0,0,0,2));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(1,2,2,2,-2,7));
 	opRateScale(n) = ba.take(n+1,(2,0,0,0,0,4));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -409,7 +409,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,2,2,2,3));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,1));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(1,2,2,2,-2,7));
 	opRateScale(n) = ba.take(n+1,(2,0,0,0,0,4));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -419,7 +419,7 @@ with{
 };
 
 // NAME: HORNS7
-// ALGORITHM: 09
+// ALGORITHM: 9
 dx7_HORNS7(freq,gain,gate) = 
 dx.dx7_algo(8,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -435,7 +435,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,2,0,0,0,3));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(1,0,1,0,0,0));
-	opFreq(n) = ba.take(n+1,(2.138000,0.500000,2.239000,0.500000,0.500000,0.500000));
+	opFreq(n) = ba.take(n+1,(2.138,0.5,2.239,0.5,0.5,0.5));
 	opDetune(n) = ba.take(n+1,(-2,3,-3,-2,0,7));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 6 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -461,7 +461,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(1,1,3,1,1,1));
 	ampModSens(n) = ba.take(n+1,(0,1,1,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,7,7,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,2,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -487,7 +487,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(3,3,3,3,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,4.020000,7.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,4.02,7));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,3,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -513,7 +513,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(2,2,3,1,1,1));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,3.180000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,3.18,8.47));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,1,0,0,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -539,7 +539,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(4,7,1,4,0,3));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,2.100000,1.000000,1.000000,6.240000,8.470000));
+	opFreq(n) = ba.take(n+1,(1,2.1,1,1,6.24,8.47));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,-1,0));
 	opRateScale(n) = ba.take(n+1,(2,2,5,5,5,7));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -549,7 +549,7 @@ with{
 };
 
 // NAME: ANLGBRASS
-// ALGORITHM: 09
+// ALGORITHM: 9
 dx7_ANLGBRASS(freq,gain,gate) = 
 dx.dx7_algo(8,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -565,7 +565,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,1,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(0.500000,0.500000,0.500000,0.500000,0.500000,2.000000));
+	opFreq(n) = ba.take(n+1,(0.5,0.5,0.5,0.5,0.5,2));
 	opDetune(n) = ba.take(n+1,(6,7,0,-6,7,-6));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 6 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -575,7 +575,7 @@ with{
 };
 
 // NAME: ORCHESTRA
-// ALGORITHM: 02
+// ALGORITHM: 2
 dx7_ORCHESTRA(freq,gain,gate) = 
 dx.dx7_algo(1,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -591,7 +591,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,2.000000,2.000000,2.000000,2.000000));
+	opFreq(n) = ba.take(n+1,(1,1,2,2,2,2));
 	opDetune(n) = ba.take(n+1,(0,-6,6,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 7 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -601,7 +601,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -617,7 +617,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -627,7 +627,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -643,7 +643,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -653,7 +653,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -669,7 +669,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -679,7 +679,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -695,7 +695,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -705,7 +705,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -721,7 +721,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -731,7 +731,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -747,7 +747,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -757,7 +757,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -773,7 +773,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -783,7 +783,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -799,7 +799,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
@@ -809,7 +809,7 @@ with{
 };
 
 // NAME: 
-// ALGORITHM: 01
+// ALGORITHM: 1
 dx7_(freq,gain,gate) = 
 dx.dx7_algo(0,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate)
 with{
@@ -825,7 +825,7 @@ with{
 	keyVelSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	ampModSens(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opMode(n) = ba.take(n+1,(0,0,0,0,0,0));
-	opFreq(n) = ba.take(n+1,(1.000000,1.000000,1.000000,1.000000,1.000000,1.000000));
+	opFreq(n) = ba.take(n+1,(1,1,1,1,1,1));
 	opDetune(n) = ba.take(n+1,(0,0,0,0,0,0));
 	opRateScale(n) = ba.take(n+1,(0,0,0,0,0,0));
 	feedback = 0 : dx.dx7_fdbkscalef/(2*ma.PI);
