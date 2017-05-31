@@ -181,7 +181,7 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 	}
     
     generateMetaData();
-	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
@@ -203,7 +203,7 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	//contextor recursivness(0);
 	sig = prepare2(sig);		// optimize and annotate expression
 	fClass->addExecCode(subst("output[i] = $0;", CS(sig)));
-	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
