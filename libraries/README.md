@@ -2,7 +2,7 @@
 
 NOTE: this documentation was automatically generated.
 
-This page provides information on how to use the Faust libraries. 
+This page provides information on how to use the Faust libraries.
 
 The `/libraries` folder contains the different Faust libraries. If you wish to add your own functions to this library collection, you can refer to the "Contributing" section providing a set of coding conventions.
 
@@ -24,6 +24,7 @@ This will give you access to all the Faust libraries through a series of environ
 * `co`: `compressors.lib`
 * `de`: `delays.lib`
 * `dm`: `demos.lib`
+* `dx`: `dx7.lib`
 * `en`: `envelopes.lib`
 * `fi`: `filters.lib`
 * `ho`: `hoa.lib`
@@ -81,9 +82,9 @@ If you wish to add a function to any of these libraries or if you plan to add a 
 ```
 //-----------------functionName--------------------
 // Description
-// 
+//
 // #### Usage
-// 
+//
 // ```
 // Usage Example
 // ```
@@ -104,13 +105,13 @@ If you wish to add a function to any of these libraries or if you plan to add a 
 * Any new "standard" library should be declared in `stdfaust.lib` with its own environment (2 letters - see `stdfaust.lib`).
 * Any new "standard" library must be added to `generateDoc`.
 * Functions must be organized by sections.
-* Any new library should at least `declare` a `name` and a `version`. 
+* Any new library should at least `declare` a `name` and a `version`.
 * The comment based markdown documentation of each library must respect the following format (open the source code of any of the libraries for an example):
 
 ```
 //############### libraryName ##################
 // Description
-// 
+//
 // * Section Name 1
 // * Section Name 2
 // * ...
@@ -141,11 +142,12 @@ If you wish to add a function to any of these libraries or if you plan to add a 
 
 Only the libraries that are considered to be "standard" are documented:
 
-* `analyzers.lib` 
-* `basics.lib` 
+* `analyzers.lib`
+* `basics.lib`
 * `compressors.lib`
 * `delays.lib`
 * `demos.lib`
+* `dx7.lib`
 * `envelopes.lib`
 * `filters.lib`
 * `hoa.lib`
@@ -164,11 +166,11 @@ Only the libraries that are considered to be "standard" are documented:
 * `tubes.lib` (not documented but example in `/examples/misc`)
 * `vaeffects.lib`
 
-Other deprecated libraries such as `music.lib`, etc. are present but are not documented to not confuse new users. 
+Other deprecated libraries such as `music.lib`, etc. are present but are not documented to not confuse new users.
 
 The doumentation of each library can be found in `/documentation/library.html` or in `/documentation/library.pdf`.
 
-The `/examples` directory contains all the examples from the `/examples` folder of the Faust distribution as well as new ones. Most of them were updated to reflect the coding conventions described in the next section. Examples are organized by types in different folders. The `/old` folder contains examples that are fully deprecated, probably because they were integrated to the libraries and fully rewritten (see `freeverb.dsp` for example). Examples using deprecated libraries were integrated to the general tree but a warning comment was added at their beginning to point readers to the right library and function. 
+The `/examples` directory contains all the examples from the `/examples` folder of the Faust distribution as well as new ones. Most of them were updated to reflect the coding conventions described in the next section. Examples are organized by types in different folders. The `/old` folder contains examples that are fully deprecated, probably because they were integrated to the libraries and fully rewritten (see `freeverb.dsp` for example). Examples using deprecated libraries were integrated to the general tree but a warning comment was added at their beginning to point readers to the right library and function.
 
 ## Coding Conventions
 
@@ -179,7 +181,7 @@ In order to have a uniformized library system, we established the following conv
 * All the functions that we want to be "public" are documented.
 * We used the `faust2md` "standards" for each library: `//###` for main title (library name - equivalent to `#` in markdown), `//===` for section declarations (equivalent to `##` in markdown) and `//---` for function declarations (equivalent to `####` in markdown - see `basics.lib` for an example).
 * Sections in function documentation should be declared as `####` markdown title.
-* Each function documentation provides a "Usage" section (see `basics.lib`). 
+* Each function documentation provides a "Usage" section (see `basics.lib`).
 
 ### Library Import
 
@@ -191,6 +193,7 @@ ba = library("basics.lib");
 co = library("compressors.lib");
 de = library("delays.lib");
 dm = library("demos.lib");
+dx = library("dx7.lib");
 en = library("envelopes.lib");
 fi = library("filters.lib");
 ho = library("hoa.lib");
@@ -220,7 +223,7 @@ This standard is only used within the libraries: nothing prevents coders to stil
 
 ### "Demo" Functions
 
-"Demo" functions are placed in `demos.lib` and have a built-in user interface (UI). Their name ends with the `_demo` suffix. Each of these function have a `.dsp` file associated to them in the `/examples` folder. 
+"Demo" functions are placed in `demos.lib` and have a built-in user interface (UI). Their name ends with the `_demo` suffix. Each of these function have a `.dsp` file associated to them in the `/examples` folder.
 
 Any function containing UI elements should be placed in this library and respect these standards.
 

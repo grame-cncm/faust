@@ -23,7 +23,7 @@ function countLines () {
     diff codes-to-test/$file  expected-responses/$file
 }
 
-countLines "-scal" lines_scal.txt
+countLines "" lines_scal.txt
 countLines "-vec -lv 0" lines_vec0.txt
 countLines "-vec -lv 1" lines_vec1.txt
 countLines "-vec -lv 1 -vs 64" lines_vec1vs32.txt

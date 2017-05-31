@@ -154,15 +154,15 @@ void RootNode::processAlias(const string& address, float val)
 	}
 }
 
-std::vector<std::string> RootNode::getAliases(const std::string& address)
+std::vector<std::pair<std::string, double> > RootNode::getAliases(const std::string& address, double value)
 {
     std::map<std::string, std::vector<aliastarget> >::iterator it;
-    std::vector<std::string> res;
+    std::vector<std::pair<std::string, double> > res;
     for (it = fAliases.begin(); it != fAliases.end(); it++) {
         vector<aliastarget> targets = (*it).second;
         for (size_t i = 0; i < targets.size(); i++) {
             if (targets[i].fTarget == address) {
-                res.push_back((*it).first);
+                res.push_back(std::make_pair((*it).first, targets[i].invscale(value)));
             }
         }
     }

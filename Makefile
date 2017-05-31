@@ -1,4 +1,4 @@
-version := 0.9.99ec
+version := 0.9.100ec
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -169,6 +169,7 @@ uninstall :
 	rm -f $(prefix)/bin/faust$(EXE)
 	make -C tools/faust2appls uninstall
 	rm -f $(prefix)/bin/sound2faust$(EXE)
+	rm -f $(prefix)/bin/faustbench
 
 # make a faust distribution .zip file
 dist :

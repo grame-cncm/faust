@@ -498,6 +498,22 @@ decimal = frac;
 // backward compatibility.
 // decimal(n)	= n - floor(n);
 
+//-------------------------------`modulo`---------------------------------------
+// Modulus operation.
+//
+// #### Usage
+//
+// ```
+// modulo(x,N) : _
+// ```
+//
+// Where:
+//
+// * `x`: the numerator
+// * `N`: the denominator
+//------------------------------------------------------------------------------
+modulo(x,N) = (x % N + N) % N;
+
 
 //---------------`isnan`----------------
 // Return non-zero if and only if x is a NaN.

@@ -255,9 +255,9 @@ if [[ $(uname) == Darwin ]]; then
 </dict>
 </plist>
 EOF
-    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
+    $CXX -bundle $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname/Contents/MacOS/$clsname" || exit 1
 else
-    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+    $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" $CPPFLAGS $sdksrc "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
 fi
 fi
 #trap - EXIT
