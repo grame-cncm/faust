@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for file in *.syx
+do
+  dx72faust "$file"
+done

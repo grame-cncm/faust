@@ -1,14 +1,4 @@
 /************************************************************************
- 
- IMPORTANT NOTE : this file contains two clearly delimited sections :
- the ARCHITECTURE section (in two parts) and the USER section. Each section
- is governed by its own copyright and license. Please check individually
- each section for license and copyright information.
- *************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
  FAUST Audio Unit UI
  Copyright (C) 2013 Reza Payami
  All rights reserved.
@@ -44,10 +34,9 @@
  In order to compile a AU (TM) Synth plugin with this architecture file
  you will need the proprietary AU SDK from Apple. Please check
  the corresponding license.
- 
  ************************************************************************/
-#include <set>
 
+#include <set>
 #include "faust/gui/UI.h"
 
 using namespace std;

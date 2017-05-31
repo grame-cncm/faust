@@ -73,6 +73,24 @@ struct aliastarget
             return (fMinOut+fMaxOut)/2.0;
         }
     }
+    
+    float invscale(float x) const
+    {
+        if (fMinOut < fMaxOut) {
+            // increasing control
+            float z = (x < fMinOut) ? fMinOut : (x > fMaxOut) ? fMaxOut : x;
+            return fMinIn + (z-fMinOut)*(fMaxIn-fMinIn)/(fMaxOut-fMinOut);
+            
+        } else if (fMinOut > fMaxOut) {
+            // reversed control
+            float z = (x < fMaxOut) ? fMaxOut : (x > fMinOut) ? fMinOut : x;
+            return fMinIn + (fMinOut-z)*(fMaxIn-fMinIn)/(fMinOut-fMaxOut);
+            
+        } else {
+            // no control !
+            return (fMinIn+fMaxIn)/2.0;
+        }
+    }
 };
 
 //--------------------------------------------------------------------------
@@ -107,7 +125,7 @@ class RootNode : public MessageDriven
         void hello(unsigned long ipdest) const;				///< handler for the 'hello' message
         void setPorts(int* in, int* out, int* err);
         
-        std::vector<std::string> getAliases(const std::string& address);
+        std::vector<std::pair<std::string, double> > getAliases(const std::string& address, double value);
 };
 
 } // end namespoace

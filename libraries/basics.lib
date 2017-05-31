@@ -217,6 +217,23 @@ Michon and Julius O. Smith III, and are released under the
   midikey2hz(mk)  = 440.0*pow(2.0, (mk-69.0)/12);
 
 
+//-------`hz2midikey`----------
+// Converts a frequency in Hz to a MIDI key number (MIDI key 69 = A440).
+// `hz2midikey` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// hz2midikey(f) : _
+// ```
+//
+// Where:
+//
+// * `f`: frequency in Hz
+//-----------------------------
+  hz2midikey(f) = 12*ma.log2(f/440.0) + 69.0;
+
+
 //-------`pianokey2hz`----------
 // Converts a piano key number to a frequency in Hz (piano key 49 = A440).
 //

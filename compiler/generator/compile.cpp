@@ -193,16 +193,20 @@ void Compiler::generateUserInterfaceTree(Tree t)
             }
         }
         
-        //-----------------
-		switch (orient) {
-			case 0 : model = "ui_interface->openVerticalBox(\"$0\");"; fJSON.openVerticalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
-			case 1 : model = "ui_interface->openHorizontalBox(\"$0\");"; fJSON.openHorizontalBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
-			case 2 : model = "ui_interface->openTabBox(\"$0\");"; fJSON.openTabBox(checkNullLabel(t, simplifiedLabel).c_str()); break;
+        // Use the name kept in "metadata", either the one coded in 'declare name "XXX";' line, or the filename
+        string group = unquote(tree2str(*(gMetaDataSet[tree("name")].begin())));
+        switch (orient) {
+           
+            case 0 : model = "ui_interface->openVerticalBox(\"$0\");"; fJSON.openVerticalBox(group.c_str()); break;
+            case 1 : model = "ui_interface->openHorizontalBox(\"$0\");"; fJSON.openHorizontalBox(group.c_str()); break;
+            case 2 : model = "ui_interface->openTabBox(\"$0\");"; fJSON.openTabBox(group.c_str()); break;
+                
 			default :
-                fprintf(stderr, "error in user interface generation 1\n");
+                fprintf(stderr, "error in user interface generation\n");
 				exit(1);
 		}
-        fClass->addUICode(subst(model, checkNullLabel(t, simplifiedLabel)));
+        
+        fClass->addUICode(subst(model, group));
 		generateUserInterfaceElements(elements);
 		fClass->addUICode("ui_interface->closeBox();");
         fJSON.closeBox();

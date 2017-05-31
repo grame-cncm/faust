@@ -199,6 +199,35 @@ with {
 };
 */
 
+//----------------------`dx7envelope`----------------------
+// DX7 operator envelope generator with 4 independent rates and levels. It is
+// essentially a 4 points BPF.
+//
+// #### Usage
+//
+// ```
+// dx7_envelope(R1,R2,R3,R4,L1,L2,L3,L4,t) : _
+// ```
+//
+// Where:
+//
+// * `RN`: rates in seconds
+// * `LN`: levels (0-1)
+// * `t`: trigger signa
+//-----------------------------------------------------
+dx7envelope(R1,R2,R3,R4,L1,L2,L3,L4,t) = up*on : ba.sAndH(on) : down
+with{
+  on = t>0;
+	off = t==0;
+  rs1 = R1*ma.SR;
+  rs2 = R2*ma.SR;
+  rs3 = R3*ma.SR;
+  rs4 = R4*ma.SR;
+  up = ba.countup(rs1+rs2+rs3,off) : ba.bpf.start(0,L4) : ba.bpf.point(rs1,L1) :
+  ba.bpf.point(rs1+rs2,L2) : ba.bpf.end(rs1+rs2+rs3,L3);
+  down = _,ba.countup(rs4,on) : ba.bpf.start(0) : ba.bpf.end(rs4,L4);
+};
+
 ////////////////////////////////////////////////////////
 // UNDOCUMENTED/DISMISSED ELEMENTS
 ////////////////////////////////////////////////////////

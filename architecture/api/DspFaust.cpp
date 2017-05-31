@@ -27,6 +27,14 @@
 #include "faust/gui/meta.h"
 
 //**************************************************************
+// OSC configuration (hardcoded for now...)
+//**************************************************************
+
+#define OSC_IP_ADDRESS  "192.168.1.112"
+#define OSC_IN_PORT     "5510"
+#define OSC_OUT_PORT    "5511"
+
+//**************************************************************
 // Intrinsic
 //**************************************************************
 
@@ -71,13 +79,23 @@
 // Interface
 //**************************************************************
 
-#if MIDICTRL
-#include "faust/midi/rt-midi.h"
-#include "faust/midi/RtMidi.cpp"
+#if MIDICTRL 
+#if JACK_DRIVER
+    // Nothing to add since jack-dsp.h contains MIDI
+#elif JUCE_DRIVER
+    #include "faust/midi/juce-midi.h"
+#else
+    #include "faust/midi/rt-midi.h"
+    #include "faust/midi/RtMidi.cpp"
+#endif
 #endif
 
 #if OSCCTRL
-#include "faust/gui/OSCUI.h"
+#if JUCE_DRIVER
+    #include "faust/gui/JuceOSCUI.h"
+#else
+    #include "faust/gui/OSCUI.h"
+#endif
 #endif
 
 #include "DspFaust.h"
@@ -87,17 +105,22 @@ ztimedmap GUI::gTimedZoneMap;
 
 DspFaust::DspFaust()
 {
+    audio* driver = 0;
 #if JACK_DRIVER
     // JACK has its own sample rate and buffer size
-    audio* driver = new jackaudio();
+#if MIDICTRL
+    driver = new jackaudio_midi();
+#else
+    driver = new jackaudio();
+#endif
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    audio* driver = new juceaudio();
+    driver = new juceaudio();
 #else
     std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
 #endif
-    init(0);
+    init(driver);
 }
 
 DspFaust::DspFaust(int sample_rate, int buffer_size)
@@ -113,7 +136,11 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
 #elif JACK_DRIVER
     // JACK has its own sample rate and buffer size
     std::cout << "You are setting 'sample_rate' and 'buffer_size' with a driver that does not need it !\n";
+#if MIDICTRL
+    audio* driver = new jackaudio_midi();
+#else
     audio* driver = new jackaudio();
+#endif
 #elif PORTAUDIO_DRIVER
     audio* driver = new portaudio(sample_rate, buffer_size);
 #elif RTAUDIO_DRIVER
@@ -136,22 +163,32 @@ void DspFaust::init(audio* driver)
     fPolyEngine = new FaustPolyEngine(driver);
     
 #if OSCCTRL
+#if JUCE_DRIVER
+    fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
+#else
     const char* argv[9];
     argv[0] = "Faust";  // TODO may be should retrieve the actual name
     argv[1] = "-xmit";
     argv[2] = "1";      // TODO retrieve that from command line or somewhere
     argv[3] = "-desthost";
-    argv[4] = "192.168.1.1"; // TODO same
+    argv[4] = OSC_IP_ADDRESS;   // TODO same
     argv[5] = "-port";
-    argv[6] = "5510";   // TODO same
+    argv[6] = OSC_IN_PORT;      // TODO same
     argv[7] = "-outport";
-    argv[8] = "5511";   // TODO same
+    argv[8] = OSC_OUT_PORT;     // TODO same
     fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+#endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
     
 #if MIDICTRL
-    fMidiUI = new MidiUI(new rt_midi());
+#if JACK_DRIVER
+    fMidiUI = new MidiUI(static_cast<jackaudio_midi*>(driver));
+#elif JUCE_DRIVER
+    fMidiUI = new MidiUI(new juce_midi(), true);
+#else
+    fMidiUI = new MidiUI(new rt_midi(), true);
+#endif
     fPolyEngine->buildUserInterface(fMidiUI);
 #endif
 }
@@ -194,6 +231,10 @@ void DspFaust::stop()
 bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, const char* address)
 {
 #if OSCCTRL
+#if JUCE_DRIVER
+    // Nothing for now
+    return false;
+#else
     if (isRunning()) {
         return false;
     } else {
@@ -204,6 +245,7 @@ bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, con
         fOSCInterface->setDestAddress(address);
         return true;
     }
+#endif
 #else
     return false;
 #endif
