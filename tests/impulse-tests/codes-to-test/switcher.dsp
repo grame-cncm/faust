@@ -1,4 +1,4 @@
-declare name 		"switch";
+declare name 		"switcher";
 declare version 	"1.0";
 declare author 		"Grame";
 declare license 	"BSD";

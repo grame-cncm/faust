@@ -80,12 +80,12 @@ protected:
 	void 		addLibrary (const string& str) 		{ fClass->addLibrary(str); 		}
 
 // gestion de la description arborescente de l'IU
-	void 		addUIWidget(Tree path, Tree widget);
-	void 		generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
+    void 		addUIWidget(Tree path, Tree widget);
+    void 		generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
     void        generateMetaData();
-	void 		generateUserInterfaceTree(Tree t);
-	void 		generateUserInterfaceElements(Tree elements);
-	Tree 		prepareUserInterfaceTree(Tree t);
+    void 		generateUserInterfaceTree(Tree t, bool root = false);
+    void 		generateUserInterfaceElements(Tree elements);
+    Tree 		prepareUserInterfaceTree(Tree t);
 
 	void        generateMacroInterfaceTree(const string& pathname, Tree t);
     void        generateMacroInterfaceElements(const string& pathname, Tree elements);
