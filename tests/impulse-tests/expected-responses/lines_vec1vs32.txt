@@ -58,4 +58,6 @@
      225 waveform2.cpp
      225 waveform3.cpp
      309 waveform4.cpp
+     228 waveform5.cpp
+     218 waveform6.cpp
     1484 zita_rev1.cpp

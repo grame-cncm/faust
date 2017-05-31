@@ -42,8 +42,8 @@
  POSSIBILITY OF SUCH DAMAGE. 
   
  Copyright (C) 2013 Apple Inc. All Rights Reserved. 
-  
 */
+
 #if !defined(__CAHostTimeBase_h__)
 #define __CAHostTimeBase_h__
 

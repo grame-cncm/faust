@@ -1483,8 +1483,10 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
                 pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(*j)));
             }
         }
-
-        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, checkNullLabel(t, simplifiedLabel)));
+        // Use the name kept in "metadata", either the one coded in 'declare name "XXX";' line, or the filename
+        string group = unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+        
+        pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, group));
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
 

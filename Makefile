@@ -1,4 +1,4 @@
-version := 2.0.a72
+version := 2.0.a73
 
 system	?= $(shell uname -s)
 
@@ -248,6 +248,7 @@ uninstall :
 	rm -f $(prefix)/bin/RemoteServer$(EXE)
 	make -C tools/faust2appls uninstall
 	rm -f $(prefix)/bin/sound2faust$(EXE)
+	rm -f $(prefix)/bin/faustbench
 
 # make a faust distribution .zip file
 dist :

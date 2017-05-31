@@ -9,7 +9,7 @@
     4028 cubic_distortion.cpp
      556 dbmeter.cpp
      191 echo.cpp
-    1309 freeverb.cpp
+    1316 freeverb.cpp
     5135 gate_compressor.cpp
     7477 graphic_eq.cpp
     1116 harpe.cpp
@@ -39,7 +39,7 @@
      241 pitch_shifter.cpp
      151 precision.cpp
      310 quadecho.cpp
-    8385 reverb_designer.cpp
+    8398 reverb_designer.cpp
      357 reverb_tester.cpp
      368 smoothdelay.cpp
      439 spat.cpp
@@ -58,4 +58,6 @@
      225 waveform2.cpp
      225 waveform3.cpp
      309 waveform4.cpp
+     228 waveform5.cpp
+     218 waveform6.cpp
     1484 zita_rev1.cpp

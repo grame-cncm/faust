@@ -9,7 +9,7 @@
     4043 cubic_distortion.cpp
      564 dbmeter.cpp
      191 echo.cpp
-    1304 freeverb.cpp
+    1318 freeverb.cpp
     5154 gate_compressor.cpp
     7501 graphic_eq.cpp
     1126 harpe.cpp
@@ -44,7 +44,7 @@
      370 smoothdelay.cpp
      447 spat.cpp
     7483 spectral_level.cpp
-    5151 spectral_tilt.cpp
+    5155 spectral_tilt.cpp
      232 stereoecho.cpp
      191 switcher.cpp
      691 tapiir.cpp
@@ -58,4 +58,6 @@
      225 waveform2.cpp
      225 waveform3.cpp
      309 waveform4.cpp
+     228 waveform5.cpp
+     218 waveform6.cpp
     1484 zita_rev1.cpp
