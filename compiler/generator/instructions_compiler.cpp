@@ -325,7 +325,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         fContainer->setOutputRate(index, rate);
     }
 
-    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+    generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
     generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
     if (fDescription) {
         fDescription->ui(prepareUserInterfaceTree(fUIRoot));
@@ -1460,7 +1460,7 @@ Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
  * Generate buildUserInterface C++ lines of code corresponding
  * to user interface element t
  */
-void InstructionsCompiler::generateUserInterfaceTree(Tree t)
+void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
 {
 	Tree label, elements, varname, sig;
 
@@ -1483,8 +1483,8 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t)
                 pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst("0", rmWhiteSpaces(key), rmWhiteSpaces(*j)));
             }
         }
-        // Use the name kept in "metadata", either the one coded in 'declare name "XXX";' line, or the filename
-        string group = unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+        // At rool level and if label is empty, use the name kept in "metadata" (either the one coded in 'declare name "XXX";' line, or the filename)
+        string group = (root && (simplifiedLabel == "")) ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin()))) : checkNullLabel(t, simplifiedLabel);
         
         pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, group));
         generateUserInterfaceElements(elements);

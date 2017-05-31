@@ -190,7 +190,7 @@ class InstructionsCompiler : public virtual Garbageable {
         // Gestion de la description arborescente de l'IU
         void addUIWidget(Tree path, Tree widget);
         Tree prepareUserInterfaceTree(Tree t);
-        void generateUserInterfaceTree(Tree t);
+        void generateUserInterfaceTree(Tree t, bool root = false);
         void generateUserInterfaceElements(Tree elements);
         void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
 

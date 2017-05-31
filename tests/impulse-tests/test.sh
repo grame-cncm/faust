@@ -21,8 +21,8 @@ for p in $@; do
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
-        echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
-        echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
+#echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
+#echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-valgrind' to activate valgrind tests"
@@ -115,20 +115,20 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
-    for f in *.dsp; do
-        faust2impulsebis -double $f > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar expanded mode" || echo "ERROR $f scalar mode"
-    done
+    #for f in *.dsp; do
+    #    faust2impulsebis -double $f > $D/$f.scal.ir
+    #    filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar expanded mode" || echo "ERROR $f scalar mode"
+    #done
 
     for f in *.dsp; do
         faust2impulse -double -vec -lv 0 $f > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
     done
 
-    for f in *.dsp; do
-        faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
-        filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 expanded mode" || echo "ERROR $f vector -lv 0 mode"
-    done
+    #for f in *.dsp; do
+    #    faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
+    #    filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 expanded mode" || echo "ERROR $f vector -lv 0 mode"
+    #done
 
     for f in *.dsp; do
         faust2impulse -double -vec -lv 1 $f > $D/$f.vec.ir

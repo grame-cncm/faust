@@ -105,7 +105,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
         }
     }
 
-  	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot));
+  	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));

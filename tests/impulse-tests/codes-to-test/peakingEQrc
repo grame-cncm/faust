@@ -1,4 +1,4 @@
-1000 0x00/Freq
-0 0x00/Gain
-1 0x00/Q
+1000 peakingEQ/Freq
+0 peakingEQ/Gain
+1 peakingEQ/Q
 

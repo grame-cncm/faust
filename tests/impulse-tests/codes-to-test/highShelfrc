@@ -1,4 +1,4 @@
-1000 0x00/Freq
-0 0x00/Gain
-1 0x00/Q
+1000 highShelf/Freq
+0 highShelf/Gain
+1 highShelf/Q
 
