@@ -136,7 +136,7 @@ EXPORT interpreter_dsp::~interpreter_dsp()
     
     if (fFactory->getMemoryManager()) {
         fDSP->~interpreter_dsp_base();
-        fFactory->getFactory()->destroy(fDSP);
+        fFactory->getMemoryManager()->destroy(fDSP);
     } else {
         delete fDSP;
     }
@@ -149,16 +149,14 @@ EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
     return reinterpret_cast<interpreter_dsp*>(dsp);
 }
 
-EXPORT void interpreter_dsp_factory::deleteDSPInstance(dsp* dsp)
+// Use the memory manager if needed
+EXPORT void interpreter_dsp::operator delete(void* ptr)
 {
-    interpreter_dsp* tmp = dynamic_cast<interpreter_dsp*>(dsp);
-    faustassert(tmp);
-    
-    if (fFactory->getMemoryManager()) {
-        tmp->~interpreter_dsp();
-        fFactory->destroy(tmp);
+    dsp_memory_manager* manager = static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
+    if (manager) {
+        manager->destroy(ptr);
     } else {
-        delete dsp;
+        ::operator delete(ptr);
     }
 }
 

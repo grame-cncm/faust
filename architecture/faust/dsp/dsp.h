@@ -184,7 +184,6 @@ class dsp_factory {
         virtual std::string getSHAKey() = 0;
         virtual std::string getDSPCode() = 0;
         virtual dsp* createDSPInstance() = 0;
-        virtual void deleteDSPInstance(dsp* dsp) = 0;
     
         virtual void setMemoryManager(dsp_memory_manager* manager) = 0;
         virtual dsp_memory_manager* getMemoryManager() = 0;

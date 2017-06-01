@@ -1021,6 +1021,8 @@ class EXPORT interpreter_dsp : public dsp {
     
         virtual ~interpreter_dsp();
     
+        void operator delete(void* ptr);
+    
         int getNumInputs();
     
         int getNumOutputs();
@@ -1072,8 +1074,6 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
         void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
     
         interpreter_dsp* createDSPInstance();
-    
-        void deleteDSPInstance(dsp* dsp);
     
         void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
         dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }

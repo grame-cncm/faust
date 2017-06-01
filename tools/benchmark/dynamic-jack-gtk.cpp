@@ -210,11 +210,7 @@ int main(int argc, char *argv[])
     audio.stop();
     finterface->saveState(rcfilename);
     
-    //delete DSP;
-    factory->deleteDSPInstance(DSP);
-    
-    //DSP->~dsp();
-    
+    delete DSP;
     delete interface;
     delete finterface;
     delete midiinterface;

@@ -62,8 +62,6 @@ class dsp_factory_base {
     
         virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
     
-        virtual void deleteDSPInstance(dsp* dsp) = 0;
-    
         virtual void setMemoryManager(dsp_memory_manager* manager) = 0;
         virtual dsp_memory_manager* getMemoryManager() = 0;
     
@@ -138,8 +136,6 @@ class dsp_factory_imp : public dsp_factory_base {
         void setDSPCode(const std::string& code) { fExpandedDSP = code; }
     
         virtual dsp* createDSPInstance(dsp_factory* factory) { faustassert(false); return nullptr; }
-    
-        virtual void deleteDSPInstance(dsp* dsp) { faustassert(false); }
     
         virtual void setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
         virtual dsp_memory_manager* getMemoryManager() { return fManager; }

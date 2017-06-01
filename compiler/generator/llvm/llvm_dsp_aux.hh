@@ -72,6 +72,8 @@ class EXPORT llvm_dsp : public dsp {
         llvm_dsp(llvm_dsp_factory* factory, dsp_imp* dsp);
         virtual ~llvm_dsp();
     
+        void operator delete(void* ptr);
+    
         virtual int getNumInputs();
         
         virtual int getNumOutputs();
@@ -245,8 +247,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
         std::string getTarget() { return fFactory->getTarget(); }
         
         llvm_dsp* createDSPInstance();
-    
-        void deleteDSPInstance(dsp* dsp);
     
         void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
         dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }

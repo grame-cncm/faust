@@ -100,16 +100,9 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Return factory expanded DSP code */
         std::string getDSPCode();
     
-        /*
-         * Create a new DSP instance, to be deleted with C++ 'delete',
-         * or deleteDSPInstance if a custom memory manager has been setup
-         * (before the DSP factory is itself deleted)
-         */
+        /* Create a new DSP instance, to be deleted with C++ 'delete' */
         interpreter_dsp* createDSPInstance();
-        
-        /* Delete the DSP instance, to be used when a custom memory manager has been setup (using setMemoryManager) */
-        void deleteDSPInstance(dsp* dsp);
-        
+    
         /* Set a custom memory manager */
         void setMemoryManager(dsp_memory_manager* manager);
         
@@ -166,7 +159,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string
                                                             std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
- * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
+ * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
  * @param factory - the DSP factory

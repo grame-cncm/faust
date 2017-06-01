@@ -135,7 +135,7 @@ remote_dsp_factory* createRemoteDSPFactoryFromString(const std::string& name_app
 
 /**
  * Delete a Faust remote DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
- * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with deleteDSPInstance.
+ * Possibly also delete DSP pointers associated with this factory.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
  * @param factory - the DSP factory

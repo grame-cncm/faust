@@ -220,7 +220,7 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
         cerr << "ERROR in " << file << " line : " << i << std::endl;
     }
     
-    factory->deleteDSPInstance(DSP);
+    delete DSP;
 }
 
 inline bool endsWith(std::string const& value, std::string const& ending)
