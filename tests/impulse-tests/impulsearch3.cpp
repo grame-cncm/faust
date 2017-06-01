@@ -23,6 +23,7 @@
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/audio/channels.h"
+#include "faust/dsp/poly-dsp.h"
 
 using std::max;
 using std::min;
@@ -116,14 +117,24 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
 };
 
+static void testPolyphony(dsp_factory* factory, bool is_mem_alloc = false)
+{
+    malloc_memory_manager manager;
+    factory->setMemoryManager((is_mem_alloc) ? &manager : nullptr);
+    
+    dsp* DSP = new mydsp_poly(factory->createDSPInstance(), 4, true);
+    if (!DSP) {
+        exit(-1);
+    }
+    
+    delete DSP;
+}
+
 static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false)
 {
     char rcfilename[256];
     malloc_memory_manager manager;
-    
-    if (is_mem_alloc) {
-        factory->setMemoryManager(&manager);
-    }
+    factory->setMemoryManager((is_mem_alloc) ? &manager : nullptr);
     
     dsp* DSP = factory->createDSPInstance();
     if (!DSP) {
@@ -223,11 +234,8 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
     delete DSP;
 }
 
-inline bool endsWith(std::string const& value, std::string const& ending)
-{
-    if (ending.size() > value.size()) return false;
-    return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
-}
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 int main(int argc, char* argv[])
 {
@@ -277,6 +285,9 @@ int main(int argc, char* argv[])
             runFactory(factory, argv[1]);
             runFactory(factory, argv[1], true);
         }
+        
+        testPolyphony(factory);
+        testPolyphony(factory, true);
       
     } else {
         
