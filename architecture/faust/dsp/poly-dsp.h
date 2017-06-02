@@ -464,7 +464,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         }
 
     public:
-
+    
         /**
          * Constructor.
          *
@@ -515,22 +515,28 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void init(int samplingRate)
         {
+            decorator_dsp::init(samplingRate);
+            fVoiceGroup->init(samplingRate);
+            fPanic = FAUSTFLOAT(0);
+            
             // Init voices
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->init(samplingRate);
             }
         }
-
-        void instanceInit(int samplingRate)
+    
+        void instanceInit(int samplingFreq)
         {
-            // Init voices
-            for (int i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->instanceInit(samplingRate);
-            }
+            instanceConstants(samplingFreq);
+            instanceResetUserInterface();
+            instanceClear();
         }
 
         void instanceConstants(int samplingRate)
         {
+            decorator_dsp::instanceConstants(samplingRate);
+            fVoiceGroup->instanceConstants(samplingRate);
+            
             // Init voices
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceConstants(samplingRate);
@@ -539,6 +545,10 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void instanceResetUserInterface()
         {
+            decorator_dsp::instanceResetUserInterface();
+            fVoiceGroup->instanceResetUserInterface();
+            fPanic = FAUSTFLOAT(0);
+            
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceResetUserInterface();
             }
@@ -546,6 +556,9 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void instanceClear()
         {
+            decorator_dsp::instanceClear();
+            fVoiceGroup->instanceClear();
+            
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceClear();
             }
