@@ -55,7 +55,10 @@ struct JSONUIDecoder {
     std::string fJSON;
     
     int fNumInputs, fNumOutputs; 
-    int fInputItems, fOutputItems; 
+    int fInputItems, fOutputItems;
+    
+    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button"  || type == "checkbox"); }
+    bool isOutput(const string& type)  { return (type == "hbargraph" || type == "vbargraph"); }
 
     JSONUIDecoder(const std::string& json) 
     {
@@ -91,9 +94,9 @@ struct JSONUIDecoder {
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             string type = (*it)->type;
-            if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
+            if (isInput(type)) {
                 fInputItems++;
-            } else if (type == "hbargraph" || type == "vbargraph") {
+            } else if (isOutput(type)) {
                 fOutputItems++;          
             }
         }
@@ -119,6 +122,18 @@ struct JSONUIDecoder {
             m->declare((*it).first.c_str(), (*it).second.c_str());
         }
     }
+    
+    void resetUserInterface()
+    {
+        vector<itemInfo*>::iterator it;
+        int item = 0;
+        
+        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
+            if (isInput((*it)->type)) {
+                fInControl[item++] = STR2REAL((*it)->init);
+            }
+        }
+    }
    
     void buildUserInterface(UI* ui)
     {
@@ -141,10 +156,10 @@ struct JSONUIDecoder {
             FAUSTFLOAT max = STR2REAL((*it)->max);
             FAUSTFLOAT step = STR2REAL((*it)->step);
             
-            if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
+            if (isInput(type)) {
                 isInItem = true;
-            } else if (type == "hbargraph" || type == "vbargraph") {
-                isOutItem = true;        
+            } else if (isOutput(type)) {
+                isOutItem = true;
             }
             
             // Meta data declaration for input items
@@ -247,10 +262,18 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
-        virtual void instanceInit(int samplingRate) {}
-        virtual void instanceConstants(int samplingRate) {}
-        virtual void instanceResetUserInterface() {}
+        virtual void init(int samplingFreq)
+        {
+            instanceInit(samplingFreq);
+        }
+        virtual void instanceInit(int samplingFreq)
+        {
+            instanceConstants(samplingFreq);
+            instanceResetUserInterface();
+            instanceClear();
+        }
+        virtual void instanceConstants(int samplingRate) { fSamplingFreq = samplingRate; }
+        virtual void instanceResetUserInterface() { fDecoder->resetUserInterface(); }
         virtual void instanceClear() {}
     
         virtual int getSampleRate() { return fSamplingFreq; }
