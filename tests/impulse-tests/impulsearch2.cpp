@@ -18,6 +18,7 @@
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/gui/UIGlue.h"
 #include "faust/audio/channels.h"
 
@@ -32,37 +33,31 @@ using namespace std;
 // DSP control UI
 //----------------------------------------------------------------------------
 
-struct CheckControlUI : public UI {
+struct CheckControlUI : public GenericUI {
     
     vector<FAUSTFLOAT> fControlDefault;
     vector<FAUSTFLOAT*> fControlZone;
     
-    virtual void openTabBox(const char* label) {}
-    virtual void openHorizontalBox(const char* label)  {}
-    virtual void openVerticalBox(const char* label)  {}
-    virtual void closeBox() {};
-    
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
-    
-    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
+    {
+        fControlZone.push_back(zone);
+        fControlDefault.push_back(init);
+    }
     
     bool checkDefaults()
     {
@@ -199,5 +194,6 @@ int main(int argc, char* argv[])
     } catch (...) {
         cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
     }
+    
     return 0;
 }

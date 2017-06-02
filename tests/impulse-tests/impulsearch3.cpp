@@ -22,6 +22,7 @@
 #include "faust/gui/console.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/audio/channels.h"
 #include "faust/dsp/poly-dsp.h"
 
@@ -32,41 +33,38 @@ using std::min;
 
 using namespace std;
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 //----------------------------------------------------------------------------
 // DSP control UI
 //----------------------------------------------------------------------------
 
-struct CheckControlUI : public UI {
+struct CheckControlUI : public GenericUI {
     
     vector<FAUSTFLOAT> fControlDefault;
     vector<FAUSTFLOAT*> fControlZone;
     
-    virtual void openTabBox(const char* label) {}
-    virtual void openHorizontalBox(const char* label)  {}
-    virtual void openVerticalBox(const char* label)  {}
-    virtual void closeBox() {};
-    
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
-    
-    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
+    {
+        fControlZone.push_back(zone);
+        fControlDefault.push_back(init);
+    }
     
     bool checkDefaults()
     {
@@ -122,9 +120,63 @@ static void testPolyphony(dsp_factory* factory, bool is_mem_alloc = false)
     malloc_memory_manager manager;
     factory->setMemoryManager((is_mem_alloc) ? &manager : nullptr);
     
-    dsp* DSP = new mydsp_poly(factory->createDSPInstance(), 4, true);
+    mydsp_poly* DSP = new mydsp_poly(factory->createDSPInstance(), 4, true, false);
     if (!DSP) {
         exit(-1);
+    }
+    
+    // Get control and then 'initRandom'
+    CheckControlUI controlui;
+    DSP->buildUserInterface(&controlui);
+    controlui.initRandom();
+    
+    // init signal processor and the user interface values:
+    DSP->init(44100);
+    
+    // Check getSampleRate
+    if (DSP->getSampleRate() != 44100) {
+        cerr << "ERROR in getSampleRate" << std::endl;
+    }
+    
+    // Check default after 'init'
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'init'" << std::endl;
+    }
+    
+    // Check default after 'instanceResetUserInterface'
+    controlui.initRandom();
+    DSP->instanceResetUserInterface();
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceResetUserInterface'" << std::endl;
+    }
+    
+    // Check default after 'instanceInit'
+    controlui.initRandom();
+    DSP->instanceInit(44100);
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
+    }
+    
+    // Init again
+    DSP->init(44100);
+    
+    int nins = DSP->getNumInputs();
+    channels ichan(kFrames, nins);
+    
+    int nouts = DSP->getNumOutputs();
+    channels ochan(kFrames, nouts);
+    
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 67, 100);
+    DSP->keyOn(0, 72, 100);
+    
+    int nbsamples = 1000;
+    
+    // Compute audio frames
+    while (nbsamples > 0) {
+        int nFrames = min(kFrames, nbsamples);
+        DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
+        nbsamples -= nFrames;
     }
     
     delete DSP;
@@ -234,9 +286,6 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
     delete DSP;
 }
 
-std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
-
 int main(int argc, char* argv[])
 {
     string factory_str;
@@ -260,6 +309,10 @@ int main(int argc, char* argv[])
             }
             runFactory(factory, argv[1]);
             runFactory(factory, argv[1], true);
+            
+            // Polyphony
+            testPolyphony(factory);
+            testPolyphony(factory, true);
         }
         
         {
@@ -285,10 +338,7 @@ int main(int argc, char* argv[])
             runFactory(factory, argv[1]);
             runFactory(factory, argv[1], true);
         }
-        
-        testPolyphony(factory);
-        testPolyphony(factory, true);
-      
+     
     } else {
         
         // Test factory generated from file
