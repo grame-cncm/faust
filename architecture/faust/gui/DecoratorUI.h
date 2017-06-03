@@ -27,7 +27,7 @@
 #include "faust/gui/UI.h"
 
 //----------------------------------------------------------------
-//  Generic empty implementation
+//  Generic UI empty implementation
 //----------------------------------------------------------------
 
 class GenericUI : public UI
@@ -61,9 +61,8 @@ class GenericUI : public UI
     
 };
 
-
 //----------------------------------------------------------------
-//  Generic decorator
+//  Generic UI decorator
 //----------------------------------------------------------------
 
 class DecoratorUI : public UI
