@@ -24,9 +24,6 @@
 #ifndef FAUST_GTKUI_H
 #define FAUST_GTKUI_H
 
-#include "faust/gui/GUI.h"
-#include "faust/gui/MetaDataUI.h"
-
 /******************************************************************************
 *******************************************************************************
 
@@ -45,6 +42,9 @@
 #include <gtk/gtk.h>
 #include <gdk/gdkkeysyms.h>
 #include <assert.h>
+
+#include "faust/gui/GUI.h"
+#include "faust/gui/MetaDataUI.h"
 
 #define stackSize 256
 

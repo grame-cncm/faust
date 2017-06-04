@@ -24,14 +24,14 @@
 #ifndef __timed_dsp__
 #define __timed_dsp__
 
+#include <set>
+#include <float.h>
+#include <assert.h>
+
 #include "faust/dsp/dsp.h" 
 #include "faust/gui/GUI.h" 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/ring-buffer.h"
-
-#include <set>
-#include <float.h>
-#include <assert.h>
 
 namespace {
     

@@ -24,10 +24,6 @@
 #ifndef FAUST_MIDIUI_H
 #define FAUST_MIDIUI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
 #include <vector>
 #include <string>
 #include <utility>

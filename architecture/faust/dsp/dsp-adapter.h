@@ -112,7 +112,7 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    fAdaptedInputs[chan][frame] = TYPE_INT(inputs[chan][frame]);
+                    fAdaptedInputs[chan][frame] = TYPE_INT(reinterpret_cast<TYPE_EXT**>(inputs)[chan][frame]);
                 }
             }
         }
@@ -121,7 +121,7 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    outputs[chan][frame] = TYPE_EXT(fAdaptedOutputs[chan][frame]);
+                    reinterpret_cast<TYPE_EXT**>(outputs)[chan][frame] = TYPE_EXT(fAdaptedOutputs[chan][frame]);
                 }
             }
         }

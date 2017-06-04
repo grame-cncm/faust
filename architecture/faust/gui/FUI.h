@@ -24,8 +24,6 @@
 #ifndef FAUST_FUI_H
 #define FAUST_FUI_H
 
-#include "faust/gui/UI.h"
-
 #include <string>
 #include <map>
 #include <set>
@@ -33,6 +31,8 @@
 #include <stack>
 #include <iostream>
 #include <fstream>
+
+#include "faust/gui/UI.h"
 
 #if 1
 

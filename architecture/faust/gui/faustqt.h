@@ -61,12 +61,11 @@
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <sstream>
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/ValueConverter.h"
 #include "faust/gui/MetaDataUI.h"
-
-#include <sstream>
 
 // for compatibility
 #define minValue minimum

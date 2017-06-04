@@ -36,6 +36,7 @@
 #endif
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/midi/jack-midi.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -192,6 +193,14 @@ class jackaudio : public audio {
             fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             return 0;
         }
+    
+        // Delete the adapter, but not the decorated DSP
+        void deleteAdapter()
+        {
+            if (fDSP && dynamic_cast<dsp_sample_adapter<double, float>*>(fDSP)) {
+                ::operator delete(fDSP);
+            }
+        }
 
     public:
 
@@ -225,6 +234,8 @@ class jackaudio : public audio {
                     free(fIconData);
                 }
             }
+            
+            deleteAdapter();
         }
 
         virtual bool init(const char* name, dsp* dsp)
@@ -347,7 +358,8 @@ class jackaudio : public audio {
 
         virtual void setDsp(dsp* dsp)
         {
-            fDSP = dsp;
+            deleteAdapter();
+            fDSP = (sizeof(FAUSTFLOAT) == 8) ? (new dsp_sample_adapter<double, float>(dsp)) : dsp;
 
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];

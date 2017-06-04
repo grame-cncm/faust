@@ -35,7 +35,6 @@
 #include <limits.h>
 
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
