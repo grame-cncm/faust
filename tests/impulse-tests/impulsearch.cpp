@@ -17,6 +17,7 @@
 #include <cfloat>
 #include <vector>
 
+#include "faust/misc.h"
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
@@ -166,9 +167,10 @@ static void testPolyphony(dsp* voice)
 int main(int argc, char* argv[])
 {
     char rcfilename[256];
-    
     FUI finterface;
     snprintf(rcfilename, 255, "%src", argv[0]);
+    
+    bool inpl = isopt(argv, "-inpl");
     
     DSP = new mydsp();
     
@@ -210,10 +212,10 @@ int main(int argc, char* argv[])
     DSP->init(44100);
  
     int nins = DSP->getNumInputs();
-    channels ichan(kFrames, nins);
-
     int nouts = DSP->getNumOutputs();
-    channels ochan(kFrames, nouts);
+    
+    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
+    channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
 
     int nbsamples = 60000;
     int linenum = 0;
@@ -232,20 +234,20 @@ int main(int argc, char* argv[])
     try {
         while (nbsamples > 0) {
             if (run == 0) {
-                ichan.impulse();
+                ichan->impulse();
                 finterface.setButtons(true);
             }
-            if (run == 1) {
-                ichan.zero();
+            if (run >= 1) {
+                ichan->zero();
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
+            DSP->compute(nFrames, ichan->buffers(), ochan->buffers());
             run++;
             for (int i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
-                    FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
+                    FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
                     printf(" %8.6f", f);
                 }
                 printf("\n");
