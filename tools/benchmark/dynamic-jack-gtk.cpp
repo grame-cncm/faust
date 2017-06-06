@@ -29,11 +29,19 @@
 
 #define NVOICES 8
 
+/*
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT double
+#endif
+*/
+
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
+#include "faust/dsp/dsp-adapter.h"
+#include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/MidiUI.h"
@@ -47,12 +55,14 @@
 #include "faust/gui/OSCUI.h"
 #endif
 
-std::list<GUI*> GUI::fGuiList;
+using namespace std;
+
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-inline std::string pathToContent(const std::string& path)
+inline string pathToContent(const string& path)
 {
-    std::ifstream file(path.c_str(), std::ifstream::binary);
+    ifstream file(path.c_str(), ifstream::binary);
     
     file.seekg(0, file.end);
     int size = int(file.tellg());
@@ -75,18 +85,18 @@ struct malloc_memory_manager : public dsp_memory_manager {
     void* allocate(size_t size)
     {
         void* res = malloc(size);
-        std::cout << "malloc_manager : " << size << " " << res << std::endl;
+        cout << "malloc_manager : " << size << " " << res << endl;
         return res;
     }
     virtual void destroy(void* ptr)
     {
-        std::cout << "free_manager : " << ptr << std::endl;
+        cout << "free_manager : " << ptr << endl;
         free(ptr);
     }
     
 };
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     bool is_llvm = isopt(argv, "-llvm");
     bool is_interp = isopt(argv, "-interp");
@@ -98,9 +108,9 @@ int main(int argc, char *argv[])
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
     #ifdef INTERP_PLUGIN
-        std::cout << "dynamic-jack-gtk-plugin -interp [-poly] foo.dsp" << std::endl;
+        cout << "dynamic-jack-gtk-plugin -interp [-poly] foo.dsp" << endl;
     #else
-        std::cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << std::endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << endl;
     #endif
         exit(EXIT_FAILURE);
     }
@@ -108,9 +118,9 @@ int main(int argc, char *argv[])
     // Index of first parameter after -llvm/interp and -poly
     int id = 0;
     for (id = 1; id < argc; id++) {
-        if (strcmp(argv[id], "-llvm")
-            && strcmp(argv[id], "-interp")
-            && strcmp(argv[id], "-poly")) {
+        if ((string(argv[id]) != "-llvm")
+            && (string(argv[id]) != "-interp")
+            && (string(argv[id]) != "-poly")) {
             break;
         }
     }
@@ -120,21 +130,21 @@ int main(int argc, char *argv[])
     mydsp_poly* dsp_poly = NULL;
     MidiUI* midiinterface = 0;
     
-    std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
+    cout << "Libfaust version : " << getCLibFaustVersion () << endl;
    
-    std::string error_msg;
+    string error_msg;
     
 #ifdef INTERP_PLUGIN
-    std::cout << "Using interpreter plugin backend" << std::endl;
+    cout << "Using interpreter plugin backend" << endl;
     factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
 #else
     if (is_llvm) {
-        std::cout << "Using LLVM backend" << std::endl;
+        cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], "", error_msg, -1);
         //factory = createDSPFactoryFromString("FaustLLVM", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], "", error_msg, -1);
     } else {
-        std::cout << "Using interpreter backend" << std::endl;
+        cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], error_msg);
         //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
@@ -146,7 +156,7 @@ int main(int argc, char *argv[])
         DSP = factory->createDSPInstance();
         assert(DSP);
     } else {
-        std::cout << "Cannot create factory : " << error_msg << std::endl;
+        cout << "Cannot create factory : " << error_msg << endl;
         exit(EXIT_FAILURE);
     }
     
@@ -154,10 +164,14 @@ int main(int argc, char *argv[])
   
     if (is_poly) {
         MidiMeta::analyse(DSP, midi_sync, nvoices);
-        std::cout << "Starting polyphonic mode nvoices : " << nvoices << std::endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true);
+        cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
+        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, false);
     }
-
+    
+    if (isopt(argv, "-double")) {
+        cout << "Running in double..." << endl;
+    }
+   
     char name[256];
     char filename[256];
     char rcfilename[256];

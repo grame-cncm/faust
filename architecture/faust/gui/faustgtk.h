@@ -46,6 +46,8 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 
+#define kStackSize 256
+
 // Insertion modes
 
 #define kSingleMode 0
