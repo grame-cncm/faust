@@ -193,15 +193,7 @@ class jackaudio : public audio {
             fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             return 0;
         }
-    
-        // Delete the adapter, but not the decorated DSP
-        void deleteAdapter()
-        {
-            if (fDSP && dynamic_cast<dsp_sample_adapter<double, float>*>(fDSP)) {
-                ::operator delete(fDSP);
-            }
-        }
-
+ 
     public:
 
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
@@ -234,8 +226,6 @@ class jackaudio : public audio {
                     free(fIconData);
                 }
             }
-            
-            deleteAdapter();
         }
 
         virtual bool init(const char* name, dsp* dsp)
@@ -358,7 +348,7 @@ class jackaudio : public audio {
 
         virtual void setDsp(dsp* dsp)
         {
-            deleteAdapter();
+            // Warning: possible memory leak here... 
             fDSP = (sizeof(FAUSTFLOAT) == 8) ? (new dsp_sample_adapter<double, float>(dsp)) : dsp;
 
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
