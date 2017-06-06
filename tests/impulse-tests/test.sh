@@ -111,7 +111,7 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
 
     for f in *.dsp; do
-        faust2impulse -inpl -double $f > $D/$f.scal.ir
+        faust2impulseter -inpl -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
     done
 
@@ -178,7 +178,7 @@ if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
     echo "==========================================================================="
 
     for f in *.dsp; do
-        faust2impulse2 -inpl -double $f      > $D/$f.scal.ir
+        faust2impulse2bis -inpl -double $f      > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
     done
 
@@ -235,7 +235,7 @@ if [ $BACKEND = "interp" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse3 -inpl -double  $f > $D/$f.scal.ir
+        faust2impulse3bis -inpl -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
     done
 
@@ -253,7 +253,7 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     echo "=============================================================================="
 
     for f in *.dsp; do
-        faust2impulse4 $f -inpl -double > $D/$f.scal.ir
+        faust2impulse4bis $f -inpl -double > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
     done
 

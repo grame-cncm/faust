@@ -19,6 +19,7 @@
 #define FAUSTFLOAT double
 #endif
 
+#include "faust/misc.h"
 #include "faust/gui/console.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/FUI.h"
@@ -182,7 +183,7 @@ static void testPolyphony(dsp_factory* factory, bool is_mem_alloc = false)
     delete DSP;
 }
 
-static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false)
+static void runFactory(dsp_factory* factory, const string& file, bool is_mem_alloc = false, bool inpl = false)
 {
     char rcfilename[256];
     malloc_memory_manager manager;
@@ -237,11 +238,11 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
     DSP->init(44100);
     
     int nins = DSP->getNumInputs();
-    channels ichan(kFrames, nins);
-    
     int nouts = DSP->getNumOutputs();
-    channels ochan(kFrames, nouts);
     
+    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
+    channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
+
     int nbsamples = 60000;
     int linenum = 0;
     int run = 0;
@@ -259,20 +260,20 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
     try {
         while (nbsamples > 0) {
             if (run == 0) {
-                ichan.impulse();
+                ichan->impulse();
                 finterface.setButtons(true);
             }
-            if (run == 1) {
-                ichan.zero();
+            if (run >= 1) {
+                ichan->zero();
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
+            DSP->compute(nFrames, ichan->buffers(), ochan->buffers());
             run++;
             for (i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
-                    FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
+                    FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
                     printf(" %8.6f", f);
                 }
                 printf("\n");
@@ -290,6 +291,8 @@ int main(int argc, char* argv[])
 {
     string factory_str;
     interpreter_dsp_factory* factory = NULL;
+    
+    bool inpl = isopt(argv, "-inpl");
     
     if (endsWith(argv[1], ".dsp")) {
         
@@ -309,6 +312,7 @@ int main(int argc, char* argv[])
             }
             runFactory(factory, argv[1]);
             runFactory(factory, argv[1], true);
+            runFactory(factory, argv[1], false, inpl);
             
             // Polyphony
             testPolyphony(factory);

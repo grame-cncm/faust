@@ -15,6 +15,7 @@
 #include <cmath>
 #include <cfloat>
 
+#include "faust/misc.h"
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
@@ -100,11 +101,12 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 int main(int argc, char* argv[])
 {
     char rcfilename[256];
-    
-    DSP = newmydsp();
-    
     FUI finterface;
     snprintf(rcfilename, 255, "%src", argv[0]);
+    
+    bool inpl = isopt(argv, "-inpl");
+    
+    DSP = newmydsp();
     
     CheckControlUI controlui;
     
@@ -149,10 +151,10 @@ int main(int argc, char* argv[])
     initmydsp(DSP, 44100);
     
     int nins = getNumInputsmydsp(DSP);
-    channels ichan(kFrames, nins);
-    
     int nouts = getNumOutputsmydsp(DSP);
-    channels ochan(kFrames, nouts);
+    
+    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
+    channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
     
     int nbsamples = 60000;
     int linenum = 0;
@@ -171,20 +173,20 @@ int main(int argc, char* argv[])
     try {
         while (nbsamples > 0) {
             if (run == 0) {
-                ichan.impulse();
+                ichan->impulse();
                 finterface.setButtons(true);
             }
-            if (run == 1) {
-                ichan.zero();
+            if (run >= 1) {
+                ichan->zero();
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            computemydsp(DSP, nFrames, ichan.buffers(), ochan.buffers());
+            computemydsp(DSP, nFrames, ichan->buffers(), ochan->buffers());
             run++;
             for (int i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
-                    FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
+                    FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
                     printf(" %8.6f", f);
                 }
                 printf("\n");

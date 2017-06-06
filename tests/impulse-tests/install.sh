@@ -14,9 +14,14 @@ g++ -std=c++11 -O3 impulsearch4.cpp -lfaust `llvm-config --ldflags --libs all --
 
 cp faust2valgrind /usr/local/bin/
 cp faust2impulse /usr/local/bin/
+cp faust2impulsebis /usr/local/bin/
+cp faust2impulseter /usr/local/bin/
 cp faust2impulse2 /usr/local/bin/
+cp faust2impulse2bis /usr/local/bin/
 cp faust2impulse3 /usr/local/bin/
+cp faust2impulse3bis /usr/local/bin/
 cp faust2impulse4 /usr/local/bin/
+cp faust2impulse4bis /usr/local/bin/
 cp faust2impulse5 /usr/local/bin/
 cp faust2impulse5bis /usr/local/bin/
 cp faust2impulse5ter /usr/local/bin/

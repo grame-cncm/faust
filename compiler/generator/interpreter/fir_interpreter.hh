@@ -37,7 +37,7 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-//#define INTERPRETER_TRACE 1
+#define INTERPRETER_TRACE 1
 
 template <class T>
 struct interpreter_dsp_factory_aux;
@@ -149,9 +149,9 @@ class FIRInterpreter  {
     
         inline int assert_audio_buffer(InstructionIT it, int index)
         {
-            if ((index < 0) || (index >= fIntHeap[fCountOffset])) {
+            if ((index < 0) || (index >= fIntHeap[fFactory->fCountOffset])) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-                std::cout << "assert_audio_buffer : count " << fIntHeap[fCountOffset]  << " index " << index << std::endl;
+                std::cout << "assert_audio_buffer : count " << fIntHeap[fFactory->fCountOffset]  << " index " << index << std::endl;
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter crash trace end --------\n\n";
                 throw faustexception("");
