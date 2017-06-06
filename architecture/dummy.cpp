@@ -75,6 +75,8 @@
 
 <<includeclass>>
 
+using namespace std;
+
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
@@ -88,7 +90,7 @@ dsp* DSP;
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-std::list<GUI*> GUI::fGuiList;
+list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
 /******************************************************************************
@@ -118,7 +120,7 @@ int main(int argc, char *argv[])
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    std::cout << "Started with " << nvoices << " voices\n";
+    cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     
 #if MIDICTRL
@@ -136,34 +138,34 @@ int main(int argc, char *argv[])
     int group = lopt(argv, "--group", 1);
     
     if (nvoices > 0) {
-        std::cout << "Started with " << nvoices << " voices\n";
+        cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
         
-#if MIDICTRL
+    #if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(dsp_poly);
         } else {
             DSP = dsp_poly;
         }
-#else
+    #else
         DSP = dsp_poly;
-#endif
+    #endif
     } else {
-#if MIDICTRL
+    #if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(new mydsp());
         } else {
             DSP = new mydsp();
         }
-#else
+    #else
         DSP = new mydsp();
-#endif
+    #endif
     }
     
 #endif
     
     if (DSP == 0) {
-        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
 
@@ -173,13 +175,13 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
-    std::cout << "HTTPD is on" << std::endl;
+    cout << "HTTPD is on" << endl;
 #endif
 
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
-    std::cout << "OSC is on" << std::endl;
+    cout << "OSC is on" << endl;
 #endif
 
     dummyaudio audio(44100, 128, 5, true);
@@ -194,7 +196,9 @@ int main(int argc, char *argv[])
 
     finterface.recallState(rcfilename);
     
+    // Play notes once
     if (dsp_poly) {
+        cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
         dsp_poly->keyOn(0, 67, 127);
         dsp_poly->keyOn(0, 72, 127);
@@ -203,9 +207,56 @@ int main(int argc, char *argv[])
      
     audio.start();
 
-    std::cout << "ins " << audio.getNumInputs() << std::endl;
-    std::cout << "outs " << audio.getNumOutputs() << std::endl;
- 
+    cout << "ins " << audio.getNumInputs() << endl;
+    cout << "outs " << audio.getNumOutputs() << endl;
+    
+    if (dsp_poly) {
+        cout << "allNotesOff" << endl;
+        dsp_poly->allNotesOff(true);
+    }
+    
+    // Play notes a second time
+    audio.setCount(5);
+    
+    if (dsp_poly) {
+        cout << "keyOn 60 67 72 75" << endl;
+        dsp_poly->keyOn(0, 60, 127);
+        dsp_poly->keyOn(0, 67, 127);
+        dsp_poly->keyOn(0, 72, 127);
+        dsp_poly->keyOn(0, 75, 127);
+    }
+    
+    audio.start();
+    
+    cout << "ins " << audio.getNumInputs() << endl;
+    cout << "outs " << audio.getNumOutputs() << endl;
+    
+    if (dsp_poly) {
+        cout << "allNotesOff" << endl;
+        dsp_poly->allNotesOff(true);
+    }
+    
+    // Play notes a third time
+    audio.setCount(5);
+    
+    if (dsp_poly) {
+        cout << "keyOn 60 67 72 75" << endl;
+        dsp_poly->keyOn(0, 60, 127);
+        dsp_poly->keyOn(0, 67, 127);
+        dsp_poly->keyOn(0, 72, 127);
+        dsp_poly->keyOn(0, 75, 127);
+    }
+    
+    audio.start();
+    
+    cout << "ins " << audio.getNumInputs() << endl;
+    cout << "outs " << audio.getNumOutputs() << endl;
+    
+    if (dsp_poly) {
+        cout << "allNotesOff" << endl;
+        dsp_poly->allNotesOff(true);
+    }
+    
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
@@ -218,7 +269,7 @@ int main(int argc, char *argv[])
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
-        std::cerr << "MidiUI run error\n";
+        cerr << "MidiUI run error\n";
     }
 #endif
     

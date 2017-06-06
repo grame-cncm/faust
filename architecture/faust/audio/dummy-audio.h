@@ -121,6 +121,9 @@ class dummyaudio : public audio {
                 }
             }
         }
+    
+        void setCount(int count) { fCount = count; }
+        int getCount() { return fCount; }
 
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }

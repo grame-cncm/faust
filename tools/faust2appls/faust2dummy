@@ -61,7 +61,7 @@ do
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
     elif [ $p = "-midi" ]; then
-        MIDIDEFS="-D MIDICTRL"
+        MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
