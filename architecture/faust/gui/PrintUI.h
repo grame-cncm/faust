@@ -24,14 +24,11 @@
 #ifndef FAUST_PRINTUI_H
 #define FAUST_PRINTUI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
+#include <vector>
+#include <string>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"
-#include <vector>
-#include <string>
 
 /*******************************************************************************
  * PrintUI : Faust User Interface

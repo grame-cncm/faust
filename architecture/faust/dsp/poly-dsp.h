@@ -35,7 +35,6 @@
 #include <limits.h>
 
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
@@ -101,11 +100,12 @@ class GroupUI : public GUI, public PathBuilder
         GroupUI(FAUSTFLOAT* zone, uiCallback cb, void* arg)
         {
             fPanic = new uiCallbackItem(this, zone, cb, arg);
-        };
+        }
+    
         virtual ~GroupUI()
         {
             // 'fPanic' is kept and deleted in GUI, so do not delete here
-        };
+        }
 
         // -- widget's layouts
         void openTabBox(const char* label)

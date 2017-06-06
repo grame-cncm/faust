@@ -20,10 +20,11 @@ function countLines () {
     echo "Diff cpp lines in $params mode"
     echo "=========================================="
 
-    diff codes-to-test/$file  expected-responses/$file
+    diff codes-to-test/$file expected-responses/$file
 }
 
 countLines "" lines_scal.txt
+countLines "-inpl" lines_scal_inpl.txt
 countLines "-vec -lv 0" lines_vec0.txt
 countLines "-vec -lv 1" lines_vec1.txt
 countLines "-vec -lv 1 -vs 64" lines_vec1vs32.txt

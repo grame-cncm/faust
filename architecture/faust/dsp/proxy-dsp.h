@@ -30,6 +30,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/SimpleParser.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/DecoratorUI.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -57,8 +58,8 @@ struct JSONUIDecoder {
     int fNumInputs, fNumOutputs; 
     int fInputItems, fOutputItems;
     
-    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button"  || type == "checkbox"); }
-    bool isOutput(const string& type)  { return (type == "hbargraph" || type == "vbargraph"); }
+    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
+    bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
 
     JSONUIDecoder(const std::string& json) 
     {

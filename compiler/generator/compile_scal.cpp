@@ -593,8 +593,8 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 // like generateCacheCode but we force caching like if sharing was always > 1
 string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 {
-	string 		vname, ctype, code;
-    Occurences* o = fOccMarkup->retrieve(sig);
+	string vname, ctype, code;
+	Occurences* o = fOccMarkup->retrieve(sig);
 
 	// check reentrance
     if (getCompiledExpression(sig, code)) {
@@ -602,7 +602,8 @@ string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
     }
 
 	// check for expression occuring in delays
-	if (o->getMaxDelay()>0) {
+    assert(o);
+    if (o->getMaxDelay()>0) {
 
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());

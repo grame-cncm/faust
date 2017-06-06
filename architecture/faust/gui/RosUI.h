@@ -35,17 +35,13 @@
 #ifndef FAUST_RosUI_H
 #define FAUST_RosUI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
+#include <algorithm>
+#include <vector>
 
 #include "faust/gui/UI.h"
 #include "ros/ros.h"
 #include "std_msgs/Bool.h"
 #include "std_msgs/Float32.h"
-
-#include <algorithm>
-#include <vector>
 
 class RosUI : public UI
 {

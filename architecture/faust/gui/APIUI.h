@@ -24,15 +24,16 @@
 #ifndef API_UI_H
 #define API_UI_H
 
-#include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
-#include "faust/gui/PathBuilder.h"
-#include "faust/gui/ValueConverter.h"
 #include <sstream>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <map>
+
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
+#include "faust/gui/ValueConverter.h"
 
 class APIUI : public PathBuilder, public Meta, public UI
 {
