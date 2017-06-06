@@ -24,10 +24,6 @@
 #ifndef FAUST_MAPUI_H
 #define FAUST_MAPUI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
 #include <vector>
 #include <map>
 #include <string>

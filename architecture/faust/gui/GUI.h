@@ -24,13 +24,13 @@
 #ifndef FAUST_GUI_H
 #define FAUST_GUI_H
 
-#include "faust/gui/UI.h"
-#include "faust/gui/ring-buffer.h"
-
 #include <list>
 #include <map>
 #include <vector>
 #include <iostream>
+
+#include "faust/gui/UI.h"
+#include "faust/gui/ring-buffer.h"
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface

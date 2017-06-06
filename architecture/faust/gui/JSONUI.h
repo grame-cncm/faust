@@ -24,14 +24,6 @@
 #ifndef FAUST_JSONUI_H
 #define FAUST_JSONUI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
-#include "faust/gui/UI.h"
-#include "faust/gui/PathBuilder.h"
-#include "faust/gui/meta.h"
-
 #include <vector>
 #include <map>
 #include <string>
@@ -39,12 +31,17 @@
 #include <sstream>
 #include <assert.h>
 
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
+#include "faust/gui/meta.h"
+
 /*******************************************************************************
  * JSONUI : Faust User Interface
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-class JSONUI : public PathBuilder, public Meta, public UI
+template <typename REAL>
+class JSONUIAux : public PathBuilder, public Meta, public UI
 {
 
     protected:
@@ -128,27 +125,30 @@ class JSONUI : public PathBuilder, public Meta, public UI
       
      public:
      
-        JSONUI(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
+        JSONUIAux(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
         {
             init(name, inputs, outputs, sha_key, dsp_code);
         }
 
-        JSONUI(const std::string& name, int inputs, int outputs)
+        JSONUIAux(const std::string& name, int inputs, int outputs)
         {
             init(name, inputs, outputs, "", "");
         }
 
-        JSONUI(int inputs, int outputs)
+        JSONUIAux(int inputs, int outputs)
         {
             init("", inputs, outputs, "", "");
         }
         
-        JSONUI()
+        JSONUIAux()
         {
             init("", -1, -1, "", "");
         }
  
-        virtual ~JSONUI() {}
+        virtual ~JSONUIAux() {}
+        
+        void setInputs(int inputs) { fInputs = inputs; }
+        void setOutputs(int outputs) { fOutputs = outputs; }
 
         // -- widget's layouts
     
@@ -205,17 +205,17 @@ class JSONUI : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
 
-        virtual void addButton(const char* label, FAUSTFLOAT* zone)
+        virtual void addButton(const char* label, REAL* zone)
         {
             addGenericButton(label, "button");
         }
     
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+        virtual void addCheckButton(const char* label, REAL* zone)
         {
             addGenericButton(label, "checkbox");
         }
 
-        virtual void addGenericEntry(const char* label, const char* name, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -231,24 +231,24 @@ class JSONUI : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
     
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        virtual void addVerticalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
             addGenericEntry(label, "vslider", init, min, max, step);
         }
     
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        virtual void addHorizontalSlider(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
             addGenericEntry(label, "hslider", init, min, max, step);
         }
     
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        virtual void addNumEntry(const char* label, REAL* zone, REAL init, REAL min, REAL max, REAL step)
         {
             addGenericEntry(label, "nentry", init, min, max, step);
         }
 
         // -- passive widgets
     
-        virtual void addGenericBargraph(const char* label, const char* name, FAUSTFLOAT min, FAUSTFLOAT max) 
+        virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
         {
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -262,19 +262,19 @@ class JSONUI : public PathBuilder, public Meta, public UI
             fCloseUIPar = ',';
         }
 
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 
+        virtual void addHorizontalBargraph(const char* label, REAL* zone, REAL min, REAL max) 
         {
             addGenericBargraph(label, "hbargraph", min, max);
         }
     
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
+        virtual void addVerticalBargraph(const char* label, REAL* zone, REAL min, REAL max)
         {
             addGenericBargraph(label, "vbargraph", min, max);
         }
 
         // -- metadata declarations
 
-        virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
+        virtual void declare(REAL* zone, const char* key, const char* val)
         {
             fMetaAux.push_back(std::make_pair(key, val));
         }
@@ -309,6 +309,30 @@ class JSONUI : public PathBuilder, public Meta, public UI
             tab(fTab, fJSON); fJSON << "}" << std::endl;
             return (flat) ? flatten(fJSON.str()) : fJSON.str();
         }
+    
+};
+
+// Externally available class using FAUSTFLOAT
+
+class JSONUI : public JSONUIAux<FAUSTFLOAT>
+{
+    public :
+    
+        JSONUI(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code):
+        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs, sha_key, dsp_code)
+        {}
+        
+        JSONUI(const std::string& name, int inputs, int outputs):
+        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs)
+        {}
+        
+        JSONUI(int inputs, int outputs):
+        JSONUIAux<FAUSTFLOAT>(inputs, outputs)
+        {}
+        
+        JSONUI():
+        JSONUIAux<FAUSTFLOAT>()
+        {}
     
 };
 

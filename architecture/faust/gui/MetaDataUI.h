@@ -24,16 +24,16 @@
 #ifndef MetaData_UI_H
 #define MetaData_UI_H
 
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 #include <map>
 #include <set>
 #include <string>
 #include <assert.h>
 
 #include "faust/gui/SimpleParser.h"
-
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
 
 static inline bool startWith(const std::string& str, const std::string& prefix)
 {

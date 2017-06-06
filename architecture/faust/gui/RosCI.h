@@ -32,18 +32,14 @@
 #ifndef FAUST_RosCI_H
 #define FAUST_RosCI_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
-#include "faust/gui/UI.h"
-
 #include <algorithm>
 #include <vector>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <sstream>
+
+#include "faust/gui/UI.h"
 
 class RosCI : public UI
 {
