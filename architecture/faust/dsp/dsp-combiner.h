@@ -26,6 +26,7 @@
 
 #include <string.h>
 #include <assert.h>
+
 #include "faust/dsp/dsp.h"
 
 // Combine two DSP in sequence

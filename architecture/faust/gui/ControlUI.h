@@ -24,10 +24,11 @@
 #ifndef CONTROL_UI_H
 #define CONTROL_UI_H
 
-#include "faust/gui/UI.h"
 #include <jack/midiport.h>
 #include <vector>
 #include <assert.h>
+
+#include "faust/gui/UI.h"
 
 class ControlUI : public UI {  
 

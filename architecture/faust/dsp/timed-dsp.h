@@ -24,13 +24,14 @@
 #ifndef __timed_dsp__
 #define __timed_dsp__
 
-#include "faust/dsp/dsp.h" 
-#include "faust/gui/GUI.h" 
-#include "faust/gui/ring-buffer.h"
-
 #include <set>
 #include <float.h>
 #include <assert.h>
+
+#include "faust/dsp/dsp.h" 
+#include "faust/gui/GUI.h" 
+#include "faust/gui/DecoratorUI.h"
+#include "faust/gui/ring-buffer.h"
 
 namespace {
     
@@ -73,13 +74,13 @@ inline double GetCurrentTimeInUsec(void)
  * ZoneUI : this class collect zones in a set.
  */
 
-struct ZoneUI : public UI
+struct ZoneUI : public GenericUI
 {
     
     std::set<FAUSTFLOAT*> fZoneSet;
     
-    ZoneUI() {};
-    virtual ~ZoneUI() {};
+    ZoneUI():GenericUI() {}
+    virtual ~ZoneUI() {}
     
     void insertZone(FAUSTFLOAT* zone) 
     { 
@@ -87,16 +88,6 @@ struct ZoneUI : public UI
             fZoneSet.insert(zone);
         } 
     }
-    
-    // -- widget's layouts
-    void openTabBox(const char* label)
-    {}
-    void openHorizontalBox(const char* label)
-    {}
-    void openVerticalBox(const char* label)
-    {}
-    void closeBox()
-    {}
     
     // -- active widgets
     void addButton(const char* label, FAUSTFLOAT* zone)
@@ -129,11 +120,7 @@ struct ZoneUI : public UI
     {
         insertZone(zone);
     }
-    
-    // -- metadata declarations
-    void declare(FAUSTFLOAT* zone, const char* key, const char* val)
-    {}
-
+  
 };
 
 /**

@@ -25,6 +25,7 @@
 #define __dsp_adapter__
 
 #include <string.h>
+#include <iostream>
 #include "faust/dsp/dsp.h"
 
 // Adapts a DSP for a different number of inputs/outputs
@@ -99,19 +100,19 @@ class dsp_adapter : public decorator_dsp {
 
 // Adapts a DSP for a different sample size
 
-template <typename SAMPLE_TYPE>
+template <typename TYPE_INT, typename TYPE_EXT>
 class dsp_sample_adapter : public decorator_dsp {
     
     protected:
     
-        SAMPLE_TYPE** fAdaptedInputs;
-        SAMPLE_TYPE** fAdaptedOutputs;
+        TYPE_INT** fAdaptedInputs;
+        TYPE_INT** fAdaptedOutputs;
     
         void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    fAdaptedInputs[chan][frame] = SAMPLE_TYPE(inputs[chan][frame]);
+                    fAdaptedInputs[chan][frame] = TYPE_INT(reinterpret_cast<TYPE_EXT**>(inputs)[chan][frame]);
                 }
             }
         }
@@ -120,7 +121,7 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    outputs[chan][frame] = SAMPLE_TYPE(fAdaptedOutputs[chan][frame]);
+                    reinterpret_cast<TYPE_EXT**>(outputs)[chan][frame] = TYPE_EXT(fAdaptedOutputs[chan][frame]);
                 }
             }
         }
@@ -129,14 +130,14 @@ class dsp_sample_adapter : public decorator_dsp {
     
         dsp_sample_adapter(dsp* dsp):decorator_dsp(dsp)
         {
-            fAdaptedInputs = new SAMPLE_TYPE*[dsp->getNumInputs()];
+            fAdaptedInputs = new TYPE_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
-                fAdaptedInputs[i] = new SAMPLE_TYPE[4096];
+                fAdaptedInputs[i] = new TYPE_INT[4096];
             }
             
-            fAdaptedOutputs = new SAMPLE_TYPE*[dsp->getNumOutputs()];
+            fAdaptedOutputs = new TYPE_INT*[dsp->getNumOutputs()];
             for (int i = 0; i < dsp->getNumOutputs(); i++) {
-                fAdaptedOutputs[i] = new SAMPLE_TYPE[4096];
+                fAdaptedOutputs[i] = new TYPE_INT[4096];
             }
         }
     

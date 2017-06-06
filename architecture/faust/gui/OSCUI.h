@@ -31,9 +31,10 @@
 #ifndef __OSCUI__
 #define __OSCUI__
 
+#include <vector>
+
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
-#include <vector>
 
 #ifdef _WIN32
 #define strcasecmp _stricmp

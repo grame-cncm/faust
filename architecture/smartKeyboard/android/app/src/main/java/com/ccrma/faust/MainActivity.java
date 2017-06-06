@@ -40,7 +40,9 @@ public class MainActivity extends AppCompatActivity {
 
         context = getApplicationContext();
 
-        startFaustDsp();
+        if(dspFaust == null){
+            dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
+        }
 
         mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
 
@@ -98,36 +100,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startFaustDsp(){
-        if(dspFaust == null){
-            dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
-            dspFaust.start();
-        }
-    }
-
-    private void stopFaustDsp(){
-        if(dspFaust != null){
-            dspFaust.stop();
-            dspFaust = null;
-        }
-    }
-
     @Override
-    public void onPause(){
-        super.onPause();
+    public void onStop(){
+        super.onStop();
         dspFaust.stop();
     }
 
     @Override
-    public void onResume(){
-        super.onPause();
-        dspFaust.start();
+    public void onStart(){
+        super.onStart();
+        if(!dspFaust.isRunning()) {
+            dspFaust.start();
+        }
     }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
-        dspFaust.stop();
+        dspFaust = null;
     }
 
     class FaustMidiReceiver extends MidiReceiver {

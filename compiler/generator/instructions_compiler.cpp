@@ -504,6 +504,7 @@ ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
     Typed::VarType ctype;
     
 	// check for expression occuring in delays
+    faustassert(o);
 	if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());

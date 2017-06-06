@@ -24,9 +24,6 @@
 #ifndef FAUST_GTKUI_H
 #define FAUST_GTKUI_H
 
-#include "faust/gui/GUI.h"
-#include "faust/gui/MetaDataUI.h"
-
 /******************************************************************************
 *******************************************************************************
 
@@ -46,7 +43,8 @@
 #include <gdk/gdkkeysyms.h>
 #include <assert.h>
 
-#define kStackSize 256
+#include "faust/gui/GUI.h"
+#include "faust/gui/MetaDataUI.h"
 
 // Insertion modes
 
