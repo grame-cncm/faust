@@ -751,7 +751,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     #if defined(LLVM_34)
         builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : cpu);
     #else
-        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : StringRef(cpu));
+        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : static_cast<std::basic_string<char>>(StringRef(cpu)));
         //std::cout << "llvm::sys::getHostCPUName()" << llvm::sys::getHostCPUName().data() << std::endl;
     #endif
         
