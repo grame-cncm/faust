@@ -37,7 +37,7 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-#define INTERPRETER_TRACE 1
+//#define INTERPRETER_TRACE 1
 
 template <class T>
 struct interpreter_dsp_factory_aux;
