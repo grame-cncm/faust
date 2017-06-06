@@ -17,8 +17,13 @@ echo "Impulse response tests in various compilation modes and double"
 echo "==============================================================="
 
 for f in *.dsp; do
-	faust2impulse -double $f > $D/$f.scal.ir
-	filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    faust2impulse -double -inpl $f > $D/$f.scal.ir
+    filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
+done
+
+for f in *.dsp; do
+    faust2impulse -double $f > $D/$f.scal.ir
+    filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
 done
 
 #for f in *.dsp; do
