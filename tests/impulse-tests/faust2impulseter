@@ -3,57 +3,19 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to impulse tests			#
-#               (c) Grame, 2016                                     #
+#               (c) Grame, 2017                                     #
 #                                                                   #
 #####################################################################
 
-
-#-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
-
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
 for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
     fi
 done
-
-mode="scal" # can be: scal, vec, sch, omp
-
-#PHASE 2 : dispatch command arguments
-for p in $@; do
-    if [ "$p" = -omp ]; then
-		mode="omp"
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    elif [ "$p" = -vec ]; then
-    	mode="vec"
-		OPTIONS="$OPTIONS $p"
-    elif [ "$p" = -sch ]; then
-    	mode="sch"
-		OPTIONS="$OPTIONS $p"
-    elif [ "$p" = -scal ]; then
-    	mode="scal"
-    elif [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
-	fi
-done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
