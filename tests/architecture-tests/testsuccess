@@ -40,16 +40,16 @@ if [ "$1" = "osx" ]; then
     diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
 
     faust2dummy -midi good.dsp > /dev/null
-    ./good > good.txt
-    diff good.txt good_ref.txt && echo "OK: faust2dummy -midi good.dsp succeeded !" || echo "ERROR: faust2dummy -midi good.dsp failed"
+    ./good > good_midi.txt
+    diff good_midi.txt good_midi_ref.txt && echo "OK: faust2dummy -midi good.dsp succeeded !" || echo "ERROR: faust2dummy -midi good.dsp failed"
 
     faust2dummy -midi -nvoices 2 organ.dsp > /dev/null
-    ./organ > organ.txt
-    diff organ.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
+    ./organ > organ_2voices.txt
+    diff organ_2voices.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
 
     faust2dummy -midi organ.dsp > /dev/null
-    ./organ > organ.txt
-    diff organ.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+    ./organ > organ_8voices.txt
+    diff organ_8voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
