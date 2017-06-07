@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/PathBuilder.h"

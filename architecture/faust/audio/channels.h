@@ -24,6 +24,8 @@
 #ifndef __audio_channels__
 #define __audio_channels__
 
+#include <string.h>
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -45,37 +47,37 @@ class channels
             fNumChannels = nchannels;
 
             // allocate audio channels
-            for (int i = 0; i < fNumChannels; i++) {
-                fBuffers[i] =  new FAUSTFLOAT[fNumFrames];
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                fBuffers[chan] = new FAUSTFLOAT[fNumFrames];
             }
+            
+            zero();
         }
 
         void zero()
         {
             // allocate audio channels
-            for (int i = 0; i < fNumChannels; i++) {
-                for (int f = 0; f < fNumFrames; f++) {
-                    fBuffers[i][f] = FAUSTFLOAT(0.0);
-                }
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                memset(fBuffers[chan], 0, sizeof(FAUSTFLOAT) * fNumFrames);
             }
         }
 
         void impulse()
         {
             // allocate audio channels
-            for (int i = 0; i < fNumChannels; i++) {
-                fBuffers[i][0] = FAUSTFLOAT(1.0);
-                for (int f = 1; f < fNumFrames; f++) {
-                    fBuffers[i][f] = FAUSTFLOAT(0.0);
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                fBuffers[chan][0] = FAUSTFLOAT(1.0);
+                for (int frame = 1; frame < fNumFrames; frame++) {
+                    fBuffers[chan][frame] = FAUSTFLOAT(0.0);
                 }
             }
         }
     
         void display()
         {
-            for (int i = 0; i < fNumChannels; i++) {
-                for (int f = 0; f < fNumFrames; f++) {
-                    std::cout << "chan = " << i << " frame = " << f << " value = " <<  fBuffers[i][f] << std::endl;
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                for (int frame = 0; frame < fNumFrames; frame++) {
+                    std::cout << "chan = " << chan << " frame = " << frame << " value = " <<  fBuffers[chan][frame] << std::endl;
                 }
             }
         }
@@ -83,8 +85,8 @@ class channels
         virtual ~channels()
         {
             // free separate input channels
-            for (int i = 0; i < fNumChannels; i++) {
-                delete [] fBuffers[i];
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                delete [] fBuffers[chan];
             }
             delete [] fBuffers;
         }
