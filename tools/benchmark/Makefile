@@ -1,6 +1,6 @@
 LIB := ../../compiler
 
-all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk dynamic-jack-gtk-plugin
+all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk
 
 faustbench-llvm: faustbench-llvm.cpp
 	$(CXX) -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm
