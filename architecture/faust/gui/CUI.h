@@ -77,7 +77,6 @@ typedef struct {
 
 } UIGlue;
 
-
 typedef void (* metaDeclareFun) (void* ui_interface, const char* key, const char* value);
 
 typedef struct {

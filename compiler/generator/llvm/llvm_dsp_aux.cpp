@@ -1890,10 +1890,17 @@ EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? dsp->clone() : 0;
 }
 
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg)
+{
+    if (factory)  {
+        factory->setMemoryManager(create, create_arg, destroy, destroy_arg);
+    }
+}
+
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 {
     return (factory) ? factory->createDSPInstance() : 0;
- }
+}
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {

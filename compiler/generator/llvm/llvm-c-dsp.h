@@ -432,6 +432,16 @@ extern "C"
     void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
     /**
+     * DSP memory manager functions.
+     */
+    
+    typedef void* (* allocateFun) (size_t size, void* arg);
+    typedef void (* destroyFun) (void* ptr, void* arg);
+    
+    /* Set custom memory manager allocateFun and destroyFun functions to be used when creating instances */
+    void setCMemoryManager(llvm_dsp_factory* factory, allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg);
+    
+    /**
      * Create a Faust DSP instance.
      * 
      * @param factory - the Faust DSP factory

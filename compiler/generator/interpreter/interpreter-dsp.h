@@ -103,7 +103,7 @@ class interpreter_dsp_factory : public dsp_factory {
         /* Create a new DSP instance, to be deleted with C++ 'delete' */
         interpreter_dsp* createDSPInstance();
     
-        /* Set a custom memory manager */
+        /* Set a custom memory manager to be used when creating instances */
         void setMemoryManager(dsp_memory_manager* manager);
         
         /* Return the currently set custom memory manager */

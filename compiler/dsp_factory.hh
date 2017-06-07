@@ -34,7 +34,15 @@
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 
+/**
+ * DSP memory manager functions.
+ */
+
+typedef void* (* allocateFun) (size_t size, void* arg);
+typedef void (* destroyFun) (void* ptr, void* arg);
+
 struct dsp_memory_manager;
+
 class dsp_factory;
 class dsp;
 
@@ -64,6 +72,8 @@ class dsp_factory_base {
     
         virtual void setMemoryManager(dsp_memory_manager* manager) = 0;
         virtual dsp_memory_manager* getMemoryManager() = 0;
+    
+        virtual void setMemoryManager(allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg) {}
     
         virtual void* allocate(size_t size) = 0;
         virtual void destroy(void* ptr) = 0;

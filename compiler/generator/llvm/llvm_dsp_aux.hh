@@ -222,7 +222,30 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     
     private:
     
+        struct c_memory_manager : public dsp_memory_manager {
+            
+            allocateFun fCreate;
+            void* fCreateArg;
+            
+            destroyFun fDestroy;
+            void* fDestroyArg;
+            
+            c_memory_manager():fCreate(nullptr), fCreateArg(nullptr), fDestroy(nullptr), fDestroyArg(nullptr)
+            {}
+        
+            void* allocate(size_t size)
+            {
+                return fCreate(size, fCreateArg);
+            }
+            virtual void destroy(void* ptr)
+            {
+                fDestroy(ptr, fDestroyArg);
+            }
+            
+        };
+    
         llvm_dsp_factory_aux* fFactory;
+        c_memory_manager fCmanager;
     
         virtual ~llvm_dsp_factory()
         {
@@ -250,6 +273,14 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     
         void setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
         dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
+    
+        void setMemoryManager(allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg)
+        {
+            fCmanager.fCreate = create;
+            fCmanager.fCreateArg = create_arg;
+            fCmanager.fDestroy = destroy;
+            fCmanager.fDestroyArg = destroy_arg;
+        }
     
         void write(std::ostream* out, bool binary, bool small = false) {}
         
@@ -419,7 +450,9 @@ EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
 EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-
+    
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg);
+    
 EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
