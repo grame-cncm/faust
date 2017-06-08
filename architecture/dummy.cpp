@@ -184,7 +184,6 @@ int main(int argc, char* argv[])
 
     finterface.recallState(rcfilename);
     
-    // Play notes once
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
         dsp_poly->keyOn(0, 60, 127);
@@ -192,7 +191,8 @@ int main(int argc, char* argv[])
         dsp_poly->keyOn(0, 72, 127);
         dsp_poly->keyOn(0, 75, 127);
     }
-     
+    
+    // Play notes once
     audio.start();
 
     cout << "ins " << audio.getNumInputs() << endl;
@@ -203,8 +203,7 @@ int main(int argc, char* argv[])
         dsp_poly->allNotesOff(true);
     }
     
-    // Play notes a second time
-    audio.setCount(5);
+    // Rendering in now finished...
     
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
@@ -214,6 +213,7 @@ int main(int argc, char* argv[])
         dsp_poly->keyOn(0, 75, 127);
     }
     
+    // Play notes a second time
     audio.start();
     
     cout << "ins " << audio.getNumInputs() << endl;
@@ -224,8 +224,7 @@ int main(int argc, char* argv[])
         dsp_poly->allNotesOff(true);
     }
     
-    // Play notes a third time
-    audio.setCount(5);
+    // Rendering in now finished...
     
     if (dsp_poly) {
         cout << "keyOn 60 67 72 75" << endl;
@@ -235,6 +234,7 @@ int main(int argc, char* argv[])
         dsp_poly->keyOn(0, 75, 127);
     }
     
+     // Play notes a third time
     audio.start();
     
     cout << "ins " << audio.getNumInputs() << endl;
