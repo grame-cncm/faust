@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #---------------------- faust2md -----------------------
 # Usage: `faust2md [-t 4] [-c] [-f] foo.dsp > foo.md`
@@ -111,11 +111,11 @@ def indentation(line):
 
 # Print the front matter of the file
 def frontMatter(file):
-	print '---'
-	print 'file:', file
-	print 'date:', datetime.date.today()
-	print '---'
-	print ''
+	print('---')
+	print('file: %s' % (file,))
+	print('date: %s' % (datetime.date.today(),))
+	print('---')
+	print('')
 
 #
 # THE PROGRAM STARTS HERE
@@ -133,8 +133,8 @@ try:
 	if not args:
 		raise getopt.error, "At least one file argument required"
 except getopt.error, msg:
-	print msg
-	print "usage:", sys.argv[0], "[-t tabsize] [-c] [-f] file ..."
+	print(msg)
+	print("usage: %s [-t tabsize] [-c] [-f] file ..." % (sys.argv[0],))
 	sys.exit(1)
 
 for optname, optvalue in opts:
@@ -154,24 +154,24 @@ for file in args:
 			if isComment(line)==0:
 				if mode==1:
 					# we are closing a md-comment
-					print ''
+					print('')
 					mode = 0
 				if codeflag:
-					print '\t',line,
+					print('\t%s' % line,)
 			else:
 				if mode==0:	# we are in code
 					matchComment = matchBeginComment(line)
 					matchSection = matchBeginSection(line)
 					matchTitle = matchBeginTitle(line)
 					if matchComment:
-						print ''
-						print "###", matchComment.group(1)
+						print('')
+						print("### %s" % (matchComment.group(1),))
 					elif matchSection:
-						print ''
-						print "##", matchSection.group(1)
+						print('')
+						print("## %s" % (matchSection.group(1),))
 					elif matchTitle:
-						print ''
-						print "#", matchTitle.group(1)
+						print('')
+						print("# %s" % (matchTitle.group(1),))
 					if matchComment or matchSection or matchTitle:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation
@@ -179,7 +179,7 @@ for file in args:
 						# it is a comment but not a md-comment
 						# therefore it is part of the code
 						if codeflag:
-							print '\t',line,
+							print('\t%s' % (line,))
 				else:
 					# we are in a md-comment
 					if idt==0:
@@ -190,13 +190,13 @@ for file in args:
 					matchSection = matchEndSection(line)
 					matchTitle = matchEndTitle(line)
 					if matchComment:
-						print ''
-						print "---"
-						print ''
+						print('')
+						print("---")
+						print('')
 					if matchComment or matchSection or matchTitle:
 						# end of md-comment switch back to mode O
 						mode = 0
 					else:
 						# lien of content of md-comment
 						# we print it unindented
-						print outdent(line,idt),
+						print(outdent(line,idt))

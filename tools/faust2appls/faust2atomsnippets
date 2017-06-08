@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 #---------------------- faust2atomsnippets -----------------------
 # Usage: `faust2atomsnippets *.lib > faust-library.cson`
@@ -133,8 +133,8 @@ try:
 	if not args:
 		raise getopt.error, "At least one file argument required"
 except getopt.error, msg:
-	print msg
-	print "usage:", sys.argv[0], "[-t tabsize] file ..."
+	print(msg)
+	print("usage: %s [-t tabsize] file ..." % (sys.argv[0],))
 	sys.exit(1)
 
 for optname, optvalue in opts:
@@ -142,7 +142,7 @@ for optname, optvalue in opts:
 		tabsize = int(optvalue)
 
 # Process all the files and print the documentation on the standard output
-print "'.source.faust':"
+print("'.source.faust':")
 for file in args:
 	with open(file) as f:
 		for text in f:
@@ -161,9 +161,9 @@ for file in args:
 					matchTitle = matchBeginTitle(line)
 					if matchComment:
 						foo = matchComment.group(1)
-						print "\t'" + foo + "':"
-						print "\t\t'prefix':", "'" + foo + "'"
-						print "\t\t'body':", "'" + libprefix + '.' + foo + "'"
+						print("\t'%s':" % (foo,))
+						print("\t\t'prefix': '%s'" % (foo,))
+						print("\t\t'body': '%s.%s'" (libprefix, foo))
 					if matchComment or matchSection or matchTitle:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation
