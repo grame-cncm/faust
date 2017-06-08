@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
 # and Romain Michon
