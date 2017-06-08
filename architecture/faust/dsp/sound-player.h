@@ -28,7 +28,6 @@
 #include <string>
 #include <iostream>
 
-#include "faust/dsp/dsp.h"
 
 #ifdef FAUSTFLOAT
     #if (FAUSTFLOAT == float)
@@ -58,7 +57,9 @@ class sound_player : public dsp {
         // Zones for UI management
         FAUSTFLOAT fPlayButton;
         FAUSTFLOAT fLoopButton;
-        FAUSTFLOAT fSpeedSlider;
+        FAUSTFLOAT fPauseButton;
+        //FAUSTFLOAT fSpeedSlider;
+        
     
         void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs)
         {
@@ -124,10 +125,11 @@ class sound_player : public dsp {
     
         void buildUserInterface(UI* ui_interface)
         {
-            ui_interface->openVerticalBox("Transport");
+            ui_interface->openVerticalBox(fFileName.c_str());
             ui_interface->addCheckButton("Play", &fPlayButton);
+            ui_interface->addCheckButton("Pause", &fPauseButton);
             ui_interface->addCheckButton("Loop", &fLoopButton);
-            ui_interface->addHorizontalSlider("Speed", &fSpeedSlider, FAUSTFLOAT(1), FAUSTFLOAT(0.5), FAUSTFLOAT(2), FAUSTFLOAT(0.1));
+            //ui_interface->addVerticalSlider("Speed", &fSpeedSlider, FAUSTFLOAT(1), FAUSTFLOAT(0.5), FAUSTFLOAT(2), FAUSTFLOAT(0.1));
             ui_interface->closeBox();
         }
     
@@ -156,8 +158,9 @@ class sound_player : public dsp {
         void instanceResetUserInterface()
         {
             fPlayButton = FAUSTFLOAT(0);
+            fPauseButton = FAUSTFLOAT(0);
             fLoopButton = FAUSTFLOAT(0);
-            fSpeedSlider = FAUSTFLOAT(1);
+            //fSpeedSlider = FAUSTFLOAT(1);
         }
     
         void instanceClear()
@@ -175,28 +178,34 @@ class sound_player : public dsp {
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fPlayButton == FAUSTFLOAT(1)) {
+            	if (fPauseButton == FAUSTFLOAT(0)) {
                 int rcount = std::min(count, fFrames);
                 playSlice(rcount, fInfo.frames - fFrames, 0, outputs);
-                if (rcount < count) {
-                    if (fLoopButton == FAUSTFLOAT(1)) {
+                	if (rcount < count) {
+                    	if (fLoopButton == FAUSTFLOAT(1)) {
                         // Loop buffer
                         playSlice(count - rcount, 0, rcount, outputs);
                         fFrames = fInfo.frames - (count - rcount);
-                    } else {
+                   		 } else {
                         // Otherwise clear end of buffer and stops
                         clearSlice(count - rcount, rcount, outputs);
                         fFrames = fInfo.frames;
                         fPlayButton = 0;
-                    }
-                } else {
+                    	}
+                	} else {
                     fFrames -= count;
-                }
-            } else {
-                // Clear output
+                	}
+               } else { 
+               	    // Pause 
+               	    clearSlice(count, 0, outputs);
+               	    }
+               
+             } else {
+                // Clear output and back to start
                 clearSlice(count, 0, outputs);
+                fFrames = fInfo.frames;
+                fPauseButton = 0;
             }
         }
     
 };
-
-#endif
