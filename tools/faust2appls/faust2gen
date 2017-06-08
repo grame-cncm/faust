@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#! /bin/sh -e
 
 #####################################################################
 #                                                                   #
@@ -38,7 +38,7 @@ do
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
     fi
     
-    if [[ -f "$p" ]]; then
+    if [ -f "$p" ]; then
 	    FILES="$FILES $p"
     elif [ $p = "-nvoices" ]; then
         POLY="POLY1"

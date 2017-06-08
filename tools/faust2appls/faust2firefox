@@ -1,5 +1,5 @@
-#! /bin/bash -e
-if [[ $(uname) == Darwin ]]; then
+#! /bin/sh -e
+if [ "x$(uname -s)" = "xDarwin" ]; then
 	APPL='open -a Safari'
 else
 	APPL=xdg-open

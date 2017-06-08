@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 BEAGLERT="/usr/local/beaglert"				# sources of beagleRT
 BINARY="BeagleRT"							# name of the binary we want to obtain
