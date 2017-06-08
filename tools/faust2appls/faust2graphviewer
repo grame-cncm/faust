@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#! /bin/sh -e
 
 # Usage.
 print_usage() 
@@ -7,7 +7,7 @@ print_usage()
 }
 
 # prepare how we are going to open .pdf files
-if [[ $(uname) == Darwin ]]; then
+if [ "x$(uname -s)" = "xDarwin" ]; then
     OPEN=open
 else
 	OPEN=xdg-open

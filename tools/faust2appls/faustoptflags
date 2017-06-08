@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #####################################################################
 #                                                                   #
@@ -13,9 +13,9 @@
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-if [[ $(uname -m) == armv6l ]]; then		# for Raspberry PI
+if [ "x$(uname -m)" = xarmv6l ]; then		# for Raspberry PI
 	MYGCCFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
-elif [[ $(uname -s) == Darwin ]]; then		# for MacOSX (intel)
+elif [ "$(uname -s)" = xDarwin ]; then		# for MacOSX (intel)
 	MYGCCFLAGS="-O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
 else 										# for Linux (intel)
 	MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"

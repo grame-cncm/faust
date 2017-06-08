@@ -22,3 +22,10 @@ windows/*.user
 *.opensdf
 *.sdf
 compiler/faust
+### VSCode cache
+.*.VC.db
+### Xcode Patch ###
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata

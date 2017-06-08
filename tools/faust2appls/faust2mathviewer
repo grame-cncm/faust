@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#! /bin/sh -e
 
 # faust2mathviewer.sh
 #
@@ -54,7 +54,7 @@ convert_svgdirs2pdf()
 # 4. Compile pdflatex twice (including the top-level block-diagram).
 # 5. Copy some important files where needed.
 
-if [[ $(uname) == Darwin ]]; then
+if [ "x$(uname -s)" = "xDarwin" ]; then
     OPEN=open
 	export PATH="/usr/texbin:$PATH"
 else
