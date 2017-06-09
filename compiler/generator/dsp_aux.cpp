@@ -31,6 +31,8 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 #include "Text.hh"
+#include "libfaust.h"
+#include "libfaust-c.h"
 
 #if TARGET_OS_IPHONE
 // Dummy SHA1 function to solve iOS link issue

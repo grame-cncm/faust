@@ -35,6 +35,7 @@
 #include "exception.hh"
 #include "rn_base64.h"
 #include "global.hh"
+#include "libfaust.h"
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #include <system_error>
