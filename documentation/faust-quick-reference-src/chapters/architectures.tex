@@ -263,12 +263,12 @@ OSC  & OSC control (see \ref{sec:oscgui}) \\
 \end{table}%
 
 %---------------------------------------------------
-\subsection{Developing a new architecture file}
+\section{Developing a new architecture file}
 \label{sec:architecture}
 
 Developing a new architecture file typically means writing a generic C++ file, that will be populated with the actual output of the \faust compiler, in order to produce a complete C++ file, ready to be compiled as a standalone application or plugin. 
 
-The architecture to be used is specified at compile time with the \lstinline'-a' options. It must contain the \code{<<includeIntrinsic>>} and \code{<<includeclass>>} lines that will be looked at by the \faust compiler and replaced by the generated C++ class. 
+The architecture to be used is specified at compile time with the \lstinline'-a' option. It must contain the \code{<<includeIntrinsic>>} and \code{<<includeclass>>} lines that will be looked at by the \faust compiler, and replaced by the generated C++ class. 
 
 Look at the \code{minimal.cpp} example located in the architecture folder:
 
@@ -414,9 +414,9 @@ int main(int argc, char* argv[])
 }
 \end{lstlisting} 
 
-You can possibly add the \lstinline'-i' option to actually inline all \code{#include "faust/xxx/yyy"} headers (all files starting with "faust"). Then you may have to write a \code{faust2xxx} script that will chain the \faust compilation step and the C++ compilation one. Look at scripts in the tools/faust2appls folder for real examples. 
+You can possibly add the \lstinline'-i' option to actually inline all \code{#include "faust/xxx/yyy"} headers (all files starting with "faust"). Then you will have to write a \code{faust2xxx} script that will chain the \faust compilation step and the C++ compilation one. Look at scripts in the tools/faust2appls folder for real examples. 
 
-Developing the adapted C++ file for your need may require "aggregating" the generated \code{mydsp} class (subclass of \code{dsp} base class defined in faust/dsp/dsp.h header) in your specific class, or "subclassing" and extend it.  So you will have to write something like:
+Developing the adapted C++ file may require "aggregating" the generated \code{mydsp} class (subclass of \code{dsp} base class defined in faust/dsp/dsp.h header) in your specific class, or "subclassing" and extend it.  So you will have to write something like:
 
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
 class my_class : public base_interface {

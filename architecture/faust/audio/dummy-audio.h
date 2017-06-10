@@ -47,6 +47,7 @@ class dummyaudio : public audio {
         FAUSTFLOAT** fInChannel;
         FAUSTFLOAT** fOutChannel;  
 
+        int fRender;
         int fCount;
         bool fIsSample;
 
@@ -55,7 +56,7 @@ class dummyaudio : public audio {
         dummyaudio(int sr, int bs, int count = 10, bool sample = false)
             :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
         dummyaudio(int count = 10)
-            :fSampleRate(48000), fBufferSize(512), fCount(count) {}
+            :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count) {}
     
         virtual ~dummyaudio() 
         {
@@ -90,7 +91,8 @@ class dummyaudio : public audio {
         }
         virtual bool start()
         {
-            while (--fCount > 0) {
+            fRender = fCount;
+            while (--fRender > 0) {
                 printf("Render one buffer\n");
                 render();
             }
@@ -122,9 +124,6 @@ class dummyaudio : public audio {
             }
         }
     
-        void setCount(int count) { fCount = count; }
-        int getCount() { return fCount; }
-
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }
     
