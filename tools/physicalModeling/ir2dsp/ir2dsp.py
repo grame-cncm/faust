@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
 # and Romain Michon
@@ -74,15 +75,15 @@ for i in range(0, nbOfPeaks) :
 	b = n
 
 	bandwidth = (b-a)/(fs/x.size) # bandwidth in Hz
-	print bandwidth
+	print(bandwidth)
 	peakst60.append(6.91/fs/(1-math.exp(-math.pi*bandwidth/fs)))
 
-print " peaks frequencies : "
-print peaksFreq
-print " corresponding gains : "
-print peaksGains
-print " corresponding t60 : "
-print peakst60
+print(" peaks frequencies : ")
+print(peaksFreq)
+print(" corresponding gains : ")
+print(peaksGains)
+print(" corresponding t60 : ")
+print(peakst60)
 
 # Writing the dsp file #
 # #######################

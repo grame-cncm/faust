@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/sh
 
 LIBFOLDER="libraries"
 DOCFOLDER="documentation"
 PLATFORM=$(uname)
+FAUST2MD=$(which faust2md ./tools/faust2appls/faust2md | head -1)
 
 for p in $@; do
 	if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -13,13 +14,12 @@ done
 
 FILES="analyzers.lib basics.lib compressors.lib delays.lib demos.lib dx7.lib envelopes.lib filters.lib hoa.lib maths.lib misceffects.lib oscillators.lib noises.lib phaflangers.lib physmodels.lib reverbs.lib routes.lib signals.lib spats.lib synths.lib vaeffects.lib"
 
-mkdir tmp
-mkdir tmp/title
+mkdir -p tmp/title
 
 echo "% Faust Standard Libraries" > tmp/title/title.md
 
 for p in $FILES; do
-	(faust2md "$LIBFOLDER/$p" > tmp/${p%.lib}.md) || exit
+	("${FAUST2MD}" "$LIBFOLDER/$p" > tmp/${p%.lib}.md) || exit
 done
 
 # Generate the raw html version of the doc

@@ -20,11 +20,13 @@
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
  ************************************************************************/
+
 #ifndef __jack_midi__
 #define __jack_midi__
 
 #include <iostream>
 #include <cstdlib>
+
 #include <jack/midiport.h>
 #include "faust/midi/midi.h"
 #include "faust/gui/ring-buffer.h"
