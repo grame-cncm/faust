@@ -49,6 +49,11 @@ extern "C" const char* getCLibFaustVersion();
  */
 class llvm_dsp : public dsp {
     
+    private:
+    
+        // llvm_dsp objects are allocated using llvm_dsp_factory::createDSPInstance();
+        llvm_dsp() {}
+    
     public:
         
         int getNumInputs();

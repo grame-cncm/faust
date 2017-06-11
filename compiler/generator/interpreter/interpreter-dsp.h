@@ -44,6 +44,11 @@ extern "C" const char* getCLibFaustVersion();
  */
 class interpreter_dsp : public dsp {
     
+    private:
+    
+        // interpreter_dsp objects are allocated using interpreter_dsp_factory::createDSPInstance();
+        interpreter_dsp() {}
+    
     public:
         
         int getNumInputs();
