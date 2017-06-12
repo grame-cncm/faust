@@ -1,0 +1,97 @@
+#!/bin/bash
+
+OSCDEFS=""
+NVOICES=-1
+OSCDEFS=""
+HTTPDEFS=""
+MIDIDEFS=""
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to dummy                    #
+#               (c) Grame, 2017                                     #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/share/faust/
+elif [ -f /usr/share/faust/music.lib ]
+then
+  FAUSTLIB=/usr/share/faust/
+else
+  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# without having to configure CXX and CXXFLAGS
+CXX=g++
+CXXFLAGS=-O3
+
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB="-framework CoreServices -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit"
+else
+    ARCHLIB="`pkg-config --cflags --libs alsa` -lpthread"
+fi
+
+#PHASE 2 : dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+    if [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
+    elif [ $p = "-httpd" ]; then
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files using dummy
+#
+for f in $FILES; do
+	
+	# compile faust to c++
+	faust -i -a dummy-mem.cpp -mem $OPTIONS "$f" -o "$f.cpp" || exit
+
+	# compile c++ to binary
+	(
+		$CXX $CXXFLAGS "$f.cpp" $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+	) > /dev/null || exit
+	rm "$f.cpp"
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES${f%.dsp};"
+done
+
+echo $BINARIES
+
+

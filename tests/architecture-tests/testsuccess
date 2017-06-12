@@ -51,6 +51,10 @@ if [ "$1" = "osx" ]; then
     ./organ > organ_8voices.txt
     diff organ_8voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
 
+    faust2dummymem waveform4.dsp > /dev/null
+    ./waveform4 > waveform4.txt
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp !" || echo "ERROR: faust2dummy waveform4.dsp failed"
+
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
 	done
@@ -116,6 +120,10 @@ elif [ "$1" = "linux" ]; then
     faust2dummy -midi organ.dsp > /dev/null
     ./organ > organ.txt
     diff organ.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+
+    faust2dummymem waveform4.dsp > /dev/null
+    ./waveform4 > waveform4.txt
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")

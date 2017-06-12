@@ -53,15 +53,17 @@ class dummyaudio : public audio {
         int fRender;
         int fCount;
         bool fIsSample;
+        bool fManager;
 
     public:
 
-        dummyaudio(int sr, int bs, int count = 10, bool sample = false)
-        :fSampleRate(sr), fBufferSize(bs), fRender(0), fCount(count), fIsSample(sample) {}
-        dummyaudio(int count = 10)
-        :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count), fIsSample(false) {}
+        dummyaudio(int sr, int bs, int count = 10, bool sample = false, bool manager = false)
+        :fSampleRate(sr), fBufferSize(bs), fRender(0), fCount(count), fIsSample(sample), fManager(manager) {}
     
-        virtual ~dummyaudio() 
+        dummyaudio(int count = 10)
+        :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count), fIsSample(false), fManager(false) {}
+    
+        virtual ~dummyaudio()
         {
             for (int i = 0; i < fNumInputs; i++) {
                 delete[] fInChannel[i];
@@ -79,7 +81,13 @@ class dummyaudio : public audio {
             fDSP = dsp;
             fNumInputs = fDSP->getNumInputs();
             fNumOutputs = fDSP->getNumOutputs();
-            fDSP->init(fSampleRate);
+            
+            if (fManager) {
+                // classInit is called elsewhere with a custom memory manager
+                fDSP->instanceInit(fSampleRate);
+            } else {
+                fDSP->init(fSampleRate);
+            }
             
             fInChannel = new FAUSTFLOAT*[fNumInputs];
             fOutChannel = new FAUSTFLOAT*[fNumOutputs];
