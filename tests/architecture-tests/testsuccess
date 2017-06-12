@@ -53,7 +53,7 @@ if [ "$1" = "osx" ]; then
 
     faust2dummymem waveform4.dsp > /dev/null
     ./waveform4 > waveform4.txt
-    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp !" || echo "ERROR: faust2dummy waveform4.dsp failed"
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
@@ -123,7 +123,7 @@ elif [ "$1" = "linux" ]; then
 
     faust2dummymem waveform4.dsp > /dev/null
     ./waveform4 > waveform4.txt
-    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp !" || echo "ERROR: faust2dummy waveform4.dsp failed"
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")

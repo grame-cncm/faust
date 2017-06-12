@@ -304,7 +304,7 @@ bool process_cmdline(int argc, char* argv[])
             gMaxCopyDelay = atoi(argv[i+1]);
             i += 2;
             
-        } else if (isCmd(argv[i], "-mem", "--memory-manager") && (i+1 < argc)) {
+        } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
             gMemoryManager = true;
             i += 1;
 
@@ -520,7 +520,7 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-    cout << "-mem <n> \t--memory-manager [0: allocate static in global state and clone using the heap (default), 1: using a custom memory allocator]\n";
+    cout << "-mem \t\t--memory- allocate static in global state using a custom memory manager\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
