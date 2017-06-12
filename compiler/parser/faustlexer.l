@@ -151,6 +151,8 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "tgroup"	return TGROUP;
 "vbargraph"	return VBARGRAPH;
 "hbargraph"	return HBARGRAPH;
+"soundfile" return SOUNDFILE;
+
 "attach"	return ATTACH;
 
 "acos"		return ACOS;
