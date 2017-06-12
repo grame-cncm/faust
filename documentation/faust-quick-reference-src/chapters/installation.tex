@@ -1,14 +1,14 @@
 \chapter{Compiling and installing \faust}
 
-The \faust source distribution \lstinline'faust-0.9.100.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
+The \faust source distribution \lstinline'faust-0.9.101.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
 \begin{lstlisting}
-	tar xzf faust-0.9.100.tar.gz
+	tar xzf faust-0.9.101.tar.gz
 \end{lstlisting}
 
-The resulting  \lstinline'faust-0.9.100/' folder should contain the following elements:
+The resulting  \lstinline'faust-0.9.101/' folder should contain the following elements:
 
 \begin{tabular}{ll}
 	\lstinline'architecture/' 		&\faust libraries and architecture files\\
@@ -26,24 +26,24 @@ The resulting  \lstinline'faust-0.9.100/' folder should contain the following el
 \section{Compilation}
 \faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the \faust compiler simply do :
 \begin{lstlisting}
-	cd faust-0.9.100/
+	cd faust-0.9.101/
 	make
 \end{lstlisting}
 
 If the compilation was successful you can test the compiler before installing it:
 \begin{lstlisting}
-	[cd faust-0.9.100/]
+	[cd faust-0.9.101/]
 	./compiler/faust -v
 \end{lstlisting}
 It should output:
 \begin{lstlisting}
-	FAUST, DSP to C++ compiler, Version 0.9.100
+	FAUST, DSP to C++ compiler, Version 0.9.101
 	Copyright (C) 2002-2017, GRAME - Centre... 
 \end{lstlisting}
 
 Then you can also try to compile one of the examples :
 \begin{lstlisting}
-	[cd faust-0.9.100/]
+	[cd faust-0.9.101/]
 	./compiler/faust examples/noise.dsp
 \end{lstlisting}
 It should produce some C++ code on the standard output
@@ -51,12 +51,12 @@ It should produce some C++ code on the standard output
 \section{Installation}
 You can install \faust with:
 \begin{lstlisting}
-	[cd faust-0.9.100/]
+	[cd faust-0.9.101/]
 	sudo make install
 \end{lstlisting}
 or
 \begin{lstlisting}
-	[cd faust-0.9.100/]
+	[cd faust-0.9.101/]
 	su
 	make install
 \end{lstlisting}
