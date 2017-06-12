@@ -42,7 +42,10 @@ class dummyaudio : public audio {
         dsp* fDSP;
 
         long fSampleRate;
-        long fBufferSize; 
+        long fBufferSize;
+    
+        int fNumInputs;
+        int fNumOutputs;
 
         FAUSTFLOAT** fInChannel;
         FAUSTFLOAT** fOutChannel;  
@@ -54,16 +57,16 @@ class dummyaudio : public audio {
     public:
 
         dummyaudio(int sr, int bs, int count = 10, bool sample = false)
-            :fSampleRate(sr), fBufferSize(bs), fCount(count), fIsSample(sample) {}
+        :fSampleRate(sr), fBufferSize(bs), fRender(0), fCount(count), fIsSample(sample) {}
         dummyaudio(int count = 10)
-            :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count) {}
+        :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count), fIsSample(false) {}
     
         virtual ~dummyaudio() 
         {
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            for (int i = 0; i < fNumInputs; i++) {
                 delete[] fInChannel[i];
             }
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            for (int i = 0; i < fNumOutputs; i++) {
                delete[] fOutChannel[i];
             }
             
@@ -74,16 +77,18 @@ class dummyaudio : public audio {
         virtual bool init(const char* name, dsp* dsp)
         {
             fDSP = dsp;
+            fNumInputs = fDSP->getNumInputs();
+            fNumOutputs = fDSP->getNumOutputs();
             fDSP->init(fSampleRate);
             
-            fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
-            fOutChannel = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            fInChannel = new FAUSTFLOAT*[fNumInputs];
+            fOutChannel = new FAUSTFLOAT*[fNumOutputs];
             
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
+            for (int i = 0; i < fNumInputs; i++) {
                 fInChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fInChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+            for (int i = 0; i < fNumOutputs; i++) {
                 fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
@@ -104,7 +109,7 @@ class dummyaudio : public audio {
         void render()
         {
             fDSP->compute(fBufferSize, fInChannel, fOutChannel);
-            if (fDSP->getNumInputs() > 0) {
+            if (fNumInputs > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
                         std::cout << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
@@ -113,7 +118,7 @@ class dummyaudio : public audio {
                     std::cout << std::setprecision(6) << "sample in " << fInChannel[0][0] << std::endl;
                 }
             }
-            if (fDSP->getNumOutputs() > 0) {
+            if (fNumOutputs > 0) {
                 if (fIsSample) {
                     for (int frame = 0; frame < fBufferSize; frame++) {
                         std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
@@ -127,8 +132,8 @@ class dummyaudio : public audio {
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }
     
-        virtual int getNumInputs() { return fDSP->getNumInputs(); }
-        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
+        virtual int getNumInputs() { return fNumInputs; }
+        virtual int getNumOutputs() { return fNumOutputs; }
     
 };
 					
