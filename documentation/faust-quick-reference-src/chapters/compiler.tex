@@ -11,7 +11,7 @@ The generated code can be wrapped into an optional \emph{architecture file} allo
 compiler : "faust" (options) (file +);
 \end{rail}
 
-For example \lstinline'faust noise.dsp' will compile \lstinline'noise.dsp' and output the corresponding C++ code on the standard output.  The option \lstinline'-o' allows to choose the output file : \lstinline'faust noise.dsp -o noise.cpp'. The option \lstinline'-a' allows to choose the architecture file : \lstinline'faust -a alsa-gtk.cpp noise.dsp'. 
+For example \lstinline'faust noise.dsp' will compile \lstinline'noise.dsp' and output the corresponding C++ code on the standard output.  The option \lstinline'-o' allows to choose the output file: \lstinline'faust noise.dsp -o noise.cpp'. The option \lstinline'-a' allows to choose the architecture file: \lstinline'faust -a alsa-gtk.cpp noise.dsp'. 
 
 To compile a \faust program into an ALSA application on Linux you can use the following commands: 
 \begin{lstlisting}
@@ -19,6 +19,115 @@ To compile a \faust program into an ALSA application on Linux you can use the fo
 	g++ -lpthread -lasound  
 		`pkg-config --cflags --libs gtk+-2.0` 
 		noise.cpp -o noise
+\end{lstlisting} 
+
+\section{Structure of the generated code}
+
+A \faust DSP C++ class derives from the base \emph{dsp} class defined as below:
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class dsp {
+
+    public:
+
+        dsp() {}
+        virtual ~dsp() {}
+
+        virtual int getNumInputs() = 0;
+        virtual int getNumOutputs() = 0
+        virtual void buildUserInterface(UI* ui_interface) = 0;
+        
+        virtual int getSampleRate() = 0;
+        
+        virtual void init(int samplingRate) = 0;
+        virtual void instanceInit(int samplingRate) = 0;
+        virtual void instanceConstants(int samplingRate) = 0;
+        virtual void instanceResetUserInterface() = 0;
+        virtual void instanceClear() = 0;
+    
+        virtual dsp* clone() = 0;
+    
+        virtual void metadata(Meta* m) = 0;
+    
+        virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
+        virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
+        { 
+            compute(count, inputs, outputs); 
+        }     
+};
+\end{lstlisting} 
+
+Here is the class generated with the command \lstinline'faust noise.dsp'. Methods are filled by the compiler with the actual code. 
+
+Several fine-grained initialization methods are available. The \lstinline'instanceInit' method calls several additional initialization methods. The \lstinline'instanceConstants' method sets the instance constant state. The \lstinline'instanceClear' method resets the instance dynamic state (delay lines...).  The \lstinline'instanceResetUserInterface' method resets all control value to their default state. All of those methods can be used individually on an allocated instance to reset part of its state. 
+
+The \lstinline'classInit' static method will initialize static tables that are shared between all instances of the class, and is typically supposed to be called once. 
+
+Finally the \lstinline'init' method combines class static state and instance initialization.
+
+When using a single instance, then calling  \lstinline'init'  is the simplest way to do what is needed. When using several instances, then all of them can be initialized using  \lstinline'instanceInit' , whith a single call to \lstinline'classInit' to initialize the static shared state.  
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class mydsp : public dsp {
+
+  private:
+	FAUSTFLOAT 	fslider0;
+	int 	iRec0[2];
+	int fSamplingFreq;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("name", "Noise");
+		m->declare("version", "1.1");
+		m->declare("author", "Grame");
+		m->declare("license", "BSD");
+		m->declare("copyright", "(c)GRAME 2009");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int samplingFreq) {
+	}
+	virtual void instanceConstants(int samplingFreq) {
+		fSamplingFreq = samplingFreq;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.5f;
+	}
+	virtual void instanceClear() {
+		for (int i=0; i<2; i++) iRec0[i] = 0;
+	}
+	virtual void init(int samplingFreq) {
+		classInit(samplingFreq);
+		instanceInit(samplingFreq);
+	}
+	virtual void instanceInit(int samplingFreq) {
+		instanceConstants(samplingFreq);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSamplingFreq;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Noise");
+		ui_interface->declare(&fslider0, "style", "knob");
+		ui_interface->addVerticalSlider("Volume", &fslider0, 0.5f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float 	fSlow0 = (4.656613e-10f * float(fslider0));
+		FAUSTFLOAT* output0 = output[0];
+		for (int i=0; i<count; i++) {
+			iRec0[0] = ((1103515245 * iRec0[1]) + 12345);
+			output0[i] = (FAUSTFLOAT)(fSlow0 * iRec0[0]);
+			// post processing
+			iRec0[1] = iRec0[0];
+		}
+	}
+};
 \end{lstlisting} 
 
 \section{Compilation options}
