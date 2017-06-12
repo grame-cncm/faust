@@ -47,7 +47,7 @@
 
 using namespace std;
 
-mydsp* DSP;
+
 
 #define SAMPLE_RATE 48000
 
@@ -69,17 +69,20 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
 };
 
-int main(int argc, char* argv[])
+static void test1()
 {
-    // Custom memory manager with 'placement' new used to allocate the DSP object
+    // Custom memory manager
     malloc_memory_manager manager;
-    DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
     
     // Static class allocation with custom memory manager called once
     mydsp::classInit(SAMPLE_RATE, &manager);
     
+    // 'placement' new used to allocate the DSP object
+    mydsp* DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
+    
     /// Audio rendering
     dummyaudio audio(SAMPLE_RATE, 512, 5, false, true);  // custom memory manager is used
+    
     audio.init("Dummy", DSP);   // 'instanceInit' only will be called on the DSP
     audio.start();
     audio.stop();
@@ -87,8 +90,47 @@ int main(int argc, char* argv[])
     // DSP destructor called, then custom memory manager used to destroy the DSP object
     DSP->~mydsp();
     manager.destroy(DSP);
+   
+    // DSP static data is *not* destroyed in this simple case, the custom memory manager will have to handle that case if needed.
+}
+
+static void test2()
+{
+    // Custom memory manager
+    malloc_memory_manager manager;
+    
+    // Static class allocation with custom memory manager called once
+    mydsp::classInit(SAMPLE_RATE, &manager);
+    
+    // 'placement' new used to allocate the DSP objects
+    mydsp* DSP1 = new (manager.allocate(sizeof(mydsp))) mydsp();
+    mydsp* DSP2 = new (manager.allocate(sizeof(mydsp))) mydsp();
+    
+    /// Audio rendering
+    dummyaudio audio(SAMPLE_RATE, 512, 5, false, true);  // custom memory manager is used
+    
+    audio.init("Dummy", DSP1);   // 'instanceInit' only will be called on the DSP
+    audio.start();
+    audio.stop();
+    
+    audio.init("Dummy", DSP2);   // 'instanceInit' only will be called on the DSP
+    audio.start();
+    audio.stop();
+    
+    // DSP destructor called, then custom memory manager used to destroy the DSP object
+    DSP1->~mydsp();
+    manager.destroy(DSP1);
+    
+    DSP2->~mydsp();
+    manager.destroy(DSP2);
     
     // DSP static data is *not* destroyed in this simple case, the custom memory manager will have to handle that case if needed.
+}
+
+int main(int argc, char* argv[])
+{
+    test1();
+    //test2();
     
     return 0;
 }
