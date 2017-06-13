@@ -12,7 +12,13 @@
 #------------------------------------------------------------------------------
 # 1/ MAX/MSP SDK Should be installed somewhere
 MAXSDK=/usr/local/include/c74support
+. faustpath
 EXT="~.mxe"
+
+if [ -d "${MAXSDK}" ]; then
+ echo "Unable to locate Max/Msp SDK: ${MAXSDK}" 1>&2
+ exit 1
+fi
 
 #------------------------------------------------------------------------------
 # 2/ mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
