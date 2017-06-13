@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
+	as published by the Free Software Foundation; either version 3 of
+	the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,12 +23,13 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
+	along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
+	EXCEPTION : As a special exception, you may create a larger work
+	that contains this FAUST architecture section and distribute
+	that work under terms of your choice, so long as this FAUST
+	architecture section is not modified.
+
 
  ************************************************************************
  ************************************************************************/
@@ -36,30 +37,36 @@
 #ifndef __FaustPatch_h__
 #define __FaustPatch_h__
 
-#include "StompBox.h"
 #include <cstddef>
 #include <string.h>
 #include <strings.h>
+#include "Patch.h"
+
 
 #ifndef __FaustCommonInfrastructure__
 #define __FaustCommonInfrastructure__
 
+
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
+
+
 
 struct Meta
 {
     virtual void declare(const char* key, const char* value) = 0;
 };
 
+
+
 /**************************************************************************************
 
-	OwlWidget : object used by OwlUI to ensures the connection between an owl parameter 
+	OwlParameter : object used by OwlUI to ensures the connection between an owl parameter 
 	and a faust widget
 	
 ***************************************************************************************/
 
-class OwlWidget
+class OwlParameter
 {
   protected:
 	Patch* 	fPatch;		// needed to register and read owl parameters
@@ -70,16 +77,35 @@ class OwlWidget
 	float				fSpan;			// Faust widget value span (max-min)
 	
   public:
-	OwlWidget() :
+	OwlParameter() :
 		fPatch(0), fParameter(PARAMETER_A), fZone(0), fLabel(""), fMin(0), fSpan(1) {}
-	OwlWidget(const OwlWidget& w) :
+	OwlParameter(const OwlParameter& w) :
 		fPatch(w.fPatch), fParameter(w.fParameter), fZone(w.fZone), fLabel(w.fLabel), fMin(w.fMin), fSpan(w.fSpan) {}
-	OwlWidget(Patch* pp, PatchParameterId param, FAUSTFLOAT* z, const char* l, float lo, float hi) :
+	OwlParameter(Patch* pp, PatchParameterId param, FAUSTFLOAT* z, const char* l, float lo, float hi) :
 		fPatch(pp), fParameter(param), fZone(z), fLabel(l), fMin(lo), fSpan(hi-lo) {}
 	void bind() 	{ fPatch->registerParameter(fParameter, fLabel); }
 	void update()	{ *fZone = fMin + fSpan*fPatch->getParameterValue(fParameter); }
 	
 };
+
+class OwlButton
+{
+  protected:
+	Patch* 	fPatch;		// needed to register and read owl parameters
+	PatchButtonId	fButton;		// OWL button id : PUSHBUTTON, ...
+	FAUSTFLOAT* 		fZone;			// Faust widget zone
+	const char*			fLabel;			// Faust widget label 
+  public:
+	OwlButton() :
+		fPatch(0), fButton(PUSHBUTTON), fZone(0), fLabel("") {}
+	OwlButton(const OwlButton& w) :
+		fPatch(w.fPatch), fButton(w.fButton), fZone(w.fZone), fLabel(w.fLabel) {}
+	OwlButton(Patch* pp, PatchButtonId button, FAUSTFLOAT* z, const char* l) :
+		fPatch(pp), fButton(button), fZone(z), fLabel(l) {}
+	void bind() 	{  }
+	void update()	{ *fZone = fPatch->isButtonPressed(fButton); }
+};
+
 
 /**************************************************************************************
 
@@ -92,39 +118,54 @@ class OwlWidget
 ***************************************************************************************/
 
 // The maximun number of mappings between owl parameters and faust widgets 
-#define MAXOWLWIDGETS 8
+#define MAXOWLPARAMETERS 40
+#define MAXOWLBUTTONS    2
+#define NO_PARAMETER     ((PatchParameterId)-1)
+#define NO_BUTTON        ((PatchButtonId)-1)
 
 class OwlUI : public UI
 {
 	Patch* 	fPatch;
-	PatchParameterId	fParameter;					// current parameter ID, value PARAMETER_F means not set
-	int					fIndex;						// number of OwlWidgets collected so far
-	OwlWidget			fTable[MAXOWLWIDGETS];		// kind of static list of OwlWidgets
-	
-	// check if the widget is an Owl parameter and, if so, add the corresponding OwlWidget
-	void addOwlWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) {
-		if ((fParameter >= PARAMETER_A) && (fParameter <= PARAMETER_E) && (fIndex < MAXOWLWIDGETS)) {
-			fTable[fIndex] = OwlWidget(fPatch, fParameter, zone, label, lo, hi);
-			fTable[fIndex].bind();
-			fIndex++;
+	PatchParameterId	fParameter;					// current parameter ID, value NO_PARAMETER means not set
+	int					fParameterIndex;						// number of OwlParameters collected so far
+	OwlParameter			fParameterTable[MAXOWLPARAMETERS];		// kind of static list of OwlParameters
+        PatchButtonId fButton;
+        int fButtonIndex;
+        OwlButton fButtonTable[MAXOWLBUTTONS];
+	// check if the widget is an Owl parameter and, if so, add the corresponding OwlParameter
+	void addOwlParameter(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) {
+		if ((fParameter >= PARAMETER_A) && (fParameterIndex < MAXOWLPARAMETERS)) {
+			fParameterTable[fParameterIndex] = OwlParameter(fPatch, fParameter, zone, label, lo, hi);
+			fParameterTable[fParameterIndex].bind();
+			fParameterIndex++;
 		}
-		fParameter = PARAMETER_F; 		// clear current parameter ID
+		fParameter = NO_PARAMETER; 		// clear current parameter ID
+	}
+	void addOwlButton(const char* label, FAUSTFLOAT* zone) {
+		if ((fButton >= PUSHBUTTON) && (fButtonIndex < MAXOWLBUTTONS)) {
+			fButtonTable[fButtonIndex] = OwlButton(fPatch, fButton, zone, label);
+			fButtonTable[fButtonIndex].bind();
+			fButtonIndex++;
+		}
+		fButton = NO_BUTTON; 		// clear current button ID
 	}
 
 	// we dont want to create a widget by-ut we clear the current parameter ID just in case
 	void skip() {
-		fParameter = PARAMETER_F; 		// clear current parameter ID
+		fParameter = NO_PARAMETER; 		// clear current parameter ID
+		fButton = NO_BUTTON;
 	}
 
  public:
 
-	OwlUI(Patch* pp) : fPatch(pp), fParameter(PARAMETER_F), fIndex(0) {}
+        OwlUI(Patch* pp) : fPatch(pp), fParameter(NO_PARAMETER), fParameterIndex(0), fButton(NO_BUTTON), fButtonIndex(0) {}
 	
 	virtual ~OwlUI() {}
 	
 	// should be called before compute() to update widget's zones registered as Owl parameters
 	void update() {
-		for (int i=0; i<fIndex; i++)  fTable[i].update();
+		for (int i=0; i<fParameterIndex; i++)  fParameterTable[i].update();
+		for (int i=0; i<fButtonIndex; i++)  fButtonTable[i].update();
 	}
 
 	//---------------------- virtual methods called by buildUserInterface ----------------
@@ -138,11 +179,11 @@ class OwlUI : public UI
 
     // -- active widgets
 
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) 																			{ skip(); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 																		{ skip(); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 	{ addOwlWidget(label, zone, lo, hi); }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 	{ addOwlWidget(label, zone, lo, hi); }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 			{ addOwlWidget(label, zone, lo, hi); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) 																			{ addOwlButton(label, zone); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) 																		{ addOwlButton(label, zone); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 	{ addOwlParameter(label, zone, lo, hi); }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 	{ addOwlParameter(label, zone, lo, hi); }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) 			{ addOwlParameter(label, zone, lo, hi); }
 
     // -- passive widgets
 
@@ -153,11 +194,18 @@ class OwlUI : public UI
 
     virtual void declare(FAUSTFLOAT* z, const char* k, const char* id) {
     	if (strcasecmp(k,"OWL") == 0) {
-    		     if (strcasecmp(id,"PARAMETER_A") == 0)  fParameter = PARAMETER_A;
-    		else if (strcasecmp(id,"PARAMETER_B") == 0)  fParameter = PARAMETER_B;
-    		else if (strcasecmp(id,"PARAMETER_C") == 0)  fParameter = PARAMETER_C;
-    		else if (strcasecmp(id,"PARAMETER_D") == 0)  fParameter = PARAMETER_D;
-    		else if (strcasecmp(id,"PARAMETER_E") == 0)  fParameter = PARAMETER_E;
+	  if(strncasecmp(id, "PARAMETER_", 10) == 0)
+	    id += 10;
+	  if (strcasecmp(id,"A") == 0)  fParameter = PARAMETER_A;
+	  else if (strcasecmp(id,"B") == 0)  fParameter = PARAMETER_B;
+	  else if (strcasecmp(id,"C") == 0)  fParameter = PARAMETER_C;
+	  else if (strcasecmp(id,"D") == 0)  fParameter = PARAMETER_D;
+	  else if (strcasecmp(id,"E") == 0)  fParameter = PARAMETER_E;
+	  else if (strcasecmp(id,"F") == 0)  fParameter = PARAMETER_F;
+	  else if (strcasecmp(id,"G") == 0)  fParameter = PARAMETER_G;
+	  else if (strcasecmp(id,"H") == 0)  fParameter = PARAMETER_H;
+	  else if (strcasecmp(id,"PUSH") == 0)  fButton = PUSHBUTTON;
+	  else if (strcasecmp(id,"BYPASS") == 0)  fButton = BYPASS_BUTTON;
     	}
     }
 };
@@ -173,6 +221,7 @@ class OwlUI : public UI
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
 
 
 /**************************************************************************************
@@ -223,6 +272,23 @@ public:
 
 };
 
+extern "C" {
+  void doSetButton(uint8_t id, uint16_t state, uint16_t samples);
+  int owl_pushbutton(int value){
+    static bool state = 0;
+    static uint16_t counter = 0;
+    value = (bool)value;
+    if(state != value){
+      state = value;
+      doSetButton(PUSHBUTTON, state, counter);
+    }
+    if(++counter > getProgramVector()->audio_blocksize)
+      counter = 0;
+    return value;
+  }
+}
+
 #endif // __FaustPatch_h__
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
