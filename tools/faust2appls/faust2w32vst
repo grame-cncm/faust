@@ -14,7 +14,7 @@
 VST=/usr/local/include/vstsdk2.4
 . faustpath
 if [ -d "${VST}" ]; then
-  echo "unable to locate VST SDK: ${VST}" 1>&2
+  echo "unable to locate VST SDK: VST=${VST}" 1>&2
 fi
 
 # these cpp files have to be compiled too
