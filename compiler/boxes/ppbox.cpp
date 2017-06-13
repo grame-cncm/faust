@@ -148,7 +148,7 @@ ostream& boxpp::print (ostream& fout) const
 
     Tree	t1, t2, t3, ff, label, cur, min, max, step, type, name, file, arg,
             body, fun, args, abstr, genv, vis, lenv, ldef, slot,
-            ident, rules;
+            ident, rules, chan;
 
     const char* str;
 
@@ -257,7 +257,10 @@ ostream& boxpp::print (ostream& fout) const
              << boxpp(min) << ", "
              << boxpp(max) << ", "
              << boxpp(step)<< ')';
+    } else if (isBoxSoundfile(box, label, chan)) {
+        fout << "soundfile(" << tree2quotedstr(label) << ", " << boxpp(chan) << ')';
     }
+
     else if (isNil(box)) {
         fout << "()" ;
     }

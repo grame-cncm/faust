@@ -317,6 +317,9 @@ Tree boxHBargraph   (Tree label, Tree min, Tree max);
 bool isBoxHBargraph (Tree s);
 bool isBoxHBargraph (Tree s, Tree& label, Tree& min, Tree& max);
 
+Tree boxSoundfile(Tree label, Tree chan);
+bool isBoxSoundfile(Tree s);
+bool isBoxSoundfile(Tree s, Tree &label, Tree &chan);
 
 /*****************************************************************************
 							 case (pattern matching)

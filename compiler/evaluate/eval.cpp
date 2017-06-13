@@ -310,7 +310,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	//Tree 	def;
 	Tree 	fun;
 	Tree 	arg;
-	Tree	var, num, body, ldef;
+	Tree	var, num, chan, body, ldef;
 	Tree 	label;
 	Tree	cur, lo, hi, step;
 	Tree	e1, e2, exp2, notused, visited2, lenv2;
@@ -443,6 +443,11 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)),
 					tree(eval2double(step, visited, localValEnv))));
+
+	} else if (isBoxSoundfile(exp, label, chan)) {
+		const char* l1 = tree2str(label);
+		const char* l2= evalLabel(l1, visited, localValEnv);
+		return boxSoundfile(tree(l2), tree(eval2int(chan, visited, localValEnv)) );
 
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
