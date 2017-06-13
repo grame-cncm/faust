@@ -47,8 +47,6 @@
 
 using namespace std;
 
-
-
 #define SAMPLE_RATE 48000
 
 // Simple heap based custom memory manager
