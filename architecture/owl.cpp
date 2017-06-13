@@ -10,12 +10,12 @@
 
 /************************************************************************
     FAUST Architecture File
-	Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
-	as published by the Free Software Foundation; either version 3 of
-	the License, or (at your option) any later version.
+    as published by the Free Software Foundation; either version 3 of
+    the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -23,13 +23,12 @@
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License
-	along with this program; If not, see <http://www.gnu.org/licenses/>.
+    along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-	EXCEPTION : As a special exception, you may create a larger work
-	that contains this FAUST architecture section and distribute
-	that work under terms of your choice, so long as this FAUST
-	architecture section is not modified.
-
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
  ************************************************************************
  ************************************************************************/
@@ -37,27 +36,22 @@
 #ifndef __FaustPatch_h__
 #define __FaustPatch_h__
 
+#include <new>
 #include <cstddef>
 #include <string.h>
 #include <strings.h>
 #include "Patch.h"
 
-
 #ifndef __FaustCommonInfrastructure__
 #define __FaustCommonInfrastructure__
 
-
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
-
-
 
 struct Meta
 {
     virtual void declare(const char* key, const char* value) = 0;
 };
-
-
 
 /**************************************************************************************
 
@@ -210,6 +204,21 @@ class OwlUI : public UI
     }
 };
 
+  /* Simple heap based memory manager.
+   * Uses overloaded new/delete operators on OWL hardware.
+   */
+struct OwlMemoryManager : public dsp_memory_manager {
+    void* allocate(size_t size)
+    {
+        void* res = new uint8_t[size];
+        return res;
+    }
+    virtual void destroy(void* ptr)
+    {
+      delete (uint8_t*)ptr;
+    }    
+};
+
 #endif // __FaustCommonInfrastructure__
 
 /**************************BEGIN USER SECTION **************************/
@@ -232,15 +241,22 @@ class OwlUI : public UI
 
 class FaustPatch : public Patch
 {
-    mydsp   fDSP;
+    mydsp*   fDSP;
     OwlUI	fUI;
+    OwlMemoryManager mem;
     
 public:
 
     FaustPatch() : fUI(this)
     {
-        fDSP.init(int(getSampleRate()));		// Init Faust code with the OWL sampling rate
-        fDSP.buildUserInterface(&fUI);			// Maps owl parameters and faust widgets 
+      fDSP = new ((mydsp*)mem.allocate(sizeof(mydsp))) mydsp();
+      fDSP->classInit(int(getSampleRate()), &mem);
+      fDSP->instanceInit(int(getSampleRate()));
+      fDSP->buildUserInterface(&fUI);			// Maps owl parameters and faust widgets 
+    }
+
+    ~FaustPatch(){
+      mem.destroy(fDSP);
     }
     
     void processAudio(AudioBuffer &buffer)
@@ -250,15 +266,15 @@ public:
         float*  outs[32];
         int     n = buffer.getChannels();
         
-        if ( (fDSP.getNumInputs() < 32) && (fDSP.getNumOutputs() < 32) ) {
+        if ( (fDSP->getNumInputs() < 32) && (fDSP->getNumOutputs() < 32) ) {
             
             // create the table of input channels
-            for(int ch=0; ch<fDSP.getNumInputs(); ++ch) {
+	  for(int ch=0; ch<fDSP->getNumInputs(); ++ch) {
                 ins[ch] = buffer.getSamples(ch%n);
             }
             
             // create the table of output channels
-            for(int ch=0; ch<fDSP.getNumOutputs(); ++ch) {
+	  for(int ch=0; ch<fDSP->getNumOutputs(); ++ch) {
                 outs[ch] = buffer.getSamples(ch%n);
             }
             
@@ -266,7 +282,7 @@ public:
             fUI.update(); 
             
             // Process the audio samples
-            fDSP.compute(buffer.getSize(), ins, outs);
+            fDSP->compute(buffer.getSize(), ins, outs);
         }
     }
 
