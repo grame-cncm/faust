@@ -3,8 +3,8 @@
 #####################################################################
 #                                                                   #
 #               Cross-compiles Faust programs to puredata           #
-#					form 	: Linux									#
-#					to		: Windows 32							#
+#			from 	: Linux				    #
+#			to	: Windows 32			    #
 #               (c) Grame, 2014                                     #
 #                                                                   #
 #####################################################################
@@ -12,17 +12,24 @@
 #------------------------------------------------------------------------------
 # mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
 # the exact prefix should be specified in the environment variable MINGW
+PDW32INCLUDEDIR=/usr/include/pd
+PDW32BINDIR=/usr/lib/i686-w64-mingw32/pd
+. faustpath
 
 : ${MINGWPREFIX="i686-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
 
+if [ ! -e "${PDW32BINDIR}/pd.dll" ]; then
+  echo "Unable to locate pd.dll: PDW32BINDIR=${PDW32BINDIR}!" 1>&2
+  exit 1
+fi
 
 #-------------------------------------------------------------------
 # Compiler settings
 
 CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
-LIB="-I/usr/include/pd -shared /usr/include/pd/pd.dll"
+LIB="-I${PDW32INCLUDEDIR} -shared ${PDW32BINDIR}/pd.dll"
 EXT="~.dll"
 
 

@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.9.101"
+#define FAUSTVERSION "0.9.102"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -132,6 +132,7 @@ bool			gSimpleNames 	= false;
 bool            gSimplifyDiagrams = false;
 bool			gLessTempSwitch = false;
 int				gMaxCopyDelay	= 16;
+bool            gMemoryManager	= false;
 string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
@@ -302,6 +303,10 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i+1 < argc)) {
             gMaxCopyDelay = atoi(argv[i+1]);
             i += 2;
+            
+        } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
+            gMemoryManager = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
             gSimplifyDiagrams = true;
@@ -515,6 +520,7 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
+    cout << "-mem \t\t--memory- allocate static in global state using a custom memory manager\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";

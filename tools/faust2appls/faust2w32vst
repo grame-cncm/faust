@@ -3,8 +3,8 @@
 #####################################################################
 #                                                                   #
 #               Cross-compiles Faust programs to VST plugins        #
-#					form 	: Linux									#
-#					to		: Windows 32							#
+#			from 	: Linux				    #
+#			to	: Windows 32			    #
 #               (c) Grame, 2014                                     #
 #                                                                   #
 #####################################################################
@@ -12,6 +12,11 @@
 #------------------------------------------------------------------------------
 # 1/ VST SDK Should be installed somewhere
 VST=/usr/local/include/vstsdk2.4
+. faustpath
+if [ ! -d "${VST}" ]; then
+  echo "unable to locate VST SDK: VST=${VST}" 1>&2
+  exit 1
+fi
 
 # these cpp files have to be compiled too
 VSTSRC="$VST/public.sdk/source/vst2.x/audioeffect.cpp $VST/public.sdk/source/vst2.x/audioeffectx.cpp $VST/public.sdk/source/vst2.x/vstplugmain.cpp "

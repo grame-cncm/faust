@@ -37,6 +37,10 @@
 
 class APIUI : public PathBuilder, public Meta, public UI
 {
+    public:
+    
+        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
+  
     protected:
     
         enum { kLin = 0, kLog = 1, kExp = 2 };
@@ -52,6 +56,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::vector<FAUSTFLOAT> fMax;
         std::vector<FAUSTFLOAT> fStep;
         std::vector<std::string> fUnit;
+        std::vector<ItemType> fItemType;
         std::vector<std::string> fTooltip;
         std::vector<ZoneControl*> fAcc[3];
         std::vector<ZoneControl*> fGyr[3];
@@ -77,7 +82,8 @@ class APIUI : public PathBuilder, public Meta, public UI
                                 FAUSTFLOAT init,
                                 FAUSTFLOAT min,
                                 FAUSTFLOAT max,
-                                FAUSTFLOAT step)
+                                FAUSTFLOAT step,
+                                ItemType type)
         {
             std::string path = buildPath(label);
             fPathMap[path] = fLabelMap[label] = fNumParameters++;
@@ -87,6 +93,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             fMin.push_back(min);
             fMax.push_back(max);
             fStep.push_back(step);
+            fItemType.push_back(type);
 
             //handle unit metadata
             fUnit.push_back(fCurrentUnit);
@@ -233,7 +240,7 @@ class APIUI : public PathBuilder, public Meta, public UI
      public:
     
         enum Type { kAcc = 0, kGyr = 1, kNoType };
-
+   
         APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0)
         {}
 
@@ -270,39 +277,39 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            addParameter(label, zone, 0, 0, 1, 1);
+            addParameter(label, zone, 0, 0, 1, 1, kButton);
         }
 
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            addParameter(label, zone, 0, 0, 1, 1);
+            addParameter(label, zone, 0, 0, 1, 1, kCheckButton);
         }
 
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kVSlider);
         }
 
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kHSlider);
         }
 
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kNumEntry);
         }
 
         // -- passive widgets
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addParameter(label, zone, min, min, max, (max-min)/1000.0);
+            addParameter(label, zone, min, min, max, (max-min)/1000.0, kHBargraph);
         }
 
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addParameter(label, zone, min, min, max, (max-min)/1000.0);
+            addParameter(label, zone, min, min, max, (max-min)/1000.0, kVBargraph);
         }
 
         // -- metadata declarations
@@ -366,7 +373,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
     
         /**
-         * Return the control type (kAcc, kGyr, or -1) for a given paramater
+         * Return the control type (kAcc, kGyr, or -1) for a given parameter
          *
          * @param p - the UI parameter index
          *
@@ -386,6 +393,18 @@ class APIUI : public PathBuilder, public Meta, public UI
                 }
             }
             return kNoType;
+        }
+    
+        /**
+         * Return the Item type (kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph) for a given parameter
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the Item type
+         */
+        ItemType getParamItemType(int p)
+        {
+            return fItemType[p];
         }
    
         /**
