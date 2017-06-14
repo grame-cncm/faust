@@ -101,10 +101,10 @@ int main(int argc, char* argv[])
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-
+    
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 255, "%s/.%src", home, name);
-   
+    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
@@ -156,32 +156,32 @@ int main(int argc, char* argv[])
         cerr << "Unable to allocate Faust DSP object" << endl;
         exit(1);
     }
-
+    
     FUI finterface;
     DSP->buildUserInterface(&finterface);
-
+    
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
     cout << "HTTPD is on" << endl;
 #endif
-
+    
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     cout << "OSC is on" << endl;
 #endif
-
+    
     dummyaudio audio(44100, 128, 5, true);
     audio.init(name, DSP);
-
+    
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
     midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
 #endif
-
+    
     finterface.recallState(rcfilename);
     
     if (dsp_poly) {
@@ -194,7 +194,7 @@ int main(int argc, char* argv[])
     
     // Play notes once
     audio.start();
-
+    
     cout << "ins " << audio.getNumInputs() << endl;
     cout << "outs " << audio.getNumOutputs() << endl;
     
@@ -234,7 +234,7 @@ int main(int argc, char* argv[])
         dsp_poly->keyOn(0, 75, 127);
     }
     
-     // Play notes a third time
+    // Play notes a third time
     audio.start();
     
     cout << "ins " << audio.getNumInputs() << endl;
@@ -251,7 +251,7 @@ int main(int argc, char* argv[])
     interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
-
+    
 #ifdef OSCCTRL
     oscinterface.run();
 #endif
@@ -263,7 +263,9 @@ int main(int argc, char* argv[])
     
     audio.stop();
     finterface.saveState(rcfilename);
-     
+    
+    delete DSP;
+    
     return 0;
 }
 

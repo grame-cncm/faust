@@ -27,6 +27,14 @@ done
 for f in $FPATH; do
 	if [ -e $f/lib/libmicrohttpd.a ]; 	then HTTPLIB=$f/share/faust;	fi
 done
+
+if [ -e /etc/faust/faustpath ]; then
+ . /etc/faust/faustpath
+fi
+if [ -e ${HOME}/.faust/faustpath ]; then
+ . ${HOME}/.faust/faustpath
+fi
+
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
 	echo "ERROR : $0 cannot find Faust directories (normally /usr/local/include/faust and /usr/local/share/faust)"; 
 	exit 1;

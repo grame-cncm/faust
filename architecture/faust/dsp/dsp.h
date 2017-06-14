@@ -34,6 +34,17 @@ class UI;
 struct Meta;
 
 /**
+ * DSP memory manager.
+ */
+
+struct dsp_memory_manager {
+    
+    virtual void* allocate(size_t size) = 0;
+    virtual void destroy(void* ptr) = 0;
+    
+};
+
+/**
 * Signal processor definition.
 */
 
@@ -51,10 +62,10 @@ class dsp {
         virtual int getNumOutputs() = 0;
     
         /**
-         * Trigger the UI* parameter with instance specific calls
+         * Trigger the ui_interface parameter with instance specific calls
          * to 'addBtton', 'addVerticalSlider'... in order to build the UI.
          *
-         * @param ui_interface - the UI* user interface builder
+         * @param ui_interface - the user interface builder
          */
         virtual void buildUserInterface(UI* ui_interface) = 0;
     
@@ -153,17 +164,6 @@ class decorator_dsp : public dsp {
         // Beware: subclasses usually have to overload the two 'compute' methods
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(count, inputs, outputs); }
         virtual void compute(double date_usec, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) { fDSP->compute(date_usec, count, inputs, outputs); }
-    
-};
-
-/**
- * DSP memory manager.
- */
-
-struct dsp_memory_manager {
-    
-    virtual void* allocate(size_t size) = 0;
-    virtual void destroy(void* ptr) = 0;
     
 };
 

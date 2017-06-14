@@ -28,6 +28,7 @@ install:
 	install faust2csound $(dest)
 	install faust2dssi $(dest)
 	install faust2dummy $(dest)
+	install faust2dummymem $(dest)
 	install faust2eps $(dest)
 	install faust2faustvst $(dest)
 	install faust2firefox $(dest)
@@ -98,6 +99,7 @@ uninstall:
 	rm -f $(dest)/faust2csound
 	rm -f $(dest)/faust2dssi
 	rm -f $(dest)/faust2dummy
+	rm -f $(dest)/faust2dummymem
 	rm -f $(dest)/faust2eps
 	rm -f $(dest)/faust2faustvst
 	rm -f $(dest)/faust2firefox

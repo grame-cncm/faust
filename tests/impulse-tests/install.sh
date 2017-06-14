@@ -13,9 +13,12 @@ g++ -std=c++11 -O3 impulsearch3.cpp -lfaust `llvm-config --ldflags --libs all --
 g++ -std=c++11 -O3 impulsearch4.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -lcrypto -o impulsellvm
 
 cp faust2valgrind /usr/local/bin/
+
 cp faust2impulse /usr/local/bin/
 cp faust2impulsebis /usr/local/bin/
 cp faust2impulseter /usr/local/bin/
+
+cp faust2impulse1 /usr/local/bin/
 cp faust2impulse2 /usr/local/bin/
 cp faust2impulse2bis /usr/local/bin/
 cp faust2impulse3 /usr/local/bin/
@@ -29,9 +32,11 @@ cp faust2impulse6 /usr/local/bin/
 cp faust2impulse7 /usr/local/bin/
 cp impulseinterp /usr/local/bin/
 cp impulsellvm /usr/local/bin/
+
 cp filesCompare /usr/local/bin/
 
 cp impulsearch.cpp /usr/local/share/faust/
+cp impulsearch1.cpp /usr/local/share/faust/
 cp impulsearch2.cpp /usr/local/share/faust/
 
 

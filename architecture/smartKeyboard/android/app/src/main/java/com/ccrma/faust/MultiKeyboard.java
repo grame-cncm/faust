@@ -805,7 +805,7 @@ public class MultiKeyboard extends ViewGroup {
     private final SensorEventListener mSensorListener = new SensorEventListener() {
         public void onSensorChanged(SensorEvent se) {
             if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                // Update mapping at sensor rate
+                // Update mapping at sensor rate, values are inverted to be coherent with iOS
                 dspFaust.propagateAcc(0, -se.values[0]);
                 dspFaust.propagateAcc(1, -se.values[1]);
                 dspFaust.propagateAcc(2, -se.values[2]);

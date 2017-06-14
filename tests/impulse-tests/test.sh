@@ -111,13 +111,18 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
 
     for f in *.dsp; do
-        faust2impulseter -inpl -double $f > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
+        faust2impulse -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
     for f in *.dsp; do
-        faust2impulse -double $f > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        faust2impulse1 -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -mem mode" || echo "ERROR $f scalar -mem mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulseter -inpl -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
     done
 
     #for f in *.dsp; do

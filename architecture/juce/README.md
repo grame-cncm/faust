@@ -4,6 +4,14 @@ faust2juce transforms a Faust DSP program into a fully working JUCE standalone a
 
 Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own polyphonic architecture file (using the 'mydsp_poly' class). The `-jsynth` parameter has to be used to choose the JUCE model.
 
+faust2juce uses several UI interfaces, subclasses of the base UI class (defined in architecture/faust/gui/UI.h header) to link to various JUCE components:
+
+ - `JuceGUI.h` : contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets
+ - `JuceOSCUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
+ - `JuceParameterUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterFloat classes
+ - `JuceStateUI.h` : allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
+
+
 ## How to use
 
 faust2juce is used with the following command: 

@@ -1,0 +1,12 @@
+malloc_manager: 28
+malloc_manager: 28
+malloc_manager: 24
+Render one buffer
+sample out 40.000000
+Render one buffer
+sample out 70.000000
+Render one buffer
+sample out 30.000000
+Render one buffer
+sample out 60.000000
+free_manager
