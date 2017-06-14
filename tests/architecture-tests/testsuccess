@@ -3,7 +3,7 @@
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSX="faust2au faust2caqt faust2csound faust2faustvst faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
+OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
 OSXMIDI="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios"
 OSXPOLY="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLYMIDI="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
@@ -50,6 +50,10 @@ if [ "$1" = "osx" ]; then
     faust2dummy -midi organ.dsp > /dev/null
     ./organ > organ_8voices.txt
     diff organ_8voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+
+    faust2dummymem waveform4.dsp > /dev/null
+    ./waveform4 > waveform4.txt
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
@@ -116,6 +120,10 @@ elif [ "$1" = "linux" ]; then
     faust2dummy -midi organ.dsp > /dev/null
     ./organ > organ.txt
     diff organ.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+
+    faust2dummymem waveform4.dsp > /dev/null
+    ./waveform4 > waveform4.txt
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
 
 	for scriptname in $LINUX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")

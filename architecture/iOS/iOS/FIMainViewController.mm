@@ -69,6 +69,11 @@ rt_midi* midi_handler;
 MidiUI* midiinterface = NULL;
 #endif
 
+// global static fields
+
+list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 @implementation FIMainViewController
 
 @synthesize flipsidePopoverController = _flipsidePopoverController;

@@ -8,7 +8,7 @@ TEMPFILE=`mktemp temp.owl.XXXX`
 
 #echo $FILENAME $CLASSNAME $PATCHNAME $PATCHFILE
 
-faust -i -inpl -a owl.cpp -cn $CLASSNAME $FILENAME -o $TEMPFILE || rm $TEMPFILE && exit 1
+faust -i -inpl -mem -a owl.cpp -cn $CLASSNAME $FILENAME -o $TEMPFILE || (rm $TEMPFILE && exit 1)
 cat $TEMPFILE | sed -e "s/FaustPatch/$PATCHNAME/g" > $PATCHFILE
 rm $TEMPFILE
 
