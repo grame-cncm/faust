@@ -198,8 +198,12 @@ class CPPInstVisitor : public TextInstVisitor {
      
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << generateType(inst->fType);
-            *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
+            string type = generateType(inst->fType);
+            if (endWith(type, "*")) {
+                *fOut << "static_cast<" << type << ">("; inst->fInst->accept(this);  *fOut << ")";
+            } else {
+                 *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
+            }
         }
       
         virtual void visit(FunCallInst* inst)
