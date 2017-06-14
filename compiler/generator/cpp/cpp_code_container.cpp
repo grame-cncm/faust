@@ -104,14 +104,18 @@ void CPPCodeContainer::produceMetadata(int tabs)
 void CPPCodeContainer::produceInit(int tabs)
 {
     tab(tabs, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-        tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
+        if (gGlobal->gMemoryManager) {
+            tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq, 0);";
+        } else {
+            tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
+        }
         tab(tabs+1, *fOut); *fOut << "instanceInit(samplingFreq);";
     tab(tabs, *fOut); *fOut << "}";
     
     tab(tabs, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
-    tab(tabs+1, *fOut); *fOut << "instanceConstants(samplingFreq);";
-    tab(tabs+1, *fOut); *fOut << "instanceResetUserInterface();";
-    tab(tabs+1, *fOut); *fOut << "instanceClear();";
+        tab(tabs+1, *fOut); *fOut << "instanceConstants(samplingFreq);";
+        tab(tabs+1, *fOut); *fOut << "instanceResetUserInterface();";
+        tab(tabs+1, *fOut); *fOut << "instanceClear();";
     tab(tabs, *fOut); *fOut << "}";
 }
 
@@ -276,7 +280,11 @@ void CPPCodeContainer::produceClass()
         generateInstanceInitFun("instanceInit", true, true)->accept(&fCodeProducer);
         */
     
-        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+        if (gGlobal->gMemoryManager) {
+            tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq, dsp_memory_manager* manager) {";
+        } else {
+            tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
+        }
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);

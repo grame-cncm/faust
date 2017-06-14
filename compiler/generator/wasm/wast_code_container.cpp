@@ -75,6 +75,9 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
 {
     CodeContainer* container;
 
+    if (gGlobal->gMemoryManager) {
+        throw faustexception("ERROR : -mem not suported for WebAssembly\n");
+    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for WebAssembly\n");
     }

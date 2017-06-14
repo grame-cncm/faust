@@ -176,7 +176,7 @@ class dsp_factory {
     protected:
     
         // So that to force sub-classes to use deleteDSPFactory(dsp_factory* factory);
-        ~dsp_factory() {}
+        virtual ~dsp_factory() {}
     
     public:
     

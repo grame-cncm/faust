@@ -146,6 +146,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDummyInput = 10000;
     
     gBoxSlotNumber = 0;
+    gMemoryManager = false;
 
 	gOccurrences = 0;
 	gFoldingFlag = false;

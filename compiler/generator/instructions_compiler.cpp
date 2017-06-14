@@ -848,7 +848,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     getTableNameProperty(content, tablename);
 
     vname += tablename;
-
+    
     // Table declaration
     pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
 
@@ -857,6 +857,13 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     args1.push_back(cexp);
     args1.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("instanceInit" + tablename, args1, true));
+    
+    if (gGlobal->gMemoryManager) {
+        list<ValueInst*> alloc_args;
+        alloc_args.push_back(InstBuilder::genLoadFunArgsVar("manager"));
+        alloc_args.push_back(InstBuilder::genIntNumInst(size * Typed::getSizeOf(ctype)));
+        pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(vname, InstBuilder::genFunCallInst("allocate", alloc_args, true)));
+    }
 
     // Fill the table
     list<ValueInst*> args2;

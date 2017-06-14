@@ -188,6 +188,8 @@ struct global {
     
     int                     gBoxSlotNumber;     ///< counter for unique slot number
     
+    bool                    gMemoryManager;
+    
     Tree                    BOXTYPEPROP;
     Tree                    NUMERICPROPERTY;
     Tree                    DEFLINEPROP;

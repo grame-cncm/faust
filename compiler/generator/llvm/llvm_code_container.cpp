@@ -106,13 +106,15 @@ LLVMContext& LLVMCodeContainer::getContext() { return *fContext; }
 
 CodeContainer* LLVMCodeContainer::createContainer(const string& name, int numInputs, int numOutputs)
 {
+    gGlobal->gDSPStruct = true;
     CodeContainer* container;
 
+    if (gGlobal->gMemoryManager) {
+        throw faustexception("ERROR : -mem not suported for LLVM\n");
+    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for LLVM\n");
     }
-    gGlobal->gDSPStruct = true;
-
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for LLVM\n");
     }

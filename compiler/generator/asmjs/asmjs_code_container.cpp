@@ -84,6 +84,9 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
 {
     CodeContainer* container;
   
+    if (gGlobal->gMemoryManager) {
+        throw faustexception("ERROR : -mem not suported for ASMJavaScript\n");
+    }
     if (gGlobal->gFloatSize == 3) {
         throw faustexception("ERROR : quad format not supported for ASMJavaScript\n");
     }

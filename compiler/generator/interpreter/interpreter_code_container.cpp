@@ -86,6 +86,9 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
 {
     CodeContainer* container;
 
+    if (gGlobal->gMemoryManager) {
+        throw faustexception("ERROR : -mem not suported for Interpreter\n");
+    }
     if (gGlobal->gOpenCLSwitch) {
         throw faustexception("ERROR : OpenCL not supported for Interpreter\n");
     }

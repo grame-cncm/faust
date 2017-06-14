@@ -327,6 +327,22 @@ struct Typed : public Printable
     {}
 
     virtual VarType getType() = 0;
+    
+    static int getSizeOf(VarType type)
+    {
+        switch (type) {
+            case kFloat:
+            case kInt:
+                return 4;
+            case kDouble:
+                return 8;
+            default:
+                // Not supposed to happen
+                cerr << "getSizeOf " << type << endl;
+                faustassert(false);
+                return -1;
+        }
+    }
   
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
