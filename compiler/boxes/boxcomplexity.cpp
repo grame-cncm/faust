@@ -95,7 +95,7 @@ int computeBoxComplexity (Tree box)
 	prim4	p4;
 	prim5	p5;
 
-	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file;
+	Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, chan;
 	
 	xtended* xt = (xtended*) getUserData(box);
 
@@ -141,6 +141,7 @@ int computeBoxComplexity (Tree box)
 	else if (isBoxHSlider(box, label, cur, min, max, step))	return 1;
 	else if (isBoxHBargraph(box, label, min, max))			return 1;
 	else if (isBoxVBargraph(box, label, min, max))			return 1;
+	else if (isBoxSoundfile(box, label, chan))				return 1;
 	else if (isBoxNumEntry(box, label, cur, min, max, step))return 1;
 	
 	// user interface groups
