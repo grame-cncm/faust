@@ -45,14 +45,14 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode){
             case REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
                 break;
         }
-        if (!permissionToRecordAccepted ) { // if permission is declined, the app is terminated
+        if (!permissionToRecordAccepted) { // if permission is declined, the app is terminated
             finish();
         }
         else { // otherwise we can instantiate our audio engine
-            if(dspFaust == null){
+            if (dspFaust == null) {
                 dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
             }
             mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause(){
         super.onPause();
-        if(permissionToRecordAccepted) {
+        if (permissionToRecordAccepted) {
             dspFaust.stop();
         }
     }
@@ -134,8 +134,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume(){
         super.onResume();
-        if(permissionToRecordAccepted) {
-            if(!dspFaust.isRunning()) {
+        if (permissionToRecordAccepted) {
+            if (!dspFaust.isRunning()) {
                 dspFaust.start();
             }
         }
@@ -151,16 +151,14 @@ public class MainActivity extends AppCompatActivity {
         public void onSend(byte[] data, int offset,
                            int count, long timestamp) {
             // we only consider MIDI messages containing 3 bytes (see is just an example)
-            if(count%3 == 0) {
+            if (permissionToRecordAccepted && (count%3 == 0)) {
                 int nMessages = count / 3; // in case the event contains several messages
                 for (int i = 0; i < nMessages; i++) {
                     int type = (int) (data[offset + i*3] & 0xF0);
                     int channel = (int) (data[offset + i*3] & 0x0F);
                     int data1 = (int) data[offset + 1 + i*3];
                     int data2 = (int) data[offset + 2 + i*3];
-                    if(permissionToRecordAccepted) {
-                        dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
-                    }
+                    dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
                 }
             }
         }
