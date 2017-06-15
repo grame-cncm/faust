@@ -53,13 +53,10 @@ using namespace std;
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    vector<void*> fStaticPtrList;
-    
-    virtual void* allocate(size_t size, bool is_static = false)
+    virtual void* allocate(size_t size)
     {
         void* res = malloc(size);
         cout << "malloc_manager: " << size << endl;
-        if (is_static) fStaticPtrList.push_back(res);
         return res;
     }
     
@@ -67,14 +64,6 @@ struct malloc_memory_manager : public dsp_memory_manager {
     {
         cout << "free_manager" << endl;
         free(ptr);
-    }
-    
-    virtual ~malloc_memory_manager()
-    {
-        vector<void*>::iterator it;
-        for (it = fStaticPtrList.begin(); it != fStaticPtrList.end(); ++it) {
-            destroy(*it);
-        }
     }
     
 };
@@ -101,7 +90,8 @@ static void test1()
     DSP->~mydsp();
     manager.destroy(DSP);
    
-    // DSP static data is destroyed by malloc_memory_manager destructor.
+    // DSP static data is destroyed using classDestroy.
+    mydsp::classDestroy(&manager);
 }
 
 static void test2()
@@ -134,7 +124,8 @@ static void test2()
     DSP2->~mydsp();
     manager.destroy(DSP2);
     
-    // DSP static data is destroyed by malloc_memory_manager destructor.
+    // DSP static data is destroyed using classDestroy.
+    mydsp::classDestroy(&manager);
 }
 
 int main(int argc, char* argv[])
