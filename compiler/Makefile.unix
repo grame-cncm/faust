@@ -548,7 +548,7 @@ generator/description.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/pr
 generator/description.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
 generator/description.o: tlib/occurrences.hh tlib/compatibility.hh
 generator/dsp_aux.o: tlib/compatibility.hh generator/dsp_aux.hh generator/export.hh errors/exception.hh dsp_factory.hh
-generator/dsp_aux.o: utils/TMutex.h generator/Text.hh
+generator/dsp_aux.o: utils/TMutex.h generator/Text.hh generator/libfaust.h generator/libfaust-c.h
 generator/export.o: generator/export.hh errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh
 generator/export.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/export.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh generator/interpreter/fir_opcode.hh
@@ -918,7 +918,7 @@ generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_interpret
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_bytecode.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/fir_opcode.hh errors/exception.hh
 generator/interpreter/interpreter_dsp_aux.o: generator/interpreter/interpreter_optimizer.hh generator/dsp_aux.hh
-generator/interpreter/interpreter_dsp_aux.o: generator/export.hh dsp_factory.hh generator/Text.hh
+generator/interpreter/interpreter_dsp_aux.o: generator/export.hh dsp_factory.hh generator/Text.hh generator/libfaust.h
 generator/java/java_code_container.o: generator/java/java_code_container.hh generator/code_container.hh
 generator/java/java_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/java/java_code_container.o: garbageable.hh errors/exception.hh generator/interpreter/fir_opcode.hh
@@ -964,7 +964,7 @@ generator/llvm/llvm_dsp_aux.o: parser/sourcereader.hh boxes/boxes.hh tlib/tlib.h
 generator/llvm/llvm_dsp_aux.o: tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 generator/llvm/llvm_dsp_aux.o: signals/binop.hh generator/interpreter/fir_opcode.hh tlib/property.hh signals/sigtype.hh
 generator/llvm/llvm_dsp_aux.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh generator/Text.hh
-generator/llvm/llvm_dsp_aux.o: evaluate/loopDetector.hh tlib/occurrences.hh
+generator/llvm/llvm_dsp_aux.o: evaluate/loopDetector.hh tlib/occurrences.hh generator/libfaust.h
 generator/wasm/wasm_code_container.o: generator/wasm/wasm_code_container.hh generator/code_container.hh
 generator/wasm/wasm_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/wasm/wasm_code_container.o: garbageable.hh errors/exception.hh generator/interpreter/fir_opcode.hh

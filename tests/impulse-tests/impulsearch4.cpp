@@ -102,16 +102,28 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 // Standard memory manager
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    void* allocate(size_t size)
+    vector<void*> fStaticPtrList;
+    
+    virtual void* allocate(size_t size, bool is_static = false)
     {
         void* res = malloc(size);
-        //std::cout << "malloc_manager : " << size << " " << res << std::endl;
+        // cout << "malloc_manager: " << size << endl;
+        if (is_static) fStaticPtrList.push_back(res);
         return res;
     }
+    
     virtual void destroy(void* ptr)
     {
-        //std::cout << "free_manager : " << ptr << std::endl;
+        //cout << "free_manager" << endl;
         free(ptr);
+    }
+    
+    virtual ~malloc_memory_manager()
+    {
+        vector<void*>::iterator it;
+        for (it = fStaticPtrList.begin(); it != fStaticPtrList.end(); ++it) {
+            destroy(*it);
+        }
     }
     
 };

@@ -46,7 +46,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         enum { kLin = 0, kLog = 1, kExp = 2 };
     
         int fNumParameters;
-        std::vector<std::string> fName;
+        std::vector<std::string> fPaths;
+        std::vector<std::string> fLabels;
         std::map<std::string, int> fPathMap;
         std::map<std::string, int> fLabelMap;
         std::vector<ValueConverter*> fConversion;
@@ -87,7 +88,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             std::string path = buildPath(label);
             fPathMap[path] = fLabelMap[label] = fNumParameters++;
-            fName.push_back(path);
+            fPaths.push_back(path);
+            fLabels.push_back(label);
             fZone.push_back(zone);
             fInit.push_back(init);
             fMin.push_back(min);
@@ -354,23 +356,24 @@ class APIUI : public PathBuilder, public Meta, public UI
                 return -1;
             }
         }
-		const char* getParamAddress(int p)	{ return fName[p].c_str(); }
-		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-		const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
-		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
-		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
-		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
-		FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
+        const char* getParamAddress(int p)	{ return fPaths[p].c_str(); }
+        const char* getParamLabel(int p)	{ return fLabels[p].c_str(); }
+        const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
+        const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
+        FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
+        FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
+        FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
+        FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
 
         FAUSTFLOAT* getParamZone(int p)         { return fZone[p]; }
-		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
-		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
+        FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
+        void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 
-		double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
-		void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
+        double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
+        void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
 
-		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
-		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
+        double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
+        double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
     
         /**
          * Return the control type (kAcc, kGyr, or -1) for a given parameter
