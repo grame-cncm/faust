@@ -373,6 +373,29 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 }
 
 
+/*****************************************************************************
+							 Sounfiles
+*****************************************************************************/
+/*
+A boxSounfile(label,c) has 1 input channel and c+2 output channels:
+    0   sigSoundfileLength(label):  the number of frames of the soundfile (NK)
+    1   sigSoundfileSamplingRate(label): the sampling rate encoded in the file (NK)
+    2.. sigSoundfileChannel(label, c, ridx): the cth channel content (RK ou RS)
+*/
+Sym SIGSOUNDFILELENGTH 		= symbol ("sigSoundfileLength");
+Sym SIGSOUNDFILERATE		= symbol ("sigSoundfileRate");
+Sym SIGSOUNDFILECHANNEL		= symbol ("sigSoundfileChannel");
+
+Tree sigSoundfileLength(Tree label)							{ return tree(SIGSOUNDFILELENGTH, label); }
+Tree sigSoundfileRate(Tree label)							{ return tree(SIGSOUNDFILERATE, label); }
+Tree sigSoundfileChannel(Tree label, Tree chan, Tree ridx)	{ return tree(SIGSOUNDFILECHANNEL, label, chan, ridx); }
+
+bool isSigSoundfileLength(Tree s, Tree& label)				{ return isTree(s, SIGSOUNDFILELENGTH, label); }
+bool isSigSoundfileRate(Tree s, Tree& label)				{ return isTree(s, SIGSOUNDFILERATE, label); }
+bool isSigSoundfileChannel(Tree s, Tree& label, Tree& chan, Tree& ridx)
+															{ return isTree(s, SIGSOUNDFILECHANNEL, label, chan, ridx); }
+
+
 
 
 /*****************************************************************************
