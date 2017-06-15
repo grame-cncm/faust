@@ -107,7 +107,7 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    void* allocate(size_t size)
+    void* allocate(size_t size, bool is_static = false)
     {
         void* res = malloc(size);
         //cout << "malloc_manager: " << size << endl;
