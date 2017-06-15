@@ -820,6 +820,12 @@ void Klass::println(int n, ostream& fout)
     }
         printlines (n+2, fStaticInitCode, fout);
     tab(n+1,fout); fout << "}";
+    
+    if (gMemoryManager) {
+        tab(n+1,fout); fout << "static void classDestroy(dsp_memory_manager* manager) {";
+            printlines (n+2, fStaticDestroyCode, fout);
+        tab(n+1,fout); fout << "}";
+    }
 
     tab(n+1,fout); fout << "virtual void instanceConstants(int samplingFreq) {";
         tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
