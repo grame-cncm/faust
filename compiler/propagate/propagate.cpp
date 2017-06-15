@@ -267,7 +267,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	prim4	p4;
 	prim5	p5;
 	
-    Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body;
+    Tree	t1, t2, ff, label, cur, min, max, step, type, name, file, slot, body, chan;
     tvec    wf;
 	
 	
@@ -414,6 +414,19 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	else if (isBoxHBargraph(box, label, min, max)) 	{ 
 		assert(lsig.size()==1); 
 		return makeList(sigHBargraph(normalizePath(cons(label, path)), min, max, lsig[0])); 
+	}
+	
+	else if (isBoxSoundfile(box, label, chan)) 	{ 
+		assert(lsig.size()==1); 
+		Tree fullpath = normalizePath(cons(label, path));
+		int c = tree2int(chan);
+		siglist lsig2(c+2);
+		lsig2[0] = sigSoundfileLength(fullpath);
+		lsig2[1] = sigSoundfileRate(fullpath);
+		for (int i = 0; i<c; i++) {
+			lsig2[i+2] = sigSoundfileChannel(fullpath, tree(i), lsig[0]);
+		}
+		return lsig2; 
 	}
 	
 	// User Interface Groups
