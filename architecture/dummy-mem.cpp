@@ -24,7 +24,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
-#include <list>
+#include <vector>
 #include <math.h>
 
 #include "faust/gui/UI.h"
@@ -53,16 +53,28 @@ using namespace std;
 
 struct malloc_memory_manager : public dsp_memory_manager {
     
-    void* allocate(size_t size)
+    vector<void*> fStaticPtrList;
+    
+    virtual void* allocate(size_t size, bool is_static = false)
     {
         void* res = malloc(size);
         cout << "malloc_manager: " << size << endl;
+        if (is_static) fStaticPtrList.push_back(res);
         return res;
     }
+    
     virtual void destroy(void* ptr)
     {
         cout << "free_manager" << endl;
         free(ptr);
+    }
+    
+    virtual ~malloc_memory_manager()
+    {
+        vector<void*>::iterator it;
+        for (it = fStaticPtrList.begin(); it != fStaticPtrList.end(); ++it) {
+            destroy(*it);
+        }
     }
     
 };
@@ -89,7 +101,7 @@ static void test1()
     DSP->~mydsp();
     manager.destroy(DSP);
    
-    // DSP static data is *not* destroyed in this simple case, the custom memory manager will have to handle that case if needed.
+    // DSP static data is destroyed by malloc_memory_manager destructor.
 }
 
 static void test2()
@@ -122,7 +134,7 @@ static void test2()
     DSP2->~mydsp();
     manager.destroy(DSP2);
     
-    // DSP static data is *not* destroyed in this simple case, the custom memory manager will have to handle that case if needed.
+    // DSP static data is destroyed by malloc_memory_manager destructor.
 }
 
 int main(int argc, char* argv[])
