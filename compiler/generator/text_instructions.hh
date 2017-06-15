@@ -152,7 +152,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
 
         virtual void visit(BoolNumInst* inst)
         {
-            *fOut << inst->fNum;
+            *fOut << ((inst->fNum) ? "true" : "false");
         }
 
         virtual void visit(DoubleNumInst* inst)
