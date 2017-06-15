@@ -38,7 +38,7 @@
  * DSP memory manager functions.
  */
 
-typedef void* (* allocateFun) (size_t size, bool is_static, void* arg);
+typedef void* (* allocateFun) (size_t size, void* arg);
 typedef void (* destroyFun) (void* ptr, void* arg);
 
 struct dsp_memory_manager;

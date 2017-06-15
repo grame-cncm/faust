@@ -92,6 +92,7 @@ class InstructionsCompiler : public virtual Garbageable {
         StatementInst* pushDestroyMethod(StatementInst* inst)           { return fContainer->pushDestroyMethod(inst); }
         StatementInst* pushStaticInitMethod(StatementInst* inst)        { return fContainer->pushStaticInitMethod(inst); }
         StatementInst* pushPostStaticInitMethod(StatementInst* inst)    { return fContainer->pushPostStaticInitMethod(inst); }
+        StatementInst* pushStaticDestroyMethod(StatementInst* inst)     { return fContainer->pushStaticDestroyMethod(inst); }
         StatementInst* pushComputeBlockMethod(StatementInst* inst)      { return fContainer->pushComputeBlockMethod(inst); }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst)     { return fContainer->pushUserInterfaceMethod(inst); }
 

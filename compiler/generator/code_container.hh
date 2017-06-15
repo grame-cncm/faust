@@ -73,6 +73,9 @@ class CodeContainer : public virtual Garbageable {
         // Static init method
         BlockInst* fStaticInitInstructions;
         BlockInst* fPostStaticInitInstructions;
+    
+        // Static destroy method
+        BlockInst* fStaticDestroyInstructions;
 
         // Compute method
         BlockInst* fComputeBlockInstructions;
@@ -336,6 +339,13 @@ class CodeContainer : public virtual Garbageable {
                 fPostStaticInitInstructions->accept(visitor);
             }
         }
+    
+        void generateStaticDestroy(InstVisitor* visitor)
+        {
+            if (fStaticDestroyInstructions->fCode.size() > 0) {
+                fStaticDestroyInstructions->accept(visitor);
+            }
+        }
 
         void generateUserInterface(InstVisitor* visitor)
         {
@@ -380,6 +390,7 @@ class CodeContainer : public virtual Garbageable {
         StatementInst* pushAllocateMethod(StatementInst* inst) { fAllocateInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushStaticDestroyMethod(StatementInst* inst) { fStaticDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostStaticInitMethod(StatementInst* inst) { fPostStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }

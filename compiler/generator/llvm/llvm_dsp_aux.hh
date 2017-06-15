@@ -233,9 +233,9 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
             c_memory_manager():fCreate(nullptr), fCreateArg(nullptr), fDestroy(nullptr), fDestroyArg(nullptr)
             {}
         
-            void* allocate(size_t size, bool is_static = false)
+            void* allocate(size_t size)
             {
-                return fCreate(size, is_static, fCreateArg);
+                return fCreate(size, fCreateArg);
             }
             virtual void destroy(void* ptr)
             {

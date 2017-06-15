@@ -431,7 +431,7 @@ extern "C"
      * DSP memory manager functions.
      */
     
-    typedef void* (* allocateFun) (size_t size, bool is_static, void* arg);
+    typedef void* (* allocateFun) (size_t size, void* arg);
     typedef void (* destroyFun) (void* ptr, void* arg);
     
     /* Set custom memory manager allocateFun and destroyFun functions to be used when creating instances */

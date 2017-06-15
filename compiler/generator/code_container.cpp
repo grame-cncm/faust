@@ -55,6 +55,7 @@ CodeContainer::CodeContainer()
     fDestroyInstructions(InstBuilder::genBlockInst()),
     fStaticInitInstructions(InstBuilder::genBlockInst()),
     fPostStaticInitInstructions(InstBuilder::genBlockInst()),
+    fStaticDestroyInstructions(InstBuilder::genBlockInst()),
     fComputeBlockInstructions(InstBuilder::genBlockInst()),
     fComputeFunctions(InstBuilder::genBlockInst()),
     fUserInterfaceInstructions(InstBuilder::genBlockInst()),

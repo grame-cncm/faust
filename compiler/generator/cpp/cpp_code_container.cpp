@@ -290,6 +290,14 @@ void CPPCodeContainer::produceClass()
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
+        if (gGlobal->gMemoryManager) {
+            tab(n+1, *fOut); *fOut << "static void classDestroy(dsp_memory_manager* manager) {";
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateStaticDestroy(&fCodeProducer);
+            tab(n+1, *fOut); *fOut << "}";
+        }
+ 
         // TEST
         /*
         // Start inline

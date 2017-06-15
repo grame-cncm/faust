@@ -866,10 +866,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         list<ValueInst*> alloc_args;
         alloc_args.push_back(InstBuilder::genLoadFunArgsVar("manager"));
         alloc_args.push_back(InstBuilder::genIntNumInst(size * Typed::getSizeOf(ctype)));
-        alloc_args.push_back(InstBuilder::genBoolNumInst(true));
         pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(vname,
                                                                   InstBuilder::genCastNumInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
                                                                                               InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0))));
+        
+        list<ValueInst*> destroy_args;
+        destroy_args.push_back(InstBuilder::genLoadFunArgsVar("manager"));
+        destroy_args.push_back(InstBuilder::genLoadStaticStructVar(vname));
+        pushStaticDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("destroy", destroy_args, true)));
     }
 
     // Fill the table
