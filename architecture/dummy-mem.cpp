@@ -55,13 +55,14 @@ struct malloc_memory_manager : public dsp_memory_manager {
     
     vector<void*> fStaticPtrList;
     
-    void* allocate(size_t size, bool is_static = false)
+    virtual void* allocate(size_t size, bool is_static = false)
     {
         void* res = malloc(size);
         cout << "malloc_manager: " << size << endl;
         if (is_static) fStaticPtrList.push_back(res);
         return res;
     }
+    
     virtual void destroy(void* ptr)
     {
         cout << "free_manager" << endl;
