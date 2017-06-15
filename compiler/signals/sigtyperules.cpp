@@ -348,6 +348,12 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigVBargraph(sig, l, x, y, s1))  return T(s1, env)->promoteVariability(kBlock);
 
+
+	else if ( isSigSoundfileLength(sig,l) )		{ return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0,0x7FFFFFFF));	}
+	else if ( isSigSoundfileRate(sig,l) )		{ return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0,0x7FFFFFFF));	}
+	else if ( isSigSoundfileChannel(sig,l,x,s1)){ T(x,env); T(s1,env); return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());	}
+
+
     else if (isSigAttach(sig, s1, s2))          { T(s2,env); return T(s1,env); }
 
     else if (isRec(sig, var, body))             return infereRecType(sig, body, env);
