@@ -37,7 +37,9 @@ struct Meta;
 
 struct dsp_memory_manager {
     
-    virtual void* allocate(size_t size) = 0;
+    virtual ~dsp_memory_manager() {}
+    
+    virtual void* allocate(size_t size, bool is_static = false) = 0;
     virtual void destroy(void* ptr) = 0;
     
 };
