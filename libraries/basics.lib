@@ -308,7 +308,7 @@ countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
 //
 // Where:
 //
-// * `count`: the starting point of the countup
+// * `count`: the maxim count value
 // * `trig`: the trigger signal (1: start at 0; 0: increase until `n`)
 //-----------------------------------------------------------------------------
 countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
