@@ -326,6 +326,11 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
+
+	else if ( isSigSoundfileLength(sig, label) )	{ return "SF.length"; }
+	else if ( isSigSoundfileRate(sig, label) )	    { return "SF.rate"; }
+	else if ( isSigSoundfileChannel(sig,label,x,y)) { return subst("SF.channel[$0][$1]", CS(x), CS(y)); }
+
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
 	else {
