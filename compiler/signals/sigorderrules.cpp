@@ -142,6 +142,10 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigVBargraph(sig, l, x, y, s1))	return max(2, O(s1)); 	// at least a user interface
 
+	else if ( isSigSoundfileLength(sig, l) )	return 2;
+	else if ( isSigSoundfileRate(sig, l) )	    return 2;
+	else if ( isSigSoundfileChannel(sig,l,x,y)) return 3;
+
 	else if (isSigAttach(sig, s1, s2)) 			return max(1,O(s1));	// at least a constant
 				
 	else if (isRec(sig, var, body))				exit(1); //return 3;  // not supposed to happen.
