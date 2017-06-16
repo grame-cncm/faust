@@ -103,14 +103,14 @@ void CPPCodeContainer::produceMetadata(int tabs)
 
 void CPPCodeContainer::produceInit(int tabs)
 {
-    tab(tabs, *fOut); *fOut << "virtual void init(int samplingFreq) {";
-        if (gGlobal->gMemoryManager) {
-            tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq, 0);";
-        } else {
-            tab(tabs+1, *fOut); *fOut << "classInit(samplingFreq);";
-        }
-        tab(tabs+1, *fOut); *fOut << "instanceInit(samplingFreq);";
-    tab(tabs, *fOut); *fOut << "}";
+    if (gGlobal->gMemoryManager) {
+         tab(tabs, *fOut); *fOut << "virtual void init(int samplingFreq) {}";
+    } else {
+        tab(tabs+1, *fOut); *fOut << "virtual void init(int samplingFreq) {";
+            tab(tabs+2, *fOut); *fOut << "classInit(samplingFreq);";
+            tab(tabs+2, *fOut); *fOut << "instanceInit(samplingFreq);";
+        tab(tabs+1, *fOut); *fOut << "}";
+    }
     
     tab(tabs, *fOut); *fOut << "virtual void instanceInit(int samplingFreq) {";
         tab(tabs+1, *fOut); *fOut << "instanceConstants(samplingFreq);";
