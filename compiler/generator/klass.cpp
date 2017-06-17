@@ -840,14 +840,14 @@ void Klass::println(int n, ostream& fout)
         printlines (n+2, fClearCode, fout);
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
     if (gMemoryManager) {
-        tab(n+2,fout); fout << "classInit(samplingFreq, 0);";
+        tab(n+1,fout); fout << "virtual void init(int samplingFreq) {}";
     } else {
-        tab(n+2,fout); fout << "classInit(samplingFreq);";
+        tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
+            tab(n+2,fout); fout << "classInit(samplingFreq);";
+            tab(n+2,fout); fout << "instanceInit(samplingFreq);";
+        tab(n+1,fout); fout << "}";
     }
-        tab(n+2,fout); fout << "instanceInit(samplingFreq);";
-    tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
         tab(n+2,fout); fout << "instanceConstants(samplingFreq);";

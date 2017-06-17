@@ -2803,11 +2803,8 @@ with{
 // Vocal synthesizer functions (source/filter, fof, etc.).
 //========================================================================================
 
-//-------`formantFilter`--------------
-// Formant filter based on a bank of resonant bandpass.
-// Formant parameters are linearly interpolated allowing to go smoothly from
-// one vowel to another. Voice type can be selected but must correspond to
-// the frequency range of the provided source to be realistic.
+//-------`formantValues`----------
+// Formant data values.
 //
 // The formant data used here come from the CSOUND manual
 // <http://www.csounds.com/manual/html/>.
@@ -2815,114 +2812,675 @@ with{
 // #### Usage
 //
 // ```
-// _ : formantFilter(voiceType,vowel) : _
+// ba.take(j+1,formantValues.f(i)) : _
+// ba.take(j+1,formantValues.g(i)) : _
+// ba.take(j+1,formantValues.bw(i)) : _
 // ```
 //
 // Where:
 //
+// * `i`: formant number
+// * `j`: (voiceType*nFormants)+vowel
 // * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor, 3:
 // soprano, 4: tenor)
 // * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
 //--------------------------------------
-formantFilter(voiceType,vowel) =
-_ <: par(i,nFormants,fi.resonbp(f(i),f(i)/bw(i),g(i))) :> _
-with{
-	nFormants = 5;
-	f(0) = ba.listInterp( // formant 0 freqs
-    (800,400,350,450,325,600,400,250,400,350,660,440,270,430,370,
-  		800,350,270,450,325,650,400,290,400,350),(voiceType*nFormants)+vowel);
-	f(1) = ba.listInterp( // formant 1 freqs
-    (1150,1600,1700,800,700,1040,1620,1750,750,600,1120,1800,1850,820,630,
-      1150,2000,2140,800,700,1080,1700,1870,800,600),(voiceType*nFormants)+vowel);
-	f(2) = ba.listInterp( // formant 2 freqs
-    (2800,2700,2700,2830,2530,2250,2400,2600,2400,2400,2750,2700,2900,2700,2750,
-      2900,2800,2950,2830,2700,2650,2600,2800,2600,2700),(voiceType*nFormants)+vowel);
-	f(3) = ba.listInterp( // formant 3 freqs
-    (3500,3300,3700,3500,3500,2450,2800,3050,2600,2675,3000,3000,3350,3000,3000,
-      3900,3600,3900,3800,3800,2900,3200,3250,2800,2900),(voiceType*nFormants)+vowel);
-	f(4) = ba.listInterp( // formant 4 freqs
-    (4950,4950,4950,4950,4950,2750,3100,3340,2900,2950,3350,3300,3590,3300,3400,
-      4950,4950,4950,4950,4950,3250,3580,3540,3000,3300),(voiceType*nFormants)+vowel);
-  g(0) = 1; // formant 0 gains
-  g(1) = ba.listInterp( // formant 1 gains
-    (0.630957,0.063096,0.100000,0.354813,0.251189,0.446684,0.251189,0.031623,
-			0.281838,0.100000,0.501187,0.199526,0.063096,0.316228,0.100000,
-			0.501187,0.100000,0.251189,0.281838,0.158489,0.501187,0.199526,0.177828,
-			0.316228,0.100000),(voiceType*nFormants)+vowel);
-  g(2) = ba.listInterp( // formant 2 gains
-    (0.100000,0.031623,0.031623,0.158489,0.031623,0.354813,0.354813,0.158489,
-			0.089125,0.025119,0.070795,0.125893,0.063096,0.050119,0.070795,
-			0.025119,0.177828,0.050119,0.079433,0.017783,0.446684,0.251189,0.125893,
-			0.251189,0.141254),(voiceType*nFormants)+vowel);
-  g(3) = ba.listInterp( // formant 3 gains
-    (0.015849,0.017783,0.015849,0.039811,0.010000,0.354813,0.251189,0.079433,
-			0.100000,0.039811,0.063096,0.100000,0.015849,0.079433,0.031623,
-			0.100000,0.010000,0.050119,0.079433,0.010000,0.398107,0.199526,0.100000,
-			0.251189,0.199526),(voiceType*nFormants)+vowel);
-  g(4) = ba.listInterp( // formant 4 gains
-    (0.001000,0.001000,0.001000,0.001778,0.000631,0.100000,0.125893,0.039811,
-			0.010000,0.015849,0.012589,0.100000,0.015849,0.019953,0.019953,
-			0.003162,0.001585,0.006310,0.003162,0.001000,0.079433,0.100000,0.031623,
-			0.050119,0.050119),(voiceType*nFormants)+vowel);
-  bw(0) = ba.listInterp( // formant 0 bandwidths
-    (80,60,50,70,50,60,40,60,40,40,80,70,40,40,40,80,60,60,40,50,
-      50,70,40,70,40),(voiceType*nFormants)+vowel);
-  bw(1) = ba.listInterp( // formant 1 bandwidths
-    (90,80,100,80,60,70,80,90,80,80,90,80,90,80,60,90,100,90,80,60,
-      90,80,90,80,60),(voiceType*nFormants)+vowel);
-  bw(2) = ba.listInterp( // formant 2 bandwidths
-    (120,120,120,100,170,110,100,100,100,100,120,100,100,100,100,
-      120,120,100,100,170,120,100,100,100,100),(voiceType*nFormants)+vowel);
-  bw(3) = ba.listInterp( // formant 3 bandwidths
-    (130,150,150,130,180,120,120,120,120,120,130,120,120,120,120,
-      130,150,120,120,180,130,120,120,130,120),(voiceType*nFormants)+vowel);
-  bw(4) = ba.listInterp( // formant 4 bandwidths
-    (140,200,200,135,200,130,120,120,120,120,140,120,120,120,120,
-      140,200,120,120,200,140,120,120,135,120),(voiceType*nFormants)+vowel);
+formantValues = environment {
+	f(0) = (800,400,350,450,325,600,400,250,400,350,660,440,270,430,370,800,
+		350,270,450,325,650,400,290,400,350); // formant 0 freqs
+	f(1) = (1150,1600,1700,800,700,1040,1620,1750,750,600,1120,1800,1850,820,630,
+		1150,2000,2140,800,700,1080,1700,1870,800,600); // formant 1 freqs
+	f(2) = (2800,2700,2700,2830,2530,2250,2400,2600,2400,2400,2750,2700,2900,2700,2750,
+		2900,2800,2950,2830,2700,2650,2600,2800,2600,2700); // formant 2 freqs
+	f(3) = (3500,3300,3700,3500,3500,2450,2800,3050,2600,2675,3000,3000,3350,3000,3000,
+		3900,3600,3900,3800,3800,2900,3200,3250,2800,2900); // formant 3 freqs
+	f(4) = (4950,4950,4950,4950,4950,2750,3100,3340,2900,2950,3350,3300,3590,3300,3400,
+		4950,4950,4950,4950,4950,3250,3580,3540,3000,3300); // formant 4 freqs
+	g(0) = (1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1); // formant 0 gains
+	g(1) = (0.630957,0.063096,0.100000,0.354813,0.251189,0.446684,0.251189,0.031623,
+		0.281838,0.100000,0.501187,0.199526,0.063096,0.316228,0.100000,
+		0.501187,0.100000,0.251189,0.281838,0.158489,0.501187,0.199526,0.177828,
+		0.316228,0.100000); // formant 1 gains
+	g(2) = (0.100000,0.031623,0.031623,0.158489,0.031623,0.354813,0.354813,0.158489,
+		0.089125,0.025119,0.070795,0.125893,0.063096,0.050119,0.070795,
+		0.025119,0.177828,0.050119,0.079433,0.017783,0.446684,0.251189,0.125893,
+		0.251189,0.141254); // formant 2 gains
+	g(3) = (0.015849,0.017783,0.015849,0.039811,0.010000,0.354813,0.251189,0.079433,
+		0.100000,0.039811,0.063096,0.100000,0.015849,0.079433,0.031623,
+		0.100000,0.010000,0.050119,0.079433,0.010000,0.398107,0.199526,0.100000,
+		0.251189,0.199526); // formant 3 gains
+	g(4) = (0.001000,0.001000,0.001000,0.001778,0.000631,0.100000,0.125893,0.039811,
+		0.010000,0.015849,0.012589,0.100000,0.015849,0.019953,0.019953,
+		0.003162,0.001585,0.006310,0.003162,0.001000,0.079433,0.100000,0.031623,
+		0.050119,0.050119); // formant 4 gains
+	bw(0) =(80,60,50,70,50,60,40,60,40,40,80,70,40,40,40,80,60,60,40,50,
+    50,70,40,70,40); // formant 0 bandwidths
+	bw(1) =(90,80,100,80,60,70,80,90,80,80,90,80,90,80,60,90,100,90,80,60,
+		90,80,90,80,60); // formant 1 bandwidths
+	bw(2) =(120,120,120,100,170,110,100,100,100,100,120,100,100,100,100,
+		120,120,100,100,170,120,100,100,100,100); // formant 2 bandwidths
+	bw(3) =(130,150,150,130,180,120,120,120,120,120,130,120,120,120,120,
+		130,150,120,120,180,130,120,120,130,120); // formant 3 bandwidths
+	bw(4) =(140,200,200,135,200,130,120,120,120,120,140,120,120,120,120,
+		140,200,120,120,200,140,120,120,135,120); // formant 4 bandwidths
 };
 
-//-------`SFFormantModel`--------------
-// Simple formant/vocal synthesizer based on a source/filter model. The source
-// is just a sawtooth wave and the "filter" is a bank of resonant bandpass.
-// Formant parameters are linearly interpolated allowing to go smoothly from
-// one vowel to another. Voice type can be selected but must correspond to
-// the frequency range of the synthesized voice to be realistic.
-//
-// The formant data used here come from the CSOUND manual
-// <http://www.csounds.com/manual/html/>.
+// array of values used to multiply BWs by to get attack Bws for FOF version.
+// min/max values per vowel (AEIOU) and per gender (M/F). Index by:
+// gender*5 + vowel;
+// values were chosen based on informal listening tests
+bwMultMins = (1.0, 1.25, 1.25, 1.0, 1.5, 2.0, 3.0, 3.0, 2.0, 2.0);
+bwMultMaxes = (10.0, 2.5, 2.5, 10.0, 4.0, 15.0, 12.0, 12.0, 12.0, 12.0);
+
+// minimum/maximum frequency values per gender (M/F) used in the calculation
+// of the attack Bws from the release Bws in the FOF version
+// values are based on arbitrary maximum/minimum singing values
+// in Hz for male/female voices
+minGenderFreq = (82.41,174.61);
+maxGenderFreq = (523.25,1046.5);
+
+//--------------`voiceGender`-----------------
+// Calculate the gender for the provided `voiceType` value. (0: male, 1: female)
 //
 // #### Usage
 //
 // ```
-// SFFormantModel(voiceType,vowel,exType,freq,gain) : _
+// voiceGender(voiceType) : _
 // ```
 //
 // Where:
 //
-// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor, 3:
-// soprano, 4: tenor)
-// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
-// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
-//--------------------------------------
-SFFormantModel(voiceType,vowel,exType,freq,gain) = excitation : formantFilter(voiceType,vowel)
-with{
-	voice = os.sawtooth(freq);
-	breath = no.noise;
-	excitation = voice*(1-exType) + breath*exType : *(gain);
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+//---------------------------------------------
+// Author: Mike Olsen
+voiceGender(voiceType) = ba.if(voiceType == 0,1,ba.if(voiceType == 3,1,0));
+
+
+//-----------`skirtWidthMultiplier`------------
+// Calculates value to multiply bandwidth to obtain `skirtwidth`
+// for a Fof filter.
+//
+// #### Usage
+//
+// ```
+// skirtWidthMultiplier(vowel,freq,gender) : _
+// ```
+//
+// Where:
+//
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `freq`: the fundamental frequency of the excitation signal
+// * `gender`: gender of the voice used in the fof filter (0: male, 1: female)
+//---------------------------------------------
+// Author: Mike Olsen
+skirtWidthMultiplier(vowel,freq,gender) =  (multMax-multMin)*skirtParam+multMin
+with {
+	nVowels = 5;
+	index = gender*nVowels + vowel;
+	multMin = bwMultMins : ba.selectn(10,index);
+	multMax = bwMultMaxes : ba.selectn(10,index);
+	freqMin = minGenderFreq : ba.selectn(2,gender);
+	freqMax = maxGenderFreq : ba.selectn(2,gender);
+	skirtParam = ba.if(freq <= freqMin,0.0,ba.if(freq >= freqMax,1.0,
+	 		    (1.0/(freqMax-freqMin))*(freq-freqMin)));
 };
 
-//-------`SFFormantModel_ui`----------
+
+//--------------`autobendFreq`-----------------
+// Autobends the center frequencies of formants 1 and 2 based on
+// the fundamental frequency of the excitation signal and leaves
+// all other formant frequencies unchanged. Ported from `chant-lib`.
+// Reference: <https://ccrma.stanford.edu/~rmichon/chantLib/>
+//
+// #### Usage
+//
+// ```
+// _ : autobendFreq(n,freq,voiceType) : _
+// ```
+//
+// Where:
+//
+// * `n`: formant index
+// * `freq`: the fundamental frequency of the excitation signal
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+//		  3: soprano, 4: tenor)
+// * input is the center frequency of the corresponding formant
+//---------------------------------------------
+// Author: Mike Olsen
+autobendFreq(n,freq,voiceType) = autobend(n)
+with {
+	autobend(0) = _ <: ba.if(_ <= freq,freq,_);
+	autobend(1) = _ <: ba.if(voiceType != 2,
+				_ <: ba.if((_ >= 1300)&(freq >= 200),
+			        _ - (freq-200)*(_-1300)/1050,
+			     	ba.if(_ <= (30 + 2*freq),30 + 2*freq,_)), _);
+	autobend(n) = _;
+};
+
+
+//--------------`vocalEffort`-----------------
+// Changes the gains of the formants based on the fundamental
+// frequency of the excitation signal. Higher formants are
+// reinforced for higher fundamental frequencies.
+// Ported from `chant-lib`.
+// Reference: <https://ccrma.stanford.edu/~rmichon/chantLib/>
+//
+// #### Usage
+//
+// ```
+// _ : vocalEffort(freq,gender) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the fundamental frequency of the excitation signal
+// * `gender`: the gender of the voice type (0: male, 1: female)
+// * input is the linear amplitude of the formant
+//---------------------------------------------
+// Author: Mike Olsen
+vocalEffort(freq,gender) = _ <: ba.if(gender == 0,*(3+1.1*(400-freq)/300),
+*(0.8+1.05*(1000-freq)/1250));
+
+
+//-------------------------`fof`--------------------------
+// Function to generate a single Formant-Wave-Function.
+// Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
+//
+// #### Usage
+//
+// ```
+// _ : fof(fc,bw,a,g) : _
+// ```
+//
+// Where:
+//
+// * `fc`: formant center frequency,
+// * `bw`: formant bandwidth (Hz),
+// * `sw`: formant skirtwidth (Hz)
+// * `g`: linear scale factor (g=1 gives 0dB amplitude response at fc)
+// * input is an impulse signal to excite filter
+//---------------------------------------------------------
+// Author: Mike Olsen
+fof(fc,bw,sw,g) = _ <: (_',_) : (f * s)
+with {
+  T = 1/ma.SR; 	      // sample period
+  pi = ma.PI;         // pi
+  u1 = exp(-sw*pi*T); // exponential controlling rise
+  u2 = exp(-bw*pi*T); // exponential controlling decay
+  a1 = -1*(u1+u2);    // a1 filter coefficient
+  a2 = u1*u2;         // a2 filter coefficient
+  G0 = 1/(1+a1+a2);   // magnitude at DC
+  b0 = g/G0;          // filter gain
+  s  = os.hs_oscsin(fc); // hardsyncing wavetable oscillator
+  f  = fi.tf2(b0,0,0,a1,a2); // biquad filter
+};
+
+
+//-------------------------`fofSH`-------------------------
+// FOF with sample and hold used on `bw` and a parameter
+// used in the filter-cycling FOF function `fofCycle`.
+// Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
+//
+// #### Usage
+//
+// ```
+// _ : fofSH(fc,bw,a,g) : _
+// ```
+//
+// Where: all parameters same as for [`fof`](#fof)
+//---------------------------------------------------------
+// Author: Mike Olsen
+fofSH(fc,bw,a,g) = _ <: (((_,bw):ba.sAndH),((_,a):ba.sAndH),_) : (fc,_,_,g,_') : fof;
+
+
+//----------------------`fofCycle`-------------------------
+// FOF implementation where time-varying filter parameter noise is
+// mitigated by using a cycle of `n` sample and hold FOF filters.
+// Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
+//
+// #### Usage
+//
+// ```
+// _ : fofCycle(fc,bw,a,g,n) : _
+// ```
+//
+// Where:
+//
+// * `n`: the number of FOF filters to cycle through
+// * all other parameters are same as for [`fof`](#fof)
+//---------------------------------------------------------
+// Author: Mike Olsen
+fofCycle(fc,bw,a,g,n) = _ : ba.cycle(n) : par(i,n,fofSH(fc,bw,a,g)) :> _;
+
+//----------------------`fofSmooth`-------------------------
+// FOF implementation where time-varying filter parameter
+// noise is mitigated by lowpass filtering the filter
+// parameters `bw` and `a` with [smooth](#smooth).
+//
+// #### Usage
+//
+// ```
+// _ : fofSmooth(fc,bw,sw,g,tau) : _
+// ```
+//
+// Where:
+//
+// * `tau`: the desired smoothing time constant in seconds
+// * all other parameters are same as for [`fof`](#fof)
+//---------------------------------------------------------
+// Author: Mike Olsen
+fofSmooth(fc,bw,sw,g,tau) = fof(fc,bw2,sw2,g)
+with{
+    sw2 = sw : si.smooth(ba.tau2pole(tau));
+    bw2 = bw : si.smooth(ba.tau2pole(tau));
+};
+
+
+//-------`formantFilterFofCycle`--------------
+// Formant filter based on a single FOF filter.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. A cycle of n fof filters with sample-and-hold is
+// used so that the fof filter parameters can be varied in realtime.
+// This technique is more robust but more computationally expensive than
+// [`formantFilterFofSmooth`](#formantfilterfofsmooth). Voice type can be
+// selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterFofCycle(voiceType,vowel,nFormants,i,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `nFormants`: number of formant regions in frequency domain, typically 5
+// * `i`: formant number (i.e. 0 - 4) used to index formant data value arrays
+// * `freq`: fundamental frequency of excitation signal. Used to calculate
+//         rise time of envelope
+//--------------------------------------
+// Author: Mike Olsen
+formantFilterFofCycle(voiceType,vowel,nFormants,i,freq) =
+	fofCycle(formantFreq(i),formantBw(i),formantSw(i),formantGain(i),n)
+with{
+	n = 3; // number of fof filters to cycle between
+	index = (voiceType*nFormants)+vowel; // index of formant values
+	// formant center frequency using autobend correction
+	formantFreq(i) = ba.listInterp(formantValues.f(i),index) : autobendFreq(i,freq,voiceType);
+	// formant amplitude using vocal effort correction
+	formantGain(i) = ba.listInterp(formantValues.g(i),index) : vocalEffort(freq,gender);
+	formantBw(i) = ba.listInterp(formantValues.bw(i),index); // formant bandwidth
+	// formant skirtwidth
+	formantSw(i) = skirtWidthMultiplier(vowel,freq,gender)*formantBw(i);
+	gender = voiceGender(voiceType); // gender of voice
+};
+
+
+//-------`formantFilterFofSmooth`--------------
+// Formant filter based on a single FOF filter.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Fof filter parameters are lowpass filtered
+// to mitigate possible noise from varying them in realtime.
+// Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterFofSmooth(voiceType,vowel,nFormants,i,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `nFormants`: number of formant regions in frequency domain, typically 5
+// * `i`: formant number (i.e. 1 - 5) used to index formant data value arrays
+// * `freq`: fundamental frequency of excitation signal. Used to calculate
+//         rise time of envelope
+//--------------------------------------
+// Author: Mike Olsen
+formantFilterFofSmooth(voiceType,vowel,nFormants,i,freq) =
+	fofSmooth(formantFreq(i),formantBw(i),formantSw(i),formantGain(i),tau)
+with{
+	tau = 0.01; // pole of the 1-pole filter smoothing bw and sw values
+	index = (voiceType*nFormants)+vowel; // index of formant values
+	// formant center frequency using autobend correction
+	formantFreq(i) = ba.listInterp(formantValues.f(i),index) : autobendFreq(i,freq,voiceType);
+	// formant amplitude using vocal effort correction
+	formantGain(i) = ba.listInterp(formantValues.g(i),index) : vocalEffort(freq,gender);
+	formantBw(i) = ba.listInterp(formantValues.bw(i),index); // formant bandwidth
+	// formant skirtwidth
+	formantSw(i) = skirtWidthMultiplier(vowel,freq,gender)*formantBw(i);
+	gender = voiceGender(voiceType); // gender of voice
+};
+
+
+//-------`formantFilterBP`--------------
+// Formant filter based on a single resonant bandpass filter.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterBP(voiceType,vowel,nFormants,i,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `nFormants`: number of formant regions in frequency domain, typically 5
+// * `i`: formant index used to index formant data value arrays
+// * `freq`: fundamental frequency of excitation signal.
+//--------------------------------------
+formantFilterBP(voiceType,vowel,nFormants,i,freq) =
+	fi.resonbp(formantFreq(i),formantFreq(i)/formantBw(i),
+		   formantGain(i))
+with{
+	index = (voiceType*nFormants)+vowel; // index of formant values
+	// formant center frequency using autobend correction
+	formantFreq(i) = ba.listInterp(formantValues.f(i),index) : autobendFreq(i,freq,voiceType);
+	// formant amplitude using vocal effort correction
+	formantGain(i) = ba.listInterp(formantValues.g(i),index) : vocalEffort(freq,gender);
+	formantBw(i) = ba.listInterp(formantValues.bw(i),index); // formant bandwidth
+	gender = voiceGender(voiceType); // gender of voice
+};
+
+
+//-------`formantFilterbank`--------------
+// Formant filterbank which can use different types of filterbank
+// functions and different excitation signals. Formant parameters are
+// linearly interpolated allowing to go smoothly from one vowel to another.
+// Voice type can be selected but must correspond to the frequency range
+// of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterbank(voiceType,vowel,formantGen,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 	 	  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `formantGen`: the specific formant filterbank function
+//                 (i.e. FormantFilterbankBP, FormantFilterbankFof,...)
+// * `freq`: fundamental frequency of excitation signal. Needed for FOF
+//         version to calculate rise time of envelope
+//--------------------------------------
+formantFilterbank(voiceType,vowel,formantGen,freq) =
+	_ <: par(i,nFormants,formantGen(voiceType,vowel,nFormants,i,freq)) :> _
+with{
+	nFormants = 5;
+};
+
+
+//-----`formantFilterbankFofCycle`-----
+// Formant filterbank based on a bank of fof filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterbankFofCycle(voiceType,vowel,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `freq`: the fundamental frequency of the excitation signal. Needed to
+//	     calculate the skirtwidth of the FOF envelopes and for the
+//	     `autobendFreq` and `vocalEffort` functions
+//-------------------------------------
+// Author: Mike Olsen
+formantFilterbankFofCycle(voiceType,vowel,freq) =
+_ : formantFilterbank(voiceType,vowel,formantFilterFofCycle,freq);
+
+
+//-----`formantFilterbankFofSmooth`----
+// Formant filterbank based on a bank of fof filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterbankFofSmooth(voiceType,vowel,freq) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `freq`: the fundamental frequency of the excitation signal. Needed to
+//	     calculate the skirtwidth of the FOF envelopes and for the
+//	     `autobendFreq` and `vocalEffort` functions
+//-------------------------------------
+// Author: Mike Olsen
+formantFilterbankFofSmooth(voiceType,vowel,freq) =
+formantFilterbank(voiceType,vowel,formantFilterFofSmooth,freq);
+
+
+//-------`formantFilterbankBP`--------------
+// Formant filterbank based on a bank of resonant bandpass filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the provided source to be realistic.
+//
+// #### Usage
+//
+// ```
+// _ : formantFilterbankBP(voiceType,vowel) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
+// * `freq`: the fundamental frequency of the excitation signal. Needed
+//	     for the `autobendFreq` and `vocalEffort` functions
+//--------------------------------------
+formantFilterbankBP(voiceType,vowel,freq) =
+formantFilterbank(voiceType,vowel,formantFilterBP,freq);
+
+
+//-------`SFFormantModel`--------------
+// Simple formant/vocal synthesizer based on a source/filter model. The source
+// and `filterbank` must be specified by the user. `filterbank` must take the same
+// input parameters as [`formantFilterbank`](#formantfilterbank) (`BP`/`FofCycle`
+// /`FofSmooth`).
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the synthesized voice to be realistic.
+//
+// #### Usage
+//
+// ```
+// SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
+// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
+// * `freq`: the fundamental frequency of the source signal
+// * `gain`: linear gain multiplier to multiply the source by
+//--------------------------------------
+// Author: Mike Olsen
+SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank) =
+excitation : filterbank(voiceType,vowel,freq)
+with{
+	breath = no.noise;
+	excitation = source*(1-exType) + breath*exType : *(gain);
+};
+
+
+//-------`SFFormantModelFofCycle`-------
+// Simple formant/vocal synthesizer based on a source/filter model. The source
+// is just a periodic impulse and the "filter" is a bank of FOF filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the synthesized voice to be realistic. This model
+// does not work with noise in the source signal so exType has been removed
+// and model does not depend on SFFormantModel function.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelFofCycle(voiceType,vowel,exType,freq,gain) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
+// * `freq`: the fundamental frequency of the source signal
+// * `gain`: linear gain multiplier to multiply the source by
+//---------------------------------------
+// Author: Mike Olsen
+SFFormantModelFofCycle(voiceType,vowel,freq,gain) = os.lf_imptrain(freq) :
+formantFilterbankFofCycle(voiceType,vowel,freq) : *(gain);
+
+
+//-------`SFFormantModelFofSmooth`-------
+// Simple formant/vocal synthesizer based on a source/filter model. The source
+// is just a periodic impulse and the filter is a bank of FOF filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the synthesized voice to be realistic.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelFofSmooth(voiceType,vowel,exType,freq,gain) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
+// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
+// * `freq`: the fundamental frequency of the source signal
+// * `gain`: linear gain multiplier to multiply the source by
+//---------------------------------------
+// Author: Mike Olsen
+SFFormantModelFofSmooth(voiceType,vowel,exType,freq,gain) =
+SFFormantModel(voiceType,vowel,exType,freq,gain,os.lf_imptrain(freq),
+formantFilterbankFofSmooth);
+
+
+
+//-------`SFFormantModelBP`--------------
+// Simple formant/vocal synthesizer based on a source/filter model. The source
+// is just a sawtooth wave and the "filter" is a bank of resonant bandpass filters.
+// Formant parameters are linearly interpolated allowing to go smoothly from
+// one vowel to another. Voice type can be selected but must correspond to
+// the frequency range of the synthesized voice to be realistic.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelBP(voiceType,vowel,exType,freq,gain) : _
+// ```
+//
+// Where:
+//
+// * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
+// 		  3: soprano, 4: tenor)
+// * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
+// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
+// * `freq`: the fundamental frequency of the source signal
+// * `gain`: linear gain multiplier to multiply the source by
+//---------------------------------------
+SFFormantModelBP(voiceType,vowel,exType,freq,gain) =
+SFFormantModel(voiceType,vowel,exType,freq,gain,os.sawtooth(freq),
+formantFilterbankBP);
+
+
+//-------`SFFormantModelFofCycle_ui`----------
 // Ready-to-use source-filter vocal synthesizer with built-in user interface.
 //
 // #### Usage
 //
 // ```
-// SFFormantModel_ui : _
+// SFFormantModelFofCycle_ui : _
 // ```
 //----------------------------------
-SFFormantModel_ui = SFFormantModel(voiceType,vowel,fricative,freq,gain)
+// Author: Mike Olsen
+SFFormantModelFofCycle_ui = SFFormantModelFofCycle(voiceType,vowel,freq2,gain*corrFactor)
 with{
-	f = hslider("v:vocal/[0]freq",440,50,1000,0.01);
+	freq1 = hslider("v:vocal/[0]freq",440,50,1000,0.01);
+	gain = hslider("v:vocal/[1]gain",0.9,0,1,0.01);
+	corrFactor = 75.0;
+	voiceType = hslider("v:vocal/[2]voiceType",0,0,4,1);
+	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
+
+	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
+};
+
+
+
+//-------`SFFormantModelFofSmooth_ui`----------
+// Ready-to-use source-filter vocal synthesizer with built-in user interface.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelFofSmooth_ui : _
+// ```
+//----------------------------------
+// Author: Mike Olsen
+SFFormantModelFofSmooth_ui = SFFormantModelFofSmooth(voiceType,vowel,fricative,freq2,gain*corrFactor)
+with{
+	freq1 = hslider("v:vocal/[0]freq",440,50,1000,0.01);
+	gain = hslider("v:vocal/[1]gain",0.9,0,1,0.01);
+	corrFactor = 75.0;
+	voiceType = hslider("v:vocal/[2]voiceType",0,0,4,1);
+	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
+	fricative = hslider("v:vocal/[4]fricative",0,0,1,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
+
+	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
+};
+
+
+//-------`SFFormantModelBP_ui`----------
+// Ready-to-use source-filter vocal synthesizer with built-in user interface.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelBP_ui : _
+// ```
+//----------------------------------
+SFFormantModelBP_ui = SFFormantModelBP(voiceType,vowel,fricative,freq2,gain)
+with{
+	freq1 = hslider("v:vocal/[0]freq",440,50,1000,0.01);
 	gain = hslider("v:vocal/[1]gain",0.9,0,1,0.01);
 	voiceType = hslider("v:vocal/[2]voiceType",0,0,4,1);
 	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
@@ -2930,21 +3488,106 @@ with{
 	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
 	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
 
-	freq = f*(os.osc(vibratoFreq)*vibratoGain+1);
+	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
 };
 
-//-------`SFFormantModel_ui_MIDI`----------
+
+//-------`SFFormantModelFofCycle_ui_MIDI`----------
 // Ready-to-use MIDI-controllable source-filter vocal synthesizer.
 //
 // #### Usage
 //
 // ```
-// SFFormantModel_ui_MIDI : _
+// SFFormantModelFofCycle_ui_MIDI : _
 // ```
 //----------------------------------
-SFFormantModel_ui_MIDI = SFFormantModel(voiceType,vowel,fricative,freq,envelope)*outGain
+// Author: Mike Olsen
+SFFormantModelFofCycle_ui_MIDI =
+SFFormantModelFofCycle(voiceType,vowel,freq2,envelope)*outGain
 with{
-	f = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
+	",0.9,0,1,0.01);
+	corrFactor = 75.0;
+	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
+	",10,0,30,0.01)*0.001;
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
+	[style:knob]",0,0,4,1);
+	vowel = hslider("v:vocal/h:[1]otherParams/[1]vowel
+	[style:knob][midi:ctrl 1]",0,0,4,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/h:[1]otherParams/[3]vibratoFreq[style:knob]
+	",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/h:[1]otherParams/[4]vibratoGain[style:knob]
+	",0.5,0,1,0.01)*0.1;
+	outGain = hslider("v:vocal/h:[1]otherParams/[5]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:vocal/[2]gate");
+
+	gate = t+s : min(1);
+	freq2 = freq1*bend*(os.osc(vibratoFreq)*vibratoGain+1);
+	envelope = gate*gain*corrFactor : si.smooth(ba.tau2pole(envAttack));
+};
+
+
+//-------`SFFormantModelFofSmooth_ui_MIDI`----------
+// Ready-to-use MIDI-controllable source-filter vocal synthesizer.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelFofSmooth_ui_MIDI : _
+// ```
+//----------------------------------
+// Author: Mike Olsen
+SFFormantModelFofSmooth_ui_MIDI = SFFormantModelFofSmooth(voiceType,vowel,fricative,freq2,envelope)*outGain
+with{
+	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
+	",0.9,0,1,0.01);
+	corrFactor = 75.0;
+	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
+	",10,0,30,0.01)*0.001;
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	[style:knob]",0,0,1,1);
+	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
+	[style:knob]",0,0,4,1);
+	vowel = hslider("v:vocal/h:[1]otherParams/[1]vowel
+	[style:knob][midi:ctrl 1]",0,0,4,0.01) : si.smoo;
+	fricative = hslider("v:vocal/h:[1]otherParams/[2]fricative
+	[style:knob]",0,0,1,0.01) : si.smoo;
+	vibratoFreq = hslider("v:vocal/h:[1]otherParams/[3]vibratoFreq[style:knob]
+	",6,1,10,0.01);
+	vibratoGain = hslider("v:vocal/h:[1]otherParams/[4]vibratoGain[style:knob]
+	",0.5,0,1,0.01)*0.1;
+	outGain = hslider("v:vocal/h:[1]otherParams/[5]outGain[style:knob]
+	",0.5,0,1,0.01);
+	t = button("v:vocal/[2]gate");
+
+	gate = t+s : min(1);
+	freq2 = freq1*bend*(os.osc(vibratoFreq)*vibratoGain+1);
+	envelope = gate*gain*corrFactor : si.smooth(ba.tau2pole(envAttack));
+};
+
+
+//-------`SFFormantModelBP_ui_MIDI`----------
+// Ready-to-use MIDI-controllable source-filter vocal synthesizer.
+//
+// #### Usage
+//
+// ```
+// SFFormantModelBP_ui_MIDI : _
+// ```
+//----------------------------------
+SFFormantModelBP_ui_MIDI =
+SFFormantModelBP(voiceType,vowel,fricative,freq2,envelope)*outGain
+with{
+	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
@@ -2967,8 +3610,8 @@ with{
 	",0.5,0,1,0.01);
 	t = button("v:vocal/[2]gate");
 
-  gate = t+s : min(1);
-	freq = f*bend*(os.osc(vibratoFreq)*vibratoGain+1);
+ 	gate = t+s : min(1);
+	freq2 = freq1*bend*(os.osc(vibratoFreq)*vibratoGain+1);
 	envelope = gate*gain : si.smooth(ba.tau2pole(envAttack));
 };
 
