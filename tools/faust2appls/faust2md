@@ -199,4 +199,4 @@ for file in args:
 					else:
 						# lien of content of md-comment
 						# we print it unindented
-						print(outdent(line,idt))
+						print(outdent(line,idt)),
