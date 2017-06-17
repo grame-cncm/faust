@@ -182,8 +182,6 @@ static void testPolyphony(dsp* voice)
     delete DSP;
 }
 
-dsp_memory_manager* mydsp::fManager = 0;
-
 int main(int argc, char* argv[])
 {
     char rcfilename[256];

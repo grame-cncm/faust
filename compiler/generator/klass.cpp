@@ -872,7 +872,11 @@ void Klass::println(int n, ostream& fout)
 	tab(n,fout); fout << "};\n" << endl;
 
 	printlines(n, fStaticFields, fout);
-
+    
+    if (gMemoryManager) {
+        tab(n, fout); fout << "dsp_memory_manager* " << fKlassName <<"::fManager = 0;" << endl;
+    }
+    
 	// generate user interface macros if needed
 	if (gUIMacroSwitch) {
 		tab(n, fout); fout << "#ifdef FAUST_UIMACROS";
