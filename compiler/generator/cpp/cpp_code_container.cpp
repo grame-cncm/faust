@@ -189,11 +189,17 @@ void CPPCodeContainer::produceInternal()
     tab(n, *fOut); *fOut << "};" << endl;
   
     // Memory methods (as globals)
-    tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() {"
-                        << " return (" << fKlassName << "*)new "<< fKlassName << "()"
-                        << "; }";
-
-    tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
+    if (gGlobal->gMemoryManager) {
+        tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "(dsp_memory_manager* manager) {"
+                            << " return (" << fKlassName << "*)new(manager->allocate(sizeof("<< fKlassName << "))) " << fKlassName << "()"
+                            << "; }";
+        tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp, dsp_memory_manager* manager) { dsp->~" << fKlassName << "(); manager->destroy(dsp); }" ;
+    } else {
+        tab(n, *fOut); *fOut << fKlassName << "* " << "new" <<  fKlassName << "() {"
+                            << " return (" << fKlassName << "*)new "<< fKlassName << "()"
+                            << "; }";
+        tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { delete dsp; }";
+    }
     tab(n, *fOut);
 }
 
@@ -217,7 +223,7 @@ void CPPCodeContainer::produceClass()
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
     *fOut << "#endif" << endl;
-
+    
     tab(n, *fOut); *fOut << "class " << fKlassName << " : public " << fSuperKlassName << " {";
 
         tab(n+1, *fOut);
@@ -233,7 +239,7 @@ void CPPCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
         generateDeclarations(&fCodeProducer);
-        
+   
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n+1, *fOut); *fOut << "void allocate() {";
                 tab(n+2, *fOut);
@@ -254,10 +260,14 @@ void CPPCodeContainer::produceClass()
 
     tab(n, *fOut); *fOut << " public:";
 
+        if (gGlobal->gMemoryManager) {
+            tab(n+1, *fOut); *fOut << "static dsp_memory_manager* fManager;" << endl;
+        }
+    
         // Print metadata declaration
         tab(n+1, *fOut);
         produceMetadata(n+1);
-        
+    
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n+1, *fOut); *fOut << fKlassName << "() {";
                 tab(n+2, *fOut); *fOut << "allocate();";
@@ -280,21 +290,17 @@ void CPPCodeContainer::produceClass()
         generateInstanceInitFun("instanceInit", true, true)->accept(&fCodeProducer);
         */
     
-        if (gGlobal->gMemoryManager) {
-            tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq, dsp_memory_manager* manager) {";
-        } else {
-            tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
-        }
+        tab(n+1, *fOut); *fOut << "static void classInit(int samplingFreq) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateStaticInit(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
     
         if (gGlobal->gMemoryManager) {
-            tab(n+1, *fOut); *fOut << "static void classDestroy(dsp_memory_manager* manager) {";
-            tab(n+2, *fOut);
-            fCodeProducer.Tab(n+2);
-            generateStaticDestroy(&fCodeProducer);
+            tab(n+1, *fOut); *fOut << "static void classDestroy() {";
+                tab(n+2, *fOut);
+                fCodeProducer.Tab(n+2);
+                generateStaticDestroy(&fCodeProducer);
             tab(n+1, *fOut); *fOut << "}";
         }
  

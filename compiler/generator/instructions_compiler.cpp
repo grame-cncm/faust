@@ -757,12 +757,18 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         // not declared here, we add a declaration
         bool b = fStaticInitProperty.get(g, kvnames);
         faustassert(b);
-        const list<ValueInst*> args;
+        list<ValueInst*> args;
+        if (gGlobal->gMemoryManager) {
+            args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+        }
         ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
         pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
         // Delete object
         list<ValueInst*> args3;
+        if (gGlobal->gMemoryManager) {
+            args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+        }
         args3.push_back(generator);
         pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
     }
@@ -821,12 +827,18 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             // not declared here, we add a declaration
             bool b = fInstanceInitProperty.get(g, kvnames);
             faustassert(b);
-            const list<ValueInst*> args;
+            list<ValueInst*> args;
+            if (gGlobal->gMemoryManager) {
+                args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+            }
             ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
             pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
             // Delete object
             list<ValueInst*> args3;
+            if (gGlobal->gMemoryManager) {
+                args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+            }
             args3.push_back(cexp);
             pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
@@ -864,14 +876,14 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     
     if (gGlobal->gMemoryManager) {
         list<ValueInst*> alloc_args;
-        alloc_args.push_back(InstBuilder::genLoadFunArgsVar("manager"));
+        alloc_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         alloc_args.push_back(InstBuilder::genIntNumInst(size * Typed::getSizeOf(ctype)));
         pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(vname,
                                                                   InstBuilder::genCastNumInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
                                                                                               InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0))));
         
         list<ValueInst*> destroy_args;
-        destroy_args.push_back(InstBuilder::genLoadFunArgsVar("manager"));
+        destroy_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar(vname));
         pushStaticDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("destroy", destroy_args, true)));
     }
@@ -946,13 +958,19 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
 	fContainer->addSubContainer(subcontainer);
 
     // We must allocate an object of type "cname"
-    const list<ValueInst*> args;
+    list<ValueInst*> args;
+    if (gGlobal->gMemoryManager) {
+        args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    }
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
     pushInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     // Delete object
     list<ValueInst*> args3;
     args3.push_back(InstBuilder::genLoadStackVar(signame));
+    if (gGlobal->gMemoryManager) {
+        args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    }
     pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);
@@ -970,13 +988,19 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
 	fContainer->addSubContainer(subcontainer);
 
    // We must allocate an object of type "cname"
-    const list<ValueInst*> args;
+    list<ValueInst*> args;
+    if (gGlobal->gMemoryManager) {
+        args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    }
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
     pushStaticInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
     // Delete object
     list<ValueInst*> args3;
     args3.push_back(InstBuilder::genLoadStackVar(signame));
+    if (gGlobal->gMemoryManager) {
+        args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    }
     pushPostStaticInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);

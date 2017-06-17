@@ -182,6 +182,8 @@ static void testPolyphony(dsp* voice)
     delete DSP;
 }
 
+dsp_memory_manager* mydsp::fManager = 0;
+
 int main(int argc, char* argv[])
 {
     char rcfilename[256];
@@ -190,9 +192,14 @@ int main(int argc, char* argv[])
     
     bool inpl = isopt(argv, "-inpl");
     
+    // Custom memory manager
     malloc_memory_manager manager;
+    
+    // Setup manager for the class
+    mydsp::fManager = &manager;
+    
     DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
-    mydsp::classInit(44100, &manager);
+    mydsp::classInit(44100);
     
     DSP->buildUserInterface(&finterface);
  
@@ -283,7 +290,7 @@ int main(int argc, char* argv[])
     DSP->~mydsp();
     manager.destroy(DSP);
     
-    mydsp::classDestroy(&manager);
+    mydsp::classDestroy();
     
     return 0;
 }
