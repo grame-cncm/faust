@@ -40,6 +40,7 @@
 class ScalarCompiler : public Compiler
 {
   protected:
+    
     property<string>            fCompileProperty;
     property<string>            fVectorProperty;
     property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
@@ -50,22 +51,20 @@ class ScalarCompiler : public Compiler
 	OccMarkup					fOccMarkup;
     bool						fHasIota;
 
-
   public:
 
-	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
+	ScalarCompiler(const string& name, const string& super, int numInputs, int numOutputs) :
 		Compiler(name,super,numInputs,numOutputs,false),
         fHasIota(false)
 	{}
 	
-	ScalarCompiler ( Klass* k) : 
+	ScalarCompiler(Klass* k) :
 		Compiler(k),
         fHasIota(false)
 	{}
 	
 	virtual void 		compileMultiSignal  (Tree lsig);
 	virtual void		compileSingleSignal (Tree lsig);
-
 
   protected:
 
@@ -82,7 +81,6 @@ class ScalarCompiler : public Compiler
 	Tree      	prepare(Tree L0);
 	Tree 		prepare2 (Tree L0);
 	
-	
 	bool 		getCompiledExpression(Tree sig, string& name);
 	string		setCompiledExpression(Tree sig, const string& name);
 
@@ -93,7 +91,6 @@ class ScalarCompiler : public Compiler
 	void 		setSharingCount(Tree t, int count);
 	void 		sharingAnalysis(Tree t);
 	void 		sharingAnnotation(int vctxt, Tree t);
-	
 	
 	// generation du code
 	
@@ -148,8 +145,6 @@ class ScalarCompiler : public Compiler
     int             pow2limit(int x);
 
     void            declareWaveform(Tree sig, string& vname, int& size);
-
-
 
 };
 

@@ -134,8 +134,6 @@ static void test2()
     mydsp::classDestroy();
 }
 
-dsp_memory_manager* mydsp::fManager = 0;
-
 int main(int argc, char* argv[])
 {
     test1();
