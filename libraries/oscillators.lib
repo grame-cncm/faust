@@ -97,6 +97,29 @@ coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 //------------------------------------------------------------
 phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tablesize));
 
+//-----------------------`hs_phasor`------------------------
+// Hardsyncing phasor to be used with an `rdtable`.
+//
+// #### Usage
+//
+// ```
+// hs_phasor(ts,freq,c) :  _
+// ```
+//
+// Where:
+//
+// * `ts`: the tablesize for the related sine wavetable
+// * `freq`: the fundamental frequency of the phasor
+// * `c`: a clock signal, `c>0` resets phase to 0
+//---------------------------------------------------------
+// Author: Mike Olsen
+hs_phasor(ts,freq,c) = inc : (+ : d)~ (-(_<:(_,*(_,clk)))) : *(ts)
+with {
+	clk = c>0;
+	d   = ma.decimal;
+	inc = freq/float(ma.SR);
+};
+
 //-----------------------`oscsin`------------------------
 // Sine wave oscillator.
 // `oscsin` is a standard Faust function.
@@ -114,6 +137,26 @@ phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tabl
 oscsin(freq) = rdtable(tablesize, sinwaveform(tablesize), int(phasor(tablesize,freq)))
 with{
 	tablesize = 1 << 16;
+};
+
+//-----------------------`hs_oscsin`------------------------
+// Sin lookup table with hardsyncing phase.
+//
+// #### Usage
+//
+// ```
+// hs_oscsin(freq,c) : _
+// ```
+//
+// Where:
+//
+// * `freq`: the fundamental frequency of the phasor
+// * `c`: a clock signal, `c>0` resets phase to 0
+//---------------------------------------------------------
+// Author: Mike Olsen
+hs_oscsin(freq,c) = rdtable(ts, sinwaveform(ts), int(hs_phasor(ts,freq,c)))
+with {
+        ts = 1 << 16;
 };
 
 //-----------------------`osccos`------------------------
@@ -898,7 +941,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // Author: Bart Brouns
 // License: STK-4.3
 // MarkDown: Romain Michon
-lf_sawpos(freq) = ma.frac ~ +(freq/ma.SR);
+lf_sawpos(freq) = ma.frac ~ +(freq'/ma.SR);
 
 //-----------------`lf_saw`--------------------
 // Simple sawtooth waveform.

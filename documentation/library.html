@@ -81,10 +81,12 @@
 <li><a href="#period"><code>period</code></a></li>
 <li><a href="#pulse"><code>pulse</code></a></li>
 <li><a href="#pulsen"><code>pulsen</code></a></li>
+<li><a href="#cycle"><code>cycle</code></a></li>
 <li><a href="#beat"><code>beat</code></a></li>
 <li><a href="#pulse_countup"><code>pulse_countup</code></a></li>
 <li><a href="#pulse_countdown"><code>pulse_countdown</code></a></li>
 <li><a href="#pulse_countup_loop"><code>pulse_countup_loop</code></a></li>
+<li><a href="#resetctr"><code>resetCtr</code></a></li>
 <li><a href="#pulse_countdown_loop"><code>pulse_countdown_loop</code></a></li>
 </ul></li>
 <li><a href="#array-processingpattern-matching">Array Processing/Pattern Matching</a><ul>
@@ -314,7 +316,7 @@
 <li><a href="#optimbasic"><code>optimBasic</code></a></li>
 <li><a href="#optimmaxre"><code>optimMaxRe</code></a></li>
 <li><a href="#optiminphase"><code>optimInPhase</code></a></li>
-<li><a href="#usage-172">Usage</a></li>
+<li><a href="#usage-174">Usage</a></li>
 <li><a href="#wider"><code>wider</code></a></li>
 <li><a href="#map"><code>map</code></a></li>
 <li><a href="#rotate"><code>rotate</code></a></li>
@@ -405,7 +407,9 @@
 <li><a href="#sinwaveform"><code>sinwaveform</code></a></li>
 <li><a href="#coswaveform"><code>coswaveform</code></a></li>
 <li><a href="#phasor"><code>phasor</code></a></li>
+<li><a href="#hs_phasor"><code>hs_phasor</code></a></li>
 <li><a href="#oscsin"><code>oscsin</code></a></li>
+<li><a href="#hs_oscsin"><code>hs_oscsin</code></a></li>
 <li><a href="#osccos"><code>osccos</code></a></li>
 <li><a href="#oscp"><code>oscp</code></a></li>
 <li><a href="#osci"><code>osci</code></a></li>
@@ -603,10 +607,32 @@
 <li><a href="#standardbell_ui"><code>standardBell_ui</code></a></li>
 </ul></li>
 <li><a href="#vocal-synthesis">Vocal Synthesis</a><ul>
-<li><a href="#formantfilter"><code>formantFilter</code></a></li>
+<li><a href="#formantvalues"><code>formantValues</code></a></li>
+<li><a href="#voicegender"><code>voiceGender</code></a></li>
+<li><a href="#skirtwidthmultiplier"><code>skirtWidthMultiplier</code></a></li>
+<li><a href="#autobendfreq"><code>autobendFreq</code></a></li>
+<li><a href="#vocaleffort"><code>vocalEffort</code></a></li>
+<li><a href="#fof"><code>fof</code></a></li>
+<li><a href="#fofsh"><code>fofSH</code></a></li>
+<li><a href="#fofcycle"><code>fofCycle</code></a></li>
+<li><a href="#fofsmooth"><code>fofSmooth</code></a></li>
+<li><a href="#formantfilterfofcycle"><code>formantFilterFofCycle</code></a></li>
+<li><a href="#formantfilterfofsmooth"><code>formantFilterFofSmooth</code></a></li>
+<li><a href="#formantfilterbp"><code>formantFilterBP</code></a></li>
+<li><a href="#formantfilterbank"><code>formantFilterbank</code></a></li>
+<li><a href="#formantfilterbankfofcycle"><code>formantFilterbankFofCycle</code></a></li>
+<li><a href="#formantfilterbankfofsmooth"><code>formantFilterbankFofSmooth</code></a></li>
+<li><a href="#formantfilterbankbp"><code>formantFilterbankBP</code></a></li>
 <li><a href="#sfformantmodel"><code>SFFormantModel</code></a></li>
-<li><a href="#sfformantmodel_ui"><code>SFFormantModel_ui</code></a></li>
-<li><a href="#sfformantmodel_ui_midi"><code>SFFormantModel_ui_MIDI</code></a></li>
+<li><a href="#sfformantmodelfofcycle"><code>SFFormantModelFofCycle</code></a></li>
+<li><a href="#sfformantmodelfofsmooth"><code>SFFormantModelFofSmooth</code></a></li>
+<li><a href="#sfformantmodelbp"><code>SFFormantModelBP</code></a></li>
+<li><a href="#sfformantmodelfofcycle_ui"><code>SFFormantModelFofCycle_ui</code></a></li>
+<li><a href="#sfformantmodelfofsmooth_ui"><code>SFFormantModelFofSmooth_ui</code></a></li>
+<li><a href="#sfformantmodelbp_ui"><code>SFFormantModelBP_ui</code></a></li>
+<li><a href="#sfformantmodelfofcycle_ui_midi"><code>SFFormantModelFofCycle_ui_MIDI</code></a></li>
+<li><a href="#sfformantmodelfofsmooth_ui_midi"><code>SFFormantModelFofSmooth_ui_MIDI</code></a></li>
+<li><a href="#sfformantmodelbp_ui_midi"><code>SFFormantModelBP_ui_MIDI</code></a></li>
 </ul></li>
 <li><a href="#misc-functions">Misc Functions</a><ul>
 <li><a href="#allpassnl"><code>allpassNL</code></a></li>
@@ -1772,7 +1798,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <pre><code>countup(n,trig) : _</code></pre>
 <p>Where:</p>
 <ul>
-<li><code>count</code>: the starting point of the countup</li>
+<li><code>count</code>: the maximum count value</li>
 <li><code>trig</code>: the trigger signal (1: start at 0; 0: increase until <code>n</code>)</li>
 </ul>
 <hr />
@@ -1823,9 +1849,18 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <li><code>p</code>: period as a number of samples</li>
 </ul>
 <hr />
+<h3 id="cycle"><code>cycle</code></h3>
+<p>Split nonzero input values into <code>n</code> cycles.</p>
+<h4 id="usage-29">Usage</h4>
+<pre><code>_ : cycle(n) &lt;:</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the number of cycles/output signals</li>
+</ul>
+<hr />
 <h3 id="beat"><code>beat</code></h3>
 <p>Pulses at tempo <code>t</code>. <code>beat</code> is a standard Faust function.</p>
-<h4 id="usage-29">Usage</h4>
+<h4 id="usage-30">Usage</h4>
 <pre><code>beat(t) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1834,7 +1869,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <hr />
 <h3 id="pulse_countup"><code>pulse_countup</code></h3>
 <p>Starts counting up pulses. While trig is 1 the output is counting up, while trig is 0 the counter is reset to 0.</p>
-<h4 id="usage-30">Usage</h4>
+<h4 id="usage-31">Usage</h4>
 <pre><code>_ : pulse_countup(trig) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1843,7 +1878,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <hr />
 <h3 id="pulse_countdown"><code>pulse_countdown</code></h3>
 <p>Starts counting down pulses. While trig is 1 the output is counting down, while trig is 0 the counter is reset to 0.</p>
-<h4 id="usage-31">Usage</h4>
+<h4 id="usage-32">Usage</h4>
 <pre><code>_ : pulse_countdown(trig) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1852,7 +1887,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <hr />
 <h3 id="pulse_countup_loop"><code>pulse_countup_loop</code></h3>
 <p>Starts counting up pulses from 0 to n included. While trig is 1 the output is counting up, while trig is 0 the counter is reset to 0. At the end of the countup (n) the output value will be reset to 0.</p>
-<h4 id="usage-32">Usage</h4>
+<h4 id="usage-33">Usage</h4>
 <pre><code>_ : pulse_countup_loop(n,trig) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1860,9 +1895,19 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <li><code>trig</code>: the trigger signal (1: start at next pulse; 0: reset to 0)</li>
 </ul>
 <hr />
+<h3 id="resetctr"><code>resetCtr</code></h3>
+<p>Function that lets through the mth impulse out of each consecutive group of <code>n</code> impulses.</p>
+<h4 id="usage-34">Usage</h4>
+<pre><code>_ : resetCtr(n,m) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the total number of impulses being split</li>
+<li><code>m</code>: index of impulse to allow to be output</li>
+</ul>
+<hr />
 <h3 id="pulse_countdown_loop"><code>pulse_countdown_loop</code></h3>
 <p>Starts counting down pulses from 0 to n included. While trig is 1 the output is counting down, while trig is 0 the counter is reset to 0. At the end of the countdown (n) the output value will be reset to 0.</p>
-<h4 id="usage-33">Usage</h4>
+<h4 id="usage-35">Usage</h4>
 <pre><code>_ : pulse_coundown_loop(n,trig) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1873,7 +1918,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <h2 id="array-processingpattern-matching">Array Processing/Pattern Matching</h2>
 <h3 id="count"><code>count</code></h3>
 <p>Count the number of elements of list l. <code>count</code> is a standard Faust function.</p>
-<h4 id="usage-34">Usage</h4>
+<h4 id="usage-36">Usage</h4>
 <pre><code>count(l)
 count ((10,20,30,40)) -&gt; 4</code></pre>
 <p>Where:</p>
@@ -1883,7 +1928,7 @@ count ((10,20,30,40)) -&gt; 4</code></pre>
 <hr />
 <h3 id="take"><code>take</code></h3>
 <p>Take an element from a list. <code>take</code> is a standard Faust function.</p>
-<h4 id="usage-35">Usage</h4>
+<h4 id="usage-37">Usage</h4>
 <pre><code>take(e,l)
 take(3,(10,20,30,40)) -&gt; 30</code></pre>
 <p>Where:</p>
@@ -1894,7 +1939,7 @@ take(3,(10,20,30,40)) -&gt; 30</code></pre>
 <hr />
 <h3 id="subseq"><code>subseq</code></h3>
 <p>Extract a part of a list.</p>
-<h4 id="usage-36">Usage</h4>
+<h4 id="usage-38">Usage</h4>
 <pre><code>subseq(l, p, n)
 subseq((10,20,30,40,50,60), 1, 3) -&gt; (20,30,40)
 subseq((10,20,30,40,50,60), 4, 1) -&gt; 50</code></pre>
@@ -1910,7 +1955,7 @@ subseq((10,20,30,40,50,60), 4, 1) -&gt; 50</code></pre>
 <h2 id="selectors-conditions">Selectors (Conditions)</h2>
 <h3 id="if"><code>if</code></h3>
 <p>if-then-else implemented with a select2.</p>
-<h4 id="usage-37">Usage</h4>
+<h4 id="usage-39">Usage</h4>
 <ul>
 <li><code>if(c, t, e) : _</code></li>
 </ul>
@@ -1923,7 +1968,7 @@ subseq((10,20,30,40,50,60), 4, 1) -&gt; 50</code></pre>
 <hr />
 <h3 id="selector"><code>selector</code></h3>
 <p>Selects the ith input among n at compile time.</p>
-<h4 id="usage-38">Usage</h4>
+<h4 id="usage-40">Usage</h4>
 <pre><code>selector(i,n)
 _,_,_,_ : selector(2,4) : _  // selects the 3rd input among 4</code></pre>
 <p>Where:</p>
@@ -1935,7 +1980,7 @@ _,_,_,_ : selector(2,4) : _  // selects the 3rd input among 4</code></pre>
 <hr />
 <h3 id="selectn"><code>selectn</code></h3>
 <p>Selects the ith input among N at run time.</p>
-<h4 id="usage-39">Usage</h4>
+<h4 id="usage-41">Usage</h4>
 <pre><code>selectn(N,i)
 _,_,_,_ : selectn(4,2) : _  // selects the 3rd input among 4</code></pre>
 <p>Where:</p>
@@ -1949,7 +1994,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="select2stereo"><code>select2stereo</code></h3>
 <p>Select between 2 stereo signals.</p>
-<h4 id="usage-40">Usage</h4>
+<h4 id="usage-42">Usage</h4>
 <pre><code>_,_,_,_ : select2stereo(bpc) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -1959,7 +2004,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <h2 id="other">Other</h2>
 <h3 id="latch"><code>latch</code></h3>
 <p>Latch input on positive-going transition of &quot;clock&quot; (&quot;sample-and-hold&quot;).</p>
-<h4 id="usage-41">Usage</h4>
+<h4 id="usage-43">Usage</h4>
 <pre><code>_ : latch(clocksig) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1968,7 +2013,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="sandh"><code>sAndH</code></h3>
 <p>Sample And Hold. <code>sAndH</code> is a standard Faust function.</p>
-<h4 id="usage-42">Usage</h4>
+<h4 id="usage-44">Usage</h4>
 <pre><code>_ : sAndH(t) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1977,7 +2022,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="downsample"><code>downSample</code></h3>
 <p>Down sample a signal. WARNING: this function doesn't change the rate of a signal, it just holds samples... <code>downSample</code> is a standard Faust function.</p>
-<h4 id="usage-43">Usage</h4>
+<h4 id="usage-45">Usage</h4>
 <pre><code>_ : downSample(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -1986,24 +2031,24 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="peakhold"><code>peakhold</code></h3>
 <p>Outputs current max value above zero.</p>
-<h4 id="usage-44">Usage</h4>
+<h4 id="usage-46">Usage</h4>
 <pre><code>_ : peakhold(mode) : _;</code></pre>
 <p>Where:</p>
 <p><code>mode</code> means: 0 - Pass through. A single sample 0 trigger will work as a reset. 1 - Track and hold max value.</p>
 <hr />
 <h3 id="peakholder"><code>peakholder</code></h3>
 <p>Tracks abs peak and holds peak for 'holdtime' samples.</p>
-<h4 id="usage-45">Usage</h4>
+<h4 id="usage-47">Usage</h4>
 <pre><code>_ : peakholder(holdtime) : _;</code></pre>
 <hr />
 <h3 id="impulsify"><code>impulsify</code></h3>
 <p>Turns the signal from a button into an impulse (1,0,0,... when button turns on). <code>impulsify</code> is a standard Faust function.</p>
-<h4 id="usage-46">Usage</h4>
+<h4 id="usage-48">Usage</h4>
 <pre><code>button(&quot;gate&quot;) : impulsify ;</code></pre>
 <hr />
 <h3 id="automat"><code>automat</code></h3>
 <p>Record and replay to the values the input signal in a loop.</p>
-<h4 id="usage-47">Usage</h4>
+<h4 id="usage-49">Usage</h4>
 <pre><code>hslider(...) : automat(bps, size, init) : _</code></pre>
 <hr />
 <h3 id="bpf"><code>bpf</code></h3>
@@ -2029,7 +2074,7 @@ process = par(n,N, (par(i,N,i) : selectn(N,n)));</code></pre>
 <hr />
 <h3 id="listinterp"><code>listInterp</code></h3>
 <p>Linearly interpolates between the elements of a list.</p>
-<h4 id="usage-48">Usage</h4>
+<h4 id="usage-50">Usage</h4>
 <pre><code>foo = listInterp((800,400,350,450,325),index);
 i = 1.69; // range is 0-4
 process = foo(i);</code></pre>
@@ -2040,7 +2085,7 @@ process = foo(i);</code></pre>
 <hr />
 <h3 id="bypass1"><code>bypass1</code></h3>
 <p>Takes a mono input signal, route it to <code>e</code> and bypass it if <code>bpc = 1</code>. <code>bypass1</code> is a standard Faust function.</p>
-<h4 id="usage-49">Usage</h4>
+<h4 id="usage-51">Usage</h4>
 <pre><code>_ : bypass1(bpc,e) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2050,7 +2095,7 @@ process = foo(i);</code></pre>
 <hr />
 <h3 id="bypass2"><code>bypass2</code></h3>
 <p>Takes a stereo input signal, route it to <code>e</code> and bypass it if <code>bpc = 1</code>. <code>bypass2</code> is a standard Faust function.</p>
-<h4 id="usage-50">Usage</h4>
+<h4 id="usage-52">Usage</h4>
 <pre><code>_,_ : bypass2(bpc,e) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -2060,7 +2105,7 @@ process = foo(i);</code></pre>
 <hr />
 <h3 id="bypass1to2"><code>bypass1to2</code></h3>
 <p>Bypass switch for effect <code>e</code> having mono input signal and stereo output. Effect <code>e</code> is bypassed if <code>bpc = 1</code>. <code>bypass1to2</code> is a standard Faust function.</p>
-<h4 id="usage-51">Usage</h4>
+<h4 id="usage-53">Usage</h4>
 <pre><code>_ : bypass1(bpc,e) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -2070,7 +2115,7 @@ process = foo(i);</code></pre>
 <hr />
 <h3 id="toggle"><code>toggle</code></h3>
 <p>Triggered by the change of 0 to 1, it toggles the output value between 0 and 1.</p>
-<h4 id="usage-52">Usage</h4>
+<h4 id="usage-54">Usage</h4>
 <pre><code>_ : toggle : _</code></pre>
 <h4 id="examples">Examples</h4>
 <pre><code>button(&quot;toggle&quot;) : toggle : vbargraph(&quot;output&quot;, 0, 1)
@@ -2078,14 +2123,14 @@ process = foo(i);</code></pre>
 <hr />
 <h3 id="on_and_off"><code>on_and_off</code></h3>
 <p>The first channel set the output to 1, the second channel to 0.</p>
-<h4 id="usage-53">Usage</h4>
+<h4 id="usage-55">Usage</h4>
 <pre><code>_ , _ : on_and_off : _</code></pre>
 <h4 id="example">Example</h4>
 <pre><code>button(&quot;on&quot;), button(&quot;off&quot;) : on_and_off : vbargraph(&quot;output&quot;, 0, 1)</code></pre>
 <hr />
 <h3 id="selectoutn"><code>selectoutn</code></h3>
 <p>Route input to the output among N at run time.</p>
-<h4 id="usage-54">Usage</h4>
+<h4 id="usage-56">Usage</h4>
 <pre><code>_ : selectoutn(n, s) : _,_,...n</code></pre>
 <p>Where:</p>
 <ul>
@@ -2102,7 +2147,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="functions-reference">Functions Reference</h2>
 <h3 id="compressor_mono"><code>compressor_mono</code></h3>
 <p>Mono dynamic range compressors. <code>compressor_mono</code> is a standard Faust function</p>
-<h4 id="usage-55">Usage</h4>
+<h4 id="usage-57">Usage</h4>
 <pre><code>_ : compressor_mono(ratio,thresh,att,rel) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2121,7 +2166,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <hr />
 <h3 id="compressor_stereo"><code>compressor_stereo</code></h3>
 <p>Stereo dynamic range compressors.</p>
-<h4 id="usage-56">Usage</h4>
+<h4 id="usage-58">Usage</h4>
 <pre><code>_,_ : compressor_stereo(ratio,thresh,att,rel) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -2140,14 +2185,14 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <hr />
 <h3 id="limiter_1176_r4_mono"><code>limiter_1176_R4_mono</code></h3>
 <p>A limiter guards against hard-clipping. It can be can be implemented as a compressor having a high threshold (near the clipping level), fast attack and release, and high ratio. Since the ratio is so high, some knee smoothing is desirable (&quot;soft limiting&quot;). This example is intended to get you started using compressor_* as a limiter, so all parameters are hardwired to nominal values here. Ratios: 4 (moderate compression), 8 (severe compression), 12 (mild limiting), or 20 to 1 (hard limiting) Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176) Rel: 50-1100 ms (Note: scaled by ratio in the 1176) Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) Faster attack gives &quot;more bite&quot; (e.g. on vocals) He hears a bright, clear eq effect as well (not implemented here) <code>limiter_1176_R4_mono</code> is a standard Faust function.</p>
-<h4 id="usage-57">Usage</h4>
+<h4 id="usage-59">Usage</h4>
 <pre><code> _ : limiter_1176_R4_mono : _;</code></pre>
 <h4 id="reference-2">Reference:</h4>
 <p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
 <hr />
 <h3 id="limiter_1176_r4_stereo"><code>limiter_1176_R4_stereo</code></h3>
 <p>A limiter guards against hard-clipping. It can be can be implemented as a compressor having a high threshold (near the clipping level), fast attack and release, and high ratio. Since the ratio is so high, some knee smoothing is desirable (&quot;soft limiting&quot;). This example is intended to get you started using compressor_* as a limiter, so all parameters are hardwired to nominal values here. Ratios: 4 (moderate compression), 8 (severe compression), 12 (mild limiting), or 20 to 1 (hard limiting) Att: 20-800 MICROseconds (Note: scaled by ratio in the 1176) Rel: 50-1100 ms (Note: scaled by ratio in the 1176) Mike Shipley likes 4:1 (Grammy-winning mixer for Queen, Tom Petty, etc.) Faster attack gives &quot;more bite&quot; (e.g. on vocals) He hears a bright, clear eq effect as well (not implemented here)</p>
-<h4 id="usage-58">Usage</h4>
+<h4 id="usage-60">Usage</h4>
 <pre><code> _,_ : limiter_1176_R4_stereo : _,_;</code></pre>
 <h4 id="reference-3">Reference:</h4>
 <p><a href="http://en.wikipedia.org/wiki/1176_Peak_Limiter" class="uri">http://en.wikipedia.org/wiki/1176_Peak_Limiter</a></p>
@@ -2157,7 +2202,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="basic-delay-functions">Basic Delay Functions</h2>
 <h3 id="delay"><code>delay</code></h3>
 <p>Simple <code>d</code> samples delay where <code>n</code> is the maximum delay length as a number of samples. Unlike the <code>@</code> delay operator, here the delay signal <code>d</code> is explicitely bounded to the interval [0..n]. The consequence is that delay will compile even if the interval of d can't be computed by the compiler. <code>delay</code> is a standard Faust function.</p>
-<h4 id="usage-59">Usage</h4>
+<h4 id="usage-61">Usage</h4>
 <pre><code>_ : delay(n,d) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2169,7 +2214,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <p>Simple <code>d</code> samples fractional delay based on 2 interpolated delay lines where <code>n</code> is the maximum delay length as a number of samples.</p>
 <h3 id="sdelay"><code>sdelay</code></h3>
 <p>s(mooth)delay: a mono delay that doesn't click and doesn't transpose when the delay time is changed.</p>
-<h4 id="usage-60">Usage</h4>
+<h4 id="usage-62">Usage</h4>
 <pre><code>_ : sdelay(N,it,dt) : _</code></pre>
 <p>Where :</p>
 <ul>
@@ -2181,7 +2226,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="lagrange-interpolation">Lagrange Interpolation</h2>
 <h3 id="fdelaylti-and-fdelayltv"><code>fdelaylti</code> and <code>fdelayltv</code></h3>
 <p>Fractional delay line using Lagrange interpolation.</p>
-<h4 id="usage-61">Usage</h4>
+<h4 id="usage-63">Usage</h4>
 <pre><code>_ : fdelaylt[i|v](order, maxdelay, delay, inputsignal) : _</code></pre>
 <p>Where <code>order=1,2,3,...</code> is the order of the Lagrange interpolation polynomial.</p>
 <p><code>fdelaylti</code> is most efficient, but designed for constant/slowly-varying delay. <code>fdelayltv</code> is more expensive and more robust when the delay varies rapidly.</p>
@@ -2202,7 +2247,7 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <p><a href="https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html" class="uri">https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html</a></p>
 <h3 id="fdelayna"><code>fdelay[n]a</code></h3>
 <p>Delay lines interpolated using Thiran allpass interpolation.</p>
-<h4 id="usage-62">Usage</h4>
+<h4 id="usage-64">Usage</h4>
 <pre><code>_ : fdelay[N]a(maxdelay, delay, inputsignal) : _</code></pre>
 <p>(exactly like <code>fdelay</code>)</p>
 <p>Where:</p>
@@ -2220,19 +2265,19 @@ bar = vbargraph(&quot;v.bargraph&quot;, 0, 1);</code></pre>
 <h2 id="analyzers">Analyzers</h2>
 <h3 id="mth_octave_spectral_level_demo"><code>mth_octave_spectral_level_demo</code></h3>
 <p>Demonstrate mth_octave_spectral_level in a standalone GUI.</p>
-<h4 id="usage-63">Usage</h4>
+<h4 id="usage-65">Usage</h4>
 <pre><code>_ : mth_octave_spectral_level_demo(BandsPerOctave);
 _ : spectral_level_demo : _; // 2/3 octave</code></pre>
 <hr />
 <h2 id="filters-1">Filters</h2>
 <h3 id="parametric_eq_demo"><code>parametric_eq_demo</code></h3>
 <p>A parametric equalizer application.</p>
-<h4 id="usage-64">Usage:</h4>
+<h4 id="usage-66">Usage:</h4>
 <pre><code>_ : parametric_eq_demo : _ ;</code></pre>
 <hr />
 <h3 id="spectral_tilt_demo"><code>spectral_tilt_demo</code></h3>
 <p>A spectral tilt application.</p>
-<h4 id="usage-65">Usage</h4>
+<h4 id="usage-67">Usage</h4>
 <pre><code>_ : spectral_tilt_demo(N) : _ ;</code></pre>
 <p>Where:</p>
 <ul>
@@ -2242,7 +2287,7 @@ _ : spectral_level_demo : _; // 2/3 octave</code></pre>
 <hr />
 <h3 id="mth_octave_filterbank_demo-and-filterbank_demo"><code>mth_octave_filterbank_demo</code> and <code>filterbank_demo</code></h3>
 <p>Graphic Equalizer: Each filter-bank output signal routes through a fader.</p>
-<h4 id="usage-66">Usage</h4>
+<h4 id="usage-68">Usage</h4>
 <pre><code>_ : mth_octave_filterbank_demo(M) : _
 _ : filterbank_demo : _</code></pre>
 <p>Where:</p>
@@ -2253,52 +2298,52 @@ _ : filterbank_demo : _</code></pre>
 <h2 id="effects-1">Effects</h2>
 <h3 id="cubicnl_demo"><code>cubicnl_demo</code></h3>
 <p>Distortion demo application.</p>
-<h4 id="usage-67">Usage:</h4>
+<h4 id="usage-69">Usage:</h4>
 <pre><code>_ : cubicnl_demo : _;</code></pre>
 <hr />
 <h3 id="gate_demo"><code>gate_demo</code></h3>
 <p>Gate demo application.</p>
-<h4 id="usage-68">Usage</h4>
+<h4 id="usage-70">Usage</h4>
 <pre><code>_,_ : gate_demo : _,_;</code></pre>
 <hr />
 <h3 id="compressor_demo"><code>compressor_demo</code></h3>
 <p>Compressor demo application.</p>
-<h4 id="usage-69">Usage</h4>
+<h4 id="usage-71">Usage</h4>
 <pre><code>_,_ : compressor_demo : _,_;</code></pre>
 <hr />
 <h3 id="moog_vcf_demo"><code>moog_vcf_demo</code></h3>
 <p>Illustrate and compare all three Moog VCF implementations above.</p>
-<h4 id="usage-70">Usage</h4>
+<h4 id="usage-72">Usage</h4>
 <pre><code>_ : moog_vcf_demo : _;</code></pre>
 <hr />
 <h3 id="wah4_demo"><code>wah4_demo</code></h3>
 <p>Wah pedal application.</p>
-<h4 id="usage-71">Usage</h4>
+<h4 id="usage-73">Usage</h4>
 <pre><code>_ : wah4_demo : _;</code></pre>
 <hr />
 <h3 id="crybaby_demo"><code>crybaby_demo</code></h3>
 <p>Crybaby effect application.</p>
-<h4 id="usage-72">Usage</h4>
+<h4 id="usage-74">Usage</h4>
 <pre><code>_ : crybaby_demo : _ ;</code></pre>
 <hr />
 <h3 id="flanger_demo"><code>flanger_demo</code></h3>
 <p>Flanger effect application.</p>
-<h4 id="usage-73">Usage</h4>
+<h4 id="usage-75">Usage</h4>
 <pre><code>_,_ : flanger_demo : _,_;</code></pre>
 <hr />
 <h3 id="phaser2_demo"><code>phaser2_demo</code></h3>
 <p>Phaser effect demo application.</p>
-<h4 id="usage-74">Usage</h4>
+<h4 id="usage-76">Usage</h4>
 <pre><code>_,_ : phaser2_demo : _,_;</code></pre>
 <hr />
 <h3 id="stereo_reverb_tester"><code>stereo_reverb_tester</code></h3>
 <p>Handy test inputs for reverberator demos below.</p>
-<h4 id="usage-75">Usage</h4>
+<h4 id="usage-77">Usage</h4>
 <pre><code>_ : stereo_reverb_tester : _</code></pre>
 <hr />
 <h3 id="fdnrev0_demo"><code>fdnrev0_demo</code></h3>
 <p>A reverb application using <code>fdnrev0</code>.</p>
-<h4 id="usage-76">Usage</h4>
+<h4 id="usage-78">Usage</h4>
 <pre><code>_,_ : fdnrev0_demo(N,NB,BBSO) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -2309,13 +2354,13 @@ _ : filterbank_demo : _</code></pre>
 <hr />
 <h3 id="zita_rev_fdn_demo"><code>zita_rev_fdn_demo</code></h3>
 <p>Reverb demo application based on <code>zita_rev_fdn</code>.</p>
-<h4 id="usage-77">Usage</h4>
+<h4 id="usage-79">Usage</h4>
 <pre><code>si.bus(8) : zita_rev_fdn_demo : si.bus(8)</code></pre>
 <hr />
 <h3 id="zita_rev1"><code>zita_rev1</code></h3>
 <p>Example GUI for <code>zita_rev1_stereo</code> (mostly following the Linux <code>zita-rev1</code> GUI).</p>
 <p>Only the dry/wet and output level parameters are &quot;dezippered&quot; here. If parameters are to be varied in real time, use <code>smooth(0.999)</code> or the like in the same way.</p>
-<h4 id="usage-78">Usage</h4>
+<h4 id="usage-80">Usage</h4>
 <pre><code>_,_ : zita_rev1 : _,_</code></pre>
 <h4 id="reference-5">Reference</h4>
 <p><a href="http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html" class="uri">http://www.kokkinizita.net/linuxaudio/zita-rev1-doc/quickguide.html</a></p>
@@ -2323,27 +2368,27 @@ _ : filterbank_demo : _</code></pre>
 <h2 id="generators">Generators</h2>
 <h3 id="sawtooth_demo"><code>sawtooth_demo</code></h3>
 <p>An application demonstrating the different sawtooth oscillators of Faust.</p>
-<h4 id="usage-79">Usage</h4>
+<h4 id="usage-81">Usage</h4>
 <pre><code>sawtooth_demo : _</code></pre>
 <hr />
 <h3 id="virtual_analog_oscillator_demo"><code>virtual_analog_oscillator_demo</code></h3>
 <p>Virtual analog oscillator demo application.</p>
-<h4 id="usage-80">Usage</h4>
+<h4 id="usage-82">Usage</h4>
 <pre><code>virtual_analog_oscillator_demo : _</code></pre>
 <hr />
 <h3 id="oscrs_demo"><code>oscrs_demo</code></h3>
 <p>Simple application demoing filter based oscillators.</p>
-<h4 id="usage-81">Usage</h4>
+<h4 id="usage-83">Usage</h4>
 <pre><code>oscrs_demo : _</code></pre>
 <hr />
 <h3 id="velvet_noise_demo"><code>velvet_noise_demo</code></h3>
 <p>Listen to velvet_noise!</p>
-<h4 id="usage-82">Usage</h4>
+<h4 id="usage-84">Usage</h4>
 <pre><code>velvet_noise_demo : _</code></pre>
 <hr />
 <h3 id="latch_demo"><code>latch_demo</code></h3>
 <p>Illustrate latch operation</p>
-<h4 id="usage-83">Usage</h4>
+<h4 id="usage-85">Usage</h4>
 <pre><code>echo &#39;import(&quot;stdfaust.lib&quot;);&#39; &gt; latch_demo.dsp
 echo &#39;process = dm.latch_demo;&#39; &gt;&gt; latch_demo.dsp
 faust2octave latch_demo.dsp
@@ -2351,7 +2396,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="envelopes_demo"><code>envelopes_demo</code></h3>
 <p>Illustrate various envelopes overlaid, including their gate * 1.1</p>
-<h4 id="usage-84">Usage</h4>
+<h4 id="usage-86">Usage</h4>
 <pre><code>echo &#39;import(&quot;stdfaust.lib&quot;);&#39; &gt; envelopes_demo.dsp
 echo &#39;process = dm.envelopes_demo;&#39; &gt;&gt; envelopes_demo.dsp
 faust2octave envelopes_demo.dsp
@@ -2359,7 +2404,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="exciter"><code>exciter</code></h3>
 <p>Psychoacoustic harmonic exciter, with GUI.</p>
-<h4 id="usage-85">Usage</h4>
+<h4 id="usage-87">Usage</h4>
 <pre><code>_ : exciter : _</code></pre>
 <h4 id="references-4">References</h4>
 <ul>
@@ -2369,12 +2414,12 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="vocoder_demo"><code>vocoder_demo</code></h3>
 <p>Use example of the vocoder function where an impulse train is used as excitation.</p>
-<h4 id="usage-86">Usage</h4>
+<h4 id="usage-88">Usage</h4>
 <pre><code>_ : vocoder_demo : _;</code></pre>
 <hr />
 <h3 id="freeverb_demo"><code>freeverb_demo</code></h3>
 <p>Freeverb demo application.</p>
-<h4 id="usage-87">Usage</h4>
+<h4 id="usage-89">Usage</h4>
 <pre><code>_,_ : freeverb_demo : _,_;</code></pre>
 <hr />
 <h1 id="dx7.lib">dx7.lib</h1>
@@ -2387,7 +2432,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_amp_func</code>: estimated mathematical equivalent of <code>dx7_amp_bpf</code></li>
 <li><code>dx7_ampf</code>: default (sugar for <code>dx7_amp_func</code>)</li>
 </ul>
-<h4 id="usage-88">Usage:</h4>
+<h4 id="usage-90">Usage:</h4>
 <pre><code>dx7AmpPreset : dx7_ampf_bpf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2401,7 +2446,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_egraterise_func</code>: estimated mathematical equivalent of <code>dx7_egraterise_bpf</code></li>
 <li><code>dx7_egraterisef</code>: default (sugar for <code>dx7_egraterise_func</code>)</li>
 </ul>
-<h4 id="usage-89">Usage:</h4>
+<h4 id="usage-91">Usage:</h4>
 <pre><code>dx7envelopeRise : dx7_egraterisef : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2415,7 +2460,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_egrateriseperc_func</code>: estimated mathematical equivalent of <code>dx7_egrateriseperc_bpf</code></li>
 <li><code>dx7_egraterisepercf</code>: default (sugar for <code>dx7_egrateriseperc_func</code>)</li>
 </ul>
-<h4 id="usage-90">Usage:</h4>
+<h4 id="usage-92">Usage:</h4>
 <pre><code>dx7envelopePercRise : dx7_egraterisepercf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2429,7 +2474,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_egratedecay_func</code>: estimated mathematical equivalent of <code>dx7_egratedecay_bpf</code></li>
 <li><code>dx7_egratedecayf</code>: default (sugar for <code>dx7_egratedecay_func</code>)</li>
 </ul>
-<h4 id="usage-91">Usage:</h4>
+<h4 id="usage-93">Usage:</h4>
 <pre><code>dx7envelopeDecay : dx7_egratedecayf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2443,7 +2488,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_egratedecayperc_func</code>: estimated mathematical equivalent of <code>dx7_egratedecayperc_bpf</code></li>
 <li><code>dx7_egratedecaypercf</code>: default (sugar for <code>dx7_egratedecayperc_func</code>)</li>
 </ul>
-<h4 id="usage-92">Usage:</h4>
+<h4 id="usage-94">Usage:</h4>
 <pre><code>dx7envelopePercDecay : dx7_egratedecaypercf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2457,7 +2502,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <li><code>dx7_eglv2peak_func</code>: estimated mathematical equivalent of <code>dx7_eglv2peak_bpf</code></li>
 <li><code>dx7_eglv2peakf</code>: default (sugar for <code>dx7_eglv2peak_func</code>)</li>
 </ul>
-<h4 id="usage-93">Usage:</h4>
+<h4 id="usage-95">Usage:</h4>
 <pre><code>dx7Level : dx7_eglv2peakf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2466,7 +2511,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7_velsensf"><code>dx7_velsensf</code></h3>
 <p>DX7 velocity sensitivity conversion function.</p>
-<h4 id="usage-94">Usage:</h4>
+<h4 id="usage-96">Usage:</h4>
 <pre><code>dx7Velocity  : dx7_velsensf : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2475,7 +2520,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7_fdbkscalef"><code>dx7_fdbkscalef</code></h3>
 <p>DX7 feedback scaling conversion function.</p>
-<h4 id="usage-95">Usage:</h4>
+<h4 id="usage-97">Usage:</h4>
 <pre><code>dx7Feedback  : dx7_fdbkscalef : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2484,7 +2529,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7_op"><code>dx7_op</code></h3>
 <p>DX7 Operator. Implements a phase-modulable sine wave oscillator connected to a DX7 envelope generator.</p>
-<h4 id="usage-96">Usage:</h4>
+<h4 id="usage-98">Usage:</h4>
 <pre><code>dx7_op(freq,phaseMod,outLev,R1,R2,R3,R4,L1,L2,L3,L4,keyVel,rateScale,type,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2508,7 +2553,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7_algo"><code>dx7_algo</code></h3>
 <p>DX7 algorithms. Implements the 32 DX7 algorithms (a quick Google search should give your more details on this). Each algorithm uses 6 operators</p>
-<h4 id="usage-97">Usage:</h4>
+<h4 id="usage-99">Usage:</h4>
 <pre><code>dx7_algo(algN,egR1,egR2,egR3,egR4,egL1,egL2,egL3,egL4,outLevel,keyVelSens,ampModSens,opMode,opFreq,opDetune,opRateScale,feedback,lfoDelay,lfoDepth,lfoSpeed,freq,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2539,7 +2584,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7_ui"><code>dx7_ui</code></h3>
 <p>Generic DX7 function where all parameters are controllable using UI elements. The <code>master-with-mute</code> branch must be used for this function to work... This function is MIDI-compatible.</p>
-<h4 id="usage-98">Usage</h4>
+<h4 id="usage-100">Usage</h4>
 <pre><code>dx7_ui : _</code></pre>
 <hr />
 <h1 id="envelopes.lib">envelopes.lib</h1>
@@ -2547,7 +2592,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <h2 id="functions-reference-1">Functions Reference</h2>
 <h3 id="smoothenvelope"><code>smoothEnvelope</code></h3>
 <p>An envelope with an exponential attack and release. <code>smoothEnvelope</code> is a standard Faust function.</p>
-<h4 id="usage-99">Usage</h4>
+<h4 id="usage-101">Usage</h4>
 <pre><code>smoothEnvelope(ar,t) : _</code></pre>
 <ul>
 <li><code>ar</code>: attack and release duration (s)</li>
@@ -2556,7 +2601,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="ar"><code>ar</code></h3>
 <p>AR (Attack, Release) envelope generator (useful to create percussion envelopes). <code>ar</code> is a standard Faust function.</p>
-<h4 id="usage-100">Usage</h4>
+<h4 id="usage-102">Usage</h4>
 <pre><code>ar(a,r,t) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2567,7 +2612,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="are"><code>are</code></h3>
 <p>ARE (Attack, Release) envelope generator with Exponential segments. Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release. <code>are</code> is a standard Faust function.</p>
-<h4 id="usage-101">Usage</h4>
+<h4 id="usage-103">Usage</h4>
 <pre><code>are(a,r,g) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2577,7 +2622,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="asr"><code>asr</code></h3>
 <p>ASR (Attack, Sustain, Release) envelope generator. <code>asr</code> is a standard Faust function.</p>
-<h4 id="usage-102">Usage</h4>
+<h4 id="usage-104">Usage</h4>
 <pre><code>asr(a,s,r,g) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2587,7 +2632,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="adsr"><code>adsr</code></h3>
 <p>ADSR (Attack, Decay, Sustain, Release) envelope generator. <code>adsr</code> is a standard Faust function.</p>
-<h4 id="usage-103">Usage</h4>
+<h4 id="usage-105">Usage</h4>
 <pre><code>adsr(a,d,s,r,g) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2597,7 +2642,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dx7envelope"><code>dx7envelope</code></h3>
 <p>DX7 operator envelope generator with 4 independent rates and levels. It is essentially a 4 points BPF.</p>
-<h4 id="usage-104">Usage</h4>
+<h4 id="usage-106">Usage</h4>
 <pre><code>dx7_envelope(R1,R2,R3,R4,L1,L2,L3,L4,t) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2608,7 +2653,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="adsre"><code>adsre</code></h3>
 <p>ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential segments. <code>adsre</code> is a standard Faust function.</p>
-<h4 id="usage-105">Usage</h4>
+<h4 id="usage-107">Usage</h4>
 <pre><code>adsre(a,d,s,r,g) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2643,7 +2688,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <h2 id="basic-filters">Basic Filters</h2>
 <h3 id="zero"><code>zero</code></h3>
 <p>One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).</p>
-<h4 id="usage-106">Usage</h4>
+<h4 id="usage-108">Usage</h4>
 <pre><code>_ : zero(z) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2654,7 +2699,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="pole"><code>pole</code></h3>
 <p>One pole filter. Could also be called a &quot;leaky integrator&quot;. Difference equation: y(n) = x(n) + p * y(n-1).</p>
-<h4 id="usage-107">Usage</h4>
+<h4 id="usage-109">Usage</h4>
 <pre><code>_ : pole(z) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2668,7 +2713,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dcblockerat"><code>dcblockerat</code></h3>
 <p>DC blocker with configurable break frequency. The amplitude response is substantially flat above fb, and sloped at about +6 dB/octave below fb. Derived from the analog transfer function H(s) = s / (s + 2<em>PI</em>fb) by the low-frequency-matching bilinear transform method (i.e., the standard frequency-scaling constant 2*SR).</p>
-<h4 id="usage-108">Usage</h4>
+<h4 id="usage-110">Usage</h4>
 <pre><code>_ : dcblockerat(fb) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2679,13 +2724,13 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="dcblocker"><code>dcblocker</code></h3>
 <p>DC blocker. Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz) and high-frequency gain near 1.0025 (due to no scaling). <code>dcblocker</code> is as standard Faust function.</p>
-<h4 id="usage-109">Usage</h4>
+<h4 id="usage-111">Usage</h4>
 <pre><code>_ : dcblocker : _</code></pre>
 <hr />
 <h2 id="comb-filters">Comb Filters</h2>
 <h3 id="ff_comb"><code>ff_comb</code></h3>
 <p>Feed-Forward Comb Filter. Note that <code>ff_comb</code> requires integer delays (uses <code>delay</code> internally). <code>ff_comb</code> is a standard Faust function.</p>
-<h4 id="usage-110">Usage</h4>
+<h4 id="usage-112">Usage</h4>
 <pre><code>_ : ff_comb(maxdel,intdel,b0,bM) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2700,7 +2745,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="ff_fcomb"><code>ff_fcomb</code></h3>
 <p>Feed-Forward Comb Filter. Note that <code>ff_fcomb</code> takes floating-point delays (uses <code>fdelay</code> internally). <code>ff_fcomb</code> is a standard Faust function.</p>
-<h4 id="usage-111">Usage</h4>
+<h4 id="usage-113">Usage</h4>
 <pre><code>_ : ff_fcomb(maxdel,del,b0,bM) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2718,7 +2763,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="fb_comb"><code>fb_comb</code></h3>
 <p>Feed-Back Comb Filter (integer delay).</p>
-<h4 id="usage-112">Usage</h4>
+<h4 id="usage-114">Usage</h4>
 <pre><code>_ : fb_comb(maxdel,intdel,b0,aN) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2733,7 +2778,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="fb_fcomb"><code>fb_fcomb</code></h3>
 <p>Feed-Back Comb Filter (floating point delay).</p>
-<h4 id="usage-113">Usage</h4>
+<h4 id="usage-115">Usage</h4>
 <pre><code>_ : fb_fcomb(maxdel,del,b0,aN) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2751,7 +2796,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <hr />
 <h3 id="fbcombfilter-and-ffbcombfilter"><code>fbcombfilter</code> and <code>ffbcombfilter</code></h3>
 <p>Other special cases of Feed-Back Comb Filter.</p>
-<h4 id="usage-114">Usage</h4>
+<h4 id="usage-116">Usage</h4>
 <pre><code>_ : fbcombfilter(maxdel,intdel,g) : _
 _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 <p>Where:</p>
@@ -2768,7 +2813,7 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 <p>Schroeder Allpass Comb Filter. Note that</p>
 <pre><code>allpass_comb(maxlen,len,aN) = ff_comb(maxlen,len,aN,1) : fb_comb(maxlen,len-1,1,aN);</code></pre>
 <p>which is a direct-form-1 implementation, requiring two delay lines. The implementation here is direct-form-2 requiring only one delay line.</p>
-<h4 id="usage-115">Usage</h4>
+<h4 id="usage-117">Usage</h4>
 <pre><code>_ : allpass_comb (maxdel,intdel,aN) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2789,7 +2834,7 @@ _ : ffbcombfilter(maxdel,del,g) : _</code></pre>
 <pre><code>allpass_comb(maxlen,len,aN) = ff_comb(maxlen,len,aN,1) : fb_comb(maxlen,len-1,1,aN);</code></pre>
 <p>which is a direct-form-1 implementation, requiring two delay lines. The implementation here is direct-form-2 requiring only one delay line.</p>
 <p><code>allpass_fcomb</code> is a standard Faust library.</p>
-<h4 id="usage-116">Usage</h4>
+<h4 id="usage-118">Usage</h4>
 <pre><code>_ : allpass_comb (maxdel,intdel,aN) : _
 _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 <p>Where:</p>
@@ -2817,7 +2862,7 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 <h3 id="iir"><code>iir</code></h3>
 <p>Nth-order Infinite-Impulse-Response (IIR) digital filter, implemented in terms of the Transfer-Function (TF) coefficients. Such filter structures are termed &quot;direct form&quot;.</p>
 <p><code>iir</code> is a standard Faust function.</p>
-<h4 id="usage-117">Usage</h4>
+<h4 id="usage-119">Usage</h4>
 <pre><code>  _ : iir(bcoeffs,acoeffs) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2830,7 +2875,7 @@ _ : allpass_fcomb(maxdel,del,aN) : _</code></pre>
 <hr />
 <h3 id="fir"><code>fir</code></h3>
 <p>FIR filter (convolution of FIR filter coefficients with a signal)</p>
-<h4 id="usage-118">Usage</h4>
+<h4 id="usage-120">Usage</h4>
 <pre><code>_ : fir(bv) : _</code></pre>
 <p><code>fir</code> is standard Faust function.</p>
 <p>Where:</p>
@@ -2848,13 +2893,13 @@ process = noise : fir(bv);</code></pre>
 <hr />
 <h3 id="conv-and-convn"><code>conv</code> and <code>convN</code></h3>
 <p>Convolution of input signal with given coefficients.</p>
-<h4 id="usage-119">Usage</h4>
+<h4 id="usage-121">Usage</h4>
 <pre><code>_ : conv((k1,k2,k3,...,kN)) : _; // Argument = one signal bank
 _ : convN(N,(k1,k2,k3,...)) : _; // Useful when N &lt; count((k1,...))</code></pre>
 <hr />
 <h3 id="tf1-tf2-and-tf3"><code>tf1</code>, <code>tf2</code> and <code>tf3</code></h3>
 <p>tfN = N'th-order direct-form digital filter.</p>
-<h4 id="usage-120">Usage</h4>
+<h4 id="usage-122">Usage</h4>
 <pre><code>_ : tf1(b0,b1,a1) : _
 _ : tf2(b0,b1,b2,a1,a2) : _
 _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
@@ -2868,7 +2913,7 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <hr />
 <h3 id="notchw"><code>notchw</code></h3>
 <p>Simple notch filter based on a biquad (<code>tf2</code>). <code>notchw</code> is a standard Faust function.</p>
-<h4 id="usage-121">Usage:</h4>
+<h4 id="usage-123">Usage:</h4>
 <pre><code>_ : notchw(width,freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2890,7 +2935,7 @@ _ : tf3(b0,b1,b2,b3,a1,a2,a3) : _</code></pre>
 <li><code>tf22t</code> is tf2, direct-form 2 transposed</li>
 <li><code>tf21t</code> is tf2, direct-form 1 transposed</li>
 </ul>
-<h4 id="usage-122">Usage</h4>
+<h4 id="usage-124">Usage</h4>
 <pre><code>_ : tf21(b0,b1,b2,a1,a2) : _
 _ : tf22(b0,b1,b2,a1,a2) : _
 _ : tf22t(b0,b1,b2,a1,a2) : _
@@ -2907,7 +2952,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <p>Ladder and lattice digital filters generally have superior numerical properties relative to direct-form digital filters. They can be derived from digital waveguide filters, which gives them a physical interpretation.</p>
 <h3 id="av2sv"><code>av2sv</code></h3>
 <p>Compute reflection coefficients sv from transfer-function denominator av.</p>
-<h4 id="usage-123">Usage</h4>
+<h4 id="usage-125">Usage</h4>
 <pre><code>sv = av2sv(av)</code></pre>
 <p>Where:</p>
 <ul>
@@ -2920,7 +2965,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="bvav2nuv"><code>bvav2nuv</code></h3>
 <p>Compute lattice tap coefficients from transfer-function coefficients.</p>
-<h4 id="usage-124">Usage</h4>
+<h4 id="usage-126">Usage</h4>
 <pre><code>nuv = bvav2nuv(bv,av)</code></pre>
 <p>Where:</p>
 <ul>
@@ -2932,7 +2977,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="iir_lat2"><code>iir_lat2</code></h3>
 <p>Two-multiply latice IIR filter or arbitrary order.</p>
-<h4 id="usage-125">Usage</h4>
+<h4 id="usage-127">Usage</h4>
 <pre><code>_ : iir_lat2(bv,av) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2942,7 +2987,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpassnt"><code>allpassnt</code></h3>
 <p>Two-multiply lattice allpass (nested order-1 direct-form-ii allpasses).</p>
-<h4 id="usage-126">Usage</h4>
+<h4 id="usage-128">Usage</h4>
 <pre><code>_ : allpassnt(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2952,7 +2997,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="iir_kl"><code>iir_kl</code></h3>
 <p>Kelly-Lochbaum ladder IIR filter or arbitrary order.</p>
-<h4 id="usage-127">Usage</h4>
+<h4 id="usage-129">Usage</h4>
 <pre><code>_ : iir_kl(bv,av) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2962,7 +3007,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpassnklt"><code>allpassnklt</code></h3>
 <p>Kelly-Lochbaum ladder allpass.</p>
-<h4 id="usage-128">Usage:</h4>
+<h4 id="usage-130">Usage:</h4>
 <pre><code>_ : allpassklt(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2972,7 +3017,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="iir_lat1"><code>iir_lat1</code></h3>
 <p>One-multiply latice IIR filter or arbitrary order.</p>
-<h4 id="usage-129">Usage</h4>
+<h4 id="usage-131">Usage</h4>
 <pre><code>_ : iir_lat1(bv,av) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2982,7 +3027,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpassn1mt"><code>allpassn1mt</code></h3>
 <p>One-multiply lattice allpass with tap lines.</p>
-<h4 id="usage-130">Usage</h4>
+<h4 id="usage-132">Usage</h4>
 <pre><code>_ : allpassn1mt(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -2992,7 +3037,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="iir_nl"><code>iir_nl</code></h3>
 <p>Normalized ladder filter of arbitrary order.</p>
-<h4 id="usage-131">Usage</h4>
+<h4 id="usage-133">Usage</h4>
 <pre><code>_ : iir_nl(bv,av) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3007,7 +3052,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpassnnlt"><code>allpassnnlt</code></h3>
 <p>Normalized ladder allpass filter of arbitrary order.</p>
-<h4 id="usage-132">Usage:</h4>
+<h4 id="usage-134">Usage:</h4>
 <pre><code>_ : allpassnnlt(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3023,7 +3068,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h2 id="useful-special-cases">Useful Special Cases</h2>
 <h3 id="tf2np"><code>tf2np</code></h3>
 <p>Biquad based on a stable second-order Normalized Ladder Filter (more robust to modulation than <code>tf2</code> and protected against instability).</p>
-<h4 id="usage-133">Usage</h4>
+<h4 id="usage-135">Usage</h4>
 <pre><code>_ : tf2np(b0,b1,b2,a1,a2) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3033,7 +3078,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="wgr"><code>wgr</code></h3>
 <p>Second-order transformer-normalized digital waveguide resonator.</p>
-<h4 id="usage-134">Usage</h4>
+<h4 id="usage-136">Usage</h4>
 <pre><code>_ : wgr(f,r) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3048,7 +3093,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="nlf2"><code>nlf2</code></h3>
 <p>Second order normalized digital waveguide resonator.</p>
-<h4 id="usage-135">Usage</h4>
+<h4 id="usage-137">Usage</h4>
 <pre><code>_ : nlf2(f,r) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3060,7 +3105,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="apnl"><code>apnl</code></h3>
 <p>Passive Nonlinear Allpass based on Pierce switching springs idea. Switch between allpass coefficient <code>a1</code> and <code>a2</code> at signal zero crossings.</p>
-<h4 id="usage-136">Usage</h4>
+<h4 id="usage-138">Usage</h4>
 <pre><code>_ : apnl(a1,a2) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3081,7 +3126,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 </ul>
 <h3 id="allpassn"><code>allpassn</code></h3>
 <p>Two-multiply lattice - each section is two multiply-adds.</p>
-<h4 id="usage-137">Usage:</h4>
+<h4 id="usage-139">Usage:</h4>
 <pre><code>_ : allpassn(n,sv) : _</code></pre>
 <h4 id="where">Where:</h4>
 <ul>
@@ -3095,7 +3140,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpassnn"><code>allpassnn</code></h3>
 <p>Normalized form - four multiplies and two adds per section, but coefficients can be time varying and nonlinear without &quot;parametric amplification&quot; (modulation of signal energy).</p>
-<h4 id="usage-138">Usage:</h4>
+<h4 id="usage-140">Usage:</h4>
 <pre><code>_ : allpassnn(n,tv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3105,7 +3150,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpasskl"><code>allpasskl</code></h3>
 <p>Kelly-Lochbaum form - four multiplies and two adds per section, but all signals have an immediate physical interpretation as traveling pressure waves, etc.</p>
-<h4 id="usage-139">Usage:</h4>
+<h4 id="usage-141">Usage:</h4>
 <pre><code>_ : allpassnkl(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3115,7 +3160,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <hr />
 <h3 id="allpass1m"><code>allpass1m</code></h3>
 <p>One-multiply form - one multiply and three adds per section. Normally the most efficient in special-purpose hardware.</p>
-<h4 id="usage-140">Usage:</h4>
+<h4 id="usage-142">Usage:</h4>
 <pre><code>_ : allpassn1m(n,sv) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3126,7 +3171,7 @@ _ : tf21t(b0,b1,b2,a1,a2) : _</code></pre>
 <h2 id="digital-filter-sections-specified-as-analog-filter-sections">Digital Filter Sections Specified as Analog Filter Sections</h2>
 <h3 id="tf2s-and-tf2snp"><code>tf2s</code> and <code>tf2snp</code></h3>
 <p>Second-order direct-form digital filter, specified by ANALOG transfer-function polynomials B(s)/A(s), and a frequency-scaling parameter. Digitization via the bilinear transform is built in.</p>
-<h4 id="usage-141">Usage</h4>
+<h4 id="usage-143">Usage</h4>
 <pre><code>_ : tf2s(b2,b1,b0,a1,a0,w1) : _</code></pre>
 <p>Where:</p>
 <pre><code>        b2 s^2 + b1 s + b0
@@ -3146,12 +3191,12 @@ H(s) = -----------------
 <hr />
 <h3 id="tf3slf"><code>tf3slf</code></h3>
 <p>Analogous to tf2s above, but third order, and using the typical low-frequency-matching bilinear-transform constant 2/T (&quot;lf&quot; series) instead of the specific-frequency-matching value used in tf2s and tf1s. Note the lack of a &quot;w1&quot; argument.</p>
-<h4 id="usage-142">Usage</h4>
+<h4 id="usage-144">Usage</h4>
 <pre><code>_ : tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) : _</code></pre>
 <hr />
 <h3 id="tf1s"><code>tf1s</code></h3>
 <p>First-order direct-form digital filter, specified by ANALOG transfer-function polynomials B(s)/A(s), and a frequency-scaling parameter.</p>
-<h4 id="usage-143">Usage</h4>
+<h4 id="usage-145">Usage</h4>
 <pre><code>tf1s(b1,b0,a0,w1)</code></pre>
 <p>Where:</p>
 <pre><code>   b1 s + b0</code></pre>
@@ -3170,18 +3215,18 @@ H(s) = -----------------
 <hr />
 <h3 id="tf2sb"><code>tf2sb</code></h3>
 <p>Bandpass mapping of <code>tf2s</code>: In addition to a frequency-scaling parameter <code>w1</code> (set to HALF the desired passband width in rad/sec), there is a desired center-frequency parameter wc (also in rad/s). Thus, <code>tf2sb</code> implements a fourth-order digital bandpass filter section specified by the coefficients of a second-order analog lowpass prototpe section. Such sections can be combined in series for higher orders. The order of mappings is (1) frequency scaling (to set lowpass cutoff w1), (2) bandpass mapping to wc, then (3) the bilinear transform, with the usual scale parameter <code>2*SR</code>. Algebra carried out in maxima and pasted here.</p>
-<h4 id="usage-144">Usage</h4>
+<h4 id="usage-146">Usage</h4>
 <pre><code>_ : tf2sb(b2,b1,b0,a1,a0,w1,wc) : _</code></pre>
 <hr />
 <h3 id="tf1sb"><code>tf1sb</code></h3>
 <p>First-to-second-order lowpass-to-bandpass section mapping, analogous to tf2sb above.</p>
-<h4 id="usage-145">Usage</h4>
+<h4 id="usage-147">Usage</h4>
 <pre><code>_ : tf1sb(b1,b0,a0,w1,wc) : _</code></pre>
 <hr />
 <h2 id="simple-resonator-filters">Simple Resonator Filters</h2>
 <h3 id="resonlp"><code>resonlp</code></h3>
 <p>Simple resonant lowpass filter based on <code>tf2s</code> (virtual analog). <code>resonlp</code> is a standard Faust function.</p>
-<h4 id="usage-146">Usage</h4>
+<h4 id="usage-148">Usage</h4>
 <pre><code>_ : resonlp(fc,Q,gain) : _
 _ : resonhp(fc,Q,gain) : _
 _ : resonbp(fc,Q,gain) : _
@@ -3195,7 +3240,7 @@ _ : resonbp(fc,Q,gain) : _
 <hr />
 <h3 id="resonhp"><code>resonhp</code></h3>
 <p>Simple resonant highpass filters based on <code>tf2s</code> (virtual analog). <code>resonhp</code> is a standard Faust function.</p>
-<h4 id="usage-147">Usage</h4>
+<h4 id="usage-149">Usage</h4>
 <pre><code>_ : resonlp(fc,Q,gain) : _
 _ : resonhp(fc,Q,gain) : _
 _ : resonbp(fc,Q,gain) : _
@@ -3209,7 +3254,7 @@ _ : resonbp(fc,Q,gain) : _
 <hr />
 <h3 id="resonbp"><code>resonbp</code></h3>
 <p>Simple resonant bandpass filters based on <code>tf2s</code> (virtual analog). <code>resonbp</code> is a standard Faust function.</p>
-<h4 id="usage-148">Usage</h4>
+<h4 id="usage-150">Usage</h4>
 <pre><code>_ : resonlp(fc,Q,gain) : _
 _ : resonhp(fc,Q,gain) : _
 _ : resonbp(fc,Q,gain) : _
@@ -3224,7 +3269,7 @@ _ : resonbp(fc,Q,gain) : _
 <h2 id="butterworth-lowpasshighpass-filters">Butterworth Lowpass/Highpass Filters</h2>
 <h3 id="lowpass"><code>lowpass</code></h3>
 <p>Nth-order Butterworth lowpass filter. <code>lowpass</code> is a standard Faust function.</p>
-<h4 id="usage-149">Usage</h4>
+<h4 id="usage-151">Usage</h4>
 <pre><code>_ : lowpass(N,fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3239,7 +3284,7 @@ _ : resonbp(fc,Q,gain) : _
 <hr />
 <h3 id="highpass"><code>highpass</code></h3>
 <p>Nth-order Butterworth highpass filters. <code>highpass</code> is a standard Faust function.</p>
-<h4 id="usage-150">Usage</h4>
+<h4 id="usage-152">Usage</h4>
 <pre><code>_ : highpass(N,fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3265,7 +3310,7 @@ _ : resonbp(fc,Q,gain) : _
 </ul>
 <h3 id="lowpass3e"><code>lowpass3e</code></h3>
 <p>Third-order Elliptic (Cauer) lowpass filter.</p>
-<h4 id="usage-151">Usage</h4>
+<h4 id="usage-153">Usage</h4>
 <pre><code>_ : lowpass3e(fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3279,7 +3324,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <hr />
 <h3 id="lowpass6e"><code>lowpass6e</code></h3>
 <p>Sixth-order Elliptic/Cauer lowpass filter.</p>
-<h4 id="usage-152">Usage</h4>
+<h4 id="usage-154">Usage</h4>
 <pre><code>_ : lowpass6e(fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3294,7 +3339,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <h2 id="elliptic-highpass-filters">Elliptic Highpass Filters</h2>
 <h3 id="highpass3e"><code>highpass3e</code></h3>
 <p>Third-order Elliptic (Cauer) highpass filter. Inversion of <code>lowpass3e</code> wrt unit circle in s plane (s &lt;- 1/s)</p>
-<h4 id="usage-153">Usage</h4>
+<h4 id="usage-155">Usage</h4>
 <pre><code>_ : highpass3e(fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3303,7 +3348,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <hr />
 <h3 id="highpass6e"><code>highpass6e</code></h3>
 <p>Sixth-order Elliptic/Cauer highpass filter. Inversion of lowpass3e wrt unit circle in s plane (s &lt;- 1/s)</p>
-<h4 id="usage-154">Usage</h4>
+<h4 id="usage-156">Usage</h4>
 <pre><code>_ : highpass6e(fc) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3313,7 +3358,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <h2 id="butterworth-bandpassbandstop-filters">Butterworth Bandpass/Bandstop Filters</h2>
 <h3 id="bandpass"><code>bandpass</code></h3>
 <p>Order 2*Nh Butterworth bandpass filter made using the transformation <code>s &lt;- s + wc^2/s</code> on <code>lowpass(Nh)</code>, where <code>wc</code> is the desired bandpass center frequency. The <code>lowpass(Nh)</code> cutoff <code>w1</code> is half the desired bandpass width. <code>bandpass</code> is a standard Faust function.</p>
-<h4 id="usage-155">Usage</h4>
+<h4 id="usage-157">Usage</h4>
 <pre><code>_ : bandpass(Nh,fl,fu) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3326,7 +3371,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 <hr />
 <h3 id="bandstop"><code>bandstop</code></h3>
 <p>Order 2*Nh Butterworth bandstop filter made using the transformation <code>s &lt;- s + wc^2/s</code> on <code>highpass(Nh)</code>, where <code>wc</code> is the desired bandpass center frequency. The <code>highpass(Nh)</code> cutoff <code>w1</code> is half the desired bandpass width. <code>bandstop</code> is a standard Faust function.</p>
-<h4 id="usage-156">Usage</h4>
+<h4 id="usage-158">Usage</h4>
 <pre><code>_ : bandstop(Nh,fl,fu) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3358,7 +3403,7 @@ Rs = 0.2 % dB ripple in passband</code></pre>
 </ul>
 <h3 id="low_shelf"><code>low_shelf</code></h3>
 <p>First-order &quot;low shelf&quot; filter (gain boost|cut between dc and some frequency) <code>low_shelf</code> is a standard Faust function.</p>
-<h4 id="usage-157">Usage</h4>
+<h4 id="usage-159">Usage</h4>
 <pre><code>_ : lowshelf(N,L0,fx) : _
 _ : low_shelf(L0,fx) : _ // default case (order 3)
 _ : lowshelf_other_freq(N,L0,fx) : _</code></pre>
@@ -3382,7 +3427,7 @@ _ : lowshelf_other_freq(N,L0,fx) : _</code></pre>
 <hr />
 <h3 id="high_shelf"><code>high_shelf</code></h3>
 <p>First-order &quot;high shelf&quot; filter (gain boost|cut above some frequency). <code>high_shelf</code> is a standard Faust function.</p>
-<h4 id="usage-158">Usage</h4>
+<h4 id="usage-160">Usage</h4>
 <pre><code>_ : highshelf(N,Lpi,fx) : _
 _ : high_shelf(L0,fx) : _ // default case (order 3)
 _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
@@ -3396,7 +3441,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="peak_eq"><code>peak_eq</code></h3>
 <p>Second order &quot;peaking equalizer&quot; section (gain boost or cut near some frequency) Also called a &quot;parametric equalizer&quot; section. <code>peak_eq</code> is a standard Faust function.</p>
-<h4 id="usage-159">Usage</h4>
+<h4 id="usage-161">Usage</h4>
 <pre><code>_ : peak_eq(Lfx,fx,B) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3407,7 +3452,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="peak_eq_cq"><code>peak_eq_cq</code></h3>
 <p>Constant-Q second order peaking equalizer section.</p>
-<h4 id="usage-160">Usage</h4>
+<h4 id="usage-162">Usage</h4>
 <pre><code>_ : peak_eq_cq(Lfx,fx,Q) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3418,7 +3463,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="peak_eq_rm"><code>peak_eq_rm</code></h3>
 <p>Regalia-Mitra second order peaking equalizer section</p>
-<h4 id="usage-161">Usage</h4>
+<h4 id="usage-163">Usage</h4>
 <pre><code>_ : peak_eq_rm(Lfx,fx,tanPiBT) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -3431,7 +3476,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="spectral_tilt"><code>spectral_tilt</code></h3>
 <p>Spectral tilt filter, providing an arbitrary spectral rolloff factor alpha in (-1,1), where -1 corresponds to one pole (-6 dB per octave), and +1 corresponds to one zero (+6 dB per octave). In other words, alpha is the slope of the ln magnitude versus ln frequency. For a &quot;pinking filter&quot; (e.g., to generate 1/f noise from white noise), set alpha to -1/2.</p>
-<h4 id="usage-162">Usage</h4>
+<h4 id="usage-164">Usage</h4>
 <pre><code>_ : spectral_tilt(N,f0,bw,alpha) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3447,7 +3492,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="levelfilter"><code>levelfilter</code></h3>
 <p>Dynamic level lowpass filter. <code>levelfilter</code> is a standard Faust function.</p>
-<h4 id="usage-163">Usage</h4>
+<h4 id="usage-165">Usage</h4>
 <pre><code>_ : levelfilter(L,freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3460,7 +3505,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 <hr />
 <h3 id="levelfiltern"><code>levelfilterN</code></h3>
 <p>Dynamic level lowpass filter.</p>
-<h4 id="usage-164">Usage</h4>
+<h4 id="usage-166">Usage</h4>
 <pre><code>_ : levelfilterN(N,freq,L) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3492,7 +3537,7 @@ _ : highshelf_other_freq(N,Lpi,fx) : _</code></pre>
 </ul>
 <h3 id="mth_octave_filterbankn"><code>mth_octave_filterbank[n]</code></h3>
 <p>Allpass-complementary filter banks based on Butterworth band-splitting. For Butterworth band-splits, the needed delay equalizer is easily found.</p>
-<h4 id="usage-165">Usage</h4>
+<h4 id="usage-167">Usage</h4>
 <pre><code>_ : mth_octave_filterbank(O,M,ftop,N) : par(i,N,_); // Oth-order
 _ : mth_octave_filterbank_alt(O,M,ftop,N) : par(i,N,_); // dc-inverted version</code></pre>
 <p>Also for convenience:</p>
@@ -3511,7 +3556,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <p>These are similar to the Mth-octave analyzers above, except that the band-split frequencies are passed explicitly as arguments.</p>
 <h3 id="filterbank"><code>filterbank</code></h3>
 <p>Filter bank. <code>filterbank</code> is a standard Faust function.</p>
-<h4 id="usage-166">Usage</h4>
+<h4 id="usage-168">Usage</h4>
 <pre><code>_ : filterbank (O,freqs) : par(i,N,_); // Butterworth band-splits</code></pre>
 <p>Where:</p>
 <ul>
@@ -3523,7 +3568,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="filterbanki"><code>filterbanki</code></h3>
 <p>Inverted-dc filter bank.</p>
-<h4 id="usage-167">Usage</h4>
+<h4 id="usage-169">Usage</h4>
 <pre><code>_ : filterbanki(O,freqs) : par(i,N,_); // Inverted-dc version</code></pre>
 <p>Where:</p>
 <ul>
@@ -3537,7 +3582,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <p>Faust library for high order ambisonic. Its official prefix is <code>ho</code>.</p>
 <h3 id="encoder"><code>encoder</code></h3>
 <p>Ambisonic encoder. Encodes a signal in the circular harmonics domain depending on an order of decomposition and an angle.</p>
-<h4 id="usage-168">Usage</h4>
+<h4 id="usage-170">Usage</h4>
 <pre><code>encoder(n, x, a) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3548,7 +3593,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="decoder"><code>decoder</code></h3>
 <p>Decodes an ambisonics sound field for a circular array of loudspeakers.</p>
-<h4 id="usage-169">Usage</h4>
+<h4 id="usage-171">Usage</h4>
 <pre><code>_ : decoder(n, p) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3570,7 +3615,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <p>Functions to weight the circular harmonics signals depending to the ambisonics optimization. It can be <code>basic</code> for no optimization, <code>maxRe</code> or <code>inPhase</code>.</p>
 <h3 id="optimbasic"><code>optimBasic</code></h3>
 <p>The basic optimization has no effect and should be used for a perfect circle of loudspeakers with one listener at the perfect center loudspeakers array.</p>
-<h4 id="usage-170">Usage</h4>
+<h4 id="usage-172">Usage</h4>
 <pre><code>_ : optimBasic(n) : _ </code></pre>
 <p>Where:</p>
 <ul>
@@ -3579,7 +3624,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="optimmaxre"><code>optimMaxRe</code></h3>
 <p>The maxRe optimization optimize energy vector. It should be used for an auditory confined in the center of the loudspeakers array.</p>
-<h4 id="usage-171">Usage</h4>
+<h4 id="usage-173">Usage</h4>
 <pre><code>_ : optimMaxRe(n) : _ </code></pre>
 <p>Where:</p>
 <ul>
@@ -3588,7 +3633,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="optiminphase"><code>optimInPhase</code></h3>
 <p>The inPhase Optimization optimize energy vector and put all loudspeakers signals n phase. It should be used for an auditory.</p>
-<h3 id="usage-172">Usage</h3>
+<h3 id="usage-174">Usage</h3>
 <dl>
 <dt>``</dt>
 <dd>optimInPhase(n) : _ ``
@@ -3599,7 +3644,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="wider"><code>wider</code></h3>
 <p>Can be used to wide the diffusion of a localized sound. The order depending signals are weighted and appear in a logarithmic way to have linear changes.</p>
-<h4 id="usage-173">Usage</h4>
+<h4 id="usage-175">Usage</h4>
 <pre><code>_ : wider(n,w) : _ </code></pre>
 <p>Where:</p>
 <ul>
@@ -3609,7 +3654,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="map"><code>map</code></h3>
 <p>It simulate the distance of the source by applying a gain on the signal and a wider processing on the soundfield.</p>
-<h4 id="usage-174">Usage</h4>
+<h4 id="usage-176">Usage</h4>
 <pre><code>map(n, x, r, a)</code></pre>
 <p>Where:</p>
 <ul>
@@ -3621,7 +3666,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="rotate"><code>rotate</code></h3>
 <p>Rotates the sound field.</p>
-<h4 id="usage-175">Usage</h4>
+<h4 id="usage-177">Usage</h4>
 <pre><code>_ : rotate(n, a) : _ </code></pre>
 <p>Where:</p>
 <ul>
@@ -3635,28 +3680,28 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <h2 id="functions-reference-2">Functions Reference</h2>
 <h3 id="sr"><code>SR</code></h3>
 <p>Current sampling rate (between 1000Hz and 192000Hz). Constant during program execution.</p>
-<h4 id="usage-176">Usage</h4>
+<h4 id="usage-178">Usage</h4>
 <pre><code>SR : _</code></pre>
 <hr />
 <h3 id="bs"><code>BS</code></h3>
 <p>Current block-size. Can change during the execution.</p>
-<h4 id="usage-177">Usage</h4>
+<h4 id="usage-179">Usage</h4>
 <pre><code>BS : _</code></pre>
 <hr />
 <h3 id="pi"><code>PI</code></h3>
 <p>Constant PI in double precisio.n</p>
-<h4 id="usage-178">Usage</h4>
+<h4 id="usage-180">Usage</h4>
 <pre><code>PI : _</code></pre>
 <hr />
 <h3 id="ftz"><code>FTZ</code></h3>
 <p>Flush to zero: force samples under the &quot;maximum subnormal number&quot; to be zero. Usually not needed in C++ because the architecture file take care of this, but can be useful in javascript for instance.</p>
-<h4 id="usage-179">Usage</h4>
+<h4 id="usage-181">Usage</h4>
 <pre><code>_ : ftz : _</code></pre>
 <p>See : <a href="http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html" class="uri">http://docs.oracle.com/cd/E19957-01/806-3568/ncg_math.html</a></p>
 <hr />
 <h3 id="neg"><code>neg</code></h3>
 <p>Invert the sign (-x) of a signal.</p>
-<h4 id="usage-180">Usage</h4>
+<h4 id="usage-182">Usage</h4>
 <pre><code>_ : neg : _</code></pre>
 <hr />
 <h3 id="subxy"><code>sub(x,y)</code></h3>
@@ -3664,132 +3709,132 @@ mth_octave_filterbank_default = mth_octave_filterbank5;</code></pre>
 <hr />
 <h3 id="inv"><code>inv</code></h3>
 <p>Compute the inverse (1/x) of the input signal.</p>
-<h4 id="usage-181">Usage</h4>
+<h4 id="usage-183">Usage</h4>
 <pre><code>_ : inv : _</code></pre>
 <hr />
 <h3 id="cbrt"><code>cbrt</code></h3>
 <p>Computes the cube root of of the input signal.</p>
-<h4 id="usage-182">Usage</h4>
+<h4 id="usage-184">Usage</h4>
 <pre><code>_ : cbrt : _</code></pre>
 <hr />
 <h3 id="hypot"><code>hypot</code></h3>
 <p>Computes the euclidian distance of the two input signals sqrt(x<em>x+y</em>y) without undue overflow or underflow.</p>
-<h4 id="usage-183">Usage</h4>
+<h4 id="usage-185">Usage</h4>
 <pre><code>_,_ : hypot : _</code></pre>
 <hr />
 <h3 id="ldexp"><code>ldexp</code></h3>
 <p>Takes two input signals: x and n, and multiplies x by 2 to the power n.</p>
-<h4 id="usage-184">Usage</h4>
+<h4 id="usage-186">Usage</h4>
 <pre><code>_,_ : ldexp : _</code></pre>
 <hr />
 <h3 id="scalb"><code>scalb</code></h3>
 <p>Takes two input signals: x and n, and multiplies x by 2 to the power n.</p>
-<h4 id="usage-185">Usage</h4>
+<h4 id="usage-187">Usage</h4>
 <pre><code>_,_ : scalb : _</code></pre>
 <hr />
 <h3 id="log1p"><code>log1p</code></h3>
 <p>Computes log(1 + x) without undue loss of accuracy when x is nearly zero.</p>
-<h4 id="usage-186">Usage</h4>
+<h4 id="usage-188">Usage</h4>
 <pre><code>_ : log1p : _</code></pre>
 <hr />
 <h3 id="logb"><code>logb</code></h3>
 <p>Return exponent of the input signal as a floating-point number.</p>
-<h4 id="usage-187">Usage</h4>
+<h4 id="usage-189">Usage</h4>
 <pre><code>_ : logb : _</code></pre>
 <hr />
 <h3 id="ilogb"><code>ilogb</code></h3>
 <p>Return exponent of the input signal as an integer number.</p>
-<h4 id="usage-188">Usage</h4>
+<h4 id="usage-190">Usage</h4>
 <pre><code>_ : ilogb : _</code></pre>
 <hr />
 <h3 id="log2"><code>log2</code></h3>
 <p>Returns the base 2 logarithm of x.</p>
-<h4 id="usage-189">Usage</h4>
+<h4 id="usage-191">Usage</h4>
 <pre><code>_ : log2 : _</code></pre>
 <hr />
 <h3 id="expm1"><code>expm1</code></h3>
 <p>Return exponent of the input signal minus 1 with better precision.</p>
-<h4 id="usage-190">Usage</h4>
+<h4 id="usage-192">Usage</h4>
 <pre><code>_ : expm1 : _</code></pre>
 <hr />
 <h3 id="acosh"><code>acosh</code></h3>
 <p>Computes the principle value of the inverse hyperbolic cosine of the input signal.</p>
-<h4 id="usage-191">Usage</h4>
+<h4 id="usage-193">Usage</h4>
 <pre><code>_ : acosh : _</code></pre>
 <hr />
 <h3 id="asinh"><code>asinh</code></h3>
 <p>Computes the inverse hyperbolic sine of the input signal.</p>
-<h4 id="usage-192">Usage</h4>
+<h4 id="usage-194">Usage</h4>
 <pre><code>_ : asinh : _</code></pre>
 <hr />
 <h3 id="atanh"><code>atanh</code></h3>
 <p>Computes the inverse hyperbolic tangent of the input signal.</p>
-<h4 id="usage-193">Usage</h4>
+<h4 id="usage-195">Usage</h4>
 <pre><code>_ : atanh : _</code></pre>
 <hr />
 <h3 id="sinh"><code>sinh</code></h3>
 <p>Computes the hyperbolic sine of the input signal.</p>
-<h4 id="usage-194">Usage</h4>
+<h4 id="usage-196">Usage</h4>
 <pre><code>_ : sinh : _</code></pre>
 <hr />
 <h3 id="cosh"><code>cosh</code></h3>
 <p>Computes the hyperbolic cosine of the input signal.</p>
-<h4 id="usage-195">Usage</h4>
+<h4 id="usage-197">Usage</h4>
 <pre><code>_ : cosh : _</code></pre>
 <hr />
 <h3 id="tanh"><code>tanh</code></h3>
 <p>Computes the hyperbolic tangent of the input signal.</p>
-<h4 id="usage-196">Usage</h4>
+<h4 id="usage-198">Usage</h4>
 <pre><code>_ : tanh : _</code></pre>
 <hr />
 <h3 id="erf"><code>erf</code></h3>
 <p>Computes the error function of the input signal.</p>
-<h4 id="usage-197">Usage</h4>
+<h4 id="usage-199">Usage</h4>
 <pre><code>_ : erf : _</code></pre>
 <hr />
 <h3 id="erfc"><code>erfc</code></h3>
 <p>Computes the complementary error function of the input signal.</p>
-<h4 id="usage-198">Usage</h4>
+<h4 id="usage-200">Usage</h4>
 <pre><code>_ : erfc : _</code></pre>
 <hr />
 <h3 id="gamma"><code>gamma</code></h3>
 <p>Computes the gamma function of the input signal.</p>
-<h4 id="usage-199">Usage</h4>
+<h4 id="usage-201">Usage</h4>
 <pre><code>_ : gamma : _</code></pre>
 <hr />
 <h3 id="lgamma"><code>lgamma</code></h3>
 <p>Calculates the natural logorithm of the absolute value of the gamma function of the input signal.</p>
-<h4 id="usage-200">Usage</h4>
+<h4 id="usage-202">Usage</h4>
 <pre><code>_ : lgamma : _</code></pre>
 <hr />
 <h3 id="j0"><code>J0</code></h3>
 <p>Computes the Bessel function of the first kind of order 0 of the input signal.</p>
-<h4 id="usage-201">Usage</h4>
+<h4 id="usage-203">Usage</h4>
 <pre><code>_ : J0 : _</code></pre>
 <hr />
 <h3 id="j1"><code>J1</code></h3>
 <p>Computes the Bessel function of the first kind of order 1 of the input signal.</p>
-<h4 id="usage-202">Usage</h4>
+<h4 id="usage-204">Usage</h4>
 <pre><code>_ : J1 : _</code></pre>
 <hr />
 <h3 id="jn"><code>Jn</code></h3>
 <p>Computes the Bessel function of the first kind of order n (first input signal) of the second input signal.</p>
-<h4 id="usage-203">Usage</h4>
+<h4 id="usage-205">Usage</h4>
 <pre><code>_,_ : Jn : _</code></pre>
 <hr />
 <h3 id="y0"><code>Y0</code></h3>
 <p>Computes the linearly independent Bessel function of the second kind of order 0 of the input signal.</p>
-<h4 id="usage-204">Usage</h4>
+<h4 id="usage-206">Usage</h4>
 <pre><code>_ : Y0 : _</code></pre>
 <hr />
 <h3 id="y1"><code>Y1</code></h3>
 <p>Computes the linearly independent Bessel function of the second kind of order 1 of the input signal.</p>
-<h4 id="usage-205">Usage</h4>
+<h4 id="usage-207">Usage</h4>
 <pre><code>_ : Y0 : _</code></pre>
 <hr />
 <h3 id="yn"><code>Yn</code></h3>
 <p>Computes the linearly independent Bessel function of the second kind of order n (first input signal) of the second input signal.</p>
-<h4 id="usage-206">Usage</h4>
+<h4 id="usage-208">Usage</h4>
 <pre><code>_,_ : Yn : _</code></pre>
 <hr />
 <h3 id="fabs-fmax-fmin"><code>fabs</code>, <code>fmax</code>, <code>fmin</code></h3>
@@ -3800,7 +3845,7 @@ fmin = min</code></pre>
 <hr />
 <h3 id="np2"><code>np2</code></h3>
 <p>Gives the next power of 2 of x.</p>
-<h4 id="usage-207">Usage</h4>
+<h4 id="usage-209">Usage</h4>
 <pre><code>np2(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3809,7 +3854,7 @@ fmin = min</code></pre>
 <hr />
 <h3 id="frac"><code>frac</code></h3>
 <p>Gives the fractional part of n.</p>
-<h4 id="usage-208">Usage</h4>
+<h4 id="usage-210">Usage</h4>
 <pre><code>frac(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3818,7 +3863,7 @@ fmin = min</code></pre>
 <hr />
 <h3 id="modulo"><code>modulo</code></h3>
 <p>Modulus operation.</p>
-<h4 id="usage-209">Usage</h4>
+<h4 id="usage-211">Usage</h4>
 <pre><code>modulo(x,N) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3828,7 +3873,7 @@ fmin = min</code></pre>
 <hr />
 <h3 id="isnan"><code>isnan</code></h3>
 <p>Return non-zero if and only if x is a NaN.</p>
-<h4 id="usage-210">Usage</h4>
+<h4 id="usage-212">Usage</h4>
 <pre><code>isnan(x)
 _ : isnan : _</code></pre>
 <p>Where:</p>
@@ -3838,7 +3883,7 @@ _ : isnan : _</code></pre>
 <hr />
 <h3 id="chebychev"><code>chebychev</code></h3>
 <p>Chebychev transformation of order n.</p>
-<h4 id="usage-211">Usage</h4>
+<h4 id="usage-213">Usage</h4>
 <pre><code>_ : chebychev(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3853,7 +3898,7 @@ T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <hr />
 <h3 id="chebychevpoly"><code>chebychevpoly</code></h3>
 <p>Linear combination of the first Chebyshev polynomials.</p>
-<h4 id="usage-212">Usage</h4>
+<h4 id="usage-214">Usage</h4>
 <pre><code>_ : chebychevpoly((c0,c1,...,cn)) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3864,12 +3909,12 @@ T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <hr />
 <h3 id="diffn"><code>diffn</code></h3>
 <p>Negated first-order difference.</p>
-<h4 id="usage-213">Usage</h4>
+<h4 id="usage-215">Usage</h4>
 <pre><code>_ : diffn : _</code></pre>
 <hr />
 <h3 id="signum"><code>signum</code></h3>
 <p>The signum function signum(x) is defined as -1 for x&lt;0, 0 for x==0, and 1 for x&gt;0;</p>
-<h4 id="usage-214">Usage</h4>
+<h4 id="usage-216">Usage</h4>
 <pre><code>_ : signum : _</code></pre>
 <hr />
 <h1 id="misceffects.lib">misceffects.lib</h1>
@@ -3877,7 +3922,7 @@ T[n](x) = 2x*T[n-1](x) - T[n-2](x)</code></pre>
 <h2 id="dynamic">Dynamic</h2>
 <h3 id="cubicnl"><code>cubicnl</code></h3>
 <p>Cubic nonlinearity distortion. <code>cubicnl</code> is a standard Faust library.</p>
-<h4 id="usage-215">Usage:</h4>
+<h4 id="usage-217">Usage:</h4>
 <pre><code>_ : cubicnl(drive,offset) : _
 _ : cubicnl_nodc(drive,offset) : _</code></pre>
 <p>Where:</p>
@@ -3893,7 +3938,7 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 <hr />
 <h3 id="gate_mono"><code>gate_mono</code></h3>
 <p>Mono signal gate. <code>gate_mono</code> is a standard Faust function.</p>
-<h4 id="usage-216">Usage</h4>
+<h4 id="usage-218">Usage</h4>
 <pre><code>_ : gate_mono(thresh,att,hold,rel) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3911,7 +3956,7 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 <hr />
 <h3 id="gate_stereo"><code>gate_stereo</code></h3>
 <p>Stereo signal gates. <code>gate_stereo</code> is a standard Faust function.</p>
-<h4 id="usage-217">Usage</h4>
+<h4 id="usage-219">Usage</h4>
 <pre><code> _,_ : gate_stereo(thresh,att,hold,rel) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3934,13 +3979,13 @@ _ : cubicnl_nodc(drive,offset) : _</code></pre>
 <p>High-frequency model = -24 dB/octave slope implemented using a fourth-order Butterworth lowpass.</p>
 <p>Example based on measured Celestion G12 (12&quot; speaker):</p>
 <p><code>speakerbp</code> is a standard Faust function</p>
-<h4 id="usage-218">Usage</h4>
+<h4 id="usage-220">Usage</h4>
 <pre><code>speakerbp(f1,f2)
 _ : speakerbp(130,5000) : _</code></pre>
 <hr />
 <h3 id="piano_dispersion_filter"><code>piano_dispersion_filter</code></h3>
 <p>Piano dispersion allpass filter in closed form.</p>
-<h4 id="usage-219">Usage</h4>
+<h4 id="usage-221">Usage</h4>
 <pre><code>piano_dispersion_filter(M,B,f0)
 _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</code></pre>
 <p>Where:</p>
@@ -3956,7 +4001,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 </ul>
 <h3 id="stereo_width"><code>stereo_width</code></h3>
 <p>Stereo Width effect using the Blumlein Shuffler technique. <code>stereo_width</code> is a standard Faust function.</p>
-<h4 id="usage-220">Usage</h4>
+<h4 id="usage-222">Usage</h4>
 <pre><code>_,_ : stereo_width(w) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -3972,7 +4017,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 <h3 id="echo"><code>echo</code></h3>
 <p>A simple echo effect.</p>
 <p><code>echo</code> is a standard Faust function</p>
-<h4 id="usage-221">Usage</h4>
+<h4 id="usage-223">Usage</h4>
 <pre><code>_ : echo(maxDuration,duration,feedback) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3984,7 +4029,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 <h2 id="pitch-shifting">Pitch Shifting</h2>
 <h3 id="transpose"><code>transpose</code></h3>
 <p>A simple pitch shifter based on 2 delay lines. <code>transpose</code> is a standard Faust function.</p>
-<h4 id="usage-222">Usage</h4>
+<h4 id="usage-224">Usage</h4>
 <pre><code>_ : transpose(w, x, s) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -3996,7 +4041,7 @@ _ : piano_dispersion_filter(1,B,f0) : +(totalDelay),_ : fdelay(maxDelay) : _</co
 <h2 id="meshes">Meshes</h2>
 <h3 id="mesh_square"><code>mesh_square</code></h3>
 <p>Square Rectangular Digital Waveguide Mesh.</p>
-<h4 id="usage-223">Usage</h4>
+<h4 id="usage-225">Usage</h4>
 <pre><code>bus(4*N) : mesh_square(N) : bus(4*N);</code></pre>
 <p>Where:</p>
 <ul>
@@ -4024,12 +4069,12 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <h2 id="functions-reference-3">Functions Reference</h2>
 <h3 id="noise"><code>noise</code></h3>
 <p>White noise generator (outputs random number between -1 and 1). <code>Noise</code> is a standard Faust function.</p>
-<h4 id="usage-224">Usage</h4>
+<h4 id="usage-226">Usage</h4>
 <pre><code>noise : _</code></pre>
 <hr />
 <h3 id="multirandom"><code>multirandom</code></h3>
 <p>Generates multiple decorrelated random numbers in parallel.</p>
-<h4 id="usage-225">Usage</h4>
+<h4 id="usage-227">Usage</h4>
 <pre><code>multirandom(n) : si.bus(n)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4038,7 +4083,7 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <hr />
 <h3 id="multinoise"><code>multinoise</code></h3>
 <p>Generates multiple decorrelated noises in parallel.</p>
-<h4 id="usage-226">Usage</h4>
+<h4 id="usage-228">Usage</h4>
 <pre><code>multinoise(n) : si.bus(n)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4050,14 +4095,14 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <hr />
 <h3 id="pink_noise"><code>pink_noise</code></h3>
 <p>Pink noise (1/f noise) generator (third-order approximation) <code>pink_noise</code> is a standard Faust function.</p>
-<h4 id="usage-227">Usage</h4>
+<h4 id="usage-229">Usage</h4>
 <pre><code>pink_noise : _;</code></pre>
 <h4 id="reference-34">Reference:</h4>
 <p><a href="https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html" class="uri">https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html</a></p>
 <hr />
 <h3 id="pink_noise_vm"><code>pink_noise_vm</code></h3>
 <p>Multi pink noise generator.</p>
-<h4 id="usage-228">Usage</h4>
+<h4 id="usage-230">Usage</h4>
 <pre><code>pink_noise_vm(N) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4071,7 +4116,7 @@ process = 1-1&#39; : mesh_square_test(4); // all modes excited forever</code></p
 <hr />
 <h3 id="lfnoise-lfnoise0-and-lfnoisen"><code>lfnoise</code>, <code>lfnoise0</code> and <code>lfnoiseN</code></h3>
 <p>Low-frequency noise generators (Butterworth-filtered downsampled white noise)</p>
-<h4 id="usage-229">Usage</h4>
+<h4 id="usage-231">Usage</h4>
 <pre><code>lfnoise0(rate) : _;   // new random number every int(SR/rate) samples or so
 lfnoiseN(N,rate) : _; // same as &quot;lfnoise0(rate) : lowpass(N,rate)&quot; [see filters.lib]
 lfnoise(rate) : _;    // same as &quot;lfnoise0(rate) : seq(i,5,lowpass(N,rate))&quot; (no overshoot)</code></pre>
@@ -4084,7 +4129,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="sparse_noise_vm"><code>sparse_noise_vm</code></h3>
 <p>sparse noise generator.</p>
-<h4 id="usage-230">Usage</h4>
+<h4 id="usage-232">Usage</h4>
 <pre><code>sparse_noise(f0) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4098,7 +4143,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="velvet_noise_vm"><code>velvet_noise_vm</code></h3>
 <p>velvet noise generator.</p>
-<h4 id="usage-231">Usage</h4>
+<h4 id="usage-233">Usage</h4>
 <pre><code>velvet_noise(amp,f0) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4112,7 +4157,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="gnoise"><code>gnoise</code></h3>
 <p>approximate zero-mean, unit-variance Gaussian white noise generator</p>
-<h4 id="usage-232">Usage</h4>
+<h4 id="usage-234">Usage</h4>
 <pre><code>gnoise(N) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4128,7 +4173,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <h2 id="wave-table-based-oscillators">Wave-Table-Based Oscillators</h2>
 <h3 id="sinwaveform"><code>sinwaveform</code></h3>
 <p>Sine waveform ready to use with a <code>rdtable</code>.</p>
-<h4 id="usage-233">Usage</h4>
+<h4 id="usage-235">Usage</h4>
 <pre><code>sinwaveform(tablesize) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4137,7 +4182,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="coswaveform"><code>coswaveform</code></h3>
 <p>Cosine waveform ready to use with a <code>rdtable</code>.</p>
-<h4 id="usage-234">Usage</h4>
+<h4 id="usage-236">Usage</h4>
 <pre><code>coswaveform(tablesize) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4146,7 +4191,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="phasor"><code>phasor</code></h3>
 <p>A simple phasor to be used with a <code>rdtable</code>. <code>phasor</code> is a standard Faust function.</p>
-<h4 id="usage-235">Usage</h4>
+<h4 id="usage-237">Usage</h4>
 <pre><code>phasor(tablesize,freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4154,18 +4199,39 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <li><code>freq</code>: the frequency of the wave (Hz)</li>
 </ul>
 <hr />
+<h3 id="hs_phasor"><code>hs_phasor</code></h3>
+<p>Hardsyncing phasor to be used with an <code>rdtable</code>.</p>
+<h4 id="usage-238">Usage</h4>
+<pre><code>hs_phasor(ts,freq,c) :  _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>ts</code>: the tablesize for the related sine wavetable</li>
+<li><code>freq</code>: the fundamental frequency of the phasor</li>
+<li><code>c</code>: a clock signal, <code>c&gt;0</code> resets phase to 0</li>
+</ul>
+<hr />
 <h3 id="oscsin"><code>oscsin</code></h3>
 <p>Sine wave oscillator. <code>oscsin</code> is a standard Faust function.</p>
-<h4 id="usage-236">Usage</h4>
+<h4 id="usage-239">Usage</h4>
 <pre><code>oscsin(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>freq</code>: the frequency of the wave (Hz)</li>
 </ul>
 <hr />
+<h3 id="hs_oscsin"><code>hs_oscsin</code></h3>
+<p>Sin lookup table with hardsyncing phase.</p>
+<h4 id="usage-240">Usage</h4>
+<pre><code>hs_oscsin(freq,c) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: the fundamental frequency of the phasor</li>
+<li><code>c</code>: a clock signal, <code>c&gt;0</code> resets phase to 0</li>
+</ul>
+<hr />
 <h3 id="osccos"><code>osccos</code></h3>
 <p>Cosine wave oscillator.</p>
-<h4 id="usage-237">Usage</h4>
+<h4 id="usage-241">Usage</h4>
 <pre><code>osccos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4174,7 +4240,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="oscp"><code>oscp</code></h3>
 <p>A sine wave generator with controllable phase.</p>
-<h4 id="usage-238">Usage</h4>
+<h4 id="usage-242">Usage</h4>
 <pre><code>oscp(freq,p) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4184,7 +4250,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="osci"><code>osci</code></h3>
 <p>Interpolated phase sine wave oscillator.</p>
-<h4 id="usage-239">Usage</h4>
+<h4 id="usage-243">Usage</h4>
 <pre><code>osci(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4195,7 +4261,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <p>Low-Frequency Oscillators (LFOs) have prefix <code>lf_</code> (no aliasing suppression, which is not audible at LF).</p>
 <h3 id="lf_imptrain"><code>lf_imptrain</code></h3>
 <p>Unit-amplitude low-frequency impulse train. <code>lf_imptrain</code> is a standard Faust function.</p>
-<h4 id="usage-240">Usage</h4>
+<h4 id="usage-244">Usage</h4>
 <pre><code>lf_imptrain(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4204,7 +4270,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_pulsetrainpos"><code>lf_pulsetrainpos</code></h3>
 <p>Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1</p>
-<h4 id="usage-241">Usage</h4>
+<h4 id="usage-245">Usage</h4>
 <pre><code>lf_pulsetrainpos(freq,duty) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4214,7 +4280,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_pulsetrain"><code>lf_pulsetrain</code></h3>
 <p>Unit-amplitude zero-mean LF pulse train, duty cycle between 0 and 1</p>
-<h4 id="usage-242">Usage</h4>
+<h4 id="usage-246">Usage</h4>
 <pre><code>lf_pulsetrain(freq,duty) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4224,7 +4290,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_squarewavepos"><code>lf_squarewavepos</code></h3>
 <p>Positive LF square wave in [0,1]</p>
-<h4 id="usage-243">Usage</h4>
+<h4 id="usage-247">Usage</h4>
 <pre><code>lf_squarewavepos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4233,7 +4299,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_squarewave"><code>lf_squarewave</code></h3>
 <p>Zero-mean unit-amplitude LF square wave. <code>lf_squarewave</code> is a standard Faust function.</p>
-<h4 id="usage-244">Usage</h4>
+<h4 id="usage-248">Usage</h4>
 <pre><code>lf_squarewave(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4242,7 +4308,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_trianglepos"><code>lf_trianglepos</code></h3>
 <p>Positive unit-amplitude LF positive triangle wave</p>
-<h4 id="usage-245">Usage</h4>
+<h4 id="usage-249">Usage</h4>
 <pre><code>lf_trianglepos(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4253,7 +4319,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <p>Sawtooth waveform oscillators for virtual analog synthesis et al. The 'simple' versions (<code>lf_rawsaw</code>, <code>lf_sawpos</code> and <code>saw1</code>), are mere samplings of the ideal continuous-time (&quot;analog&quot;) waveforms. While simple, the aliasing due to sampling is quite audible. The differentiated polynomial waveform family (<code>saw2</code>, <code>sawN</code>, and derived functions) do some extra processing to suppress aliasing (not audible for very low fundamental frequencies). According to Lehtonen et al. (JASA 2012), the aliasing of <code>saw2</code> should be inaudible at fundamental frequencies below 2 kHz or so, for a 44.1 kHz sampling rate and 60 dB SPL presentation level; fundamentals 415 and below required no aliasing suppression (i.e., <code>saw1</code> is ok).</p>
 <h3 id="lf_rawsaw"><code>lf_rawsaw</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and period in samples.</p>
-<h4 id="usage-246">Usage</h4>
+<h4 id="usage-250">Usage</h4>
 <pre><code>lf_rawsaw(periodsamps)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4262,7 +4328,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <hr />
 <h3 id="lf_sawpos_phase"><code>lf_sawpos_phase</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and 1 with phase control.</p>
-<h4 id="usage-247">Usage</h4>
+<h4 id="usage-251">Usage</h4>
 <pre><code>lf_sawpos_phase(freq,phase)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4287,7 +4353,7 @@ process = lfnoise0(rate),   // sampled/held noise (piecewise constant)
 <p>&quot;Alias-Suppressed Oscillators based on Differentiated Polynomial Waveforms&quot;, Vesa Valimaki, Juhan Nam, Julius Smith, and Jonathan Abel, IEEE Tr. Acoustics, Speech, and Language Processing (IEEE-ASLP), Vol. 18, no. 5, May 2010.</p>
 <h4 id="other-cases">Other Cases</h4>
 <p>Correction-filtered versions of <code>saw2</code>: <code>saw2f2</code>, <code>saw2f4</code> The correction filter compensates &quot;droop&quot; near half the sampling rate. See reference for sawN.</p>
-<h4 id="usage-248">Usage</h4>
+<h4 id="usage-252">Usage</h4>
 <pre><code>sawN(N,freq) : _
 sawNp(N,freq,phase) : _
 saw2dpw(freq) : _
@@ -4316,7 +4382,7 @@ saw2f4(freq) : _</code></pre>
 <hr />
 <h3 id="sawtooth"><code>sawtooth</code></h3>
 <p>Alias-free sawtooth wave. 2nd order interpolation (based on <code>saw2</code>). <code>sawtooth</code> is a standard Faust function.</p>
-<h4 id="usage-249">Usage</h4>
+<h4 id="usage-253">Usage</h4>
 <pre><code>sawtooth(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4333,7 +4399,7 @@ saw2f4(freq) : _</code></pre>
 <p>Bandlimited Pulse, Square, and Impulse Trains</p>
 <p><code>pulsetrainN</code>, <code>pulsetrain</code>, <code>squareN</code>, <code>square</code>, <code>imptrain</code>, <code>imptrainN</code>, <code>triangle</code>, <code>triangleN</code></p>
 <p>All are zero-mean and meant to oscillate in the audio frequency range. Use simpler sample-rounded lf_* versions above for LFOs.</p>
-<h4 id="usage-250">Usage</h4>
+<h4 id="usage-254">Usage</h4>
 <pre><code>pulsetrainN(N,freq,duty) : _
 pulsetrain(freq, duty) : _ // = pulsetrainN(2)
 squareN(N, freq) : _
@@ -4352,7 +4418,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="pulsetrain"><code>pulsetrain</code></h3>
 <p>Bandlimited pulse train oscillator. Based on <code>pulsetrainN(2)</code>. <code>pulsetrain</code> is a standard Faust function.</p>
-<h4 id="usage-251">Usage</h4>
+<h4 id="usage-255">Usage</h4>
 <pre><code>pulsetrain(freq, duty) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4365,7 +4431,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="square"><code>square</code></h3>
 <p>Bandlimited square wave oscillator. Based on <code>squareN(2)</code>. <code>square</code> is a standard Faust function.</p>
-<h4 id="usage-252">Usage</h4>
+<h4 id="usage-256">Usage</h4>
 <pre><code>square(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4374,7 +4440,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="impulse"><code>impulse</code></h3>
 <p>One-time impulse generated when the Faust process is started. <code>impulse</code> is a standard Faust function.</p>
-<h4 id="usage-253">Usage</h4>
+<h4 id="usage-257">Usage</h4>
 <pre><code>impulse : _</code></pre>
 <hr />
 <h3 id="imptrainn"><code>imptrainN</code></h3>
@@ -4382,7 +4448,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="imptrain"><code>imptrain</code></h3>
 <p>Bandlimited impulse train generator. Based on <code>imptrainN(2)</code>. <code>imptrain</code> is a standard Faust function.</p>
-<h4 id="usage-254">Usage</h4>
+<h4 id="usage-258">Usage</h4>
 <pre><code>imptrain(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4394,7 +4460,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="triangle"><code>triangle</code></h3>
 <p>Bandlimited triangle wave oscillator. Based on <code>triangleN(2)</code>. <code>triangle</code> is a standard Faust function.</p>
-<h4 id="usage-255">Usage</h4>
+<h4 id="usage-259">Usage</h4>
 <pre><code>triangle(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4403,7 +4469,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h2 id="filter-based-oscillators">Filter-Based Oscillators</h2>
 <p>Filter-Based Oscillators</p>
-<h4 id="usage-256">Usage</h4>
+<h4 id="usage-260">Usage</h4>
 <pre><code>osc[b|r|rs|rc|s|w](f), where f = frequency in Hz.</code></pre>
 <h4 id="references-21">References</h4>
 <ul>
@@ -4412,7 +4478,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <h3 id="oscb"><code>oscb</code></h3>
 <p>Sinusoidal oscillator based on the biquad.</p>
-<h4 id="usage-257">Usage</h4>
+<h4 id="usage-261">Usage</h4>
 <pre><code>oscb(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4421,7 +4487,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscrq"><code>oscrq</code></h3>
 <p>Sinusoidal (sine and cosine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-258">Usage</h4>
+<h4 id="usage-262">Usage</h4>
 <pre><code>oscrq(freq) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -4434,7 +4500,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscrs"><code>oscrs</code></h3>
 <p>Sinusoidal (sine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-259">Usage</h4>
+<h4 id="usage-263">Usage</h4>
 <pre><code>oscrs(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4447,7 +4513,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscrc"><code>oscrc</code></h3>
 <p>Sinusoidal (cosine) oscillator based on 2D vector rotation, = undamped &quot;coupled-form&quot; resonator = lossless 2nd-order normalized ladder filter.</p>
-<h4 id="usage-260">Usage</h4>
+<h4 id="usage-264">Usage</h4>
 <pre><code>oscrc(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4460,7 +4526,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="osc"><code>osc</code></h3>
 <p>Default sine wave oscillator (same as oscrs). <code>osc</code> is a standard Faust function.</p>
-<h4 id="usage-261">Usage</h4>
+<h4 id="usage-265">Usage</h4>
 <pre><code>osc(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4474,7 +4540,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>.</p>
 <h3 id="oscw"><code>oscw</code></h3>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine oscillator.</p>
-<h4 id="usage-262">Usage</h4>
+<h4 id="usage-266">Usage</h4>
 <pre><code>oscwc(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4487,7 +4553,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscws"><code>oscws</code></h3>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude sine oscillator</p>
-<h4 id="usage-263">Usage</h4>
+<h4 id="usage-267">Usage</h4>
 <pre><code>oscws(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4500,7 +4566,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscwq"><code>oscwq</code></h3>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine and sine (quadrature) oscillator.</p>
-<h4 id="usage-264">Usage</h4>
+<h4 id="usage-268">Usage</h4>
 <pre><code>oscwq(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4513,7 +4579,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="oscw-1"><code>oscw</code></h3>
 <p>Sinusoidal oscillator based on the waveguide resonator <code>wgr</code>. Unit-amplitude cosine oscillator (default)</p>
-<h4 id="usage-265">Usage</h4>
+<h4 id="usage-269">Usage</h4>
 <pre><code>oscw(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4526,7 +4592,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="lf_sawpos"><code>lf_sawpos</code></h3>
 <p>Simple sawtooth waveform oscillator between 0 and 1.</p>
-<h4 id="usage-266">Usage</h4>
+<h4 id="usage-270">Usage</h4>
 <pre><code>lf_sawpos(freq)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4535,7 +4601,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="lf_saw"><code>lf_saw</code></h3>
 <p>Simple sawtooth waveform. <code>lf_saw</code> is a standard Faust function.</p>
-<h4 id="usage-267">Usage</h4>
+<h4 id="usage-271">Usage</h4>
 <pre><code>lf_saw(freq)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4544,7 +4610,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="lf_triangle"><code>lf_triangle</code></h3>
 <p>Positive unit-amplitude LF triangle wave <code>lf_triangle</code> is a standard Faust function.</p>
-<h4 id="usage-268">Usage</h4>
+<h4 id="usage-272">Usage</h4>
 <pre><code>lf_triangle(freq) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4556,7 +4622,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <h2 id="functions-reference-4">Functions Reference</h2>
 <h3 id="flanger_mono"><code>flanger_mono</code></h3>
 <p>Mono flanging effect.</p>
-<h4 id="usage-269">Usage:</h4>
+<h4 id="usage-273">Usage:</h4>
 <pre><code>_ : flanger_mono(dmax,curdel,depth,fb,invert) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4571,7 +4637,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="flanger_stereo"><code>flanger_stereo</code></h3>
 <p>Stereo flanging effect. <code>flanger_stereo</code> is a standard Faust function.</p>
-<h4 id="usage-270">Usage:</h4>
+<h4 id="usage-274">Usage:</h4>
 <pre><code>_,_ : flanger_stereo(dmax,curdel1,curdel2,depth,fb,invert) : _,_;</code></pre>
 <p>Where:</p>
 <ul>
@@ -4664,7 +4730,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <p>Useful conversion tools for physical modeling.</p>
 <h3 id="f2l"><code>f2l</code></h3>
 <p>Frequency to lentgh in meters.</p>
-<h4 id="usage-271">Usage</h4>
+<h4 id="usage-275">Usage</h4>
 <pre><code>f2l(freq) : distanceInMeters</code></pre>
 <p>Where:</p>
 <ul>
@@ -4673,7 +4739,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="l2f"><code>l2f</code></h3>
 <p>Lentgh in meters to frequency.</p>
-<h4 id="usage-272">Usage</h4>
+<h4 id="usage-276">Usage</h4>
 <pre><code>l2f(length) : freq</code></pre>
 <p>Where:</p>
 <ul>
@@ -4682,7 +4748,7 @@ triangle : _ // = triangleN(2)</code></pre>
 <hr />
 <h3 id="l2s"><code>l2s</code></h3>
 <p>Length in meters to number of samples.</p>
-<h4 id="usage-273">Usage</h4>
+<h4 id="usage-277">Usage</h4>
 <pre><code>l2s(l) : numberOfSamples</code></pre>
 <p>Where:</p>
 <ul>
@@ -4693,12 +4759,12 @@ triangle : _ // = triangleN(2)</code></pre>
 <p>Set of fundamental functions to create bi-directional block diagrams in Faust. These elements are used as the basis of this library to connect high level elements (e.g., mouthpieces, strings, bridge, instrument body, etc.). Each block has 3 inputs and 3 outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm.</p>
 <h3 id="basicblock"><code>basicBlock</code></h3>
 <p>Empty bidirectional block to be used with <a href="#chain"><code>chain</code></a>: 3 signals ins and 3 signals out.</p>
-<h4 id="usage-274">Usage</h4>
+<h4 id="usage-278">Usage</h4>
 <pre><code>chain(basicBlock : basicBlock : etc.)</code></pre>
 <hr />
 <h3 id="chain"><code>chain</code></h3>
 <p>Creates a chain of bidirectional blocks. Blocks must have 3 inputs and outputs. The first input/output carry left going waves, the second input/output carry right going waves, and the third input/output is used to carry any potential output signal to the end of the algorithm. The implied one sample delay created by the <code>~</code> operator is generalized to the left and right going waves. Thus, <code>n</code> blocks in <code>chain()</code> will add an <code>n</code> samples delay to both left and right going waves.</p>
-<h4 id="usage-275">Usage</h4>
+<h4 id="usage-279">Usage</h4>
 <pre><code>leftGoingWaves,rightGoingWaves,mixedOutput : chain( A : B ) : leftGoingWaves,rightGoingWaves,mixedOutput
 with{
      A = _,_,_;
@@ -4707,43 +4773,43 @@ with{
 <hr />
 <h3 id="inleftwave"><code>inLeftWave</code></h3>
 <p>Adds a signal to left going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
-<h4 id="usage-276">Usage</h4>
+<h4 id="usage-280">Usage</h4>
 <pre><code>model(x) = chain(A : inLeftWave(x) : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to left going waves in that chain.</p>
 <hr />
 <h3 id="inrightwave"><code>inRightWave</code></h3>
 <p>Adds a signal to right going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
-<h4 id="usage-277">Usage</h4>
+<h4 id="usage-281">Usage</h4>
 <pre><code>model(x) = chain(A : inRightWave(x) : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to right going waves in that chain.</p>
 <hr />
 <h3 id="in"><code>in</code></h3>
 <p>Adds a signal to left and right going waves anywhere in a <a href="#chain"><code>chain</code></a> of blocks.</p>
-<h4 id="usage-278">Usage</h4>
+<h4 id="usage-282">Usage</h4>
 <pre><code>model(x) = chain(A : in(x) : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks and <code>x</code> is the signal added to left and right going waves in that chain.</p>
 <hr />
 <h3 id="outleftwave"><code>outLeftWave</code></h3>
 <p>Sends the signal of left going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-279">Usage</h4>
+<h4 id="usage-283">Usage</h4>
 <pre><code>chain(A : outLeftWave : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
 <hr />
 <h3 id="outrightwave"><code>outRightWave</code></h3>
 <p>Sends the signal of right going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-280">Usage</h4>
+<h4 id="usage-284">Usage</h4>
 <pre><code>chain(A : outRightWave : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
 <hr />
 <h3 id="out"><code>out</code></h3>
 <p>Sends the signal of right and left going waves to the output channel of the <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-281">Usage</h4>
+<h4 id="usage-285">Usage</h4>
 <pre><code>chain(A : out : B)</code></pre>
 <p>Where <code>A</code> and <code>B</code> are bidirectional blocks.</p>
 <hr />
 <h3 id="terminations"><code>terminations</code></h3>
 <p>Creates terminations on both sides of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. As for <a href="#chain"><code>chain</code></a>, this function adds a 1 sample delay to the bidirectional signal, both ways. Of courses, this function can be nested within a <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-282">Usage</h4>
+<h4 id="usage-286">Usage</h4>
 <pre><code>terminations(a,b,c)
 with{
      a = *(-1); // left termination
@@ -4753,7 +4819,7 @@ with{
 <hr />
 <h3 id="ltermination"><code>lTermination</code></h3>
 <p>Creates a termination on the left side of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination and can be nested within another <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-283">Usage</h4>
+<h4 id="usage-287">Usage</h4>
 <pre><code>lTerminations(a,b)
 with{
      a = *(-1); // left termination
@@ -4762,7 +4828,7 @@ with{
 <hr />
 <h3 id="rtermination"><code>rTermination</code></h3>
 <p>Creates a termination on the right side of a <a href="#chain"><code>chain</code></a> without closing the inputs and outputs of the bidirectional signals chain. This function adds a 1 sample delay near the termination and can be nested within another <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-284">Usage</h4>
+<h4 id="usage-288">Usage</h4>
 <pre><code>rTerminations(b,c)
 with{
      b = chain(D : E : F); // bidirectional chain of blocks (D, E, F, etc.)
@@ -4771,17 +4837,17 @@ with{
 <hr />
 <h3 id="closeins"><code>closeIns</code></h3>
 <p>Closes the inputs of a bidirectional chain in all directions.</p>
-<h4 id="usage-285">Usage</h4>
+<h4 id="usage-289">Usage</h4>
 <pre><code>closeIns : chain(...) :  _,_,_</code></pre>
 <hr />
 <h3 id="closeouts"><code>closeOuts</code></h3>
 <p>Closes the outputs of a bidirectional chain in all directions except for the main signal output (3d output).</p>
-<h4 id="usage-286">Usage</h4>
+<h4 id="usage-290">Usage</h4>
 <pre><code>_,_,_ : chain(...) : _</code></pre>
 <hr />
 <h3 id="endchain"><code>endChain</code></h3>
 <p>Closes the inputs and outputs of a bidirectional chain in all directions except for the main signal output (3d output).</p>
-<h4 id="usage-287">Usage</h4>
+<h4 id="usage-291">Usage</h4>
 <pre><code>endChain(chain(...)) : _</code></pre>
 <hr />
 <h2 id="basic-elements-1">Basic Elements</h2>
@@ -4795,7 +4861,7 @@ with{
 <li><code>waveguideFd2</code>: second order fractional delay waveguide</li>
 <li><code>waveguideFd4</code>: fourth order fractional delay waveguide</li>
 </ul>
-<h4 id="usage-288">Usage</h4>
+<h4 id="usage-292">Usage</h4>
 <pre><code>chain(A : waveguideUd(nMax,n) : B)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4805,7 +4871,7 @@ with{
 <hr />
 <h3 id="waveguide"><code>waveguide</code></h3>
 <p>Standard <code>pm.lib</code> waveguide (based on <a href="#waveguiden"><code>waveguideFd4</code></a>).</p>
-<h4 id="usage-289">Usage</h4>
+<h4 id="usage-293">Usage</h4>
 <pre><code>chain(A : waveguide(nMax,n) : B)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4815,7 +4881,7 @@ with{
 <hr />
 <h3 id="bridgefilter"><code>bridgeFilter</code></h3>
 <p>Generic two zeros bridge FIR filter (as implemented in the <a href="https://ccrma.stanford.edu/software/stk/">STK</a>) that can be used to implement the reflectance violin, guitar, etc. bridges.</p>
-<h4 id="usage-290">Usage</h4>
+<h4 id="usage-294">Usage</h4>
 <pre><code>_ : bridge(brightness,absorption) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4825,7 +4891,7 @@ with{
 <hr />
 <h3 id="modefilter"><code>modeFilter</code></h3>
 <p>Resonant bandpass filter that can be used to implement a single resonance (mode).</p>
-<h4 id="usage-291">Usage</h4>
+<h4 id="usage-295">Usage</h4>
 <pre><code>_ : modeFilter(freq,t60,gain) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4838,7 +4904,7 @@ with{
 <p>Low and high level string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="stringsegment"><code>stringSegment</code></h3>
 <p>A string segment without terminations (just a simple waveguide).</p>
-<h4 id="usage-292">Usage</h4>
+<h4 id="usage-296">Usage</h4>
 <pre><code>chain(A : stringSegment(maxLength,length) : B)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4848,7 +4914,7 @@ with{
 <hr />
 <h3 id="openstring"><code>openString</code></h3>
 <p>A bidirectional block implementing a basic &quot;generic&quot; string with a selectable excitation position. Lowpass filters are built-in and allow to simulate the effect of dispersion on the sound and thus to change the &quot;stiffness&quot; of the string.</p>
-<h4 id="usage-293">Usage</h4>
+<h4 id="usage-297">Usage</h4>
 <pre><code>chain(... : openString(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4860,7 +4926,7 @@ with{
 <hr />
 <h3 id="nylonstring"><code>nylonString</code></h3>
 <p>A bidirectional block implementing a basic nylon string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a nylon string.</p>
-<h4 id="usage-294">Usage</h4>
+<h4 id="usage-298">Usage</h4>
 <pre><code>chain(... : nylonString(length,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4871,7 +4937,7 @@ with{
 <hr />
 <h3 id="steelstring"><code>steelString</code></h3>
 <p>A bidirectional block implementing a basic steel string with selectable excitation position. This element is based on <a href="#openstring"><code>openString</code></a> and has a fix stiffness corresponding to that of a steel string.</p>
-<h4 id="usage-295">Usage</h4>
+<h4 id="usage-299">Usage</h4>
 <pre><code>chain(... : steelString(length,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4882,7 +4948,7 @@ with{
 <hr />
 <h3 id="openstringpick"><code>openStringPick</code></h3>
 <p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position. It also has a built-in pickup whose position is the same as the excitation position. Thus, moving the excitation position will also move the pickup.</p>
-<h4 id="usage-296">Usage</h4>
+<h4 id="usage-300">Usage</h4>
 <pre><code>chain(... : openStringPick(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4894,7 +4960,7 @@ with{
 <hr />
 <h3 id="openstringpickup"><code>openStringPickUp</code></h3>
 <p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position and stiffness. It also has a built-in pickup whose position can be independenly selected. The only constraint is that the pickup has to be placed after the excitation position.</p>
-<h4 id="usage-297">Usage</h4>
+<h4 id="usage-301">Usage</h4>
 <pre><code>chain(... : openStringPickUp(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4907,7 +4973,7 @@ with{
 <hr />
 <h3 id="openstringpickdown"><code>openStringPickDown</code></h3>
 <p>A bidirectional block implementing a &quot;generic&quot; string with selectable excitation position and stiffness. It also has a built-in pickup whose position can be independenly selected. The only constraint is that the pickup has to be placed before the excitation position.</p>
-<h4 id="usage-298">Usage</h4>
+<h4 id="usage-302">Usage</h4>
 <pre><code>chain(... : openStringPickDown(length,stiffness,pluckPosition,excitation) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -4920,48 +4986,48 @@ with{
 <hr />
 <h3 id="ksreflexionfilter"><code>ksReflexionFilter</code></h3>
 <p>The &quot;typical&quot; one-zero Karplus-strong feedforward reflexion filter. This filter will be typically used in a termination (see below).</p>
-<h4 id="usage-299">Usage</h4>
+<h4 id="usage-303">Usage</h4>
 <pre><code>terminations(_,chain(...),ksReflexionFilter)</code></pre>
 <hr />
 <h3 id="rstringrigidtermination"><code>rStringRigidTermination</code></h3>
 <p>Bidirectional block implementing a right rigid string termination (no damping, just phase inversion).</p>
-<h4 id="usage-300">Usage</h4>
+<h4 id="usage-304">Usage</h4>
 <pre><code>chain(rStringRigidTermination : stringSegment : ...)</code></pre>
 <hr />
 <h3 id="lstringrigidtermination"><code>lStringRigidTermination</code></h3>
 <p>Bidirectional block implementing a left rigid string termination (no damping, just phase inversion).</p>
-<h4 id="usage-301">Usage</h4>
+<h4 id="usage-305">Usage</h4>
 <pre><code>chain(... : stringSegment : lStringRigidTermination)</code></pre>
 <hr />
 <h3 id="elecguitarbridge"><code>elecGuitarBridge</code></h3>
 <p>Bidirectional block implementing a simple electric guitar bridge. This block is based on <a href="#bridgeFilter"><code>bridgeFilter</code></a>. The bridge doesn't implement transmittance since it is not meant to be connected to a body (unlike acoustic guitar). It also partially sets the resonance duration of the string with the nuts used on the other side.</p>
-<h4 id="usage-302">Usage</h4>
+<h4 id="usage-306">Usage</h4>
 <pre><code>chain(... : stringSegment : elecGuitarBridge)</code></pre>
 <hr />
 <h3 id="elecguitarnuts"><code>elecGuitarNuts</code></h3>
 <p>Bidirectional block implementing a simple electric guitar nuts. This block is based on <a href="#bridgeFilter"><code>bridgeFilter</code></a> and does essentially the same thing as <a href="#elecguitarbridge"><code>elecGuitarBridge</code></a>, but on the other side of the chain. It also partially sets the resonance duration of the string with the bridge used on the other side.</p>
-<h4 id="usage-303">Usage</h4>
+<h4 id="usage-307">Usage</h4>
 <pre><code>chain(elecGuitarNuts : stringSegment : ...)</code></pre>
 <hr />
 <h3 id="guitarbridge"><code>guitarBridge</code></h3>
 <p>Bidirectional block implementing a simple acoustic guitar bridge. This bridge damps more hight frequencies than <a href="#elecguitarbridge"><code>elecGuitarBridge</code></a> and implements a transmittance filter. It also partially sets the resonance duration of the string with the nuts used on the other side.</p>
-<h4 id="usage-304">Usage</h4>
+<h4 id="usage-308">Usage</h4>
 <pre><code>chain(... : stringSegment : guitarBridge)</code></pre>
 <hr />
 <h3 id="guitarnuts"><code>guitarNuts</code></h3>
 <p>Bidirectional block implementing a simple acoustic guitar nuts. This nuts damps more hight frequencies than <a href="#elecguitarnuts"><code>elecGuitarNuts</code></a> and implements a transmittance filter. It also partially sets the resonance duration of the string with the bridge used on the other side.</p>
-<h4 id="usage-305">Usage</h4>
+<h4 id="usage-309">Usage</h4>
 <pre><code>chain(guitarNuts : stringSegment : ...)</code></pre>
 <hr />
 <h3 id="idealstring"><code>idealString</code></h3>
 <p>An &quot;ideal&quot; string with rigid terminations and where the plucking position and the pick-up position are the same. Since terminations are rigid, this string will ring forever.</p>
-<h4 id="usage-306">Usage</h4>
+<h4 id="usage-310">Usage</h4>
 <pre><code>1-1&#39; : idealString(length,reflexion,xPosition,excitation)</code></pre>
 <p>With: * <code>length</code>: the length of the string in meters * <code>pluckPosition</code>: the plucking position (0.001-0.999) * <code>excitation</code>: the input signal for the excitation</p>
 <hr />
 <h3 id="ks"><code>ks</code></h3>
 <p>A Karplus-Strong string (in that case, the string is implemented as a one dimension waveguide).</p>
-<h4 id="usage-307">Usage</h4>
+<h4 id="usage-311">Usage</h4>
 <pre><code>ks(length,damping,excitation) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4972,12 +5038,12 @@ with{
 <hr />
 <h3 id="ks_ui_midi"><code>ks_ui_MIDI</code></h3>
 <p>Ready-to-use, MIDI-enabled Karplus-Strong string with buil-in UI.</p>
-<h4 id="usage-308">Usage</h4>
+<h4 id="usage-312">Usage</h4>
 <pre><code>ks_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="elecguitarmodel"><code>elecGuitarModel</code></h3>
 <p>A simple electric guitar model (without audio effects, of course) with selectable pluck position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model.</p>
-<h4 id="usage-309">Usage</h4>
+<h4 id="usage-313">Usage</h4>
 <pre><code>elecGuitarModel(length,pluckPosition,excitation) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -4988,7 +5054,7 @@ with{
 <hr />
 <h3 id="elecguitar"><code>elecGuitar</code></h3>
 <p>A simple electric guitar model with steel strings (based on <a href="#elecguitarmodel"><code>elecGuitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
-<h4 id="usage-310">Usage</h4>
+<h4 id="usage-314">Usage</h4>
 <pre><code>elecGuitar(length,pluckPosition,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5000,17 +5066,17 @@ with{
 <hr />
 <h3 id="elecguitar_ui_midi"><code>elecGuitar_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-enabled electric guitar physical model with built-in UI.</p>
-<h4 id="usage-311">Usage</h4>
+<h4 id="usage-315">Usage</h4>
 <pre><code>elecGuitar_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="guitarbody"><code>guitarBody</code></h3>
 <p>WARNING: not implemented yet! Bidirectional block implementing a simple acoustic guitar body.</p>
-<h4 id="usage-312">Usage</h4>
+<h4 id="usage-316">Usage</h4>
 <pre><code>chain(... : guitarBody)</code></pre>
 <hr />
 <h3 id="guitarmodel"><code>guitarModel</code></h3>
 <p>A simple acoustic guitar model with steel strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
-<h4 id="usage-313">Usage</h4>
+<h4 id="usage-317">Usage</h4>
 <pre><code>guitarModel(length,pluckPosition,excitation) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5021,7 +5087,7 @@ with{
 <hr />
 <h3 id="guitar"><code>guitar</code></h3>
 <p>A simple acoustic guitar model with steel strings (based on <a href="#guitarmodel"><code>guitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
-<h4 id="usage-314">Usage</h4>
+<h4 id="usage-318">Usage</h4>
 <pre><code>guitar(length,pluckPosition,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5033,12 +5099,12 @@ with{
 <hr />
 <h3 id="guitar_ui_midi"><code>guitar_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-enabled steel strings acoustic guitar physical model with built-in UI.</p>
-<h4 id="usage-315">Usage</h4>
+<h4 id="usage-319">Usage</h4>
 <pre><code>guitar_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="nylonguitarmodel"><code>nylonGuitarModel</code></h3>
 <p>A simple acoustic guitar model with nylon strings and selectable excitation position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model. WARNING: this function doesn't currently implement a body (just strings and bridge)</p>
-<h4 id="usage-316">Usage</h4>
+<h4 id="usage-320">Usage</h4>
 <pre><code>nylonGuitarModel(length,pluckPosition,excitation) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5049,7 +5115,7 @@ with{
 <hr />
 <h3 id="nylonguitar"><code>nylonGuitar</code></h3>
 <p>A simple acoustic guitar model with steel strings (based on <a href="#nylonguitarmodel"><code>nylonGuitarModel</code></a>) implementing an excitation model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function.</p>
-<h4 id="usage-317">Usage</h4>
+<h4 id="usage-321">Usage</h4>
 <pre><code>nylonGuitar(length,pluckPosition,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5061,14 +5127,14 @@ with{
 <hr />
 <h3 id="nylonguitar_ui_midi"><code>nylonGuitar_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-enabled nylon strings acoustic guitar physical model with built-in UI.</p>
-<h4 id="usage-318">Usage</h4>
+<h4 id="usage-322">Usage</h4>
 <pre><code>nylonGuitar_ui_MIDI : _</code></pre>
 <hr />
 <h2 id="bowed-string-instruments">Bowed String Instruments</h2>
 <p>Low and high level basic string instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="bowtable"><code>bowTable</code></h3>
 <p>Extremely basic bow table that can be used to implement a wide range of bow types for many different bowed string instruments (violin, cello, etc.)</p>
-<h4 id="usage-319">Usage</h4>
+<h4 id="usage-323">Usage</h4>
 <pre><code>excitation : bowTable(offeset,slope) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5079,7 +5145,7 @@ with{
 <hr />
 <h3 id="violinbowtable"><code>violinBowTable</code></h3>
 <p>Violin bow table based on <a href="#bowtable"><code>bowTable</code></a>.</p>
-<h4 id="usage-320">Usage</h4>
+<h4 id="usage-324">Usage</h4>
 <pre><code>bowVelocity : violinBowTable(bowPressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5089,7 +5155,7 @@ with{
 <hr />
 <h3 id="bowinteraction"><code>bowInteraction</code></h3>
 <p>Bidirectional block implementing the interaction of a bow in a <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-321">Usage</h4>
+<h4 id="usage-325">Usage</h4>
 <pre><code>chain(... : stringSegment : bowInteraction(bowTable) : stringSegment : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5098,7 +5164,7 @@ with{
 <hr />
 <h3 id="violinbow"><code>violinBow</code></h3>
 <p>Bidirectional block implementing a violin bow and its interaction with a string.</p>
-<h4 id="usage-322">Usage</h4>
+<h4 id="usage-326">Usage</h4>
 <pre><code>chain(... : stringSegment : violinBow(bowPressure,bowVelocity) : stringSegment : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5108,7 +5174,7 @@ with{
 <hr />
 <h3 id="violinbowedstring"><code>violinBowedString</code></h3>
 <p>Violin bowed string bidirectional block with controllable bow position. Terminations are not implemented in this model.</p>
-<h4 id="usage-323">Usage</h4>
+<h4 id="usage-327">Usage</h4>
 <pre><code>chain(nuts : violinBowedString(stringLength,bowPressure,bowVelocity,bowPosition) : bridge)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5120,22 +5186,22 @@ with{
 <hr />
 <h3 id="violinnuts"><code>violinNuts</code></h3>
 <p>Bidirectional block implementing simple violin nuts. This function is based on <a href="#bridgefilter"><code>bridgeFilter</code></a>.</p>
-<h4 id="usage-324">Usage</h4>
+<h4 id="usage-328">Usage</h4>
 <pre><code>chain(violinNuts : stringSegment : ...)</code></pre>
 <hr />
 <h3 id="violinbridge"><code>violinBridge</code></h3>
 <p>Bidirectional block implementing a simple violin bridge. This function is based on <a href="#bridgefilter"><code>bridgeFilter</code></a>.</p>
-<h4 id="usage-325">Usage</h4>
+<h4 id="usage-329">Usage</h4>
 <pre><code>chain(... : stringSegment : violinBridge</code></pre>
 <hr />
 <h3 id="violinbody"><code>violinBody</code></h3>
 <p>Bidirectional block implementing a simple violin body (just a simple resonant lowpass filter).</p>
-<h4 id="usage-326">Usage</h4>
+<h4 id="usage-330">Usage</h4>
 <pre><code>chain(... : stringSegment : violinBridge : violinBody)</code></pre>
 <hr />
 <h3 id="violinmodel"><code>violinModel</code></h3>
 <p>Ready-to-use simple violin physical model. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string (and not through a finger model).</p>
-<h4 id="usage-327">Usage</h4>
+<h4 id="usage-331">Usage</h4>
 <pre><code>violinModel(stringLength,bowPressure,bowVelocity,bridgeReflexion,
 bridgeAbsorption,bowPosition) : _</code></pre>
 <p>Where:</p>
@@ -5148,19 +5214,19 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="violinmodel_ui"><code>violinModel_ui</code></h3>
 <p>Ready-to-use violin physical model with built-in UI.</p>
-<h4 id="usage-328">Usage</h4>
+<h4 id="usage-332">Usage</h4>
 <pre><code>violinModel_ui : _</code></pre>
 <hr />
 <h3 id="violin_ui_midi"><code>violin_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-enabled violin physical model with built-in UI.</p>
-<h4 id="usage-329">Usage</h4>
+<h4 id="usage-333">Usage</h4>
 <pre><code>violin_ui_MIDI : _</code></pre>
 <hr />
 <h2 id="wind-instruments">Wind Instruments</h2>
 <p>Low and high level basic wind instruments parts. Most of the elements in this section can be used in a bidirectional chain.</p>
 <h3 id="opentube"><code>openTube</code></h3>
 <p>A tube segment without terminations (same as <a href="#stringsegment"><code>stringSegment</code></a>).</p>
-<h4 id="usage-330">Usage</h4>
+<h4 id="usage-334">Usage</h4>
 <pre><code>chain(A : openTube(maxLength,length) : B)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5170,7 +5236,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="reedtable"><code>reedTable</code></h3>
 <p>Extremely basic reed table that can be used to implement a wide range of single reed types for many different instruments (saxophone, clarinet, etc.).</p>
-<h4 id="usage-331">Usage</h4>
+<h4 id="usage-335">Usage</h4>
 <pre><code>excitation : reedTable(offeset,slope) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5181,7 +5247,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="flutejettable"><code>fluteJetTable</code></h3>
 <p>Extremely basic flute jet table.</p>
-<h4 id="usage-332">Usage</h4>
+<h4 id="usage-336">Usage</h4>
 <pre><code>excitation : fluteJetTable : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5190,7 +5256,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="brasslipstable"><code>brassLipsTable</code></h3>
 <p>Simple brass lips/mouthpiece table. Since this implementation is very basic and that the lips and tube of the instrument are coupled to each other, the length of that tube must be provided here.</p>
-<h4 id="usage-333">Usage</h4>
+<h4 id="usage-337">Usage</h4>
 <pre><code>excitation : brassLipsTable(tubeLength,lipsTension) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5201,7 +5267,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="clarinetreed"><code>clarinetReed</code></h3>
 <p>Clarinet reed based on <a href="#reedtable"><code>reedTable</code></a> with controllable stiffness.</p>
-<h4 id="usage-334">Usage</h4>
+<h4 id="usage-338">Usage</h4>
 <pre><code>excitation : clarinetReed(stiffness) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5211,7 +5277,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="clarinetmouthpiece"><code>clarinetMouthPiece</code></h3>
 <p>Bidirectional block implementing a clarinet mouthpiece as well as the various interactions happening with traveling waves. This element is ready to be plugged to a tube...</p>
-<h4 id="usage-335">Usage</h4>
+<h4 id="usage-339">Usage</h4>
 <pre><code>chain(clarinetMouthPiece(reedStiffness,pressure) : tube : etc.)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5221,7 +5287,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="brasslips"><code>brassLips</code></h3>
 <p>Bidirectional block implementing a brass mouthpiece as well as the various interactions happening with traveling waves. This element is ready to be plugged to a tube...</p>
-<h4 id="usage-336">Usage</h4>
+<h4 id="usage-340">Usage</h4>
 <pre><code>chain(brassLips(tubeLength,lipsTension,pressure) : tube : etc.)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5232,7 +5298,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="fluteembouchure"><code>fluteEmbouchure</code></h3>
 <p>Bidirectional block implementing a flute embouchure as well as the various interactions happening with traveling waves. This element is ready to be plugged between tubes segments...</p>
-<h4 id="usage-337">Usage</h4>
+<h4 id="usage-341">Usage</h4>
 <pre><code>chain(... : tube : fluteEmbouchure(pressure) : tube : etc.)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5241,7 +5307,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="wbell"><code>wBell</code></h3>
 <p>Generic wind instrument bell bidirectional block that should be placed at the end of a <a href="#chain"><code>chain</code></a>.</p>
-<h4 id="usage-338">Usage</h4>
+<h4 id="usage-342">Usage</h4>
 <pre><code>chain(... : wBell(opening))</code></pre>
 <p>Where:</p>
 <ul>
@@ -5250,17 +5316,17 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="flutehead"><code>fluteHead</code></h3>
 <p>Simple flute head implementing waves reflexion.</p>
-<h4 id="usage-339">Usage</h4>
+<h4 id="usage-343">Usage</h4>
 <pre><code>chain(fluteHead : tube : ...)</code></pre>
 <hr />
 <h3 id="flutefoot"><code>fluteFoot</code></h3>
 <p>Simple flute foot implementing waves reflexion and dispersion.</p>
-<h4 id="usage-340">Usage</h4>
+<h4 id="usage-344">Usage</h4>
 <pre><code>chain(... : tube : fluteFoot)</code></pre>
 <hr />
 <h3 id="clarinetmodel"><code>clarinetModel</code></h3>
 <p>A simple clarinet physical model without tone holes (pitch is changed by changing the length of the tube of the instrument).</p>
-<h4 id="usage-341">Usage</h4>
+<h4 id="usage-345">Usage</h4>
 <pre><code>clarinetModel(length,pressure,reedStiffness,bellOpening) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5272,7 +5338,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="clarinetmodel_ui"><code>clarinetModel_ui</code></h3>
 <p>Same as <a href="#clarinetModel"><code>clarinetModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
-<h4 id="usage-342">Usage</h4>
+<h4 id="usage-346">Usage</h4>
 <pre><code>clarinetModel_ui(pressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5281,17 +5347,17 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="clarinet_ui"><code>clarinet_ui</code></h3>
 <p>Ready-to-use clarinet physical model with built-in UI based on <a href="#clarinetmodel"><code>clarinetModel</code></a>.</p>
-<h4 id="usage-343">Usage</h4>
+<h4 id="usage-347">Usage</h4>
 <pre><code>clarinet_ui : _</code></pre>
 <hr />
 <h3 id="clarinet_ui_midi"><code>clarinet_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI compliant clarinet physical model with built-in UI.</p>
-<h4 id="usage-344">Usage</h4>
+<h4 id="usage-348">Usage</h4>
 <pre><code>clarinet_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="brassmodel"><code>brassModel</code></h3>
 <p>A simple generic brass instrument physical model without pistons (pitch is changed by changing the length of the tube of the instrument). This model is kind of hard to control and might not sound very good if bad parameters are given to it...</p>
-<h4 id="usage-345">Usage</h4>
+<h4 id="usage-349">Usage</h4>
 <pre><code>brassModel(tubeLength,lipsTension,mute,pressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5303,7 +5369,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="brassmodel_ui"><code>brassModel_ui</code></h3>
 <p>Same as <a href="#brassModel"><code>brassModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
-<h4 id="usage-346">Usage</h4>
+<h4 id="usage-350">Usage</h4>
 <pre><code>brassModel_ui(pressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5312,17 +5378,17 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="brass_ui"><code>brass_ui</code></h3>
 <p>Ready-to-use brass instrument physical model with built-in UI based on <a href="#brassmodel"><code>brassModel</code></a>.</p>
-<h4 id="usage-347">Usage</h4>
+<h4 id="usage-351">Usage</h4>
 <pre><code>brass_ui : _</code></pre>
 <hr />
 <h3 id="brass_ui_midi"><code>brass_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-controllable brass instrument physical model with built-in UI.</p>
-<h4 id="usage-348">Usage</h4>
+<h4 id="usage-352">Usage</h4>
 <pre><code>brass_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="flutemodel"><code>fluteModel</code></h3>
 <p>A simple generic brass instrument physical model without tone holes (pitch is changed by changing the length of the tube of the instrument).</p>
-<h4 id="usage-349">Usage</h4>
+<h4 id="usage-353">Usage</h4>
 <pre><code>fluteModel(tubeLength,lipsTension,mute,pressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5333,7 +5399,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="flutemodel_ui"><code>fluteModel_ui</code></h3>
 <p>Same as <a href="#fluteModel"><code>fluteModel</code></a> but with a built-in UI. This function doesn't implement a virtual &quot;blower&quot;, thus <code>pressure</code> remains an argument here.</p>
-<h4 id="usage-350">Usage</h4>
+<h4 id="usage-354">Usage</h4>
 <pre><code>fluteModel_ui(pressure) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5342,19 +5408,19 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <hr />
 <h3 id="flute_ui"><code>flute_ui</code></h3>
 <p>Ready-to-use flute physical model with built-in UI based on <a href="#flutemodel"><code>fluteModel</code></a>.</p>
-<h4 id="usage-351">Usage</h4>
+<h4 id="usage-355">Usage</h4>
 <pre><code>flute_ui : _</code></pre>
 <hr />
 <h3 id="flute_ui_midi"><code>flute_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-controllable flute physical model with built-in UI.</p>
-<h4 id="usage-352">Usage</h4>
+<h4 id="usage-356">Usage</h4>
 <pre><code>brass_ui_MIDI : _</code></pre>
 <hr />
 <h2 id="exciters">Exciters</h2>
 <p>Various kind of excitation signal generators.</p>
 <h3 id="impulseexcitation"><code>impulseExcitation</code></h3>
 <p>Creates an impulse excitation of one sample.</p>
-<h4 id="usage-353">Usage</h4>
+<h4 id="usage-357">Usage</h4>
 <pre><code>gate = button(&#39;gate&#39;);
 impulseExcitation(gate) : chain;</code></pre>
 <p>Where:</p>
@@ -5364,7 +5430,7 @@ impulseExcitation(gate) : chain;</code></pre>
 <hr />
 <h3 id="strikemodel"><code>strikeModel</code></h3>
 <p>Creates a filtered noise excitation.</p>
-<h4 id="usage-354">Usage</h4>
+<h4 id="usage-358">Usage</h4>
 <pre><code>gate = button(&#39;gate&#39;);
 strikeModel(LPcutoff,HPcutoff,sharpness,gain,gate) : chain;</code></pre>
 <p>Where:</p>
@@ -5378,7 +5444,7 @@ strikeModel(LPcutoff,HPcutoff,sharpness,gain,gate) : chain;</code></pre>
 <hr />
 <h3 id="strike"><code>strike</code></h3>
 <p>Strikes generator with controllable excitation position.</p>
-<h4 id="usage-355">Usage</h4>
+<h4 id="usage-359">Usage</h4>
 <pre><code>gate = button(&#39;gate&#39;);
 strike(exPos,sharpness,gain,gate) : chain;</code></pre>
 <p>Where:</p>
@@ -5391,7 +5457,7 @@ strike(exPos,sharpness,gain,gate) : chain;</code></pre>
 <hr />
 <h3 id="pluckstring"><code>pluckString</code></h3>
 <p>Creates a plucking excitation signal.</p>
-<h4 id="usage-356">Usage</h4>
+<h4 id="usage-360">Usage</h4>
 <pre><code>trigger = button(&#39;gate&#39;);
 pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Where:</p>
@@ -5406,7 +5472,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="blower"><code>blower</code></h3>
 <p>A virtual blower creating a DC signal with some breath noise in it.</p>
-<h4 id="usage-357">Usage</h4>
+<h4 id="usage-361">Usage</h4>
 <pre><code>blower(pressure,breathGain,breathCutoff) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5417,14 +5483,14 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="blower_ui"><code>blower_ui</code></h3>
 <p>Same as <a href="#blower"><code>blower</code></a> but with a built-in UI.</p>
-<h4 id="usage-358">Usage</h4>
+<h4 id="usage-362">Usage</h4>
 <pre><code>blower : somethingToBeBlown</code></pre>
 <hr />
 <h2 id="modal-percussions">Modal Percussions</h2>
 <p>High and low level functions for modal synthesis of percussion instruments.</p>
 <h3 id="djembemodel"><code>djembeModel</code></h3>
 <p>Dirt-simple djembe modal physical model. Mode parameters are empirically calculated and don't correspond to any measurements or 3D model. They kind of sound good though :).</p>
-<h4 id="usage-359">Usage</h4>
+<h4 id="usage-363">Usage</h4>
 <pre><code>excitation : djembeModel(freq)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5435,7 +5501,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <h3 id="djembe"><code>djembe</code></h3>
 <p>Dirt-simple djembe modal physical model. Mode parameters are empirically calculated and don't correspond to any measurements or 3D model. They kind of sound good though :).</p>
 <p>This model also implements a virtual &quot;exciter&quot;.</p>
-<h4 id="usage-360">Usage</h4>
+<h4 id="usage-364">Usage</h4>
 <pre><code>djembe(freq,strikePosition,strikeSharpness,gain,trigger</code></pre>
 <p>Where:</p>
 <ul>
@@ -5448,14 +5514,14 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="djembe_ui_midi"><code>djembe_ui_MIDI</code></h3>
 <p>Simple MIDI controllable djembe physical model with built-in UI.</p>
-<h4 id="usage-361">Usage</h4>
+<h4 id="usage-365">Usage</h4>
 <pre><code>djembe_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="marimbabarmodel"><code>marimbaBarModel</code></h3>
 <p>Generic marimba tone bar modal model.</p>
 <p>This model was generated using <code>mesh2faust</code> from a 3D CAD model of a marimba tone bar (<code>libraries/modalmodels/marimbaBar</code>). The corresponding CAD model is that of a C2 tone bar (original fundamental frequency: ~65Hz). While <code>marimbaBarModel</code> allows to translate the harmonic content of the generated sound by providing a frequency (<code>freq</code>), mode transposition has limits and the model will sound less and less like a marimba tone bar as it diverges from C2. To make an accurate model of a marimba, we'd want to have an independent model for each bar...</p>
 <p>This model contains 5 excitation positions going linearly from the center bottom to the center top of the bar. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-362">Usage</h4>
+<h4 id="usage-366">Usage</h4>
 <pre><code>excitation : marimbaBarModel(freq,exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5469,7 +5535,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimbarestube"><code>marimbaResTube</code></h3>
 <p>Simple marimba resonance tube.</p>
-<h4 id="usage-363">Usage</h4>
+<h4 id="usage-367">Usage</h4>
 <pre><code>marimbaResTube(tubeLength,excitation)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5479,7 +5545,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimbamodel"><code>marimbaModel</code></h3>
 <p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
-<h4 id="usage-364">Usage</h4>
+<h4 id="usage-368">Usage</h4>
 <pre><code>excitation : marimbaModel(freq,exPos) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5490,7 +5556,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <h3 id="marimba"><code>marimba</code></h3>
 <p>Simple marimba physical model implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-365">Usage</h4>
+<h4 id="usage-369">Usage</h4>
 <pre><code>excitation : marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5505,7 +5571,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="marimba_ui_midi"><code>marimba_ui_MIDI</code></h3>
 <p>Simple MIDI controllable marimba physical model with built-in UI implementing a single tone bar connected to tube. This model is scalable and can be adapted to any size of bar/tube (see <a href="#marimbabarmodel"><code>marimbaBarModel</code></a> to know more about the limitations of this type of system).</p>
-<h4 id="usage-366">Usage</h4>
+<h4 id="usage-370">Usage</h4>
 <pre><code>marimba_ui_MIDI : _</code></pre>
 <hr />
 <h3 id="churchbellmodel"><code>churchBellModel</code></h3>
@@ -5513,7 +5579,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
 <p>Model height is 301 mm.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-367">Usage</h4>
+<h4 id="usage-371">Usage</h4>
 <pre><code>excitation : churchBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5530,7 +5596,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 301 mm.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-368">Usage</h4>
+<h4 id="usage-372">Usage</h4>
 <pre><code>excitation : churchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5544,7 +5610,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="churchbell_ui"><code>churchBell_ui</code></h3>
 <p>Church bell physical model based on <a href="#churchbell"><code>churchBell</code></a> with built-in UI.</p>
-<h4 id="usage-369">Usage</h4>
+<h4 id="usage-373">Usage</h4>
 <pre><code>churchBell_ui : _</code></pre>
 <hr />
 <h3 id="englishbellmodel"><code>englishBellModel</code></h3>
@@ -5552,7 +5618,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-370">Usage</h4>
+<h4 id="usage-374">Usage</h4>
 <pre><code>excitation : englishBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5569,7 +5635,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-371">Usage</h4>
+<h4 id="usage-375">Usage</h4>
 <pre><code>excitation : englishBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5583,7 +5649,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="englishbell_ui"><code>englishBell_ui</code></h3>
 <p>English church bell physical model based on <a href="#englishbell"><code>englishBell</code></a> with built-in UI.</p>
-<h4 id="usage-372">Usage</h4>
+<h4 id="usage-376">Usage</h4>
 <pre><code>englishBell_ui : _</code></pre>
 <hr />
 <h3 id="frenchbellmodel"><code>frenchBellModel</code></h3>
@@ -5591,7 +5657,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-373">Usage</h4>
+<h4 id="usage-377">Usage</h4>
 <pre><code>excitation : frenchBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5608,7 +5674,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-374">Usage</h4>
+<h4 id="usage-378">Usage</h4>
 <pre><code>excitation : frenchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5622,7 +5688,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="frenchbell_ui"><code>frenchBell_ui</code></h3>
 <p>French church bell physical model based on <a href="#frenchbell"><code>frenchBell</code></a> with built-in UI.</p>
-<h4 id="usage-375">Usage</h4>
+<h4 id="usage-379">Usage</h4>
 <pre><code>frenchBell_ui : _</code></pre>
 <hr />
 <h3 id="germanbellmodel"><code>germanBellModel</code></h3>
@@ -5630,7 +5696,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-376">Usage</h4>
+<h4 id="usage-380">Usage</h4>
 <pre><code>excitation : germanBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5647,7 +5713,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 1 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-377">Usage</h4>
+<h4 id="usage-381">Usage</h4>
 <pre><code>excitation : germanBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5661,7 +5727,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="germanbell_ui"><code>germanBell_ui</code></h3>
 <p>German church bell physical model based on <a href="#germanbell"><code>germanBell</code></a> with built-in UI.</p>
-<h4 id="usage-378">Usage</h4>
+<h4 id="usage-382">Usage</h4>
 <pre><code>germanBell_ui : _</code></pre>
 <hr />
 <h3 id="russianbellmodel"><code>russianBellModel</code></h3>
@@ -5669,7 +5735,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and Pouring Parameters on Its Properties and Bell' Tone, Archives of Foundry Engineering, 2016.</p>
 <p>Model height is 2 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-379">Usage</h4>
+<h4 id="usage-383">Usage</h4>
 <pre><code>excitation : russianBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5686,7 +5752,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 2 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-380">Usage</h4>
+<h4 id="usage-384">Usage</h4>
 <pre><code>excitation : russianBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5700,7 +5766,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="russianbell_ui"><code>russianBell_ui</code></h3>
 <p>Russian church bell physical model based on <a href="#russianbell"><code>russianBell</code></a> with built-in UI.</p>
-<h4 id="usage-381">Usage</h4>
+<h4 id="usage-385">Usage</h4>
 <pre><code>russianBell_ui : _</code></pre>
 <hr />
 <h3 id="standardbellmodel"><code>standardBellModel</code></h3>
@@ -5708,7 +5774,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied Acoustics 2, 1987.</p>
 <p>Model height is 1.8 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
-<h4 id="usage-382">Usage</h4>
+<h4 id="usage-386">Usage</h4>
 <pre><code>excitation : standardBellModel(exPos,t60,t60DecayRatio,t60DecaySlope)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5725,7 +5791,7 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>Model height is 1.8 m.</p>
 <p>This model contains 7 excitation positions going linearly from the bottom to the top of the bell. Obviously, a model with more excitation position could be regenerated using <code>mesh2faust</code>.</p>
 <p>This function also implement a virtual exciter to drive the model.</p>
-<h4 id="usage-383">Usage</h4>
+<h4 id="usage-387">Usage</h4>
 <pre><code>excitation : standardBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5739,49 +5805,278 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <hr />
 <h3 id="standardbell_ui"><code>standardBell_ui</code></h3>
 <p>Standard church bell physical model based on <a href="#standardbell"><code>standardBell</code></a> with built-in UI.</p>
-<h4 id="usage-384">Usage</h4>
+<h4 id="usage-388">Usage</h4>
 <pre><code>standardBell_ui : _</code></pre>
 <hr />
 <h2 id="vocal-synthesis">Vocal Synthesis</h2>
 <p>Vocal synthesizer functions (source/filter, fof, etc.).</p>
-<h3 id="formantfilter"><code>formantFilter</code></h3>
-<p>Formant filter based on a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h3 id="formantvalues"><code>formantValues</code></h3>
+<p>Formant data values.</p>
 <p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
-<h4 id="usage-385">Usage</h4>
-<pre><code>_ : formantFilter(voiceType,vowel) : _</code></pre>
+<h4 id="usage-389">Usage</h4>
+<pre><code>ba.take(j+1,formantValues.f(i)) : _
+ba.take(j+1,formantValues.g(i)) : _
+ba.take(j+1,formantValues.bw(i)) : _</code></pre>
 <p>Where:</p>
 <ul>
+<li><code>i</code>: formant number</li>
+<li><code>j</code>: (voiceType*nFormants)+vowel</li>
 <li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
 <li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
 </ul>
 <hr />
+<h3 id="voicegender"><code>voiceGender</code></h3>
+<p>Calculate the gender for the provided <code>voiceType</code> value. (0: male, 1: female)</p>
+<h4 id="usage-390">Usage</h4>
+<pre><code>voiceGender(voiceType) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+</ul>
+<hr />
+<h3 id="skirtwidthmultiplier"><code>skirtWidthMultiplier</code></h3>
+<p>Calculates value to multiply bandwidth to obtain <code>skirtwidth</code> for a Fof filter.</p>
+<h4 id="usage-391">Usage</h4>
+<pre><code>skirtWidthMultiplier(vowel,freq,gender) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>freq</code>: the fundamental frequency of the excitation signal</li>
+<li><code>gender</code>: gender of the voice used in the fof filter (0: male, 1: female)</li>
+</ul>
+<hr />
+<h3 id="autobendfreq"><code>autobendFreq</code></h3>
+<p>Autobends the center frequencies of formants 1 and 2 based on the fundamental frequency of the excitation signal and leaves all other formant frequencies unchanged. Ported from <code>chant-lib</code>. Reference: <a href="https://ccrma.stanford.edu/~rmichon/chantLib/" class="uri">https://ccrma.stanford.edu/~rmichon/chantLib/</a></p>
+<h4 id="usage-392">Usage</h4>
+<pre><code>_ : autobendFreq(n,freq,voiceType) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: formant index</li>
+<li><code>freq</code>: the fundamental frequency of the excitation signal</li>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li>input is the center frequency of the corresponding formant</li>
+</ul>
+<hr />
+<h3 id="vocaleffort"><code>vocalEffort</code></h3>
+<p>Changes the gains of the formants based on the fundamental frequency of the excitation signal. Higher formants are reinforced for higher fundamental frequencies. Ported from <code>chant-lib</code>. Reference: <a href="https://ccrma.stanford.edu/~rmichon/chantLib/" class="uri">https://ccrma.stanford.edu/~rmichon/chantLib/</a></p>
+<h4 id="usage-393">Usage</h4>
+<pre><code>_ : vocalEffort(freq,gender) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>freq</code>: the fundamental frequency of the excitation signal</li>
+<li><code>gender</code>: the gender of the voice type (0: male, 1: female)</li>
+<li>input is the linear amplitude of the formant</li>
+</ul>
+<hr />
+<h3 id="fof"><code>fof</code></h3>
+<p>Function to generate a single Formant-Wave-Function. Reference: <a href="https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf" class="uri">https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf</a></p>
+<h4 id="usage-394">Usage</h4>
+<pre><code>_ : fof(fc,bw,a,g) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>fc</code>: formant center frequency,</li>
+<li><code>bw</code>: formant bandwidth (Hz),</li>
+<li><code>sw</code>: formant skirtwidth (Hz)</li>
+<li><code>g</code>: linear scale factor (g=1 gives 0dB amplitude response at fc)</li>
+<li>input is an impulse signal to excite filter</li>
+</ul>
+<hr />
+<h3 id="fofsh"><code>fofSH</code></h3>
+<p>FOF with sample and hold used on <code>bw</code> and a parameter used in the filter-cycling FOF function <code>fofCycle</code>. Reference: <a href="https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf" class="uri">https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf</a></p>
+<h4 id="usage-395">Usage</h4>
+<pre><code>_ : fofSH(fc,bw,a,g) : _</code></pre>
+<p>Where: all parameters same as for <a href="#fof"><code>fof</code></a></p>
+<hr />
+<h3 id="fofcycle"><code>fofCycle</code></h3>
+<p>FOF implementation where time-varying filter parameter noise is mitigated by using a cycle of <code>n</code> sample and hold FOF filters. Reference: <a href="https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf" class="uri">https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf</a></p>
+<h4 id="usage-396">Usage</h4>
+<pre><code>_ : fofCycle(fc,bw,a,g,n) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the number of FOF filters to cycle through</li>
+<li>all other parameters are same as for <a href="#fof"><code>fof</code></a></li>
+</ul>
+<hr />
+<h3 id="fofsmooth"><code>fofSmooth</code></h3>
+<p>FOF implementation where time-varying filter parameter noise is mitigated by lowpass filtering the filter parameters <code>bw</code> and <code>a</code> with <a href="#smooth">smooth</a>.</p>
+<h4 id="usage-397">Usage</h4>
+<pre><code>_ : fofSmooth(fc,bw,sw,g,tau) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>tau</code>: the desired smoothing time constant in seconds</li>
+<li>all other parameters are same as for <a href="#fof"><code>fof</code></a></li>
+</ul>
+<hr />
+<h3 id="formantfilterfofcycle"><code>formantFilterFofCycle</code></h3>
+<p>Formant filter based on a single FOF filter. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. A cycle of n fof filters with sample-and-hold is used so that the fof filter parameters can be varied in realtime. This technique is more robust but more computationally expensive than <a href="#formantfilterfofsmooth"><code>formantFilterFofSmooth</code></a>. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-398">Usage</h4>
+<pre><code>_ : formantFilterFofCycle(voiceType,vowel,nFormants,i,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>nFormants</code>: number of formant regions in frequency domain, typically 5</li>
+<li><code>i</code>: formant number (i.e. 0 - 4) used to index formant data value arrays</li>
+<li><code>freq</code>: fundamental frequency of excitation signal. Used to calculate rise time of envelope</li>
+</ul>
+<hr />
+<h3 id="formantfilterfofsmooth"><code>formantFilterFofSmooth</code></h3>
+<p>Formant filter based on a single FOF filter. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Fof filter parameters are lowpass filtered to mitigate possible noise from varying them in realtime. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-399">Usage</h4>
+<pre><code>_ : formantFilterFofSmooth(voiceType,vowel,nFormants,i,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>nFormants</code>: number of formant regions in frequency domain, typically 5</li>
+<li><code>i</code>: formant number (i.e. 1 - 5) used to index formant data value arrays</li>
+<li><code>freq</code>: fundamental frequency of excitation signal. Used to calculate rise time of envelope</li>
+</ul>
+<hr />
+<h3 id="formantfilterbp"><code>formantFilterBP</code></h3>
+<p>Formant filter based on a single resonant bandpass filter. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-400">Usage</h4>
+<pre><code>_ : formantFilterBP(voiceType,vowel,nFormants,i,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>nFormants</code>: number of formant regions in frequency domain, typically 5</li>
+<li><code>i</code>: formant index used to index formant data value arrays</li>
+<li><code>freq</code>: fundamental frequency of excitation signal.</li>
+</ul>
+<hr />
+<h3 id="formantfilterbank"><code>formantFilterbank</code></h3>
+<p>Formant filterbank which can use different types of filterbank functions and different excitation signals. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-401">Usage</h4>
+<pre><code>_ : formantFilterbank(voiceType,vowel,formantGen,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>formantGen</code>: the specific formant filterbank function (i.e. FormantFilterbankBP, FormantFilterbankFof,...)</li>
+<li><code>freq</code>: fundamental frequency of excitation signal. Needed for FOF version to calculate rise time of envelope</li>
+</ul>
+<hr />
+<h3 id="formantfilterbankfofcycle"><code>formantFilterbankFofCycle</code></h3>
+<p>Formant filterbank based on a bank of fof filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-402">Usage</h4>
+<pre><code>_ : formantFilterbankFofCycle(voiceType,vowel,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>freq</code>: the fundamental frequency of the excitation signal. Needed to calculate the skirtwidth of the FOF envelopes and for the <code>autobendFreq</code> and <code>vocalEffort</code> functions</li>
+</ul>
+<hr />
+<h3 id="formantfilterbankfofsmooth"><code>formantFilterbankFofSmooth</code></h3>
+<p>Formant filterbank based on a bank of fof filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-403">Usage</h4>
+<pre><code>_ : formantFilterbankFofSmooth(voiceType,vowel,freq) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>freq</code>: the fundamental frequency of the excitation signal. Needed to calculate the skirtwidth of the FOF envelopes and for the <code>autobendFreq</code> and <code>vocalEffort</code> functions</li>
+</ul>
+<hr />
+<h3 id="formantfilterbankbp"><code>formantFilterbankBP</code></h3>
+<p>Formant filterbank based on a bank of resonant bandpass filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the provided source to be realistic.</p>
+<h4 id="usage-404">Usage</h4>
+<pre><code>_ : formantFilterbankBP(voiceType,vowel) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)</li>
+<li><code>freq</code>: the fundamental frequency of the excitation signal. Needed for the <code>autobendFreq</code> and <code>vocalEffort</code> functions</li>
+</ul>
+<hr />
 <h3 id="sfformantmodel"><code>SFFormantModel</code></h3>
-<p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a sawtooth wave and the &quot;filter&quot; is a bank of resonant bandpass. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
-<p>The formant data used here come from the CSOUND manual <a href="http://www.csounds.com/manual/html/" class="uri">http://www.csounds.com/manual/html/</a>.</p>
-<h4 id="usage-386">Usage</h4>
-<pre><code>SFFormantModel(voiceType,vowel,exType,freq,gain) : _</code></pre>
+<p>Simple formant/vocal synthesizer based on a source/filter model. The source and <code>filterbank</code> must be specified by the user. <code>filterbank</code> must take the same input parameters as <a href="#formantfilterbank"><code>formantFilterbank</code></a> (<code>BP</code>/<code>FofCycle</code> /<code>FofSmooth</code>). Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
+<h4 id="usage-405">Usage</h4>
+<pre><code>SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
 <li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u</li>
 <li><code>exType</code>: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)</li>
+<li><code>freq</code>: the fundamental frequency of the source signal</li>
+<li><code>gain</code>: linear gain multiplier to multiply the source by</li>
 </ul>
 <hr />
-<h3 id="sfformantmodel_ui"><code>SFFormantModel_ui</code></h3>
-<p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
-<h4 id="usage-387">Usage</h4>
-<pre><code>SFFormantModel_ui : _</code></pre>
+<h3 id="sfformantmodelfofcycle"><code>SFFormantModelFofCycle</code></h3>
+<p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a periodic impulse and the &quot;filter&quot; is a bank of FOF filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic. This model does not work with noise in the source signal so exType has been removed and model does not depend on SFFormantModel function.</p>
+<h4 id="usage-406">Usage</h4>
+<pre><code>SFFormantModelFofCycle(voiceType,vowel,exType,freq,gain) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u</li>
+<li><code>freq</code>: the fundamental frequency of the source signal</li>
+<li><code>gain</code>: linear gain multiplier to multiply the source by</li>
+</ul>
 <hr />
-<h3 id="sfformantmodel_ui_midi"><code>SFFormantModel_ui_MIDI</code></h3>
+<h3 id="sfformantmodelfofsmooth"><code>SFFormantModelFofSmooth</code></h3>
+<p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a periodic impulse and the filter is a bank of FOF filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
+<h4 id="usage-407">Usage</h4>
+<pre><code>SFFormantModelFofSmooth(voiceType,vowel,exType,freq,gain) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u</li>
+<li><code>exType</code>: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)</li>
+<li><code>freq</code>: the fundamental frequency of the source signal</li>
+<li><code>gain</code>: linear gain multiplier to multiply the source by</li>
+</ul>
+<hr />
+<h3 id="sfformantmodelbp"><code>SFFormantModelBP</code></h3>
+<p>Simple formant/vocal synthesizer based on a source/filter model. The source is just a sawtooth wave and the &quot;filter&quot; is a bank of resonant bandpass filters. Formant parameters are linearly interpolated allowing to go smoothly from one vowel to another. Voice type can be selected but must correspond to the frequency range of the synthesized voice to be realistic.</p>
+<h4 id="usage-408">Usage</h4>
+<pre><code>SFFormantModelBP(voiceType,vowel,exType,freq,gain) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>voiceType</code>: the voice type (0: alto, 1: bass, 2: countertenor, 3: soprano, 4: tenor)</li>
+<li><code>vowel</code>: the vowel (0: a, 1: e, 2: i, 3: o, 4: u</li>
+<li><code>exType</code>: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)</li>
+<li><code>freq</code>: the fundamental frequency of the source signal</li>
+<li><code>gain</code>: linear gain multiplier to multiply the source by</li>
+</ul>
+<hr />
+<h3 id="sfformantmodelfofcycle_ui"><code>SFFormantModelFofCycle_ui</code></h3>
+<p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
+<h4 id="usage-409">Usage</h4>
+<pre><code>SFFormantModelFofCycle_ui : _</code></pre>
+<hr />
+<h3 id="sfformantmodelfofsmooth_ui"><code>SFFormantModelFofSmooth_ui</code></h3>
+<p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
+<h4 id="usage-410">Usage</h4>
+<pre><code>SFFormantModelFofSmooth_ui : _</code></pre>
+<hr />
+<h3 id="sfformantmodelbp_ui"><code>SFFormantModelBP_ui</code></h3>
+<p>Ready-to-use source-filter vocal synthesizer with built-in user interface.</p>
+<h4 id="usage-411">Usage</h4>
+<pre><code>SFFormantModelBP_ui : _</code></pre>
+<hr />
+<h3 id="sfformantmodelfofcycle_ui_midi"><code>SFFormantModelFofCycle_ui_MIDI</code></h3>
 <p>Ready-to-use MIDI-controllable source-filter vocal synthesizer.</p>
-<h4 id="usage-388">Usage</h4>
-<pre><code>SFFormantModel_ui_MIDI : _</code></pre>
+<h4 id="usage-412">Usage</h4>
+<pre><code>SFFormantModelFofCycle_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="sfformantmodelfofsmooth_ui_midi"><code>SFFormantModelFofSmooth_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-controllable source-filter vocal synthesizer.</p>
+<h4 id="usage-413">Usage</h4>
+<pre><code>SFFormantModelFofSmooth_ui_MIDI : _</code></pre>
+<hr />
+<h3 id="sfformantmodelbp_ui_midi"><code>SFFormantModelBP_ui_MIDI</code></h3>
+<p>Ready-to-use MIDI-controllable source-filter vocal synthesizer.</p>
+<h4 id="usage-414">Usage</h4>
+<pre><code>SFFormantModelBP_ui_MIDI : _</code></pre>
 <hr />
 <h2 id="misc-functions">Misc Functions</h2>
 <p>Various miscellaneous functions.</p>
 <h3 id="allpassnl"><code>allpassNL</code></h3>
 <p>Bidirectional block adding nonlinearities in both directions in a chain. Nonlinearities are created by modulating the coefficients of a passive allpass filter by the signal it is processing.</p>
-<h4 id="usage-389">Usage</h4>
+<h4 id="usage-415">Usage</h4>
 <pre><code>chain(... : allpassNL(nonlinearity) : ...)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5795,19 +6090,19 @@ pluckString(stringLength,cutoff,maxFreq,sharpness,trigger)</code></pre>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>jcrev</code> reverb below was made from a listing of &quot;RV&quot;, dated April 14, 1972, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one that became the well known and often copied JCREV.</p>
 <p><code>jcrev</code> is a standard Faust function</p>
-<h4 id="usage-390">Usage</h4>
+<h4 id="usage-416">Usage</h4>
 <pre><code>_ : jcrev : _,_,_,_</code></pre>
 <hr />
 <h3 id="satrev"><code>satrev</code></h3>
 <p>This artificial reverberator take a mono signal and output stereo (<code>satrev</code>) and quad (<code>jcrev</code>). They were implemented by John Chowning in the MUS10 computer-music language (descended from Music V by Max Mathews). They are Schroeder Reverberators, well tuned for their size. Nowadays, the more expensive freeverb is more commonly used (see the Faust examples directory).</p>
 <p><code>satrev</code> was made from a listing of &quot;SATREV&quot;, dated May 15, 1971, which was recovered from an old SAIL DART backup tape. John Chowning thinks this might be the one used on his often-heard brass canon sound examples, one of which can be found at <a href="https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav" class="uri">https://ccrma.stanford.edu/~jos/wav/FM_BrassCanon2.wav</a></p>
-<h4 id="usage-391">Usage</h4>
+<h4 id="usage-417">Usage</h4>
 <pre><code>_ : satrev : _,_</code></pre>
 <hr />
 <h2 id="feedback-delay-network-fdn-reverberators">Feedback Delay Network (FDN) Reverberators</h2>
 <h3 id="fdnrev0"><code>fdnrev0</code></h3>
 <p>Pure Feedback Delay Network Reverberator (generalized for easy scaling). <code>fdnrev0</code> is a standard Faust function.</p>
-<h4 id="usage-392">Usage</h4>
+<h4 id="usage-418">Usage</h4>
 <pre><code>&lt;1,2,4,...,N signals&gt; &lt;:
 fdnrev0(MAXDELAY,delays,BBSO,freqs,durs,loopgainmax,nonl) :&gt;
 &lt;1,2,4,...,N signals&gt;</code></pre>
@@ -5832,7 +6127,7 @@ h='&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#46;&#x6f;&#114;
 document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\/'+'a'+'>');
 // -->
 </script><noscript>&#102;&#x6f;&#110;&#x73;&#32;&#x61;&#116;&#32;&#108;&#x69;&#110;&#x75;&#120;&#x61;&#x75;&#100;&#x69;&#x6f;&#32;&#100;&#x6f;&#116;&#32;&#x6f;&#114;&#x67;</noscript>. This is an FDN reverb with allpass comb filters in each feedback delay in addition to the damping filters.</p>
-<h4 id="usage-393">Usage</h4>
+<h4 id="usage-419">Usage</h4>
 <pre><code>bus(8) : zita_rev_fdn(f1,f2,t60dc,t60m,fsmax) : bus(8)</code></pre>
 <p>Where:</p>
 <ul>
@@ -5850,14 +6145,14 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <hr />
 <h3 id="zita_rev1_stereo"><code>zita_rev1_stereo</code></h3>
 <p>Extend <code>zita_rev_fdn</code> to include <code>zita_rev1</code> input/output mapping in stereo mode. <code>zita_rev1_stereo</code> is a standard Faust function.</p>
-<h4 id="usage-394">Usage</h4>
+<h4 id="usage-420">Usage</h4>
 <pre><code>_,_ : zita_rev1_stereo(rdel,f1,f2,t60dc,t60m,fsmax) : _,_</code></pre>
 <p>Where:</p>
 <p><code>rdel</code> = delay (in ms) before reverberation begins (e.g., 0 to ~100 ms) (remaining args and refs as for <code>zita_rev_fdn</code> above)</p>
 <hr />
 <h3 id="zita_rev1_ambi"><code>zita_rev1_ambi</code></h3>
 <p>Extend zita_rev_fdn to include zita_rev1 input/output mapping in &quot;ambisonics mode&quot;, as provided in the Linux C++ version.</p>
-<h4 id="usage-395">Usage</h4>
+<h4 id="usage-421">Usage</h4>
 <pre><code>_,_ : zita_rev1_ambi(rgxyz,rdel,f1,f2,t60dc,t60m,fsmax) : _,_,_,_</code></pre>
 <p>Where:</p>
 <p><code>rgxyz</code> = relative gain of lanes 1,4,2 to lane 0 in output (e.g., -9 to 9) (remaining args and references as for zita_rev1_stereo above)</p>
@@ -5866,7 +6161,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <h3 id="mono_freeverb"><code>mono_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
 <p><code>mono_freeverb</code> is a standard Faust function.</p>
-<h4 id="usage-396">Usage</h4>
+<h4 id="usage-422">Usage</h4>
 <pre><code>_ : mono_freeverb(fb1, fb2, damp, spread) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5880,7 +6175,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <hr />
 <h3 id="stereo_freeverb"><code>stereo_freeverb</code></h3>
 <p>A simple Schroeder reverberator primarily developed by &quot;Jezar at Dreampoint&quot; that is extensively used in the free-software world. It uses four Schroeder allpasses in series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each audio channel, and is said to be especially well tuned.</p>
-<h4 id="usage-397">Usage</h4>
+<h4 id="usage-423">Usage</h4>
 <pre><code>_,_ : stereo_freeverb(fb1, fb2, damp, spread) : _,_;</code></pre>
 <p>Where:</p>
 <ul>
@@ -5895,7 +6190,7 @@ document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'" clas'+'s="em' + 'ail">'+e+'<\
 <h2 id="functions-reference-5">Functions Reference</h2>
 <h3 id="cross"><code>cross</code></h3>
 <p>Cross n signals: <code>(x1,x2,..,xn) -&gt; (xn,..,x2,x1)</code>. <code>cross</code> is a standard Faust function.</p>
-<h4 id="usage-398">Usage</h4>
+<h4 id="usage-424">Usage</h4>
 <pre><code>cross(n)
 _,_,_ : cross(3) : _,_,_</code></pre>
 <p>Where:</p>
@@ -5908,7 +6203,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossnn"><code>crossnn</code></h3>
 <p>Cross two <code>bus(n)</code>s.</p>
-<h4 id="usage-399">Usage</h4>
+<h4 id="usage-425">Usage</h4>
 <pre><code>_,_,... : crossmm(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5917,7 +6212,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="crossn1"><code>crossn1</code></h3>
 <p>Cross bus(n) and bus(1).</p>
-<h4 id="usage-400">Usage</h4>
+<h4 id="usage-426">Usage</h4>
 <pre><code>_,_,... : crossn1(n) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5926,7 +6221,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="interleave"><code>interleave</code></h3>
 <p>Interleave row<em>col cables from column order to row order. input : x(0), x(1), x(2) ..., x(row</em>col-1) output: x(0+0<em>row), x(0+1</em>row), x(0+2<em>row), ..., x(1+0</em>row), x(1+1<em>row), x(1+2</em>row), ...</p>
-<h4 id="usage-401">Usage</h4>
+<h4 id="usage-427">Usage</h4>
 <pre><code>_,_,_,_,_,_ : interleave(row,column) : _,_,_,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5936,7 +6231,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="butterfly"><code>butterfly</code></h3>
 <p>Addition (first half) then substraction (second half) of interleaved signals.</p>
-<h4 id="usage-402">Usage</h4>
+<h4 id="usage-428">Usage</h4>
 <pre><code>_,_,_,_ : butterfly(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5945,7 +6240,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="hadamard"><code>hadamard</code></h3>
 <p>Hadamard matrix function of size <code>n = 2^k</code>.</p>
-<h4 id="usage-403">Usage</h4>
+<h4 id="usage-429">Usage</h4>
 <pre><code>_,_,_,_ : hadamard(n) : _,_,_,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -5956,7 +6251,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <hr />
 <h3 id="recursivize"><code>recursivize</code></h3>
 <p>Create a recursion from two arbitrary processors p and q.</p>
-<h4 id="usage-404">Usage</h4>
+<h4 id="usage-430">Usage</h4>
 <pre><code>_,_ : recursivize(p,q) : _,_
 </code></pre>
 <p>Where:</p>
@@ -5970,7 +6265,7 @@ _,_,_ : cross(3) : _,_,_</code></pre>
 <h2 id="functions-reference-6">Functions Reference</h2>
 <h3 id="bus"><code>bus</code></h3>
 <p>n parallel cables. <code>bus</code> is a standard Faust function.</p>
-<h4 id="usage-405">Usage</h4>
+<h4 id="usage-431">Usage</h4>
 <pre><code>bus(n)
 bus(4) : _,_,_,_</code></pre>
 <p>Where:</p>
@@ -5980,7 +6275,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="block"><code>block</code></h3>
 <p>Block - terminate n signals. <code>block</code> is a standard Faust function.</p>
-<h4 id="usage-406">Usage</h4>
+<h4 id="usage-432">Usage</h4>
 <pre><code>_,_,... : block(n) : _,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -5989,7 +6284,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="interpolate"><code>interpolate</code></h3>
 <p>Linear interpolation between two signals.</p>
-<h4 id="usage-407">Usage</h4>
+<h4 id="usage-433">Usage</h4>
 <pre><code>_,_ : interpolate(i) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -5998,12 +6293,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoo"><code>smoo</code></h3>
 <p>Smoothing function based on <code>smooth</code> ideal to smooth UI signals (sliders, etc.) down. <code>smoo</code> is a standard Faust function.</p>
-<h4 id="usage-408">Usage</h4>
+<h4 id="usage-434">Usage</h4>
 <pre><code>hslider(...) : smoo;</code></pre>
 <hr />
 <h3 id="polysmooth"><code>polySmooth</code></h3>
 <p>A smoothing function based on <code>smooth</code> that doesn't smooth when a trigger signal is given. This is very useful when making polyphonic synthesizer to make sure that the value of the parameter is the right one when the note is started.</p>
-<h4 id="usage-409">Usage</h4>
+<h4 id="usage-435">Usage</h4>
 <pre><code>hslider(...) : polysmooth(g,s,d) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6014,7 +6309,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smoothandh"><code>smoothAndH</code></h3>
 <p>A smoothing function based on <code>smooth</code> that holds its output signal when a trigger is sent to it. This feature is convenient when implementing polyphonic instruments to prevent some smoothed parameter to change when a note-off event is sent.</p>
-<h4 id="usage-410">Usage</h4>
+<h4 id="usage-436">Usage</h4>
 <pre><code>hslider(...) : smoothAndH(g,s) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6024,12 +6319,12 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="bsmooth"><code>bsmooth</code></h3>
 <p>Block smooth linear interpolation during a block of samples.</p>
-<h4 id="usage-411">Usage</h4>
+<h4 id="usage-437">Usage</h4>
 <pre><code>hslider(...) : bsmooth : _</code></pre>
 <hr />
 <h3 id="dot"><code>dot</code></h3>
 <p>Dot product for two vectors of size n.</p>
-<h4 id="usage-412">Usage</h4>
+<h4 id="usage-438">Usage</h4>
 <pre><code>_,_,_,_,_,_ : dot(n) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6038,7 +6333,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="smooth"><code>smooth</code></h3>
 <p>Exponential smoothing by a unity-dc-gain one-pole lowpass. <code>smooth</code> is a standard Faust function.</p>
-<h4 id="usage-413">Usage:</h4>
+<h4 id="usage-439">Usage:</h4>
 <pre><code>_ : smooth(tau2pole(tau)) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6054,7 +6349,7 @@ bus(4) : _,_,_,_</code></pre>
 <hr />
 <h3 id="cbus"><code>cbus</code></h3>
 <p>n parallel cables for complex signals. <code>cbus</code> is a standard Faust function.</p>
-<h4 id="usage-414">Usage</h4>
+<h4 id="usage-440">Usage</h4>
 <pre><code>cbus(n)
 cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <p>Where:</p>
@@ -6065,7 +6360,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="cmul"><code>cmul</code></h3>
 <p>multiply two complex signals pointwise. <code>cmul</code> is a standard Faust function.</p>
-<h4 id="usage-415">Usage</h4>
+<h4 id="usage-441">Usage</h4>
 <pre><code>(r1,i1) : cmul(r2,i2) : (_,_);</code></pre>
 <p>Where:</p>
 <ul>
@@ -6076,14 +6371,14 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="lag_ud"><code>lag_ud</code></h3>
 <p>Lag filter with separate times for up and down.</p>
-<h4 id="usage-416">Usage</h4>
+<h4 id="usage-442">Usage</h4>
 <pre><code>_ : lag_ud(up, dn, signal) : _;</code></pre>
 <hr />
 <h1 id="spats.lib">spats.lib</h1>
 <p>This library contains a collection of tools for sound spatialization. Its official prefix is <code>sp</code>.</p>
 <h3 id="panner"><code>panner</code></h3>
 <p>A simple linear stereo panner. <code>panner</code> is a standard Faust function.</p>
-<h4 id="usage-417">Usage</h4>
+<h4 id="usage-443">Usage</h4>
 <pre><code>_ : panner(g) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -6092,7 +6387,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="spat"><code>spat</code></h3>
 <p>GMEM SPAT: n-outputs spatializer. <code>spat</code> is a standard Faust function.</p>
-<h4 id="usage-418">Usage</h4>
+<h4 id="usage-444">Usage</h4>
 <pre><code>_ : spat(n,r,d) : _,_,...</code></pre>
 <p>Where:</p>
 <ul>
@@ -6103,7 +6398,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="stereoize"><code>stereoize</code></h3>
 <p>Transform an arbitrary processor <code>p</code> into a stereo processor with 2 inputs and 2 outputs.</p>
-<h4 id="usage-419">Usage</h4>
+<h4 id="usage-445">Usage</h4>
 <pre><code>_,_ : stereoize(p) : _,_</code></pre>
 <p>Where:</p>
 <ul>
@@ -6114,7 +6409,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <p>This library contains a collection of envelope generators. Its official prefix is <code>sy</code>.</p>
 <h3 id="popfilterperc"><code>popFilterPerc</code></h3>
 <p>A simple percussion instrument based on a &quot;popped&quot; resonant bandpass filter. <code>popFilterPerc</code> is a standard Faust function.</p>
-<h4 id="usage-420">Usage</h4>
+<h4 id="usage-446">Usage</h4>
 <pre><code>popFilterDrum(freq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -6125,7 +6420,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="dubdub"><code>dubDub</code></h3>
 <p>A simple synth based on a sawtooth wave filtered by a resonant lowpass. <code>dubDub</code> is a standard Faust function.</p>
-<h4 id="usage-421">Usage</h4>
+<h4 id="usage-447">Usage</h4>
 <pre><code>dubDub(freq,ctFreq,q,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -6137,7 +6432,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="sawtrombone"><code>sawTrombone</code></h3>
 <p>A simple trombone based on a lowpassed sawtooth wave. <code>sawTrombone</code> is a standard Faust function.</p>
-<h4 id="usage-422">Usage</h4>
+<h4 id="usage-448">Usage</h4>
 <pre><code>sawTrombone(att,freq,gain,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6149,7 +6444,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="combstring"><code>combString</code></h3>
 <p>Simplest string physical model ever based on a comb filter. <code>combString</code> is a standard Faust function.</p>
-<h4 id="usage-423">Usage</h4>
+<h4 id="usage-449">Usage</h4>
 <pre><code>combString(freq,res,gate) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -6160,7 +6455,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="additivedrum"><code>additiveDrum</code></h3>
 <p>A simple drum using additive synthesis. <code>additiveDrum</code> is a standard Faust function.</p>
-<h4 id="usage-424">Usage</h4>
+<h4 id="usage-450">Usage</h4>
 <pre><code>additiveDrum(freq,freqRatio,gain,harmDec,att,rel,gate) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6175,7 +6470,7 @@ cbus(4) : (r0,i0), (r1,i1), (r2,i2), (r3,i3)</code></pre>
 <hr />
 <h3 id="fm"><code>fm</code></h3>
 <p>An FM synthesizer with an arbitrary number of modulators connected as a sequence. <code>fm</code> is a standard Faust function.</p>
-<h4 id="usage-425">Usage</h4>
+<h4 id="usage-451">Usage</h4>
 <pre><code>freqs = (300,400,...);
 indices = (20,...);
 fm(freqs,indices) : _</code></pre>
@@ -6190,7 +6485,7 @@ fm(freqs,indices) : _</code></pre>
 <h2 id="functions-reference-7">Functions Reference</h2>
 <h3 id="moog_vcf"><code>moog_vcf</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) in &quot;analog&quot; form. Moog VCF implemented using the same logical block diagram as the classic analog circuit. As such, it neglects the one-sample delay associated with the feedback path around the four one-poles. This extra delay alters the response, especially at high frequencies (see reference [1] for details). See <code>moog_vcf_2b</code> below for a more accurate implementation.</p>
-<h4 id="usage-426">Usage</h4>
+<h4 id="usage-452">Usage</h4>
 <pre><code>moog_vcf(res,fr)</code></pre>
 <p>Where:</p>
 <ul>
@@ -6205,7 +6500,7 @@ fm(freqs,indices) : _</code></pre>
 <hr />
 <h3 id="moog_vcf_2bn"><code>moog_vcf_2b[n]</code></h3>
 <p>Moog &quot;Voltage Controlled Filter&quot; (VCF) as two biquads. Implementation of the ideal Moog VCF transfer function factored into second-order sections. As a result, it is more accurate than <code>moog_vcf</code> above, but its coefficient formulas are more complex when one or both parameters are varied. Here, res is the fourth root of that in <code>moog_vcf</code>, so, as the sampling rate approaches infinity, <code>moog_vcf(res,fr)</code> becomes equivalent to <code>moog_vcf_2b[n](res^4,fr)</code> (when res and fr are constant). <code>moog_vcf_2b</code> uses two direct-form biquads (<code>tf2</code>). <code>moog_vcf_2bn</code> uses two protected normalized-ladder biquads (<code>tf2np</code>).</p>
-<h4 id="usage-427">Usage</h4>
+<h4 id="usage-453">Usage</h4>
 <pre><code>moog_vcf_2b(res,fr)
 moog_vcf_2bn(res,fr)</code></pre>
 <p>Where:</p>
@@ -6216,7 +6511,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="wah4"><code>wah4</code></h3>
 <p>Wah effect, 4th order. <code>wah4</code> is a standard Faust function.</p>
-<h4 id="usage-428">Usage</h4>
+<h4 id="usage-454">Usage</h4>
 <pre><code>_ : wah4(fr) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6227,7 +6522,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="autowah"><code>autowah</code></h3>
 <p>Auto-wah effect. <code>autowah</code> is a standard Faust function.</p>
-<h4 id="usage-429">Usage</h4>
+<h4 id="usage-455">Usage</h4>
 <pre><code>_ : autowah(level) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -6236,7 +6531,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="crybaby"><code>crybaby</code></h3>
 <p>Digitized CryBaby wah pedal. <code>crybaby</code> is a standard Faust function.</p>
-<h4 id="usage-430">Usage</h4>
+<h4 id="usage-456">Usage</h4>
 <pre><code>_ : crybaby(wah) : _</code></pre>
 <p>Where:</p>
 <ul>
@@ -6247,7 +6542,7 @@ moog_vcf_2bn(res,fr)</code></pre>
 <hr />
 <h3 id="vocoder"><code>vocoder</code></h3>
 <p>A very simple vocoder where the spectrum of the modulation signal is analyzed using a filter bank. <code>vocoder</code> is a standard Faust function.</p>
-<h4 id="usage-431">Usage</h4>
+<h4 id="usage-457">Usage</h4>
 <pre><code>_ : vocoder(nBands,att,rel,BWRatio,source,excitation) : _;</code></pre>
 <p>Where:</p>
 <ul>

@@ -308,7 +308,7 @@ countdown(count, trig)	= \(c).(if(trig>0, count, max(0, c-1))) ~_;
 //
 // Where:
 //
-// * `count`: the starting point of the countup
+// * `count`: the maximum count value
 // * `trig`: the trigger signal (1: start at 0; 0: increase until `n`)
 //-----------------------------------------------------------------------------
 countup(count, trig)	= \(c).(if(trig>0, 0, min(count, c+1))) ~_;
@@ -371,7 +371,7 @@ tempo(t) = (60*ma.SR)/t;
 // * `p`: period as a number of samples
 //------------------------
 // NOTE: may be this should go in oscillators.lib
-period(p) = %(int(p))~+(1);
+period(p) = %(int(p))~+(1');
 
 
 //-------`pulse`----------
@@ -407,6 +407,23 @@ pulse(p) = period(p)==0;
 //------------------------
 // NOTE: may be this should go in oscillators.lib
 pulsen(n,p) = period(p)<n;
+
+
+//-----------------------`cycle`---------------------------
+// Split nonzero input values into `n` cycles.
+//
+// #### Usage
+//
+// ```
+// _ : cycle(n) <:
+// ```
+//
+// Where:
+//
+// * `n`: the number of cycles/output signals
+//---------------------------------------------------------
+// Author: Mike Olsen
+cycle(n) = _ <: par(i,n,resetCtr(n,(i+1)));
 
 
 //-------`beat`----------
@@ -480,9 +497,28 @@ pulse_countdown(t) =  - ~ _ * t ;
 //------------------------------------------------------------------------------
 //TODO: author "Vince"
 pulse_countup_loop(n, t) =  + ~ cond(n)*t
-  with {
-    cond(n) =  _ <: _ * (_ <= n) ;
-  };
+with {
+  cond(n) =  _ <: _ * (_ <= n) ;
+};
+
+
+//-----------------------`resetCtr`------------------------
+// Function that lets through the mth impulse out of
+// each consecutive group of `n` impulses.
+//
+// #### Usage
+//
+// ```
+// _ : resetCtr(n,m) : _
+// ```
+//
+// Where:
+//
+// * `n`: the total number of impulses being split
+// * `m`: index of impulse to allow to be output
+//---------------------------------------------------------
+// Author: Mike Olsen
+resetCtr(n,m) = _ <: (_,pulse_countup_loop(n-1,1)) : (_,(_==m)) : *;
 
 
 //----------------------------`pulse_countdown_loop`----------------------------
@@ -503,9 +539,9 @@ pulse_countup_loop(n, t) =  + ~ cond(n)*t
 //------------------------------------------------------------------------------
 //TODO: author "Vince:
 pulse_countdown_loop(n, t) =  - ~ cond(n)*t
-  with {
-    cond(n) =  _ <: _ * (_ >= n) ;
-  };
+with {
+  cond(n) =  _ <: _ * (_ >= n) ;
+};
 
 
 
