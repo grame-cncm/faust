@@ -413,6 +413,11 @@ void CPPCodeContainer::produceClass()
         generateComputeFunctions(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "};" << endl << endl;
+    
+    // To improve (generalization for all backend...)
+    if (gGlobal->gMemoryManager) {
+        tab(n, *fOut); *fOut << "dsp_memory_manager* " << fKlassName <<"::fManager = 0;" << endl;
+    }
 
     // Generate user interface macros if needed
 	if (gGlobal->gUIMacroSwitch) {
