@@ -844,8 +844,8 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     if (gMemoryManager) {
         fClass->addDeclCode(subst("static $0* \t$1;", ctype, vname));
         fClass->addStaticFields(subst("$0* \t$1::$2 = 0;", ctype, fClass->getClassName(), vname));
-        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(manager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
-        fClass->addStaticDestroyCode(subst("manager->destroy($0);", vname));
+        fClass->addStaticInitCode(subst("$0 = static_cast<$1*>(fManager->allocate(sizeof($1) * $2));", vname, ctype, T(size)));
+        fClass->addStaticDestroyCode(subst("fManager->destroy($0);", vname));
      } else {
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
         fClass->addStaticFields(subst("$0 \t$1::$2[$3];", ctype, fClass->getClassName(), vname, T(size)));
