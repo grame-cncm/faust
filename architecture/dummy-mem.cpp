@@ -34,12 +34,12 @@
 /**************************BEGIN USER SECTION **************************/
 
 /******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
+ *******************************************************************************
+ 
+ VECTOR INTRINSICS
+ 
+ *******************************************************************************
+ *******************************************************************************/
 
 <<includeIntrinsic>>
 
@@ -73,8 +73,11 @@ static void test1()
     // Custom memory manager
     malloc_memory_manager manager;
     
+    // Setup manager for the class
+    mydsp::fManager = &manager;
+    
     // Static class allocation with custom memory manager called once
-    mydsp::classInit(SAMPLE_RATE, &manager);
+    mydsp::classInit(SAMPLE_RATE);
     
     // 'placement' new used to allocate the DSP object
     mydsp* DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
@@ -89,9 +92,9 @@ static void test1()
     // DSP destructor called, then custom memory manager used to destroy the DSP object
     DSP->~mydsp();
     manager.destroy(DSP);
-   
+    
     // DSP static data is destroyed using classDestroy.
-    mydsp::classDestroy(&manager);
+    mydsp::classDestroy();
 }
 
 static void test2()
@@ -99,8 +102,11 @@ static void test2()
     // Custom memory manager
     malloc_memory_manager manager;
     
+    // Setup manager for the class
+    mydsp::fManager = &manager;
+    
     // Static class allocation with custom memory manager called once
-    mydsp::classInit(SAMPLE_RATE, &manager);
+    mydsp::classInit(SAMPLE_RATE);
     
     // 'placement' new used to allocate the DSP objects
     mydsp* DSP1 = new (manager.allocate(sizeof(mydsp))) mydsp();
@@ -125,8 +131,10 @@ static void test2()
     manager.destroy(DSP2);
     
     // DSP static data is destroyed using classDestroy.
-    mydsp::classDestroy(&manager);
+    mydsp::classDestroy();
 }
+
+dsp_memory_manager* mydsp::fManager = 0;
 
 int main(int argc, char* argv[])
 {
