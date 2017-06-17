@@ -43,7 +43,7 @@ struct CheckControlUI : public GenericUI {
     
     vector<FAUSTFLOAT> fControlDefault;
     vector<FAUSTFLOAT*> fControlZone;
-   
+    
     virtual void addButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
     virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
@@ -64,7 +64,7 @@ struct CheckControlUI : public GenericUI {
         fControlZone.push_back(zone);
         fControlDefault.push_back(init);
     }
-   
+    
     bool checkDefaults()
     {
         for (int i= 0; i < fControlDefault.size(); i++) {
@@ -202,7 +202,7 @@ int main(int argc, char* argv[])
     mydsp::classInit(44100);
     
     DSP->buildUserInterface(&finterface);
- 
+    
     // Get control and then 'initRandom'
     CheckControlUI controlui;
     DSP->buildUserInterface(&controlui);
@@ -215,7 +215,7 @@ int main(int argc, char* argv[])
     if (DSP->getSampleRate() != 44100) {
         cerr << "ERROR in getSampleRate" << std::endl;
     }
-   
+    
     // Check default after 'init'
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'init'" << std::endl;
@@ -237,13 +237,13 @@ int main(int argc, char* argv[])
     
     // Init again
     DSP->instanceInit(44100);
- 
+    
     int nins = DSP->getNumInputs();
     int nouts = DSP->getNumOutputs();
     
     channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
     channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
-
+    
     int nbsamples = 60000;
     int linenum = 0;
     int run = 0;
