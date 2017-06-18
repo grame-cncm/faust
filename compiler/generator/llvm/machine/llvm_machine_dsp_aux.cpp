@@ -30,7 +30,7 @@
 #endif
 
 #include "llvm_machine_dsp_aux.hh"
-#include "faust/gui/UIGlue.h"
+#include "faust/gui/CGlue.h"
 #include "exception.hh"
 #include "rn_base64.h"
 

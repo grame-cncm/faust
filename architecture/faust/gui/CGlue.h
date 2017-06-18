@@ -22,9 +22,10 @@
 #ifndef FAUST_UIGLUE_H
 #define FAUST_UIGLUE_H
 
-#include "faust/gui/CUI.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
+#include "faust/dsp/dsp.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -279,7 +280,7 @@ inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
     }
 }
     
-class UIGeneric
+class UITemplate
 {
     
     private:
@@ -288,10 +289,10 @@ class UIGeneric
         
     public:
         
-        UIGeneric(void* cpp_interface):fCPPInterface(cpp_interface)
+        UITemplate(void* cpp_interface):fCPPInterface(cpp_interface)
         {}
         
-        virtual ~UIGeneric() {}
+        virtual ~UITemplate() {}
         
         // -- widget's layouts
         
@@ -412,14 +413,37 @@ class UIGeneric
 
 static void declareMetaGlue(void* cpp_interface, const char* key, const char* value)
 {
-    Meta* ui_interface = static_cast<Meta*>(cpp_interface);
-    ui_interface->declare(key, value);
+    Meta* meta_interface = static_cast<Meta*>(cpp_interface);
+    meta_interface->declare(key, value);
 }
 
 inline void buildMetaGlue(MetaGlue* glue, Meta* meta)
 {
-    glue->mInterface = meta;
+    glue->metaInterface = meta;
     glue->declare = declareMetaGlue;
+}
+    
+/*******************************************************************************
+ * Memory manager glue code
+ ******************************************************************************/
+
+static void* allocateManagerGlue(void* cpp_interface, size_t size)
+{
+    dsp_memory_manager* manager_interface = static_cast<dsp_memory_manager*>(cpp_interface);
+    return manager_interface->allocate(size);
+}
+    
+static void destroyManagerGlue(void* cpp_interface, void* ptr)
+{
+    dsp_memory_manager* manager_interface = static_cast<dsp_memory_manager*>(cpp_interface);
+    manager_interface->destroy(ptr);
+}
+
+inline void buildManagerGlue(ManagerGlue* glue, dsp_memory_manager* manager)
+{
+    glue->managerInterface = manager;
+    glue->allocate = allocateManagerGlue;
+    glue->destroy = destroyManagerGlue;
 }
 
 #ifdef __cplusplus

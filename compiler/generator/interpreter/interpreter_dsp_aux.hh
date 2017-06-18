@@ -31,7 +31,7 @@
 #include <stdlib.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/gui/UIGlue.h"
+#include "faust/gui/CGlue.h"
 #include "faust/gui/meta.h"
 
 #include "fir_interpreter.hh"
@@ -616,7 +616,7 @@ struct interpreter_dsp_base : public dsp {
     void buildUserInterface(UI* ui_interface) {}
     
     // Replaced by this one
-    virtual void buildUserInterface(UIGeneric* glue) = 0;
+    virtual void buildUserInterface(UITemplate* glue) = 0;
     
     virtual void instanceInit(int samplingRate) {}
     
@@ -844,7 +844,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         }
         */
     
-        virtual void buildUserInterface(UIGeneric* glue)
+        virtual void buildUserInterface(UITemplate* glue)
         {
             //std::cout << "buildUserInterface" << std::endl;
             this->ExecuteBuildUserInterface(this->fFactory->fUserInterfaceBlock, glue);

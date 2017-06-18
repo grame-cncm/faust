@@ -76,7 +76,7 @@ inline void faustassert(bool cond)
         void* array[20];
         backtrace_symbols_fd(array, backtrace(array, 20), STDERR_FILENO);
     #endif
-        throw faustexception("assert: please report the stack trace and the failing DSP file to Faust developers.\n");
+        throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
     }
 }
             

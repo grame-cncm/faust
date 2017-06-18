@@ -29,7 +29,7 @@
 
 #include "compatibility.hh"
 #include "llvm_dsp_aux.hh"
-#include "faust/gui/UIGlue.h"
+#include "faust/gui/CGlue.h"
 #include "dsp_aux.hh"
 #include "timing.hh"
 #include "exception.hh"
@@ -1128,7 +1128,10 @@ void llvm_dsp::instanceClear()
     fFactory->getFactory()->fInstanceClear(fDSP);
 }
 
-llvm_dsp* llvm_dsp::clone() { return fFactory->createDSPInstance(); }
+llvm_dsp* llvm_dsp::clone()
+{
+    return fFactory->createDSPInstance();
+}
 
 int llvm_dsp::getSampleRate()
 {
@@ -1891,10 +1894,10 @@ EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
     return (dsp) ? dsp->clone() : 0;
 }
 
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, allocateFun create, void* create_arg, destroyFun destroy, void* destroy_arg)
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
 {
     if (factory)  {
-        factory->setMemoryManager(create, create_arg, destroy, destroy_arg);
+        factory->setMemoryManager(manager);
     }
 }
 

@@ -33,7 +33,7 @@ extern "C" {
 #endif
 
 /*******************************************************************************
- * CUI : Faust User Interface for C or LLVM generated code.
+ * UI and Meta classes for C or LLVM generated code.
  ******************************************************************************/
 
 /* -- layout groups */
@@ -81,7 +81,7 @@ typedef void (* metaDeclareFun) (void* ui_interface, const char* key, const char
 
 typedef struct {
 
-    void* mInterface;
+    void* metaInterface;
     
     metaDeclareFun declare;
 
@@ -104,6 +104,22 @@ typedef void (* clearFun) (struct dsp_imp* dsp);
 typedef int (* getSampleRateFun) (struct dsp_imp* dsp);
 typedef void (* computeFun) (struct dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
+    
+/***************************************
+ * DSP memory manager functions
+ ***************************************/
+
+typedef void* (* allocateFun) (void* manager_interface, size_t size);
+typedef void (* destroyFun) (void* manager_interface, void* ptr);
+
+typedef struct {
+    
+    void* managerInterface;
+    
+    allocateFun allocate;
+    destroyFun destroy;
+    
+} ManagerGlue;
 
 #ifdef __cplusplus
 }

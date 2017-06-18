@@ -27,6 +27,14 @@
 
 using namespace std;
 
+/*
+ LLVM module description:
+ 
+- 'clone' method is implemented in the 'llvm_dsp' wrapping code
+
+ TODO: in -mem mode, classInit and classDestroy will have to be called one at factory init and destroy time
+*/
+
 #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #define ModulePTR std::unique_ptr<Module>
     #define MovePTR(ptr) std::move(ptr)

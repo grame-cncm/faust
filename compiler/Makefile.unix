@@ -270,8 +270,8 @@ main.o : main.cpp
 scheduler.ll : ../architecture/scheduler.cpp
 	$(LLVM_CLANG) -O3 -D$(LLVM_VERSION) -emit-llvm -S ../architecture/scheduler.cpp -o scheduler.ll
 
-CUI_exp.h : ../architecture/faust/gui/CUI.h
-	xxd -i ../architecture/faust/gui/CUI.h generator/llvm/CUI_exp.h
+CInterface_exp.h : ../architecture/faust/gui/CInterface.h
+	xxd -i ../architecture/faust/gui/CInterface.h generator/llvm/CInterface_exp.h
 
 scheduler_exp.h : ../architecture/scheduler.cpp
 	xxd -i ../architecture/scheduler.cpp generator/llvm/scheduler_exp.h

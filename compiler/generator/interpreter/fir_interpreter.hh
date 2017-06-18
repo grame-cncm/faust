@@ -28,7 +28,7 @@
 #include <iostream>
 #include <sstream>
 
-#include "faust/gui/UIGlue.h"
+#include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
 #include "exception.hh"
 
@@ -190,7 +190,7 @@ class FIRInterpreter  {
         #define pop_real(it) (real_stack[--real_stack_index])
     #endif
     
-        void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UIGeneric* glue)
+        void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
         {
             UIInstructionIT it;
             

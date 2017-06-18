@@ -183,13 +183,13 @@ if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
     echo "==========================================================================="
 
     for f in *.dsp; do
-        faust2impulse2bis -inpl -double $f      > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
+        faust2impulse2 -double $f      > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
     for f in *.dsp; do
-        faust2impulse2 -double $f      > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        faust2impulse2bis -inpl -double $f      > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
     done
 
     for f in *.dsp; do

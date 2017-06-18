@@ -244,7 +244,7 @@ EXPORT void interpreter_dsp::metadata(Meta* meta)
 
 EXPORT interpreter_dsp* interpreter_dsp::clone()
 {
-    return reinterpret_cast<interpreter_dsp*>(fFactory->createDSPInstance());
+    return fFactory->createDSPInstance();
 }
 
 EXPORT int interpreter_dsp::getSampleRate()
@@ -289,7 +289,7 @@ EXPORT void interpreter_dsp::instanceClear()
 
 EXPORT void interpreter_dsp::buildUserInterface(UI* ui_interface)
 {
-    UIGeneric glue(ui_interface);
+    UITemplate glue(ui_interface);
     fDSP->buildUserInterface(&glue);
 }
 

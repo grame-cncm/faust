@@ -30,7 +30,7 @@
 #include <map>
 #include <vector>
 #include <utility>
-#include "faust/gui/CUI.h"
+#include "faust/gui/CInterface.h"
 #include "faust/dsp/dsp.h"
 #include "export.hh"
 #include "smartpointer.h"
