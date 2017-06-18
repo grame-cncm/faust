@@ -35,25 +35,22 @@
 #endif
 */
 
-#include "faust/gui/meta.h"
-#include "faust/gui/FUI.h"
-#include "faust/misc.h"
+#include "faust/audio/jack-dsp.h"
+
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/poly-dsp.h"
+
+#include "faust/gui/meta.h"
+#include "faust/gui/FUI.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/MidiUI.h"
-#include "faust/audio/jack-dsp.h"
-
-#ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
-#endif
-
-#ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
-#endif
+
+#include "faust/misc.h"
 
 using namespace std;
 
@@ -98,41 +95,62 @@ struct malloc_memory_manager : public dsp_memory_manager {
 
 int main(int argc, char* argv[])
 {
+    char name[256];
+    char filename[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    
+    snprintf(name, 255, "%s", basename(argv[0]));
+    snprintf(filename, 255, "%s", basename(argv[argc-1]));
+    snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
+    
     bool is_llvm = isopt(argv, "-llvm");
     bool is_interp = isopt(argv, "-interp");
-    bool is_poly = isopt(argv, "-poly");
+    bool is_midi = isopt(argv, "-midi");
+    bool is_osc = isopt(argv, "-osc");
+    bool is_httpd = isopt(argv, "-httpd");
+    int nvoices = lopt(argv, "-nvoices", -1);
     
     bool midi_sync = false;
-    int nvoices = 0;
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
     #ifdef INTERP_PLUGIN
-        cout << "dynamic-jack-gtk-plugin -interp [-poly] foo.dsp" << endl;
+        cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.dsp" << endl;
     #else
-        cout << "dynamic-jack-gtk [-llvm/interp] [-poly] <compiler-options> foo.dsp" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] <compiler-options> foo.dsp" << endl;
     #endif
         exit(EXIT_FAILURE);
-    }
-    
-    // Index of first parameter after -llvm/interp and -poly
-    int id = 0;
-    for (id = 1; id < argc; id++) {
-        if ((string(argv[id]) != "-llvm")
-            && (string(argv[id]) != "-interp")
-            && (string(argv[id]) != "-poly")) {
-            break;
-        }
     }
     
     dsp_factory* factory = 0;
     dsp* DSP = 0;
     mydsp_poly* dsp_poly = NULL;
     MidiUI* midiinterface = 0;
+    httpdUI* httpdinterface = 0;
+    GUI* oscinterface = 0;
+    jackaudio_midi audio;
+    string error_msg;
     
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
-   
-    string error_msg;
+    
+    int argc1 = 0;
+    const char* argv1[32];
+    
+    for (int i = 1; i < argc-1; i++) {
+        if ((string(argv[i]) == "-llvm")
+            || (string(argv[i]) == "-interp")
+            || (string(argv[i]) == "-midi")
+            || (string(argv[i]) == "-osc")
+            || (string(argv[i]) == "-httpd")) {
+            continue;
+        }
+        if (string(argv[i]) == "-nvoices") {
+            i++;
+            continue;
+        }
+        argv1[argc1++] = argv[i];
+    }
     
 #ifdef INTERP_PLUGIN
     cout << "Using interpreter plugin backend" << endl;
@@ -141,12 +159,12 @@ int main(int argc, char* argv[])
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
-        factory = createDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], "", error_msg, -1);
+        factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
         //factory = createDSPFactoryFromString("FaustLLVM", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], "", error_msg, -1);
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-id-1, (const char**)&argv[id], error_msg);
+        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
     }
 #endif
@@ -162,7 +180,7 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
   
-    if (is_poly) {
+    if (nvoices > 0) {
         MidiMeta::analyse(DSP, midi_sync, nvoices);
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
         DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, false);
@@ -172,62 +190,62 @@ int main(int argc, char* argv[])
         cout << "Running in double..." << endl;
     }
    
-    char name[256];
-    char filename[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[argc-1]));
-    snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
-   
-    GUI* interface 	= new GTKUI(filename, &argc, &argv);
-    FUI* finterface	= new FUI();
-
+    GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
+    
+    FUI* finterface	= new FUI();
     DSP->buildUserInterface(finterface);
-
-#ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-    DSP->buildUserInterface(httpdinterface);
-#endif
-
-#ifdef OSCCTRL
-    GUI* oscinterface = new OSCUI(filename, argc, argv);
-    DSP->buildUserInterface(oscinterface);
-#endif
-
-    jackaudio_midi audio;
+    finterface->recallState(rcfilename);
+   
     if (!audio.init(filename, DSP, true)) {
         return 0;
     }
     
-    if (is_poly) {
+    if (is_httpd) {
+        httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+        DSP->buildUserInterface(httpdinterface);
+    }
+    
+    if (is_osc) {
+        oscinterface = new OSCUI(filename, argc, argv);
+        DSP->buildUserInterface(oscinterface);
+    }
+    
+    if (is_midi) {
         midiinterface = new MidiUI(&audio);
-        audio.addMidiIn(dsp_poly);
         DSP->buildUserInterface(midiinterface);
+    }
+    
+    if (nvoices > 0) {
+        audio.addMidiIn(dsp_poly);
+    }
+    
+    audio.start();
+
+    if (is_httpd) {
+        httpdinterface->run();
+    }
+
+    if (is_osc) {
+        oscinterface->run();
+    }
+    
+    if (is_osc) {
         midiinterface->run();
     }
     
-    finterface->recallState(rcfilename);
-    audio.start();
-
-#ifdef HTTPCTRL
-    httpdinterface->run();
-#endif
-
-#ifdef OSCCTRL
-    oscinterface->run();
-#endif
     interface->run();
 
     audio.stop();
+    
     finterface->saveState(rcfilename);
     
     delete DSP;
     delete interface;
     delete finterface;
     delete midiinterface;
+    delete httpdinterface;
+    delete oscinterface;
   
 #ifdef INTERP_PLUGIN
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
