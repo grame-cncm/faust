@@ -27,8 +27,6 @@
 #include <fstream>
 #include <sstream>
 
-#define NVOICES 8
-
 /*
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT double
@@ -181,7 +179,6 @@ int main(int argc, char* argv[])
     cout << "getName " << factory->getName() << endl;
   
     if (nvoices > 0) {
-        MidiMeta::analyse(DSP, midi_sync, nvoices);
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
         DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, false);
     }
