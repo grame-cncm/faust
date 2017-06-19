@@ -23,7 +23,8 @@
 #define LLVM_DSP_C_H
 
 #include <stdbool.h>
-#include "faust/gui/CUI.h"
+
+#include "faust/gui/CInterface.h"
 
 #ifdef __cplusplus
 extern "C"

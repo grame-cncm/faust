@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <stdio.h>
 #include <string.h>
 #include <list>
@@ -37,11 +36,14 @@
 #include "global.hh"
 #include "libfaust.h"
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <system_error>
-#else
-    #include <llvm/Support/system_error.h>
-#endif
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/Transforms/IPO.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/ManagedStatic.h>
+#include <llvm/Transforms/IPO/PassManagerBuilder.h>
+#include <llvm/Support/Threading.h>
 
 #if defined(LLVM_40)
     #include <llvm/Bitcode/BitcodeWriter.h>
@@ -104,60 +106,35 @@
 #endif
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/IR/Verifier.h>
-#else
-    #include <llvm/Analysis/Verifier.h>
-#endif
-
-#include <llvm/Target/TargetMachine.h>
-#include <llvm/Transforms/IPO.h>
-#include <llvm/Transforms/Scalar.h>
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #include <llvm/IR/LegacyPassNameParser.h>
     #include <llvm/Linker/Linker.h>
+    #include <llvm/IR/IRPrintingPasses.h>
+    #include <system_error>
+    #include <llvm/IR/Verifier.h>
+    #include <llvm/Support/FileSystem.h>
+    #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+    #define OwningPtr std::unique_ptr
+    #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
 #else
     #include <llvm/Support/PassNameParser.h>
     #include <llvm/Linker.h>
-#endif
-
-#include <llvm/Support/Host.h>
-#include <llvm/Support/ManagedStatic.h>
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/IR/IRPrintingPasses.h>
-    #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
-#else
     #include <llvm/Assembly/PrintModulePass.h>
+    #include <llvm/Support/system_error.h>
+    #include <llvm/Analysis/Verifier.h>
     #define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
+    #define GET_CPU_NAME llvm::sys::getHostCPUName()
 #endif
-
-#include <llvm/Transforms/IPO/PassManagerBuilder.h>
-#include <llvm/Support/Threading.h>
 
 #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)) && !defined(_MSC_VER)
     #include "llvm/ExecutionEngine/ObjectCache.h"
 #endif
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #define OwningPtr std::unique_ptr
-#endif
-
-#include <llvm/Support/TargetSelect.h>
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/Support/FileSystem.h>
     #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
     #define sysfs_binary_flag sys::fs::F_Binary
 #else
     #define sysfs_binary_flag raw_fd_ostream::F_Binary
-#endif
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#else
-    #define GET_CPU_NAME llvm::sys::getHostCPUName()
 #endif
 
 #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)

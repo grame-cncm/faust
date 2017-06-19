@@ -22,14 +22,11 @@
 #ifndef LLVM_DSP_AUX_H
 #define LLVM_DSP_AUX_H
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
-
 #include <string>
 #include <map>
 #include <vector>
 #include <utility>
+
 #include "faust/gui/CInterface.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"

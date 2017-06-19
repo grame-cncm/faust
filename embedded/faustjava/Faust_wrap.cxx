@@ -1119,17 +1119,30 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_metadataCDSPInstance(JNIEn
 SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_computeCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jint jarg2, jlong jarg3, jlong jarg4) {
   llvm_dsp *arg1 = (llvm_dsp *) 0 ;
   int arg2 ;
-  float **arg3 = (float **) 0 ;
-  float **arg4 = (float **) 0 ;
+  FAUSTFLOAT **arg3 = (FAUSTFLOAT **) 0 ;
+  FAUSTFLOAT **arg4 = (FAUSTFLOAT **) 0 ;
   
   (void)jenv;
   (void)jcls;
   (void)jarg1_;
   arg1 = *(llvm_dsp **)&jarg1; 
   arg2 = (int)jarg2; 
-  arg3 = *(float ***)&jarg3; 
-  arg4 = *(float ***)&jarg4; 
+  arg3 = *(FAUSTFLOAT ***)&jarg3; 
+  arg4 = *(FAUSTFLOAT ***)&jarg4; 
   computeCDSPInstance(arg1,arg2,arg3,arg4);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_setCMemoryManager(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
+  ManagerGlue *arg2 = (ManagerGlue *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp_factory **)&jarg1; 
+  arg2 = *(ManagerGlue **)&jarg2; 
+  setCMemoryManager(arg1,arg2);
 }
 
 

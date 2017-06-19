@@ -189,8 +189,12 @@ public class Faust {
     FaustJNI.metadataCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, SWIGTYPE_p_MetaGlue.getCPtr(meta));
   }
 
-  public static void computeCDSPInstance(llvm_dsp dsp, int count, SWIGTYPE_p_p_float input, SWIGTYPE_p_p_float output) {
-    FaustJNI.computeCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, count, SWIGTYPE_p_p_float.getCPtr(input), SWIGTYPE_p_p_float.getCPtr(output));
+  public static void computeCDSPInstance(llvm_dsp dsp, int count, SWIGTYPE_p_p_FAUSTFLOAT input, SWIGTYPE_p_p_FAUSTFLOAT output) {
+    FaustJNI.computeCDSPInstance(llvm_dsp.getCPtr(dsp), dsp, count, SWIGTYPE_p_p_FAUSTFLOAT.getCPtr(input), SWIGTYPE_p_p_FAUSTFLOAT.getCPtr(output));
+  }
+
+  public static void setCMemoryManager(llvm_dsp_factory factory, SWIGTYPE_p_ManagerGlue manager) {
+    FaustJNI.setCMemoryManager(llvm_dsp_factory.getCPtr(factory), factory, SWIGTYPE_p_ManagerGlue.getCPtr(manager));
   }
 
   public static llvm_dsp createCDSPInstance(llvm_dsp_factory factory) {

@@ -34,16 +34,17 @@
 #include <clang/Frontend/FrontendDiagnostic.h>
 #include <clang/Frontend/TextDiagnosticPrinter.h>
 
+#include <llvm/Support/Host.h>
+#include <llvm/Support/Path.h>
+#include <llvm/Support/TargetSelect.h>
+#include <llvm/Support/raw_ostream.h>
+
 #include <llvm/Bitcode/ReaderWriter.h>
 #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>
 #endif
-#include <llvm/Support/Host.h>
-#include <llvm/Support/Path.h>
-#include <llvm/Support/TargetSelect.h>
-#include <llvm/Support/raw_ostream.h>
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
 #include <llvm/Support/FileSystem.h>
@@ -59,7 +60,7 @@ using namespace llvm;
 using namespace clang;
 using namespace clang::driver;
 
-#include "CUI_exp.h"
+#include "CInterface_exp.h"
 //#include "scheduler_exp.h"
 
 // Helper functions

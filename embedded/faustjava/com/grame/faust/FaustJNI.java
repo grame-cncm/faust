@@ -56,6 +56,7 @@ public class FaustJNI {
   public final static native long cloneCDSPInstance(long jarg1, llvm_dsp jarg1_);
   public final static native void metadataCDSPInstance(long jarg1, llvm_dsp jarg1_, long jarg2);
   public final static native void computeCDSPInstance(long jarg1, llvm_dsp jarg1_, int jarg2, long jarg3, long jarg4);
+  public final static native void setCMemoryManager(long jarg1, llvm_dsp_factory jarg1_, long jarg2);
   public final static native long createCDSPInstance(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteCDSPInstance(long jarg1, llvm_dsp jarg1_);
   public final static native void generateCSHA1(String jarg1, String jarg2);
