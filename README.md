@@ -3,7 +3,7 @@
 ## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
 
 MASTER : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust) 
-MASTER-DEV : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust) 
+MASTER-DEV2 : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev2)](https://travis-ci.org/grame-cncm/faust) 
 FAUST2 : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=faust2)](https://travis-ci.org/grame-cncm/faust)
 
 ## Introduction
@@ -26,9 +26,9 @@ In the following subsections, details about the differences between these 2 vers
 
 `master` is the main Faust branch hosting Faust0. Faust0 is the "original" version of the Faust compiler. Unlike Faust2, it can only generate C++ code and it doesn't have any dependencies, making it extremely easy to compile and install. Faust0 will suit the needs of most users and is the recommended version of Faust.
 
-### `master-dev` (Faust0 - Preferred Development Branch)
+### `master-dev2` (Faust0 - Preferred Development Branch)
 
-`master-dev` is the development sub-branch of `master`, thus it is also based on Faust0. It is used by Faust developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev` and `master` are carried out multiple times a week by the GRAME team. 
+`master-dev2` is the development sub-branch of `master`, thus it is also based on Faust0. It is used by Faust developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev2` and `master` are carried out multiple times a week by the GRAME team. 
 
 ### `faust2` (Faust2)
 

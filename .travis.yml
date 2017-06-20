@@ -46,7 +46,7 @@ before_install:
 
 branches:
   only:
-  - master-dev
+  - master-dev2
   - master
 
 script:  make CXX=$COMPILER -j4
