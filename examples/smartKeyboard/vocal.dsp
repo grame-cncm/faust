@@ -38,4 +38,4 @@ gain = hslider("gain",0.25,0,1,0.01);
 freq = x*200 + 50;
 voiceFreq = freq*(os.osc(6)*vibrato+1);
 
-process = pm.SFFormantModel(1,vowel,0,voiceFreq,gain) <: _,_;
+process = pm.SFFormantModelBP(1,vowel,0,voiceFreq,gain) <: _,_;
