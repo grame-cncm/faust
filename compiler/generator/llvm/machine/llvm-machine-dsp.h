@@ -267,7 +267,7 @@ std::string generateSHA1(const std::string& data);
  *
  * @param ptr - the pointer to be deleted.
  */
-extern "C" void freeCDSP(void* ptr);
+extern "C" void freeCMemory(void* ptr);
 
 /*!
  @}

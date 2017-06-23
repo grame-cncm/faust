@@ -245,7 +245,7 @@ window.AudioContext = window.AudioContext || window.webkitAudioContext || undefi
 faust.createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
 faust.expandCDSPFromString = Module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
-faust.freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
+faust.freeCMemory = Module.cwrap('freeCMemory', null, ['number']);
 
 faust.error_msg = null;
 faust.factory_number = 0;
@@ -298,7 +298,7 @@ faust.createDSPFactory = function (code, argv) {
     Module._free(error_msg_ptr);
     
     // Free C allocated asm.js module
-    faust.freeCDSP(factory_code_ptr);
+    faust.freeCMemory(factory_code_ptr);
     
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
@@ -356,7 +356,7 @@ faust.expandDSP = function (code, argv) {
     Module._free(error_msg_ptr);
     
     // Free C allocated asm.js module
-    faust.freeCDSP(expand_dsp_ptr);
+    faust.freeCMemory(expand_dsp_ptr);
     
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {

@@ -431,7 +431,7 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void generateCSHA1(const char* data, char* key);
 
-EXPORT void freeCDSP(const char* ptr);
+EXPORT void freeCMemory(const char* ptr);
 
 #ifdef __cplusplus
 }

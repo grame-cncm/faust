@@ -217,7 +217,7 @@ asmjs : CXX = emcc
 asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 asmjs : ARCHFLAGS =
 asmjs : libfaust.js libfaustworker.js
-asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCDSP']"
+asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']"
 
 ## For the Web/WASM, only compile the WASM backend
 wasm : CC = emcc

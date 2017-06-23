@@ -748,7 +748,7 @@ EXPORT void generateCSHA1(const char* data, char* sha_key)
     strncpy(sha_key, res.c_str(), 64);
 }
 
-EXPORT void freeCDSP(void* ptr)
+EXPORT void freeCMemory(void* ptr)
 {
     free(ptr);
 }

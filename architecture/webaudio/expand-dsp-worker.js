@@ -23,7 +23,7 @@ onmessage = function(e) {
         
         var expandCDSPFromString = Module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
         var getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
-        var freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
+        var freeCMemory = Module.cwrap('freeCMemory', null, ['number']);
         
         console.log("libfaustworker.js version : " + Pointer_stringify(getCLibFaustVersion()));
         
@@ -52,7 +52,7 @@ onmessage = function(e) {
     	Module._free(error_msg_ptr);
         
         // Free C allocated asm.js module
-        freeCDSP(expand_dsp_ptr);
+        freeCMemory(expand_dsp_ptr);
         
         // Free 'argv' C side array
         for (var i = 0; i < argv.length; i++) {

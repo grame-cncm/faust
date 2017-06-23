@@ -60,7 +60,7 @@ public class FaustJNI {
   public final static native long createCDSPInstance(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteCDSPInstance(long jarg1, llvm_dsp jarg1_);
   public final static native void generateCSHA1(String jarg1, String jarg2);
-  public final static native void freeCDSP(long jarg1);
+  public final static native void freeCMemory(long jarg1);
   public final static native long createCDSPFactoryFromFileAux(String jarg1, String jarg2, String jarg3, int jarg4);
   public final static native long createCDSPFactoryFromStringAux(String jarg1, String jarg2, String jarg3, String jarg4, int jarg5);
   public final static native String getCDSPLastError();

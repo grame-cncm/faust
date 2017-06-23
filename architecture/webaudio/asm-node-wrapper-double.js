@@ -216,7 +216,7 @@ var faust = faust || {};
 faust.createAsmCDSPFactoryFromString = libfaust.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
 faust.expandCDSPFromString = libfaust.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.getCLibFaustVersion = libfaust.cwrap('getCLibFaustVersion', 'number', []);
-faust.freeCDSP = libfaust.cwrap('freeCDSP', null, ['number']);
+faust.freeCMemory = libfaust.cwrap('freeCMemory', null, ['number']);
 
 faust.error_msg = null;
 faust.factory_number = 0;
@@ -273,7 +273,7 @@ faust.createDSPFactory = function (code, argv) {
     libfaust._free(error_msg_ptr);
     
     // Free C allocated asm.js module
-    faust.freeCDSP(factory_code_ptr);
+    faust.freeCMemory(factory_code_ptr);
     
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
@@ -329,7 +329,7 @@ faust.expandDSP = function (code, argv) {
     libfaust._free(error_msg_ptr);
     
     // Free C allocated asm.js module
-    faust.freeCDSP(expand_dsp_ptr);
+    faust.freeCMemory(expand_dsp_ptr);
     
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {

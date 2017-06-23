@@ -354,7 +354,7 @@ faust.expandDSP = function (code, argv) {
     faust_module._free(error_msg_ptr);
     
     // Free C allocated asm.js module
-    faust.freeCDSP(expand_dsp_ptr);
+    faust.freeCMemory(expand_dsp_ptr);
     
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {

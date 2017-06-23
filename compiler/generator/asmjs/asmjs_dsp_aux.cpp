@@ -119,7 +119,7 @@ EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const ch
     return createAsmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT void freeCDSP(void* ptr)
+EXPORT void freeCMemory(void* ptr)
 {
     free(ptr);
 }

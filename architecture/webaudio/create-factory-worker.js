@@ -19,7 +19,7 @@ onmessage = function(e) {
         
         var createAsmCDSPFactoryFromString = Module.cwrap('createAsmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number']);
         var getCLibFaustVersion = Module.cwrap('getCLibFaustVersion', 'number', []);
-        var freeCDSP = Module.cwrap('freeCDSP', null, ['number']);
+        var freeCMemory = Module.cwrap('freeCMemory', null, ['number']);
         
         console.log("libfaustworker.js version : " + Pointer_stringify(getCLibFaustVersion()));
         

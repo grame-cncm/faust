@@ -1194,13 +1194,13 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_generateCSHA1(JNIEnv *jenv
 }
 
 
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_freeCDSP(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_freeCMemory(JNIEnv *jenv, jclass jcls, jlong jarg1) {
   void *arg1 = (void *) 0 ;
   
   (void)jenv;
   (void)jcls;
   arg1 = *(void **)&jarg1; 
-  freeCDSP(arg1);
+  freeCMemory(arg1);
 }
 
 

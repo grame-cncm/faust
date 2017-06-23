@@ -52,7 +52,7 @@ extern "C"
     /**
      * Get the target (triple + CPU) of the machine.
      * 
-     * @return the target as a string (to be deleted by the caller).
+     * @return the target as a string (to be deleted by the caller using freeCMemory).
      */
      char* getCDSPMachineTarget();
   
@@ -127,7 +127,7 @@ extern "C"
      *
      * @param factory - the DSP factory.
      * 
-     * @return the name as a string (to be deleted by the caller).
+     * @return the name as a string (to be deleted by the caller using freeCMemory).
      */
     char* getCName(llvm_dsp_factory* factory);
 
@@ -136,7 +136,7 @@ extern "C"
      *
      * @param factory - the DSP factory.
      * 
-     * @return the SHA key as a string (to be deleted by the caller).
+     * @return the SHA key as a string (to be deleted by the caller using freeCMemory).
      */
     char* getCSHAKey(llvm_dsp_factory* factory);
     
@@ -145,7 +145,7 @@ extern "C"
      *
      * @param factory - the DSP factory.
      * 
-     * @return the expanded DSP code string (to be deleted by the caller).
+     * @return the expanded DSP code string (to be deleted by the caller using freeCMemory).
      */
     char* getCDSPCode(llvm_dsp_factory* factory);
     
@@ -154,7 +154,7 @@ extern "C"
      *
      * @param factory - the DSP factory.
      * 
-     * @return the LLVM target as a string (to be deleted by the caller).
+     * @return the LLVM target as a string (to be deleted by the caller using freeCMemory).
      */
     char* getCTarget(llvm_dsp_factory* factory);
   
@@ -163,7 +163,7 @@ extern "C"
      *
      * @param factory - the DSP factory.
      * 
-     * @return the library dependancies (the array and it's contain has to be deleted by the caller).
+     * @return the library dependancies (the array and it's contain has to be deleted by the caller using freeCMemory).
      */
     const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
     
@@ -176,7 +176,7 @@ extern "C"
     /**
      * Return Faust DSP factories of the library cache as a null-terminated array of their SHA keys.
      * 
-     * @return the Faust DSP factories (the array and it's content has to be deleted by the caller).
+     * @return the Faust DSP factories (the array and it's content has to be deleted by the caller using freeCMemory).
      */    
     const char** getAllCDSPFactories();
     
@@ -214,7 +214,7 @@ extern "C"
      * 
      * @param factory - Faust DSP factory
      *
-     * @return the LLVM bitcode as a string (to be deleted by the caller).
+     * @return the LLVM bitcode as a string (to be deleted by the caller using freeCMemory).
      */
     char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);
     
@@ -263,7 +263,7 @@ extern "C"
      * 
      * @param factory - the DSP factory
      *
-     * @return the LLVM IR (textual) as a string (to be deleted by the caller).
+     * @return the LLVM IR (textual) as a string (to be deleted by the caller using freeCMemory).
      */
     char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
     
@@ -311,7 +311,7 @@ extern "C"
      * @param factory - the Faust DSP factory
      * @param target - the LLVM machine target (using empty string will takes current machine settings)
      *
-     * @return the machine code as a string (to be deleted by the caller).
+     * @return the machine code as a string (to be deleted by the caller using freeCMemory).
      */
     char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
 
@@ -349,7 +349,7 @@ extern "C"
      * @param sha_key - the SHA key to be filled
      * @param error_msg - the error string to be filled
      *
-     * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return the expanded DSP as a string on success (to be deleted by the caller using freeCMemory), otherwise a null pointer.
      */ 
     char* expandCDSPFromFile(const char* filename, 
                            int argc, const char* argv[], 
@@ -367,7 +367,7 @@ extern "C"
      * @param sha_key - the SHA key to be filled
      * @param error_msg - the error string to be filled
      *
-     * @return the expanded DSP as a string on success (to be deleted by the caller), otherwise a null pointer.
+     * @return the expanded DSP as a string on success (to be deleted by the caller using freeCMemory), otherwise a null pointer.
      */ 
     char* expandCDSPFromString(const char* name_app, 
                              const char* dsp_content, 
@@ -464,7 +464,7 @@ extern "C"
      * 
      * @param ptr - the pointer to be deleted.
      */
-    void freeCDSP(void* ptr);
+    void freeCMemory(void* ptr);
     
 #ifdef __cplusplus
 }

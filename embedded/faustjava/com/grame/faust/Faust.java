@@ -210,8 +210,8 @@ public class Faust {
     FaustJNI.generateCSHA1(data, key);
   }
 
-  public static void freeCDSP(SWIGTYPE_p_void ptr) {
-    FaustJNI.freeCDSP(SWIGTYPE_p_void.getCPtr(ptr));
+  public static void freeCMemory(SWIGTYPE_p_void ptr) {
+    FaustJNI.freeCMemory(SWIGTYPE_p_void.getCPtr(ptr));
   }
 
   public static llvm_dsp_factory createCDSPFactoryFromFileAux(String filename, String argv, String target, int opt_level) {

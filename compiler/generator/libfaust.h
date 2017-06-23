@@ -26,21 +26,70 @@
 
 // Public C++ interface without LLVM
 
+/**
+ * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a filename.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param sha_key - a SHA key to be filled by for the resulting DSP
+ * @param error_msg - the error string to be filled
+ *
+ * @return the expanded DSP or a empty string in case of failure
+ */
 EXPORT std::string expandDSPFromFile(const std::string& filename,
                                     int argc, const char* argv[],
                                     std::string& sha_key,
                                     std::string& error_msg);
 
+/**
+ * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param sha_key - a SHA key to be filled by for the resulting DSP
+ * @param error_msg - the error string to be filled
+ *
+ * @return the expanded DSP or a empty string in case of failure
+ */
 EXPORT std::string expandDSPFromString(const std::string& name_app,
                                         const std::string& dsp_content, 
                                         int argc, const char* argv[], 
                                         std::string& sha_key,
                                         std::string& error_msg);
 
+/**
+ * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return the expanded DSP or a empty string in case of failure
+ */
 EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
+/**
+ * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters
+ * @param error_msg - the error string to be filled
+ *
+ * @return the expanded DSP or a empty string in case of failure
+ */
 EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
+/**
+ * Generate SHA key form a DSP as a string
+ *
+ * @param dsp_content - the DSP string
+ *
+ * @return the SHA key
+ */
 EXPORT std::string generateSHA1(const std::string& dsp_content);
 
 #endif
