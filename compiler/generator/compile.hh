@@ -86,7 +86,7 @@ protected:
     void 		generateUserInterfaceTree(Tree t, bool root = false);
     void 		generateUserInterfaceElements(Tree elements);
     Tree 		prepareUserInterfaceTree(Tree t);
-
+    void        generateSoundfileCode(Tree fulllabel, string& varname, Tree sig);
 	void        generateMacroInterfaceTree(const string& pathname, Tree t);
     void        generateMacroInterfaceElements(const string& pathname, Tree elements);
     void        generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);

@@ -211,6 +211,21 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	}
 }
 
+string ScalarCompiler::getSoundfileVariable(Tree sig, Tree path)
+{
+    string v;
+    if (! fSoundfileVariableProperty.get(path,v)) {
+        v = getFreshID("SF");
+        fClass->addDeclCode(subst("Soundfile* \t$0;", v));
+        fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
+        fClass->addInitUICode(subst("$0 = &defaultsound;", v));
+	    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
+        generateSoundfileCode(path,v,sig);
+
+        fSoundfileVariableProperty.set(path,v);
+    }
+    return v;
+}
 
 /*****************************************************************************
 							 CS : compile a signal
@@ -327,9 +342,9 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 
-	else if ( isSigSoundfileLength(sig, label) )	{ return "SF.length"; }
-	else if ( isSigSoundfileRate(sig, label) )	    { return "SF.rate"; }
-	else if ( isSigSoundfileChannel(sig,label,x,y)) { return subst("SF.channel[$0][$1]", CS(x), CS(y)); }
+	else if ( isSigSoundfileLength(sig, label) )	{ return subst("$0cache->length", getSoundfileVariable(sig, label)); }
+	else if ( isSigSoundfileRate(sig, label) )	    { return subst("$0cache->rate", getSoundfileVariable(sig, label)); }
+	else if ( isSigSoundfileChannel(sig,label,x,y)) { return subst("$0cache->channel[$1][$2]", getSoundfileVariable(sig, label), CS(x), CS(y)); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
