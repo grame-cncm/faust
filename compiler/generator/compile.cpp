@@ -351,8 +351,12 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
                                 T(tree2float(y))));
         fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, tree2float(x), tree2float(y));
 
-	} else if ( isSigSoundfileRate(sig, path) || isSigSoundfileLength(sig, path) || isSigSoundfileChannel(sig, path, x, y) ) {
-        // nothing        
+	} else if ( isSigSoundfile(sig, path) ) {
+        fClass->incUIActiveCount();
+		fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", &$1);",
+                                checkNullLabel(varname, label),
+                                tree2str(varname)));
+        //fJSON.addNumEntry(checkNullLabel(varname, label).c_str(), NULL, tree2float(c), tree2float(x), tree2float(y), tree2float(z));
 	} else {
 		fprintf(stderr, "Error in generating widget code 362\n");
 		exit(1);

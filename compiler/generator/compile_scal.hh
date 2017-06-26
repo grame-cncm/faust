@@ -74,8 +74,6 @@ class ScalarCompiler : public Compiler
     virtual string      generateCode (Tree sig);
     virtual string      generateCacheCode(Tree sig, const string& exp) ;
     virtual string      forceCacheCode(Tree sig, const string& exp) ;
-    virtual string      getSoundfileVariable(Tree sig, Tree label);
-
     virtual string      generateVariableStore(Tree sig, const string& exp);
 
 	string 		getFreshID (const string& prefix);
@@ -133,6 +131,7 @@ class ScalarCompiler : public Compiler
 	
     string          generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
     string          generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string          generateSoundfile   (Tree sig, Tree path);
 
     string          generateNumber(Tree sig, const string& exp);
     string          generateFConst (Tree sig, const string& file, const string& name);

@@ -211,19 +211,15 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	}
 }
 
-string ScalarCompiler::getSoundfileVariable(Tree sig, Tree path)
+string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
-    string v;
-    if (! fSoundfileVariableProperty.get(path,v)) {
-        v = getFreshID("SF");
-        fClass->addDeclCode(subst("Soundfile* \t$0;", v));
-        fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
-        fClass->addInitUICode(subst("$0 = &defaultsound;", v));
-	    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
-        generateSoundfileCode(path,v,sig);
+    string v = getFreshID("SF");
+    fClass->addDeclCode(subst("Soundfile* \t$0;", v));
+    fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
+        // fClass->addInitUICode(subst("$0 = &defaultsound;", v));
+	    // addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
+        // generateSoundfileCode(path,v,sig);
 
-        fSoundfileVariableProperty.set(path,v);
-    }
     return v;
 }
 
@@ -299,7 +295,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -342,9 +338,10 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 
-	else if ( isSigSoundfileLength(sig, label) )	{ return subst("$0cache->length", getSoundfileVariable(sig, label)); }
-	else if ( isSigSoundfileRate(sig, label) )	    { return subst("$0cache->rate", getSoundfileVariable(sig, label)); }
-	else if ( isSigSoundfileChannel(sig,label,x,y)) { return subst("$0cache->channel[$1][$2]", getSoundfileVariable(sig, label), CS(x), CS(y)); }
+	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile (sig, label); }
+	else if ( isSigSoundfileLength(sig, sf) )	    { return subst("$0cache->length", CS(sf)); }
+	else if ( isSigSoundfileRate(sig, sf) )	        { return subst("$0cache->rate", CS(sf)); }
+	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return subst("$0cache->channel[$1][$2]", CS(sf), CS(x), CS(y)); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 

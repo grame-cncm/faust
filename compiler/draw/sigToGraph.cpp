@@ -185,7 +185,7 @@ static string sigLabel(Tree sig)
 {
     int         i;
     double      r;
-    Tree        x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label;
+    Tree        x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label, sf;
 
     xtended*    p = (xtended*) getUserData(sig);
 
@@ -242,6 +242,12 @@ static string sigLabel(Tree sig)
 
     else if ( isSigVBargraph(sig, label,x,y,z) )	{ fout << "vbargraph"; 	}
     else if ( isSigHBargraph(sig, label,x,y,z) )	{ fout << "hbargraph"; 	}
+
+    else if ( isSigSoundfile(sig, label) )	        { fout << "soundfile(...)"; }
+    else if ( isSigSoundfileRate(sig, sf) )	        { fout << "rate"; }
+    else if ( isSigSoundfileLength(sig, sf) )	    { fout << "length"; }
+    else if ( isSigSoundfileChannel(sig, sf, y, z) ){ fout << "channel"; }
+
 #endif
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
 

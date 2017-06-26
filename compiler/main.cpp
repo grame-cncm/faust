@@ -152,7 +152,7 @@ bool			gGroupTaskSwitch = false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 120;          // time out to abort compiler (in seconds)
+int             gTimeout        = 0;          // time out to abort compiler (in seconds)
 
 int             gFloatSize      = 1;
 
