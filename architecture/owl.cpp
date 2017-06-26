@@ -248,22 +248,17 @@ class FaustPatch : public Patch
 public:
 
     FaustPatch() : fUI(this)
-    {
-      // Allocate memory for dsp object first to ensure high priority memory is used
-      void* allocated = mem.allocate(sizeof(mydsp));
-      // DSP static data is initialised using classInit.
-      mydsp::classInit(int(getSampleRate()), &mem);
-      // call mydsp constructor
-      fDSP = new (allocated) mydsp();
-      fDSP->instanceInit(int(getSampleRate()));
-      // Map OWL parameters and faust widgets 
-      fDSP->buildUserInterface(&fUI);
+    {      
+      fDSP = new mydsp();
+      mydsp::fManager = &mem; // set custom memory manager
+      mydsp::classInit(int(getSampleRate())); // initialise static tables
+      fDSP->instanceInit(int(getSampleRate())); // initialise DSP instance
+      fDSP->buildUserInterface(&fUI); // Map OWL parameters
     }
 
     ~FaustPatch(){
-      mem.destroy(fDSP);
-      // DSP static data is destroyed using classDestroy.
-      mydsp::classDestroy(&mem);
+      delete fDSP;
+      mydsp::classDestroy(); // destroy static tables
     }
     
     void processAudio(AudioBuffer &buffer)
