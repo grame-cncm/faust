@@ -359,12 +359,17 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 //
 //   * See `dm.fft_spectral_level_demo(N)` in `demos.lib` for an example GUI driving `an.rfft_spectral_level()`.
 //
+// #### Reference
+//
+// * [Decimation-in-time (DIT) Radix-2 FFT](https://cnx.org/contents/zmcmahhR@7/Decimation-in-time-DIT-Radix-2)
+//
 //---------------------------------------------------
 fft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.fftb(N); // shuffle off to the butterflies:
 fftb(1) = _,_; // each complex number is represented as (real,imag)
-fftb(N) = si.cbus(N) : (fftb(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (fftb(int(N)>>1)
+fftb(N) = si.cbus(N) : (fftb(No2) <: (si.cbus(No2), si.cbus(No2))), (fftb(No2)
 	  <: (si.cbus(N):twiddleOdd(N))) :> si.cbus(N)
 with {
+  No2 = int(N)>>1;
   // Half of these multiplies can go away since w(k) = - w(k+N/2), and others as well (1,j,-j,-1,...)
   twiddleOdd(N) = par(k,N,si.cmul(cos(w(k)),0-sin(w(k))))
   with {
@@ -396,9 +401,10 @@ with {
 //---------------------------------------------------
 ifft(N) = si.cbus(N) : an.c_bit_reverse_shuffle(N) : an.ifftb(N); // input is shuffled off to the butterflies:
 ifftb(1) = _,_;
-ifftb(N) = si.cbus(N) : (ifftb(int(N)>>1) <: (si.cbus(int(N)>>1), si.cbus(int(N)>>1))), (ifftb(int(N)>>1)
+ifftb(N) = si.cbus(N) : (ifftb(No2) <: (si.cbus(No2), si.cbus(No2))), (ifftb(No2)
 	<: (si.cbus(N):twiddleOddConj(N))) :> si.cbus(N) : par(i,2*N,/(2.0))
 with {
+  No2 = int(N)>>1;
   // Half of these multiplies can go away since w(k) = - w(k+N/2), and others as well (1,j,-j,-1,...)
   twiddleOddConj(N) = par(k,N,si.cmul(cos(w(k)),sin(w(k))))
   with {
