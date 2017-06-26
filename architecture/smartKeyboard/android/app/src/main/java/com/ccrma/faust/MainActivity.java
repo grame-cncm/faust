@@ -39,6 +39,15 @@ public class MainActivity extends AppCompatActivity {
     private boolean permissionToRecordAccepted = false;
     private String [] permissions = {Manifest.permission.RECORD_AUDIO};
 
+    private void createFaust(){
+        if (dspFaust == null) {
+            dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
+        }
+        mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+        MultiKeyboard multiKeyboard = new MultiKeyboard(this, dspFaust, null);
+        mainLayout.addView(multiKeyboard);
+    }
+
     // Record audio permission callback
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -52,12 +61,7 @@ public class MainActivity extends AppCompatActivity {
             finish();
         }
         else { // otherwise we can instantiate our audio engine
-            if (dspFaust == null) {
-                dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
-            }
-            mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
-            MultiKeyboard multiKeyboard = new MultiKeyboard(this, dspFaust, null);
-            mainLayout.addView(multiKeyboard);
+            createFaust();
         }
     }
 
@@ -66,7 +70,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+        if(Build.VERSION.SDK_INT >= 23) {
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+        }
+        else{
+            permissionToRecordAccepted = true;
+            createFaust();
+        }
 
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);

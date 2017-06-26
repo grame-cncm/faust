@@ -6,7 +6,7 @@ Directly programing polyphonic instruments in \faust is perfectly possible. It i
 
 But since all voices would always be computed, this approach could be too CPU costly for simpler or more limited needs. In this case describing a single voice in a \faust DSP program and externally combining several of them with a special  {\it polyphonic instrument aware} architecture file is a better solution. Moreover, this special architecture file takes care of dynamic voice allocations and control MIDI messages decoding and mapping.
 
-\section{Polyphonic Ready DSP Code}
+\section{Polyphonic ready DSP code}
 
 By convention \faust architecture files with polyphonic capabilities expect to find control parameters named {\it freq}, {\it gain} and {\it gate}.  The metadata \code{declare nvoices "8";}   kind of line with a desired value of  voices can be added in the source code.
 
@@ -75,11 +75,11 @@ With the following code, note that a polyphonic instrument may be used outside o
 
 \normalsize
     
-\section{Controlling the Polyphonic Instrument}
+\section{Controlling the polyphonic instrument}
 
 The \code{mydsp_poly} class is also ready for MIDI control and can react to {\it keyon/keyoff} and {\it pitchwheel} messages. Other MIDI control parameters can directly be added in the DSP source code. 
 
-\section{Deploying the Polyphonic Instrument}
+\section{Deploying the polyphonic instrument}
 
 Several architecture files and associated scripts have been updated to handle polyphonic instruments:
 
@@ -89,7 +89,7 @@ The number of allocated voices can possibly be changed at runtime using the \cod
 
 Several other scripts have been adapted using the same conventions.
 
-\section{Polyphonic Instrument with a Global Output Effect}
+\section{Polyphonic instrument with a global output effect}
 
 Polyphonic instruments may be used with an output effect. Putting that effect in the main \faust code is not a good idea since it would be instantiated for each voice which would be very inefficient. This is a typical use case for the  \code{dsp_sequencer} class previously presented with the polyphonic DSP connected in sequence with a unique global effect (Figure \ref{fig:poly-ui-effect}). 
 
