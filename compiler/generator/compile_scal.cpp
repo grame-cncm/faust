@@ -211,18 +211,6 @@ void ScalarCompiler::compileSingleSignal (Tree sig)
 	}
 }
 
-string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
-{
-    string v = getFreshID("SF");
-    fClass->addDeclCode(subst("Soundfile* \t$0;", v));
-    fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
-        // fClass->addInitUICode(subst("$0 = &defaultsound;", v));
-	    // addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
-        // generateSoundfileCode(path,v,sig);
-
-    return v;
-}
-
 /*****************************************************************************
 							 CS : compile a signal
 *****************************************************************************/
@@ -723,6 +711,16 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 }
 
 
+
+string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
+{
+    string v = getFreshID("SF");
+    fClass->addDeclCode(subst("Soundfile* \t$0;", v));
+    fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
+	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
+    fClass->addInitUICode(subst("$0 = &defaultsound;", v));
+    return v;
+}
 
 
 /*****************************************************************************
