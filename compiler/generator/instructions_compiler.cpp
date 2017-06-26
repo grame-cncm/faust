@@ -639,7 +639,7 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
     int t1 = getCertifiedSigType(a1)->nature();
     int t2 = getCertifiedSigType(a2)->nature();
     int t3 = getCertifiedSigType(sig)->nature();
-
+  
     ValueInst* res;
     ValueInst* v1 = CS(a1);
     ValueInst* v2 = CS(a2);
@@ -654,7 +654,8 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
   
     // Logical operations work on kInt, so cast both operands here
     if (isLogicalOpcode(opcode)) {
-        res = cast2real(t3, InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2)));
+        res = InstBuilder::genBinopInst(opcode, promote2int(t1, v1), promote2int(t2, v2));
+        res = cast2real(t3, res);
     // Boolean operations work on kInt or kReal, result is kInt
     } else if (isBoolOpcode(opcode)) {
         if ((t1 == kReal) || (t2 == kReal)) {

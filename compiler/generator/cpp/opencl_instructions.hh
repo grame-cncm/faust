@@ -35,7 +35,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
     public:
 
         OpenCLInstVisitor(std::ostream* out, int tab = 0)
-            :TextInstVisitor(out, "->", tab)
+            :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
         {}
 
         virtual ~OpenCLInstVisitor()
@@ -113,7 +113,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
                  *fOut << "volatile ";
             }
 
-            *fOut << generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << " = "; inst->fValue->accept(this); 
             }
@@ -132,7 +132,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
                  *fOut << "inline ";
             }
 
-            *fOut << generateType(inst->fType->fResult, inst->fName);
+            *fOut << fTypeManager->generateType(inst->fType->fResult, inst->fName);
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
        }
@@ -144,7 +144,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
 
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fType) << ")";
+            *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";
         }
         

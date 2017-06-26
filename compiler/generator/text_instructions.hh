@@ -30,10 +30,11 @@
 #include "instructions.hh"
 #include "type_manager.hh"
 #include "Text.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
-class TextInstVisitor : public InstVisitor, public StringTypeManager {
+class TextInstVisitor : public InstVisitor {
 
     protected:
 
@@ -41,6 +42,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         string fObjectAccess;
+        StringTypeManager* fTypeManager;
     
         virtual void EndLine()
         {
@@ -53,15 +55,25 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
     public:
 
         TextInstVisitor(std::ostream* out, const string& object_access, int tab = 0)
-            :StringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
-        {}
-        
+            : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
+        {
+            fTypeManager = new CStringTypeManager(FLOATMACRO, "*");
+        }
+       
         TextInstVisitor(std::ostream* out, const string& object_access, string float_macro_name, string ptr_postfix, int tab = 0)
-            :StringTypeManager(float_macro_name, ptr_postfix), fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
+            : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access)
+        {
+            fTypeManager = new CStringTypeManager(float_macro_name, ptr_postfix);
+        }
+    
+        TextInstVisitor(std::ostream* out, const string& object_access, StringTypeManager* manager, int tab = 0)
+        : fTab(tab), fOut(out), fFinishLine(true), fObjectAccess(object_access), fTypeManager(manager)
         {}
 
         virtual ~TextInstVisitor()
-        {}
+        {
+            delete fTypeManager;
+        }
 
         void Tab(int n) { fTab = n; }
 
@@ -211,7 +223,7 @@ class TextInstVisitor : public InstVisitor, public StringTypeManager {
             list<NamedTyped*>::const_iterator it;
             int size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << generateType((*it));
+                *fOut << fTypeManager->generateType((*it));
                 if (i < size - 1) *fOut << ", ";
             }
         }

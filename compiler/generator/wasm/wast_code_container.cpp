@@ -29,7 +29,7 @@
 using namespace std;
 
 /*
- WAST module description :
+ WAST backend and module description:
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS)
@@ -89,11 +89,11 @@ CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInp
     }
 
     if (gGlobal->gOpenMPSwitch) {
-        throw faustexception("OpenMP : OpenMP not supported for WebAssembly\n");
+        throw faustexception("ERROR : OpenMP not supported for WebAssembly\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("Scheduler mode not supported for WebAssembly\n");
+        throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for WebAssembly\n");
+        throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
     } else {
         container = new WASTScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
@@ -112,11 +112,11 @@ WASTScalarCodeContainer::~WASTScalarCodeContainer()
 {}
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     BlockInst* init_block = InstBuilder::genBlockInst();
@@ -225,8 +225,8 @@ void WASTCodeContainer::produceClass()
         */
     
         // getNumInputs/getNumOutputs
-        generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASTVisitor);
-        generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASTVisitor);
+        generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
+        generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // Inits
         tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
@@ -272,13 +272,13 @@ void WASTCodeContainer::produceClass()
         gGlobal->gWASTVisitor->Tab(n+1);
     
         // init
-        generateInit(false, false)->accept(gGlobal->gWASTVisitor);
+        generateInit("dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // instanceInit
-        generateInstanceInit(false, false)->accept(gGlobal->gWASTVisitor);
+        generateInstanceInit("dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // getSampleRate
-        generateGetSampleRate(false, false)->accept(gGlobal->gWASTVisitor);
+        generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // setParamValue
         tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";

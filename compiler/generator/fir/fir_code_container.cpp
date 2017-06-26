@@ -99,13 +99,13 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         *dst << std::endl;
     }
     
-    generateGetInputs(subst("$0::getNumInputs", fKlassName), true, true)->accept(&firvisitor);
+    generateGetInputs(subst("$0::getNumInputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
-    generateGetOutputs(subst("$0::getNumOutputs", fKlassName), true, true)->accept(&firvisitor);
+    generateGetOutputs(subst("$0::getNumOutputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
-    generateGetInputRate(subst("$0::getInputRate", fKlassName), true, true)->accept(&firvisitor);
+    generateGetInputRate(subst("$0::getInputRate", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
-    generateGetOutputRate(subst("$0::getOutputRate", fKlassName), true, true)->accept(&firvisitor);
+    generateGetOutputRate(subst("$0::getOutputRate", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
  
     if (fStaticInitInstructions->fCode.size() > 0) {

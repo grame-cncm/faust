@@ -35,7 +35,7 @@
  * @param sha_key - a SHA key to be filled by for the resulting DSP
  * @param error_msg - the error string to be filled
  *
- * @return the expanded DSP or a empty string in case of failure
+ * @return the expanded DSP or an empty string in case of failure
  */
 EXPORT std::string expandDSPFromFile(const std::string& filename,
                                     int argc, const char* argv[],
@@ -67,7 +67,7 @@ EXPORT std::string expandDSPFromString(const std::string& name_app,
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return the expanded DSP or a empty string in case of failure
+ * @return the expanded DSP or an empty string in case of failure
  */
 EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
@@ -84,7 +84,7 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
 EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 /**
- * Generate SHA key form a DSP as a string
+ * Generate SHA key from a DSP as a string
  *
  * @param dsp_content - the DSP string
  *

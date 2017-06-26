@@ -34,13 +34,25 @@
 //          2: double precision float
 //          3: long double precision float
 
+const char* mathsuffix[4];    // suffix for math functions
+const char* numsuffix[4];     // suffix for numeric constants
+const char* floatname[4];     // float types
+const char* castname[4];      // float castings
+
+/*
 const char* mathsuffix[] = {"", "f", "", "l"};                              // suffix for math functions
 const char* numsuffix[]  = {"", "f", "", "L"};                              // suffix for numeric constants
 const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};         // float types
 const char* castname[]   = {FLOATCASTER, "(float)", "(double)", "(quad)"};  // float castings
+*/
 
 const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; }   ///< suffix for math functions
 const char* inumix()  { return numsuffix[gGlobal->gFloatSize]; }    ///< suffix for numeric constants
+const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
+const char* icast()  { return castname[gGlobal->gFloatSize]; }
+
+const char* xfloat() { return floatname[0]; }
+const char* xcast()  { return castname[0]; }
 
 Typed::VarType itfloat()
 {
@@ -86,11 +98,6 @@ int fsize()
             return -1;
     }
 }
-
-const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
-const char* icast()  { return castname[gGlobal->gFloatSize]; }
-const char* xfloat() { return floatname[0]; }
-const char* xcast()  { return castname[0]; }
 
 void printfloatdef(std::ostream& fout, bool quad)
 {

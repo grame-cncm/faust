@@ -32,11 +32,11 @@ class LogPrim : public xtended
 
  	LogPrim() : xtended("log") {}
 
-	virtual unsigned int arity () { return 1; }
+	virtual unsigned int arity() { return 1; }
 
-	virtual bool needCache ()	{ return true; }
+	virtual bool needCache() { return true; }
 
-	virtual ::Type infereSigType (const vector< ::Type>& args)
+	virtual ::Type infereSigType(const vector< ::Type>& args)
 	{
 		faustassert(args.size() == arity());
 		interval i = args[0]->getInterval();
@@ -47,14 +47,16 @@ class LogPrim : public xtended
 		}
 	}
 
-	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual int infereSigOrder (const vector<int>& args) {
+	virtual int infereSigOrder(const vector<int>& args)
+    {
 		faustassert(args.size() == arity());
 		return args[0];
 	}
 
-	virtual Tree computeSigOutput (const vector<Tree>& args) {
+	virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
 		num n;
 		faustassert(args.size() == arity());
 		if (isNum(args[0],n)) {
@@ -77,7 +79,7 @@ class LogPrim : public xtended
         return container->pushFunction(subst("log$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		faustassert(args.size() == arity());
 		faustassert(types.size() == arity());

@@ -297,14 +297,14 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 void LLVMCodeContainer::generateInfoFunctions(const string& classname, bool isvirtual)
 {
     // Input/Output method
-    generateGetInputs(subst("getNumInputs$0", classname), false, isvirtual)->accept(fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), false, isvirtual)->accept(fCodeProducer);
+    generateGetInputs(subst("getNumInputs$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
 
     // Input Rates
-    generateGetInputRate(subst("getInputRate$0", classname), false, isvirtual)->accept(fCodeProducer);
+    generateGetInputRate(subst("getInputRate$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
 
     // Output Rates
-    generateGetOutputRate(subst("getOutputRate$0", classname), false, isvirtual)->accept(fCodeProducer);
+    generateGetOutputRate(subst("getOutputRate$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
 }
 
 void LLVMCodeContainer::generateClassInitBegin()

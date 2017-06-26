@@ -163,6 +163,7 @@ install :
 
 	# install architecture and faust library files
 	cp architecture/*.c $(prefix)/share/faust/
+	cp architecture/*.rs $(prefix)/share/faust/
 	cp architecture/*.cpp $(prefix)/share/faust/
 	cp architecture/*.java $(prefix)/share/faust/
 	cp architecture/*.js $(prefix)/share/faust/

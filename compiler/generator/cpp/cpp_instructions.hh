@@ -40,7 +40,7 @@ class CPPInstVisitor : public TextInstVisitor {
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
-            :TextInstVisitor(out, "->", tab)
+            :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
         {
             // Mark all math.h functions as generated...
             gFunctionSymbolTable["abs"] = 1;
@@ -151,7 +151,7 @@ class CPPInstVisitor : public TextInstVisitor {
                  *fOut << "volatile ";
             }
 
-            *fOut << generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << " = "; inst->fValue->accept(this); 
             }
@@ -186,7 +186,7 @@ class CPPInstVisitor : public TextInstVisitor {
             }
                        
             // Prototype
-            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName));
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -198,7 +198,7 @@ class CPPInstVisitor : public TextInstVisitor {
      
         virtual void visit(CastNumInst* inst)
         {
-            string type = generateType(inst->fType);
+            string type = fTypeManager->generateType(inst->fType);
             if (endWith(type, "*")) {
                 *fOut << "static_cast<" << type << ">("; inst->fInst->accept(this);  *fOut << ")";
             } else {
@@ -611,7 +611,7 @@ class MRCPPInstVisitor : public CPPInstVisitor {
             if (struct_typed && gTypeTable.find(struct_typed->fName) == gTypeTable.end()) {
                 Typed* sub_type = struct_typed->fType;
                 *fOut << "struct " << struct_typed->fName << " {" << endl;
-                *fOut << "\t" << generateType(sub_type, "f"); 
+                *fOut << "\t" << fTypeManager->generateType(sub_type, "f"); 
                 EndLine();
                 *fOut << "}";
                 EndLine();

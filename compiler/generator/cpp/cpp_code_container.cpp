@@ -150,7 +150,7 @@ void CPPCodeContainer::produceInternal()
         tab(n+1, *fOut);
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
+        produceInfoFunctions(n+1, fKlassName, "dsp", true, false, &fCodeProducer);
     
         // TODO
         //generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -282,7 +282,7 @@ void CPPCodeContainer::produceClass()
         
         tab(n+1, *fOut);
         // No class name for main class
-        produceInfoFunctions(n+1, "", true, true, &fCodeProducer);  // Inits
+        produceInfoFunctions(n+1, "", "dsp", true, true, &fCodeProducer);  // Inits
     
         // TODO
         /*
@@ -391,12 +391,10 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "}";
     
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "virtual int getSampleRate() {";
-            tab(n+2, *fOut); *fOut << "return fSamplingFreq;";
-        tab(n+1, *fOut); *fOut << "}";
-
+        fCodeProducer.Tab(n+1);
+        generateGetSampleRate("dsp", true, true)->accept(&fCodeProducer);
+    
         // User interface
-        tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "virtual void buildUserInterface(UI* ui_interface) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
@@ -412,7 +410,7 @@ void CPPCodeContainer::produceClass()
         tab(n+1, *fOut);
         generateComputeFunctions(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};" << endl << endl;
+    tab(n, *fOut); *fOut << "};" << endl;
     
     // To improve (generalization for all backend...)
     if (gGlobal->gMemoryManager) {

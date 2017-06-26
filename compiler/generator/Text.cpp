@@ -256,16 +256,6 @@ string rmWhiteSpaces(const string& s)
     }
 }
 
-string checkFloat(float val)
-{
-    return T(val);
-}
-
-string checkDouble(double val)
-{
-    return T(val);
-}
-
 // 'Quad' (= long double) are currectly treated like 'double'
 
 string checkReal(double val)

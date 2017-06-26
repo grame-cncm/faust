@@ -99,7 +99,7 @@ void CCodeContainer::produceInternal()
 
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, false, &fCodeProducer);
     
     // Init
     // TODO
@@ -127,7 +127,7 @@ void CCodeContainer::produceInternal()
     ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
     loop->accept(&fCodeProducer);
 
-    tab(n, *fOut); *fOut << "};\n" << endl;
+    tab(n, *fOut); *fOut << "};" << endl;
 }
 
 void CCodeContainer::produceClass()
@@ -208,12 +208,12 @@ void CCodeContainer::produceClass()
     tab(n, *fOut);
     produceMetadata(n);
 
-    // Get sample rate method
+    // Get sample rate method  (TODO : use generateGetSampleRate)
     tab(n, *fOut); *fOut << "int getSampleRate" << fKlassName << "(" << fKlassName << "* dsp) { return dsp->fSamplingFreq; }";
-
+   
     tab(n, *fOut);
     tab(n, *fOut);
-    produceInfoFunctions(n, fKlassName, false, false, &fCodeProducer);
+    produceInfoFunctions(n, fKlassName, "dsp", false, false, &fCodeProducer);
 
     // Inits
     
@@ -271,9 +271,9 @@ void CCodeContainer::produceClass()
    
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "void instanceInit" << fKlassName << "(" << fKlassName << "* dsp, int samplingFreq) {";
-    tab(n+1, *fOut); *fOut << "instanceConstants" << fKlassName << "(dsp, samplingFreq);";
-    tab(n+1, *fOut); *fOut << "instanceResetUserInterface" << fKlassName << "(dsp);";
-    tab(n+1, *fOut); *fOut << "instanceClear" << fKlassName << "(dsp);";
+        tab(n+1, *fOut); *fOut << "instanceConstants" << fKlassName << "(dsp, samplingFreq);";
+        tab(n+1, *fOut); *fOut << "instanceResetUserInterface" << fKlassName << "(dsp);";
+        tab(n+1, *fOut); *fOut << "instanceClear" << fKlassName << "(dsp);";
     tab(n, *fOut); *fOut << "}";
 
     tab(n, *fOut);

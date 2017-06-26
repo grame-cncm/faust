@@ -36,7 +36,7 @@ class CodeContainer;
 
 class xtended : public virtual Garbageable {
 
-	Symbol*		fSymbol;	///< the symbol the xtended is attached to
+	Symbol*	fSymbol;	///< the symbol the xtended is attached to
     
  public:
 
@@ -48,9 +48,9 @@ class xtended : public virtual Garbageable {
 	virtual ~xtended() {}
 
 	Sym				symbol() 	{ return fSymbol; }
-	const char * 	name () 	{ return ::name(fSymbol); }
+	const char* 	name() 	{ return ::name(fSymbol); }
 
-	Tree			box () {
+	Tree			box() {
 						Tree b = tree(fSymbol);
 						faustassert(getUserData(b) != 0);
 						return b;

@@ -29,7 +29,7 @@
 using namespace std;
 
 /*
- ASM module description: 
+ ASM backend/module description: 
 
      1) all variables have to be declared first, then functions, then export section.
      2) the DSP data structure fields are not generated. The structure size is computed instead, and memory allocation/deallocation is done
@@ -98,11 +98,11 @@ CodeContainer* ASMJAVAScriptCodeContainer::createContainer(const string& name, i
     }
 
     if (gGlobal->gOpenMPSwitch) {
-        throw faustexception("OpenMP : OpenMP not supported for ASMJavaScript\n");
+        throw faustexception("ERROR : OpenMP not supported for ASMJavaScript\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("Scheduler mode not supported for ASMJavaScript\n");
+        throw faustexception("ERROR : Scheduler mode not supported for ASMJavaScript\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for ASMJavaScript\n");
+        throw faustexception("ERROR : Vector mode not supported for ASMJavaScript\n");
         //container = new ASMJAVAScriptVectorCodeContainer(name, numInputs, numOutputs, dst);
     } else {
         container = new ASMJAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);

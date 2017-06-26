@@ -45,7 +45,7 @@ class WASTCodeContainer : public virtual CodeContainer {
             block->accept(gGlobal->gWASTVisitor);
         }
     
-        DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn);
+        DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
   
     public:
 

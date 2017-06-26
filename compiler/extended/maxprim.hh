@@ -33,9 +33,9 @@ class MaxPrim : public xtended
 
  	MaxPrim() : xtended("max") {}
 
-	virtual unsigned int arity () { return 2; }
+	virtual unsigned int arity() { return 2; }
 
-	virtual bool needCache ()	{ return true; }
+	virtual bool needCache() { return true; }
 
 	virtual ::Type infereSigType(const vector< ::Type>& types)
 	{
@@ -45,7 +45,7 @@ class MaxPrim : public xtended
 		return castInterval(types[0]|types[1], max(i,j));
 	}
 
-	virtual void sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
 	virtual int infereSigOrder(const vector<int>& args)
 	{
@@ -173,7 +173,7 @@ class MaxPrim : public xtended
         }
     }
   	
-	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector<Type>& types)
+	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
 		faustassert(args.size() == arity());
 		faustassert(types.size() == arity());

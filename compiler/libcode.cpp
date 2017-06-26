@@ -96,7 +96,16 @@
 #include "wast_code_container.hh"
 #endif
 
+#if RUST_BUILD
+#include "rust_code_container.hh"
+#endif
+
 using namespace std;
+
+extern const char* mathsuffix[4];
+extern const char* numsuffix[4];
+extern const char* floatname[4];
+extern const char* castname[4];
 
 static ifstream* injcode = 0;
 static ifstream* enrobage = 0;
@@ -532,7 +541,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST : DSP to C, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly (wast/wasm), LLVM IR, Interpreter, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, Rust, JAVA, JavaScript, ASM JavaScript, WebAssembly (wast/wasm), LLVM IR, Interpreter, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
@@ -587,7 +596,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, cpp, rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -650,6 +659,52 @@ static string fxname(const string& filename)
     }
 
     return filename.substr(p1, p2-p1);
+}
+
+static void initFaustFloat()
+{
+    // Using in FIR code generation to code math fonction type (float/double/quad), same for Rust and C/C++ backends
+    mathsuffix[0] = "";
+    mathsuffix[1] = "f";
+    mathsuffix[2] = "";
+    mathsuffix[3] = "l";
+    
+    // Specific for Rust backend
+    if (gGlobal->gOutputLang == "rust") {
+        
+        numsuffix[0] = "";
+        numsuffix[1] = "";
+        numsuffix[2] = "";
+        numsuffix[3] = "";
+        
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "f32";
+        floatname[2] = "f64";
+        floatname[3] = "dummy";
+        
+        castname[0] = FLOATCASTER;
+        castname[1] = "as f32";
+        castname[2] = "as f64";
+        castname[3] = "(dummy)";
+        
+    // Specific for C/C++ backends
+    } else {
+        
+        numsuffix[0] = "";
+        numsuffix[1] = "f";
+        numsuffix[2] = "";
+        numsuffix[3] = "L";
+        
+        floatname[0] = FLOATMACRO;
+        floatname[1] = "float";
+        floatname[2] = "double";
+        floatname[3] = "quad";
+        
+        castname[0] = FLOATCASTER;
+        castname[1] = "(float)";
+        castname[2] = "(double)";
+        castname[3] = "(quad)";
+    }
 }
 
 static void initFaustDirectories()
@@ -926,7 +981,16 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
         #endif
-
+            
+        } else if (gGlobal->gOutputLang == "rust") {
+            
+        #if RUST_BUILD
+            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
+        #else
+            throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
+        #endif
+    
         } else if (gGlobal->gOutputLang == "java") {
             
         #if JAVA_BUILD
@@ -1177,6 +1241,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     }
     
     initFaustDirectories();
+    initFaustFloat();
     
     parseSourceFiles();
 
@@ -1249,6 +1314,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     }
     
     initFaustDirectories();
+    initFaustFloat();
     
     parseSourceFiles();
   
@@ -1337,8 +1403,8 @@ dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char
 
 string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
 {
-    string res = "";
     gGlobal = NULL;
+    string res = "";
     
     try {
         global::allocate();       

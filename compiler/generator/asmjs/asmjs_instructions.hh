@@ -94,13 +94,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["cosf"] = "foreign.cos";
             fMathLibTable["expf"] = "foreign.exp";
             fMathLibTable["floorf"] = "foreign.floor";
-            fMathLibTable["fmodf"] = "manual";      // Manually generated
+            fMathLibTable["fmodf"] = "manual";          // Manually generated
             fMathLibTable["logf"] = "foreign.log";
-            fMathLibTable["log10f"] = "manual";     // Manually generated
+            fMathLibTable["log10f"] = "manual";         // Manually generated
             fMathLibTable["max_f"] = "foreign.max";
             fMathLibTable["min_f"] = "foreign.min";
             fMathLibTable["powf"] = "foreign.pow";
-            fMathLibTable["remainderf"] =  "manual";     // Manually generated
+            fMathLibTable["remainderf"] = "manual";     // Manually generated
             fMathLibTable["roundf"] = "foreign.round";
             fMathLibTable["sinf"] = "foreign.sin";
             fMathLibTable["sqrtf"] = "foreign.sqrt";
@@ -116,13 +116,13 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fMathLibTable["cos"] = "foreign.cos";
             fMathLibTable["exp"] = "foreign.exp";
             fMathLibTable["floor"] = "foreign.floor";
-            fMathLibTable["fmod"] = "manual";      // Manually generated
+            fMathLibTable["fmod"] = "manual";           // Manually generated
             fMathLibTable["log"] = "foreign.log";
-            fMathLibTable["log10"] = "manual";     // Manually generated
+            fMathLibTable["log10"] = "manual";          // Manually generated
             fMathLibTable["max_"] = "foreign.max";
             fMathLibTable["min_"] = "foreign.min";
             fMathLibTable["pow"] = "foreign.pow";
-            fMathLibTable["remainder"] =  "manual";     // Manually generated
+            fMathLibTable["remainder"] = "manual";      // Manually generated
             fMathLibTable["round"] = "foreign.round";
             fMathLibTable["sin"] = "foreign.sin";
             fMathLibTable["sqrt"] = "foreign.sqrt";
@@ -390,7 +390,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         void visitAuxInt(BinopInst* inst)
         {
-            // Special case of 32 bits integer multiply
+            // Special case for 32 bits integer multiply
             if (inst->fOpcode == kMul) {
                 *fOut << "(imul(";
                 inst->fInst1->accept(this);
@@ -472,7 +472,6 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << ")";
         }
 
-        // virtual void visit(ForLoopInst* inst) : standard version from TextInstVisitor
 };
 
 #endif

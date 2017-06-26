@@ -48,7 +48,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             initMathTable();
                     
             // Pointer to JAVA object is actually the object itself...
-            fTypeDirectTable[Typed::kObj_ptr] = "";
+            fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
         }
         
         void initMathTable()
@@ -215,14 +215,14 @@ class JAVAInstVisitor : public TextInstVisitor {
             
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             if (array_typed && array_typed->fSize > 1) {
-                string type = fTypeDirectTable[array_typed->fType->getType()];
+                string type = fTypeManager->fTypeDirectTable[array_typed->fType->getType()];
                 if (inst->fValue) {
                     *fOut << type << " " << inst->fAddress->getName() << "[] = "; inst->fValue->accept(this);
                 } else {
                     *fOut << type << " " << inst->fAddress->getName() << "[] = new " << type << "[" << array_typed->fSize << "]";
                 }
             } else {
-                *fOut << generateType(inst->fType, inst->fAddress->getName());
+                *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
                 if (inst->fValue) {
                     *fOut << " = "; inst->fValue->accept(this);
                 } 
@@ -246,7 +246,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             }
             
             // Prototype
-            *fOut << generateType(inst->fType->fResult, generateFunName(inst->fName));
+            *fOut << fTypeManager->generateType(inst->fType->fResult, generateFunName(inst->fName));
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -393,7 +393,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         {
             inst->fInst->accept(&fTypingVisitor);
                 
-            if (generateType(inst->fType) == "int") {
+            if (fTypeManager->generateType(inst->fType) == "int") {
                 switch (fTypingVisitor.fCurType) {
                     case Typed::kDouble:
                     case Typed::kFloat:

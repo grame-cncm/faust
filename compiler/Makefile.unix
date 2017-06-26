@@ -1,7 +1,7 @@
 subprojects := . boxes errors evaluate normalize parser propagate parallelize signals tlib \
                 draw draw/device draw/schema extended patternmatcher documentator utils ../libraries \
                 generator generator/asmjs generator/c generator/cpp \
-                generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter
+                generator/java generator/js generator/llvm generator/fir generator/wasm generator/interpreter generator/rust
 
 # Common sources for library and executable
 common_sources = $(sort $(wildcard */*.cpp) $(wildcard draw/*/*.cpp) $(wildcard generator/*.cpp) $(wildcard ../libraries/loki/*.cpp)) libcode.cpp global.cpp
@@ -17,12 +17,13 @@ ba_java = $(wildcard generator/java/*.cpp)
 ba_js = $(wildcard generator/js/*.cpp)
 ba_llvm = $(wildcard generator/llvm/*.cpp)
 ba_wasm = $(wildcard generator/wasm/*.cpp)
+ba_rust = $(wildcard generator/rust/*.cpp)
 
 # Object files
 common_objects = $(common_sources:.cpp=.o)
 backend_objects = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o) \
                 $(ba_fir:.cpp=.o) $(ba_interp:.cpp=.o) $(ba_java:.cpp=.o) \
-                $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_wasm:.cpp=.o)
+                $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_wasm:.cpp=.o) $(ba_rust:.cpp=.o)
 
 # For Web compilation
 object_ba_asmjs = $(ba_asmjs:.cpp=.o)
@@ -176,7 +177,7 @@ CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) 
 CXXFLAGS += $(ARCHFLAGS)
 
 # Build all backends
-CXXFLAGS += -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DWASM_BUILD
+CXXFLAGS += -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DWASM_BUILD -DRUST_BUILD
 
 LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
 
@@ -325,7 +326,7 @@ clean :
 
 depend :
 	makedepend -fMakefile.unix -w120 -Y -- $(addprefix -I, $(subprojects)) -- $(common_sources) \
-        $(ba_asmjs) $(ba_c) $(ba_cpp) $(ba_fir) $(ba_interp) $(ba_java) $(ba_js) $(ba_llvm) $(ba_wasm) \
+        $(ba_asmjs) $(ba_c) $(ba_cpp) $(ba_fir) $(ba_interp) $(ba_java) $(ba_js) $(ba_llvm) $(ba_wasm) $(ba_rust) \
         libmain.cpp main.cpp
 
 ctags:
@@ -993,4 +994,17 @@ generator/wasm/wast_code_container.o: generator/export.hh generator/wasm/wast_in
 generator/wasm/wast_code_container.o: generator/wasm/was_instructions.hh generator/text_instructions.hh
 generator/wasm/wast_code_container.o: generator/type_manager.hh generator/typing_instructions.hh
 generator/wasm/wast_code_container.o: generator/fir_to_fir.hh generator/fir/fir_instructions.hh
+generator/rust/rust_code_container.o: generator/rust/rust_code_container.hh generator/code_container.hh
+generator/rust/rust_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
+generator/rust/rust_code_container.o: garbageable.hh errors/exception.hh generator/interpreter/fir_opcode.hh
+generator/rust/rust_code_container.o: tlib/property.hh tlib/tree.hh generator/Text.hh signals/sigtype.hh
+generator/rust/rust_code_container.o: tlib/smartpointer.hh signals/interval.hh tlib/tlib.hh tlib/num.hh tlib/list.hh
+generator/rust/rust_code_container.o: tlib/shlysis.hh generator/description.hh signals/signals.hh generator/uitree.hh
+generator/rust/rust_code_container.o: global.hh parser/sourcereader.hh boxes/boxes.hh evaluate/loopDetector.hh
+generator/rust/rust_code_container.o: tlib/occurrences.hh generator/floats.hh generator/function_builder.hh
+generator/rust/rust_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh dsp_factory.hh
+generator/rust/rust_code_container.o: generator/export.hh generator/rust/rust_instructions.hh
+generator/rust/rust_code_container.o: generator/text_instructions.hh generator/type_manager.hh
+generator/rust/rust_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
+generator/rust/rust_code_container.o: generator/wss_code_container.hh
 main.o: tlib/compatibility.hh dsp_factory.hh errors/exception.hh

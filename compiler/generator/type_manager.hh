@@ -30,89 +30,99 @@
 #include "exception.hh"
 #include "instructions.hh"
 
-using namespace std;
-
-class StringTypeManager {
-
-    protected:
-
-        map <Typed::VarType, string> fTypeDirectTable;
-        map <string, Typed::VarType> fInvertTypeTable;
-        string fPtrPosfix;
-
-    public:
-
-        StringTypeManager(string float_macro_name, string ptr_postfix)
+struct StringTypeManager {
+    
+        std::map <Typed::VarType, std::string> fTypeDirectTable;
+        std::map <std::string, Typed::VarType> fInvertTypeTable;
+        std::string fPtrPosfix;
+    
+        StringTypeManager(const std::string& float_macro_name, const std::string& float_macro_name_ptr)
         {
-            fPtrPosfix = ptr_postfix;
-            fillTypeDirectTable(float_macro_name, float_macro_name + ptr_postfix);
-        }
-
-        void fillTypeDirectTable(string float_macro_name, string float_macro_name_ptr)
-        {
+            // Direct
             fTypeDirectTable[Typed::kFloatMacro] = float_macro_name;
             fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
+            
+            // Invert
+            fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
+            fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
+            
+            fInvertTypeTable["float"] = Typed::kFloat;
+            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
+            fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
+            
+            fInvertTypeTable["int"] =  Typed::kInt;
+            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt_ptr;
+            fInvertTypeTable["vector<int>"] = Typed::kInt_vec;
+            
+            fInvertTypeTable["double"] = Typed::kDouble;
+            fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
+            fInvertTypeTable["vector<double>"] = Typed::kDouble_vec;
+            
+            fInvertTypeTable["quad"] = Typed::kQuad;
+            fInvertTypeTable["quad" + fPtrPosfix] = Typed::kQuad_ptr;
+            
+            fInvertTypeTable["bool"] = Typed::kBool;
+            fInvertTypeTable["bool" + fPtrPosfix] = Typed::kBool_ptr;
+            fInvertTypeTable["vector<bool>"] = Typed::kBool_vec;
+            
+            fInvertTypeTable["void"] = Typed::kVoid;
+            fInvertTypeTable["void" + fPtrPosfix] = Typed::kVoid_ptr;
+        }
+    
+        virtual ~StringTypeManager()
+        {}
+    
+        virtual std::string generateType(Typed* type) = 0;
+        virtual std::string generateType(Typed* type, const std::string& name) = 0;
+    
+};
 
+// StringTypeManager for C/C++ and Java backends
+
+class CStringTypeManager : public StringTypeManager {
+
+      public:
+
+        CStringTypeManager(const std::string& float_macro_name, const std::string&  ptr_postfix)
+        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+        {
+            fPtrPosfix = ptr_postfix;
+            
             fTypeDirectTable[Typed::kFloat] = "float";
             fTypeDirectTable[Typed::kFloatish] = "floatish";
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
-
+            
             fTypeDirectTable[Typed::kInt] = "int";
             fTypeDirectTable[Typed::kIntish] = "intish";
             fTypeDirectTable[Typed::kInt_ptr] = "int" + fPtrPosfix;
             fTypeDirectTable[Typed::kInt_vec] = "vector<int>";
-
+            
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDoublish] = "doublish";
             fTypeDirectTable[Typed::kDouble_ptr] = "double" + fPtrPosfix;
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
-
+            
             fTypeDirectTable[Typed::kQuad] = "quad";
             fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrPosfix;
-
+            
             fTypeDirectTable[Typed::kBool] = "bool";
             fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrPosfix;
             fTypeDirectTable[Typed::kBool_vec] = "vector<bool>";
-
+            
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
-
+            
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
-
-            fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
-            fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
-
-            fInvertTypeTable["float"] = Typed::kFloat;
-            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
-            fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
-
-            fInvertTypeTable["int"] =  Typed::kInt;
-            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt_ptr;
-            fInvertTypeTable["vector<int>"] = Typed::kInt_vec;
-
-            fInvertTypeTable["double"] = Typed::kDouble;
-            fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
-            fInvertTypeTable["vector<double>"] = Typed::kDouble_vec;
-
-            fInvertTypeTable["quad"] = Typed::kQuad;
-            fInvertTypeTable["quad" + fPtrPosfix] = Typed::kQuad_ptr;
-
-            fInvertTypeTable["bool"] = Typed::kBool;
-            fInvertTypeTable["bool" + fPtrPosfix] = Typed::kBool_ptr;
-            fInvertTypeTable["vector<bool>"] = Typed::kBool_vec;
-
-            fInvertTypeTable["void"] = Typed::kVoid;
-            fInvertTypeTable["void" + fPtrPosfix] = Typed::kVoid_ptr;
         }
-
-        string generateType(Typed* type)
+    
+        virtual std::string generateType(Typed* type)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
             NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
-        
+            
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType];
             } else if (named_typed) {
@@ -124,13 +134,13 @@ class StringTypeManager {
                 return "";
             }
         }
-
-        string generateType(Typed* type, const string& name)
+        
+        virtual std::string generateType(Typed* type, const std::string& name)
         {
             BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
             NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
-         
+            
             if (basic_typed) {
                 return fTypeDirectTable[basic_typed->fType] + " " + name;
             } else if (named_typed) {
@@ -141,6 +151,91 @@ class StringTypeManager {
                 return (array_typed->fSize == 0)
                     ? generateType(array_typed->fType) + fPtrPosfix + " " + name
                     : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
+            } else {
+                faustassert(false);
+                return "";
+            }
+        }
+
+
+};
+
+// StringTypeManager for Rust backend
+
+class RustStringTypeManager : public StringTypeManager {
+    
+    public:
+    
+        RustStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix)
+        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+        {
+            fPtrPosfix = ptr_postfix;
+            
+            fTypeDirectTable[Typed::kFloat] = "f32";
+            fTypeDirectTable[Typed::kFloatish] = "floatish";
+            fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
+            
+            fTypeDirectTable[Typed::kInt] = "i32";
+            fTypeDirectTable[Typed::kIntish] = "intish";
+            fTypeDirectTable[Typed::kInt_ptr] = "i32" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt_vec] = "vector<i32>";
+            
+            fTypeDirectTable[Typed::kDouble] = "f64";
+            fTypeDirectTable[Typed::kDoublish] = "doublish";
+            fTypeDirectTable[Typed::kDouble_ptr] = "f64" + fPtrPosfix;
+            fTypeDirectTable[Typed::kDouble_vec] = "vector<f64>";
+            
+            fTypeDirectTable[Typed::kQuad] = "quad";
+            fTypeDirectTable[Typed::kQuad_ptr] = "quad" + fPtrPosfix;
+            
+            fTypeDirectTable[Typed::kBool] = "bool";
+            fTypeDirectTable[Typed::kBool_ptr] = "bool" + fPtrPosfix;
+            fTypeDirectTable[Typed::kBool_vec] = "vector<bool>";
+            
+            fTypeDirectTable[Typed::kVoid] = "void";
+            fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
+            
+            fTypeDirectTable[Typed::kObj] = "";
+            fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+        }
+    
+        virtual std::string generateType(Typed* type)
+        {
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+            
+            if (basic_typed) {
+                return fTypeDirectTable[basic_typed->fType];
+            } else if (named_typed) {
+                string ty_str = generateType(named_typed->fType);
+                return named_typed->fName + ((ty_str != "") ? (": " + ty_str) : "");
+            } else if (array_typed) {
+                return fTypeDirectTable[array_typed->getType()];
+            } else {
+                faustassert(false);
+                return "";
+            }
+        }
+        
+        virtual std::string generateType(Typed* type, const std::string& name)
+        {
+            BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
+            NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
+            ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
+            
+            if (basic_typed) {
+                return name + ": " + fTypeDirectTable[basic_typed->fType];
+            } else if (named_typed) {
+                string ty_str = named_typed->fName + generateType(named_typed->fType);
+                return name + ((ty_str != "") ? (": " + ty_str) : "");
+            } else if (array_typed) {
+                std::ostringstream num_str;
+                num_str << array_typed->fSize;
+                return (array_typed->fSize == 0)
+                    ? name + ": " + fPtrPosfix + generateType(array_typed->fType)
+                    : name + ": [" + generateType(array_typed->fType) + ";" + num_str.str() + "]";
             } else {
                 faustassert(false);
                 return "";

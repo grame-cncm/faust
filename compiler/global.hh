@@ -141,6 +141,7 @@ struct global {
     bool            gAllowForeignFunction;
     bool            gComputeIOTA;
     bool            gFaustFloatToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool            gInPlace;               // add cache to input for correct in-place computations
     
     dsp_factory_base* gDSPFactory;
 
@@ -431,8 +432,6 @@ struct global {
     char* gCurrentLocal;
     
     int gAllocationCount;
-    
-    bool gInPlace;  // add cache to input for correct in-place computations
     
     string gOutputLang;
     

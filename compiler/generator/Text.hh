@@ -54,8 +54,8 @@ void tab(int n, ostream& fout);
 void printlines(int n, list<string>& lines, ostream& fout, string sep = "");
 string rmWhiteSpaces(const string& s);
 
-string checkFloat(float val);
-string checkDouble(double val);
+inline string checkFloat(float val) { return T(val); }
+inline string checkDouble(double val)  { return T(val); }
 string checkReal(double val);
 
 string indent(string const& str, int tabs);

@@ -60,11 +60,11 @@ CodeContainer* JAVAScriptCodeContainer::createContainer(const string& name, int 
     }
 
     if (gGlobal->gOpenMPSwitch) {
-        throw faustexception("OpenMP : OpenMP not supported for JavaScript\n");
+        throw faustexception("ERROR : OpenMP not supported for JavaScript\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("Scheduler mode not supported for JavaScript\n");
+        throw faustexception("ERROR : Scheduler mode not supported for JavaScript\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for JavaScript\n");
+        throw faustexception("ERROR : Vector mode not supported for JavaScript\n");
     } else {
         container = new JAVAScriptScalarCodeContainer(name, numInputs, numOutputs, dst, kInt);
     }
@@ -102,7 +102,7 @@ void JAVAScriptCodeContainer::produceInternal()
         
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
+        produceInfoFunctions(n+1, fKlassName, "dsp", true, false, &fCodeProducer);
     
         // TODO
         //generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -184,7 +184,7 @@ void JAVAScriptCodeContainer::produceClass()
   
         tab(n+1, *fOut);
         // No class name for main class
-        produceInfoFunctions(n+1, "", true, true, &fCodeProducer);
+        produceInfoFunctions(n+1, "", "dsp", true, true, &fCodeProducer);
 
         // Inits
     

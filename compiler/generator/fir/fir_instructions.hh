@@ -38,7 +38,7 @@
 
 using namespace std;
 
-class FIRInstVisitor : public InstVisitor, public StringTypeManager {
+class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     private:
 
@@ -50,7 +50,7 @@ class FIRInstVisitor : public InstVisitor, public StringTypeManager {
     public:
 
         FIRInstVisitor(std::ostream* out, int tab = 0)
-            :StringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
+            :CStringTypeManager(FLOATMACRO, "*"), fTab(tab), fOut(out), fFinishLine(true)
         {}
 
         virtual ~FIRInstVisitor()

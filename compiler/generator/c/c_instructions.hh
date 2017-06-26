@@ -39,10 +39,10 @@ class CInstVisitor : public TextInstVisitor {
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-            :TextInstVisitor(out, "->", tab)
+            :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
         {
-            fTypeDirectTable[Typed::kObj] = structname;
-            fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
+            fTypeManager->fTypeDirectTable[Typed::kObj] = structname;
+            fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
         }
 
         virtual ~CInstVisitor()
@@ -132,7 +132,7 @@ class CInstVisitor : public TextInstVisitor {
                  *fOut << "volatile ";
             }
 
-            *fOut << generateType(inst->fType, inst->fAddress->getName());
+            *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << " = "; inst->fValue->accept(this); 
             }
@@ -162,7 +162,7 @@ class CInstVisitor : public TextInstVisitor {
                 *fOut << "static ";
             }
 
-            *fOut << generateType(inst->fType->fResult, inst->fName);
+            *fOut << fTypeManager->generateType(inst->fType->fResult, inst->fName);
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
@@ -182,7 +182,7 @@ class CInstVisitor : public TextInstVisitor {
   
         virtual void visit(CastNumInst* inst)
         {
-            *fOut << "(" << generateType(inst->fType) << ")";
+            *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             inst->fInst->accept(this);
         }
 

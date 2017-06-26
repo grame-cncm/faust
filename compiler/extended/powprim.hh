@@ -33,7 +33,7 @@ class PowPrim : public xtended
 
  	PowPrim() : xtended("pow") {}
    
-	virtual unsigned int arity () { return 2; }
+	virtual unsigned int arity() { return 2; }
 
 	virtual bool needCache() { return true; }
 
@@ -108,7 +108,7 @@ class PowPrim : public xtended
         }
     }
 
- 	virtual string generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+ 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		faustassert(args.size() == arity());
 		faustassert(types.size() == arity());

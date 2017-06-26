@@ -30,7 +30,7 @@
 using namespace std;
 
 /*
-Interpreter :
+Interpreter backend description:
  
  - a single global visitor for main and sub-containers
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'

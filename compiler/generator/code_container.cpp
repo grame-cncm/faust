@@ -357,11 +357,11 @@ void CodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& ind
     }
 }
 
-DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genIntNumInst(io)));
@@ -371,21 +371,21 @@ DeclareFunInst* CodeContainer::generateGetIO(const string& name, int io, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputs(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    return generateGetIO(name, fNumInputs, ismethod, isvirtual);
+    return generateGetIO(name, obj, fNumInputs, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    return generateGetIO(name, fNumOutputs, ismethod, isvirtual);
+    return generateGetIO(name, obj, fNumOutputs, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>& io, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("channel", Typed::kInt));
 
@@ -418,14 +418,14 @@ DeclareFunInst* CodeContainer::generateGetIORate(const string& name, vector<int>
     return InstBuilder::genDeclareFunInst(name, fun_type, code);
 }
 
-DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetInputRate(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
-    return generateGetIORate(name, fInputRates, ismethod, isvirtual);
+    return generateGetIORate(name, obj, fInputRates, ismethod, isvirtual);
 }
 
-DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetOutputRate(const string& name, const string& obj,  bool ismethod, bool isvirtual)
 {
-    return generateGetIORate(name, fOutputRates, ismethod, isvirtual);
+    return generateGetIORate(name, obj, fOutputRates, ismethod, isvirtual);
 }
 
 DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool isstatic, bool addreturn)
@@ -450,11 +450,11 @@ DeclareFunInst* CodeContainer::generateStaticInitFun(const string& name, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, static_init_block);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     
@@ -470,11 +470,11 @@ DeclareFunInst* CodeContainer::generateInstanceInitFun(const string& name, bool 
     return InstBuilder::genDeclareFunInst(name, fun_type, init_block);
 }
 
-DeclareFunInst* CodeContainer::generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+DeclareFunInst* CodeContainer::generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt));
     args.push_back(InstBuilder::genNamedTyped("output", Typed::kFloat_ptr));
@@ -490,11 +490,11 @@ DeclareFunInst* CodeContainer::generateFillFun(const string& name, bool ismethod
     return InstBuilder::genDeclareFunInst(name, fun_type, fill_block);
 }
 
-DeclareFunInst* CodeContainer::generateInit(bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInit(const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     
@@ -502,7 +502,7 @@ DeclareFunInst* CodeContainer::generateInit(bool ismethod, bool isvirtual)
     {
         list<ValueInst*> args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
         args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("classInit", args)));
@@ -511,7 +511,7 @@ DeclareFunInst* CodeContainer::generateInit(bool ismethod, bool isvirtual)
     {
         list<ValueInst*> args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
         args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceInit", args)));
@@ -522,11 +522,11 @@ DeclareFunInst* CodeContainer::generateInit(bool ismethod, bool isvirtual)
     return InstBuilder::genDeclareFunInst("init", fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateInstanceInit(const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     
@@ -534,7 +534,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtua
     {
         list<ValueInst*> args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
         args.push_back(InstBuilder::genLoadFunArgsVar("samplingFreq"));
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceConstants", args)));
@@ -543,7 +543,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtua
     {
         list<ValueInst*> args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceResetUserInterface", args)));
     }
@@ -551,7 +551,7 @@ DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtua
     {
         list<ValueInst*> args;
         if (!ismethod) {
-            args.push_back(InstBuilder::genLoadFunArgsVar("dsp"));
+            args.push_back(InstBuilder::genLoadFunArgsVar(obj));
         }
         block->pushBackInst(InstBuilder::genDropInst(InstBuilder::genFunCallInst("instanceClear", args)));
     }
@@ -561,11 +561,11 @@ DeclareFunInst* CodeContainer::generateInstanceInit(bool ismethod, bool isvirtua
     return InstBuilder::genDeclareFunInst("instanceInit", fun_type, block);
 }
 
-DeclareFunInst* CodeContainer::generateGetSampleRate(bool ismethod, bool isvirtual)
+DeclareFunInst* CodeContainer::generateGetSampleRate(const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     
     BlockInst* block = InstBuilder::genBlockInst();
@@ -577,20 +577,20 @@ DeclareFunInst* CodeContainer::generateGetSampleRate(bool ismethod, bool isvirtu
 }
 
 // Functions are coded with a "class" prefix, so to stay separated in "gGlobalTable"
-void CodeContainer::produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer)
+void CodeContainer::produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual, TextInstVisitor* producer)
 {
     // Input/Output method
     producer->Tab(tabs);
-    generateGetInputs(subst("getNumInputs$0", classname), ismethod, isvirtual)->accept(producer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), ismethod, isvirtual)->accept(producer);
+    generateGetInputs(subst("getNumInputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
+    generateGetOutputs(subst("getNumOutputs$0", classname), obj, ismethod, isvirtual)->accept(producer);
     
     // Input Rates
     producer->Tab(tabs);
-    generateGetInputRate(subst("getInputRate$0", classname), ismethod, isvirtual)->accept(producer);
+    generateGetInputRate(subst("getInputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
     
     // Output Rates
     producer->Tab(tabs);
-    generateGetOutputRate(subst("getOutputRate$0", classname), ismethod, isvirtual)->accept(producer);
+    generateGetOutputRate(subst("getOutputRate$0", classname), obj, ismethod, isvirtual)->accept(producer);
 }
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
@@ -742,13 +742,13 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), true, false);
+        DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
         //dump2FIR(inst_init_fun);
         InlineVoidFunctionCall inliner1(inst_init_fun);
         block = inliner1.getCode(block);
         
         // Build the function to be inlined (prototype and code)
-        DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), true, false);
+        DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), "dsp", true, false);
         //dump2FIR(fill_fun);
         InlineVoidFunctionCall inliner2(fill_fun);
         block = inliner2.getCode(block);

@@ -32,23 +32,25 @@ class SinPrim : public xtended
 
  	SinPrim() : xtended("sin") {}
 
-	virtual unsigned int arity () { return 1; }
+	virtual unsigned int arity() { return 1; }
 
-	virtual bool	needCache ()	{ return true; }
+	virtual bool needCache() { return true; }
 
-	virtual ::Type 	infereSigType (const vector< ::Type>& args)
+	virtual ::Type infereSigType(const vector< ::Type>& args)
 	{
 		faustassert(args.size() == 1);
 		return castInterval(floatCast(args[0]), interval(-1,1));
 	}
 
-	virtual void 	sigVisit (Tree sig, sigvisitor* visitor) {}
+	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual int infereSigOrder (const vector<int>& args) {
+	virtual int infereSigOrder(const vector<int>& args)
+    {
 		return args[0];
 	}
 
-	virtual Tree	computeSigOutput (const vector<Tree>& args) {
+	virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
 		num n;
 		if (isNum(args[0],n)) {
 			return tree(sin(double(n)));
@@ -70,7 +72,7 @@ class SinPrim : public xtended
         return container->pushFunction(subst("sin$0", isuffix()), result_type, arg_types, casted_args);
     }
 
-	virtual string 	generateLateq (Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
 		faustassert(args.size() == arity());
 		faustassert(types.size() == arity());

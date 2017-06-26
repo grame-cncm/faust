@@ -29,7 +29,7 @@
 using namespace std;
 
 /*
- WASM module description:
+ WASM backend and module description:
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS, remainder in JS)
@@ -91,11 +91,11 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     }
 
     if (gGlobal->gOpenMPSwitch) {
-        throw faustexception("OpenMP : OpenMP not supported for WebAssembly\n");
+        throw faustexception("ERROR : OpenMP not supported for WebAssembly\n");
     } else if (gGlobal->gSchedulerSwitch) {
-        throw faustexception("Scheduler mode not supported for WebAssembly\n");
+        throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for WebAssembly\n");
+        throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
     } else {
         container = new WASMScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
@@ -103,12 +103,9 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
     return container;
 }
 
-DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
-    if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
@@ -124,11 +121,11 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name, bool is
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -143,11 +140,11 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, boo
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     
@@ -164,11 +161,11 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     return InstBuilder::genDeclareFunInst(name, fun_type, block);
 }
 
-DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual)
+DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
@@ -194,11 +191,11 @@ WASMScalarCodeContainer::~WASMScalarCodeContainer()
 {}
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
-DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn)
+DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn)
 {
     list<NamedTyped*> args;
     if (!ismethod) {
-        args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
+        args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
     BlockInst* init_block = InstBuilder::genBlockInst();
@@ -282,37 +279,37 @@ void WASMCodeContainer::produceClass()
     // Internal functions in alphabetical order
     
     // 1) classInit
-    generateClassInit("classInit", false, false)->accept(gGlobal->gWASMVisitor);
+    generateClassInit("classInit")->accept(gGlobal->gWASMVisitor);
     
     // 2) compute
     generateCompute();
     
     // 3) getNumInputs
-    generateGetInputs("getNumInputs", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 4) getNumOutputs
-    generateGetOutputs("getNumOutputs", false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 5) getParamValue (adhoc generation for now since currently FIR cannot be generated to handle this case)
     gGlobal->gWASMVisitor->generateGetParamValue();
    
     // 6) getSampleRate
-    generateGetSampleRate(false, false)->accept(gGlobal->gWASMVisitor);
+    generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 7) init
-    generateInit(false, false)->accept(gGlobal->gWASMVisitor);
+    generateInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 8) instanceClear
-    generateInstanceClear("instanceClear", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceClear("instanceClear", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 9) instanceConstants
-    generateInstanceConstants("instanceConstants", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceConstants("instanceConstants", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 10) instanceInit
-     generateInstanceInit(false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceInit("dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // 11) instanceResetUserInterface
-    generateInstanceResetUserInterface("instanceResetUserInterface", false, false)->accept(gGlobal->gWASMVisitor);
+    generateInstanceResetUserInterface("instanceResetUserInterface", "dsp", false, false)->accept(gGlobal->gWASMVisitor);
     
     // Always generated mathematical functions
     

@@ -228,28 +228,28 @@ class CodeContainer : public virtual Garbageable {
         void generateLocalInputs(BlockInst* loop_code, const string& index);
         void generateLocalOutputs(BlockInst* loop_code, const string& index);
 
-        DeclareFunInst* generateGetIO(const string& name, int io, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateGetInputs(const string& name, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateGetOutputs(const string& name, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetOutputs(const string& name, const string& obj, bool ismethod, bool isvirtual);
 
-        DeclareFunInst* generateGetIORate(const string& name, vector<int>& io, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateGetInputRate(const string& name, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateGetOutputRate(const string& name, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetIORate(const string& name, const string& obj, vector<int>& io, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetInputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetOutputRate(const string& name, const string& obj, bool ismethod, bool isvirtual);
     
-        virtual DeclareFunInst* generateClassInit(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceClear(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceConstants(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
-        virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateClassInit(const string& name) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
+        virtual DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual) { faustassert(false); return nullptr; }
     
         virtual DeclareFunInst* generateStaticInitFun(const string& name, bool isstatic, bool addreturn = false);
-        virtual DeclareFunInst* generateInstanceInitFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
-        virtual DeclareFunInst* generateFillFun(const string& name, bool ismethod, bool isvirtual, bool addreturn = false);
+        virtual DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn = false);
+        virtual DeclareFunInst* generateFillFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn = false);
     
-        DeclareFunInst* generateInit(bool ismethod, bool isvirtual);
-        DeclareFunInst* generateInstanceInit(bool ismethod, bool isvirtual);
-        DeclareFunInst* generateGetSampleRate(bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInit(const string& obj, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateInstanceInit(const string& obj, bool ismethod, bool isvirtual);
+        DeclareFunInst* generateGetSampleRate(const string& obj, bool ismethod, bool isvirtual);
    
-        void produceInfoFunctions(int tabs, const string& classname, bool ismethod, bool isvirtual, TextInstVisitor* producer);
+        void produceInfoFunctions(int tabs, const string& classname, const string& obj, bool ismethod, bool isvirtual, TextInstVisitor* producer);
     
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
         

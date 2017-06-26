@@ -102,7 +102,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (!isControl(inst->fAddress->getName())) {
-                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
         };
@@ -117,7 +117,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             virtual void visit(DeclareVarInst* inst)
             {
                 if (isControl(inst->fAddress->getName())) {
-                    tab(fTab, *fOut); *fOut << generateType(inst->fType, inst->fAddress->getName()) << ";";
+                    tab(fTab, *fOut); *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName()) << ";";
                 }
             }
 
@@ -246,7 +246,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             // C like cast
             virtual void visit(CastNumInst* inst)
             {
-                *fOut << "(" << generateType(inst->fType) << ")";
+                *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
                 inst->fInst->accept(this);
             }
 
@@ -383,7 +383,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
                      *fOut << "__local ";
                 }
 
-                *fOut << generateType(inst->fType, inst->fAddress->getName());
+                *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
                 if (inst->fValue) {
                     *fOut << " = "; inst->fValue->accept(this);
                 } 
@@ -457,7 +457,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
                     *fOut << "__shared__ ";
                 }
 
-                *fOut << generateType(inst->fType, inst->fAddress->getName());
+                *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
                 if (inst->fValue) {
                     *fOut << " = "; inst->fValue->accept(this);
                 } 

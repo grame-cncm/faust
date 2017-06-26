@@ -64,7 +64,7 @@ CodeContainer* JAVACodeContainer::createContainer(const string& name, const stri
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler not supported for Java\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("Vector mode not supported for Java\n");
+        throw faustexception("ERROR : Vector mode not supported for Java\n");
     } else {
         container = new JAVAScalarCodeContainer(name, super, numInputs, numOutputs, dst, kInt);
     }
@@ -102,7 +102,7 @@ void JAVACodeContainer::produceInternal()
 
         tab(n+1, *fOut);
         // fKlassName used in method naming for subclasses
-        produceInfoFunctions(n+1, fKlassName, true, false, &fCodeProducer);
+        produceInfoFunctions(n+1, fKlassName, "dsp", true, false, &fCodeProducer);
     
         // TODO
         //generateInstanceInitFun("instanceInit" + fKlassName, true, false)->accept(&fCodeProducer);
@@ -205,7 +205,7 @@ void JAVACodeContainer::produceClass()
 
         tab(n+1, *fOut);
         // No class name for main class
-        produceInfoFunctions(n+1, "", true, true, &fCodeProducer);
+        produceInfoFunctions(n+1, "", "dsp", true, true, &fCodeProducer);
         
         // Inits
     

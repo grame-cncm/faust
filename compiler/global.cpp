@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <limits.h>
+
 #include "global.hh"
 #include "sourcereader.hh"
 #include "tree.hh"
@@ -45,16 +47,37 @@
 #include "binop.hh"
 #include "instructions.hh"
 
+#if ASMJS_BUILD
 #include "asmjs_instructions.hh"
-#include "interpreter_instructions.hh"
+#endif
 
+#if C_BUILD
 #include "c_code_container.hh"
-#include "cpp_code_container.hh"
-#include "js_code_container.hh"
-#include "java_code_container.hh"
-#include "fir_code_container.hh"
+#endif
 
-#include <limits.h>
+#if CPP_BUILD
+#include "cpp_code_container.hh"
+#endif
+
+#if FIR_BUILD
+#include "fir_code_container.hh"
+#endif
+
+#if INTERP_BUILD
+#include "interpreter_instructions.hh"
+#endif
+
+#if JAVA_BUILD
+#include "java_code_container.hh"
+#endif
+
+#if JS_BUILD
+#include "js_code_container.hh"
+#endif
+
+#if RUST_BUILD
+#include "rust_code_container.hh"
+#endif
 
 // Parser
 extern FILE* yyin;
@@ -129,6 +152,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gAllowForeignFunction  = true;
     gComputeIOTA = false;
     gFaustFloatToInternal = false;
+    gInPlace = false;
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
@@ -292,7 +316,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachinePtrSize = sizeof(void*);
     
     gMachineMaxStackSize = MAX_STACK_SIZE;
-    gInPlace = false;
     gOutputLang = "";
     
 #if ASMJS_BUILD
@@ -419,7 +442,7 @@ global::~global()
     free(gCurrentLocal);
     
     // Cleanup
-#if JAVA_BUILD
+#if C_BUILD
     CInstVisitor::cleanup();
 #endif
 #if CPP_BUILD
@@ -433,6 +456,9 @@ global::~global()
 #endif
 #if JS_BUILD
     JAVAScriptInstVisitor::cleanup();
+#endif
+#if RUST_BUILD
+    RustInstVisitor::cleanup();
 #endif
 }
 
