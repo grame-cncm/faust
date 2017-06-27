@@ -85,7 +85,7 @@ static int infereSigOrder(Tree sig)
 {
 	int 		i;
 	double 		r;
-    Tree		sel, s1, s2, s3, s4, ff, id, ls, l, x, y, var, body, type, name, file;
+    Tree		sel, s1, s2, s3, s4, ff, id, ls, l, x, y, var, body, type, name, file, sf;
 
 	xtended* xt = (xtended*) getUserData(sig);
 	// primitive elements
@@ -142,9 +142,10 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigVBargraph(sig, l, x, y, s1))	return max(2, O(s1)); 	// at least a user interface
 
-	else if ( isSigSoundfileLength(sig, l) )	return 2;
-	else if ( isSigSoundfileRate(sig, l) )	    return 2;
-	else if ( isSigSoundfileChannel(sig,l,x,y)) return 3;
+	else if (isSigSoundfile(sig, l) )			exit(1);				// not supposed to happen.;
+	else if (isSigSoundfileLength(sig, sf) )	return 2;
+	else if (isSigSoundfileRate(sig, sf) )	    return 2;
+	else if (isSigSoundfileChannel(sig,sf,x,y)) return 3;
 
 	else if (isSigAttach(sig, s1, s2)) 			return max(1,O(s1));	// at least a constant
 				

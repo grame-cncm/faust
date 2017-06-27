@@ -180,7 +180,7 @@ ostream& ppsig::print (ostream& fout) const
 {
 	int 	i;
 	double	r;
-    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file;
+    Tree 	c, sel, x, y, z, u, var, le, label, id, ff, largs, type, name, file, sf;
 
 		  if ( isList(sig) ) 						{ printlist(fout, sig); }
 	else if ( isProj(sig, &i, x) ) 					{ fout << "proj" << i << '(' << ppsig(x, fEnv) << ')';	}
@@ -229,6 +229,12 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ printui(fout, "nentry", label, c, x, y, z); }
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printui(fout, "vbargraph", label, x, y, z); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printui(fout, "hbargraph", label, x, y, z); }
+
+	else if (isSigSoundfile(sig, label) )			{ printui(fout, "soundfile", label); }
+	else if (isSigSoundfileLength(sig, sf) )		{ printfun(fout, "length", sf); }
+	else if (isSigSoundfileRate(sig, sf) )	    	{ printfun(fout, "rate", sf); }
+	else if (isSigSoundfileChannel(sig,sf,x,y)) 	{ printfun(fout, "channel", sf, x, y); }
+
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
 	
 	else {
