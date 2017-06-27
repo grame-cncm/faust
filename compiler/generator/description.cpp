@@ -302,6 +302,15 @@ int Description::addWidget(Tree label, Tree varname, Tree sig)
 			addActiveLine(subst("\t<step>$0</step>", 		T(tree2double(z))));
 		addActiveLine("</widget>");
 
+	} else if ( isSigSoundfile(sig, path) )	{
+
+		fWidgetID++;
+		fActiveWidgetCount++;
+		addActiveLine(subst("<widget type=\"nentry\" id=\"$0\">", T(fWidgetID)));
+            addActiveLine(subst("\t<label>$0</label>", 		checkNullLabel(sig, xmlize(tree2str(label)), true) ));
+			addActiveLine(subst("\t<varname>$0</varname>", 	tree2str(varname)));
+		addActiveLine("</widget>");
+
 
 	// add a passive widget description
 
