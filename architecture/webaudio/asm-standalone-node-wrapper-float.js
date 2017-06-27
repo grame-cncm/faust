@@ -405,7 +405,7 @@ var normalize = function(f)
 
 var setButtons = function(dsp, value)
 {
-    var buttons = DSP.buttons();
+    var buttons = dsp.buttons();
     for (var i = 0; i < buttons.length; i++) {
          dsp.setParamValue(buttons[i], value);
     }

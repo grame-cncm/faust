@@ -398,7 +398,7 @@ var normalize = function(f)
 
 var setButtons = function(dsp, value)
 {
-    var buttons = DSP.buttons();
+    var buttons = dsp.buttons();
     for (var i = 0; i < buttons.length; i++) {
          dsp.setParamValue(buttons[i], value);
     }
@@ -418,7 +418,7 @@ var control_data;
 function startDSP(instance, buffer_size)
 {
   // Creates DSP and buffers
-    var DSP = faust.mydsp(null, buffer_size, buffer_size, sample_rate);
+    var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
     create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
     //console.log(DSP);
@@ -436,7 +436,7 @@ function startDSP(instance, buffer_size)
 
     // Check getSampleRate
     if (DSP.getSampleRate() !== sample_rate) {
-       console.error("ERROR in getSampleRate");
+        console.error("ERROR in getSampleRate");
         process.exit(1);
     }
 
@@ -534,13 +534,24 @@ var asm2wasm = { // special asm2wasm imports
     }
 };
 
+function toUint8Array(buf)
+{
+    var res = new Uint8Array(buf.length);
+    for (var i = 0; i < buf.length; ++i) {
+        res[i] = buf[i];
+    }
+    return res;
+}
+
 var importObject = { imports: { print: arg => console.log(arg) } }
 importObject["global.Math"] = window.Math;
 importObject["asm2wasm"] = asm2wasm;
-var response = fs.readFileSync('DSP.wasm');
+var response = toUint8Array(fs.readFileSync('DSP.wasm'));
 //console.log(response);
 var bytes = response.buffer;
 //console.log("bytes " + bytes);
 
-var res = instantiate(response.buffer, importObject).then(instance => { console.log(instance); startDSP(instance, buffer_size); });
+var res = WebAssembly.compile(bytes)
+        .then(m => { WebAssembly.instantiate(m, importObject)
+        .then(instance => { startDSP(instance, buffer_size); })});
 

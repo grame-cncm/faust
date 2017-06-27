@@ -850,7 +850,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         void generateMemoryAccess()
         {
-            *fOut << U32LEB(offStrNum);
+            //*fOut << U32LEB(offStrNum);   // Makes V8 return : 'invalid alignment; expected maximum alignment is 2, actual alignment is 3'
+            *fOut << U32LEB(2);
             *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
         }
    
@@ -1199,7 +1200,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         virtual void visit(DoubleNumInst* inst)
         {
             fTypingVisitor.visit(inst);
-            *fOut << int8_t(BinaryConsts::I64Const) << inst->fNum;
+            *fOut << int8_t(BinaryConsts::F64Const) << inst->fNum;
         }
     
         virtual void visit(IntNumInst* inst)
