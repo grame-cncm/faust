@@ -919,6 +919,7 @@ void Klass::printComputeMethodScalar(int n, ostream& fout)
         printlines (n+2, fZone2bCode, fout);
         printlines (n+2, fZone3Code, fout);
         printLoopGraphScalar (n+2,fout);
+        printlines (n+2, fZone4Code, fout);
     tab(n+1,fout); fout << "}";
 }
 
@@ -952,6 +953,8 @@ void Klass::printComputeMethodVectorFaster(int n, ostream& fout)
             printlines (n+3, fZone3Code, fout);
              printLoopGraphVector(n+3,fout);
         tab(n+2,fout); fout << "}";
+
+        printlines (n+2, fZone4Code, fout);
     tab(n+1,fout); fout << "}";
 }
 
@@ -973,6 +976,8 @@ void Klass::printComputeMethodVectorSimple(int n, ostream& fout)
             printlines (n+3, fZone3Code, fout);
             printLoopGraphVector(n+3,fout);
         tab(n+2,fout); fout << "}";
+
+        printlines (n+2, fZone4Code, fout);
     tab(n+1,fout); fout << "}";
 }
 
@@ -1059,6 +1064,8 @@ void Klass::printComputeMethodOpenMP(int n, ostream& fout)
             tab(n+3,fout); fout << "}";
 
         tab(n+2,fout); fout << "}";
+
+        printlines (n+2, fZone4Code, fout);
     tab(n+1,fout); fout << "}";
 }
 
