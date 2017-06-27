@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     int channel = (int) (data[offset + i*3] & 0x0F);
                     int data1 = (int) data[offset + 1 + i*3];
                     int data2 = (int) data[offset + 2 + i*3];
-                    dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
+                    if(dspFaust != null) dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
                 }
             }
         }
