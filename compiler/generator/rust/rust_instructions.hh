@@ -26,6 +26,38 @@
 
 using namespace std;
 
+// Visitor used to initialize fields into the constructor
+struct RustInitFieldsVisitor : public DispatchVisitor {
+
+    std::ostream* fOut;
+    int fTab;
+    RustInitFieldsVisitor(std::ostream* out, int tab = 0):fOut(out), fTab(tab) {}
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+        Typed::VarType type = inst->fType->getType();
+        
+        tab(fTab, *fOut);
+        *fOut << inst->fAddress->getName() << ": ";
+        
+        if (array_type) {
+            if (isIntPtrType(type)) {
+                *fOut << "[0; " << array_type->fSize << "],";
+            } else if (isRealPtrType(type)) {
+                *fOut << "[0.0; " << array_type->fSize << "],";
+            }
+        } else {
+            if (isIntType(type)) {
+                *fOut << "0,";
+            } else if (isRealType(type)) {
+                *fOut << "0.0,";
+            }
+        }
+    }
+    
+ };
+
 class RustInstVisitor : public TextInstVisitor {
     
     private:
@@ -50,6 +82,11 @@ class RustInstVisitor : public TextInstVisitor {
             fTypeManager->fTypeDirectTable[Typed::kObj] = "";
             fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
             
+            // Integer version
+            fMathLibTable["abs"] = "i32::abs";
+            fMathLibTable["min_i"] = "std::cmp::min";
+            fMathLibTable["max_i"] = "std::cmp::max";
+            
             // Float version
             fMathLibTable["fabsf"] = "f32::abs";
             fMathLibTable["acosf"] = "f32::acos";
@@ -65,7 +102,7 @@ class RustInstVisitor : public TextInstVisitor {
             fMathLibTable["log10f"] = "f32::log10";
             fMathLibTable["max_f"] = "f32::max";
             fMathLibTable["min_f"] = "f32::min";
-            fMathLibTable["powf"] = "f32::pow";
+            fMathLibTable["powf"] = "f32::powf";
             fMathLibTable["remainderf"] = "manual";        // Manually generated : TODO
             fMathLibTable["roundf"] = "f32::round";
             fMathLibTable["sinf"] = "f32::sin";
@@ -229,12 +266,8 @@ class RustInstVisitor : public TextInstVisitor {
                 *fOut << "static ";
             }
             
-            // Math library functions are part of the 'global' module, 'fmodf' and 'log10f' will be manually generated
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                if (fMathLibTable[inst->fName] != "manual") {
-                    tab(fTab, *fOut); *fOut << "let " << inst->fName << " = " << fMathLibTable[inst->fName] << ";";
-                }
-            } else {
+            // Only generates additional functions
+            if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {
                 // Prototype
                 *fOut << "pub fn " << inst->fName;
                 generateFunDefArgs(inst);
@@ -317,6 +350,7 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(FunCallInst* inst)
         {
             // Integer and real min/max are mapped on polymorphic ones
+            /*
             string name;
             if (startWith(inst->fName, "min")) {
                 name = "min";
@@ -325,8 +359,13 @@ class RustInstVisitor : public TextInstVisitor {
             } else {
                 name = inst->fName;
             }
+            */
             
-            *fOut << name << "(";
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                *fOut << fMathLibTable[inst->fName] << "(";
+            } else {
+                *fOut << inst->fName << "(";
+            }
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
@@ -354,7 +393,7 @@ class RustInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
                 inst->fCode->accept(this);
                 inst->fIncrement->accept(this);
-                *fOut << "if "; inst->fEnd->accept(this); *fOut << " { continue; }";
+                *fOut << "if "; inst->fEnd->accept(this); *fOut << " { continue; } else { break; }";
                  fTab--;
             tab(fTab, *fOut);
             *fOut << "}";

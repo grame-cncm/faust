@@ -291,29 +291,41 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
 
-        // "input" and "inputs" used as a name convention
-        for (int index = 0; index < fContainer->inputs(); index++) {
-            string name = subst("input$0", T(index));
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
-                InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
-                                                               
-            if (gGlobal->gInPlace) {
-                CS(sigInput(index));
+        
+        // HACK for Rust backend
+        if (gGlobal->gOutputLang != "rust") {
+            // "input" and "inputs" used as a name convention
+            for (int index = 0; index < fContainer->inputs(); index++) {
+                string name = subst("input$0", T(index));
+                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                    InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
+                if (gGlobal->gInPlace) {
+                    CS(sigInput(index));
+                }
             }
         }
 
-        // "output" and "outputs" used as a name convention
-        for (int index = 0; index < fContainer->outputs(); index++) {
-            string name = subst("output$0", T(index));
-            
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
-                InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
+        // HACK for Rust backend
+        if (gGlobal->gOutputLang != "rust") {
+            // "output" and "outputs" used as a name convention
+            for (int index = 0; index < fContainer->outputs(); index++) {
+                string name = subst("output$0", T(index));
+                pushComputeBlockMethod(InstBuilder::genDecStackVar(name, InstBuilder::genArrayTyped(type, 0),
+                    InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
+            }
         }
     }
 
 	for (int index = 0; isList(L); L = tl(L), index++) {
 		Tree sig = hd(L);
-        string name = subst("output$0", T(index));
+        string name;
+        
+        // HACK for Rust backend
+        if (gGlobal->gOutputLang == "rust") {
+            name = subst("outputs[$0]", T(index));
+        } else {
+            name = subst("output$0", T(index));
+        }
 
         // Cast to external float
         ValueInst* res = InstBuilder::genCastNumFloatMacroInst(CS(sig));
@@ -725,7 +737,13 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     fContainer->setInputRate(idx, rate);
     
     // Cast to internal float
-    ValueInst* res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
+    ValueInst* res;
+    // HACK for Rust backend
+    if (gGlobal->gOutputLang == "rust") {
+        res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
+    } else {
+        res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
+    }
 
     if (gGlobal->gInPlace) {
         // inputs must be cached for in-place transformations

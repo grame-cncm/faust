@@ -158,7 +158,7 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut); *fOut << "#![allow(unused_parens)]";
     tab(n, *fOut); *fOut << "#![allow(non_snake_case)]";
     tab(n, *fOut); *fOut << "#![allow(non_camel_case_types)]";
-    tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation" ;
+    //tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation" ;
 
     // Sub containers
     generateSubContainers();
@@ -207,7 +207,11 @@ void RustCodeContainer::produceClass()
             if (fAllocateInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
             }
-            tab(n+2, *fOut); *fOut << "Default::default() ";
+            //tab(n+2, *fOut); *fOut << "Default::default() ";
+            tab(n+2, *fOut); *fOut << fKlassName << " {";
+                RustInitFieldsVisitor initializer(fOut, n+3);
+                generateDeclarations(&initializer);
+            tab(n+2, *fOut); *fOut << "}";
         tab(n+1, *fOut); *fOut << "}";
 
     /* Deactivated for now
@@ -355,7 +359,7 @@ void RustScalarCodeContainer::generateCompute(int n)
 {
     // Generates declaration
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: && $1, outputs: &mut&mut $1) {", fFullCount, ifloat());
+    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
 
@@ -385,7 +389,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: && $1, outputs: &mut&mut $1)) {", fFullCount, ifloat());
+    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
 
@@ -411,7 +415,7 @@ void RustOpenMPCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Compute declaration
-    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: && $1, outputs: &mut&mut $1)) {", fFullCount, ifloat());
+    tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
 
