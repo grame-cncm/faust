@@ -9,9 +9,7 @@ OSCDEFS=""
 #####################################################################
 
 . faustpath
-
 . faustoptflags
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -69,7 +67,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-console.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a "$FAUSTLIB/jack-console.cpp" $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

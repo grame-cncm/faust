@@ -161,14 +161,14 @@ public class MainActivity extends AppCompatActivity {
         public void onSend(byte[] data, int offset,
                            int count, long timestamp) {
             // we only consider MIDI messages containing 3 bytes (see is just an example)
-            if (permissionToRecordAccepted && (count%3 == 0)) {
+            if (permissionToRecordAccepted && (count%3 == 0) && (dspFaust != null)) {
                 int nMessages = count / 3; // in case the event contains several messages
                 for (int i = 0; i < nMessages; i++) {
                     int type = (int) (data[offset + i*3] & 0xF0);
                     int channel = (int) (data[offset + i*3] & 0x0F);
                     int data1 = (int) data[offset + 1 + i*3];
                     int data2 = (int) data[offset + 2 + i*3];
-                    if(dspFaust != null) dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
+                    dspFaust.propagateMidi(3, timestamp, type, channel, data1, data2);
                 }
             }
         }
