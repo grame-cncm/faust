@@ -157,7 +157,6 @@ class CStringTypeManager : public StringTypeManager {
             }
         }
 
-
 };
 
 // StringTypeManager for Rust backend
@@ -241,6 +240,7 @@ class RustStringTypeManager : public StringTypeManager {
                 return "";
             }
         }
+    
 };
 
 #endif

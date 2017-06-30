@@ -26,11 +26,12 @@
 
 using namespace std;
 
-// Visitor used to initialize fields into the constructor
+// Visitor used to initialize fields into the DSP constructor
 struct RustInitFieldsVisitor : public DispatchVisitor {
 
     std::ostream* fOut;
     int fTab;
+    
     RustInitFieldsVisitor(std::ostream* out, int tab = 0):fOut(out), fTab(tab) {}
     
     virtual void visit(DeclareVarInst* inst)
@@ -124,7 +125,7 @@ class RustInstVisitor : public TextInstVisitor {
             fMathLibTable["log10"] = "f32::log10";
             fMathLibTable["max_"] = "f64::max";
             fMathLibTable["min_"] = "f64::min";
-            fMathLibTable["pow"] = "f64::pow";
+            fMathLibTable["pow"] = "f64::powf";
             fMathLibTable["remainder"] = "manual";         // Manually generated : TODO
             fMathLibTable["round"] = "f64::round";
             fMathLibTable["sin"] = "f64::sin";

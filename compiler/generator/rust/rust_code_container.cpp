@@ -105,12 +105,16 @@ void RustCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "}";
     
+    tab(n, *fOut);
     tab(n, *fOut); *fOut << "impl " << fKlassName << " {";
 
         // Memory methods
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "pub fn new" << fKlassName << "() -> " << fKlassName << " { ";
-            tab(n+2, *fOut); *fOut << "Default::default() ";
+            tab(n+2, *fOut); *fOut << fKlassName << " {";
+                RustInitFieldsVisitor initializer(fOut, n+3);
+                generateDeclarations(&initializer);
+            tab(n+2, *fOut); *fOut << "}";
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) {}";
@@ -155,9 +159,11 @@ void RustCodeContainer::produceClass()
     int n = 0;
         
     // Ignore the following warning
+    /*
     tab(n, *fOut); *fOut << "#![allow(unused_parens)]";
     tab(n, *fOut); *fOut << "#![allow(non_snake_case)]";
     tab(n, *fOut); *fOut << "#![allow(non_camel_case_types)]";
+    */
     //tab(n, *fOut); *fOut << "#[derive(Copy, Clone, Default)] // 'Default' needed for struct default initialisation" ;
 
     // Sub containers
@@ -207,7 +213,6 @@ void RustCodeContainer::produceClass()
             if (fAllocateInstructions->fCode.size() > 0) {
                 tab(n+2, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
             }
-            //tab(n+2, *fOut); *fOut << "Default::default() ";
             tab(n+2, *fOut); *fOut << fKlassName << " {";
                 RustInitFieldsVisitor initializer(fOut, n+3);
                 generateDeclarations(&initializer);

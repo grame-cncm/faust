@@ -290,8 +290,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) { // HACK
-
-        
+    
         // HACK for Rust backend
         if (gGlobal->gOutputLang != "rust") {
             // "input" and "inputs" used as a name convention

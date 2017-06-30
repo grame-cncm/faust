@@ -257,7 +257,7 @@ class CInstVisitor : public TextInstVisitor {
              }
         }
         
-       static void cleanup() { gFunctionSymbolTable.clear(); }
+        static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
 #endif
