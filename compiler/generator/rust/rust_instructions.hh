@@ -73,7 +73,7 @@ class RustInstVisitor : public TextInstVisitor {
     public:
 
         RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
-            :TextInstVisitor(out, "->", new RustStringTypeManager(FLOATMACRO, "&"), tab)
+            :TextInstVisitor(out, ".", new RustStringTypeManager(FLOATMACRO, "&"), tab)
         {
             /*
             fTypeManager->fTypeDirectTable[Typed::kObj] = structname;
@@ -276,6 +276,7 @@ class RustInstVisitor : public TextInstVisitor {
             }
         }
     
+        /*
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
             *fOut << "(";
@@ -286,6 +287,7 @@ class RustInstVisitor : public TextInstVisitor {
                 if (i < size - 1) *fOut << ", ";
             }
         }
+        */
     
         virtual void generateFunDefBody(DeclareFunInst* inst)
         {
@@ -319,7 +321,11 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct) {
-                *fOut << "self.";
+                if (named->getAccess() & Address::kReference) {
+                    *fOut << "&mut self.";
+                } else {
+                    *fOut << "self.";
+                }
             }
             *fOut << named->fName;
         }
@@ -362,6 +368,7 @@ class RustInstVisitor : public TextInstVisitor {
             }
             */
             
+            /*
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 *fOut << fMathLibTable[inst->fName] << "(";
             } else {
@@ -370,19 +377,53 @@ class RustInstVisitor : public TextInstVisitor {
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
+             
+            */
+            
+            string fun_name;
+            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
+                fun_name = fMathLibTable[inst->fName];
+            } else {
+                fun_name = inst->fName;
+            }
+            generateFunCall(inst, fun_name);
         }
     
         virtual void visit(Select2Inst* inst)
         {
             *fOut << "if (";
             inst->fCond->accept(this);
-            *fOut << ") { ";
+            *fOut << " as i32 == 1) { ";
             inst->fThen->accept(this);
             *fOut << " } else { ";
             inst->fElse->accept(this);
             *fOut << " }";
         }
     
+        virtual void visit(IfInst* inst)
+        {
+            *fOut << "if (";
+            inst->fCond->accept(this);
+            *fOut << " as i32 == 1) { ";
+            fTab++;
+            tab(fTab, *fOut);
+            inst->fThen->accept(this);
+            fTab--;
+            tab(fTab, *fOut);
+            if (inst->fElse->fCode.size() > 0) {
+                *fOut << "} else {";
+                fTab++;
+                tab(fTab, *fOut);
+                inst->fElse->accept(this);
+                fTab--;
+                tab(fTab, *fOut);
+                *fOut << "}";
+            } else {
+                *fOut << "}";
+            }
+            tab(fTab, *fOut);
+        }
+   
         virtual void visit(ForLoopInst* inst)
         {
             // Don't generate empty loops...

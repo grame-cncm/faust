@@ -31,8 +31,10 @@ using namespace std;
 /*
  Rust backend description:
 
- - 'usize' type has to be used for all array accesses: cast index as 'usize' only when using it (load/store arrays)
- - local stack variable (shared computation) are normally non mutable.
+ - 'usize' type has to be used for all array access: cast index as 'usize' only when using it (load/store arrays)
+ - TODO: local stack variables (shared computation) are normally non-mutable 
+ - inputN/outputN local buffer variables in 'compute' are not created at all: they are replaced directly in the code with inputs[N]/outputs[N] (done in instructions_compiler.cpp)
+ - BoolOpcode BinOps always casted to integer
  
 */
 
@@ -94,7 +96,7 @@ void RustCodeContainer::produceInternal()
     generateGlobalDeclarations(&fCodeProducer);
   
     tab(n, *fOut);
-    tab(n, *fOut); *fOut << "struct " << fKlassName << " {";
+    tab(n, *fOut); *fOut << "pub struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -108,6 +110,7 @@ void RustCodeContainer::produceInternal()
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "impl " << fKlassName << " {";
 
+        /*
         // Memory methods
         tab(n+1, *fOut);
         tab(n+1, *fOut); *fOut << "pub fn new" << fKlassName << "() -> " << fKlassName << " { ";
@@ -118,6 +121,7 @@ void RustCodeContainer::produceInternal()
         tab(n+1, *fOut); *fOut << "}";
 
         tab(n+1, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) {}";
+        */
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -127,7 +131,7 @@ void RustCodeContainer::produceInternal()
         // TODO
         //generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
         
-        tab(n+1, *fOut); *fOut << "pub fn instanceInit(&mut self, samplingFreq: i32) {";
+        tab(n+1, *fOut); *fOut << "pub fn instanceInit" << fKlassName << "(&mut self, samplingFreq: i32) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateInit(&fCodeProducer);
@@ -139,19 +143,29 @@ void RustCodeContainer::produceInternal()
         tab(n+1, *fOut);
         string counter = "count";
         if (fSubContainerType == kInt) {
-            tab(n+1, *fOut); *fOut << "pub fn fill(" << subst("&mut self, $0: i32, &mut i32 output) {", counter);
+            tab(n+1, *fOut); *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[i32]) {", counter);
         } else {
-            tab(n+1, *fOut); *fOut << "pub fn fill(" << subst("&mut self, $0: i32, &mut $1 output) {", counter, ifloat());
+            tab(n+1, *fOut); *fOut << "pub fn fill" << fKlassName << subst("(&mut self, $0: i32, output: &mut[$1]) {", counter, ifloat());
         }
-        tab(n+2, *fOut);
-        fCodeProducer.Tab(n+2);
-        generateComputeBlock(&fCodeProducer);
-        ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
-        loop->accept(&fCodeProducer);
-
-        tab(n+1, *fOut); *fOut << "};" << endl;
+            tab(n+2, *fOut);
+            fCodeProducer.Tab(n+2);
+            generateComputeBlock(&fCodeProducer);
+            ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+            loop->accept(&fCodeProducer);
+       tab(n+1, *fOut); *fOut << "}" << endl;
     
     tab(n, *fOut); *fOut << "}" << endl;
+    
+    // Memory methods
+    tab(n, *fOut);
+    tab(n, *fOut); *fOut << "pub fn new" << fKlassName << "() -> " << fKlassName << " { ";
+        tab(n+1, *fOut); *fOut << fKlassName << " {";
+        RustInitFieldsVisitor initializer(fOut, n+2);
+        generateDeclarations(&initializer);
+        tab(n+1, *fOut); *fOut << "}";
+    tab(n, *fOut); *fOut << "}";
+    
+    //tab(n, *fOut); *fOut << "pub fn delete" << fKlassName << "(&mut self) {}";
 }
 
 void RustCodeContainer::produceClass()

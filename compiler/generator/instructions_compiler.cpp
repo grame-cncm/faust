@@ -674,6 +674,10 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
         } else {
             res = InstBuilder::genBinopInst(opcode, v1, v2);
         }
+        // HACK for Rust backend
+        if (gGlobal->gOutputLang == "rust") {
+            res = InstBuilder::genCastNumIntInst(res);
+        }
     // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
         res = cast2int(t3, InstBuilder::genBinopInst(opcode, promote2real(t1, v1), promote2real(t2, v2)));
@@ -782,13 +786,16 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
         ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
         pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
-        // Delete object
-        list<ValueInst*> args3;
-        if (gGlobal->gMemoryManager) {
-            args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+        // HACK for Rust backend
+        if (gGlobal->gOutputLang != "rust") {
+            // Delete object
+            list<ValueInst*> args3;
+            if (gGlobal->gMemoryManager) {
+                args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+            }
+            args3.push_back(generator);
+            pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
-        args3.push_back(generator);
-        pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
     }
 
 	if (!isSigInt(tsize, &size)) {
@@ -819,7 +826,8 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
     list<ValueInst*> args2;
     args2.push_back(generator);
     args2.push_back(InstBuilder::genIntNumInst(size));
-    args2.push_back(InstBuilder::genLoadStructVar(vname));
+    // HACK for Rust backend
+    args2.push_back(InstBuilder::genLoadMutRefStructVar(vname));
     pushInitMethod(InstBuilder::genVoidFunCallInst("fill" + tablename, args2, true));
 
     // Return table access
@@ -852,13 +860,16 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
             ValueInst* obj = InstBuilder::genFunCallInst("new" + kvnames.first, args);
             pushInitMethod(InstBuilder::genDecStackVar(kvnames.second, InstBuilder::genNamedTyped(kvnames.first, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
-            // Delete object
-            list<ValueInst*> args3;
-            if (gGlobal->gMemoryManager) {
-                args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+            // HACK for Rust backend
+            if (gGlobal->gOutputLang != "rust") {
+                // Delete object
+                list<ValueInst*> args3;
+                if (gGlobal->gMemoryManager) {
+                    args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+                }
+                args3.push_back(cexp);
+                pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
             }
-            args3.push_back(cexp);
-            pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + kvnames.first, args3));
         }
     }
 
@@ -910,7 +921,8 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     list<ValueInst*> args2;
     args2.push_back(cexp);
     args2.push_back(InstBuilder::genIntNumInst(size));
-    args2.push_back(InstBuilder::genLoadStaticStructVar(vname));
+    // HACK for Rust backend
+    args2.push_back(InstBuilder::genLoadStaticMutRefStructVar(vname));
     pushStaticInitMethod(InstBuilder::genVoidFunCallInst("fill" + tablename, args2, true));
 
     // Return table access
@@ -983,13 +995,16 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
     pushInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
-    // Delete object
-    list<ValueInst*> args3;
-    args3.push_back(InstBuilder::genLoadStackVar(signame));
-    if (gGlobal->gMemoryManager) {
-        args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    // HACK for Rust backend
+    if (gGlobal->gOutputLang != "rust") {
+        // Delete object
+        list<ValueInst*> args3;
+        args3.push_back(InstBuilder::genLoadStackVar(signame));
+        if (gGlobal->gMemoryManager) {
+            args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+        }
+        pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
     }
-    pushPostInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);
     fInstanceInitProperty.set(content, pair<string, string>(cname, signame));
@@ -1013,13 +1028,16 @@ ValueInst* InstructionsCompiler::generateStaticSigGen(Tree sig, Tree content)
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
     pushStaticInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
 
-    // Delete object
-    list<ValueInst*> args3;
-    args3.push_back(InstBuilder::genLoadStackVar(signame));
-    if (gGlobal->gMemoryManager) {
-        args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+    // HACK for Rust backend
+    if (gGlobal->gOutputLang != "rust") {
+        // Delete object
+        list<ValueInst*> args3;
+        args3.push_back(InstBuilder::genLoadStackVar(signame));
+        if (gGlobal->gMemoryManager) {
+            args3.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
+        }
+        pushPostStaticInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
     }
-    pushPostStaticInitMethod(InstBuilder::genVoidFunCallInst("delete" + cname, args3));
 
     setTableNameProperty(sig, cname);
     fStaticInitProperty.set(content, pair<string,string>(cname, signame));

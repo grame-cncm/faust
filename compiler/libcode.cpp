@@ -663,7 +663,7 @@ static string fxname(const string& filename)
 
 static void initFaustFloat()
 {
-    // Using in FIR code generation to code math fonction type (float/double/quad), same for Rust and C/C++ backends
+    // Using in FIR code generation to code math functions type (float/double/quad), same for Rust and C/C++ backends
     mathsuffix[0] = "";
     mathsuffix[1] = "f";
     mathsuffix[2] = "";

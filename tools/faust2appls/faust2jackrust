@@ -36,9 +36,6 @@ do
     fi
     
     if [ ${p:0:1} = "-" ]; then
-        if [ $p = "-double" ]; then
-            FAUSTFLOAT="double"
-        fi
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -67,7 +64,7 @@ for p in $FILES; do
     # create rust project
     cargo new $dspName --bin
 
-    # compile Dust DSP and put in the cargo folder
+    # compile Faust DSP and put in the cargo folder
     faust -a "$FAUSTLIB/minimal-jack.rs" -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add JACK dependency

@@ -149,6 +149,7 @@ void CPPCodeContainer::produceInternal()
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
+    
         // fKlassName used in method naming for subclasses
         produceInfoFunctions(n+1, fKlassName, "dsp", true, false, &fCodeProducer);
     

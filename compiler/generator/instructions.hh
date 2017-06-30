@@ -605,6 +605,8 @@ struct Address : public Printable {
         kLink = 0x20,
         kLoop = 0x40,
         kVolatile = 0x80,
+        kReference = 0x100,  // Access by reference
+        kMutable = 0x200     // Mutable access
     };
 
     Address()
@@ -2024,6 +2026,11 @@ struct InstBuilder
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
     }
     
+    static LoadVarInst* genLoadMutRefStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kReference|Address::kMutable)));
+    }
+    
     static LoadVarInst* genVolatileLoadStructVar(string vname)
     {
         return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct|Address::kVolatile)));
@@ -2107,6 +2114,11 @@ struct InstBuilder
     static LoadVarInst* genLoadStaticStructVar(string vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStaticStruct));
+    }
+    
+    static LoadVarInst* genLoadStaticMutRefStructVar(string vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStaticStruct|Address::kReference|Address::kMutable)));
     }
 
     static StoreVarInst* genStoreStaticStructVar(string vname, ValueInst* exp)
