@@ -189,12 +189,19 @@ void RustCodeContainer::produceClass()
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
     tab(n, *fOut);
+    
+    // TODO
+    //tab(n, *fOut); *fOut << "impl dsp<" << ifloat() <<"> for " << fKlassName << " {";
 
     tab(n, *fOut); *fOut << "pub struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
 
+        // Dummy field used for 'declare'
+        *fOut << "fDummy: " << ifloat() << ",";
+        tab(n+1, *fOut);
+    
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
@@ -229,6 +236,8 @@ void RustCodeContainer::produceClass()
                 tab(n+2, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
             }
             tab(n+2, *fOut); *fOut << fKlassName << " {";
+                tab(n+3, *fOut);
+                *fOut << "fDummy: 0 as " << ifloat() << ",";
                 RustInitFieldsVisitor initializer(fOut, n+3);
                 generateDeclarations(&initializer);
             tab(n+2, *fOut); *fOut << "}";
@@ -245,12 +254,9 @@ void RustCodeContainer::produceClass()
     */
 
         // Print metadata declaration
-    
-    /* Deactivated for now
         tab(n+1, *fOut);
         produceMetadata(n+1);
-    */
-
+  
         // Get sample rate method
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
@@ -324,16 +330,14 @@ void RustCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "self.instanceInit(samplingFreq);";
         tab(n+1, *fOut); *fOut << "}";
     
-     /* Deactivated for now
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "pub fn buildUserInterface(&self, &UIGlue ui_interface) {";
+        tab(n+1, *fOut); *fOut << "pub fn buildUserInterface(&mut self, ui_interface: &UI<" << ifloat() << ">){";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
         tab(n+1, *fOut); *fOut << "}";
-      */
-
+    
         // Compute
         generateCompute(n+1);
     
@@ -344,19 +348,19 @@ void RustCodeContainer::produceClass()
 
 void RustCodeContainer::produceMetadata(int tabs)
 {
-    tab(tabs, *fOut); *fOut << "void metadata" << fKlassName << "(MetaGlue* m) { ";
+    tab(tabs, *fOut); *fOut << "pub fn metadata(&mut self, m: &Meta) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
         if (i->first != tree("author")) {
-            tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+            tab(tabs+1, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
         } else {
             // But the "author" meta data is accumulated, the upper level becomes the main author and sub-levels become "contributor"
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
                 if (j == i->second.begin()) {
-                    tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << *(i->first) << "\", " << **j << ");" ;
+                    tab(tabs+1, *fOut); *fOut << "m.declare(\"" << *(i->first) << "\", " << **j << ");" ;
                 } else {
-                    tab(tabs+1, *fOut); *fOut << "m->declare(m->mInterface, \"" << "contributor" << "\", " << **j << ");";
+                    tab(tabs+1, *fOut); *fOut << "m.declare(\"" << "contributor" << "\", " << **j << ");";
                 }
             }
         }
