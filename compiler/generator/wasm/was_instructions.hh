@@ -22,13 +22,13 @@
 #ifndef _WAS_INST_H
 #define _WAS_INST_H
 
-using namespace std;
-
 #include <iomanip>
 
 #include "binop.hh"
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
+
+using namespace std;
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 

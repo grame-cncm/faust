@@ -197,7 +197,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             }
         
             // Prototype
-            *fOut << "this." << generateFunName(inst->fName) << " = " << "function";
+            *fOut << "this." << generateFunName(inst->fName) << " = function";
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }

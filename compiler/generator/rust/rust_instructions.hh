@@ -57,7 +57,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         }
     }
     
- };
+};
 
 class RustInstVisitor : public TextInstVisitor {
     
@@ -145,7 +145,7 @@ class RustInstVisitor : public TextInstVisitor {
             if (inst->fZone == "0") {
                 *fOut << "ui_interface.declare(&self.fDummy, " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "ui_interface.declare(" << "&self." << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface.declare(&self." << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
         }
@@ -173,9 +173,9 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", " << "&self." << inst->fZone << ")";
+                *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &self." << inst->fZone << ")";
             } else {
-                *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", " << "&self." << inst->fZone << ")";
+                *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &self." << inst->fZone << ")";
             }
             EndLine();
         }
@@ -207,7 +207,10 @@ class RustInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph"; break;
             }
-            *fOut << name << "(" << quote(inst->fLabel) << ", " << "&self." << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << "(" << quote(inst->fLabel)
+            << ", &self." << inst->fZone << ", "
+            << checkReal(inst->fMin) << ", "
+            << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

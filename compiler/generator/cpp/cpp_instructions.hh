@@ -75,7 +75,7 @@ class CPPInstVisitor : public TextInstVisitor {
             if (inst->fZone == "0") {
                 *fOut << "ui_interface->declare(" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "ui_interface->declare(" << "&" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface->declare(&" << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
         }
@@ -103,9 +103,9 @@ class CPPInstVisitor : public TextInstVisitor {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ")";
+                *fOut << "ui_interface->addButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")";
             } else {
-                *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ")"; 
+                *fOut << "ui_interface->addCheckButton(" << quote(inst->fLabel) << ", &" << inst->fZone << ")"; 
             }
             EndLine();
         }
@@ -122,9 +122,11 @@ class CPPInstVisitor : public TextInstVisitor {
                     name = "ui_interface->addNumEntry"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel) << ", " 
-            << "&" << inst->fZone << ", " << checkReal(inst->fInit) 
-            << ", " << checkReal(inst->fMin) << ", " 
-            << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+            << "&" << inst->fZone << ", "
+            << checkReal(inst->fInit)
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax)
+            << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 
@@ -137,7 +139,10 @@ class CPPInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface->addVerticalBargraph"; break;
             }
-            *fOut << name << "(" << quote(inst->fLabel) << ", " << "&" << inst->fZone << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << "(" << quote(inst->fLabel)
+            << ", &" << inst->fZone << ", "
+            << checkReal(inst->fMin) << ", "
+            << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

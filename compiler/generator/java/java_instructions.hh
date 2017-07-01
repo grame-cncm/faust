@@ -182,8 +182,10 @@ class JAVAInstVisitor : public TextInstVisitor {
                     name = "ui_interface.addNumEntry("; break;
             }
             *fOut << name << quote(inst->fLabel) << ", " 
-            << createVarAccess(inst->fZone) << ", " << checkReal(inst->fInit) 
-            << ", " << checkReal(inst->fMin) << ", " << checkReal(inst->fMax) 
+            << createVarAccess(inst->fZone)
+            << ", " << checkReal(inst->fInit)
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax)
             << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
@@ -197,8 +199,10 @@ class JAVAInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface.addVerticalBargraph("; break;
             }
-            *fOut << name << quote(inst->fLabel) << ", " << createVarAccess(inst->fZone) 
-            << ", "<< checkReal(inst->fMin) << ", " << checkReal(inst->fMax) << ")";
+            *fOut << name << quote(inst->fLabel)
+            << ", " << createVarAccess(inst->fZone)
+            << ", "<< checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

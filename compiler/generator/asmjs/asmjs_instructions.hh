@@ -22,14 +22,14 @@
 #ifndef _ASMJAVASCRIPT_INSTRUCTIONS_H
 #define _ASMJAVASCRIPT_INSTRUCTIONS_H
 
-using namespace std;
-
 #include <iomanip>
 #include <sstream>
 #include <iostream>
 
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
+
+using namespace std;
 
 #define offStr ((gGlobal->gFloatSize == 1) ? "2" : ((gGlobal->gFloatSize == 2) ? "3" : ""))
 

@@ -636,6 +636,10 @@ struct Address : public Printable {
             *fOut << "kLoop";
         } else if (access & kVolatile) {
             *fOut << "kVolatile";
+        } else if (access & kReference) {
+            *fOut << "kReference";
+        } else if (access & kMutable) {
+            *fOut << "kMutable";
         }
     }
     
@@ -657,8 +661,13 @@ struct Address : public Printable {
             return "kLoop";
         } else if (access & kVolatile) {
             return "kVolatile";
+        } else if (access & kReference) {
+            return "kReference";
+        } else if (access & kMutable) {
+            return "kMutable";
+        } else {
+            return "";
         }
-        return "";
     }
 
     virtual Address* clone(CloneVisitor* cloner) = 0;
@@ -849,8 +858,8 @@ struct DeclareVarInst : public StatementInst
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    struct StoreVarInst * store (ValueInst * val);
-    struct LoadVarInst * load ();
+    struct StoreVarInst* store (ValueInst* val);
+    struct LoadVarInst* load ();
 };
 
 // ==============

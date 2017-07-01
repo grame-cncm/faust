@@ -47,13 +47,6 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             }
         }
     
-        virtual void EndLine()
-        {
-            if (fFinishLine) {
-                tab(fTab, *fOut);
-            }
-        }
-    
         string ensureFloat(string str)
         {
             bool dot = false;
@@ -74,7 +67,14 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 return (dot) ? str : (str + ".");
             }
         }
-        
+    
+        virtual void EndLine()
+        {
+            if (fFinishLine) {
+                tab(fTab, *fOut);
+            }
+        }
+    
         // Special version without termination
         template <class T>
         string checkReal(T val)
