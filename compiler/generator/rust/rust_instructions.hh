@@ -44,9 +44,9 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         
         if (array_type) {
             if (isIntPtrType(type)) {
-                *fOut << "[0; " << array_type->fSize << "],";
+                *fOut << "[0;" << array_type->fSize << "],";
             } else if (isRealPtrType(type)) {
-                *fOut << "[0.0; " << array_type->fSize << "],";
+                *fOut << "[0.0;" << array_type->fSize << "],";
             }
         } else {
             if (isIntType(type)) {
@@ -69,17 +69,20 @@ class RustInstVisitor : public TextInstVisitor {
          */
         static map <string, int> gFunctionSymbolTable;
         map <string, string> fMathLibTable;
+    
+        void EndLineStruct()
+        {
+            if (fFinishLine) {
+                *fOut << ",";
+                tab(fTab, *fOut);
+            }
+        }
 
     public:
 
         RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
             :TextInstVisitor(out, ".", new RustStringTypeManager(FLOATMACRO, "&"), tab)
         {
-            /*
-            fTypeManager->fTypeDirectTable[Typed::kObj] = structname;
-            fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
-            */
-            
             fTypeManager->fTypeDirectTable[Typed::kObj] = "";
             fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = "";
             
@@ -215,28 +218,39 @@ class RustInstVisitor : public TextInstVisitor {
             if (inst->fAddress->getAccess() & Address::kStaticStruct) {
                 *fOut << "static ";
             }
-
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                *fOut << "volatile ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kStruct) {
-                // Nothing
-            } else {
+  
+            if (inst->fAddress->getAccess() & Address::kStack
+                || inst->fAddress->getAccess() & Address::kLoop) {
                 *fOut << "let mut ";
             }
             
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
+            
             if (inst->fValue) {
                 *fOut << " = "; inst->fValue->accept(this);
+            } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+                
+                // Zero initializer
+                ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
+                Typed::VarType type = inst->fType->getType();
+                
+                if (array_type) {
+                    if (isIntPtrType(type)) {
+                        *fOut << " = [0;" << array_type->fSize << "]";
+                    } else if (isRealPtrType(type)) {
+                        *fOut << " = [0.0;" << array_type->fSize << "]";
+                    }
+                } else {
+                    if (isIntType(type)) {
+                        *fOut << " = 0";
+                    } else if (isRealType(type)) {
+                        *fOut << " = 0.0";
+                    }
+                }
             }
             
             if (inst->fAddress->getAccess() & Address::kStruct) {
-                // To improve
-                if (fFinishLine) {
-                    *fOut << ",";
-                    tab(fTab, *fOut);
-                }
+                EndLineStruct();
             } else {
                 EndLine();
             }
@@ -250,19 +264,14 @@ class RustInstVisitor : public TextInstVisitor {
             } else {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
-            
-            /*
-            // Defined as macro in the architecture file...
-            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
-                return;
-            }
-            */
-      
+        
+            // TO CHECK
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kInline) {
                 *fOut << "inline ";
             }
             
+            // TO CHECK
             if (inst->fType->fAttribute & FunTyped::kLocal) {
                 *fOut << "static ";
             }
@@ -275,19 +284,6 @@ class RustInstVisitor : public TextInstVisitor {
                 generateFunDefBody(inst);
             }
         }
-    
-        /*
-        virtual void generateFunDefArgs(DeclareFunInst* inst)
-        {
-            *fOut << "(";
-            list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
-            for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
-                *fOut << fTypeManager->generateType((*it));
-                if (i < size - 1) *fOut << ", ";
-            }
-        }
-        */
     
         virtual void generateFunDefBody(DeclareFunInst* inst)
         {
@@ -321,10 +317,16 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(NamedAddress* named)
         {
             if (named->getAccess() & Address::kStruct) {
-                if (named->getAccess() & Address::kReference) {
+                if (named->getAccess() & Address::kReference
+                    && named->getAccess() & Address::kMutable) {
                     *fOut << "&mut self.";
                 } else {
                     *fOut << "self.";
+                }
+            } else if (named->getAccess() & Address::kStaticStruct) {
+                if (named->getAccess() & Address::kReference
+                    && named->getAccess() & Address::kMutable) {
+                    *fOut << "&mut ";
                 }
             }
             *fOut << named->fName;
@@ -345,6 +347,36 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "&"; inst->fAddress->accept(this);
         }
     
+        virtual void visit(FloatArrayNumInst* inst)
+        {
+            char sep = '[';
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << checkFloat(inst->fNumTable[i]);
+                sep = ',';
+            }
+            *fOut << ']';
+        }
+        
+        virtual void visit(IntArrayNumInst* inst)
+        {
+            char sep = '[';
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << inst->fNumTable[i];
+                sep = ',';
+            }
+            *fOut << ']';
+        }
+
+        virtual void visit(DoubleArrayNumInst* inst)
+        {
+            char sep = '[';
+            for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
+                *fOut << sep << checkDouble(inst->fNumTable[i]);
+                sep = ',';
+            }
+            *fOut << ']';
+        }
+    
         virtual void visit(CastNumInst* inst)
         {
             *fOut << "(";
@@ -356,30 +388,6 @@ class RustInstVisitor : public TextInstVisitor {
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
-            // Integer and real min/max are mapped on polymorphic ones
-            /*
-            string name;
-            if (startWith(inst->fName, "min")) {
-                name = "min";
-            } else if (startWith(inst->fName, "max")) {
-                name = "max";
-            } else {
-                name = inst->fName;
-            }
-            */
-            
-            /*
-            if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-                *fOut << fMathLibTable[inst->fName] << "(";
-            } else {
-                *fOut << inst->fName << "(";
-            }
-            // Compile parameters
-            generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
-            *fOut << ")";
-             
-            */
-            
             string fun_name;
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 fun_name = fMathLibTable[inst->fName];

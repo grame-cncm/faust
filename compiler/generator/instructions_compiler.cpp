@@ -887,7 +887,6 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     string tablename;
     getTableNameProperty(content, tablename);
-
     vname += tablename;
     
     // Table declaration
@@ -896,7 +895,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     } else {
         pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), size)));
     }
-
+ 
     // Init content generator
     list<ValueInst*> args1;
     args1.push_back(cexp);
