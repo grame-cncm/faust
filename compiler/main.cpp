@@ -520,7 +520,7 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-    cout << "-mem \t\t--memory- allocate static in global state using a custom memory manager\n";
+    cout << "-mem \t\t--memory allocate static in global state using a custom memory manager\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";

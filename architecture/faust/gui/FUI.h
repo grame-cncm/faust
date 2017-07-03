@@ -34,8 +34,6 @@
 
 #include "faust/gui/UI.h"
 
-#if 1
-
 /*******************************************************************************
  * FUI : used to save and recall the state of the user interface
  * This class provides essentially two new methods saveState() and recallState()
@@ -94,8 +92,8 @@ class FUI : public UI
 
     public:
 
-        FUI() 			{}
-        virtual ~FUI() 	{}
+        FUI() {}
+        virtual ~FUI() {}
 
         // -- Save and recall methods
 
@@ -107,7 +105,7 @@ class FUI : public UI
             for (unsigned int i = 0; i < fNameList.size(); i++) {
                 std::string	n = fNameList[i];
                 FAUSTFLOAT*	z = fName2Zone[n];
-                f << *z << ' ' << n.c_str() << std::endl;
+                f << *z << ' ' << n << std::endl;
             }
 
             f << std::endl;
@@ -171,8 +169,6 @@ class FUI : public UI
         virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 
 };
-
-#endif
 
 #endif
 
