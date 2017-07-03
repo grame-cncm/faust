@@ -49,7 +49,7 @@ class FUI : public UI
         std::stack<std::string> fGroupStack;
         std::vector<std::string> fNameList;
         std::map<std::string, FAUSTFLOAT*> fName2Zone;
-        std::map<FAUSTFLOAT*, bool> fButtons;
+        std::vector<FAUSTFLOAT*> fButtons;
 
         // labels are normalized by replacing white spaces by underscores and by removing parenthesis
         std::string normalizeLabel(const char* label)
@@ -71,7 +71,9 @@ class FUI : public UI
             std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
             fNameList.push_back(fullname);
             fName2Zone[fullname] = zone;
-            fButtons[zone] = button;
+            if (button) {
+                fButtons.push_back(zone);
+            }
         }
 
         // keep track of full group names in a stack
@@ -88,7 +90,6 @@ class FUI : public UI
         {
             fGroupStack.pop();
         }
-
 
     public:
 
@@ -132,12 +133,8 @@ class FUI : public UI
 
         void setButtons(bool state)
         {
-            std::map<FAUSTFLOAT*, bool>::iterator it;
-            for (it = fButtons.begin(); it != fButtons.end(); it++) {
-                FAUSTFLOAT* zone = (*it).first;
-                if ((*it).second) {
-                    *zone = state;
-                }
+            for (int i = 0; i < fButtons.size(); i++) {
+                *fButtons[i] = state;
             }
         }
 
@@ -152,11 +149,11 @@ class FUI : public UI
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
 
         // -- passive widgets (are ignored)
