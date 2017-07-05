@@ -131,7 +131,7 @@ for f in $FILES; do
 #mkdir "$DIR"
 
         # compile faust to c++
-        faust -i -a unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
+        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
 
 
         $CXX $CXXFLAGS -DAPPLE -fembed-bitcode -DPLUGINNAME="libFaustPlugin_$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
@@ -153,7 +153,7 @@ for f in $FILES; do
         mkdir -p "$MOS"
 
         # compile faust to c++
-        faust -i -a unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
+        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
 
         $CXX $CXXFLAGS $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
         rm "$MOS/$NAME.cpp"

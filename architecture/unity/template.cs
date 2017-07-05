@@ -115,18 +115,19 @@ public class model_Editor : Editor {
     {
         string message;
         message = "Parameter Number : " + item.numparam;
-        for(int i=0; i< item.meta.Length; i++){
-            if (item.meta[i].unit != null) {
-                message += "\nUnit : " + item.meta[i].unit;
-            }
-            if (item.meta[i].scale != null) {
-                message += "\nScale : " + item.meta[i].scale;
-            }
-            if (item.meta[i].tooltip != null) {
-                message += "\nDescription : " + item.meta[i].tooltip;
+        if (item.meta != null) {
+            for(int i=0; i< item.meta.Length; i++){
+                if (item.meta[i].unit != null) {
+                    message += "\nUnit : " + item.meta[i].unit;
+                }
+                if (item.meta[i].scale != null) {
+                    message += "\nScale : " + item.meta[i].scale;
+                }
+                if (item.meta[i].tooltip != null) {
+                    message += "\nDescription : " + item.meta[i].tooltip;
+                }
             }
         }
-        
         return message;
     }
     

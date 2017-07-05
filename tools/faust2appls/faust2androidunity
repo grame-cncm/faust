@@ -45,7 +45,7 @@ for p in $FILES; do
 
     # compiles faust to c++
 
-    faust -i -a unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$DIR/$NAME.cpp" || exit
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$DIR/$NAME.cpp" || exit
 
     # compiles c++ to binary
     (

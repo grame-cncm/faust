@@ -78,7 +78,7 @@ for p in $FILES; do
     mkdir "$DIR"
 
     # compile faust to c++$SR
-    faust -i -a unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || exit
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || exit
 
     # compile c++ to binary
     (
