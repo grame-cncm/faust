@@ -29,7 +29,7 @@ pub trait Meta {
 
     // -- metadata declarations
 
-    fn declare(&self, key: &'static str, value: &'static str) -> ();
+    fn declare(&mut self, key: &str, value: &str) -> ();
 
 }
 
@@ -37,27 +37,27 @@ pub trait UI<T> {
 
     // -- widget's layouts
 
-    fn openTabBox(&self, label: &'static str) -> ();
-    fn openHorizontalBox(&self, label: &'static str) -> ();
-    fn openVerticalBox(&self, label: &'static str) -> ();
-    fn closeBox(&self) -> ();
+    fn openTabBox(&mut self, label: &str) -> ();
+    fn openHorizontalBox(&mut self, label: &str) -> ();
+    fn openVerticalBox(&mut self, label: &str) -> ();
+    fn closeBox(&mut self) -> ();
 
     // -- active widgets
 
-    fn addButton(&self, label: &'static str, zone: &T) -> ();
-    fn addCheckButton(&self, label: &'static str, zone: &T) -> ();
-    fn addVerticalSlider(&self, label: &'static str, zone: &T, init: T, min: T, max: T, step: T) -> ();
-    fn addHorizontalSlider(&self, label: &'static str, zone: &T , init: T, min: T, max: T, step: T) -> ();
-    fn addNumEntry(&self, label: &'static str, zone: &T, init: T, min: T, max: T, step: T) -> ();
+    fn addButton(&mut self, label: &str, zone: &mut T) -> ();
+    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
+    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
+    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ();
+    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
 
     // -- passive widgets
 
-    fn addHorizontalBargraph(&self, label: &'static str, zone: &T, min: T, max: T) -> ();
-    fn addVerticalBargraph(&self, label: &'static str, zone: &T, min: T, max: T) -> ();
+    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
+    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
 
     // -- metadata declarations
 
-    fn declare(&self, zone: &T, key: &'static str, value: &'static str) -> ();
+    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
 
 }
 

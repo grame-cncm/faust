@@ -21,6 +21,10 @@
 #![allow(non_camel_case_types)]
 
 use std::marker::PhantomData;
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
+use std::collections::HashMap;
 
 pub trait Meta {
 
@@ -30,7 +34,7 @@ pub trait Meta {
 
 }
 
-pub trait UI<T> {
+pub trait UI<'a, T: 'a> {
 
     // -- widget's layouts
 
@@ -41,20 +45,20 @@ pub trait UI<T> {
 
     // -- active widgets
 
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ();
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ();
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ();
+    fn addButton(&mut self, label: &str, zone: &'a mut T) -> ();
+    fn addCheckButton(&mut self, label: &str, zone: &'a mut T) -> ();
+    fn addVerticalSlider(&mut self, label: &str, zone: &'a mut T, init: T, min: T, max: T, step: T) -> ();
+    fn addHorizontalSlider(&mut self, label: &str, zone: &'a mut T , init: T, min: T, max: T, step: T) -> ();
+    fn addNumEntry(&mut self, label: &str, zone: &'a mut T, init: T, min: T, max: T, step: T) -> ();
 
     // -- passive widgets
 
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ();
+    fn addHorizontalBargraph(&mut self, label: &str, zone: &'a mut T, min: T, max: T) -> ();
+    fn addVerticalBargraph(&mut self, label: &str, zone: &'a mut T, min: T, max: T) -> ();
 
     // -- metadata declarations
 
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ();
+    fn declare(&mut self, zone: &'a mut T, key: &str, value: &str) -> ();
 
 }
 
@@ -69,71 +73,110 @@ impl Meta for PrintMeta {
 
 }
 
-pub struct PrintUI<T>
-{
-    phantom: PhantomData<T>
+/*******************************************************************************
+* FUI : used to save and recall the state of the user interface
+* This class provides essentially two new methods saveState() and recallState()
+* used to save on file and recall from file the state of the user interface.
+* The file is human readable and editable
+******************************************************************************/
+
+pub trait FUIHelper {
+
+    fn pushGroupLabel(label: &str)  -> ();
+
 }
 
-impl<T> UI<T> for PrintUI<T> {
+pub struct FUI<'a, T: 'a>
+{
+    phantom: PhantomData<T>,
+    fGroupStack: Vec<String>,
+    fNameList: Vec<String>,
+    fName2Zone: HashMap<String, &'a mut T>,
+    fButtons: Vec<&'a mut T>
+}
+
+// Helpers functions
+
+impl<'a, T> FUI<'a, T> {
+
+    fn pushGroupLabel(&mut self, label: &str) -> ()
+    {
+        // TODO
+        self.fGroupStack.push(label.to_string());
+        self.fNameList.push(label.to_string());
+    }
+
+    fn addElement(&mut self, label: &str, zone: &'a mut T, button: bool) -> ()
+    {
+        // TODO
+        self.fGroupStack.push(label.to_string());
+        self.fNameList.push(label.to_string());
+        self.fButtons.push(zone);
+    }
+
+}
+
+impl<'a, T> UI<'a, T> for FUI<'a, T> {
+
 
     // -- widget's layouts
 
     fn openTabBox(&mut self, label: &str) -> ()
     {
-        println!("openTabBox: {}", label);
+        self.pushGroupLabel(label);
     }
     fn openHorizontalBox(&mut self, label: &str) -> ()
     {
-        println!("openHorizontalBox: {}", label);
+
     }
     fn openVerticalBox(&mut self, label: &str) -> ()
     {
-        println!("openVerticalBox: {}", label);
+
     }
     fn closeBox(&mut self) -> ()
     {
-        println!("closeBox:");
+
     }
 
     // -- active widgets
 
-    fn addButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn addButton(&mut self, label: &str, zone: &'a mut T) -> ()
     {
-        println!("addButton: {}", label);
+
     }
-    fn addCheckButton(&mut self, label: &str, zone: &mut T) -> ()
+    fn addCheckButton(&mut self, label: &str, zone: &'a mut T) -> ()
     {
-        println!("addCheckButton: {}", label);
+
     }
-    fn addVerticalSlider(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn addVerticalSlider(&mut self, label: &str, zone: &'a mut T, init: T, min: T, max: T, step: T) -> ()
     {
-        println!("addVerticalSlider: {}", label);
+
     }
-    fn addHorizontalSlider(&mut self, label: &str, zone: &mut T , init: T, min: T, max: T, step: T) -> ()
+    fn addHorizontalSlider(&mut self, label: &str, zone: &'a mut T , init: T, min: T, max: T, step: T) -> ()
     {
-        println!("addHorizontalSlider: {}", label);
+
     }
-    fn addNumEntry(&mut self, label: &str, zone: &mut T, init: T, min: T, max: T, step: T) -> ()
+    fn addNumEntry(&mut self, label: &str, zone: &'a mut T, init: T, min: T, max: T, step: T) -> ()
     {
-        println!("addNumEntry: {}", label);
+
     }
 
     // -- passive widgets
 
-    fn addHorizontalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn addHorizontalBargraph(&mut self, label: &str, zone: &'a mut T, min: T, max: T) -> ()
     {
-        println!("addHorizontalBargraph: {}", label);
+
     }
-    fn addVerticalBargraph(&mut self, label: &str, zone: &mut T, min: T, max: T) -> ()
+    fn addVerticalBargraph(&mut self, label: &str, zone: &'a mut T, min: T, max: T) -> ()
     {
-        println!("addVerticalBargraph: {}", label);
+
     }
 
     // -- metadata declarations
 
-    fn declare(&mut self, zone: &mut T, key: &str, value: &str) -> ()
+    fn declare(&mut self, zone: &'a mut T, key: &str, value: &str) -> ()
     {
-        println!("declare: {} {}", key, value);
+
     }
 }
 
@@ -151,7 +194,7 @@ pub trait dsp<T> {
 
     fn getOutputRate(&mut self, channel: i32) -> i32;
 
-    fn buildUserInterface(&mut self, ui_interface: &UI<T>) -> ();
+    fn buildUserInterface(&mut self, ui_interface: &mut UI<T>) -> ();
 
     fn classInit(samplingFreq: i32) -> ();
 
@@ -185,15 +228,19 @@ fn main() {
     dsp.init(44100);
 
     // Print UI
-    let mut printer = PrintUI::<f32>{ phantom: PhantomData };
-    dsp.buildUserInterface(&mut printer);
+    let mut fui = FUI::<f32> {
+        phantom: PhantomData,
+        fGroupStack: Vec::new(),
+        fNameList: Vec::new(),
+        fName2Zone: HashMap::new(),
+        fButtons: Vec::new()
+    };
+
+    dsp.buildUserInterface(&mut fui);
 
     // Print Meta
     let mut meta = PrintMeta{};
     dsp.metadata(&mut meta);
 
     println!("getSampleRate: {}", dsp.getSampleRate());
-
-    // Has to be done in the audio thread taking adapted "native" (JACK/PortAudio allocated...) audio buffers
-    // dsp.compute(512, inputs, outputs);
 }

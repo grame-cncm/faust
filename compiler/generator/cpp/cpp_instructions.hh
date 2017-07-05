@@ -122,8 +122,8 @@ class CPPInstVisitor : public TextInstVisitor {
                     name = "ui_interface->addNumEntry"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel) << ", " 
-            << "&" << inst->fZone << ", "
-            << checkReal(inst->fInit)
+            << "&" << inst->fZone
+            << ", " << checkReal(inst->fInit)
             << ", " << checkReal(inst->fMin)
             << ", " << checkReal(inst->fMax)
             << ", " << checkReal(inst->fStep) << ")";
@@ -140,9 +140,9 @@ class CPPInstVisitor : public TextInstVisitor {
                     name = "ui_interface->addVerticalBargraph"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel)
-            << ", &" << inst->fZone << ", "
-            << checkReal(inst->fMin) << ", "
-            << checkReal(inst->fMax) << ")";
+            << ", &" << inst->fZone
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 

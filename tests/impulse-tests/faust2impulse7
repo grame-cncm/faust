@@ -42,7 +42,7 @@ for f in $FILES; do
     dirname=$(dirname "$f");
 
     # compile Faust to wast
-    faust -double $OPTIONS -lang wast-i  "$f" -o "${f%.dsp}.wast" || exit
+    faust $OPTIONS -lang wast-i  "$f" -o "${f%.dsp}.wast" || exit
 
     # create the nodejs ready file
     cd $dirname

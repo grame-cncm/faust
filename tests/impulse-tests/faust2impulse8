@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to impulse tests			#
-#               (c) Grame, 2016                                     #
+#               (c) Grame, 2017                                     #
 #                                                                   #
 #####################################################################
 
@@ -18,9 +18,9 @@ elif [ -f /usr/local/share/faust/all.lib ]
     FAUSTLIB=/usr/local/share/faust/
 elif [ -f /usr/share/faust/all.lib ]
     then
-    FAUSTLIB=/usr/share/faust/
-else
-    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+FAUSTLIB=/usr/share/faust/
+    else
+echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 for p in $@; do
@@ -39,19 +39,16 @@ done
 for f in $FILES; do
 
     name=$(basename "$f" .dsp)
-    name_exp=$name"_exp.dsp"
     dirname=$(dirname "$f");
 
-    # compile Faust to asm.js
-    faust -e "$f"
-    cd $dirname
-    faust $OPTIONS -lang ajs -cn $name -a $FAUSTLIB/webaudio/asm-standalone-node-wrapper-double.js $name_exp -o "$name.js" || exit
+    # compile Faust to wast
+    faust $OPTIONS -a impulsearch5.rs -lang rust  "$f" -o "${f%.dsp}.rs" || exit
 
-	# run the binary to generate the impulse response
-    node "$name.js" || exit
+    rustc "${f%.dsp}.rs"
+
+    # create the nodejs ready file
 
     # cleanup
-    rm "$name.js" "$name_exp"
 
 done
 

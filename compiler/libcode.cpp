@@ -547,16 +547,16 @@ static void printversion()
 
 static void printhelp()
 {
-	printversion();
-	cout << "usage : faust [options] file1 [file2 ...]\n";
-	cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
+    printversion();
+    cout << "usage : faust [options] file1 [file2 ...]\n";
+    cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
-	cout << "\noptions :\n";
-	cout << "---------\n";
+    cout << "\noptions :\n";
+    cout << "---------\n";
 
-	cout << "-h \t\tprint this --help message\n";
-	cout << "-v \t\tprint compiler --version information\n";
-	cout << "-d \t\tprint compilation --details\n";
+    cout << "-h \t\tprint this --help message\n";
+    cout << "-v \t\tprint compiler --version information\n";
+    cout << "-d \t\tprint compilation --details\n";
     cout << "-tg \t\tprint the internal --task-graph in dot format file\n";
     cout << "-sg \t\tprint the internal --signal-graph in dot format file\n";
     cout << "-ps \t\tprint block-diagram --postscript file\n";
@@ -565,22 +565,22 @@ static void printhelp()
     cout << "-mdlang <l>\tload --mathdoc-lang <l> if translation file exists (<l> = en, fr, ...)\n";
     cout << "-stripmdoc \tapply --strip-mdoc-tags when printing Faust -mdoc listings\n";
     cout << "-sd \t\ttry to further --simplify-diagrams before drawing them\n";
-	cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
-	cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
-	cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
-	cout << "-xml \t\tgenerate an XML description file\n";
+    cout << "-f <n> \t\t--fold <n> threshold during block-diagram generation (default 25 elements) \n";
+    cout << "-mns <n> \t--max-name-size <n> threshold during block-diagram generation (default 40 char)\n";
+    cout << "-sn \t\tuse --simple-names (without arguments) during block-diagram generation\n";
+    cout << "-xml \t\tgenerate an XML description file\n";
     cout << "-json \t\tgenerate a JSON description file\n";
     cout << "-blur \t\tadd a --shadow-blur to SVG boxes\n";
-	cout << "-lb \t\tgenerate --left-balanced expressions\n";
-	cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
-	cout << "-rb \t\tgenerate --right-balanced expressions\n";
-	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
-	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-    cout << "-mem \t\t--memory- allocate static in global state using a custom memory manager\n";
-	cout << "-a <file> \twrapper architecture file\n";
-	cout << "-i \t\t--inline-architecture-files \n";
-	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
-	cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
+    cout << "-lb \t\tgenerate --left-balanced expressions\n";
+    cout << "-mb \t\tgenerate --mid-balanced expressions (default)\n";
+    cout << "-rb \t\tgenerate --right-balanced expressions\n";
+    cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
+    cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
+    cout << "-mem \t\t--memory allocate static in global state using a custom memory manager\n";
+    cout << "-a <file> \twrapper architecture file\n";
+    cout << "-i \t\t--inline-architecture-files \n";
+    cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+    cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
@@ -610,10 +610,10 @@ static void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
-	cout << "\nexample :\n";
-	cout << "---------\n";
+    cout << "\nexample :\n";
+    cout << "---------\n";
 
-	cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
+    cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp\n";
 }
 
 static void printDeclareHeader(ostream& dst)

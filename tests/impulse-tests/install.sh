@@ -4,7 +4,7 @@
 #                                                                   #
 #               Install the architecture file and the script		#
 #               needed to run the impulse tests.                    #
-#               (c) Grame, 2016                                     #
+#               (c) Grame, 2016-2017                                #
 #                                                                   #
 #####################################################################
 
@@ -30,6 +30,7 @@ cp faust2impulse5bis /usr/local/bin/
 cp faust2impulse5ter /usr/local/bin/
 cp faust2impulse6 /usr/local/bin/
 cp faust2impulse7 /usr/local/bin/
+cp faust2impulse8 /usr/local/bin/
 cp impulseinterp /usr/local/bin/
 cp impulsellvm /usr/local/bin/
 
@@ -38,5 +39,6 @@ cp filesCompare /usr/local/bin/
 cp impulsearch.cpp /usr/local/share/faust/
 cp impulsearch1.cpp /usr/local/share/faust/
 cp impulsearch2.cpp /usr/local/share/faust/
+cp impulsearch5.rs /usr/local/share/faust/
 
 

@@ -100,10 +100,10 @@ void RustCodeContainer::produceInternal()
   
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "pub struct " << fKlassName << " {";
-
+    
         tab(n+1, *fOut);
         tab(n+1, *fOut);
-
+    
         // Fields
         fCodeProducer.Tab(n+1);
         generateDeclarations(&fCodeProducer);
@@ -112,19 +112,6 @@ void RustCodeContainer::produceInternal()
     
     tab(n, *fOut);
     tab(n, *fOut); *fOut << "impl " << fKlassName << " {";
-
-        /*
-        // Memory methods
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "pub fn new" << fKlassName << "() -> " << fKlassName << " { ";
-            tab(n+2, *fOut); *fOut << fKlassName << " {";
-                RustInitFieldsVisitor initializer(fOut, n+3);
-                generateDeclarations(&initializer);
-            tab(n+2, *fOut); *fOut << "}";
-        tab(n+1, *fOut); *fOut << "}";
-
-        tab(n+1, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) {}";
-        */
 
         tab(n+1, *fOut);
         tab(n+1, *fOut);
@@ -167,8 +154,6 @@ void RustCodeContainer::produceInternal()
         generateDeclarations(&initializer);
         tab(n+1, *fOut); *fOut << "}";
     tab(n, *fOut); *fOut << "}";
-    
-    //tab(n, *fOut); *fOut << "pub fn delete" << fKlassName << "(&mut self) {}";
 }
 
 void RustCodeContainer::produceClass()
@@ -194,7 +179,6 @@ void RustCodeContainer::produceClass()
     
     // TODO
     //tab(n, *fOut); *fOut << "impl dsp<" << ifloat() <<"> for " << fKlassName << " {";
-
     tab(n, *fOut); *fOut << "pub struct " << fKlassName << " {";
 
         tab(n+1, *fOut);
@@ -334,7 +318,7 @@ void RustCodeContainer::produceClass()
     
         // User interface
         tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "pub fn buildUserInterface(&mut self, ui_interface: &UI<" << ifloat() << ">){";
+        tab(n+1, *fOut); *fOut << "pub fn buildUserInterface(&mut self, ui_interface: &mut UI<" << ifloat() << ">) {";
             tab(n+2, *fOut);
             fCodeProducer.Tab(n+2);
             generateUserInterface(&fCodeProducer);
@@ -350,7 +334,7 @@ void RustCodeContainer::produceClass()
 
 void RustCodeContainer::produceMetadata(int tabs)
 {
-    tab(tabs, *fOut); *fOut << "pub fn metadata(&mut self, m: &Meta) { ";
+    tab(tabs, *fOut); *fOut << "pub fn metadata(&mut self, m: &mut Meta) { ";
 
     // We do not want to accumulate metadata from all hierachical levels, so the upper level only is kept
     for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
@@ -473,7 +457,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
     generateComputeFunctions(&fCodeProducer);
 
     // Generates "computeThread" code
-    tab(n, *fOut); *fOut << "static void computeThread(" << fKlassName << "&mut self, num_thread: i32) {";
+    tab(n, *fOut); *fOut << "pub fn computeThread(" << fKlassName << "&mut self, num_thread: i32) {";
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
 
@@ -483,7 +467,7 @@ void RustWorkStealingCodeContainer::generateCompute(int n)
         tab(n, *fOut); *fOut << "}" << endl;
 
         // Compute "compute" declaration
-        tab(n, *fOut); *fOut << "void compute" << fKlassName << "(" << fKlassName << subst("&mut self, $0: i32, inputs: && $1, outputs: &mut&mut $1) {", fFullCount, ifloat());
+        tab(n, *fOut); *fOut << "pub fn compute(" << subst("&mut self, $0: i32, inputs: &[&[$1]], outputs: &mut[&mut[$1]]) {", fFullCount, ifloat());
         tab(n+1, *fOut);
         fCodeProducer.Tab(n+1);
 

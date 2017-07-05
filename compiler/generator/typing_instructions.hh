@@ -27,6 +27,10 @@
 
 using namespace std;
 
+/*
+ Typing visitor: to be used when knowing the exact type of the currenty compiled value is needed.
+ */
+
 struct TypingVisitor : public InstVisitor {
 
         Typed::VarType fCurType;
@@ -88,15 +92,11 @@ struct TypingVisitor : public InstVisitor {
             } else {
                 inst->fInst1->accept(this);
                 Typed::VarType type1 = fCurType;
-                
                 if (isRealType(type1)) {
                     fCurType = type1;
                 } else {
                     inst->fInst2->accept(this);
                     Typed::VarType type2 = fCurType;
-                    
-                    //std::cout << "BinopInst " << Typed::gTypeString[type1] << " " << Typed::gTypeString[type2] << std::endl;
-                    
                     if (isRealType(type2)) {
                         fCurType = type2;
                     } else if (isIntType(type1) || isIntType(type2)) {

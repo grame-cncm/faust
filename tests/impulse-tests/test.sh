@@ -13,16 +13,17 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-llvm] [-interp] [-ajs] [-ajs-e] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
-        echo "Use '-all' to activate all control test (float compilation and 7 backends)"
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-rust] [-llvm] [-interp] [-ajs] [-ajs-e] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
+        echo "Use '-all' to activate all control test (float compilation and 8 backends)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
         echo "Use '-c' to check 'c' backend"
+        echo "Use '-rust' to check 'Rust' backend"
         echo "Use '-llvm' to check 'LLVM' backend"
         echo "Use '-interp' to check 'interpreter' backend"
         echo "Use '-ajs' to check 'asm.js' backend"
-#echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
-#echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
+        #echo "Use '-ajs-e' to check 'asm.js' backend on expanded code"
+        #echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-valgrind' to activate valgrind tests"
@@ -33,6 +34,8 @@ for p in $@; do
         BACKEND="c"
     elif [ $p = "-llvm" ]; then
         BACKEND="llvm"
+    elif [ $p = "-rust" ]; then
+        BACKEND="rust"
     elif [ $p = "-interp" ]; then
         BACKEND="interp"
     elif [ $p = "-ajs" ]; then
@@ -362,6 +365,23 @@ if [ $BACKEND = "lf-ajs" ] || [ $BACKEND = "all" ]; then
 
 fi
 
+if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
+
+    echo "================================================================================"
+    echo "Impulse response tests in various compilation modes and double : wasm backend   "
+    echo "================================================================================"
+
+    for f in *.dsp; do
+        faust2impulse6 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+    if [ $RES = "1" ]; then
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+    else
+        echo "ERROR $f scalar mode in node.js"
+    fi
+    done
+
+fi
+
 if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
 
     echo "================================================================================"
@@ -379,20 +399,21 @@ if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
 
 fi
 
-if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
+if [ $BACKEND = "rust" ] || [ $BACKEND = "all" ]; then
 
     echo "================================================================================"
-    echo "Impulse response tests in various compilation modes and double : wasm backend   "
+    echo "Impulse response tests in various compilation modes and double : Rust backend   "
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse6 -double $f > $D/$f.scal.ir && RES=1 || RES=0
-    if [ $RES = "1" ]; then
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
-    else
-        echo "ERROR $f scalar mode in node.js"
-    fi
+            faust2impulse8 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
     done
 
 fi
+
 

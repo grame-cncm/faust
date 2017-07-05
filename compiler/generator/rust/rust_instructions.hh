@@ -36,11 +36,16 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
     
     virtual void visit(DeclareVarInst* inst)
     {
-        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
-        Typed::VarType type = inst->fType->getType();
-        
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
+        ZeroInitializer(fOut, inst->fType);
+    }
+    
+    // Generate zero intialisation code for simple int/real scalar and arrays types
+    static void ZeroInitializer(std::ostream* fOut, Typed* typed)
+    {
+        Typed::VarType type = typed->getType();
+        ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(typed);
         
         if (array_type) {
             if (isIntPtrType(type)) {
@@ -143,9 +148,9 @@ class RustInstVisitor : public TextInstVisitor {
         {
             // Special case
             if (inst->fZone == "0") {
-                *fOut << "ui_interface.declare(&self.fDummy, " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface.declare(&mut self.fDummy, " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             } else {
-                *fOut << "ui_interface.declare(&self." << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
+                *fOut << "ui_interface.declare(&mut self." << inst->fZone <<", " << quote(inst->fKey) << ", " << quote(inst->fValue) << ")";
             }
             EndLine();
         }
@@ -173,9 +178,9 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(AddButtonInst* inst)
         {
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &self." << inst->fZone << ")";
+                *fOut << "ui_interface.addButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
             } else {
-                *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &self." << inst->fZone << ")";
+                *fOut << "ui_interface.addCheckButton(" << quote(inst->fLabel) << ", &mut self." << inst->fZone << ")";
             }
             EndLine();
         }
@@ -192,9 +197,11 @@ class RustInstVisitor : public TextInstVisitor {
                     name = "ui_interface.addNumEntry"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel) << ", "
-            << "&self." << inst->fZone << ", " << checkReal(inst->fInit)
-            << ", " << checkReal(inst->fMin) << ", "
-            << checkReal(inst->fMax) << ", " << checkReal(inst->fStep) << ")";
+            << "&mut self." << inst->fZone
+            << ", " << checkReal(inst->fInit)
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax)
+            << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
         
@@ -208,9 +215,9 @@ class RustInstVisitor : public TextInstVisitor {
                     name = "ui_interface.addVerticalBargraph"; break;
             }
             *fOut << name << "(" << quote(inst->fLabel)
-            << ", &self." << inst->fZone << ", "
-            << checkReal(inst->fMin) << ", "
-            << checkReal(inst->fMax) << ")";
+            << ", &mut self." << inst->fZone
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
 
@@ -230,24 +237,7 @@ class RustInstVisitor : public TextInstVisitor {
             if (inst->fValue) {
                 *fOut << " = "; inst->fValue->accept(this);
             } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-                
-                // Zero initializer
-                ArrayTyped* array_type = dynamic_cast<ArrayTyped*>(inst->fType);
-                Typed::VarType type = inst->fType->getType();
-                
-                if (array_type) {
-                    if (isIntPtrType(type)) {
-                        *fOut << " = [0;" << array_type->fSize << "]";
-                    } else if (isRealPtrType(type)) {
-                        *fOut << " = [0.0;" << array_type->fSize << "]";
-                    }
-                } else {
-                    if (isIntType(type)) {
-                        *fOut << " = 0";
-                    } else if (isRealType(type)) {
-                        *fOut << " = 0.0";
-                    }
-                }
+                RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
             }
             
             EndLine((inst->fAddress->getAccess() & Address::kStruct) ? ',' : ';');
@@ -335,7 +325,8 @@ class RustInstVisitor : public TextInstVisitor {
             if (dynamic_cast<IntNumInst*>(indexed->fIndex)) {
                 *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
             } else {
-                *fOut << "["; indexed->fIndex->accept(this); *fOut << " as usize]"; // Array index expression casted to 'usize' type
+                // Array index expression casted to 'usize' type
+                *fOut << "["; indexed->fIndex->accept(this); *fOut << " as usize]";
             }
         }
     
@@ -382,7 +373,6 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ")";
         }
 
-        // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)
         {
             string fun_name;
@@ -398,6 +388,7 @@ class RustInstVisitor : public TextInstVisitor {
         {
             *fOut << "if (";
             inst->fCond->accept(this);
+            // Force 'cond' to bool type
             *fOut << " as i32 == 1) { ";
             inst->fThen->accept(this);
             *fOut << " } else { ";
@@ -409,6 +400,7 @@ class RustInstVisitor : public TextInstVisitor {
         {
             *fOut << "if (";
             inst->fCond->accept(this);
+            // Force 'cond' to bool type
             *fOut << " as i32 == 1) { ";
             fTab++;
             tab(fTab, *fOut);

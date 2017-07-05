@@ -408,7 +408,3 @@ DeclareFunInst* WASInst::generateIntMax()
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
-
-
-
-

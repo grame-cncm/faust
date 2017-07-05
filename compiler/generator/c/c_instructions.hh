@@ -101,11 +101,12 @@ class CInstVisitor : public TextInstVisitor {
                 case AddSliderInst::kNumEntry:
                     name = "ui_interface->addNumEntry("; break;
             }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ", "
-            << checkReal(inst->fInit) << ", "
-            << checkReal(inst->fMin) << ", "
-            << checkReal(inst->fMax) << ", "
-            << checkReal(inst->fStep) << ")";
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel)
+            << ", &dsp->" << inst->fZone
+            << ", " << checkReal(inst->fInit)
+            << ", " << checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMax)
+            << ", " << checkReal(inst->fStep) << ")";
             EndLine();
         }
 

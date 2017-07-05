@@ -49,7 +49,12 @@ class CodeContainer : public virtual Garbageable {
 
         int fNumInputs;
         int fNumOutputs;
+    
+        int fNumActives;       ///< number of active controls in the UI (sliders, buttons, etc.)
+        int fNumPassives;      ///< number of passive widgets in the UI (bargraphs, etc.)
+ 
         string fKlassName;
+    
         vector<int> fInputRates;
         vector<int> fOutputRates;
 
@@ -96,9 +101,6 @@ class CodeContainer : public virtual Garbageable {
 
         list<string> fUICode;
         list<string> fUIMacro;
-
-        int fNumActives;       ///< number of active controls in the UI (sliders, buttons, etc.)
-        int fNumPassives;      ///< number of passive widgets in the UI (bargraphs, etc.)
 
         int fSubContainerType;
         string fFullCount;
