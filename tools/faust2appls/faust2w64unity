@@ -1,0 +1,106 @@
+#! /bin/bash -e
+
+
+
+#------------------------------------------------------------------------------
+# mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
+# the exact prefix should be specified in the environment variable MINGW
+
+: ${MINGWPREFIX="x86_64-w64-mingw32-"}
+CXX="${MINGWPREFIX}g++"
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+
+
+#-------------------------------------------------------------------
+# Compiler settings
+
+CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
+LIB="-shared"
+EXT=".dll"
+
+
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+    if [ "$p" = -omp ]; then
+    	OMP="-fopenmp"
+    fi
+  
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64"
+    elif [ $p = "-poly" ]; then
+	F2PDPOLY="-n 8"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    NAME=${f%.dsp}
+    SRCDIR=$(dirname "$p")
+    DIR=$SRCDIR/w64
+
+
+
+    # create a temporary dir
+    TDR=$(mktemp -d faust.XXXXXX)
+    TMP=$TDR/$NAME
+    mkdir "$TMP"
+
+    # create final dir
+    if [ -d "$DIR" ]; then
+        rm -rf "$DIR"
+    fi
+    mkdir "$DIR"
+
+    # compile faust to c++$SR
+    faust -i -a unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || exit
+
+    # compile c++ to binary
+    (
+        cd "$TMP"
+		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $NAME$EXT $NAME.cpp
+
+
+
+    ) > /dev/null || exit
+
+    rm -rf "$SRCDIR/$NAME$EXT"
+    cp "$TMP/$NAME$EXT" "$SRCDIR/$NAME$EXT"
+    mv "$SRCDIR/$NAME$EXT" "$SRCDIR/$DIR/libFaustPlugin_$NAME$EXT"
+
+    # collects all the files produced
+    BINARIES="$BINARIES$SRCDIR/libFaustPlugin_$NAME$EXT;"
+    rm -rf "$TDR"
+
+
+done
+
+# return the binaries names
+echo "$BINARIES"
+
+
