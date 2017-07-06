@@ -234,7 +234,7 @@ faust.mydsp = function (instance, context, buffer_size) {
      Public API to be used to control the DSP.
     */
     
-     /* Return current sample rate */
+    /* Return current sample rate */
     sp.getSampleRate = function ()
     {
         return context.sampleRate;
@@ -252,9 +252,9 @@ faust.mydsp = function (instance, context, buffer_size) {
         return getNumOutputsAux();
     }
     
-    /** 
+    /**
      * Global init, doing the following initialization:
-	 * -  static tables initialization
+     * -  static tables initialization
      * -  call 'instanceInit': constants and instance state initialisation
      *
      * @param sample_rate - the sampling rate in Herz
@@ -296,24 +296,24 @@ faust.mydsp = function (instance, context, buffer_size) {
         sp.factory.instanceClear(sp.dsp);
     }
 
-	/**
-	 * Setup a control output handler, of function of type (path_to_control, value) 
-	 * to be used on each generated output value. This handlet will be called
-	 * each audio cycle at the end of the 'compute' method.
-	 *
-	 * @param hd - a function of type function(path_to_control, value)
-	 */
+    /**
+     * Setup a control output handler, of function of type (path_to_control, value)
+     * to be used on each generated output value. This handlet will be called
+     * each audio cycle at the end of the 'compute' method.
+     *
+     * @param hd - a function of type function(path_to_control, value)
+     */
     sp.setHandler = function (hd)
     {
         sp.handler = hd;
     }
 
-	/**
-	 * Set control value.
-	 *
-	 * @param path - the path to the wanted control (retrieved using 'controls' method)
-	 * @param val - the float value for the wanted control
-	 */
+    /**
+     * Set control value.
+     *
+     * @param path - the path to the wanted control (retrieved using 'controls' method)
+     * @param val - the float value for the wanted control
+     */
     sp.setParamValue = function (path, val)
     {
         var values = sp.value_table[path];
@@ -325,33 +325,33 @@ faust.mydsp = function (instance, context, buffer_size) {
         }
     }
 
-	/**
-	 * Get control value. 
-	 *
-	 * @param path - the path to the wanted control (retrieved using 'controls' method)
-	 * 
-	 * @return the float value
-	 */
+    /**
+     * Get control value.
+     *
+     * @param path - the path to the wanted control (retrieved using 'controls' method)
+     *
+     * @return the float value
+     */
     sp.getParamValue = function (path)
     {
         return sp.factory.getParamValue(sp.dsp, sp.pathTable[path]);
     }
     
     /**
-	 * Get the table of all control paths.
-	 *
-	 * @return the table of all control paths 
-	 */
+     * Get the table of all control paths.
+     *
+     * @return the table of all control paths
+     */
     sp.controls = function()
     {
         return sp.inputs_items;
     }
     
     /**
-	 * Get DSP JSON description with its UI and metadata
-	 *
-	 * @return  DSP JSON description 
-	 */
+     * Get DSP JSON description with its UI and metadata
+     *
+     * @return  DSP JSON description
+     */
     sp.json = function ()
     {
         return getJSONmydsp();
@@ -361,7 +361,6 @@ faust.mydsp = function (instance, context, buffer_size) {
     sp.initAux();
 
     return sp;
-    
 };
 
 /** 

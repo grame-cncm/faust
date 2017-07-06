@@ -381,9 +381,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         return getNumOutputsAux();
     }
     
-    /** 
+    /**
      * Global init, doing the following initialization:
-	 * -  static tables initialization
+     * -  static tables initialization
      * -  call 'instanceInit': constants and instance state initialisation
      *
      * @param sample_rate - the sampling rate in Herz
@@ -395,7 +395,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
-	/** 
+    /**
      * Init instance state.
      *
      * @param sample_rate - the sampling rate in Hertz
@@ -407,7 +407,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
-	/** 
+    /**
      * Init instance constant state.
      *
      * @param sample_rate - the sampling rate in Hertz
@@ -435,13 +435,13 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
-	/**
-	 * Setup a control output handler, of function of type (path_to_control, value) 
-	 * to be used on each generated output value. This handlet will be called
-	 * each audio cycle at the end of the 'compute' method.
-	 *
-	 * @param hd - a function of type function(path_to_control, value)
-	 */
+    /**
+     * Setup a control output handler, of function of type (path_to_control, value)
+     * to be used on each generated output value. This handlet will be called
+     * each audio cycle at the end of the 'compute' method.
+     *
+     * @param hd - a function of type function(path_to_control, value)
+     */
     sp.setHandler = function (hd)
     {
         sp.handler = hd;
@@ -485,7 +485,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
-	/**
+    /**
      * Gently terminates all the active voices.
      */
     sp.allNotesOff = function ()
@@ -496,7 +496,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
-	/**
+    /**
      * Controller 123 allNoteOff only is handled.
      *
      * @param channel - the MIDI channel (0..15, not used for now)
@@ -517,12 +517,12 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.pitchWheel = function (channel, wheel)
     {}
 
-	/**
-	 * Set control value.
-	 *
-	 * @param path - the path to the wanted control (retrieved using 'controls' method)
-	 * @param val - the float value for the wanted control
-	 */
+    /**
+     * Set control value.
+     *
+     * @param path - the path to the wanted control (retrieved using 'controls' method)
+     * @param val - the float value for the wanted control
+     */
     sp.setParamValue = function (path, val)
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -530,50 +530,50 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 	
-	/**
-	 * Get control value.
-	 *
-	 * @param path - the path to the wanted control (retrieved using 'controls' method)
-	 * 
-	 * @return the float value
-	 */
+    /**
+     * Get control value.
+     *
+     * @param path - the path to the wanted control (retrieved using 'controls' method)
+     *
+     * @return the float value
+     */
     sp.getParamValue = function (path)
     {
         return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
     }
 
-	/**
-	 * Get the table of all control paths. 
-	 *
-	 * @return the table of all control paths 
-	 */
+    /**
+     * Get the table of all control paths.
+     *
+     * @return the table of all control paths
+     */
     sp.controls = function()
     {
         return sp.inputs_items;
     }
 
-	/**
-	 * Get DSP JSON description with its UI and metadata.
-	 *
-	 * @return  DSP JSON description 
-	 */
+    /**
+     * Get DSP JSON description with its UI and metadata.
+     *
+     * @return  DSP JSON description
+     */
     sp.json = function ()
     {
         return getJSONmydsp();
     }
     
     /**
-	 * Set a compute callback of type function(buffer_size) to be called each audio cycle
-	 * (for instance to synchronize playing a MIDIFile...).
-	 */
+     * Set a compute callback of type function(buffer_size) to be called each audio cycle
+     * (for instance to synchronize playing a MIDIFile...).
+     */
     sp.setComputeCallback = function (callback)
     {
         sp.compute_callback = callback;
     }
     
     /**
-	 * Get the current compute callback
-	 */
+     * Get the current compute callback
+     */
     sp.getComputeCallback = function ()
     {
         return sp.compute_callback;
