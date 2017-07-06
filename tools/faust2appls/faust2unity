@@ -67,6 +67,10 @@ for p in $FILES; do
     fi
     mkdir "$DIR"
 
+    # adds README to final dir
+    cp $FAUSTLIB/unity/README.md $DIR/README.md
+
+
     # finds number of parameters
     faust -uim $f -o $NAME.cpp
     grep FAUST_ACTIVES $NAME.cpp > params.txt
