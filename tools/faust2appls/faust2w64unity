@@ -2,13 +2,35 @@
 
 
 
-#------------------------------------------------------------------------------
+#-------------------------------------------------------------------
+#Dispatch command arguments
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2w64unity <file1.dsp> [<file2.dsp>]"
+        echo "Creates Microsoft 64bits library for faust unity plugin."
+        echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)."
+        echo "Use 'faust2unity -w64' to also create the C# and JSON files"
+        echo "See architecture/unity/README.md for more info"
+        exit
+    fi
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+
+#-----------------------------------------------------------------------
 # mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
 # the exact prefix should be specified in the environment variable MINGW
 
 : ${MINGWPREFIX="x86_64-w64-mingw32-"}
 CXX="${MINGWPREFIX}g++"
-(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
+(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found. See -help for more info."; exit 1)
 
 
 #-------------------------------------------------------------------
@@ -17,40 +39,6 @@ CXX="${MINGWPREFIX}g++"
 CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 LIB="-shared"
 EXT=".dll"
-
-
-
-#-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
-
-#PHASE 2 : dispatch command arguments
-for p in $@; do
-    if [ "$p" = -omp ]; then
-    	OMP="-fopenmp"
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
-    elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
-    elif [ $p = "-poly" ]; then
-	F2PDPOLY="-n 8"
-    elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
-done
-
-
 
 
 #-------------------------------------------------------------------
@@ -62,7 +50,7 @@ for p in $FILES; do
     f=$(basename "$p")
     NAME=${f%.dsp}
     SRCDIR=$(dirname "$p")
-    DIR=$SRCDIR/w64
+    DIR=$SRCDIR/FaustPlugin_w64_$NAME
 
 
 
@@ -78,29 +66,21 @@ for p in $FILES; do
     mkdir "$DIR"
 
     # compile faust to c++$SR
-    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || exit
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2w64unity"; exit 1)
 
     # compile c++ to binary
     (
-        cd "$TMP"
-		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $NAME$EXT $NAME.cpp
+    cd "$TMP"
+    $CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $NAME$EXT $NAME.cpp
 
-
-
-    ) > /dev/null || exit
+    ) > /dev/null || (echo "$f : C++ to w64 library compilation failed in faust2w64unity"; exit 1)
 
     rm -rf "$SRCDIR/$NAME$EXT"
     cp "$TMP/$NAME$EXT" "$SRCDIR/$NAME$EXT"
     mv "$SRCDIR/$NAME$EXT" "$SRCDIR/$DIR/libFaustPlugin_$NAME$EXT"
-
-    # collects all the files produced
-    BINARIES="$BINARIES$SRCDIR/libFaustPlugin_$NAME$EXT;"
     rm -rf "$TDR"
 
-
+    echo "$f : w64 compilation completed"
 done
-
-# return the binaries names
-echo "$BINARIES"
 
 

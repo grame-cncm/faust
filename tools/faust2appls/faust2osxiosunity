@@ -97,8 +97,10 @@ CUR=$(pwd)
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2unity [-ios] <file.dsp>"
+        echo "faust2osxiosunity [-ios] <file1.dsp> [<file2.dsp>]"
         echo "Use '-ios' to create an iOS static library"
+        echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"
+        echo "See architecture/unity/README.md for more info"
         exit
     fi
 
@@ -116,30 +118,28 @@ for p in $@; do
 done
 
 for f in $FILES; do
-	SRCDIR=$(dirname "$f")
+    SRCDIR=$(dirname "$f")
     FNAME=$(basename "$f")
-	NAME=${FNAME%.dsp}
-
+    NAME=${FNAME%.dsp}
 
     if [ "$IOS" = "1" ]; then
 
-        DIR=$SRC/ios
-
+        DIR=$SRCDIR/FaustPlugin_iOS_$NAME
         if [ -d "$DIR" ]; then
             rm -rf "$DIR"
         fi
-#mkdir "$DIR"
+        mkdir "$DIR"
 
-        # compile faust to c++
-        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
+        # compiles faust to c++
+        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity -ios"; exit 1)
 
 
-        $CXX $CXXFLAGS -DAPPLE -fembed-bitcode -DPLUGINNAME="libFaustPlugin_$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
+        $CXX $CXXFLAGS -DAPPLE -fembed-bitcode -DPLUGINNAME="libFaustPlugin_$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o || (echo "$FNAME : C++ to iOS library compilation failed in faust2osxiosunity -ios"; exit 1)
         libtool $NAME.o -o libFaustPlugin_$NAME.a
         rm $NAME.o $NAME.cpp
-		echo "libFaustPlugin_$NAME.a;"
+        mv libFaustPlugin_$NAME.a $DIR/libFaustPlugin_$NAME.a
+        echo "$FNAME : iOS compilation completed"
 
-#mv "$SRCDIR/$NAME$EXT" "$SRCDIR/$DIR/libFaustPlugin_$NAME.a"
     else
 
         BNAME=libFaustPlugin_${NAME} # should be capitalize
@@ -152,18 +152,25 @@ for f in $FILES; do
         MOS="$BNDL/Contents/MacOS/"
         mkdir -p "$MOS"
 
-        # compile faust to c++
-        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
+        # creates final dir
+        DIR=$SRCDIR/FaustPlugin_OSX_$NAME
+        if [ -d "$DIR" ]; then
+            rm -rf "$DIR"
+        fi
+        mkdir "$DIR"
 
-        $CXX $CXXFLAGS $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
+        # compile faust to c++
+        faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
+
+        $CXX $CXXFLAGS $LDFLAGS -DAPPLE -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || (echo "$FNAME : C++ to OSX library compilation failed in faust2osxiosunity"; exit 1)
         rm "$MOS/$NAME.cpp"
-        createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || exit
+        createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || (echo "$FNAME : Info.plist gerenation failed in faust2osxiosunity"; exit 1)
 
         rm -rf "$SRCDIR/$BNAME.bundle"
-        mv "$BNDL" "$SRCDIR/"
+        mv "$BNDL" "$SRCDIR/$DIR/"
         rm -rf $TDR
 
-        echo "$SRCDIR/$BNAME.bundle;"
+        echo "$FNAME : OSX compilation completed"
 
     fi
 
