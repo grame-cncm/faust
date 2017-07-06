@@ -26,13 +26,12 @@ var faust = faust || {};
  *
  * @param instance - the wasm instance
  * @param memory - the wasm memory
- * @param context - the audio context
+ * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
  *
  * @return a valid dsp object or null
  */
-
 faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony, callback) {
 
     // Keep JSON parsed object
@@ -55,7 +54,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.ins = null;
     sp.outs = null;
     sp.mixing = null;
-    sp.callback = callback;
+    sp.compute_callback = callback;
     
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
@@ -216,9 +215,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
             }
         }
         
-        // Possibly call an externally given callback (for instance to play a MIDIFile...)
-        if (sp.callback) {
-            sp.callback(buffer_size);
+        // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
+        if (sp.compute_callback) {
+            sp.compute_callback(buffer_size);
         }
         
         // First clear the outputs
@@ -360,16 +359,35 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
     
+    /*
+     Public API to be used to control the DSP.
+    */
+    
+    /* Return current sample rate. */
+    sp.getSampleRate = function ()
+    {
+        return context.sampleRate;
+    }
+    
+    /* Return instance number of audio inputs. */
     sp.getNumInputs = function ()
     {
         return getNumInputsAux();
     }
     
+    /* Return instance number of audio outputs. */
     sp.getNumOutputs = function ()
     {
         return getNumOutputsAux();
     }
     
+    /** 
+     * Global init, doing the following initialization:
+	 * -  static tables initialization
+     * -  call 'instanceInit': constants and instance state initialisation
+     *
+     * @param sample_rate - the sampling rate in Herz
+     */
     sp.init = function (sample_rate)
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -377,6 +395,11 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/** 
+     * Init instance state.
+     *
+     * @param sample_rate - the sampling rate in Hertz
+     */
     sp.instanceInit = function (sample_rate)
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -384,6 +407,11 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/** 
+     * Init instance constant state.
+     *
+     * @param sample_rate - the sampling rate in Hertz
+     */
     sp.instanceConstants = function (sample_rate)
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -391,6 +419,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
     
+    /* Init default control parameters values. */
     sp.instanceResetUserInterface = function ()
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -398,6 +427,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/* Init instance state (delay lines...). */
     sp.instanceClear = function ()
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -405,11 +435,25 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/**
+	 * Setup a control output handler, of function of type (path_to_control, value) 
+	 * to be used on each generated output value. This handlet will be called
+	 * each audio cycle at the end of the 'compute' method.
+	 *
+	 * @param hd - a function of type function(path_to_control, value)
+	 */
     sp.setHandler = function (hd)
     {
         sp.handler = hd;
     }
     
+    /**
+     * Instantiates a new polyphonic voice. 
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param pitch - the MIDI pitch (0..127)
+     * @param velocity - the MIDI velocity (0..127)
+     */
     sp.keyOn = function (channel, pitch, velocity)
     {
         var voice = sp.newVoiceAux();
@@ -420,6 +464,13 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         sp.dsp_voices_trigger[voice] = true; // so that envelop is always re-initialized
     }
     
+    /**
+     * De-instantiates a polyphonic voice. 
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param pitch - the MIDI pitch (0..127)
+     * @param velocity - the MIDI velocity (0..127)
+     */
     sp.keyOff = function (channel, pitch, velocity)
     {
         var voice = sp.getVoice(pitch, false);
@@ -434,6 +485,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/**
+     * Gently terminates all the active voices.
+     */
     sp.allNotesOff = function ()
     {
         for (var i = 0; i < max_polyphony; i++) {
@@ -442,51 +496,87 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
     }
 
+	/**
+     * Controller 123 allNoteOff only is handled.
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param ctrl - the MIDI controller number (0..127)
+     * @param value - the MIDI controller value (0..127)
+     */
     sp.ctrlChange = function (channel, ctrl, value)
     {
-        if (ctrl === 123 || ctrl === 120) {
+        if (ctrl === 123) {
             sp.allNotesOff();
         }
     }
     
+    /**
+     * PitchWeel: empty for now.
+     *
+     */
     sp.pitchWheel = function (channel, wheel)
     {}
 
+	/**
+	 * Set control value.
+	 *
+	 * @param path - the path to the wanted control (retrieved using 'controls' method)
+	 * @param val - the float value for the wanted control
+	 */
     sp.setParamValue = function (path, val)
     {
         for (var i = 0; i < max_polyphony; i++) {
             sp.factory.setParamValue(sp.dsp_voices[i], sp.pathTable[path], val);
         }
     }
-
+	
+	/**
+	 * Get control value.
+	 *
+	 * @param path - the path to the wanted control (retrieved using 'controls' method)
+	 * 
+	 * @return the float value
+	 */
     sp.getParamValue = function (path)
     {
         return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
     }
 
+	/**
+	 * Get the table of all control paths. 
+	 *
+	 * @return the table of all control paths 
+	 */
     sp.controls = function()
     {
         return sp.inputs_items;
     }
 
+	/**
+	 * Get DSP JSON description with its UI and metadata.
+	 *
+	 * @return  DSP JSON description 
+	 */
     sp.json = function ()
     {
         return getJSONmydsp();
     }
     
-    sp.getSampleRate = function ()
-    {
-        return context.sampleRate;
-    }
-    
+    /**
+	 * Set a compute callback of type function(buffer_size) to be called each audio cycle
+	 * (for instance to synchronize playing a MIDIFile...).
+	 */
     sp.setComputeCallback = function (callback)
     {
-        sp.callback = callback;
+        sp.compute_callback = callback;
     }
     
+    /**
+	 * Get the current compute callback
+	 */
     sp.getComputeCallback = function ()
     {
-        return sp.callback;
+        return sp.compute_callback;
     }
     
     // Init resulting DSP
@@ -529,12 +619,11 @@ faust.createMemory = function (buffer_size, max_polyphony) {
  * Create a mydsp object from a wasm filename
  *
  * @param filename - the wasm filename
- * @param context - the audio context
+ * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
- * @param callback - a callback taking the allocated dsp as parameter
+ * @param callback - a callback taking the allocated DSP as parameter
  */
-
 faust.createmydsp = function(filename, context, buffer_size, max_polyphony, callback)
 {
     var memory = faust.createMemory(buffer_size, max_polyphony);
