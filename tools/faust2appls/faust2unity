@@ -7,20 +7,42 @@
 # Generates a folder with all available architecture libraries for faust unity
 # plugin and the C# and JSON files required
 
-#PHASE 2 : dispatch command arguments
-for p in $@; do
-    if [ "$p" = -omp ]; then
-        OMP="-fopenmp"
-    fi
+#PHASE 1 : dispatch command arguments
 
-    if [ "$p" = -icc ]; then
-        ignore=" "
-    elif [ $p = "-arch32" ]; then
-        PROCARCH="-m32 -L/usr/lib32"
-    elif [ $p = "-arch64" ]; then
-        PROCARCH="-m64"
-    elif [ $p = "-poly" ]; then
-        F2PDPOLY="-n 8"
+ALL="1"
+W32="0"
+W64="0"
+OSX="0"
+IOS="0"
+ANDROID="0"
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2unity [-w32] [-ios] <file1.dsp> <file2.dsp>"
+        echo "Generates a folder with all available architecture libraries for faust unity plugin and the C# and JSON files required. See architecture/unity/README.md for more info."
+        echo "Use -w32 to produce a w32 library"
+        echo "Use -w64 to produce a w64 library"
+        echo "Use -osx to produce a MACOSX library"
+        echo "Use -ios to produce a iOS library"
+        echo "Use -android to produce android libraries (armabi-v7a and x86)."
+        echo "See architecture/unity/README.md for more info."
+        exit
+    fi
+    if [ $p = "-w32" ]; then
+        W32="1"
+        ALL="0"
+    elif [ $p = "-w64" ]; then
+        W64="1"
+        ALL="0"
+    elif [ $p = "-osx" ]; then
+        OSX="1"
+        ALL="0"
+    elif [ $p = "-ios" ]; then
+        IOS="1"
+        ALL="0"
+    elif [ $p = "-android" ]; then
+        ANDROID="1"
+        ALL="0"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -63,34 +85,37 @@ for p in $FILES; do
     mv "$SRCDIR/$f.json" $DIR/FaustPlugin_$NAME.json
 
     # compiles c++ to binaries
-    (
+
         # w64
-        faust2w64unity $f
-        mv $SRCDIR/w64 $DIR/w64
+        if [ $W64 = "1" ] || [ $ALL = "1" ]; then
+            faust2w64unity $f || exit
+            mv $SRCDIR/FaustPlugin_w64_$NAME $DIR/w64
+        fi
 
         # w32
-        faust2w32unity $f
-        mv $SRCDIR/w32 $DIR/w32
+        if [ $W32 = "1" ] || [ $ALL = "1" ]; then
+            faust2w32unity $f || exit
+            mv $SRCDIR/FaustPlugin_w32_$NAME $DIR/w32
+
+        fi
 
         # macos
-        faust2osxiosunity $f
-        MACOS="$SRCDIR/$DIR/MACOS/"
-        mkdir -p "$MACOS"
-        mv "$SRCDIR/libFaustPlugin_$NAME.bundle" "$DIR/MACOS/libFaustPlugin_$NAME.bundle"
+        if [ $OSX = "1" ] || [ $ALL = "1" ]; then
+            faust2osxiosunity $f || exit
+            mv $SRCDIR/FaustPlugin_OSX_$NAME $DIR/OSX
 
-        #ios
-        faust2osxiosunity -ios $f
-        IOS="$SRCDIR/$DIR/IOS/"
-        mkdir -p "$IOS"
-        mv "$SRCDIR/libFaustPlugin_$NAME.a" "$DIR/IOS/libFaustPlugin_$NAME.a"
+        fi
+        # ios
+        if [ $IOS = "1" ] || [ $ALL = "1" ]; then
+            faust2osxiosunity -ios $f || exit
+            mv $SRCDIR/FaustPlugin_iOS_$NAME $DIR/iOS
 
-        #android
-        faust2androidunity $f
-        mv $SRCDIR/Android $DIR/Android
-
-    ) > /dev/null || exit
-
-
+        fi
+        # android
+        if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
+            faust2androidunity $f || exit
+            mv $SRCDIR/FaustPlugin_Android_$NAME $DIR/Android
+        fi
 
 done
 
