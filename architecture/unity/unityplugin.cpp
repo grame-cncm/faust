@@ -140,8 +140,8 @@ public:
     unitydsp(int dspbuffersize = 0)
     {
         buildUserInterface(&fUI);
-        fInputs = nullptr;
-        fOutputs = nullptr;
+        fInputs = 0;
+        fOutputs = 0;
         if (dspbuffersize > 0) {
             fInputs  = new AudioChannels(dspbuffersize, getNumInputs());
             fOutputs = new AudioChannels(dspbuffersize, getNumOutputs());
