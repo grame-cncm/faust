@@ -67,6 +67,7 @@ install:
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
 	install faust2smartkeyb $(dest)
+	install faust2sndfile $(dest)
 	install faust2supercollider $(dest)
 	install faust2svg $(dest)
 	install faust2unity $(dest)
@@ -137,6 +138,7 @@ uninstall:
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
 	rm -f $(dest)/faust2smartkeyb
+	rm -f $(dest)/faust2sndfile
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2svg
 	rm -f $(dest)/faust2unity
