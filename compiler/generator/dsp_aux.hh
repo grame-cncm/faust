@@ -33,11 +33,11 @@
 #include "exception.hh"
 
 /*!
- \brief the base class for smart pointers implementation
- 
-	Any object that want to support smart pointers should
-	inherit from the smartable class which provides reference counting
-	and automatic delete when the reference count drops to zero.
+    \brief the base class for smart pointers implementation
+
+    Any object that want to support smart pointers should
+    inherit from the smartable class which provides reference counting
+    and automatic delete when the reference count drops to zero.
  */
 class faust_smartable {
     
@@ -62,14 +62,14 @@ class faust_smartable {
 };
 
 /*!
- \brief the smart pointer implementation
- 
-	A smart pointer is in charge of maintaining the objects reference count
-	by the way of pointers operators overloading. It supports class
-	inheritance and conversion whenever possible.
- \n	Instances of the SMARTP class are supposed to use \e smartable types (or at least
-	objects that implements the \e addReference and \e removeReference
-	methods in a consistent way).
+    \brief the smart pointer implementation
+
+    A smart pointer is in charge of maintaining the objects reference count
+    by the way of pointers operators overloading. It supports class
+    inheritance and conversion whenever possible.
+    \n Instances of the SMARTP class are supposed to use \e smartable types (or at least
+    objects that implements the \e addReference and \e removeReference
+    methods in a consistent way).
  */
 template<class T> class faust_smartptr {
     

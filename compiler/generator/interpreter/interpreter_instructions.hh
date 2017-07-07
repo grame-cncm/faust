@@ -22,12 +22,12 @@
 #ifndef _INTERPRETER_INSTRUCTIONS_H
 #define _INTERPRETER_INSTRUCTIONS_H
 
-using namespace std;
-
 #include "instructions.hh"
 #include "typing_instructions.hh"
 #include "fir_interpreter.hh"
 #include "exception.hh"
+
+using namespace std;
 
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
@@ -376,7 +376,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
 
-        // for Waveform : done in DeclareVarInst and visitStore
+        // For Waveform : done in DeclareVarInst and visitStore
         virtual void visit(FloatArrayNumInst* inst) {}
 
         virtual void visit(IntNumInst* inst)
@@ -384,7 +384,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
         }
 
-        // for Waveform : done in DeclareVarInst and visitStore
+        // For Waveform : done in DeclareVarInst and visitStore
         virtual void visit(IntArrayNumInst* inst) {}
         
         virtual void visit(BoolNumInst* inst)
@@ -398,7 +398,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, inst->fNum));
         }
 
-        // for Waveform : done in DeclareVarInst and visitStore
+        // For Waveform : done in DeclareVarInst and visitStore
         virtual void visit(DoubleArrayNumInst* inst) {}
 
         // Numerical computation

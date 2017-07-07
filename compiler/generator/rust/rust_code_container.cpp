@@ -229,16 +229,6 @@ void RustCodeContainer::produceClass()
             tab(n+2, *fOut); *fOut << "}";
         tab(n+1, *fOut); *fOut << "}";
 
-    /* Deactivated for now
-        tab(n+1, *fOut);
-        tab(n+1, *fOut); *fOut << "pub fn delete(&mut self) { ";
-            if (fDestroyInstructions->fCode.size() > 0) {
-                tab(n+2, *fOut); *fOut << "self.destroy();";
-            }
-            tab(n+2, *fOut); *fOut << "free(dsp);";
-        tab(n+1, *fOut); *fOut << "}";
-    */
-
         // Print metadata declaration
         tab(n+1, *fOut);
         produceMetadata(n+1);

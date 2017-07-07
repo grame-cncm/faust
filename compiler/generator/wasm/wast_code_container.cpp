@@ -34,7 +34,7 @@ using namespace std;
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS)
  - local variables have to be declared first on the block, before being actually initialized or set: this is done using MoveVariablesInFront3
- - 'faustpower' function actualy fallback to regular 'pow' (see powprim.h)
+ - 'faustpower' function actually fallback to regular 'pow' (see powprim.h)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun
  - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)

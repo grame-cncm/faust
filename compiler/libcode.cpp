@@ -454,7 +454,7 @@ static bool process_cmdline(int argc, const char* argv[])
                 }
             }
             
-        } else if (isCmd(argv[i], "-l", "--library") && (i+1 < argc)) {
+        } else if (isCmd(argv[i], "-L", "--library") && (i+1 < argc)) {
             gGlobal->gLibraryList.push_back(argv[i+1]);
             i += 2;
            
@@ -541,7 +541,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
 static void printversion()
 {
-	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, ASM JavaScript, WebAssembly (wast/wasm), Interpreter Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, ASM JavaScript, WebAssembly (wast/wasm), Interpreter compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
@@ -605,7 +605,7 @@ static void printhelp()
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
-    cout << "-l <file> \t--library <file> link with the LLVM module <file>\n";
+    cout << "-L <file> \t--library <file> link with the LLVM module <file>\n";
     cout << "-O <dir> \t--output-dir <dir> specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML...)\n";
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";

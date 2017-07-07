@@ -37,9 +37,9 @@
 #include "TMutex.h"
 
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-#define LLVM_MAX_OPT_LEVEL 5
+    #define LLVM_MAX_OPT_LEVEL 5
 #else
-#define LLVM_MAX_OPT_LEVEL 4
+    #define LLVM_MAX_OPT_LEVEL 4
 #endif
 
 using namespace std;

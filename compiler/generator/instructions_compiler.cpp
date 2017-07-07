@@ -961,15 +961,15 @@ ValueInst* InstructionsCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
     ValueInst* tblname;
     Address::AccessType access;
 
-	if (isSigTable(tbl, id, size, content)) {
+    if (isSigTable(tbl, id, size, content)) {
         access = Address::kStaticStruct;
-		if (!getCompiledExpression(tbl, tblname)) {
-			tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
+        if (!getCompiledExpression(tbl, tblname)) {
+            tblname = setCompiledExpression(tbl, generateStaticTable(tbl, size, content));
         }
-	} else {
-		tblname = CS(tbl);
+    } else {
         access = Address::kStruct;
-	}
+        tblname = CS(tbl);
+    }
 
     LoadVarInst* load_value1 = dynamic_cast<LoadVarInst*>(tblname);
     faustassert(load_value1);

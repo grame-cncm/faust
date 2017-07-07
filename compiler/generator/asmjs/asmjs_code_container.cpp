@@ -53,7 +53,7 @@ using namespace std;
      10) waveforms are also allocated in the DSP object heap. Array definition is not done in 'global' part but in 'inits' methods 
      (see InstructionsCompiler::declareWaveform()). Since 'in extention' array definition is not possible, the FIR code is first rewritten to 
      a list of 'store' instructions (MoveVariablesInFront2), then the actual code is generated.
-     11) 'faustpower' function actualy fallback to regular 'pow' (see powprim.h), otherwise incorrectly typed 'faustpower' is generated.
+     11) 'faustpower' function actually fallback to regular 'pow' (see powprim.h), otherwise incorrectly typed 'faustpower' is generated.
  
 */
 

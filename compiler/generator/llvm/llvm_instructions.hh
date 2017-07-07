@@ -34,23 +34,34 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
+#include <llvm/ExecutionEngine/ExecutionEngine.h>
+#include <llvm/Transforms/Scalar.h>
+#include <llvm-c/BitWriter.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/TargetSelect.h>
+
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+    #include <llvm/IR/IRBuilder.h>
+    #include <llvm/IR/DataLayout.h>
     #include <llvm/IR/DerivedTypes.h>
     #include <llvm/IR/LLVMContext.h>
     #include <llvm/IR/Module.h>
+#elif defined(LLVM_32)
+    #include <llvm/IRBuilder.h>
 #else
+    #include <llvm/Target/TargetData.h>
+    #include <llvm/Support/IRBuilder.h>
     #include <llvm/DerivedTypes.h>
     #include <llvm/LLVMContext.h>
     #include <llvm/Module.h>
 #endif
 
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #define GET_ITERATOR(it) &(*(it))
+#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+    #include <llvm/IR/Verifier.h>
 #else
-    #define GET_ITERATOR(it) it
+    #include <llvm/Analysis/Verifier.h>
 #endif
-
-#include <llvm/ExecutionEngine/ExecutionEngine.h>
 
 #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #include <llvm/ExecutionEngine/MCJIT.h>
@@ -64,9 +75,6 @@ using namespace std;
     #include <llvm/PassManager.h>
 #endif
 
-#include <llvm/Transforms/Scalar.h>
-#include <llvm-c/BitWriter.h>
-
 #if defined(LLVM_40)
     #include <llvm/Bitcode/BitcodeWriter.h>
     #include <llvm/Bitcode/BitcodeReader.h>
@@ -74,29 +82,19 @@ using namespace std;
     #include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
-#include <llvm/Support/raw_ostream.h>
-#include <llvm/Support/Host.h>
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/IR/Verifier.h>
+#ifdef _WIN32
+    #define LLVM_MALLOC "llvm_malloc"
+    #define LLVM_FREE   "llvm_free"
 #else
-    #include <llvm/Analysis/Verifier.h>
+    #define LLVM_MALLOC "malloc"
+    #define LLVM_FREE   "free"
 #endif
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/IR/IRBuilder.h>
-#elif defined(LLVM_32) 
-    #include <llvm/IRBuilder.h>
+#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+    #define GET_ITERATOR(it) &(*(it))
 #else
-    #include <llvm/Target/TargetData.h>
-    #include <llvm/Support/IRBuilder.h>
+    #define GET_ITERATOR(it) it
 #endif
-
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
-    #include <llvm/IR/DataLayout.h>
-#endif
-
-#include <llvm/Support/TargetSelect.h>
 
 #define VECTOR_OF_TYPES vector<llvm::Type*>
 #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
@@ -107,16 +105,7 @@ using namespace std;
 #define CREATE_CALL(fun, args) fBuilder->CreateCall(fun, MAKE_VECTOR_OF_TYPES(args))
 #define CREATE_CALL1(fun, args, str, block) CallInst::Create(fun, MAKE_VECTOR_OF_TYPES(args), str, block)
 #define CREATE_PHI(type, name) fBuilder->CreatePHI(type, 0, name);
-
 #define VECTOR_ALIGN 0
-
-#ifdef _WIN32
-    #define LLVM_MALLOC "llvm_malloc"
-    #define LLVM_FREE   "llvm_free"
-#else
-    #define LLVM_MALLOC "malloc"
-    #define LLVM_FREE   "free"
-#endif
 
 using namespace llvm;
 

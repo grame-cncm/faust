@@ -45,14 +45,6 @@
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
 
-#if defined(LLVM_40)
-    #include <llvm/Bitcode/BitcodeWriter.h>
-    #include <llvm/Bitcode/BitcodeReader.h>
-    #include <llvm/Transforms/IPO/AlwaysInliner.h>
-#elif defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-    #include <llvm/Bitcode/ReaderWriter.h>
-#endif
-
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
     #include <llvm/IR/Module.h>
     #include <llvm/IR/LLVMContext.h>
@@ -85,7 +77,15 @@
     #define PASS_MANAGER PassManager
     #define FUNCTION_PASS_MANAGER FunctionPassManager
 #endif
- 
+
+#if defined(LLVM_40)
+    #include <llvm/Bitcode/BitcodeWriter.h>
+    #include <llvm/Bitcode/BitcodeReader.h>
+    #include <llvm/Transforms/IPO/AlwaysInliner.h>
+#elif defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+    #include <llvm/Bitcode/ReaderWriter.h>
+#endif
+
 /* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
  * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
  * 3.3.

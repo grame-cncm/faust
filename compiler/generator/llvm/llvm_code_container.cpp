@@ -32,7 +32,7 @@ using namespace std;
  
 - 'clone' method is implemented in the 'llvm_dsp' wrapping code
 
- TODO: in -mem mode, classInit and classDestroy will have to be called one at factory init and destroy time
+ TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
 
 #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
