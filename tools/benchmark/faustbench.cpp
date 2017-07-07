@@ -32,6 +32,8 @@
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 
+#ifdef ALL_TESTS
+
 #include "dsp_scal.h"
 
 #include "dsp_vec0_4.h"
@@ -70,6 +72,16 @@
 #include "dsp_vec1g_256.h"
 #include "dsp_vec1g_512.h"
 
+#else 
+
+#include "dsp_scal.h"
+#include "dsp_vec0_32.h"
+#include "dsp_vec1_32.h"
+#include "dsp_vec0g_32.h"
+#include "dsp_vec1g_32.h"
+
+#endif
+
 using namespace std;
 
 #define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
@@ -89,6 +101,8 @@ extern "C" int bench_all(const char* name)
     vector<string> options;
     
     cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
+    
+#ifdef ALL_TESTS
     
     options.push_back(ADD_DOUBLE + "-scal");
     
@@ -128,7 +142,19 @@ extern "C" int bench_all(const char* name)
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256 -g");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512 -g");
     
+#else
+    
+    options.push_back(ADD_DOUBLE + "-scal");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
+    options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32 -g");
+    
+#endif
+    
     int ind = 0;
+    
+#ifdef ALL_TESTS
     
     // Scalar
     measures.push_back(bench(new dsp_scal(), options[ind++]));
@@ -170,6 +196,16 @@ extern "C" int bench_all(const char* name)
     measures.push_back(bench(new dsp_vec1g_128(), options[ind++]));
     measures.push_back(bench(new dsp_vec1g_256(), options[ind++]));
     measures.push_back(bench(new dsp_vec1g_512(), options[ind++]));
+    
+#else
+    
+    measures.push_back(bench(new dsp_scal(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++]));
+    
+#endif
     
     vector<double> measures1 = measures;
     sort(measures1.begin(), measures1.end());
