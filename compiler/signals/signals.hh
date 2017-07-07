@@ -270,7 +270,6 @@ Tree sigCartesianProd (Tree s1, Tree s2);
     Add FTZ wrapping to a signal
 *****************************************************************************/
 
-Tree sigFTZExpansion (Tree s);
 Tree sigFTZ (Tree s);
 
 
