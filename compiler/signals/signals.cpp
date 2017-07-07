@@ -27,7 +27,9 @@
 
 
 
+#include <float.h>
 #include "signals.hh"
+#include "xtended.hh"
 
 
 ////////////////////////////////////////////////////////////////////////
@@ -429,4 +431,26 @@ bool verySimple(Tree exp)
 			|| 	isSigReal(exp, &r)
 			||	isSigInput(exp, &i)
 			||	isSigFConst(exp, type, name, file);
+}
+
+
+
+
+
+/*****************************************************************************
+							 FTZ wrapping
+    Add FTZ wrapping to a signal
+*****************************************************************************/
+
+// \(x).(select2(abs(x)<mmm, x, 0))
+Tree sigFTZExpansion (Tree s)
+{
+	vector<Tree> vs;
+	vs.push_back(s);
+	return sigSelect2(sigLT(gAbsPrim->computeSigOutput(vs), sigReal(FLT_MIN)), s, sigReal(0.0));
+}
+
+Tree sigFTZ (Tree s)
+{
+	return tree(gFtzPrim->symbol(), s);
 }

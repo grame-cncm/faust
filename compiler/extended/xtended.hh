@@ -101,4 +101,6 @@ extern xtended* gAbsPrim;
 extern xtended* gMaxPrim;
 extern xtended* gMinPrim;
 
+extern xtended* gFtzPrim;
+
 #endif
