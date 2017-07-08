@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.9.104ec"
+#define FAUSTVERSION "0.10.0ec"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -175,7 +175,9 @@ bool            gInjectFlag     = false;        // inject an external source fil
 string          gInjectFile     = "";           // instead of a compiled dsp file
 
 // Enable
-bool            gEnableFlag       = true;         // when true uses real enable/disable semantics otherwise multiplication semantics
+bool            gEnableFlag     = true;         // when true uses real enable/disable semantics otherwise multiplication semantics
+// FTZ
+bool            gFTZFlag        = false;        // when true injects FTZ code in floating points rec signals
 
 //-- command line tools
 
@@ -406,6 +408,10 @@ bool process_cmdline(int argc, char* argv[])
             gExportDSP = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
+            gFTZFlag = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
                 gImportDirList.push_back(argv[i+1]);
@@ -529,7 +535,7 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
-    cout << "-mem \t\t--memory- allocate static in global state using a custom memory manager\n";
+    cout << "-mem \t\t--memory allocate static in global state using a custom memory manager\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
@@ -557,6 +563,7 @@ void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
+  	cout << "-ftz     \t--flush-to-zero code added to recursive signals\n";
   	cout << "\nexample :\n";
 	cout << "---------\n";
 

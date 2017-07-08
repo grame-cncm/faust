@@ -32,7 +32,7 @@ Michon and Julius O. Smith III, and are released under the
 
 //------------------------------`jcrev`------------------------------
 // This artificial reverberator take a mono signal and output stereo
-// (`satrev`) and quad (`jcrev`).  They were implemented by John Chowning
+// (`satrev`) and quad (`jcrev`). They were implemented by John Chowning
 // in the MUS10 computer-music language (descended from Music V by Max
 // Mathews).  They are Schroeder Reverberators, well tuned for their size.
 // Nowadays, the more expensive freeverb is more commonly used (see the
