@@ -34,6 +34,7 @@
 //extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
 
+extern bool gFTZFlag;
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -238,6 +239,13 @@ siglist propagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
     return result;
 }
 
+// Apply sigFTZ() to all signals of a vector
+static siglist wrapWithFTZ(const siglist&  l1) 
+{
+	siglist l2;
+	for (auto x : l1) { l2.push_back(sigFTZ(x)); }
+	return l2;
+}
 
 /**
  * Propagate a list of signals into a block diagram. Actual function.
@@ -481,7 +489,8 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
-        Tree g = rec(listConvert(l2));
+		siglist l3 = (gFTZFlag) ? wrapWithFTZ(l2) : l2;
+        Tree g = rec(listConvert(l3));
         return makeSigProjList(g, out1);
     }
 

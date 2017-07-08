@@ -3080,10 +3080,10 @@ with{
 //-------`formantFilterFofCycle`--------------
 // Formant filter based on a single FOF filter.
 // Formant parameters are linearly interpolated allowing to go smoothly from
-// one vowel to another. A cycle of n fof filters with sample-and-hold is
+// one vowel to another. A cycle of `n` fof filters with sample-and-hold is
 // used so that the fof filter parameters can be varied in realtime.
 // This technique is more robust but more computationally expensive than
-// [`formantFilterFofSmooth`](#formantfilterfofsmooth). Voice type can be
+// [`formantFilterFofSmooth`](#formantFilterFofSmooth).Voice type can be
 // selected but must correspond to
 // the frequency range of the provided source to be realistic.
 //
@@ -3148,7 +3148,7 @@ with{
 formantFilterFofSmooth(voiceType,vowel,nFormants,i,freq) =
 	fofSmooth(formantFreq(i),formantBw(i),formantSw(i),formantGain(i),tau)
 with{
-	tau = 0.01; // pole of the 1-pole filter smoothing bw and sw values
+	tau = 0.001;
 	index = (voiceType*nFormants)+vowel; // index of formant values
 	// formant center frequency using autobend correction
 	formantFreq(i) = ba.listInterp(formantValues.f(i),index) : autobendFreq(i,freq,voiceType);
@@ -3219,6 +3219,7 @@ with{
 // * `freq`: fundamental frequency of excitation signal. Needed for FOF
 //         version to calculate rise time of envelope
 //--------------------------------------
+// Author: Mike Olsen
 formantFilterbank(voiceType,vowel,formantGen,freq) =
 	_ <: par(i,nFormants,formantGen(voiceType,vowel,nFormants,i,freq)) :> _
 with{
@@ -3245,11 +3246,11 @@ with{
 // * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
 // * `freq`: the fundamental frequency of the excitation signal. Needed to
 //	     calculate the skirtwidth of the FOF envelopes and for the
-//	     `autobendFreq` and `vocalEffort` functions
+//	     autobendFreq and vocalEffort functions
 //-------------------------------------
 // Author: Mike Olsen
 formantFilterbankFofCycle(voiceType,vowel,freq) =
-_ : formantFilterbank(voiceType,vowel,formantFilterFofCycle,freq);
+formantFilterbank(voiceType,vowel,formantFilterFofCycle,freq);
 
 
 //-----`formantFilterbankFofSmooth`----
@@ -3271,7 +3272,7 @@ _ : formantFilterbank(voiceType,vowel,formantFilterFofCycle,freq);
 // * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
 // * `freq`: the fundamental frequency of the excitation signal. Needed to
 //	     calculate the skirtwidth of the FOF envelopes and for the
-//	     `autobendFreq` and `vocalEffort` functions
+//	     autobendFreq and vocalEffort functions
 //-------------------------------------
 // Author: Mike Olsen
 formantFilterbankFofSmooth(voiceType,vowel,freq) =
@@ -3296,16 +3297,16 @@ formantFilterbank(voiceType,vowel,formantFilterFofSmooth,freq);
 // 		  3: soprano, 4: tenor)
 // * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u)
 // * `freq`: the fundamental frequency of the excitation signal. Needed
-//	     for the `autobendFreq` and `vocalEffort` functions
+//	     for the autobendFreq and vocalEffort functions
 //--------------------------------------
 formantFilterbankBP(voiceType,vowel,freq) =
 formantFilterbank(voiceType,vowel,formantFilterBP,freq);
 
 
 //-------`SFFormantModel`--------------
-// Simple formant/vocal synthesizer based on a source/filter model. The source
+// Simple formant/vocal synthesizer based on a source/filter model. The `source`
 // and `filterbank` must be specified by the user. `filterbank` must take the same
-// input parameters as [`formantFilterbank`](#formantfilterbank) (`BP`/`FofCycle`
+// input parameters as [`formantFilterbank`](#formantFilterbank) (`BP`/`FofCycle`
 // /`FofSmooth`).
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
@@ -3314,7 +3315,7 @@ formantFilterbank(voiceType,vowel,formantFilterBP,freq);
 // #### Usage
 //
 // ```
-// SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank) : _
+// SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank,isFof) : _
 // ```
 //
 // Where:
@@ -3325,13 +3326,16 @@ formantFilterbank(voiceType,vowel,formantFilterBP,freq);
 // * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
 // * `freq`: the fundamental frequency of the source signal
 // * `gain`: linear gain multiplier to multiply the source by
+// * `isFof`: whether model is FOF based (0: no, 1: yes)
 //--------------------------------------
 // Author: Mike Olsen
-SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank) =
-excitation : filterbank(voiceType,vowel,freq)
+SFFormantModel(voiceType,vowel,exType,freq,gain,source,filterbank,isFof) =
+	excitation : resonance
 with{
 	breath = no.noise;
-	excitation = source*(1-exType) + breath*exType : *(gain);
+	excitation = ba.if(isFof,source,source*(1-exType) + breath*exType :
+			*(gain));
+	resonance = filterbank(voiceType,vowel,freq) <: ba.if(isFof,*(gain),_);
 };
 
 
@@ -3347,7 +3351,7 @@ with{
 // #### Usage
 //
 // ```
-// SFFormantModelFofCycle(voiceType,vowel,exType,freq,gain) : _
+// SFFormantModelFofCycle(voiceType,vowel,freq,gain) : _
 // ```
 //
 // Where:
@@ -3359,13 +3363,14 @@ with{
 // * `gain`: linear gain multiplier to multiply the source by
 //---------------------------------------
 // Author: Mike Olsen
-SFFormantModelFofCycle(voiceType,vowel,freq,gain) = os.lf_imptrain(freq) :
-formantFilterbankFofCycle(voiceType,vowel,freq) : *(gain);
+SFFormantModelFofCycle(voiceType,vowel,freq,gain) =
+SFFormantModel(voiceType,vowel,0,freq,gain,os.lf_imptrain(freq),
+formantFilterbankFofCycle,1);
 
 
 //-------`SFFormantModelFofSmooth`-------
 // Simple formant/vocal synthesizer based on a source/filter model. The source
-// is just a periodic impulse and the filter is a bank of FOF filters.
+// is just a periodic impulse and the "filter" is a bank of FOF filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
 // the frequency range of the synthesized voice to be realistic.
@@ -3373,7 +3378,7 @@ formantFilterbankFofCycle(voiceType,vowel,freq) : *(gain);
 // #### Usage
 //
 // ```
-// SFFormantModelFofSmooth(voiceType,vowel,exType,freq,gain) : _
+// SFFormantModelFofSmooth(voiceType,vowel,freq,gain) : _
 // ```
 //
 // Where:
@@ -3381,15 +3386,13 @@ formantFilterbankFofCycle(voiceType,vowel,freq) : *(gain);
 // * `voiceType`: the voice type (0: alto, 1: bass, 2: countertenor,
 // 		  3: soprano, 4: tenor)
 // * `vowel`: the vowel (0: a, 1: e, 2: i, 3: o, 4: u
-// * `exType`: voice vs. fricative sound ratio (0-1 where 1 is 100% fricative)
 // * `freq`: the fundamental frequency of the source signal
 // * `gain`: linear gain multiplier to multiply the source by
 //---------------------------------------
 // Author: Mike Olsen
-SFFormantModelFofSmooth(voiceType,vowel,exType,freq,gain) =
-SFFormantModel(voiceType,vowel,exType,freq,gain,os.lf_imptrain(freq),
-formantFilterbankFofSmooth);
-
+SFFormantModelFofSmooth(voiceType,vowel,freq,gain) =
+SFFormantModel(voiceType,vowel,0,freq,gain,os.lf_imptrain(freq),
+formantFilterbankFofSmooth,1);
 
 
 //-------`SFFormantModelBP`--------------
@@ -3398,6 +3401,9 @@ formantFilterbankFofSmooth);
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
 // the frequency range of the synthesized voice to be realistic.
+//
+// The formant data used here come from the CSOUND manual
+// <http://www.csounds.com/manual/html/>.
 //
 // #### Usage
 //
@@ -3416,8 +3422,7 @@ formantFilterbankFofSmooth);
 //---------------------------------------
 SFFormantModelBP(voiceType,vowel,exType,freq,gain) =
 SFFormantModel(voiceType,vowel,exType,freq,gain,os.sawtooth(freq),
-formantFilterbankBP);
-
+formantFilterbankBP,0);
 
 //-------`SFFormantModelFofCycle_ui`----------
 // Ready-to-use source-filter vocal synthesizer with built-in user interface.
@@ -3438,10 +3443,8 @@ with{
 	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
 	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
 	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
-
 	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
 };
-
 
 
 //-------`SFFormantModelFofSmooth_ui`----------
@@ -3454,17 +3457,15 @@ with{
 // ```
 //----------------------------------
 // Author: Mike Olsen
-SFFormantModelFofSmooth_ui = SFFormantModelFofSmooth(voiceType,vowel,fricative,freq2,gain*corrFactor)
+SFFormantModelFofSmooth_ui = SFFormantModelFofSmooth(voiceType,vowel,freq2,gain*corrFactor)
 with{
 	freq1 = hslider("v:vocal/[0]freq",440,50,1000,0.01);
 	gain = hslider("v:vocal/[1]gain",0.9,0,1,0.01);
-	corrFactor = 75.0;
+	corrFactor = 25.0;
 	voiceType = hslider("v:vocal/[2]voiceType",0,0,4,1);
 	vowel = hslider("v:vocal/[3]vowel",0,0,4,0.01) : si.smoo;
-	fricative = hslider("v:vocal/[4]fricative",0,0,1,0.01) : si.smoo;
 	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
 	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
-
 	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
 };
 
@@ -3487,7 +3488,6 @@ with{
 	fricative = hslider("v:vocal/[4]fricative",0,0,1,0.01) : si.smoo;
 	vibratoFreq = hslider("v:vocal/[5]vibratoFreq",6,1,10,0.01);
 	vibratoGain = hslider("v:vocal/[6]vibratoGain",0.5,0,1,0.01)*0.1;
-
 	freq2 = freq1*(os.osc(vibratoFreq)*vibratoGain+1);
 };
 
@@ -3501,9 +3501,7 @@ with{
 // SFFormantModelFofCycle_ui_MIDI : _
 // ```
 //----------------------------------
-// Author: Mike Olsen
-SFFormantModelFofCycle_ui_MIDI =
-SFFormantModelFofCycle(voiceType,vowel,freq2,envelope)*outGain
+SFFormantModelFofCycle_ui_MIDI = SFFormantModelFofCycle(voiceType,vowel,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
@@ -3542,15 +3540,14 @@ with{
 // SFFormantModelFofSmooth_ui_MIDI : _
 // ```
 //----------------------------------
-// Author: Mike Olsen
-SFFormantModelFofSmooth_ui_MIDI = SFFormantModelFofSmooth(voiceType,vowel,fricative,freq2,envelope)*outGain
+SFFormantModelFofSmooth_ui_MIDI = SFFormantModelFofSmooth(voiceType,vowel,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
 	",0.9,0,1,0.01);
-	corrFactor = 75.0;
+	corrFactor = 25.0;
 	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
 	",10,0,30,0.01)*0.001;
 	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
@@ -3559,8 +3556,6 @@ with{
 	[style:knob]",0,0,4,1);
 	vowel = hslider("v:vocal/h:[1]otherParams/[1]vowel
 	[style:knob][midi:ctrl 1]",0,0,4,0.01) : si.smoo;
-	fricative = hslider("v:vocal/h:[1]otherParams/[2]fricative
-	[style:knob]",0,0,1,0.01) : si.smoo;
 	vibratoFreq = hslider("v:vocal/h:[1]otherParams/[3]vibratoFreq[style:knob]
 	",6,1,10,0.01);
 	vibratoGain = hslider("v:vocal/h:[1]otherParams/[4]vibratoGain[style:knob]
@@ -3584,8 +3579,7 @@ with{
 // SFFormantModelBP_ui_MIDI : _
 // ```
 //----------------------------------
-SFFormantModelBP_ui_MIDI =
-SFFormantModelBP(voiceType,vowel,fricative,freq2,envelope)*outGain
+SFFormantModelBP_ui_MIDI = SFFormantModelBP(voiceType,vowel,fricative,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]

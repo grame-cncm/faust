@@ -8,6 +8,7 @@ IOS="0"
 DOUBLE="0"
 OPTIONS=""
 LIBS=""
+ALL_TESTS="1"
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
@@ -29,8 +30,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] [-double] [Additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faustbench [-ios] [-fast] [-double] [Additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-ios' to generate an iOS project"
+        echo "Use '-fast' to execute only some tests"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
@@ -39,6 +41,8 @@ do
 
     if [ "$p" = "-ios" ]; then
         IOS="1"
+    elif [ "$p" = "-fast" ]; then
+        ALL_TESTS="0"
     elif [ "$p" = "-double" ]; then
         DOUBLE="1"
         OPTIONS="$OPTIONS $p"
@@ -73,43 +77,55 @@ for p in $FILES; do
         echo "Compiled with additional options :$OPTIONS"
     fi
 
-    faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
+    if [ $ALL_TESTS == "1" ] ; then
 
-    faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
-    faust -cn dsp_vec0_8 $OPTIONS -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
-    faust -cn dsp_vec0_16 $OPTIONS -vec -lv 0 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec0_16.h"
-    faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
-    faust -cn dsp_vec0_64 $OPTIONS -vec -lv 0 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec0_64.h"
-    faust -cn dsp_vec0_128 $OPTIONS -vec -lv 0 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec0_128.h"
-    faust -cn dsp_vec0_256 $OPTIONS -vec -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_256.h"
-    faust -cn dsp_vec0_512 $OPTIONS -vec -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_512.h"
+        faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
 
-    faust -cn dsp_vec0g_4 $OPTIONS -vec -lv 0 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_4.h"
-    faust -cn dsp_vec0g_8 $OPTIONS -vec -lv 0 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_8.h"
-    faust -cn dsp_vec0g_16 $OPTIONS -vec -lv 0 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_16.h"
-    faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
-    faust -cn dsp_vec0g_64 $OPTIONS -vec -lv 0 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_64.h"
-    faust -cn dsp_vec0g_128 $OPTIONS -vec -lv 0 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_128.h"
-    faust -cn dsp_vec0g_256 $OPTIONS -vec -lv 0 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_256.h"
-    faust -cn dsp_vec0g_512 $OPTIONS -vec -lv 0 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_512.h"
+        faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
+        faust -cn dsp_vec0_8 $OPTIONS -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
+        faust -cn dsp_vec0_16 $OPTIONS -vec -lv 0 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec0_16.h"
+        faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
+        faust -cn dsp_vec0_64 $OPTIONS -vec -lv 0 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec0_64.h"
+        faust -cn dsp_vec0_128 $OPTIONS -vec -lv 0 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec0_128.h"
+        faust -cn dsp_vec0_256 $OPTIONS -vec -lv 0 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec0_256.h"
+        faust -cn dsp_vec0_512 $OPTIONS -vec -lv 0 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec0_512.h"
 
-    faust -cn dsp_vec1_4 $OPTIONS -vec -lv 1 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec1_4.h"
-    faust -cn dsp_vec1_8 $OPTIONS -vec -lv 1 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec1_8.h"
-    faust -cn dsp_vec1_16 $OPTIONS -vec -lv 1 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec1_16.h"
-    faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
-    faust -cn dsp_vec1_64 $OPTIONS -vec -lv 1 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec1_64.h"
-    faust -cn dsp_vec1_128 $OPTIONS -vec -lv 1 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec1_128.h"
-    faust -cn dsp_vec1_256 $OPTIONS -vec -lv 1 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec1_256.h"
-    faust -cn dsp_vec1_512 $OPTIONS -vec -lv 1 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec1_512.h"
+        faust -cn dsp_vec0g_4 $OPTIONS -vec -lv 0 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_4.h"
+        faust -cn dsp_vec0g_8 $OPTIONS -vec -lv 0 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_8.h"
+        faust -cn dsp_vec0g_16 $OPTIONS -vec -lv 0 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_16.h"
+        faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
+        faust -cn dsp_vec0g_64 $OPTIONS -vec -lv 0 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_64.h"
+        faust -cn dsp_vec0g_128 $OPTIONS -vec -lv 0 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_128.h"
+        faust -cn dsp_vec0g_256 $OPTIONS -vec -lv 0 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_256.h"
+        faust -cn dsp_vec0g_512 $OPTIONS -vec -lv 0 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_512.h"
 
-    faust -cn dsp_vec1g_4 $OPTIONS -vec -lv 1 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_4.h"
-    faust -cn dsp_vec1g_8 $OPTIONS -vec -lv 1 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_8.h"
-    faust -cn dsp_vec1g_16 $OPTIONS -vec -lv 1 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_16.h"
-    faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
-    faust -cn dsp_vec1g_64 $OPTIONS -vec -lv 1 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_64.h"
-    faust -cn dsp_vec1g_128 $OPTIONS -vec -lv 1 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_128.h"
-    faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
-    faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
+        faust -cn dsp_vec1_4 $OPTIONS -vec -lv 1 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec1_4.h"
+        faust -cn dsp_vec1_8 $OPTIONS -vec -lv 1 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec1_8.h"
+        faust -cn dsp_vec1_16 $OPTIONS -vec -lv 1 -vs 16 "$SRCDIR/$f" -o "$TMP/dsp_vec1_16.h"
+        faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
+        faust -cn dsp_vec1_64 $OPTIONS -vec -lv 1 -vs 64 "$SRCDIR/$f" -o "$TMP/dsp_vec1_64.h"
+        faust -cn dsp_vec1_128 $OPTIONS -vec -lv 1 -vs 128 "$SRCDIR/$f" -o "$TMP/dsp_vec1_128.h"
+        faust -cn dsp_vec1_256 $OPTIONS -vec -lv 1 -vs 256 "$SRCDIR/$f" -o "$TMP/dsp_vec1_256.h"
+        faust -cn dsp_vec1_512 $OPTIONS -vec -lv 1 -vs 512 "$SRCDIR/$f" -o "$TMP/dsp_vec1_512.h"
+
+        faust -cn dsp_vec1g_4 $OPTIONS -vec -lv 1 -vs 4 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_4.h"
+        faust -cn dsp_vec1g_8 $OPTIONS -vec -lv 1 -vs 8 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_8.h"
+        faust -cn dsp_vec1g_16 $OPTIONS -vec -lv 1 -vs 16 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_16.h"
+        faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
+        faust -cn dsp_vec1g_64 $OPTIONS -vec -lv 1 -vs 64 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_64.h"
+        faust -cn dsp_vec1g_128 $OPTIONS -vec -lv 1 -vs 128 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_128.h"
+        faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
+        faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
+
+    else
+
+        faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
+        faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
+        faust -cn dsp_vec0g_32 $OPTIONS -vec -lv 0 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec0g_32.h"
+        faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
+        faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
+
+    fi
 
     if [ $IOS == "1" ] ; then
         echo "Files generated for iOS project in $TMP"
@@ -130,7 +146,11 @@ for p in $FILES; do
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     fi
 
-    $CXX $CXXFLAGS -I . -I ../../ -ffast-math faustbench.cpp $LIBS -o $dspName
+    if [ $ALL_TESTS == "1" ] ; then
+        $CXX $CXXFLAGS -I . -I ../../ -ffast-math -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+    else
+        $CXX $CXXFLAGS -I . -I ../../ -ffast-math faustbench.cpp $LIBS -o $dspName
+    fi
 
     # run bench
    ./$dspName
