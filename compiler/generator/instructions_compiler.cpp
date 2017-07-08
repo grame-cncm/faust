@@ -718,14 +718,14 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
         int sig_argtype = ffargtype(ff, (ffarity(ff) - 1) - i);
         BasicTyped* argtype = genBasicFIRTyped(sig_argtype);
         args_types.push_back(InstBuilder::genNamedTyped("dummy" + num.str(), argtype));
-        args_value.push_back(InstBuilder::genCastNumInst(CS(parameter), argtype));
+        args_value.push_back(InstBuilder::genCastInst(CS(parameter), argtype));
     }
    
     // Add function declaration
     FunTyped* fun_type = InstBuilder::genFunTyped(args_types, genBasicFIRTyped(ffrestype(ff)));
     pushExtGlobalDeclare(InstBuilder::genDeclareFunInst(funname, fun_type));
  
-    return generateCacheCode(sig, InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
+    return generateCacheCode(sig, InstBuilder::genCastInst(InstBuilder::genFunCallInst(funname, args_value), genBasicFIRTyped(ffrestype(ff))));
 }
 
 /*****************************************************************************
@@ -907,7 +907,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         alloc_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         alloc_args.push_back(InstBuilder::genIntNumInst(size * Typed::getSizeOf(ctype)));
         pushStaticInitMethod(InstBuilder::genStoreStaticStructVar(vname,
-                                                                  InstBuilder::genCastNumInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
+                                                                  InstBuilder::genCastInst(InstBuilder::genFunCallInst("allocate", alloc_args, true),
                                                                                               InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(ctype), 0))));
         
         list<ValueInst*> destroy_args;
@@ -944,7 +944,7 @@ ValueInst* InstructionsCompiler::generateWRTbl(Tree sig, Tree tbl, Tree idx, Tre
      
     pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(load_value->fAddress->getName(), 
                                                              CS(idx), 
-                                                             (table_type != data_type) ? InstBuilder::genCastNumInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
+                                                             (table_type != data_type) ? InstBuilder::genCastInst(CS(data), genBasicFIRTyped(table_type)) : CS(data)));
 
     // Return table access
     return InstBuilder::genLoadStructVar(load_value->fAddress->getName());

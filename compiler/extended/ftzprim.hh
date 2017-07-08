@@ -95,6 +95,9 @@ class FtzPrim : public xtended
             return InstBuilder::genSelect2Inst(InstBuilder::genGreaterThan(InstBuilder::genFunCallInst(subst("fabs$0", isuffix()), args_value), real_min),
                                                InstBuilder::genLoadStackVar(vname),
                                                InstBuilder::genTypedZero(itfloat()));
+            
+            //return InstBuilder::genAdd(InstBuilder::genAdd(*args.begin(), InstBuilder::genFloatNumInst(1)), InstBuilder::genFloatNumInst(-1));
+            
       	} else {
 			// No ftz code for integer signals
 			return *args.begin();

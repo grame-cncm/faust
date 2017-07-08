@@ -244,7 +244,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
             }
 
             // C like cast
-            virtual void visit(CastNumInst* inst)
+            virtual void visit(CastInst* inst)
             {
                 *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
                 inst->fInst->accept(this);

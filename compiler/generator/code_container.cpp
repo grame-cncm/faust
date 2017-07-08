@@ -284,7 +284,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
             }
             // Use cast to "keep" result type
             if (gGlobal->gOutputLang == "ajs") {
-                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastNumInst(res, getTypeASM(result))));
+                block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genCastInst(res, getTypeASM(result))));
             } else {
                 block->pushBackInst(InstBuilder::genRetInst(res));
             }
@@ -296,7 +296,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         truncated_args.push_back((*args.begin()));
         if (gGlobal->gOutputLang == "ajs") {
             // Use cast to "keep" result type
-            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), getTypeASM(result));
+            return InstBuilder::genCastInst(InstBuilder::genFunCallInst(faust_power_name, truncated_args), getTypeASM(result));
         } else {
             return InstBuilder::genFunCallInst(faust_power_name, truncated_args);
         }
@@ -312,7 +312,7 @@ ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result
         pushGlobalDeclare(InstBuilder::genDeclareFunInst(name, InstBuilder::genFunTyped(named_args, result_type)));
         if (gGlobal->gOutputLang == "ajs") {
             // Use cast to "keep" result type
-            return InstBuilder::genCastNumInst(InstBuilder::genFunCallInst(name, args), getTypeASM(result));
+            return InstBuilder::genCastInst(InstBuilder::genFunCallInst(name, args), getTypeASM(result));
         } else {
             return InstBuilder::genFunCallInst(name, args);
         }

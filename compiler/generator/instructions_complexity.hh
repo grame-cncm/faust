@@ -71,7 +71,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         virtual void visit(DoubleNumInst* inst) { fNumbers++; }
 
         virtual void visit(BinopInst* inst) { fBinop++; DispatchVisitor::visit(inst); }
-        virtual void visit(CastNumInst* inst) { fCast++; DispatchVisitor::visit(inst); }
+        virtual void visit(CastInst* inst) { fCast++; DispatchVisitor::visit(inst); }
 
          // Needs a cost table for a set of standard functions?
         virtual void visit(FunCallInst* inst) 

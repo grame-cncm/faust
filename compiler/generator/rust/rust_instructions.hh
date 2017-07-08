@@ -365,7 +365,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ']';
         }
     
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             *fOut << "(";
             inst->fInst->accept(this);

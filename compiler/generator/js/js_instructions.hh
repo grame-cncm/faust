@@ -228,7 +228,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << inst->fNum;
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             // No explicit cast generation
             inst->fInst->accept(this);

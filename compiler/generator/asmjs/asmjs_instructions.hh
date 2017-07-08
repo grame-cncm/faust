@@ -444,7 +444,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
         
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             if (inst->fType->getType() == Typed::kInt) {
                 *fOut << "~~(";

@@ -485,12 +485,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             *fOut << ")";
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             if (inst->fSize > 1) {
-                *fOut << "CastNumInstVec<" << inst->fSize << ">(";
+                *fOut << "CastInstVec<" << inst->fSize << ">(";
             } else {
-                *fOut << "CastNumInst(";
+                *fOut << "CastInst(";
             }
             *fOut << generateType(inst->fType);
             *fOut << ", ";

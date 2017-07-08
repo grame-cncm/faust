@@ -201,7 +201,7 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << "&"; inst->fAddress->accept(this);
         }
      
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             string type = fTypeManager->generateType(inst->fType);
             if (endWith(type, "*")) {
@@ -370,7 +370,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             EndLine();
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(CastInst* inst)
         {
             // Compile value to cast, result in fCurValue
             inst->fInst->accept(this);

@@ -61,7 +61,7 @@ struct BoolNumInst;
 struct DoubleNumInst;
 struct DoubleArrayNumInst;
 struct BinopInst;
-struct CastNumInst;
+struct CastInst;
 struct RetInst;
 struct DropInst;
 
@@ -147,7 +147,7 @@ struct InstVisitor : public virtual Garbageable {
 
     // Numerical computation
     virtual void visit(BinopInst* inst) {}
-    virtual void visit(CastNumInst* inst) {}
+    virtual void visit(CastInst* inst) {}
 
     // Function call
     virtual void visit(FunCallInst* inst) {}
@@ -203,7 +203,7 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst) = 0;
-    virtual ValueInst* visit(CastNumInst* inst) = 0;
+    virtual ValueInst* visit(CastInst* inst) = 0;
 
     // Function call
     virtual ValueInst* visit(FunCallInst* inst) = 0;
@@ -1092,16 +1092,16 @@ struct BinopInst : public ValueInst
     virtual int size() { return fInst1->size() + fInst2->size(); }
 };
 
-struct CastNumInst : public ValueInst
+struct CastInst : public ValueInst
 {
     Typed* fType;
     ValueInst* fInst;
 
-    CastNumInst(ValueInst* inst, Typed* typed, int size = 1)
+    CastInst(ValueInst* inst, Typed* typed, int size = 1)
         :ValueInst(size), fType(typed), fInst(inst)
     {}
     
-    virtual ~CastNumInst()
+    virtual ~CastInst()
     {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1421,7 +1421,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
         }
 
-        virtual ValueInst* visit(CastNumInst* inst) { return new CastNumInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize); }
+        virtual ValueInst* visit(CastInst* inst) { return new CastInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize); }
 
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
@@ -1555,7 +1555,7 @@ struct DispatchVisitor : public InstVisitor {
         inst->fInst2->accept(this);
     }
 
-    virtual void visit(CastNumInst* inst) { inst->fInst->accept(this); }
+    virtual void visit(CastInst* inst) { inst->fInst->accept(this); }
 
     virtual void visit(FunCallInst* inst)
     {
@@ -1732,7 +1732,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
             Dispatch2Visitor(inst);
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(CastInst* inst)
         {
             Dispatch2Visitor(inst);
         }
@@ -1858,7 +1858,7 @@ struct InstBuilder
         if (ctype == Typed::kFloat) {
             return new FloatNumInst(float(num));
         } else if (ctype == Typed::kFloatMacro) {
-            return genCastNumInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
+            return genCastInst(new DoubleNumInst(num), genBasicTyped(Typed::kFloatMacro));
         } else if (ctype == Typed::kDouble) {
             return new DoubleNumInst(num);
         } else if (ctype == Typed::kQuad) {
@@ -1889,7 +1889,7 @@ struct InstBuilder
     // Numerical computation
     static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1) { return new BinopInst(opcode, inst1, inst2, size); }
 
-    static ValueInst* genCastNumInst(ValueInst* inst, Typed* typed_ext, int size = 1)
+    static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext, int size = 1)
     {
         IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
@@ -1899,7 +1899,7 @@ struct InstBuilder
 
         if (!typed) {
             // Default case
-            return new CastNumInst(inst, typed_ext, size);
+            return new CastInst(inst, typed_ext, size);
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
@@ -1911,7 +1911,7 @@ struct InstBuilder
                 return genFloatNumInst(float(double_num->fNum));
             } else {
                 // Default case
-                return new CastNumInst(inst, typed, size);
+                return new CastInst(inst, typed, size);
             }
         } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
             if (int_num) {
@@ -1924,7 +1924,7 @@ struct InstBuilder
                 return inst;
             } else {
                 // Default case
-                return new CastNumInst(inst, typed, size);
+                return new CastInst(inst, typed, size);
             }
         } else if (typed->getType() == Typed::kInt) {
              if (int_num) {
@@ -1938,11 +1938,11 @@ struct InstBuilder
                 return genIntNumInst(int(double_num->fNum));
             } else {
                 // Default case
-                return new CastNumInst(inst, typed, size);
+                return new CastInst(inst, typed, size);
             }
         } else {
             // Default case
-            return new CastNumInst(inst, typed, size);
+            return new CastInst(inst, typed, size);
         }
     }
     

@@ -34,7 +34,7 @@ Interpreter backend description:
  
  - a single global visitor for main and sub-containers
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
- - multiple unneeded cast are eliminated in CastNumInst
+ - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
  - sub-containers code is 'inlined': fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container

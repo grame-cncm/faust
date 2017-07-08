@@ -111,7 +111,7 @@ struct TypingVisitor : public InstVisitor {
             }
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(CastInst* inst)
         {
             fCurType = inst->fType->getType();
         }

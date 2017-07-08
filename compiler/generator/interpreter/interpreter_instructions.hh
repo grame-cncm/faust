@@ -436,20 +436,20 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
     
         // Cast
-        virtual void visit(CastNumInst* inst) 
+        virtual void visit(::CastInst* inst)
         {
             inst->fInst->accept(this);
             bool real_t1 = fCurrentBlock->isRealInst();
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (!real_t1) {
-                    //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                    //std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastInt));
                 }
             } else {
                 if (real_t1) {
-                    //std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                    //std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kCastReal));
                 }

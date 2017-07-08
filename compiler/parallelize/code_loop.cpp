@@ -97,13 +97,13 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
         }
     }
 
-    virtual ValueInst* visit(CastNumInst* inst)
+    virtual ValueInst* visit(CastInst* inst)
     {
         ValueInst* cloned_inst = inst->fInst->clone(this);
 
         // Vector result when argument is vectorized
         if (cloned_inst->fSize > 1) {
-            return new CastNumInst(cloned_inst, inst->fType->clone(this), fSize);
+            return new CastInst(cloned_inst, inst->fType->clone(this), fSize);
         }  else {
             return BasicCloneVisitor::visit(inst);
         }

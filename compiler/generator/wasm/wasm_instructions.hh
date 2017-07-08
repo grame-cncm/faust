@@ -1255,14 +1255,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fTypingVisitor.visit(inst);
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             inst->fInst->accept(&fTypingVisitor);
             Typed::VarType type = fTypingVisitor.fCurType;
             
             if (inst->fType->getType() == Typed::kInt) {
                 if (type == Typed::kInt) {
-                    //std::cout << "CastNumInst : cast to int, but arg already int !" << std::endl;
+                    //std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
                     inst->fInst->accept(this);
                 } else {
                     inst->fInst->accept(this);
@@ -1270,7 +1270,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 }
             } else {
                 if (isRealType(type)) {
-                    //std::cout << "CastNumInst : cast to real, but arg already real !" << std::endl;
+                    //std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
                     inst->fInst->accept(this);
                 } else {
                     inst->fInst->accept(this);

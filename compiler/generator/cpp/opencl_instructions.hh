@@ -142,7 +142,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
             *fOut << "&"; inst->fAddress->accept(this);
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(CastInst* inst)
         {
             *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             *fOut << "("; inst->fInst->accept(this);  *fOut << ")";

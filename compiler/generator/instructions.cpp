@@ -114,17 +114,17 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
 
 ValueInst* InstBuilder::genCastNumFloatInst(ValueInst* inst)
 {
-    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(itfloat()));
+    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
 }
 
 ValueInst* InstBuilder::genCastNumFloatMacroInst(ValueInst* inst)
 {
-    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
+    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
 }
 
 ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
 {
-    return InstBuilder::genCastNumInst(inst, InstBuilder::genBasicTyped(Typed::kInt));
+    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt));
 }
 
 // BasicTyped are not cloned, but actually point on the same underlying type

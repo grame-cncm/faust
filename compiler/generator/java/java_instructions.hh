@@ -393,7 +393,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
 
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             inst->fInst->accept(&fTypingVisitor);
                 

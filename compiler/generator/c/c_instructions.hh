@@ -184,7 +184,7 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << "&"; inst->fAddress->accept(this);
         }
   
-        virtual void visit(CastNumInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             inst->fInst->accept(this);
