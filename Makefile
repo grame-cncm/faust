@@ -1,4 +1,4 @@
-version := 2.2.0
+version := 2.3.0
 
 system	?= $(shell uname -s)
 
@@ -194,6 +194,9 @@ install :
 	cp -r architecture/android $(prefix)/share/faust/
 	cp -r architecture/api $(prefix)/share/faust/
 	cp -r architecture/max-msp $(prefix)/share/faust/
+	#install unity
+	rm -rf $(prefix)/share/faust/unity
+	cp -r architecture/unity $(prefix)/share/faust/
 
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/share/faust/

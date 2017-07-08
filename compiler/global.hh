@@ -126,6 +126,7 @@ struct global {
 
     bool            gUIMacroSwitch;
     bool            gDumpNorm;
+    bool            gFTZFlag;
 
     int             gFloatSize;
 
@@ -231,6 +232,7 @@ struct global {
     xtended*                gAtanPrim;
     xtended*                gAtan2Prim;
     xtended*                gAsinPrim;
+    xtended*                gFtzPrim;
     
     Sym BOXIDENT;
     Sym BOXCUT;

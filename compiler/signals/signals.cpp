@@ -25,8 +25,11 @@
     22/01/05 : added int cast in select2 and select3 selection signal
 *****************************************************************************/
 
+#include <float.h>
+
 #include "global.hh"
 #include "signals.hh"
+#include "xtended.hh"
 
 Tree sigWriteReadTable(Tree n, Tree init, Tree widx, Tree wsig, Tree ridx)
 {
@@ -380,4 +383,17 @@ bool verySimple(Tree exp)
 			|| 	isSigReal(exp, &r)
 			||	isSigInput(exp, &i)
 			||	isSigFConst(exp, type, name, file);
+}
+
+
+/*****************************************************************************
+							 FTZ wrapping
+    Add FTZ wrapping to a signal
+*****************************************************************************/
+
+// \(x).(select2(abs(x)<mmm, x, 0))
+
+Tree sigFTZ (Tree s)
+{
+	return tree(gGlobal->gFtzPrim->symbol(), s);
 }

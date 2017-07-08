@@ -734,7 +734,8 @@ signals/signals.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh 
 signals/signals.o: errors/exception.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 signals/signals.o: signals/signals.hh signals/binop.hh generator/interpreter/fir_opcode.hh tlib/property.hh
 signals/signals.o: signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/instructions.hh
-signals/signals.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh
+signals/signals.o: generator/Text.hh evaluate/loopDetector.hh tlib/occurrences.hh extended/xtended.hh
+signals/signals.o: signals/sigvisitor.hh documentator/lateq.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/tree.hh tlib/symbol.hh garbageable.hh errors/exception.hh tlib/node.hh
 signals/sigorderrules.o: tlib/smartpointer.hh signals/interval.hh generator/instructions.hh signals/binop.hh
 signals/sigorderrules.o: generator/interpreter/fir_opcode.hh tlib/property.hh generator/Text.hh signals/sigprint.hh
@@ -815,7 +816,7 @@ global.o: generator/export.hh extended/acosprim.hh extended/tanprim.hh extended/
 global.o: extended/rintprim.hh tlib/compatibility.hh extended/remainderprim.hh extended/powprim.hh extended/minprim.hh
 global.o: extended/maxprim.hh extended/logprim.hh extended/log10prim.hh extended/fmodprim.hh extended/floorprim.hh
 global.o: extended/expprim.hh extended/cosprim.hh extended/ceilprim.hh extended/atanprim.hh extended/atan2prim.hh
-global.o: extended/asinprim.hh
+global.o: extended/asinprim.hh extended/ftzprim.hh
 generator/asmjs/asmjs_code_container.o: generator/asmjs/asmjs_code_container.hh generator/code_container.hh
 generator/asmjs/asmjs_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/asmjs/asmjs_code_container.o: garbageable.hh errors/exception.hh generator/interpreter/fir_opcode.hh

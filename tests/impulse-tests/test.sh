@@ -28,7 +28,7 @@ for p in $@; do
         echo "Use '-wasm' to check 'wasm' backend"
         echo "Use '-valgrind' to activate valgrind tests"
         exit
-    elif [ "$p" = -cpp ]; then
+    elif [ $p = "-cpp" ]; then
         BACKEND="cpp"
     elif [ $p = "-c" ]; then
         BACKEND="c"

@@ -43,45 +43,9 @@ public class MainActivity extends AppCompatActivity {
         if (dspFaust == null) {
             dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
         }
-        mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+
         MultiKeyboard multiKeyboard = new MultiKeyboard(this, dspFaust, null);
         mainLayout.addView(multiKeyboard);
-    }
-
-    // Record audio permission callback
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode){
-            case REQUEST_RECORD_AUDIO_PERMISSION:
-                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                break;
-        }
-        if (!permissionToRecordAccepted) { // if permission is declined, the app is terminated
-            finish();
-        }
-        else { // otherwise we can instantiate our audio engine
-            createFaust();
-        }
-    }
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        if(Build.VERSION.SDK_INT >= 23) {
-            ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
-        }
-        else{
-            permissionToRecordAccepted = true;
-            createFaust();
-        }
-
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        context = getApplicationContext();
 
         if(Build.VERSION.SDK_INT >= 23) {
             // MIDI Support
@@ -126,11 +90,47 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 public void onDeviceRemoved(final MidiDeviceInfo info) {
-
                 }
 
             }, new Handler(Looper.getMainLooper()));
         }
+    }
+
+    // Record audio permission callback
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if (!permissionToRecordAccepted) { // if permission is declined, the app is terminated
+            finish();
+        }
+        else { // otherwise we can instantiate our audio engine
+            createFaust();
+        }
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        context = getApplicationContext();
+        mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+
+        if(Build.VERSION.SDK_INT >= 23) {
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+        }
+        else{
+            permissionToRecordAccepted = true;
+            createFaust();
+        }
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
     }
 
     @Override

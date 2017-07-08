@@ -18,6 +18,7 @@ install:
 	install faust2alsa $(dest)
 	install faust2alsaconsole $(dest)
 	install faust2android $(dest)
+	install faust2androidunity $(dest)
 	install faust2api $(dest)
 	install faust2asmjs $(dest)
 	install faust2atomsnippets $(dest)
@@ -59,6 +60,7 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2osxiosunity $(dest)
 	install faust2raqt $(dest)
 	install faust2ros $(dest)
 	install faust2rosgtk $(dest)
@@ -66,6 +68,7 @@ install:
 	install faust2rpinetjackconsole $(dest)
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
+	install faust2sndfile $(dest)
 	install faust2smartkeyb $(dest)
 	install faust2supercollider $(dest)
 	install faust2svg $(dest)
@@ -76,8 +79,10 @@ install:
 	install faust2w32max6 $(dest)
 	install faust2w32msp $(dest)
 	install faust2w32puredata $(dest)
+	install faust2w32unity $(dest)
 	install faust2w32vst $(dest)
 	install faust2webaudio $(dest)
+	install faust2w64unity $(dest)
 	install faust2webaudioasm $(dest)
 	install faust2webaudiowasm $(dest)
 	install faust2webaudiowast $(dest)
@@ -90,6 +95,7 @@ uninstall:
 	rm -f $(dest)/faust2alsa
 	rm -f $(dest)/faust2alsaconsole
 	rm -f $(dest)/faust2android
+	rm -f $(dest)/faust2androidunity
 	rm -f $(dest)/faust2api
 	rm -f $(dest)/faust2asmjs
 	rm -f $(dest)/faust2atomsnippets
@@ -131,6 +137,7 @@ uninstall:
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
 	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2osxiosunity
 	rm -f $(dest)/faust2raqt
 	rm -f $(dest)/faust2ros
 	rm -f $(dest)/faust2rosgtk
@@ -138,6 +145,7 @@ uninstall:
 	rm -f $(dest)/faust2rpinetjackconsole
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
+	rm -f $(dest)/faust2sndfile
 	rm -f $(dest)/faust2smartkeyb
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2svg
@@ -148,8 +156,10 @@ uninstall:
 	rm -f $(dest)/faust2w32max6
 	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2w32puredata
+	rm -f $(dest)/faust2w32unity
 	rm -f $(dest)/faust2w32vst
 	rm -f $(dest)/faust2webaudio
+	rm -f $(dest)/faust2w64unity
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faust2webaudiowasm
 	rm -f $(dest)/faust2webaudiowast

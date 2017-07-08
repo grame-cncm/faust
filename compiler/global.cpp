@@ -44,6 +44,7 @@
 #include "atanprim.hh"
 #include "atan2prim.hh"
 #include "asinprim.hh"
+#include "ftzprim.hh"
 #include "binop.hh"
 #include "instructions.hh"
 
@@ -132,6 +133,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gUIMacroSwitch  = false;
     gDumpNorm       = false;
+    gFTZFlag       = false;
 
     gFloatSize = 1;
 
@@ -196,6 +198,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gAtanPrim = new AtanPrim();
     gAtan2Prim = new Atan2Prim();
     gAsinPrim = new AsinPrim();
+    gFtzPrim = new FtzPrim();
     
     BOXIDENT = symbol ("BoxIdent");
     BOXCUT = symbol ("BoxCut");

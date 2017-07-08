@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
+#include <float.h>
 #include <string>
 #include <vector>
 #include <list>
@@ -106,6 +107,7 @@ extern const char* mathsuffix[4];
 extern const char* numsuffix[4];
 extern const char* floatname[4];
 extern const char* castname[4];
+extern double floatmin[4];
 
 static ifstream* injcode = 0;
 static ifstream* enrobage = 0;
@@ -419,6 +421,10 @@ static bool process_cmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-e", "--export-dsp")) {
             gGlobal->gExportDSP = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
+            gGlobal->gFTZFlag = true;
+            i += 1;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
@@ -610,6 +616,7 @@ static void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
+    cout << "-ftz     \t--flush-to-zero code added to recursive signals\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 
@@ -687,6 +694,11 @@ static void initFaustFloat()
         castname[2] = "as f64";
         castname[3] = "(dummy)";
         
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
+        
     // Specific for C/C++ backends
     } else {
         
@@ -704,6 +716,11 @@ static void initFaustFloat()
         castname[1] = "(float)";
         castname[2] = "(double)";
         castname[3] = "(quad)";
+        
+        floatmin[0] = 0;
+        floatmin[1] = FLT_MIN;
+        floatmin[2] = DBL_MIN;
+        floatmin[3] = LDBL_MIN;
     }
 }
 
