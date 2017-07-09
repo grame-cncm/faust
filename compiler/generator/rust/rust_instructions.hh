@@ -372,6 +372,8 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " as " << fTypeManager->generateType(inst->fType);
             *fOut << ")";
         }
+    
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
 
         virtual void visit(FunCallInst* inst)
         {

@@ -210,7 +210,16 @@ class CPPInstVisitor : public TextInstVisitor {
                  *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
             }
         }
-      
+    
+        virtual void visit(BitcastInst* inst)
+        {
+            if (inst->fType->getType() == Typed::kInt) {
+                *fOut << "*reinterpret_cast<unsigned int*>(&"; inst->fInst->accept(this); *fOut << ")";
+            } else {
+                *fOut << "*reinterpret_cast<float*>(&"; inst->fInst->accept(this); *fOut << ")";
+            }
+        }
+    
         virtual void visit(FunCallInst* inst)
         {
             // Integer and real min/max are mapped on polymorphic ones

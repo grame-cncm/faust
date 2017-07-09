@@ -1281,6 +1281,19 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fTypingVisitor.visit(inst);
         }
     
+        virtual void visit(BitcastInst* inst)
+        {
+            inst->fInst->accept(this);
+            
+            if (inst->fType->getType() == Typed::kInt) {
+                *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::I32ReinterpretF32) : int8_t(BinaryConsts::I64ReinterpretF64));
+            } else {
+                *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32ReinterpretI32) : int8_t(BinaryConsts::F64ReinterpretI64));
+            }
+            
+            fTypingVisitor.visit(inst);
+        }
+    
         // Special case for min/max
         void generateMinMax(const list<ValueInst*>& args, const string& name)
         {

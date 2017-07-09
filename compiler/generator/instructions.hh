@@ -62,6 +62,7 @@ struct DoubleNumInst;
 struct DoubleArrayNumInst;
 struct BinopInst;
 struct CastInst;
+struct BitcastInst;
 struct RetInst;
 struct DropInst;
 
@@ -136,7 +137,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(NamedAddress* address) {}
     virtual void visit(IndexedAddress* address) {}
 
-    // Primitives : numbers
+    // Numbers
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
     virtual void visit(IntNumInst* inst) {}
@@ -147,7 +148,10 @@ struct InstVisitor : public virtual Garbageable {
 
     // Numerical computation
     virtual void visit(BinopInst* inst) {}
+    
+    // Cast
     virtual void visit(CastInst* inst) {}
+    virtual void visit(BitcastInst* inst) {}
 
     // Function call
     virtual void visit(FunCallInst* inst) {}
@@ -192,7 +196,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual Address* visit(NamedAddress* address) = 0;
     virtual Address* visit(IndexedAddress* address) = 0;
 
-    // Primitives : numbers
+    // Numbers
     virtual ValueInst* visit(FloatNumInst* inst) = 0;
     virtual ValueInst* visit(FloatArrayNumInst* inst) = 0;
     virtual ValueInst* visit(IntNumInst* inst) = 0;
@@ -203,7 +207,10 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst) = 0;
+    
+    // Cast
     virtual ValueInst* visit(CastInst* inst) = 0;
+    virtual ValueInst* visit(BitcastInst* inst) = 0;
 
     // Function call
     virtual ValueInst* visit(FunCallInst* inst) = 0;
@@ -858,8 +865,8 @@ struct DeclareVarInst : public StatementInst
 
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
-    struct StoreVarInst* store (ValueInst* val);
-    struct LoadVarInst* load ();
+    struct StoreVarInst* store(ValueInst* val);
+    struct LoadVarInst* load();
 };
 
 // ==============
@@ -1072,6 +1079,10 @@ struct BoolNumInst : public ValueInst, public SimpleValueInst, public NumValueIn
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// ======================
+// Numerical computation
+// ======================
+
 struct BinopInst : public ValueInst
 {
     int fOpcode;
@@ -1092,6 +1103,10 @@ struct BinopInst : public ValueInst
     virtual int size() { return fInst1->size() + fInst2->size(); }
 };
 
+// =====
+// Cast
+// =====
+
 struct CastInst : public ValueInst
 {
     Typed* fType;
@@ -1111,9 +1126,28 @@ struct CastInst : public ValueInst
     virtual int size() { return fInst->size(); }
 };
 
+struct BitcastInst : public ValueInst
+{
+    Typed* fType;
+    ValueInst* fInst;
+    
+    BitcastInst(ValueInst* inst, Typed* typed, int size = 1)
+    :ValueInst(size), fType(typed), fInst(inst)
+    {}
+    
+    virtual ~BitcastInst()
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual int size() { return fInst->size(); }
+};
+
 // ==============
 // Control flow
-// ===============
+// ==============
 
 struct BlockInst : public StatementInst
 {
@@ -1266,40 +1300,40 @@ struct DeclareFunInst : public StatementInst
     string fName;
     FunTyped* fType;     // Describes type of all arguments and function result
     BlockInst* fCode;    // Code is a list of StatementInst*
-
+    
     DeclareFunInst(const string& name, FunTyped* type, BlockInst* code = new BlockInst());
     
     virtual ~DeclareFunInst();
- 
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
-
+    
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
 struct DeclareTypeInst : public StatementInst
 {
     /*
-    NamedTyped* fType;
-
-    DeclareTypeInst(const string& name, Typed* type)
-        :fType(new NamedTyped(name, type))
-    {}
-    DeclareTypeInst(NamedTyped* type)
-        :fType(type)
-    {}
-    */
-
+     NamedTyped* fType;
+     
+     DeclareTypeInst(const string& name, Typed* type)
+     :fType(new NamedTyped(name, type))
+     {}
+     DeclareTypeInst(NamedTyped* type)
+     :fType(type)
+     {}
+     */
+    
     Typed* fType;
-
+    
     DeclareTypeInst(Typed* type)
-        :fType(type)
+    :fType(type)
     {}
     
     virtual ~DeclareTypeInst()
     {}
-
+    
     void accept(InstVisitor* visitor) { visitor->visit(this); }
-
+    
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -1406,7 +1440,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual Address* visit(NamedAddress* address) { return new NamedAddress(address->fName, address->fAccess); }
         virtual Address* visit(IndexedAddress* address) { return new IndexedAddress(address->fAddress->clone(this), address->fIndex->clone(this)); }
 
-        // Primitives : numbers and string
+        // Numbers
         virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, inst->fSize); }
@@ -1421,7 +1455,10 @@ class BasicCloneVisitor : public CloneVisitor {
             return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
         }
 
+        // Cast
         virtual ValueInst* visit(CastInst* inst) { return new CastInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize); }
+    
+        virtual ValueInst* visit(BitcastInst* inst) { return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize); }
 
         // Function call
         virtual ValueInst* visit(FunCallInst* inst)
@@ -1556,6 +1593,8 @@ struct DispatchVisitor : public InstVisitor {
     }
 
     virtual void visit(CastInst* inst) { inst->fInst->accept(this); }
+    
+    virtual void visit(BitcastInst* inst) { inst->fInst->accept(this); }
 
     virtual void visit(FunCallInst* inst)
     {
@@ -1733,6 +1772,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         }
 
         virtual void visit(CastInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+    
+        virtual void visit(BitcastInst* inst)
         {
             Dispatch2Visitor(inst);
         }
@@ -1944,6 +1988,11 @@ struct InstBuilder
             // Default case
             return new CastInst(inst, typed, size);
         }
+    }
+    
+    static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed, int size = 1)
+    {
+        return new BitcastInst(inst, typed, size);
     }
     
     static ValueInst* genCastNumFloatInst(ValueInst* inst);

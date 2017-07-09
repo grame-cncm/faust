@@ -437,6 +437,8 @@ class JAVAInstVisitor : public TextInstVisitor {
             fTypingVisitor.visit(inst);
         }
     
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
+    
         virtual void visit(FunCallInst* inst)
         {
             string fun_name = (gMathLibTable.find(inst->fName) != gMathLibTable.end()) ? gMathLibTable[inst->fName] : inst->fName;

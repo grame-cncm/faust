@@ -455,6 +455,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 }
             }
         }
+    
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
 
         // Function call
         virtual void visit(FunCallInst* inst)

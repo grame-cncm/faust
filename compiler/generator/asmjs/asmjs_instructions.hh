@@ -463,6 +463,8 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             }
             fTypingVisitor.visit(inst);
         }
+    
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
      
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)

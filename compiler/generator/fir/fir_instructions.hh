@@ -497,6 +497,19 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             inst->fInst->accept(this);
             *fOut << ")";
         }
+    
+        virtual void visit(BitcastInst* inst)
+        {
+            if (inst->fSize > 1) {
+                *fOut << "BitcastInstVec<" << inst->fSize << ">(";
+            } else {
+                *fOut << "Bitcast(";
+            }
+            *fOut << generateType(inst->fType);
+            *fOut << ", ";
+            inst->fInst->accept(this);
+            *fOut << ")";
+        }
 
         virtual void visit(FunCallInst* inst)
         {

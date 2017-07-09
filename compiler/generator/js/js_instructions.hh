@@ -233,6 +233,8 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             // No explicit cast generation
             inst->fInst->accept(this);
         }
+    
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
        
         virtual void visit(FunCallInst* inst)
         {

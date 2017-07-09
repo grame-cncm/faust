@@ -412,6 +412,21 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             
             fTypingVisitor.visit(inst);
         }
+    
+        virtual void visit(BitcastInst* inst)
+        {
+            if (inst->fType->getType() == Typed::kInt) {
+                *fOut << "(i32.reinterpret/" << realStr << " ";
+                inst->fInst->accept(this);
+                *fOut << ")";
+            } else {
+                *fOut << "(" << realStr << ".reinterpret/i32 ";
+                inst->fInst->accept(this);
+                *fOut << ")";
+            }
+            
+            fTypingVisitor.visit(inst);
+        }
 
         // Special case for min/max
         void generateMinMax(const list<ValueInst*>& args, const string& fun)

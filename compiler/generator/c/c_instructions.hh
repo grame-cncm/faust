@@ -189,6 +189,16 @@ class CInstVisitor : public TextInstVisitor {
             *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             inst->fInst->accept(this);
         }
+    
+        // TODO : does not work, put this code in a function
+        virtual void visit(BitcastInst* inst)
+        {
+            if (inst->fType->getType() == Typed::kInt) {
+                *fOut << "*((unsigned int*)&"; inst->fInst->accept(this); *fOut << ")";
+            } else {
+                *fOut << "*((float*)&"; inst->fInst->accept(this); *fOut << ")";
+            }
+        }
 
         // Generate standard funcall (not 'method' like funcall...)
         virtual void visit(FunCallInst* inst)

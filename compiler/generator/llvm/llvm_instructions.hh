@@ -1798,6 +1798,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             inst->fInst->accept(this);
             visitAux(inst->fType->getType(), inst->fSize);
         }
+    
+        virtual void visit(BitcastInst* inst) { faustassert(false); }
 
         void visitAux(Typed::VarType type, int size)
         {

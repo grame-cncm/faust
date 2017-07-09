@@ -254,8 +254,8 @@ faust.mydsp = function (instance, context, buffer_size) {
     
     /**
      * Global init, doing the following initialization:
-     * -  static tables initialization
-     * -  call 'instanceInit': constants and instance state initialisation
+     * - static tables initialization
+     * - call 'instanceInit': constants and instance state initialisation
      *
      * @param sample_rate - the sampling rate in Herz
      */
@@ -297,7 +297,7 @@ faust.mydsp = function (instance, context, buffer_size) {
     }
 
     /**
-     * Setup a control output handler, of function of type (path_to_control, value)
+     * Setup a control output handler with a function of type (path_to_control, value)
      * to be used on each generated output value. This handlet will be called
      * each audio cycle at the end of the 'compute' method.
      *

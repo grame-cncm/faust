@@ -71,28 +71,43 @@ class FtzPrim : public xtended
 		faustassert(types.size() == arity());
 
 		Type t = infereSigType(types);
-		if ((t->nature() == kReal) && (gGlobal->gFTZMode > 0)) {
-            string vname = gGlobal->getFreshID("fTempFTZ");
-            if (gGlobal->gFTZMode == 1) {
-                // "fabs" function has to be declared
-                list<NamedTyped*> args_types;
-                args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genBasicTyped(itfloat())));
-                FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(itfloat()));
-                container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(subst("fabs$0", isuffix()), fun_type));
-                
-                // we need to create a temporary variable to store the expression
-                
-                container->addIncludeFile("<float.h>");
-                container->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
-                ValueInst* real_min;
-                if (gGlobal->gFloatSize == 1) {
-                    real_min = InstBuilder::genFloatNumInst(inummin());
-                } else {
-                    real_min = InstBuilder::genDoubleNumInst(inummin());
-                }
-            } else if (gGlobal->gFTZMode == 2) {
-                // TODO
+		if (t->nature() == kReal) {
+            
+            /*
+            // "fabs" function has to be declared
+            list<NamedTyped*> args_types;
+            args_types.push_back(InstBuilder::genNamedTyped("dummy", InstBuilder::genBasicTyped(itfloat())));
+            FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(itfloat()));
+            container->pushGlobalDeclare(InstBuilder::genDeclareFunInst(subst("fabs$0", isuffix()), fun_type));
+            
+			// we need to create a temporary variable to store the expression
+			string vname = gGlobal->getFreshID("fTempFTZ");
+            container->addIncludeFile("<float.h>");
+            container->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+            ValueInst* real_min;
+            if (gGlobal->gFloatSize == 1) {
+                real_min = InstBuilder::genFloatNumInst(inummin());
+            } else {
+                real_min = InstBuilder::genDoubleNumInst(inummin());
             }
+            
+            list<ValueInst*> args_value;
+            args_value.push_back(InstBuilder::genLoadStackVar(vname));
+            return InstBuilder::genSelect2Inst(InstBuilder::genGreaterThan(InstBuilder::genFunCallInst(subst("fabs$0", isuffix()), args_value), real_min),
+                                               InstBuilder::genLoadStackVar(vname),
+                                               InstBuilder::genTypedZero(itfloat()));
+            */
+            
+            // Bitcast based solution
+            string vname = gGlobal->getFreshID("fTempFTZ");
+            container->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
+            return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt)),
+                                                                   InstBuilder::genIntNumInst(2139095040)),
+                                               InstBuilder::genLoadStackVar(vname),
+                                               InstBuilder::genTypedZero(itfloat()));
+            
+            
+            //return InstBuilder::genAdd(InstBuilder::genAdd(*args.begin(), InstBuilder::genFloatNumInst(1)), InstBuilder::genFloatNumInst(-1));
             
       	} else {
 			// No ftz code for integer signals

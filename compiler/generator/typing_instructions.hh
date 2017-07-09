@@ -115,7 +115,12 @@ struct TypingVisitor : public InstVisitor {
         {
             fCurType = inst->fType->getType();
         }
-      
+    
+        virtual void visit(BitcastInst* inst)
+        {
+            fCurType = inst->fType->getType();
+        }
+    
         virtual void visit(Select2Inst* inst)
         {
             // Type in the one of 'then' or 'else'
