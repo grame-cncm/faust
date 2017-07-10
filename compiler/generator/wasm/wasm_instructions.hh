@@ -952,7 +952,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             // Index in the dsp
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
+            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt32);
             
             // Value
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(2);  // 2 = value
@@ -980,7 +980,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             // Index in the dsp
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // 0 = dsp
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(1);  // 1 = index
-            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt);
+            *fOut << int8_t(gBinOpTable[kAdd]->fWasmInt32);
             
             // Load value from index
             *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
@@ -1210,11 +1210,17 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
     
         // Numerical computation
-        void visitAuxInt(BinopInst* inst)
+        void visitAuxInt(BinopInst* inst, Typed::VarType type)
         {
             inst->fInst1->accept(this);
             inst->fInst2->accept(this);
-            *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmInt);
+            if (type == Typed::kInt32 || type == Typed::kBool) {
+                *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmInt32);
+            } else if (type == Typed::kInt64) {
+                *fOut << int8_t(gBinOpTable[inst->fOpcode]->fWasmInt64);
+            } else {
+                faustassert(false);
+            }
         }
     
         void visitAuxReal(BinopInst* inst, Typed::VarType type)
@@ -1243,9 +1249,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 if (isRealType(type2)) {
                     visitAuxReal(inst, type1);
                 } else if (isIntType(type1) || isIntType(type2)) {
-                    visitAuxInt(inst);
+                    visitAuxInt(inst, type1);
                 } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
-                    visitAuxInt(inst);
+                    visitAuxInt(inst, type1);
                 } else {
                     // Should never happen...
                     faustassert(false);

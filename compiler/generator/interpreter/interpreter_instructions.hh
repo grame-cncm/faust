@@ -429,7 +429,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             if (real_t1 || real_t2) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpFloatInst));
             } else if (!real_t1 || !real_t2) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(gBinOpTable[inst->fOpcode]->fInterpIntInst32));
             } else {
                 faustassert(false);
             }

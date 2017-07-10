@@ -151,15 +151,17 @@ struct BinOp {
     unsigned int fLLVMIntInst;
     unsigned int fLLVMFloatInst;
 
-    const char* fNameWastInt;
+    const char* fNameWastInt32;
+    const char* fNameWastInt64;
     const char* fNameWastFloat;
     const char* fNameWastDouble;
     
-    WasmOp fWasmInt;
+    WasmOp fWasmInt32;
+    WasmOp fWasmInt64;
     WasmOp fWasmFloat;
     WasmOp fWasmDouble;
  
-    FIRInstruction::Opcode fInterpIntInst;
+    FIRInstruction::Opcode fInterpIntInst32;
     FIRInstruction::Opcode fInterpFloatInst;
 
     comp fCompute;
@@ -175,13 +177,15 @@ struct BinOp {
             const char* name_llvm_float,
             unsigned int llvm_int,
             unsigned int llvm_float,
-            const char* name_wasm_int,
+            const char* name_wasm_int32,
+            const char* name_wasm_int64,
             const char* name_wasm_float,
             const char* name_wasm_double,
-            WasmOp wasm_int,
+            WasmOp wasm_int32,
+            WasmOp wasm_int64,
             WasmOp wasm_float,
             WasmOp wasm_double,
-            FIRInstruction::Opcode interp_int,
+            FIRInstruction::Opcode interp_int32,
             FIRInstruction::Opcode interp_float,
             comp f,
             pred ln,
@@ -192,9 +196,11 @@ struct BinOp {
             :fName(name), fNameVec(name_vec), fNameScal(name_scal),
             fNameLLVMInt(name_llvm_int), fNameLLVMFloat(name_llvm_float),
             fLLVMIntInst(llvm_int), fLLVMFloatInst(llvm_float),
-            fNameWastInt(name_wasm_int), fNameWastFloat(name_wasm_float), fNameWastDouble(name_wasm_double),
-            fWasmInt(wasm_int), fWasmFloat(wasm_float), fWasmDouble(wasm_double),
-            fInterpIntInst(interp_int), fInterpFloatInst(interp_float),
+            fNameWastInt32(name_wasm_int32), fNameWastInt64(name_wasm_int64),
+            fNameWastFloat(name_wasm_float), fNameWastDouble(name_wasm_double),
+            fWasmInt32(wasm_int32), fWasmInt64(wasm_int64),
+            fWasmFloat(wasm_float), fWasmDouble(wasm_double),
+            fInterpIntInst32(interp_int32), fInterpFloatInst(interp_float),
             fCompute(f), fLeftNeutral(ln), fRightNeutral(rn),
             fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)
     {}

@@ -2601,12 +2601,12 @@ inline bool isRealPtrType(Typed::VarType type)
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
 }
 
 inline bool isIntPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt32_ptr);
+    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
 }
 
 inline bool isPtrType(Typed::VarType type)
@@ -2617,7 +2617,9 @@ inline bool isPtrType(Typed::VarType type)
 inline bool isIntOrPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32
+            || type == Typed::kInt64
             || type == Typed::kInt32_ptr
+            || type == Typed::kInt64_ptr
             || type == Typed::kFloat_ptr
             || type == Typed::kFloatMacro_ptr
             || type == Typed::kDouble_ptr
