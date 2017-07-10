@@ -16,14 +16,16 @@ ba_interp_plugin = generator/interpreter/interpreter_dsp_aux.cpp generator/expor
 ba_java = $(wildcard generator/java/*.cpp)
 ba_js = $(wildcard generator/js/*.cpp)
 ba_llvm = $(wildcard generator/llvm/*.cpp)
-ba_wasm = $(wildcard generator/wasm/*.cpp)
 ba_rust = $(wildcard generator/rust/*.cpp)
+ba_wasm = $(wildcard generator/wasm/*.cpp)
+
+ba_flags = -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DRUST_BUILD -DWASM_BUILD
 
 # Object files
 common_objects = $(common_sources:.cpp=.o)
 backend_objects = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o) \
                 $(ba_fir:.cpp=.o) $(ba_interp:.cpp=.o) $(ba_java:.cpp=.o) \
-                $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_wasm:.cpp=.o) $(ba_rust:.cpp=.o)
+                $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_rust:.cpp=.o) $(ba_wasm:.cpp=.o)
 
 # For Web compilation
 object_ba_asmjs = $(ba_asmjs:.cpp=.o)
@@ -177,7 +179,7 @@ CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) 
 CXXFLAGS += $(ARCHFLAGS)
 
 # Build all backends
-CXXFLAGS += -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DWASM_BUILD -DRUST_BUILD
+CXXFLAGS += $(ba_flags)
 
 LLVMSHLIB = $(wildcard $(shell $(LLVM_CONFIG) --libdir)/libLLVM-$(shell $(LLVM_CONFIG) --version).$(LIB_EXT))
 
@@ -325,7 +327,7 @@ clean :
 	rm -rf doc
 
 depend :
-	makedepend -fMakefile.unix -w120 -Y -- $(addprefix -I, $(subprojects)) -- $(common_sources) \
+	makedepend -fMakefile.unix -w120 -- $(ba_flags) -Y -- $(addprefix -I, $(subprojects)) -- $(common_sources) \
         $(ba_asmjs) $(ba_c) $(ba_cpp) $(ba_fir) $(ba_interp) $(ba_java) $(ba_js) $(ba_llvm) $(ba_wasm) $(ba_rust) \
         libmain.cpp main.cpp
 
@@ -804,7 +806,23 @@ libcode.o: evaluate/environment.hh generator/description.hh generator/uitree.hh 
 libcode.o: generator/instructions_compiler.hh generator/code_container.hh generator/function_builder.hh
 libcode.o: parallelize/code_loop.hh generator/json_instructions.hh dsp_factory.hh generator/export.hh
 libcode.o: generator/occurences.hh generator/dag_instructions_compiler.hh draw/schema/schema.h draw/device/device.h
-libcode.o: draw/drawschema.hh errors/timing.hh signals/ppsig.hh
+libcode.o: draw/drawschema.hh errors/timing.hh signals/ppsig.hh generator/asmjs/asmjs_code_container.hh
+libcode.o: generator/vec_code_container.hh generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh
+libcode.o: generator/type_manager.hh generator/fir_to_fir.hh generator/fir/fir_instructions.hh
+libcode.o: generator/typing_instructions.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
+libcode.o: generator/omp_code_container.hh generator/wss_code_container.hh generator/cpp/cpp_code_container.hh
+libcode.o: generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh
+libcode.o: generator/cpp/cpp_gpu_code_container.hh generator/fir/fir_code_container.hh
+libcode.o: generator/interpreter/interpreter_code_container.cpp generator/interpreter/interpreter_code_container.hh
+libcode.o: generator/interpreter/interpreter_dsp_aux.hh generator/interpreter/fir_interpreter.hh
+libcode.o: generator/interpreter/interpreter_bytecode.hh generator/interpreter/interpreter_optimizer.hh
+libcode.o: generator/dsp_aux.hh generator/interpreter/interpreter_instructions.hh generator/java/java_code_container.hh
+libcode.o: generator/java/java_instructions.hh generator/js/js_code_container.hh generator/js/js_instructions.hh
+libcode.o: generator/llvm/llvm_code_container.hh generator/llvm/llvm_instructions.hh generator/llvm/llvm_dsp_aux.hh
+libcode.o: generator/smartpointer.h utils/TMutex.h generator/llvm/clang_code_container.hh
+libcode.o: generator/wasm/wasm_code_container.hh generator/wasm/wasm_instructions.hh generator/wasm/was_instructions.hh
+libcode.o: generator/wasm/wast_code_container.hh generator/wasm/wast_instructions.hh
+libcode.o: generator/rust/rust_code_container.hh generator/rust/rust_instructions.hh
 global.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/tlib.hh tlib/symbol.hh garbageable.hh
 global.o: errors/exception.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/signals.hh
 global.o: signals/binop.hh generator/interpreter/fir_opcode.hh tlib/property.hh signals/sigtype.hh tlib/smartpointer.hh
@@ -816,7 +834,15 @@ global.o: generator/export.hh extended/acosprim.hh extended/tanprim.hh extended/
 global.o: extended/rintprim.hh tlib/compatibility.hh extended/remainderprim.hh extended/powprim.hh extended/minprim.hh
 global.o: extended/maxprim.hh extended/logprim.hh extended/log10prim.hh extended/fmodprim.hh extended/floorprim.hh
 global.o: extended/expprim.hh extended/cosprim.hh extended/ceilprim.hh extended/atanprim.hh extended/atan2prim.hh
-global.o: extended/asinprim.hh extended/ftzprim.hh
+global.o: extended/asinprim.hh extended/ftzprim.hh generator/asmjs/asmjs_instructions.hh generator/text_instructions.hh
+global.o: generator/type_manager.hh generator/fir_to_fir.hh generator/fir/fir_instructions.hh
+global.o: generator/typing_instructions.hh generator/c/c_code_container.hh generator/c/c_instructions.hh
+global.o: generator/vec_code_container.hh generator/omp_code_container.hh generator/wss_code_container.hh
+global.o: generator/cpp/cpp_code_container.hh generator/cpp/cpp_instructions.hh generator/cpp/opencl_instructions.hh
+global.o: generator/fir/fir_code_container.hh generator/interpreter/interpreter_instructions.hh
+global.o: generator/interpreter/fir_interpreter.hh generator/interpreter/interpreter_bytecode.hh
+global.o: generator/java/java_code_container.hh generator/java/java_instructions.hh generator/js/js_code_container.hh
+global.o: generator/js/js_instructions.hh generator/rust/rust_code_container.hh generator/rust/rust_instructions.hh
 generator/asmjs/asmjs_code_container.o: generator/asmjs/asmjs_code_container.hh generator/code_container.hh
 generator/asmjs/asmjs_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh tlib/symbol.hh
 generator/asmjs/asmjs_code_container.o: garbageable.hh errors/exception.hh generator/interpreter/fir_opcode.hh
