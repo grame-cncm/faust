@@ -203,7 +203,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
                     *fOut << (*it)->fName;
                     Typed* type = (*it)->fType;
-                    if (type->getType() == Typed::kInt || type->getType() == Typed::kObj_ptr) {
+                    if (type->getType() == Typed::kInt32 || type->getType() == Typed::kObj_ptr) {
                         *fOut << " = (" << (*it)->fName << " | 0);";
                     } else {
                         *fOut << " = +(" << (*it)->fName << ");";
@@ -343,7 +343,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             *fOut << checkReal<float>(inst->fNum);
         }
         
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             fTypingVisitor.visit(inst);
             *fOut << inst->fNum;
@@ -446,11 +446,11 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         
         virtual void visit(::CastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
                 *fOut << "~~(";
                 inst->fInst->accept(this);
                 *fOut << ")";
-            } else if (inst->fType->getType() == Typed::kIntish) {
+            } else if (inst->fType->getType() == Typed::kInt32ish) {
                 *fOut << "((";
                 inst->fInst->accept(this);
                 *fOut << ") | 0)";

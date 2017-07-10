@@ -194,25 +194,25 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                                                    InstBuilder::genTypedZero(inst->fType->getType())));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
-                    if (ctype == Typed::kInt) {
-                        IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
+                    if (ctype == Typed::kInt32) {
+                        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
-                                                                                          InstBuilder::genIntNumInst(int_array->getValue(i))));
+                                                                                          InstBuilder::genInt32NumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(int_array->getValue(i))));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(i),
                                                                                           InstBuilder::genFloatNumInst(float_array->getValue(i))));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTable.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(i),
                                                                                           InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                         }
                     } else {
@@ -299,25 +299,25 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                 fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
                 Typed::VarType ctype = array_typed->fType->getType();
                 if (array_typed->fSize > 0) {
-                    if (ctype == Typed::kInt) {
-                        IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(inst->fValue);
+                    if (ctype == Typed::kInt32) {
+                        Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
-                                                                                          InstBuilder::genIntNumInst(int_array->getValue(i))));
+                                                                                          InstBuilder::genInt32NumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(int_array->getValue(i))));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(i),
                                                                                           InstBuilder::genFloatNumInst(float_array->getValue(i))));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
                         for (int i = 0; i < array_typed->fSize; i++) {
                             fVarTableStore.push_back(InstBuilder::genStoreArrayStaticStructVar(inst->fAddress->getName(),
-                                                                                          InstBuilder::genIntNumInst(i),
+                                                                                          InstBuilder::genInt32NumInst(i),
                                                                                           InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                         }
                     } else {

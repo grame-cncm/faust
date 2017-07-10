@@ -66,7 +66,7 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
     DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
     
     if (inst1 && inst2) {
-        return (inst1->fType->getType() == Typed::kInt) || (inst1->fType->getType() == Typed::kInt_ptr);
+        return (inst1->fType->getType() == Typed::kInt32) || (inst1->fType->getType() == Typed::kInt32_ptr);
     } else {
         return false;
     }

@@ -86,8 +86,8 @@ class AbsPrim : public xtended
             return container->pushFunction(subst("fabs$0", isuffix()), result_type, arg_types, casted_args);
         } else {
             // "Int" abs
-            result_type = Typed::kInt; 
-            arg_types.push_back(Typed::kInt);
+            result_type = Typed::kInt32;
+            arg_types.push_back(Typed::kInt32);
             return container->pushFunction("abs", result_type, arg_types, args);
         }
     }

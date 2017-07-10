@@ -322,7 +322,7 @@ class RustInstVisitor : public TextInstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
-            if (dynamic_cast<IntNumInst*>(indexed->fIndex)) {
+            if (dynamic_cast<Int32NumInst*>(indexed->fIndex)) {
                 *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
             } else {
                 // Array index expression casted to 'usize' type
@@ -345,7 +345,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << ']';
         }
         
-        virtual void visit(IntArrayNumInst* inst)
+        virtual void visit(Int32ArrayNumInst* inst)
         {
             char sep = '[';
             for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {

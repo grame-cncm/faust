@@ -243,7 +243,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
             
             if (array_typed && array_typed->fSize > 1) {
-                if (array_typed->fType->getType() == Typed::kInt) {
+                if (array_typed->fType->getType() == Typed::kInt32) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fIntHeapOffset, array_typed->fSize, array_typed->fType->getType());
                     fIntHeapOffset += array_typed->fSize;
                 } else {
@@ -251,7 +251,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     fRealHeapOffset += array_typed->fSize;
                 }
             } else {
-                if (inst->fType->getType() == Typed::kInt) {
+                if (inst->fType->getType() == Typed::kInt32) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fIntHeapOffset, 1, inst->fType->getType());
                     fIntHeapOffset++;
                 } else {
@@ -278,7 +278,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
             
             if (named) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                     ? FIRInstruction::kLoadInt : FIRInstruction::kLoadReal, 0, 0, tmp.fOffset, 0));
             } else {
                 // Indexed
@@ -287,7 +287,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 if (startWithRes(indexed->getName(), "input", num)) {
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
                 } else {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                         ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal, 0, 0, tmp.fOffset, tmp.fSize));
                 
                 }
@@ -306,9 +306,9 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 MemoryDesc tmp = fFieldTable[address->getName()];
                 
                 Typed::VarType ctype = array_typed->fType->getType();
-                if (ctype == Typed::kInt) {
+                if (ctype == Typed::kInt32) {
                     
-                    IntArrayNumInst* int_array = dynamic_cast<IntArrayNumInst*>(value);
+                    Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.fOffset, int_array->fNumTable.size(), int_array->fNumTable));
                 
                 } else if (ctype == Typed::kFloat) {
@@ -339,7 +339,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 MemoryDesc tmp = fFieldTable[address->getName()];
                 
                 if (named) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                         ? FIRInstruction::kStoreInt : FIRInstruction::kStoreReal, 0, 0, tmp.fOffset, 0));
                 } else {
                     IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
@@ -350,7 +350,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                     if (startWithRes(indexed->getName(), "output", num)) {
                         fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
                     } else {
-                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+                        fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                             ? FIRInstruction::kStoreIndexedInt : FIRInstruction::kStoreIndexedReal, 0, 0, tmp.fOffset, tmp.fSize));
                     }
                 }
@@ -365,7 +365,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         virtual void visit(ShiftArrayVarInst* inst)
         {
             MemoryDesc tmp = fFieldTable[inst->fAddress->getName()];
-            fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt)
+            fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                                                ? FIRInstruction::kBlockShiftInt
                                                                : FIRInstruction::kBlockShiftReal, 0, 0, tmp.fOffset + inst->fDelay, tmp.fOffset));
         }
@@ -379,17 +379,17 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         // For Waveform : done in DeclareVarInst and visitStore
         virtual void visit(FloatArrayNumInst* inst) {}
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
-            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst->fNum, 0));
         }
 
         // For Waveform : done in DeclareVarInst and visitStore
-        virtual void visit(IntArrayNumInst* inst) {}
+        virtual void visit(Int32ArrayNumInst* inst) {}
         
         virtual void visit(BoolNumInst* inst)
         {
-            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst->fNum, 0));
+            fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst->fNum, 0));
         }
         
         virtual void visit(DoubleNumInst* inst) 
@@ -441,7 +441,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             inst->fInst->accept(this);
             bool real_t1 = fCurrentBlock->isRealInst();
             
-            if (inst->fType->getType() == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
                 if (!real_t1) {
                     //std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
                 } else {

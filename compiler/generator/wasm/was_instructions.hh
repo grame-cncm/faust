@@ -65,7 +65,7 @@ struct WASInst {
         
         enum Gen { kWAS,    // Implemented in wasm definition
             kExtMath,       // Implemented in JS Math context
-            kIntWAS,        // Manually implemented in wast/wasm backends
+            kInt32WAS,        // Manually implemented in wast/wasm backends
             kExtWAS };      // Manually implemented in JS
         
         MathFunDesc()
@@ -97,9 +97,9 @@ struct WASInst {
     WASInst(bool fast_memory = false)
     {
         // Integer version
-        fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt, 1);
-        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "min_i", Typed::kInt, 2);
-        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kIntWAS, "max_i", Typed::kInt, 2);
+        fMathLibTable["abs"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "abs", Typed::kInt32, 1);
+        fMathLibTable["min_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "min_i", Typed::kInt32, 2);
+        fMathLibTable["max_i"] = MathFunDesc(MathFunDesc::Gen::kInt32WAS, "max_i", Typed::kInt32, 2);
         
         // Float version
         fMathLibTable["fabsf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "abs", WasmOp::F32Abs, Typed::kFloat, 1);

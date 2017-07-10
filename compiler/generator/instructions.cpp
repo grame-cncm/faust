@@ -26,7 +26,7 @@
 #include "global.hh"
 
 string Typed::gTypeString[] = {
-    "kInt", "kIntish", "kInt_ptr", "kInt_vec", "kInt_vec_ptr",
+    "kInt32", "kInt32ish", "kInt32_ptr", "kInt32_vec", "kInt32_vec_ptr",
     "kBool", "kBool_ptr", "kBool_vec", "kBool_vec_ptr",
     "kFloat", "kFloatish", "kFloat_ptr", "kFloat_vec", "kFloat_vec_ptr",
     "kFloatMacro", "kFloatMacro_ptr",
@@ -124,7 +124,7 @@ ValueInst* InstBuilder::genCastNumFloatMacroInst(ValueInst* inst)
 
 ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
 {
-    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt));
+    return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt32));
 }
 
 // BasicTyped are not cloned, but actually point on the same underlying type
@@ -139,10 +139,10 @@ void Typed::init()
     gGlobal->gTypeSizeMap[Typed::kFloat_vec] = gGlobal->gMachineFloatSize * gGlobal->gVecSize;
     gGlobal->gTypeSizeMap[Typed::kFloat_vec_ptr] = gGlobal->gMachinePtrSize;
 
-    gGlobal->gTypeSizeMap[Typed::kInt] = gGlobal->gMachineIntSize;
-    gGlobal->gTypeSizeMap[Typed::kInt_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kInt_vec] = gGlobal->gMachineIntSize * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kInt_vec_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kInt32] = gGlobal->gMachineInt32Size;
+    gGlobal->gTypeSizeMap[Typed::kInt32_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kInt32_vec] = gGlobal->gMachineInt32Size * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kInt32_vec_ptr] = gGlobal->gMachinePtrSize;
 
     gGlobal->gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
     gGlobal->gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;
@@ -317,7 +317,7 @@ map<string, int> InstBuilder::fIDCounters;
 static Tree signalTypeToSharedType(AudioType* type)
 {
     if (isSimpleType(type)) {
-        if (type->nature() == kInt) {
+        if (type->nature() == kInt32) {
             return typeInt();
         } else if (type->nature() == kReal) {
             return typeFloat();
@@ -340,9 +340,9 @@ DeclareTypeInst* InstBuilder::genType(AudioType* type)
         return dec_type;
     } else {
         if (isSimpleType(type)) {
-            if (type->nature() == kInt) {
+            if (type->nature() == kInt32) {
                 printf("FaustVectorType intType \n");
-                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kInt));
+                dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kInt32));
             } else if (type->nature() == kReal) {
                 printf("FaustVectorType floatType \n");
                 dec_type = genDeclareTypeInst(InstBuilder::genBasicTyped(Typed::kFloat));
@@ -369,7 +369,7 @@ static Typed* sharedTypeToFirType(Tree t)
 
     if (isTypeInt(t)) {
         printf("sharedTypeToFirType isTypeInt\n");
-        return InstBuilder::genBasicTyped(Typed::kInt);
+        return InstBuilder::genBasicTyped(Typed::kInt32);
     } else if (isTypeFloat(t)) {
         printf("sharedTypeToFirType isTypeFloat\n");
         return InstBuilder::genBasicTyped(Typed::kFloat);

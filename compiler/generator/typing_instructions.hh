@@ -53,7 +53,7 @@ struct TypingVisitor : public InstVisitor {
                 }
             // Specific cases for FunArgs
             } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "samplingFreq")) {
-                fCurType = Typed::kInt;
+                fCurType = Typed::kInt32;
             } else {
                 fCurType = Typed::kNoType;
             }
@@ -70,9 +70,9 @@ struct TypingVisitor : public InstVisitor {
             fCurType = Typed::kFloat;
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
-            fCurType = Typed::kInt;
+            fCurType = Typed::kInt32;
         }
 
         virtual void visit(BoolNumInst* inst)
@@ -100,7 +100,7 @@ struct TypingVisitor : public InstVisitor {
                     if (isRealType(type2)) {
                         fCurType = type2;
                     } else if (isIntType(type1) || isIntType(type2)) {
-                        fCurType = Typed::kInt;
+                        fCurType = Typed::kInt32;
                     } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
                         fCurType = Typed::kBool;
                     } else {

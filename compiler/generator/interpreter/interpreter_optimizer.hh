@@ -110,16 +110,16 @@ struct FIRInstructionLoadStoreOptimizer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst1 = *cur;
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         
-        if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedReal) {
+        if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kLoadIndexedReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadIndexedInt) {
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kLoadIndexedInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedReal) {
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kStoreIndexedReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreIndexedInt) {
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kStoreIndexedInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, inst1->fIntValue + inst2->fOffset1, 0);
         } else {
@@ -156,7 +156,7 @@ struct FIRInstructionMoveOptimizer : public FIRInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kStoreReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreRealValue, 0, inst1->fRealValue, inst2->fOffset1, 0);
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kStoreIntValue, inst1->fIntValue, 0, inst2->fOffset1, 0);
         } else {
@@ -460,15 +460,15 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
            
-        // kLoadInt OP kIntValue ==> Value version
-        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isMath(inst3->fOpcode)) {
-            //std::cout << "kLoadInt op kIntValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+        // kLoadInt OP kInt32Value ==> Value version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kInt32Value && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kLoadInt op kInt32Value ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
             
-        // kIntValue OP kLoadInt ==> Value version (special case for non-commutative operation)
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
-            //std::cout << "kIntValue op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+        // kInt32Value OP kLoadInt ==> Value version (special case for non-commutative operation)
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isMath(inst3->fOpcode)) {
+            //std::cout << "kInt32Value op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
             
@@ -488,15 +488,15 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue, inst2->fOffset1, 0);
             
-        // kLoadInt EXTENDED-OP kIntValue ==> Value version
-        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
-            //std::cout << "kLoadInt op kIntValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+        // kLoadInt EXTENDED-OP kInt32Value ==> Value version
+        } else if (inst1->fOpcode == FIRInstruction::kLoadInt && inst2->fOpcode == FIRInstruction::kInt32Value && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kLoadInt op kInt32Value ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
             
-        // kIntValue EXTENDED-OP kLoadInt ==> Value version (special case for non-commutative operation)
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
-            //std::cout << "kIntValue op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
+        // kInt32Value EXTENDED-OP kLoadInt ==> Value version (special case for non-commutative operation)
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kLoadInt && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
+            //std::cout << "kInt32Value op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
             return new FIRBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0, inst2->fOffset1, 0);
         
@@ -520,8 +520,8 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return new FIRBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
           
-        // kIntValue binary OP ==> Stack/Value version
-        } else if (((inst1->fOpcode == FIRInstruction::kRealValue) || (inst1->fOpcode == FIRInstruction::kIntValue)) && FIRInstruction::isMath(inst2->fOpcode)) {
+        // kInt32Value binary OP ==> Stack/Value version
+        } else if (((inst1->fOpcode == FIRInstruction::kRealValue) || (inst1->fOpcode == FIRInstruction::kInt32Value)) && FIRInstruction::isMath(inst2->fOpcode)) {
             //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
@@ -542,8 +542,8 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return new FIRBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
      
-        // kIntValue binary EXTENDED-OP ==> Stack/Value version
-        } else if ((inst1->fOpcode == FIRInstruction::kIntValue) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
+        // kInt32Value binary EXTENDED-OP ==> Stack/Value version
+        } else if ((inst1->fOpcode == FIRInstruction::kInt32Value) && FIRInstruction::isExtendedBinaryMath(inst2->fOpcode)) {
             //std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
             return new FIRBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
@@ -590,7 +590,7 @@ struct FIRInstructionConstantValueMap2Heap : public FIRInstructionOptimizer<T> {
         
         if (inst->fOpcode == FIRInstruction::kLoadInt && fIntMap.find(inst->fOffset1) != fIntMap.end()) {
             end = cur + 1;
-            return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, fIntMap[inst->fOffset1], 0);
+            return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, fIntMap[inst->fOffset1], 0);
         } else if (inst->fOpcode == FIRInstruction::kLoadReal && fRealMap.find(inst->fOffset1) != fRealMap.end()) {
             end = cur + 1;
             return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, fRealMap[inst->fOffset1]);
@@ -627,9 +627,9 @@ struct FIRInstructionConstantValueHeap2Map : public FIRInstructionOptimizer<T> {
             // Add a new entry in real_map
             fRealMap[inst2->fOffset1] = inst1->fRealValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kStoreInt) {
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kStoreInt) {
             end = cur + 2;
-            //std::cout << "kNop FIRInstruction::kIntValue && FIRInstruction::kStoreInt " << inst1->fIntValue << std::endl;
+            //std::cout << "kNop FIRInstruction::kInt32Value && FIRInstruction::kStoreInt " << inst1->fIntValue << std::endl;
             // Add a new entry in int_map
             fIntMap[inst2->fOffset1] = inst1->fIntValue;
             return new FIRBasicInstruction<T>(FIRInstruction::kNop);
@@ -656,12 +656,12 @@ struct FIRInstructionCastSpecializer : public FIRInstructionOptimizer<T> {
         FIRBasicInstruction<T>* inst1 = *cur;
         FIRBasicInstruction<T>* inst2 = *(cur + 1);
         
-        if (inst1->fOpcode == FIRInstruction::kIntValue && inst2->fOpcode == FIRInstruction::kCastReal) {
+        if (inst1->fOpcode == FIRInstruction::kInt32Value && inst2->fOpcode == FIRInstruction::kCastReal) {
             end = cur + 2;
             return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, T(inst1->fIntValue));
         } else if (inst1->fOpcode == FIRInstruction::kRealValue && inst2->fOpcode == FIRInstruction::kCastInt) {
             end = cur + 2;
-            return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, int(inst1->fRealValue), 0);
+            return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, int(inst1->fRealValue), 0);
         } else {
             end = cur + 1;
             return (*cur)->copy();
@@ -703,22 +703,22 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 return new FIRBasicInstruction<T>(FIRInstruction::kRealValue, 0, std::remainder(inst2->fRealValue, inst1->fRealValue));
 
             case FIRInstruction::kGTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue > inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue > inst1->fRealValue, 0);
 
             case FIRInstruction::kLTReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue < inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue < inst1->fRealValue, 0);
 
             case FIRInstruction::kGEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue >= inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue >= inst1->fRealValue, 0);
 
             case FIRInstruction::kLEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue <= inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue <= inst1->fRealValue, 0);
 
             case FIRInstruction::kEQReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue == inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue == inst1->fRealValue, 0);
 
             case FIRInstruction::kNEReal:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fRealValue != inst1->fRealValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fRealValue != inst1->fRealValue, 0);
 
             default:
                 faustassert(false);
@@ -801,52 +801,52 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kAddInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue + inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue + inst1->fIntValue, 0);
                 
             case FIRInstruction::kSubInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue - inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue - inst1->fIntValue, 0);
                 
             case FIRInstruction::kMultInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue * inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue * inst1->fIntValue, 0);
                 
             case FIRInstruction::kDivInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue / inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue / inst1->fIntValue, 0);
                 
             case FIRInstruction::kRemInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue % inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue % inst1->fIntValue, 0);
                 
             case FIRInstruction::kLshInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue << inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue << inst1->fIntValue, 0);
                 
             case FIRInstruction::kRshInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue >> inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue >> inst1->fIntValue, 0);
                 
             case FIRInstruction::kGTInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue > inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue > inst1->fIntValue, 0);
                 
             case FIRInstruction::kLTInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue < inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue < inst1->fIntValue, 0);
                 
             case FIRInstruction::kGEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue >= inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue >= inst1->fIntValue, 0);
                 
             case FIRInstruction::kLEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue <= inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue <= inst1->fIntValue, 0);
                 
             case FIRInstruction::kEQInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue == inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue == inst1->fIntValue, 0);
                 
             case FIRInstruction::kNEInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue != inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue != inst1->fIntValue, 0);
                 
             case FIRInstruction::kANDInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue & inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue & inst1->fIntValue, 0);
                 
             case FIRInstruction::kORInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue | inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue | inst1->fIntValue, 0);
                 
             case FIRInstruction::kXORInt:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, inst2->fIntValue ^ inst1->fIntValue, 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, inst2->fIntValue ^ inst1->fIntValue, 0);
                 
             default:
                 faustassert(false);
@@ -854,7 +854,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
         }
     }
     
-    // FIRInstruction::kIntValue
+    // FIRInstruction::kInt32Value
     // FIRInstruction::kLoadInt
     
     FIRBasicInstruction<T>* rewriteBinaryIntMath2(FIRBasicInstruction<T>* inst1,
@@ -877,7 +877,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 if (inst1->fIntValue == 1) {        // neutral
                     new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fIntValue == 0) { // absorbant
-                    new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, 0);
+                    new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
                 }
@@ -891,14 +891,14 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
                 if (inst1->fIntValue == 1) {        // neutral
                     new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else if (inst1->fIntValue == 0) { // absorbant
-                    new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 0, 0);
+                    new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, 0, 0);
                 } else {
                     return nullptr;
                 }
                 
             case FIRInstruction::kORInt:
                 if (inst1->fIntValue == 1) {        // absorbant
-                    new FIRBasicInstruction<T>(FIRInstruction::kIntValue, 1, 0);
+                    new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, 1, 0);
                 } else if (inst1->fIntValue == 0) { // neutral
                     new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, inst2->fOffset1, 0);
                 } else {
@@ -911,7 +911,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
     }
     
     // FIRInstruction::kLoadInt
-    // FIRInstruction::kIntValue : sub and div not rewritten
+    // FIRInstruction::kInt32Value : sub and div not rewritten
     FIRBasicInstruction<T>* rewriteBinaryIntMath3(FIRBasicInstruction<T>* inst1,
                                                    FIRBasicInstruction<T>* inst2,
                                                    FIRBasicInstruction<T>* inst3)
@@ -967,10 +967,10 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
         switch (inst3->fOpcode) {
                 
             case FIRInstruction::kMax:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::max(inst2->fIntValue, inst1->fIntValue), 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, std::max(inst2->fIntValue, inst1->fIntValue), 0);
                 
             case FIRInstruction::kMin:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::min(inst2->fIntValue, inst1->fIntValue), 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, std::min(inst2->fIntValue, inst1->fIntValue), 0);
                 
             default:
                 faustassert(false);
@@ -1046,7 +1046,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
         switch (inst2->fOpcode) {
                 
             case FIRInstruction::kAbs:
-                return new FIRBasicInstruction<T>(FIRInstruction::kIntValue, std::abs(inst1->fIntValue), 0);
+                return new FIRBasicInstruction<T>(FIRInstruction::kInt32Value, std::abs(inst1->fIntValue), 0);
                 
             default:
                 faustassert(false);
@@ -1099,14 +1099,14 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             }
             
         // Int
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue
-                   && inst2->fOpcode == FIRInstruction::kIntValue
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value
+                   && inst2->fOpcode == FIRInstruction::kInt32Value
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
             end = cur + 3;
             return rewriteBinaryIntMath(inst1, inst2, inst3);
             
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value
                    && inst2->fOpcode == FIRInstruction::kLoadInt
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
@@ -1121,7 +1121,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             }
           
         } else if (inst1->fOpcode == FIRInstruction::kLoadInt
-                   && inst2->fOpcode == FIRInstruction::kIntValue
+                   && inst2->fOpcode == FIRInstruction::kInt32Value
                    && FIRInstruction::isMath(inst3->fOpcode)) {
             
             // Uses neutral and absorbent elements (0 for + et - and 1 for * et /)
@@ -1141,8 +1141,8 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             end = cur + 3;
             return rewriteExtendedBinaryRealMath(inst1, inst2, inst3);
             
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue
-                   && inst2->fOpcode == FIRInstruction::kIntValue
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value
+                   && inst2->fOpcode == FIRInstruction::kInt32Value
                    && FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             
             end = cur + 3;
@@ -1154,7 +1154,7 @@ struct FIRInstructionMathSpecializer : public FIRInstructionOptimizer<T> {
             end = cur + 2;
             return rewriteUnaryRealMath(inst1, inst2);
             
-        } else if (inst1->fOpcode == FIRInstruction::kIntValue
+        } else if (inst1->fOpcode == FIRInstruction::kInt32Value
                    && FIRInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
             
             end = cur + 2;
@@ -1197,7 +1197,7 @@ struct FIRInstructionOptimizer {
             FIRBasicInstruction<T>* inst2 = *(cur + 1);
             
             // Specialization
-            if (inst1->fOpcode == FIRInstruction::kIntValue && FIRInstruction::isChoice(inst2->fOpcode)) {
+            if (inst1->fOpcode == FIRInstruction::kInt32Value && FIRInstruction::isChoice(inst2->fOpcode)) {
                 
                 if (inst1->fIntValue == 1) {
                     new_block->merge(optimize_aux(inst2->fBranch1, optimizer));

@@ -196,10 +196,10 @@ void FirCodeContainer::dumpMemory(ostream* dst)
             total_heap_size += heap_counter.fSizeBytes;
         }
         
-        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt);
+        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32);
         generateDeclarations(&heap_counter1);
         
-        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt_ptr);
+        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32_ptr);
         generateDeclarations(&heap_counter2);
         
         VariableSizeCounter heap_counter3(Address::AccessType(Address::kStruct | Address::kStaticStruct));

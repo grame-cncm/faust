@@ -578,8 +578,8 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         FloatNumInst* float2 = dynamic_cast<FloatNumInst*>(val2);
 
         // TODO
-        IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
-        IntNumInst* int2 = dynamic_cast<IntNumInst*>(val2);
+        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
+        Int32NumInst* int2 = dynamic_cast<Int32NumInst*>(val2);
 
         //if (float1) float1->dump();
         //if (float2) float2->dump();
@@ -601,7 +601,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
         } else if (int1 && int2) {
             faustassert(false);
             return 0;
-            //return new IntNumInst(inst->fOpcode(int1->fNum, int2->fNum));
+            //return new Int32NumInst(inst->fOpcode(int1->fNum, int2->fNum));
         } else {
             return InstBuilder::genBinopInst(inst->fOpcode, val1, val2);
         }
@@ -611,12 +611,12 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     {
         ValueInst* val1 = inst->fInst->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
 
         if (inst->fType->getType() == Typed::kFloat) {
             return (float1) ? float1 : InstBuilder::genFloatNumInst(float(int1->fNum));
-        } else if (inst->fType->getType() == Typed::kInt) {
-            return (int1) ? int1 : InstBuilder::genIntNumInst(int(float1->fNum));
+        } else if (inst->fType->getType() == Typed::kInt32) {
+            return (int1) ? int1 : InstBuilder::genInt32NumInst(int(float1->fNum));
         } else {
             faustassert(false);
             return 0;
@@ -638,7 +638,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     {
         ValueInst* val1 = inst->fCond->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
 
         if (float1) {
             return (float1->fNum > 0.f) ? inst->fThen->clone(this) : inst->fElse->clone(this);
@@ -653,7 +653,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     {
         ValueInst* val1 = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
         string name = inst->fAddress->getName();
 
         if (float1) {
@@ -686,7 +686,7 @@ struct ConstantPropagationBuilder : public BasicCloneVisitor {
     {
         ValueInst* val1 = inst->fValue->clone(this);
         FloatNumInst* float1 = dynamic_cast<FloatNumInst*>(val1);
-        IntNumInst* int1 = dynamic_cast<IntNumInst*>(val1);
+        Int32NumInst* int1 = dynamic_cast<Int32NumInst*>(val1);
         string name = inst->fAddress->getName();
 
         if (float1) {
@@ -971,7 +971,7 @@ struct StructVarAnalyser : public DispatchVisitor {
             if (type == Typed::kFloat) {
                 init = InstBuilder::genFloatNumInst(0.5);
             } else {
-                init = InstBuilder::genIntNumInst(1);
+                init = InstBuilder::genInt32NumInst(1);
             }
             fSpecializedValueTable[inst->fAddress->getName()] = init;
         }

@@ -128,10 +128,10 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kFloat_vec] = VectorType::get(fTypeMap[Typed::kFloat], gGlobal->gVecSize);
         fTypeMap[Typed::kFloat_vec_ptr] = PointerType::get(fTypeMap[Typed::kFloat_vec], 0);
 
-        fTypeMap[Typed::kInt] = llvm::Type::getInt32Ty(module->getContext());
-        fTypeMap[Typed::kInt_ptr] = PointerType::get(fTypeMap[Typed::kInt], 0);
-        fTypeMap[Typed::kInt_vec] = VectorType::get(fTypeMap[Typed::kInt], gGlobal->gVecSize);
-        fTypeMap[Typed::kInt_vec_ptr] = PointerType::get(fTypeMap[Typed::kInt_vec], 0);
+        fTypeMap[Typed::kInt32] = llvm::Type::getInt32Ty(module->getContext());
+        fTypeMap[Typed::kInt32_ptr] = PointerType::get(fTypeMap[Typed::kInt32], 0);
+        fTypeMap[Typed::kInt32_vec] = VectorType::get(fTypeMap[Typed::kInt32], gGlobal->gVecSize);
+        fTypeMap[Typed::kInt32_vec_ptr] = PointerType::get(fTypeMap[Typed::kInt32_vec], 0);
 
         fTypeMap[Typed::kDouble] = llvm::Type::getDoubleTy(module->getContext());
         fTypeMap[Typed::kDouble_ptr] = PointerType::get(fTypeMap[Typed::kDouble], 0);
@@ -1762,12 +1762,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fCurValue = genInt1(fModule, inst->fNum, inst->fSize);
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             fCurValue = genInt32(fModule, inst->fNum, inst->fSize);
         }
         
-        virtual void visit(IntArrayNumInst* inst)
+        virtual void visit(Int32ArrayNumInst* inst)
         {
            std::vector<Constant*> num_array;
             
@@ -1815,7 +1815,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     }
                     break;
 
-                case Typed::kInt:
+                case Typed::kInt32:
                     if (fCurValue->getType() == getInt32Ty(fModule, size)) {
                         // Nothing to do
                     } else if (fCurValue->getType() == getFloatTy(fModule,  size))  {

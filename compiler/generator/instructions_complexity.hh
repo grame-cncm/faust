@@ -66,7 +66,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         virtual void visit(StoreVarInst* inst) { fStore++; DispatchVisitor::visit(inst); }
 
         virtual void visit(FloatNumInst* inst) { fNumbers++; }
-        virtual void visit(IntNumInst* inst) { fNumbers++; }
+        virtual void visit(Int32NumInst* inst) { fNumbers++; }
         virtual void visit(BoolNumInst* inst) { fNumbers++; }
         virtual void visit(DoubleNumInst* inst) { fNumbers++; }
 

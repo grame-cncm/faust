@@ -55,8 +55,8 @@ struct ShiftArrayVarInst;
 template <class TYPE> struct ArrayNumInst;
 struct FloatNumInst;
 struct FloatArrayNumInst;
-struct IntNumInst;
-struct IntArrayNumInst;
+struct Int32NumInst;
+struct Int32ArrayNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
 struct DoubleArrayNumInst;
@@ -140,8 +140,8 @@ struct InstVisitor : public virtual Garbageable {
     // Numbers
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
-    virtual void visit(IntNumInst* inst) {}
-    virtual void visit(IntArrayNumInst* inst) {}
+    virtual void visit(Int32NumInst* inst) {}
+    virtual void visit(Int32ArrayNumInst* inst) {}
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
     virtual void visit(DoubleArrayNumInst* inst) {}
@@ -199,8 +199,8 @@ struct CloneVisitor : public virtual Garbageable {
     // Numbers
     virtual ValueInst* visit(FloatNumInst* inst) = 0;
     virtual ValueInst* visit(FloatArrayNumInst* inst) = 0;
-    virtual ValueInst* visit(IntNumInst* inst) = 0;
-    virtual ValueInst* visit(IntArrayNumInst* inst) = 0;
+    virtual ValueInst* visit(Int32NumInst* inst) = 0;
+    virtual ValueInst* visit(Int32ArrayNumInst* inst) = 0;
     virtual ValueInst* visit(BoolNumInst* inst) = 0;
     virtual ValueInst* visit(DoubleNumInst* inst) = 0;
     virtual ValueInst* visit(DoubleArrayNumInst* inst) = 0;
@@ -318,7 +318,7 @@ struct NullInst : public ValueInst
 
 struct Typed : public Printable
 {
-    enum VarType { kInt, kIntish, kInt_ptr, kInt_vec, kInt_vec_ptr,
+    enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kFloat, kFloatish, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
                 kFloatMacro, kFloatMacro_ptr,
@@ -339,7 +339,7 @@ struct Typed : public Printable
     {
         switch (type) {
             case kFloat:
-            case kInt:
+            case kInt32:
                 return 4;
             case kDouble:
                 return 8;
@@ -361,10 +361,10 @@ struct Typed : public Printable
                 return kFloat_ptr;
             case kFloat_vec:
                 return kFloat_vec_ptr;
-            case kInt:
-                return kInt_ptr;
-            case kInt_vec:
-                return kInt_vec_ptr;
+            case kInt32:
+                return kInt32_ptr;
+            case kInt32_vec:
+                return kInt32_vec_ptr;
             case kDouble:
                 return kDouble_ptr;
             case kDouble_vec:
@@ -393,8 +393,8 @@ struct Typed : public Printable
         switch (type) {
             case kFloat:
                 return kFloat_vec;
-            case kInt:
-                return kInt_vec;
+            case kInt32:
+                return kInt32_vec;
             case kDouble:
                 return kDouble_vec;
             case kBool:
@@ -417,10 +417,10 @@ struct Typed : public Printable
                 return kFloat;
             case kFloat_vec_ptr:
                 return kFloat_vec;
-            case kInt_ptr:
-                return kInt;
-            case kInt_vec_ptr:
-                return kInt_vec;
+            case kInt32_ptr:
+                return kInt32;
+            case kInt32_vec_ptr:
+                return kInt32_vec;
             case kDouble_ptr:
                 return kDouble;
             case kQuad_ptr:
@@ -449,8 +449,8 @@ struct Typed : public Printable
         switch (type) {
             case kFloat_vec:
                 return kFloat;
-            case kInt_vec:
-                return kInt;
+            case kInt32_vec:
+                return kInt32;
             case kDouble_vec:
                 return kDouble;
             case kBool_vec:
@@ -1040,11 +1040,11 @@ struct DoubleArrayNumInst : public ArrayNumInst<double>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct IntNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct Int32NumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
     int fNum;
 
-    IntNumInst(int num, int size = 1)
+    Int32NumInst(int num, int size = 1)
         :ValueInst(size), fNum(num)
     {}
 
@@ -1053,12 +1053,12 @@ struct IntNumInst : public ValueInst, public SimpleValueInst, public NumValueIns
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct IntArrayNumInst : public ArrayNumInst<int>
+struct Int32ArrayNumInst : public ArrayNumInst<int>
 {
 
-    IntArrayNumInst(const vector<int>& nums) : ArrayNumInst<int>(nums)
+    Int32ArrayNumInst(const vector<int>& nums) : ArrayNumInst<int>(nums)
     {}
-    IntArrayNumInst(int size) : ArrayNumInst<int>(size)
+    Int32ArrayNumInst(int size) : ArrayNumInst<int>(size)
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1443,8 +1443,8 @@ class BasicCloneVisitor : public CloneVisitor {
         // Numbers
         virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
-        virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, inst->fSize); }
-        virtual ValueInst* visit(IntArrayNumInst* inst) { return new IntArrayNumInst(inst->fNumTable); }
+        virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(Int32ArrayNumInst* inst) { return new Int32ArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
@@ -1746,7 +1746,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
             Dispatch2Visitor(inst);
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             Dispatch2Visitor(inst);
         }
@@ -1889,12 +1889,12 @@ struct InstBuilder
 
     static ValueInst* genTypedZero(Typed::VarType type)
     {
-        return (type == Typed::kInt 
-                || type == Typed::kInt_ptr 
+        return (type == Typed::kInt32 
+                || type == Typed::kInt32_ptr 
                 || type == Typed::kFloat_ptr
                 || type == Typed::kFloatMacro_ptr
                 || type == Typed::kDouble_ptr
-                || type == Typed::kObj_ptr) ? genIntNumInst(0) : genRealNumInst(type, 0.);
+                || type == Typed::kObj_ptr) ? genInt32NumInst(0) : genRealNumInst(type, 0.);
     }
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
@@ -1915,8 +1915,8 @@ struct InstBuilder
     
     static ValueInst* genArrayNumInst(Typed::VarType ctype, int size)
     {
-        if (ctype == Typed::kInt) {
-            return new IntArrayNumInst(size);
+        if (ctype == Typed::kInt32) {
+            return new Int32ArrayNumInst(size);
         } else if (ctype == Typed::kFloat) {
             return new FloatArrayNumInst(size);
         } else if (ctype == Typed::kDouble) {
@@ -1927,7 +1927,7 @@ struct InstBuilder
         return NULL;
     }
 
-    static IntNumInst* genIntNumInst(int num, int size = 1) { return new IntNumInst(num); }
+    static Int32NumInst* genInt32NumInst(int num, int size = 1) { return new Int32NumInst(num); }
     static BoolNumInst* genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
 
     // Numerical computation
@@ -1935,7 +1935,7 @@ struct InstBuilder
 
     static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext, int size = 1)
     {
-        IntNumInst* int_num = dynamic_cast<IntNumInst*>(inst);
+        Int32NumInst* int_num = dynamic_cast<Int32NumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
       
@@ -1970,16 +1970,16 @@ struct InstBuilder
                 // Default case
                 return new CastInst(inst, typed, size);
             }
-        } else if (typed->getType() == Typed::kInt) {
+        } else if (typed->getType() == Typed::kInt32) {
              if (int_num) {
                 // No cast needed
                 return inst;
             } else if (float_num) {
                 // Simple int cast of float
-                return genIntNumInst(int(float_num->fNum));
+                return genInt32NumInst(int(float_num->fNum));
             } else if (double_num) {
                 // Simple int cast of double
-                return genIntNumInst(int(double_num->fNum));
+                return genInt32NumInst(int(double_num->fNum));
             } else {
                 // Default case
                 return new CastInst(inst, typed, size);
@@ -2324,7 +2324,7 @@ struct InstBuilder
 
     static BinopInst* genAdd(ValueInst* a1, int value)
     {
-        return genBinopInst(kAdd, a1, genIntNumInst(value));
+        return genBinopInst(kAdd, a1, genInt32NumInst(value));
     }
 
     static BinopInst* genSub(ValueInst* a1, ValueInst* a2)
@@ -2445,7 +2445,7 @@ struct FIRIndex
     {}
 
     explicit FIRIndex(int i):
-        fValue(InstBuilder::genIntNumInst(i))
+        fValue(InstBuilder::genInt32NumInst(i))
     {}
 
     FIRIndex(FIRIndex const & rhs):
@@ -2470,7 +2470,7 @@ struct FIRIndex
 
     friend FIRIndex operator+ (FIRIndex const & lhs, int rhs)
     {
-        return operator+(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator+(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
     friend FIRIndex operator- (FIRIndex const & lhs, ValueInst * rhs)
@@ -2485,7 +2485,7 @@ struct FIRIndex
 
     friend FIRIndex operator- (FIRIndex const & lhs, int rhs)
     {
-        return operator-(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator-(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
     friend FIRIndex operator* (FIRIndex const & lhs, ValueInst * rhs)
@@ -2500,7 +2500,7 @@ struct FIRIndex
 
     friend FIRIndex operator* (FIRIndex const & lhs, int rhs)
     {
-        return operator*(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator*(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
     friend FIRIndex operator/ (FIRIndex const & lhs, ValueInst * rhs)
@@ -2515,7 +2515,7 @@ struct FIRIndex
 
     friend FIRIndex operator/ (FIRIndex const & lhs, int rhs)
     {
-        return operator/(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator/(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
     friend FIRIndex operator& (FIRIndex const & lhs, ValueInst * rhs)
@@ -2530,7 +2530,7 @@ struct FIRIndex
 
     friend FIRIndex operator& (FIRIndex const & lhs, int rhs)
     {
-        return operator&(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator&(lhs, InstBuilder::genInt32NumInst(rhs));
     }
     
     friend FIRIndex operator% (FIRIndex const & lhs, ValueInst * rhs)
@@ -2545,7 +2545,7 @@ struct FIRIndex
 
     friend FIRIndex operator% (FIRIndex const & lhs, int rhs)
     {
-        return operator%(lhs, InstBuilder::genIntNumInst(rhs));
+        return operator%(lhs, InstBuilder::genInt32NumInst(rhs));
     }
 
 private:
@@ -2574,12 +2574,12 @@ inline bool isRealPtrType(Typed::VarType type)
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt || type == Typed::kIntish);
+    return (type == Typed::kInt32 || type == Typed::kInt32ish);
 }
 
 inline bool isIntPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt_ptr);
+    return (type == Typed::kInt32_ptr);
 }
 
 inline bool isPtrType(Typed::VarType type)
@@ -2589,8 +2589,8 @@ inline bool isPtrType(Typed::VarType type)
 
 inline bool isIntOrPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt
-            || type == Typed::kInt_ptr
+    return (type == Typed::kInt32
+            || type == Typed::kInt32_ptr
             || type == Typed::kFloat_ptr
             || type == Typed::kFloatMacro_ptr
             || type == Typed::kDouble_ptr
@@ -2610,7 +2610,7 @@ Opcode := + | - | * | / |...etc...
 
 Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
 
-Type := kFloat | kInt | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size) if size = 0, then equivalent to a pointer on the considered type
+Type := kFloat | kInt32 | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size) if size = 0, then equivalent to a pointer on the considered type
 
 Address := Access name | Address index
 

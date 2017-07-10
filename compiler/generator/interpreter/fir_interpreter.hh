@@ -267,7 +267,7 @@ class FIRInterpreter  {
             static void* fDispatchTable[] = {
                 
                 // Numbers
-                &&do_kRealValue, &&do_kIntValue,
+                &&do_kRealValue, &&do_kInt32Value,
                 
                 // Memory
                 &&do_kLoadReal, &&do_kLoadInt,
@@ -473,7 +473,7 @@ class FIRInterpreter  {
                         dispatch_next();
                     }
                     
-                    do_kIntValue:
+                    do_kInt32Value:
                     {
                         push_int((*it)->fIntValue);
                         dispatch_next();

@@ -51,7 +51,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             string name2 = subst("fInput$0", T(index));
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genIntNumInst(index))));
+                InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
             pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kObj_ptr)));
         }
 
@@ -61,7 +61,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             string name2 = subst("fOutput$0", T(index));
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
-                InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genIntNumInst(index))));
+                InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
             pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kObj_ptr)));
         }
     }
@@ -345,7 +345,7 @@ ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
                     string vname_idx = vname + "_idx";
                     int mask = pow2limit(d + gGlobal->gVecSize) - 1;
                     //return subst("$0[($0_idx+i) & $1]", vname, mask);
-                    FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genIntNumInst(mask);
+                    FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genInt32NumInst(mask);
                     return InstBuilder::genLoadArrayStructVar(vname, index1);
                 }
             }
@@ -432,7 +432,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
                 return InstBuilder::genLoadArrayStackVar(vname, getCurrentLoopIndex());
             } else {
                 // return subst("$0[i-$1]", vname, T(d));
-                FIRIndex index = getCurrentLoopIndex() - InstBuilder::genIntNumInst(d);
+                FIRIndex index = getCurrentLoopIndex() - InstBuilder::genInt32NumInst(d);
                 return InstBuilder::genLoadArrayStackVar(vname, index);
             }
         } else {
@@ -449,20 +449,20 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
         if (isSigInt(delay, &d)) {
             if (d == 0) {
                 //return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
-                FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genIntNumInst(N-1);
+                FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) & InstBuilder::genInt32NumInst(N-1);
                 return InstBuilder::genLoadArrayStructVar(vname, index1);
             } else {
                 //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
                 FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
-                FIRIndex index2 = index1 - InstBuilder::genIntNumInst(d);
-                FIRIndex index3 = index2 & InstBuilder::genIntNumInst(N-1);
+                FIRIndex index2 = index1 - InstBuilder::genInt32NumInst(d);
+                FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N-1);
                 return InstBuilder::genLoadArrayStructVar(vname, index3);
             }
         } else {
             //return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), CS(delay));
             FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
             FIRIndex index2 = index1 - CS(delay);
-            FIRIndex index3 = index2 & InstBuilder::genIntNumInst(N-1);
+            FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N-1);
             return InstBuilder::genLoadArrayStructVar(vname, index3);
         }
     }
@@ -532,7 +532,7 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
         DeclareVarInst* table_inst1 = InstBuilder::genDecStackVar(buf, InstBuilder::genArrayTyped(typed, gGlobal->gVecSize + delay));
         pushComputeBlockMethod(table_inst1);
 
-        ValueInst* address_value = InstBuilder::genLoadArrayStackVarAddress(buf, InstBuilder::genIntNumInst(delay));
+        ValueInst* address_value = InstBuilder::genLoadArrayStackVarAddress(buf, InstBuilder::genInt32NumInst(delay));
         DeclareVarInst* table_inst2 = InstBuilder::genDecStackVar(vname, InstBuilder::genArrayTyped(typed, 0), address_value);
         pushComputeBlockMethod(table_inst2);
 
@@ -559,22 +559,22 @@ void DAGInstructionsCompiler::generateDlineLoop(Typed::VarType ctype, const stri
 
         // allocate permanent storage for delayed samples
         pushClearMethod(generateInitArray(vname, ctype, delay));
-        pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt)));
-        pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt)));
+        pushDeclare(InstBuilder::genDecStructVar(idx, InstBuilder::genBasicTyped(Typed::kInt32)));
+        pushDeclare(InstBuilder::genDecStructVar(idx_save, InstBuilder::genBasicTyped(Typed::kInt32)));
 
         // init permanent memory
-        pushClearMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genIntNumInst(0)));
-        pushClearMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genIntNumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar(idx, InstBuilder::genInt32NumInst(0)));
+        pushClearMethod(InstBuilder::genStoreStructVar(idx_save, InstBuilder::genInt32NumInst(0)));
 
         // -- update index
         FIRIndex index1 = FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStructVar(idx_save);
-        FIRIndex index2 = index1 & InstBuilder::genIntNumInst(delay-1);
+        FIRIndex index2 = index1 & InstBuilder::genInt32NumInst(delay-1);
 
         pushComputePreDSPMethod(InstBuilder::genStoreStructVar(idx, index2));
 
         // -- compute the new samples
         FIRIndex index3 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(idx);
-        FIRIndex index4 = index3 & InstBuilder::genIntNumInst(delay-1);
+        FIRIndex index4 = index3 & InstBuilder::genInt32NumInst(delay-1);
 
         pushComputeDSPMethod(InstBuilder::genStoreArrayStructVar(vname, index4, exp));
 
@@ -591,8 +591,8 @@ StatementInst* DAGInstructionsCompiler::generateCopyBackArray(const string& vnam
     string index = "j";
 
     // Generates init table loop
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genIntNumInst(size));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genInt32NumInst(size));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment);
@@ -612,8 +612,8 @@ ValueInst* DAGInstructionsCompiler::generateWaveform(Tree sig)
     declareWaveform(sig, vname, size);
     
     string idx = subst("$0_idx", vname);
-    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStackVar("count")) % InstBuilder::genIntNumInst(size);
+    FIRIndex index1 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + InstBuilder::genLoadStackVar("count")) % InstBuilder::genInt32NumInst(size);
     pushComputePostDSPMethod(InstBuilder::genStoreStructVar(idx, index1));
-    FIRIndex index2 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genIntNumInst(size);
+    FIRIndex index2 = (FIRIndex(InstBuilder::genLoadStructVar(idx)) + getCurrentLoopIndex()) % InstBuilder::genInt32NumInst(size);
     return generateCacheCode(sig, InstBuilder::genLoadArrayStaticStructVar(vname, index2));
 }

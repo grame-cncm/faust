@@ -50,9 +50,9 @@ struct StringTypeManager {
             fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
             fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
             
-            fInvertTypeTable["int"] =  Typed::kInt;
-            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt_ptr;
-            fInvertTypeTable["vector<int>"] = Typed::kInt_vec;
+            fInvertTypeTable["int"] =  Typed::kInt32;
+            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt32_ptr;
+            fInvertTypeTable["vector<int>"] = Typed::kInt32_vec;
             
             fInvertTypeTable["double"] = Typed::kDouble;
             fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
@@ -93,10 +93,10 @@ class CStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
             
-            fTypeDirectTable[Typed::kInt] = "int";
-            fTypeDirectTable[Typed::kIntish] = "intish";
-            fTypeDirectTable[Typed::kInt_ptr] = "int" + fPtrPosfix;
-            fTypeDirectTable[Typed::kInt_vec] = "vector<int>";
+            fTypeDirectTable[Typed::kInt32] = "int";
+            fTypeDirectTable[Typed::kInt32ish] = "intish";
+            fTypeDirectTable[Typed::kInt32_ptr] = "int" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt32_vec] = "vector<int>";
             
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDoublish] = "doublish";
@@ -175,10 +175,10 @@ class RustStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
             
-            fTypeDirectTable[Typed::kInt] = "i32";
-            fTypeDirectTable[Typed::kIntish] = "intish";
-            fTypeDirectTable[Typed::kInt_ptr] = "i32" + fPtrPosfix;
-            fTypeDirectTable[Typed::kInt_vec] = "vector<i32>";
+            fTypeDirectTable[Typed::kInt32] = "i32";
+            fTypeDirectTable[Typed::kInt32ish] = "intish";
+            fTypeDirectTable[Typed::kInt32_ptr] = "i32" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt32_vec] = "vector<i32>";
             
             fTypeDirectTable[Typed::kDouble] = "f64";
             fTypeDirectTable[Typed::kDoublish] = "doublish";

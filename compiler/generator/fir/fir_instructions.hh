@@ -419,7 +419,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             *fOut << '}';
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             if (inst->fSize > 1) {
                 *fOut << "IntVec<" << inst->fSize << ">(" << inst->fNum  << ")";
@@ -428,7 +428,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             }
         }
         
-        virtual void visit(IntArrayNumInst* inst)
+        virtual void visit(Int32ArrayNumInst* inst)
         {
             char sep = '{';
             for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {

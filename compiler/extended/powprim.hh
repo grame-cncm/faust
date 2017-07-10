@@ -72,11 +72,11 @@ class PowPrim : public xtended
 
         vector<Typed::VarType> arg_types(2);
         vector< ::Type>::const_iterator it1;
-        Typed::VarType result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
+        Typed::VarType result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
        
         list<ValueInst*>::const_iterator it = args.begin();
         it++;
-        IntNumInst* arg1 = dynamic_cast<IntNumInst*>(*it);
+        Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
         if ((types[1]->nature() == kInt)
             && (types[1]->variability() == kKonst)
@@ -87,8 +87,8 @@ class PowPrim : public xtended
             && !(startWith(gGlobal->gOutputLang, "wast"))
             && !(startWith(gGlobal->gOutputLang, "wasm"))) { // In 'interpreter' and 'wast/wasm' backends, do not generate 'faustpower' function call, fallback to 'pow'
 
-            arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt : itfloat();
-            arg_types[1] = Typed::kInt;
+            arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt32 : itfloat();
+            arg_types[1] = Typed::kInt32;
             return container->pushFunction(container->getFaustPowerName(), result_type, arg_types, args);
 
         } else {

@@ -393,7 +393,7 @@ struct global {
     string gDrawPath;
     
     int gMachineFloatSize;
-    int gMachineIntSize;
+    int gMachineInt32Size;
     int gMachineDoubleSize;
     int gMachineBoolSize;
     int gMachinePtrSize;

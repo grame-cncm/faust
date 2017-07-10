@@ -213,7 +213,7 @@ class CPPInstVisitor : public TextInstVisitor {
     
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
                 *fOut << "*reinterpret_cast<unsigned int*>(&"; inst->fInst->accept(this); *fOut << ")";
             } else {
                 *fOut << "*reinterpret_cast<float*>(&"; inst->fInst->accept(this); *fOut << ")";
@@ -329,10 +329,10 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
             fCurType = Typed::kFloat;
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             fCurValue = T(inst->fNum);
-            fCurType = Typed::kInt;
+            fCurType = Typed::kInt32;
         }
 
         virtual void visit(BoolNumInst* inst)
@@ -395,7 +395,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                     
                     switch (fCurType) {
 
-                        case Typed::kInt:
+                        case Typed::kInt32:
                             *fOut << "vDSP_vflt32(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
                             break;
 
@@ -419,12 +419,12 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                     break;
                 }
 
-                case Typed::kInt: {
+                case Typed::kInt32: {
                     string res = generateNameVec();
-                    // *fOut << fTypeDirectTable[Typed::kInt] << " " << res << "[" << inst->fSize << "]"; EndLine();
+                    // *fOut << fTypeDirectTable[Typed::kInt32] << " " << res << "[" << inst->fSize << "]"; EndLine();
                     switch (fCurType) {
 
-                        case Typed::kInt:
+                        case Typed::kInt32:
                             // No supposed to happen
                             faustassert(false);
                             break;
@@ -442,7 +442,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                             faustassert(false);
                             break;
                     }
-                    fCurType = Typed::kInt;
+                    fCurType = Typed::kInt32;
                     fCurValue = res;
                     break;
                 }
@@ -454,7 +454,7 @@ class CPPVecAccelerateInstVisitor : public CPPVecInstVisitor {
                     
                     switch (fCurType) {
 
-                        case Typed::kInt:
+                        case Typed::kInt32:
                             *fOut << "vDSP_vflt32D(" << fCurValue << " , 1 " << res << " , 1, " << inst->fSize << ")";
                             break;
 

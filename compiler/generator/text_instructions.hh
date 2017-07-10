@@ -147,12 +147,12 @@ class TextInstVisitor : public InstVisitor {
             *fOut << '}';
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             *fOut << inst->fNum;
         }
         
-        virtual void visit(IntArrayNumInst* inst)
+        virtual void visit(Int32ArrayNumInst* inst)
         {
             char sep = '{';
             for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {

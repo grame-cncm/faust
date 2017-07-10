@@ -29,7 +29,7 @@ void xtended::prepareTypeArgsResult(::Type result,
                                     vector<Typed::VarType>& arg_types, 
                                     list<ValueInst*>& casted_args)
 {
-    result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
+    result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
     vector< ::Type>::const_iterator it1;
     list<ValueInst*>::const_iterator it2 = args.begin();
     

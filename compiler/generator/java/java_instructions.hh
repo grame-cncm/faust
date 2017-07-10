@@ -273,7 +273,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             TextInstVisitor::visit(inst);
         }
 
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             fTypingVisitor.visit(inst);
             TextInstVisitor::visit(inst);
@@ -311,20 +311,20 @@ class JAVAInstVisitor : public TextInstVisitor {
                 
                 *fOut << "(";
                 
-                if (type1 == Typed::kInt && type2 == Typed::kInt) {
+                if (type1 == Typed::kInt32 && type2 == Typed::kInt32) {
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
-                } else if (type1 == Typed::kInt && type2 == Typed::kFloat) {
+                } else if (type1 == Typed::kInt32 && type2 == Typed::kFloat) {
                     *fOut << "(float)";
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
-                } else if (type1 == Typed::kFloat && type2 == Typed::kInt) {
+                } else if (type1 == Typed::kFloat && type2 == Typed::kInt32) {
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
@@ -337,7 +337,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
                     *fOut << " ";
                     inst->fInst2->accept(this);
-                } else if (type1 == Typed::kInt && type2 == Typed::kBool) {
+                } else if (type1 == Typed::kInt32 && type2 == Typed::kBool) {
                     inst->fInst1->accept(this);
                     *fOut << " ";
                     *fOut << gBinOpTable[inst->fOpcode]->fName;
@@ -345,7 +345,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     *fOut << "((";
                     inst->fInst2->accept(this);
                     *fOut << ")?1:0)";
-                } else if (type1 == Typed::kBool && type2 == Typed::kInt) {
+                } else if (type1 == Typed::kBool && type2 == Typed::kInt32) {
                     *fOut << "((";
                     inst->fInst1->accept(this);
                     *fOut << ")?1:0)";
@@ -404,7 +404,7 @@ class JAVAInstVisitor : public TextInstVisitor {
                     case Typed::kFloatMacro:
                         *fOut << "(int)"; inst->fInst->accept(this);
                         break;
-                    case Typed::kInt:
+                    case Typed::kInt32:
                         inst->fInst->accept(this);
                         break;
                     case Typed::kBool:
@@ -418,7 +418,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             } else {
                 switch (fTypingVisitor.fCurType) {
                     case Typed::kDouble:
-                    case Typed::kInt:
+                    case Typed::kInt32:
                         *fOut << "(float)"; inst->fInst->accept(this);
                         break;
                      case Typed::kFloat:
@@ -451,7 +451,7 @@ class JAVAInstVisitor : public TextInstVisitor {
             
             switch (fTypingVisitor.fCurType) {
                 case Typed::kDouble:
-                case Typed::kInt:
+                case Typed::kInt32:
                     *fOut << "((("; inst->fCond->accept(this); *fOut << "==0)?true:false)";
                     break;
                 case Typed::kFloat:

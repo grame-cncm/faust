@@ -32,7 +32,7 @@ struct FIRInstruction {
     enum Opcode { 
     
         // Numbers
-        kRealValue, kIntValue,
+        kRealValue, kInt32Value,
         
         // Memory
         kLoadReal, kLoadInt,
@@ -251,7 +251,7 @@ struct FIRInstruction {
 static std::string gFIRInstructionTable[] = {
     
     // Numbers
-    "kRealValue", "kIntValue",
+    "kRealValue", "kInt32Value",
 
     // Memory
     "kLoadReal", "kLoadInt", 

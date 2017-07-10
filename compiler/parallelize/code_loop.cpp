@@ -47,7 +47,7 @@ CodeLoop::CodeLoop(CodeLoop* encl, string index_name, int size)
 
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
 {
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
     ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 
@@ -110,7 +110,7 @@ struct VectorCloneVisitor : public BasicCloneVisitor {
     }
 
     virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, fSize); }
-    virtual ValueInst* visit(IntNumInst* inst) { return new IntNumInst(inst->fNum, fSize); }
+    virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum, fSize); }
     virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, fSize); }
     virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, fSize); }
 
@@ -184,7 +184,7 @@ void CodeLoop::generateDAGVectorLoop(BlockInst* block, DeclareVarInst* count, bo
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
 
-        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
 
@@ -232,7 +232,7 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
     // Generate loop code
     if (fComputeInst->fCode.size() > 0) {
 
-        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt), InstBuilder::genIntNumInst(0));
+        DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
         ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), count->load());
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
 

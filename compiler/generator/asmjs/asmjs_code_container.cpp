@@ -37,8 +37,8 @@ using namespace std;
      3) in compute, 'inputs/outputs' will point to audio buffers allocated outside of the module. Access on this buffers is generated 
      in an 'adhoc' manner...
      4) TypingVisitor is used to know value types :
-        - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kIntish, kFloatish or kDoublish
-        and ASMJAVAScriptInstVisitor::visit(CastInst* inst) interprets kIntish, kFloatish or kDoublish
+        - 'funcalls' types are not known by TypingVisitor, so the CodeContainer::pushFunction adds kInt32ish, kFloatish or kDoublish
+        and ASMJAVAScriptInstVisitor::visit(CastInst* inst) interprets kInt32ish, kFloatish or kDoublish
         - ASMJAVAScriptInstVisitor::visit(BinopInst* inst) adds the type of result
      5) MoveVariablesInFront2 FIR ==> FIR passes are used to move variable declaration at the beginning of blocks.
      6) 'fmodf' and 'log10f' mathematical functions are manually generated. 

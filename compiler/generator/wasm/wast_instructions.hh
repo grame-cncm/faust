@@ -284,8 +284,8 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
                 // Fields in struct are accessed using 'dsp' and an offset
                 faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
                 MemoryDesc tmp = fFieldTable[indexed->getName()];
-                IntNumInst* num;
-                if ((num = dynamic_cast<IntNumInst*>(indexed->fIndex))) {
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
                     // Index can be computed at compile time
                     if (fFastMemory) {
                         *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
@@ -325,7 +325,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             *fOut << "(f64.const " << checkReal<double>(inst->fNum) << ")";
         }
     
-        virtual void visit(IntNumInst* inst)
+        virtual void visit(Int32NumInst* inst)
         {
             fTypingVisitor.visit(inst);
             *fOut << "(i32.const " << inst->fNum << ")";
@@ -390,8 +390,8 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             inst->fInst->accept(&fTypingVisitor);
             Typed::VarType type = fTypingVisitor.fCurType;
             
-            if (inst->fType->getType() == Typed::kInt) {
-                if (type == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
+                if (type == Typed::kInt32) {
                     //std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
                     inst->fInst->accept(this);
                 } else {
@@ -415,7 +415,7 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
                 *fOut << "(i32.reinterpret/" << realStr << " ";
                 inst->fInst->accept(this);
                 *fOut << ")";

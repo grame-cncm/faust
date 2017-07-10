@@ -106,7 +106,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     DspRenamer renamer;
@@ -146,7 +146,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     DspRenamer renamer;
@@ -197,7 +197,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     if (!ismethod) {
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
-    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     BlockInst* init_block = InstBuilder::genBlockInst();
     
     {
@@ -389,7 +389,7 @@ void WASMScalarCodeContainer::generateCompute()
 {
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
-    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt));
+    args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     

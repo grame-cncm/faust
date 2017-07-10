@@ -94,7 +94,7 @@ class MaxPrim : public xtended
         vector<Typed::VarType> arg_types;
         list<ValueInst*> casted_args;
         
-        result_type = (result->nature() == kInt) ? Typed::kInt : itfloat();
+        result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
         
         // generates code compatible with overloaded max
 		int n0 = types[0]->nature();
@@ -136,8 +136,8 @@ class MaxPrim : public xtended
             int b1 = types[1]->boolean();
             
             // prepare args types
-            arg_types.push_back(Typed::kInt);
-            arg_types.push_back(Typed::kInt); 
+            arg_types.push_back(Typed::kInt32);
+            arg_types.push_back(Typed::kInt32);
 
             if (b0 == kNum) {
                 if (b1 == kNum) {

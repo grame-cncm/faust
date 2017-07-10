@@ -193,7 +193,7 @@ class CInstVisitor : public TextInstVisitor {
         // TODO : does not work, put this code in a function
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt) {
+            if (inst->fType->getType() == Typed::kInt32) {
                 *fOut << "*((unsigned int*)&"; inst->fInst->accept(this); *fOut << ")";
             } else {
                 *fOut << "*((float*)&"; inst->fInst->accept(this); *fOut << ")";
@@ -235,7 +235,7 @@ class CInstVisitor : public TextInstVisitor {
 
                 // To generate C99 compatible loops...
                 c99_init_inst = InstBuilder::genStoreStackVar(c99_declare_inst->getName(), c99_declare_inst->fValue);
-                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt));
+                c99_declare_inst = InstBuilder::genDecStackVar(c99_declare_inst->getName(), InstBuilder::genBasicTyped(Typed::kInt32));
                 // C99 loop variable declared outside the loop
                 c99_declare_inst->accept(this);
             }
