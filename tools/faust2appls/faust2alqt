@@ -20,7 +20,6 @@ ARCHLIB="-lasound"
 
 QMAKE=$(which qmake-qt4 || echo qmake) 
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
