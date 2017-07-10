@@ -143,6 +143,11 @@ void Typed::init()
     gGlobal->gTypeSizeMap[Typed::kInt32_ptr] = gGlobal->gMachinePtrSize;
     gGlobal->gTypeSizeMap[Typed::kInt32_vec] = gGlobal->gMachineInt32Size * gGlobal->gVecSize;
     gGlobal->gTypeSizeMap[Typed::kInt32_vec_ptr] = gGlobal->gMachinePtrSize;
+    
+    gGlobal->gTypeSizeMap[Typed::kInt64] = gGlobal->gMachineInt64Size;
+    gGlobal->gTypeSizeMap[Typed::kInt64_ptr] = gGlobal->gMachinePtrSize;
+    gGlobal->gTypeSizeMap[Typed::kInt64_vec] = gGlobal->gMachineInt64Size * gGlobal->gVecSize;
+    gGlobal->gTypeSizeMap[Typed::kInt64_vec_ptr] = gGlobal->gMachinePtrSize;
 
     gGlobal->gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
     gGlobal->gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;

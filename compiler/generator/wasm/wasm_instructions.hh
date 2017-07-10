@@ -1285,10 +1285,22 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         {
             inst->fInst->accept(this);
             
-            if (inst->fType->getType() == Typed::kInt32) {
-                *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::I32ReinterpretF32) : int8_t(BinaryConsts::I64ReinterpretF64));
-            } else {
-                *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32ReinterpretI32) : int8_t(BinaryConsts::F64ReinterpretI64));
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    *fOut << int8_t(BinaryConsts::I32ReinterpretF32);
+                    break;
+                case Typed::kInt64:
+                    *fOut << int8_t(BinaryConsts::I64ReinterpretF64);
+                    break;
+                case Typed::kFloat:
+                    *fOut << int8_t(BinaryConsts::F32ReinterpretI32);
+                    break;
+                case Typed::kDouble:
+                    *fOut << int8_t(BinaryConsts::F64ReinterpretI64);
+                    break;
+                default:
+                    faustassert(false);
+                    break;
             }
             
             fTypingVisitor.visit(inst);

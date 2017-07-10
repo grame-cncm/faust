@@ -193,10 +193,22 @@ class CInstVisitor : public TextInstVisitor {
         // TODO : does not work, put this code in a function
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt32) {
-                *fOut << "*((unsigned int*)&"; inst->fInst->accept(this); *fOut << ")";
-            } else {
-                *fOut << "*((float*)&"; inst->fInst->accept(this); *fOut << ")";
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    *fOut << "*((unsigned int*)&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kInt64:
+                    *fOut << "*((unsigned long int*)&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kFloat:
+                    *fOut << "*((float*)&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kDouble:
+                    *fOut << "*((double*)&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                default:
+                    faustassert(false);
+                    break;
             }
         }
 

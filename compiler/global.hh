@@ -394,6 +394,7 @@ struct global {
     
     int gMachineFloatSize;
     int gMachineInt32Size;
+    int gMachineInt64Size;
     int gMachineDoubleSize;
     int gMachineBoolSize;
     int gMachinePtrSize;

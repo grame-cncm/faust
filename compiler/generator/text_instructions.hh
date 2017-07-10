@@ -151,7 +151,12 @@ class TextInstVisitor : public InstVisitor {
         {
             *fOut << inst->fNum;
         }
-        
+    
+        virtual void visit(Int64NumInst* inst)
+        {
+            *fOut << inst->fNum;
+        }
+    
         virtual void visit(Int32ArrayNumInst* inst)
         {
             char sep = '{';

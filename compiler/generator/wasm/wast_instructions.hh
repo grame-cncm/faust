@@ -415,14 +415,22 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
     
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt32) {
-                *fOut << "(i32.reinterpret/" << realStr << " ";
-                inst->fInst->accept(this);
-                *fOut << ")";
-            } else {
-                *fOut << "(" << realStr << ".reinterpret/i32 ";
-                inst->fInst->accept(this);
-                *fOut << ")";
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    *fOut << "(i32.reinterpret/" << realStr << " ";  inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kInt64:
+                    *fOut << "(i64.reinterpret/" << realStr << " ";  inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kFloat:
+                    *fOut << "(" << realStr << ".reinterpret/i32 "; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kDouble:
+                    *fOut << "(" << realStr << ".reinterpret/i64 "; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                default:
+                    faustassert(false);
+                    break;
             }
             
             fTypingVisitor.visit(inst);

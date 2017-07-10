@@ -103,10 +103,17 @@ class FtzPrim : public xtended
             // Bitcast based solution
             string vname = gGlobal->getFreshID("fTempFTZ");
             container->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
-            return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt32)),
-                                                                   InstBuilder::genInt32NumInst(2139095040)),
-                                               InstBuilder::genLoadStackVar(vname),
-                                               InstBuilder::genTypedZero(itfloat()));
+            if (gGlobal->gFloatSize == 1) {
+                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt32)),
+                                                                       InstBuilder::genInt32NumInst(2139095040)),
+                                                   InstBuilder::genLoadStackVar(vname),
+                                                   InstBuilder::genTypedZero(itfloat()));
+            } else {
+                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt64)),
+                                                                       InstBuilder::genInt64NumInst(9218868437227405312)),
+                                                   InstBuilder::genLoadStackVar(vname),
+                                                   InstBuilder::genTypedZero(itfloat()));
+            }
             
             
             //return InstBuilder::genAdd(InstBuilder::genAdd(*args.begin(), InstBuilder::genFloatNumInst(10000)), InstBuilder::genFloatNumInst(-10000));

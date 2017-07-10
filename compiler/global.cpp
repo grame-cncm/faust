@@ -314,6 +314,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     // Use real values 
     gMachineFloatSize = sizeof(float);
     gMachineInt32Size = sizeof(int);
+    gMachineInt64Size = sizeof(long int);
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
     gMachinePtrSize = sizeof(void*);

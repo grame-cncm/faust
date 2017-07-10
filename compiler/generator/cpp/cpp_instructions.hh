@@ -213,10 +213,22 @@ class CPPInstVisitor : public TextInstVisitor {
     
         virtual void visit(BitcastInst* inst)
         {
-            if (inst->fType->getType() == Typed::kInt32) {
-                *fOut << "*reinterpret_cast<unsigned int*>(&"; inst->fInst->accept(this); *fOut << ")";
-            } else {
-                *fOut << "*reinterpret_cast<float*>(&"; inst->fInst->accept(this); *fOut << ")";
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    *fOut << "*reinterpret_cast<unsigned int*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kInt64:
+                    *fOut << "*reinterpret_cast<unsigned long int*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kFloat:
+                    *fOut << "*reinterpret_cast<float*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                case Typed::kDouble:
+                    *fOut << "*reinterpret_cast<double*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    break;
+                default:
+                    faustassert(false);
+                    break;
             }
         }
     

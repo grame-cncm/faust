@@ -56,6 +56,7 @@ template <class TYPE> struct ArrayNumInst;
 struct FloatNumInst;
 struct FloatArrayNumInst;
 struct Int32NumInst;
+struct Int64NumInst;
 struct Int32ArrayNumInst;
 struct BoolNumInst;
 struct DoubleNumInst;
@@ -141,6 +142,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
     virtual void visit(Int32NumInst* inst) {}
+     virtual void visit(Int64NumInst* inst) {}
     virtual void visit(Int32ArrayNumInst* inst) {}
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
@@ -200,6 +202,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual ValueInst* visit(FloatNumInst* inst) = 0;
     virtual ValueInst* visit(FloatArrayNumInst* inst) = 0;
     virtual ValueInst* visit(Int32NumInst* inst) = 0;
+    virtual ValueInst* visit(Int64NumInst* inst) = 0;
     virtual ValueInst* visit(Int32ArrayNumInst* inst) = 0;
     virtual ValueInst* visit(BoolNumInst* inst) = 0;
     virtual ValueInst* visit(DoubleNumInst* inst) = 0;
@@ -319,6 +322,7 @@ struct NullInst : public ValueInst
 struct Typed : public Printable
 {
     enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
+                kInt64, kInt64_ptr, kInt64_vec, kInt64_vec_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
                 kFloat, kFloatish, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
                 kFloatMacro, kFloatMacro_ptr,
@@ -1053,6 +1057,19 @@ struct Int32NumInst : public ValueInst, public SimpleValueInst, public NumValueI
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct Int64NumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+{
+    long int fNum;
+    
+    Int64NumInst(long int num, int size = 1)
+    :ValueInst(size), fNum(num)
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct Int32ArrayNumInst : public ArrayNumInst<int>
 {
 
@@ -1444,6 +1461,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum, inst->fSize); }
+        virtual ValueInst* visit(Int64NumInst* inst) { return new Int64NumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(Int32ArrayNumInst* inst) { return new Int32ArrayNumInst(inst->fNumTable); }
         virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
         virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
@@ -1750,6 +1768,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         {
             Dispatch2Visitor(inst);
         }
+    
+        virtual void visit(Int64NumInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
 
         virtual void visit(BoolNumInst* inst)
         {
@@ -1928,6 +1951,10 @@ struct InstBuilder
     }
 
     static Int32NumInst* genInt32NumInst(int num, int size = 1) { return new Int32NumInst(num); }
+    static Int64NumInst* genInt64NumInst(long int num, int size = 1)
+    {
+        return new Int64NumInst(num);
+    }
     static BoolNumInst* genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
 
     // Numerical computation
