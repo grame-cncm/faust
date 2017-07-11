@@ -24,6 +24,8 @@ By default it will create a folder containing the c# script and sub-folders with
 
 The library files should be in the Assets/Plugins folder in your Unity project. Then, the relevant architecture set up should be filled in for each file in the plugin inspector.
 
+Finally, attache the c# script to a game object. 
+
 
 ## Compiler requirements
 
