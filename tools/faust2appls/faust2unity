@@ -2,7 +2,6 @@
 
 . faustpath
 
-
 #------------------------------------------------------------------------------
 # Generates a folder with all available architecture libraries for faust unity
 # plugin and the C# and JSON files required
@@ -60,7 +59,6 @@ for p in $FILES; do
     NAME=${f%.dsp}
     DIR=$SRCDIR/FaustPlugin_$NAME
 
-
     # creates final dir / overwrites it if already created
     if [ -d "$DIR" ]; then
         rm -rf "$DIR"
@@ -69,7 +67,6 @@ for p in $FILES; do
 
     # adds README to final dir
     cp $FAUSTLIB/unity/README.md $DIR/README.md
-
 
     # finds number of parameters
     faust -uim $f -o $NAME.cpp
@@ -122,6 +119,3 @@ for p in $FILES; do
         fi
 
 done
-
-
-

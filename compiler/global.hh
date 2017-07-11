@@ -126,7 +126,7 @@ struct global {
 
     bool            gUIMacroSwitch;
     bool            gDumpNorm;
-    bool            gFTZFlag;
+    int             gFTZMode;
 
     int             gFloatSize;
 

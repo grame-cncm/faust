@@ -133,7 +133,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gUIMacroSwitch  = false;
     gDumpNorm       = false;
-    gFTZFlag       = false;
+    gFTZMode       = 0;
 
     gFloatSize = 1;
 

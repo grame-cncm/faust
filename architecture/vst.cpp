@@ -119,8 +119,6 @@
 #include <cstring>
 #include <algorithm>
 #include <vector>
-#include <math.h>
-
 #include <map>
 #include <list>
 

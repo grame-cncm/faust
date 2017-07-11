@@ -10,13 +10,14 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE="pa-qt.cpp"
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
-QMAKE=$(which qmake-qt4 || echo qmake) 
-
+QMAKE=$(which qmake-qt4 || echo qmake)
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -24,8 +25,6 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS

@@ -475,7 +475,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
         siglist l0 = makeMemSigProjList(ref(1), in2);
         siglist l1 = propagate(slotenv2, path, t2, l0);
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1,listLift(lsig)));
-		siglist l3 = (gGlobal->gFTZFlag) ? wrapWithFTZ(l2) : l2;
+		siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
         Tree g = rec(listConvert(l3));
         return makeSigProjList(g, out1);
     }

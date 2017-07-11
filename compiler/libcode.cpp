@@ -423,8 +423,13 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 1;
             
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
-            gGlobal->gFTZFlag = true;
-            i += 1;
+            gGlobal->gFTZMode = atoi(argv[i+1]);
+            if ((gGlobal->gFTZMode > 2) || (gGlobal->gFTZMode < 0)) {
+                stringstream error;
+                error << "ERROR : invalid -ftz option: " << gGlobal->gFTZMode << endl;
+                throw faustexception(error.str());
+            }
+            i += 2;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
