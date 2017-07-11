@@ -5,7 +5,6 @@
 #-------------------------------------------------------------------
 # Compiler settings
 
-
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2androidunity <file1.dsp> [<file2.dsp>]"
@@ -28,7 +27,6 @@ done
 #-------------------------------------------------------------------
 # compiles the *.dsp files
 #
-
 
 for p in $FILES; do
 
@@ -59,7 +57,4 @@ for p in $FILES; do
 
     echo "$f : Android armeabi-v7a and x86 compilations completed"
 done
-
-
-
 

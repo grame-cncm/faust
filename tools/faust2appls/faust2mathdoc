@@ -13,7 +13,6 @@
 # - breqn, a latex package to break equations;
 # - faust ;-)
 
-
 # Usage.
 print_usage() 
 {
@@ -21,7 +20,6 @@ print_usage()
     echo " LANG is usually a 2-lowercase-letters language name, like en, fr, or it."
     echo " -utf8 force faust_file.dsp to be recoded in UTF-8 before being processed"
 }
-
 
 # Visit each directory transmited as argument,
 # in order to convert process.svg files into pdf.
@@ -47,7 +45,6 @@ convert_svgprocesses2pdf()
 	fi
     done
 }
-
 
 # Visit each directory transmited as argument,
 # in order to convert .svg files into pdf.
@@ -75,7 +72,6 @@ convert_svgdirs2pdf()
     done
 }
 
-
 # In-place recoding of a text file from its current encoding to UTF-8.
 # This is useful for .dsp files with accents in comments that are coded
 # with a different character set.
@@ -84,7 +80,6 @@ recode2utf8()
 	charset=`file -0 --mime-encoding $1 | cut  -d' ' -f2`
 	recode $charset..utf-8 $1
 }
-
 
 MDLANGOPT=""
 if [ $1 = "-mdlang" ] || [ $1 = "--mathdoc-lang" ] || [ $1 = "-l" ]

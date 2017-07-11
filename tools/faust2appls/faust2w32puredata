@@ -32,8 +32,6 @@ CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 LIB="-I${PDW32INCLUDEDIR} -shared ${PDW32BINDIR}/pd.dll"
 EXT="~.dll"
 
-
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -112,7 +110,6 @@ for p in $FILES; do
     	BINARIES="$BINARIES$SRCDIR/${f%.dsp}.pd;"
     fi
     rm -rf "$TDR"
-
 
 done
 

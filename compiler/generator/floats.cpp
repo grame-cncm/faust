@@ -37,11 +37,17 @@ extern int  gFloatSize;
 
 const char* mathsuffix[] = {"", "f", "", "l"};                                  // suffix for math functions
 const char* numsuffix[]  = {"", "f", "", "L"};                                  // suffix for numeric constants
-const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};      // float types
-const char* castname[]   = {FLOATCAST, "(float)", "(double)", "(quad)"}; // float castings
+const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};             // float types
+const char* castname[]   = {FLOATCAST, "(float)", "(double)", "(quad)"};        // float castings
+const char* floatmin[]   = {"????", "FLT_MIN", "DBL_MIN", "LDBL_MIN"};          // minimum float values before denormals
+
+
+
+
 
 const char* isuffix() { return mathsuffix[gFloatSize]; } ///< suffix for math functions
 const char* inumix()  { return numsuffix [gFloatSize]; } ///< suffix for numeric constants
+const char* inummin() { return floatmin  [gFloatSize]; } ///< suffix for numeric constants
 
 const char* ifloat() { return floatname[gFloatSize]; }
 const char* icast()  { return castname[gFloatSize]; }

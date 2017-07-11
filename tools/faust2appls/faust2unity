@@ -1,7 +1,6 @@
-#! /bin/bash -e
+#! /bin/bash
 
 . faustpath
-
 
 #------------------------------------------------------------------------------
 # Generates a folder with all available architecture libraries for faust unity
@@ -65,7 +64,6 @@ for p in $FILES; do
     NAME=${f%.dsp}
     DIR=$SRCDIR/FaustPlugin_$NAME
 
-
     # creates final dir / overwrites it if already created
     if [ -d "$DIR" ]; then
         rm -rf "$DIR"
@@ -74,7 +72,6 @@ for p in $FILES; do
 
     # adds README to final dir
     cp $FAUSTLIB/unity/README.md $DIR/README.md
-
 
     # finds number of parameters
     faust -uim $f -o $NAME.cpp
@@ -143,8 +140,3 @@ for p in $FILES; do
     echo "$DIR.zip archive created"
 
 done
-
-
-
-
-

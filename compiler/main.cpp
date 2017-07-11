@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.9.105"
+#define FAUSTVERSION "0.10.1"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -171,6 +171,8 @@ bool            gInPlace        = false;        // add cache to input for correc
 bool            gInjectFlag     = false;        // inject an external source file into the architecture file
 string          gInjectFile     = "";           // instead of a compiled dsp file
 
+// FTZ
+int             gFTZMode       = 0;             // 0: no ftz; 1: FTZ by abscmp; 2: FTZ by bitmask
 
 //-- command line tools
 
@@ -401,6 +403,14 @@ bool process_cmdline(int argc, char* argv[])
             gExportDSP = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
+            gFTZMode = atoi(argv[i+1]);
+            if ((gFTZMode>2) || (gFTZMode<0)) {
+                std::cerr << "ERROR : invalid -ftz option: " << gFTZMode << std::endl;
+                exit(1);
+            }
+            i += 2;
+
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
                 gImportDirList.push_back(argv[i+1]);
@@ -547,6 +557,7 @@ void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
+  	cout << "-ftz <m> \t--flush-to-zero <mode>, 0 (default): no FTZ, 1: abs-compare, 2: bitmask code added to recursive signals\n";
   	cout << "\nexample :\n";
 	cout << "---------\n";
 

@@ -28,6 +28,7 @@
 
 const char* isuffix();
 const char* inumix();
+const char* inummin();
 
 const char* ifloat();
 const char* icast();

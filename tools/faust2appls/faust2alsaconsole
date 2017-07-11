@@ -9,7 +9,6 @@ OSCDEFS=""
 #####################################################################
 
 . faustpath
-
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
@@ -24,7 +23,6 @@ else
 fi
 MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -34,8 +32,6 @@ MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXX=g++
-CXXFLAGS=$MYGCCFLAGS
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -72,9 +68,6 @@ for p in $@; do
 	fi
 done
 
-
-
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
 #
@@ -92,7 +85,6 @@ for f in $FILES; do
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

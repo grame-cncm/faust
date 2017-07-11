@@ -72,21 +72,24 @@ class dsp {
         /* Returns the sample rate currently used by the instance */
         virtual int getSampleRate() = 0;
     
-        /** Global init, calls the following methods:
-         * - static class 'classInit': static table initialisation
-         * - 'instanceInit': constants and instance table initialisation
+        /** 
+         * Global init, calls the following methods:
+         * - static class 'classInit': static tables initialization
+         * - 'instanceInit': constants and instance state initialization
          *
          * @param samplingRate - the sampling rate in Herz
          */
         virtual void init(int samplingRate) = 0;
     
-        /** Init instance state
+        /** 
+         * Init instance state
          *
          * @param samplingRate - the sampling rate in Hertz
          */
         virtual void instanceInit(int samplingRate) = 0;
     
-        /** Init instance constant state
+        /** 
+         * Init instance constant state
          *
          * @param samplingRate - the sampling rate in Hertz
          */
