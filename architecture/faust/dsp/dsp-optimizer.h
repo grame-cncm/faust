@@ -51,14 +51,16 @@ class dsp_optimizer {
         unsigned int fITER;      // number of iterations per measure
         unsigned int fVSIZE;     // size of a vector in samples
         unsigned int fIDX;       // current vector number (0 <= VIdx < fNV)
-        
+    
+        int fArgc;
+        const char** fArgv;
+    
         int fOptLevel;      
         llvm_dsp_factory* fFactory;
         llvm_dsp* fDSP;
         
         std::string fFilename;
         std::string fInput;
-        std::string fLibraryPath;
         std::string fTarget;
         std::string fError;
         
@@ -290,25 +292,13 @@ class dsp_optimizer {
             std::cout << " : ";
         }
         
-        bool computeOne(const std::vector<std::string>& item, double& res)
+        bool computeOne(const std::vector<std::string>& item, int argc, const char* argv[], double& res)
         {
             printItem(item);
             
             if (fInput == "") {
-                int argc = item.size() + 2;
-                const char* argv[argc];
-                argv[0] = "-I";
-                argv[1] = fLibraryPath.c_str();
-                for (int i = 0; i < item.size(); i++) {
-                    argv[i + 2] = item[i].c_str();
-                }
                 fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);
             } else {
-                int argc = item.size();
-                const char* argv[argc];
-                for (int i = 0; i < item.size(); i++) {
-                    argv[i] = item[i].c_str();
-                }
                 fFactory = createDSPFactoryFromString("FaustDSP", fInput, argc, argv, fTarget, fError, fOptLevel);
             }
             
@@ -340,7 +330,7 @@ class dsp_optimizer {
             double res = 0.;
             
             for (int i = 0; i < options.size(); i++) {
-                if (computeOne(options[i], res)) {
+                if (computeOne(options[i], fArgc, fArgv, res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
                     std::cerr << "computeOne error..." << std::endl;
@@ -383,12 +373,11 @@ class dsp_optimizer {
             std::cout << "setStackSize size = " << size << std::endl;
         }
     
-        void init(const std::string& filename, const std::string& library_path, const std::string input, const std::string& target, int size, int opt_level_max)
+        void init(const std::string& filename, const std::string input, int argc, const char* argv[], const std::string& target, int size, int opt_level_max)
         {
             fBuffer = 0;
             fFilename = filename;
             fInput = input;
-            fLibraryPath = library_path;
             fTarget = target;
             fOptLevel = opt_level_max;
             
@@ -397,12 +386,15 @@ class dsp_optimizer {
             fVSIZE = size;  // size of a vector in samples
             fIDX = 0;       // current vector number (0 <= VIdx < NV)
             
+            fArgc = argc;
+            fArgv = argv;
+            
             init();
             
             std::cout << "Estimate timing parameters" << std::endl;
             double res;
             fBench = new time_bench(500, 10);
-            if (computeOne(fOptionsTable[0], res)) {
+            if (computeOne(fOptionsTable[0], fArgc, fArgv, res)) {
                 double duration = fBench->measureDurationUsec();
                 int cout = int (500 * (5 * 1e6 / duration));
                 std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
@@ -427,12 +419,13 @@ class dsp_optimizer {
          * since the maximum value may change with new LLVM versions)
          */
         dsp_optimizer(const char* filename,
-                      const std::string& library_path,
+                      int argc,
+                      const char* argv[],
                       const std::string& target,
                       int buffer_size,
                       int opt_level = -1)
         {
-            init(filename, library_path, "", target, buffer_size, opt_level);
+            init(filename, "", argc, argv, target, buffer_size, opt_level);
         }
     
         /**
@@ -446,12 +439,13 @@ class dsp_optimizer {
          * since the maximum value may change with new LLVM versions)
          */
         dsp_optimizer(const std::string& input,
-                      const std::string& library_path,
+                      int argc,
+                      const char* argv[],
                       const std::string& target,
                       int buffer_size,
                       int opt_level = -1)
         {
-            init("", library_path, input, target, buffer_size, opt_level);
+            init("", input, argc, argv, target, buffer_size, opt_level);
         }
     
         virtual ~dsp_optimizer()

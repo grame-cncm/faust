@@ -43,23 +43,32 @@ static void bench(dsp_optimizer<T> optimizer, const string& name)
 int main(int argc, char* argv[])
 {
     if (argc < 2) {
-        cout << "faustbench-llvm [-double] <foo.dsp>" << endl;
+        cout << "faustbench-llvm [options] <foo.dsp>" << endl;
         return 0;
     }
     
     int index = 1;
-    bool is_double = false;
-    if ((is_double = isopt(argv, "-double"))) index += 1;
-    if (isopt(argv, "-vec")) index += 2;
-    int buffer_size = lopt(argv, "-vec", 512);
+    bool is_double = isopt(argv, "-double");
+    int buffer_size = 512;
     
     std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
     
+    const char* argv1[64];
+    int argc1 = 0;
+    
+    for (argc1 = 0; argc1 < (argc - 2); argc1++) {
+        argv1[argc1] = argv[index + argc1];
+    }
+    
+    // Add library
+    argv1[argc1++] = "-I";
+    argv1[argc1++] = "/usr/local/share/faust";
+  
     try {
         if (is_double) {
-            bench(dsp_optimizer<double>(argv[index], "/usr/local/share/faust", "", buffer_size), argv[1]);
+            bench(dsp_optimizer<double>(argv[argc-1], argc1, argv1, "", buffer_size), argv[1]);
         } else {
-            bench(dsp_optimizer<float>(argv[index], "/usr/local/share/faust", "", buffer_size), argv[1]);
+            bench(dsp_optimizer<float>(argv[argc-1], argc1, argv1, "", buffer_size), argv[1]);
         }
     } catch (...) {}
     
