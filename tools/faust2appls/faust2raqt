@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+
 ARCHFILE="ra-qt.cpp"
 ARCHLIB="-L/usr/local/lib -lrtaudio"
 PATH=$PATH:/usr/local/bin
@@ -25,8 +27,6 @@ QMAKE=$(which qmake-qt4 || echo qmake)
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
-CXXFLAGS='-Wfatal-errors -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math'
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS

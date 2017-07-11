@@ -7,6 +7,10 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -51,7 +55,6 @@ for p in $@; do
 	fi
 done
 
-
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
@@ -64,9 +67,6 @@ else
     LIB="-I/usr/include/pd -I/usr/include/pdextended -I. -fPIC -shared"
     EXT="~.pd_linux"
 fi
-
-
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
@@ -118,7 +118,6 @@ for p in $FILES; do
     	BINARIES="$BINARIES$SRCDIR/${f%.dsp}.pd;"
     fi
     rm -rf "$TDR"
-
 
 done
 

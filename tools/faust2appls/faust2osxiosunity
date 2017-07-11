@@ -20,10 +20,9 @@
 #		Info.plist
 #
 
-CXXFLAGS="-I. -O2 -fPIC -arch i386 -arch x86_64"
+CXXFLAGS="-I. -O3 -fPIC -arch i386 -arch x86_64"
 LDFLAGS="-bundle"
 CXX="c++"
-
 
 createInfoPList() {
 cat > "$2" << DELIM

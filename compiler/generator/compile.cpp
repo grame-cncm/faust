@@ -78,7 +78,9 @@ Compiler::Compiler(const string& name, const string& super, int numInputs, int n
                 fNeedToDeleteClass(true), 
                 fUIRoot(uiFolder(cons(tree(0), tree("")))),
                 fDescription(0),fJSON(numInputs, numOutputs)
-{}
+{
+    fClass->addIncludeFile("<math.h>");
+}
 
 Compiler::Compiler(Klass* k)
                 : fClass(k),

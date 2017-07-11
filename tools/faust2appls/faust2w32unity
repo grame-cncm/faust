@@ -1,7 +1,5 @@
 #! /bin/bash -e
 
-
-
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
@@ -23,7 +21,6 @@ for p in $@; do
 	fi
 done
 
-
 #------------------------------------------------------------------------------
 # mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
 # the exact prefix should be specified in the environment variable MINGW
@@ -32,14 +29,12 @@ done
 CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found. See -help for more info"; exit 1)
 
-
 #-------------------------------------------------------------------
 # Compiler settings
 
 CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
 LIB="-shared"
 EXT=".dll"
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

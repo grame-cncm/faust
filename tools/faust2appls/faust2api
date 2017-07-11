@@ -10,6 +10,9 @@
 . faustpath
 . faustoptflags
 
+CXXFLAGS=$MYGCCFLAGS
+CXX=g++
+
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 #LOG="log"
@@ -264,11 +267,6 @@ if [ $NODOC -eq 0 ]; then
 	PPFILE=pPrinter.cpp
 	PPBINARY=pp
 	READMEFILE="$APIFOLDER/README.md"
-
-	CXXFLAGS=$MYGCCFLAGS
-	MYGCCFLAGS="-O3"
-	CXX=g++
-	CXXFLAGS=$MYGCCFLAGS
 
 	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
 	if [ "$POLY2" = "1" ]; then
