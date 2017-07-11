@@ -131,7 +131,6 @@ for f in $FILES; do
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
-
     faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
 
 	rm au-arch-temp.cpp
