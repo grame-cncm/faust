@@ -142,7 +142,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(FloatNumInst* inst) {}
     virtual void visit(FloatArrayNumInst* inst) {}
     virtual void visit(Int32NumInst* inst) {}
-     virtual void visit(Int64NumInst* inst) {}
+    virtual void visit(Int64NumInst* inst) {}
     virtual void visit(Int32ArrayNumInst* inst) {}
     virtual void visit(BoolNumInst* inst) {}
     virtual void visit(DoubleNumInst* inst) {}
@@ -1062,7 +1062,7 @@ struct Int64NumInst : public ValueInst, public SimpleValueInst, public NumValueI
     long int fNum;
     
     Int64NumInst(long int num, int size = 1)
-    :ValueInst(size), fNum(num)
+        :ValueInst(size), fNum(num)
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }

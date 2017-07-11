@@ -583,7 +583,7 @@ function UploadFile(e) {
             // Create a mono DSP factory from the dsp code    
             //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/libraries"]);
             faust.createDSPFactory(dsp_code,
-                                  ["-ftz", "-I", "http://127.0.0.1:8000/libraries/"],
+                                  ["-ftz", "2", "-I", "http://127.0.0.1:8000/libraries/"],
                                   function (factory) {
 
                                         if (!factory) {
