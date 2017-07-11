@@ -48,7 +48,7 @@ if [ "$1" = "osx" ]; then
     diff organ_2voices.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
 
     faust2dummy -midi organ.dsp > /dev/null
-    ./organ > organ_2voices.txt
+    ./organ > organ_8voices.txt
     diff organ_8voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
 
     faust2dummymem waveform4.dsp > /dev/null
@@ -118,8 +118,8 @@ elif [ "$1" = "linux" ]; then
     diff organ_2voices.txt organ_2voices_ref.txt && echo "OK: faust2dummy -midi -nvoices 2 organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi -nvoices 2 organ.dsp failed"
 
     faust2dummy -midi organ.dsp > /dev/null
-    ./organ > organ_2voices.txt
-    diff organ_2voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
+    ./organ > organ_8voices.txt
+    diff organ_8voices.txt organ_8voices_ref.txt && echo "OK: faust2dummy -midi organ.dsp succeeded !" || echo "ERROR: faust2dummy -midi organ.dsp failed"
 
     faust2dummymem waveform4.dsp > /dev/null
     ./waveform4 > waveform4.txt
