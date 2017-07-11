@@ -15,16 +15,18 @@ W64="0"
 OSX="0"
 IOS="0"
 ANDROID="0"
+LINUX="0"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2unity [-w32] [-ios] <file1.dsp> <file2.dsp>"
-        echo "Generates a folder with all available architecture libraries for faust unity plugin and the C# and JSON files required. See architecture/unity/README.md for more info."
+        echo "Generates a folder with all available architecture libraries for faust unity plugin and the C# file required."
         echo "Use -w32 to produce a w32 library"
         echo "Use -w64 to produce a w64 library"
         echo "Use -osx to produce a MACOSX library"
         echo "Use -ios to produce a iOS library"
         echo "Use -android to produce android libraries (armabi-v7a and x86)."
+        echo "Use -linux to produce a linux library"
         echo "See architecture/unity/README.md for more info."
         exit
     fi
@@ -42,6 +44,9 @@ for p in $@; do
         ALL="0"
     elif [ $p = "-android" ]; then
         ANDROID="1"
+        ALL="0"
+    elif [ $p = "-linux" ]; then
+        LINUX="1"
         ALL="0"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
@@ -81,12 +86,18 @@ for p in $FILES; do
     rm $NAME.cpp
     rm params.txt
 
-    # generates c# file
-    sed -e "s/model/FaustPlugin_$NAME/g;s/plugname/libFaustPlugin_$NAME/g;s/_UI/_$NAME/g;s/Ctx/Context_$NAME/g;s/variables/$var/g;s/androidpluginname/FaustPlugin_$NAME/g" $FAUSTLIB/unity/template.cs > $SRCDIR/$DIR/FaustPlugin_$NAME.cs
-
     # compiles faust to c++ and json
     faust -json "$SRCDIR/$f" -o /dev/null;
-    mv "$SRCDIR/$f.json" $DIR/FaustPlugin_$NAME.json
+    tr -d '\n' < $f.json > $NAME.json
+    sed 's/\"/\\\\"/g;s/\//\\\//g' $NAME.json > $f.json
+    JSON=$(<$f.json)
+
+
+    # generates c# file
+    sed -e "s/model/FaustPlugin_$NAME/g;s/plugname/libFaustPlugin_$NAME/g;s/_UI/_$NAME/g;s/Ctx/Context_$NAME/g;s/variables/$var/g;s/androidpluginname/FaustPlugin_$NAME/g;s/tototata/$JSON/g" $FAUSTLIB/unity/template.cs > $SRCDIR/$DIR/FaustPlugin_$NAME.cs
+
+    rm -rf $NAME.json
+    rm -rf $f.json
 
     # compiles c++ to binaries
 
@@ -121,7 +132,19 @@ for p in $FILES; do
             mv $SRCDIR/FaustPlugin_Android_$NAME $DIR/Android
         fi
 
+        # Linux
+        if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
+            faust2linuxunity $f || exit
+            mv $SRCDIR/FaustPlugin_linux_$NAME $DIR/Linux
+        fi
+
+    zip -r $DIR.zip $DIR > /dev/null;
+
+    echo "$DIR.zip archive created"
+
 done
+
+
 
 
 
