@@ -74,6 +74,11 @@ struct TypingVisitor : public InstVisitor {
         {
             fCurType = Typed::kInt32;
         }
+    
+        virtual void visit(Int64NumInst* inst)
+        {
+            fCurType = Typed::kInt64;
+        }
 
         virtual void visit(BoolNumInst* inst)
         {
@@ -99,9 +104,11 @@ struct TypingVisitor : public InstVisitor {
                     Typed::VarType type2 = fCurType;
                     if (isRealType(type2)) {
                         fCurType = type2;
-                    } else if (isIntType(type1) || isIntType(type2)) {
+                    } else if (isIntType32(type1) || isIntType32(type2)) {
                         fCurType = Typed::kInt32;
-                    } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
+                    } else if (isIntType64(type1) || isIntType64(type2)) {
+                        fCurType = Typed::kInt64;
+                    } else if (isBoolType(type1) && isBoolType(type2)) {
                         fCurType = Typed::kBool;
                     } else {
                         // Should never happen...

@@ -105,6 +105,7 @@ echo "==============================================================="
         echo "Test $f compilation in scheduler float mode"
         faust2impulse $f  -sch  > $D/$f.scal.ir
     done
+
 fi
 
 if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
@@ -114,8 +115,8 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
 
     for f in *.dsp; do
-        faust2impulse -double $f > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        faust2impulse -double  $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar"
     done
 
     for f in *.dsp; do
@@ -126,6 +127,16 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     for f in *.dsp; do
         faust2impulseter -inpl -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulseter -ftz 1 -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f scalar -ftz 1 mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulseter -ftz 2 -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 2 mode" || echo "ERROR $f scalar -ftz 2 mode"
     done
 
     #for f in *.dsp; do
@@ -177,6 +188,7 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
         faust2impulse -double -sch -vs 100 -fun $f > $D/$f.sch.ir
         filesCompare $D/$f.sch.ir ../expected-responses/$f.scal.ir && echo "OK $f scheduler -vs 100 -fun mode" || echo "ERROR $f scheduler -vs 100 -fun mode"
     done
+
 fi
 
 if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
@@ -186,13 +198,23 @@ if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
     echo "==========================================================================="
 
     for f in *.dsp; do
-        faust2impulse2 -double $f      > $D/$f.scal.ir
+        faust2impulse2 -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
     for f in *.dsp; do
-        faust2impulse2bis -inpl -double $f      > $D/$f.scal.ir
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
+        faust2impulse2bis -inpl -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -inpl mode" || echo "ERROR $f scalar -inpl mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulse2bis -ftz 1 -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f scalar -ftz 1 mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulse2bis -ftz 2 -double $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 2 scalar" || echo "ERROR $f scalar -ftz 2 mode"
     done
 
     for f in *.dsp; do
@@ -234,6 +256,7 @@ if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
         faust2impulse2 -double -sch -vs 100 -fun $f > $D/$f.sch.ir
         filesCompare $D/$f.sch.ir ../expected-responses/$f.scal.ir && echo "OK $f scheduler -vs 100 -fun mode" || echo "ERROR $f scheduler -vs 100 -fun mode"
     done
+
 fi
 
 if [ $BACKEND = "interp" ] || [ $BACKEND = "all" ]; then
@@ -294,6 +317,7 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
         faust2impulse4 $f -double -vec -lv 1 -g -fun > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 1 -g -fun mode" || echo "ERROR $f vector -lv 1 -g -fun mode"
     done
+
 fi
 
 if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then
@@ -373,12 +397,31 @@ if [ $BACKEND = "wasm" ] || [ $BACKEND = "all" ]; then
 
     for f in *.dsp; do
         faust2impulse6 -double $f > $D/$f.scal.ir && RES=1 || RES=0
-    if [ $RES = "1" ]; then
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
-    else
-        echo "ERROR $f scalar mode in node.js"
-    fi
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
     done
+
+    for f in *.dsp; do
+        faust2impulse6 -ftz 1 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f scalar -ftz 1 mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
+    done
+
+# Deactivated for now (bug in nodejs ?)
+#    for f in *.dsp; do
+#        faust2impulse6 -ftz 2 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+#        if [ $RES = "1" ]; then
+#            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 2 mode" || echo "ERROR $f scalar -ftz 2 mode"
+#        else
+#            echo "ERROR $f scalar mode in node.js"
+#        fi
+#    done
 
 fi
 
@@ -390,12 +433,31 @@ if [ $BACKEND = "wast" ] || [ $BACKEND = "all" ]; then
 
     for f in *.dsp; do
         faust2impulse7 -double $f > $D/$f.scal.ir && RES=1 || RES=0
-    if [ $RES = "1" ]; then
-        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
-    else
-        echo "ERROR $f scalar mode in node.js"
-    fi
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
     done
+
+    for f in *.dsp; do
+        faust2impulse7 -ftz 1 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f scalar -ftz 1 mode"
+        else
+            echo "ERROR $f scalar mode in node.js"
+        fi
+    done
+
+# Deactivated for now (bug in nodejs ?)
+#    for f in *.dsp; do
+#        faust2impulse7 -ftz 2 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+#        if [ $RES = "1" ]; then
+#            filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 2 mode" || echo "ERROR $f scalar -ftz 2 mode"
+#        else
+#            echo "ERROR $f scalar mode in node.js"
+#        fi
+#    done
 
 fi
 
@@ -406,7 +468,7 @@ if [ $BACKEND = "rust" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-            faust2impulse8 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        faust2impulse8 -double $f > $D/$f.scal.ir && RES=1 || RES=0
         if [ $RES = "1" ]; then
             filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
         else

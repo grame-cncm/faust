@@ -1059,9 +1059,9 @@ struct Int32NumInst : public ValueInst, public SimpleValueInst, public NumValueI
 
 struct Int64NumInst : public ValueInst, public SimpleValueInst, public NumValueInst
 {
-    long int fNum;
+    long long fNum;
     
-    Int64NumInst(long int num, int size = 1)
+    Int64NumInst(long long num, int size = 1)
         :ValueInst(size), fNum(num)
     {}
     
@@ -1951,7 +1951,7 @@ struct InstBuilder
     }
 
     static Int32NumInst* genInt32NumInst(int num, int size = 1) { return new Int32NumInst(num); }
-    static Int64NumInst* genInt64NumInst(long int num, int size = 1)
+    static Int64NumInst* genInt64NumInst(long long num, int size = 1)
     {
         return new Int64NumInst(num);
     }
@@ -2604,6 +2604,16 @@ inline bool isIntType(Typed::VarType type)
     return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
 }
 
+inline bool isIntType32(Typed::VarType type)
+{
+    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+}
+
+inline bool isIntType64(Typed::VarType type)
+{
+    return ( type == Typed::kInt64);
+}
+
 inline bool isIntPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
@@ -2612,6 +2622,11 @@ inline bool isIntPtrType(Typed::VarType type)
 inline bool isPtrType(Typed::VarType type)
 {
     return isRealPtrType(type) || isIntPtrType(type);
+}
+
+inline bool isBoolType(Typed::VarType type)
+{
+    return (type == Typed::kBool);
 }
 
 inline bool isIntOrPtrType(Typed::VarType type)

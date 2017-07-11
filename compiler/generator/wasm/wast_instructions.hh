@@ -331,6 +331,12 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             *fOut << "(i32.const " << inst->fNum << ")";
         }
     
+        virtual void visit(Int64NumInst* inst)
+        {
+            fTypingVisitor.visit(inst);
+            *fOut << "(i64.const 0x" << hex << inst->fNum << ")";
+        }
+    
         // Numerical computation
         void visitAuxInt(BinopInst* inst, Typed::VarType type)
         {
@@ -486,18 +492,35 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             *fOut << " ";
             inst->fElse->accept(this);
             *fOut << " ";
-            // Condition is last item
-            inst->fCond->accept(this);
+            // Condition is last item. Possibly convert i64 to i32.
+            inst->fCond->accept(&fTypingVisitor);
+            if (isIntType64(fTypingVisitor.fCurType)) {
+                // Shift high bytes
+                *fOut << "(i32.wrap/i64 (i64.shr_s ";
+                inst->fCond->accept(this);
+                *fOut << "(i64.const 32)))";
+            } else {
+                inst->fCond->accept(this);
+            }
             *fOut << ")";
             
             fTypingVisitor.visit(inst);
         }
-        
+    
         // Conditional : if
         virtual void visit(IfInst* inst)
         {
             *fOut << "(if ";
-            inst->fCond->accept(this);
+            inst->fCond->accept(&fTypingVisitor);
+            // Possibly convert i64 to i32.
+            if (isIntType64(fTypingVisitor.fCurType)) {
+                // Shift high bytes
+                *fOut << "(i32.wrap/i64 (i64.shr_s ";
+                inst->fCond->accept(this);
+                *fOut << "(i64.const 32)))";
+            } else {
+                inst->fCond->accept(this);
+            }
             *fOut << " ";
             inst->fThen->accept(this);
             *fOut << " ";

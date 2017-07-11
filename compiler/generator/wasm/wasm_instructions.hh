@@ -1209,6 +1209,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(inst->fNum);
         }
     
+        virtual void visit(Int64NumInst* inst)
+        {
+            fTypingVisitor.visit(inst);
+            *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(inst->fNum);
+        }
+    
         // Numerical computation
         void visitAuxInt(BinopInst* inst, Typed::VarType type)
         {
@@ -1361,8 +1367,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         {
             inst->fThen->accept(this);
             inst->fElse->accept(this);
-            // Condition is last item
+            // Condition is last item. Possibly convert i64 to i32.
+            inst->fCond->accept(&fTypingVisitor);
             inst->fCond->accept(this);
+            if (isIntType64(fTypingVisitor.fCurType)) {
+                // Shift high bytes
+                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(16);
+                *fOut << int8_t(WasmOp::I64ShrS);
+                *fOut << int8_t(BinaryConsts::I32ConvertI64);
+            }
             *fOut << int8_t(BinaryConsts::Select);
             
             fTypingVisitor.visit(inst);
@@ -1371,7 +1384,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Conditional : if : TO CHECK : utilise drop ?
         virtual void visit(IfInst* inst)
         {
+            inst->fCond->accept(&fTypingVisitor);
             inst->fCond->accept(this);
+            // Possibly convert i64 to i32.
+            if (isIntType64(fTypingVisitor.fCurType)) {
+                // Shift high bytes
+                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(16);
+                *fOut << int8_t(WasmOp::I64ShrS);
+                *fOut << int8_t(BinaryConsts::I32ConvertI64);
+            }
             *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
             inst->fThen->accept(this);
             *fOut << int8_t(BinaryConsts::Else);
