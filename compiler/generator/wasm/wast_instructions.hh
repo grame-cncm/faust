@@ -492,13 +492,14 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
             *fOut << " ";
             inst->fElse->accept(this);
             *fOut << " ";
-            // Condition is last item. Possibly convert i64 to i32.
+            // Condition is last item
             inst->fCond->accept(&fTypingVisitor);
+            // Possibly convert i64 to i32
             if (isIntType64(fTypingVisitor.fCurType)) {
-                // Shift high bytes
-                *fOut << "(i32.wrap/i64 (i64.shr_s ";
+                // Compare to 0
+                *fOut << "(i64.ne ";
                 inst->fCond->accept(this);
-                *fOut << "(i64.const 32)))";
+                *fOut << "(i64.const 0))";
             } else {
                 inst->fCond->accept(this);
             }
@@ -512,12 +513,12 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         {
             *fOut << "(if ";
             inst->fCond->accept(&fTypingVisitor);
-            // Possibly convert i64 to i32.
+            // Possibly convert i64 to i32
             if (isIntType64(fTypingVisitor.fCurType)) {
-                // Shift high bytes
-                *fOut << "(i32.wrap/i64 (i64.shr_s ";
+                // Compare to 0
+                *fOut << "(i64.ne ";
                 inst->fCond->accept(this);
-                *fOut << "(i64.const 32)))";
+                *fOut << "(i64.const 0))";
             } else {
                 inst->fCond->accept(this);
             }

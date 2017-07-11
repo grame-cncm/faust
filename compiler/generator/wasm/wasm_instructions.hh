@@ -1367,14 +1367,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         {
             inst->fThen->accept(this);
             inst->fElse->accept(this);
-            // Condition is last item. Possibly convert i64 to i32.
-            inst->fCond->accept(&fTypingVisitor);
+            // Condition is last item
             inst->fCond->accept(this);
+            //Possibly convert i64 to i32
+            inst->fCond->accept(&fTypingVisitor);
             if (isIntType64(fTypingVisitor.fCurType)) {
-                // Shift high bytes
-                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(16);
-                *fOut << int8_t(WasmOp::I64ShrS);
-                *fOut << int8_t(BinaryConsts::I32ConvertI64);
+                // Compare to 0
+                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
+                *fOut << int8_t(WasmOp::I64Ne);
             }
             *fOut << int8_t(BinaryConsts::Select);
             
@@ -1384,14 +1384,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         // Conditional : if : TO CHECK : utilise drop ?
         virtual void visit(IfInst* inst)
         {
-            inst->fCond->accept(&fTypingVisitor);
             inst->fCond->accept(this);
-            // Possibly convert i64 to i32.
+            // Possibly convert i64 to i32
+            inst->fCond->accept(&fTypingVisitor);
             if (isIntType64(fTypingVisitor.fCurType)) {
-                // Shift high bytes
-                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(16);
-                *fOut << int8_t(WasmOp::I64ShrS);
-                *fOut << int8_t(BinaryConsts::I32ConvertI64);
+                // Compare to 0
+                *fOut << int8_t(BinaryConsts::I64Const) << S32LEB(0);
+                *fOut << int8_t(WasmOp::I64Ne);
             }
             *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
             inst->fThen->accept(this);

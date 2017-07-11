@@ -621,7 +621,7 @@ static void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
-    cout << "-ftz     \t--flush-to-zero code added to recursive signals\n";
+    cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 
