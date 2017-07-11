@@ -1,5 +1,10 @@
 #!/bin/bash
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
 OSCDEFS=""
 NVOICES=-1
 OSCDEFS=""
@@ -35,10 +40,6 @@ fi
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
-# without having to configure CXX and CXXFLAGS
-CXX=g++
-CXXFLAGS=-O3
 
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB="-framework CoreServices -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit"

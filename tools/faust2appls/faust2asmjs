@@ -78,7 +78,7 @@ for f in $FILES; do
 	fi
     
     # compile the C++ code to asm.js
-    emcc -O2 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
+    emcc -O3 --memory-init-file 0 $name.cpp -s TOTAL_MEMORY=100663296 --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name-temp.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
    
     # compose the asm.js code
     sed -e "s/DSP/"$name"/g" $name-temp.js > $name.js

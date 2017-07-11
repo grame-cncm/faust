@@ -209,6 +209,11 @@ extended/fmodprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh sig
 extended/fmodprim.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh generator/statement.hh
 extended/fmodprim.o: parallelize/graphSorting.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
 extended/fmodprim.o: documentator/lateq.hh generator/Text.hh generator/floats.hh
+extended/ftzprim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
+extended/ftzprim.o: tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh generator/klass.hh
+extended/ftzprim.o: generator/uitree.hh tlib/property.hh parallelize/loop.hh generator/statement.hh
+extended/ftzprim.o: parallelize/graphSorting.hh signals/sigvisitor.hh signals/signals.hh signals/binop.hh
+extended/ftzprim.o: documentator/lateq.hh generator/Text.hh signals/sigtyperules.hh generator/floats.hh
 extended/log10prim.o: extended/xtended.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh
 extended/log10prim.o: tlib/list.hh tlib/shlysis.hh signals/sigtype.hh tlib/smartpointer.hh signals/interval.hh
 extended/log10prim.o: generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
@@ -398,7 +403,9 @@ signals/recursivness.o: signals/recursivness.hh signals/signals.hh tlib/tlib.hh 
 signals/recursivness.o: tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh signals/binop.hh tlib/property.hh
 signals/recursivness.o: signals/ppsig.hh
 signals/signals.o: signals/signals.hh tlib/tlib.hh tlib/symbol.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
-signals/signals.o: tlib/shlysis.hh signals/binop.hh
+signals/signals.o: tlib/shlysis.hh signals/binop.hh extended/xtended.hh signals/sigtype.hh tlib/smartpointer.hh
+signals/signals.o: signals/interval.hh generator/klass.hh generator/uitree.hh tlib/property.hh parallelize/loop.hh
+signals/signals.o: generator/statement.hh parallelize/graphSorting.hh signals/sigvisitor.hh documentator/lateq.hh
 signals/sigorderrules.o: signals/sigtype.hh tlib/tree.hh tlib/symbol.hh tlib/node.hh tlib/smartpointer.hh
 signals/sigorderrules.o: signals/interval.hh signals/sigprint.hh signals/signals.hh tlib/tlib.hh tlib/num.hh
 signals/sigorderrules.o: tlib/list.hh tlib/shlysis.hh signals/binop.hh signals/prim2.hh signals/sigorderrules.hh

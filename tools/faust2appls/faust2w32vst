@@ -32,7 +32,6 @@ CXX="${MINGWPREFIX}g++"
 DLLWRAP="${MINGWPREFIX}dllwrap --target=i686-w64-mingw32"
 STRIP="${MINGWPREFIX}strip"
 
-
 #-----------------------------------------------------------------------------
 # Compilation flags
 CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -DBUILDING_DLL -Wno-multichar -Wno-write-strings"
@@ -45,7 +44,6 @@ EXT=".dll"
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do

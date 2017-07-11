@@ -1,6 +1,12 @@
 #!/bin/bash
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
 OSCDEFS=""
+
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to ladspa plugins           #
@@ -28,8 +34,6 @@ fi
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-
-CXXFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math" 
 
 for p in $@; do
 	if [ "$p" = -icc ]; then
