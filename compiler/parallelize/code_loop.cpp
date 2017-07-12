@@ -55,10 +55,10 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
     pushBlock(fPreInst, block);
     pushBlock(fComputeInst, block);
     pushBlock(fPostInst, block);
-    BasicCloneVisitor cloner;
-
+    
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block);
 
+    BasicCloneVisitor cloner;
     return dynamic_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 

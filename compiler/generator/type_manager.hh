@@ -46,13 +46,17 @@ struct StringTypeManager {
             fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
             fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
             
-            fInvertTypeTable["float"] = Typed::kFloat;
-            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
-            fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
-            
             fInvertTypeTable["int"] =  Typed::kInt32;
             fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt32_ptr;
             fInvertTypeTable["vector<int>"] = Typed::kInt32_vec;
+            
+            fTypeDirectTable[Typed::kInt64] = "long long";
+            fTypeDirectTable[Typed::kInt64_ptr] = "long long" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt64_vec] = "vector<long long>";
+            
+            fInvertTypeTable["float"] = Typed::kFloat;
+            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
+            fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
             
             fInvertTypeTable["double"] = Typed::kDouble;
             fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
@@ -88,15 +92,19 @@ class CStringTypeManager : public StringTypeManager {
         {
             fPtrPosfix = ptr_postfix;
             
-            fTypeDirectTable[Typed::kFloat] = "float";
-            fTypeDirectTable[Typed::kFloatish] = "floatish";
-            fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
-            fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
-            
             fTypeDirectTable[Typed::kInt32] = "int";
             fTypeDirectTable[Typed::kInt32ish] = "intish";
             fTypeDirectTable[Typed::kInt32_ptr] = "int" + fPtrPosfix;
             fTypeDirectTable[Typed::kInt32_vec] = "vector<int>";
+            
+            fTypeDirectTable[Typed::kInt64] = "long long";
+            fTypeDirectTable[Typed::kInt64_ptr] = "long long" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt64_vec] = "vector<long long>";
+            
+            fTypeDirectTable[Typed::kFloat] = "float";
+            fTypeDirectTable[Typed::kFloatish] = "floatish";
+            fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
             
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDoublish] = "doublish";
@@ -170,15 +178,19 @@ class RustStringTypeManager : public StringTypeManager {
         {
             fPtrPosfix = ptr_postfix;
             
-            fTypeDirectTable[Typed::kFloat] = "f32";
-            fTypeDirectTable[Typed::kFloatish] = "floatish";
-            fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
-            fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
-            
             fTypeDirectTable[Typed::kInt32] = "i32";
             fTypeDirectTable[Typed::kInt32ish] = "intish";
             fTypeDirectTable[Typed::kInt32_ptr] = "i32" + fPtrPosfix;
             fTypeDirectTable[Typed::kInt32_vec] = "vector<i32>";
+            
+            fTypeDirectTable[Typed::kInt64] = "i64";
+            fTypeDirectTable[Typed::kInt64_ptr] = "i64" + fPtrPosfix;
+            fTypeDirectTable[Typed::kInt64_vec] = "vector<i64>";
+            
+            fTypeDirectTable[Typed::kFloat] = "f32";
+            fTypeDirectTable[Typed::kFloatish] = "floatish";
+            fTypeDirectTable[Typed::kFloat_ptr] = "f32" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloat_vec] = "vector<f32>";
             
             fTypeDirectTable[Typed::kDouble] = "f64";
             fTypeDirectTable[Typed::kDoublish] = "doublish";

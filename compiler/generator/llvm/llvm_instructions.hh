@@ -175,7 +175,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LlvmValue genInt64(Module* module, int number, int size = 1)
+    virtual LlvmValue genInt64(Module* module, long long number, int size = 1)
     {
         if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size), number);
@@ -217,6 +217,15 @@ struct LLVMTypeHelper {
             return VectorType::get(llvm::Type::getInt32Ty(module->getContext()), size);
         } else {
             return llvm::Type::getInt32Ty(module->getContext());
+        }
+    }
+    
+    virtual LLVM_TYPE getInt64Ty(Module* module, int size)
+    {
+        if (size > 1) {
+            return VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size);
+        } else {
+            return llvm::Type::getInt64Ty(module->getContext());
         }
     }
 
@@ -1255,11 +1264,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // If we have an explicit alloca builder, use it
                 if (fAllocaBuilder->GetInsertBlock()) {
                     // Always at the begining since the block is already branched to next one...
-                  fAllocaBuilder->SetInsertPoint(GET_ITERATOR(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
-                  fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
+                    fAllocaBuilder->SetInsertPoint(GET_ITERATOR(fAllocaBuilder->GetInsertBlock()->getFirstInsertionPt()));
+                    fCurValue = fAllocaBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
                 } else {
                     fCurValue = fBuilder->CreateAlloca(convertFIRType(fModule, inst->fType));
                 }
+                
                 fCurValue->setName(name);
                 fDSPStackVars[name] = fCurValue; // Keep var
           
@@ -1766,7 +1776,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             fCurValue = genInt32(fModule, inst->fNum, inst->fSize);
         }
-        
+    
+        virtual void visit(Int64NumInst* inst)
+        {
+            fCurValue = genInt64(fModule, inst->fNum, inst->fSize);
+        }
+    
         virtual void visit(Int32ArrayNumInst* inst)
         {
            std::vector<Constant*> num_array;
@@ -1799,7 +1814,29 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             visitAux(inst->fType->getType(), inst->fSize);
         }
     
-        virtual void visit(BitcastInst* inst) { faustassert(false); }
+        virtual void visit(::BitcastInst* inst)
+        {
+            // Compile exp to bitcast, result in fCurValue
+            inst->fInst->accept(this);
+            
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    fCurValue = fBuilder->CreateBitCast(fCurValue, fBuilder->getInt32Ty());
+                    break;
+                case Typed::kInt64:
+                    fCurValue = fBuilder->CreateBitCast(fCurValue, fBuilder->getInt64Ty());
+                    break;
+                case Typed::kFloat:
+                    fCurValue = fBuilder->CreateBitCast(fCurValue, fBuilder->getFloatTy());
+                    break;
+                case Typed::kDouble:
+                    fCurValue = fBuilder->CreateBitCast(fCurValue, fBuilder->getDoubleTy());
+                    break;
+                default:
+                    faustassert(false);
+                    break;
+            }
+        }
 
         void visitAux(Typed::VarType type, int size)
         {
@@ -1928,10 +1965,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // Create resulting vector
                 Value* select_vector = UndefValue::get(then_value->getType());
 
+                // Convert condition to a bool by comparing to 0
                 for (int i = 0; i < inst->fSize; i++) {
 
                     Value* scalar_cond_value1 = fBuilder->CreateExtractElement(cond_value, genInt32(fModule, i));
-                    Value* scalar_cond_value2 = fBuilder->CreateICmpEQ(scalar_cond_value1, genInt32(fModule, 1), "ifcond");
+                    Value* scalar_cond_value2 = fBuilder->CreateICmpNE(scalar_cond_value1, genInt32(fModule, 0), "ifcond");
                     Value* scalar_then_value = fBuilder->CreateExtractElement(then_value, genInt32(fModule, i));
                     Value* scalar_else_value = fBuilder->CreateExtractElement(else_value, genInt32(fModule, i));
 
@@ -1949,9 +1987,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Compile condition, result in fCurValue
                 inst->fCond->accept(this);
-
-                // Convert condition to a bool by comparing to 1
-                Value* cond_value = fBuilder->CreateICmpEQ(fCurValue, genInt32(fModule, 1, inst->fSize), "ifcond");
+   
+                // Convert condition to a bool by comparing to 0
+                Value* cond_value;
+                if (fCurValue->getType() == getInt64Ty(fModule, inst->fSize)) {
+                    cond_value = fBuilder->CreateICmpNE(fCurValue, genInt64(fModule, 0, inst->fSize), "ifcond");
+                } else {
+                    cond_value = fBuilder->CreateICmpNE(fCurValue, genInt32(fModule, 0, inst->fSize), "ifcond");
+                }
 
                 // Compile then branch, result in fCurValue
                 inst->fThen->accept(this);
@@ -2311,7 +2354,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinOpInt32(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LlvmValue generateBinOpInt32_64(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
         {
             if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMIntInst, arg1, arg2);
@@ -2338,10 +2381,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
             faustassert(arg1->getType() == arg2->getType());
 
-            if (arg1->getType() == getFloatTy(fModule, size) || arg1->getType() == getDoubleTy(fModule, size)){
+            if (arg1->getType() == getFloatTy(fModule, size) || arg1->getType() == getDoubleTy(fModule, size)) {
                 return generateBinOpReal(opcode, arg1, arg2, size);
-            } else if (arg1->getType() == getInt32Ty(fModule, size)) {
-                return generateBinOpInt32(opcode, arg1, arg2, size);
+            } else if (arg1->getType() == getInt32Ty(fModule, size) || arg1->getType() == getInt64Ty(fModule, size)) {
+                return generateBinOpInt32_64(opcode, arg1, arg2, size);
             } else {
                 // Should not happen
                 cerr << "generateBinopAux" << endl;

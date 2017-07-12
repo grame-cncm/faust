@@ -294,6 +294,16 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     done
 
     for f in *.dsp; do
+        faust2impulse4 $f -double -ftz 1 > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f scalar -ftz 1 mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulse4 $f -double -ftz 2 > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 2 mode" || echo "ERROR $f scalar -ftz 2 mode"
+    done
+
+    for f in *.dsp; do
         faust2impulse4 $f -double -vec -lv 0 > $D/$f.vec.ir
         filesCompare $D/$f.vec.ir ../expected-responses/$f.scal.ir && echo "OK $f vector -lv 0 mode" || echo "ERROR $f vector -lv 0 mode"
     done

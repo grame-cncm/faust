@@ -267,6 +267,10 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 *fOut << "stack, ";
             }
             
+            if (inst->fAddress->getAccess() & Address::kLink) {
+                *fOut << "link, ";
+            }
+            
             if (inst->fAddress->getAccess() & Address::kLoop) {
                 *fOut << "loop, ";
             }
@@ -422,12 +426,21 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         virtual void visit(Int32NumInst* inst)
         {
             if (inst->fSize > 1) {
-                *fOut << "IntVec<" << inst->fSize << ">(" << inst->fNum  << ")";
+                *fOut << "Int32Vec<" << inst->fSize << ">(" << inst->fNum  << ")";
             } else {
-                *fOut << "Int(" << inst->fNum  << ")";
+                *fOut << "Int32(" << inst->fNum  << ")";
             }
         }
-        
+    
+        virtual void visit(Int64NumInst* inst)
+        {
+            if (inst->fSize > 1) {
+                *fOut << "Int64Vec<" << inst->fSize << ">(" << inst->fNum  << ")";
+            } else {
+                *fOut << "Int64(" << inst->fNum  << ")";
+            }
+        }
+    
         virtual void visit(Int32ArrayNumInst* inst)
         {
             char sep = '{';
