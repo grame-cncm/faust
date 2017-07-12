@@ -195,10 +195,10 @@ class CInstVisitor : public TextInstVisitor {
         {
             switch (inst->fType->getType()) {
                 case Typed::kInt32:
-                    *fOut << "*((unsigned int*)&"; inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "*((int*)&"; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kInt64:
-                    *fOut << "*((unsigned long int*)&"; inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "*((long long*)&"; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kFloat:
                     *fOut << "*((float*)&"; inst->fInst->accept(this); *fOut << ")";

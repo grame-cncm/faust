@@ -215,10 +215,10 @@ class CPPInstVisitor : public TextInstVisitor {
         {
             switch (inst->fType->getType()) {
                 case Typed::kInt32:
-                    *fOut << "*reinterpret_cast<unsigned int*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "*reinterpret_cast<int*>(&"; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kInt64:
-                    *fOut << "*reinterpret_cast<unsigned long int*>(&"; inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "*reinterpret_cast<long long*>(&"; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kFloat:
                     *fOut << "*reinterpret_cast<float*>(&"; inst->fInst->accept(this); *fOut << ")";

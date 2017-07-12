@@ -154,7 +154,7 @@ class TextInstVisitor : public InstVisitor {
     
         virtual void visit(Int64NumInst* inst)
         {
-            *fOut << "0x" << hex << inst->fNum << dec;
+            *fOut << inst->fNum;
         }
     
         virtual void visit(Int32ArrayNumInst* inst)

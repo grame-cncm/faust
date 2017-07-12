@@ -456,7 +456,25 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             }
         }
     
-        virtual void visit(BitcastInst* inst) { faustassert(false); }
+        virtual void visit(BitcastInst* inst)
+        {
+            inst->fInst->accept(this);
+            switch (inst->fType->getType()) {
+                case Typed::kInt32:
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kBitcastInt));
+                    break;
+                case Typed::kInt64:
+                    faustassert(false);
+                    break;
+                case Typed::kFloat:
+                case Typed::kDouble:
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kBitcastReal));
+                    break;
+                default:
+                    faustassert(false);
+                    break;
+            }
+        }
 
         // Function call
         virtual void visit(FunCallInst* inst)

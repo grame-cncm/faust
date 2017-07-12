@@ -27,6 +27,7 @@
 #include <cmath>
 #include <iostream>
 #include <sstream>
+#include <map>
 
 #include "faust/gui/CGlue.h"
 #include "interpreter_bytecode.hh"
@@ -37,7 +38,9 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-//#define INTERPRETER_TRACE 1
+//#define INTERPRETER_TRACE     1
+#define INTEGER_OVERFLOW    -1
+#define DIV_BY_ZERO         -2
 
 template <class T>
 struct interpreter_dsp_factory_aux;
@@ -59,32 +62,56 @@ class FIRInterpreter  {
         T** fInputs;
         T** fOutputs;
     
+        std::map<int, int> fRealStats;
+    
         #define push_int(val) (int_stack[int_stack_index++] = val)
         #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
             
         #define pop_int() (int_stack[--int_stack_index])
         #define pop_addr() (address_stack[--addr_stack_index])
     
+        void printStats()
+        {
+            std::cout << "-------------------------------"<< std::endl;
+            std::cout << "Interpreter statistics" << std::endl;
+            std::cout << "FP_INFINITE: " << fRealStats[FP_INFINITE] << std::endl;
+            std::cout << "FP_NAN: " << fRealStats[FP_NAN] << std::endl;
+            std::cout << "FP_NORMAL: " << fRealStats[FP_NORMAL] << std::endl;
+            std::cout << "FP_SUBNORMAL: " << fRealStats[FP_SUBNORMAL] << std::endl;
+            std::cout << "FP_ZERO: " << fRealStats[FP_ZERO] << std::endl;
+            std::cout << "INTEGER_OVERFLOW: " << fRealStats[INTEGER_OVERFLOW] << std::endl;
+            std::cout << "DIV_BY_ZERO: " << fRealStats[DIV_BY_ZERO] << std::endl;
+            std::cout << "-------------------------------"<< std::endl;
+        }
+    
     #ifdef INTERPRETER_TRACE
     
         inline void warning_overflow(InstructionIT it)
         {
+            fRealStats[INTEGER_OVERFLOW]++;
+            /*
             std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter 'Overflow' warning trace end --------\n\n";
+            */
         }
     
         inline void check_div_zero(InstructionIT it, T val)
         {
+            fRealStats[DIV_BY_ZERO]++;
+            /*
             if (val == T(0)) {
                 std::cout << "-------- Interpreter 'div by zero' trace start --------" << std::endl;
                 fTraceContext.write(&std::cout);
                 std::cout << "-------- Interpreter 'div by zero' trace end ----------\n\n";
             }
+            */
         }
     
         inline T check_real(InstructionIT it, T val)
         {
+            fRealStats[fpclassify(val)]++;
+            /*
             if (std::isnan(val)) {
                 std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
                 fTraceContext.write(&std::cout);
@@ -96,6 +123,7 @@ class FIRInterpreter  {
                 std::cout << "-------- Interpreter 'Inf' trace end --------\n\n";
                 throw faustexception("");
             }
+            */
             return val;
         }
         
@@ -282,9 +310,10 @@ class FIRInterpreter  {
                 &&do_kBlockShiftReal, &&do_kBlockShiftInt,
                 &&do_kLoadInput, &&do_kStoreOutput,
                 
-                // Cast
+                // Cast/bitcast
                 &&do_kCastReal, &&do_kCastInt,
                 &&do_kCastRealHeap, &&do_kCastIntHeap,
+                &&do_kBitcastInt, &&do_kBitcastReal,
                 
                 // Standard math (stack OP stack)
                 &&do_kAddReal, &&do_kAddInt, &&do_kSubReal, &&do_kSubInt,
@@ -704,6 +733,23 @@ class FIRInterpreter  {
                     do_kCastIntHeap:
                     {
                         push_int(int(fRealHeap[(*it)->fOffset1]));
+                        dispatch_next();
+                    }
+                    
+                    // Bitcast operations
+                    do_kBitcastInt:
+                    {
+                        T v1 = pop_real(it);
+                        int v2 = *reinterpret_cast<int*>(&v1);
+                        push_int(v2);
+                        dispatch_next();
+                    }
+                    
+                    do_kBitcastReal:
+                    {
+                        int v1 = pop_int();
+                        T v2 = *reinterpret_cast<T*>(&v1);
+                        push_real(it, v2);
                         dispatch_next();
                     }
                     
@@ -2462,6 +2508,14 @@ class FIRInterpreter  {
             // Stack
             fRealStackSize = 512;
             fIntStackSize = 512;
+            
+            fRealStats[INTEGER_OVERFLOW] = 0;
+            fRealStats[DIV_BY_ZERO] = 0;
+            fRealStats[FP_INFINITE] = 0;
+            fRealStats[FP_NAN] = 0;
+            fRealStats[FP_NORMAL] = 0;
+            fRealStats[FP_SUBNORMAL] = 0;
+            fRealStats[FP_ZERO] = 0;
         }
     
         virtual ~FIRInterpreter()
@@ -2473,6 +2527,10 @@ class FIRInterpreter  {
                 delete [] fRealHeap;
                 delete [] fIntHeap;
             }
+            
+        #ifdef INTERPRETER_TRACE
+            printStats();
+        #endif
         }
     
         // Freeze values

@@ -47,9 +47,10 @@ struct FIRInstruction {
         kBlockShiftReal, kBlockShiftInt,
         kLoadInput, kStoreOutput,
         
-        // Cast
+        // Cast/Bitcast
         kCastReal, kCastInt,
         kCastRealHeap, kCastIntHeap,
+        kBitcastInt, kBitcastReal,
         
         // Standard math (stack OP stack)
         kAddReal, kAddInt, kSubReal, kSubInt,  
@@ -207,6 +208,7 @@ struct FIRInstruction {
                 || (opt == kLoadInput)
         
                 || (opt == kCastReal)
+                || (opt == kBitcastReal)
                 
                 || (opt == kSelectReal)
         
@@ -266,9 +268,10 @@ static std::string gFIRInstructionTable[] = {
     "kBlockShiftReal", "kBlockShiftInt",
     "kLoadInput", "kStoreOutput",
 
-    // Cast
+    // Cast/Bitcast
     "kCastReal", "kCastInt",
     "kCastRealHeap", "kCastIntHeap",
+    "kBitcastInt", "kBitcastReal",
 
     // Standard math (stack OP stack)
     "kAddReal", "kAddInt", "kSubReal", "kSubInt",  

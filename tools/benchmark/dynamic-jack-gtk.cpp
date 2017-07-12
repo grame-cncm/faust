@@ -80,12 +80,12 @@ struct malloc_memory_manager : public dsp_memory_manager {
     void* allocate(size_t size)
     {
         void* res = malloc(size);
-        cout << "malloc_manager : " << size << " " << res << endl;
+        //cout << "malloc_manager : " << size << " " << res << endl;
         return res;
     }
     virtual void destroy(void* ptr)
     {
-        cout << "free_manager : " << ptr << endl;
+        //cout << "free_manager : " << ptr << endl;
         free(ptr);
     }
     
@@ -135,6 +135,7 @@ int main(int argc, char* argv[])
     int argc1 = 0;
     const char* argv1[32];
     
+    cout << "Compiled with additional options: ";
     for (int i = 1; i < argc-1; i++) {
         if ((string(argv[i]) == "-llvm")
             || (string(argv[i]) == "-interp")
@@ -142,13 +143,14 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-osc")
             || (string(argv[i]) == "-httpd")) {
             continue;
-        }
-        if (string(argv[i]) == "-nvoices") {
+        } else if (string(argv[i]) == "-nvoices") {
             i++;
             continue;
         }
         argv1[argc1++] = argv[i];
+        cout << argv[i] << " ";
     }
+    cout << endl;
     
 #ifdef INTERP_PLUGIN
     cout << "Using interpreter plugin backend" << endl;
