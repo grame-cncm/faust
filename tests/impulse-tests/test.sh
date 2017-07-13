@@ -266,13 +266,18 @@ if [ $BACKEND = "interp" ] || [ $BACKEND = "all" ]; then
     echo "================================================================================"
 
     for f in *.dsp; do
-        faust2impulse3 -double  $f > $D/$f.scal.ir
+        faust2impulse3 -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
     done
 
     for f in *.dsp; do
         faust2impulse3bis -inpl -double $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f -inpl scalar mode" || echo "ERROR $f -inpl scalar mode"
+    done
+
+    for f in *.dsp; do
+        faust2impulse3 -double -ftz 1 $f > $D/$f.scal.ir
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -ftz 1 mode" || echo "ERROR $f -ftz 1 scalar mode"
     done
 
 fi
