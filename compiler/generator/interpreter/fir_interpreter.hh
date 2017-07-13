@@ -38,10 +38,10 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-#define INTERPRETER_TRACE     1
-#define FUN_INTERPRETER_TRACE 1
-#define INTEGER_OVERFLOW    -1
-#define DIV_BY_ZERO         -2
+#define INTERPRETER_TRACE       1
+//#define FULL_INTERPRETER_TRACE  1
+#define INTEGER_OVERFLOW        -1
+#define DIV_BY_ZERO             -2
 
 template <class T>
 struct interpreter_dsp_factory_aux;
@@ -124,12 +124,16 @@ class FIRInterpreter  {
     
         inline T check_real(InstructionIT it, T val)
         {
-            if ((fIntrumentMode >= 1) && !std::isnormal(val) && (val != T(0))) {
+            if (fIntrumentMode == 0) {
+                // Nothing
+            } else if ((fIntrumentMode == 1) && !std::isnormal(val) && (val != T(0))) {
                 fRealStats[FP_SUBNORMAL]++;
-            }
-            if (fIntrumentMode >= 2) {
-                if (std::isinf(val)) fRealStats[FP_INFINITE]++;
-                if (std::isnan(val)) fRealStats[FP_NAN]++;
+            } else if (fIntrumentMode == 2) {
+                if (std::isinf(val)) {
+                    fRealStats[FP_INFINITE]++;
+                } else if (std::isnan(val)) {
+                    fRealStats[FP_NAN]++;
+                }
             }
             
         #ifdef FULL_INTERPRETER_TRACE
