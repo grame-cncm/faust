@@ -13,7 +13,7 @@ No2 = N>>1;
 signal = amp * cosine with {
   cosine = select2(k==0,
 		 select2(k==No2,
-			2.0*os.oscrc(f(k)), // 2x for negative-frequencies contribution
+			2.0*os.oscrc(f(k)), // 2x since negative-frequencies not displayed
 			1-1':+~*(-1) // Alternating sequence: 1, -1, 1, -1
 			),
 		   1.0); // make sure phase is zero (freq jumps around)
