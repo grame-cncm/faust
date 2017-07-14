@@ -156,6 +156,43 @@ class CodeContainer : public virtual Garbageable {
             }
             
             dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+            dst << "Compilation options: ";
+            if (gGlobal->gVectorSwitch) {
+                dst << "-vec" << " -lv " << gGlobal->gVectorLoopVariant
+                << " -vs " << gGlobal->gVecSize
+                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
+                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
+                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
+                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
+                << " -ftz " <<  gGlobal->gFTZMode
+                << ((gGlobal->gMemoryManager) ? " -mem" : "")
+                << endl;
+            } else if (gGlobal->gSchedulerSwitch) {
+                dst << "-sch" << " -vs " << gGlobal->gVecSize
+                << " -vs " << gGlobal->gVecSize
+                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
+                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
+                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
+                << " -ftz " <<  gGlobal->gFTZMode
+                << ((gGlobal->gMemoryManager) ? " -mem" : "")
+                << endl;
+            } else if (gGlobal->gOpenMPSwitch) {
+                dst << "-omp" << " -vs " << gGlobal->gVecSize
+                << " -vs " << gGlobal->gVecSize
+                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
+                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
+                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
+                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
+                << " -ftz " <<  gGlobal->gFTZMode
+                << ((gGlobal->gMemoryManager) ? " -mem" : "")
+                << endl;
+            } else {
+                dst << "-scal"
+                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
+                << " -ftz " <<  gGlobal->gFTZMode
+                << ((gGlobal->gMemoryManager) ? " -mem" : "")
+                << endl;
+            }
             dst << "------------------------------------------------------------ */" << endl;
         }
     
