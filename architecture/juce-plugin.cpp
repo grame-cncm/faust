@@ -272,7 +272,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
     
     public:
         
-        FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
+        FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&, bool useDefault);
         ~FaustPlugInAudioProcessorEditor();
         
         void paint (Graphics&) override;
@@ -286,7 +286,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
         
-        JuceGUI juceGUI;
+        JuceGUI fJuceGUI;
     
 };
 
@@ -552,7 +552,7 @@ bool FaustPlugInAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()
 {
-    return new FaustPlugInAudioProcessorEditor (*this);
+    return new FaustPlugInAudioProcessorEditor (*this, fStateUI.getUseDefault());
 }
 
 //==============================================================================
@@ -581,18 +581,18 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 //==============================================================================
-FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
-: AudioProcessorEditor (&p), processor (p)
+FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p, bool useDefault)
+: AudioProcessorEditor (&p), processor (p), fJuceGUI(useDefault)
 {
-    addAndMakeVisible(juceGUI);
+    addAndMakeVisible(fJuceGUI);
     
 #ifdef JUCE_POLY
-    p.fSynth->buildUserInterface(&juceGUI);
+    p.fSynth->buildUserInterface(&fJuceGUI);
 #else
-    p.fDSP->buildUserInterface(&juceGUI);
+    p.fDSP->buildUserInterface(&fJuceGUI);
 #endif
     
-    juce::Rectangle<int> recommendedSize = juceGUI.getSize();
+    juce::Rectangle<int> recommendedSize = fJuceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
 
@@ -607,7 +607,7 @@ void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
 
 void FaustPlugInAudioProcessorEditor::resized()
 {
-    juceGUI.setBounds(getLocalBounds());
+    fJuceGUI.setBounds(getLocalBounds());
 }
 
 // Globals

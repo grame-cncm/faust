@@ -37,8 +37,11 @@ class JuceStateUI : public GenericUI {
     private:
 
         std::vector<FAUSTFLOAT*> fZones;
+        bool fUseDefault = true;
 
     public:
+    
+        bool getUseDefault() { return fUseDefault; }
 
         void getStateInformation (MemoryBlock& destData)
         {
@@ -57,6 +60,7 @@ class JuceStateUI : public GenericUI {
 
         void setStateInformation (const void* data, int sizeInBytes)
         {
+            fUseDefault = false;
             MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
 
             if (sizeof(FAUSTFLOAT) == sizeof(float)) {
