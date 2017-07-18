@@ -132,30 +132,8 @@ class CodeContainer : public virtual Garbageable {
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
         void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
 
-        void printHeader(ostream& dst)
+        void printCompilationOptions(ostream& dst)
         {
-            // defines the metadata we want to print as comments at the begin of in the file
-            set<Tree> selectedKeys;
-            selectedKeys.insert(tree("name"));
-            selectedKeys.insert(tree("author"));
-            selectedKeys.insert(tree("copyright"));
-            selectedKeys.insert(tree("license"));
-            selectedKeys.insert(tree("version"));
-            
-            dst << "/* ------------------------------------------------------------" << endl;
-            for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-                if (selectedKeys.count(i->first)) {
-                    dst << *(i->first);
-                    const char* sep = ": ";
-                    for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
-                        dst << sep << **j;
-                        sep = ", ";
-                    }
-                    dst << endl;
-                }
-            }
-            
-            dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
             dst << "Compilation options: ";
             if (gGlobal->gVectorSwitch) {
                 dst << "-vec" << " -lv " << gGlobal->gVectorLoopVariant
@@ -193,6 +171,33 @@ class CodeContainer : public virtual Garbageable {
                 << ((gGlobal->gMemoryManager) ? " -mem" : "")
                 << endl;
             }
+        }
+    
+        void printHeader(ostream& dst)
+        {
+            // defines the metadata we want to print as comments at the begin of in the file
+            set<Tree> selectedKeys;
+            selectedKeys.insert(tree("name"));
+            selectedKeys.insert(tree("author"));
+            selectedKeys.insert(tree("copyright"));
+            selectedKeys.insert(tree("license"));
+            selectedKeys.insert(tree("version"));
+            
+            dst << "/* ------------------------------------------------------------" << endl;
+            for (MetaDataSet::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+                if (selectedKeys.count(i->first)) {
+                    dst << *(i->first);
+                    const char* sep = ": ";
+                    for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                        dst << sep << **j;
+                        sep = ", ";
+                    }
+                    dst << endl;
+                }
+            }
+            
+            dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+            printCompilationOptions(dst);
             dst << "------------------------------------------------------------ */" << endl;
         }
     

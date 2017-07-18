@@ -618,12 +618,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM,
         Builder.SLPVectorize = true;
     }
     
-    /* Desactivated since this pass is definitively much too slow...
-    if (OptLevel > 4) {
-        Builder.BBVectorize = true;
-    }
-    */
-     
     Builder.populateFunctionPassManager(FPM);
     Builder.populateModulePassManager(MPM);
 }
