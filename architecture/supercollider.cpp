@@ -531,4 +531,10 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
 #endif // NDEBUG
 }
 
+#ifdef SUPERNOVA 
+extern "C" FAUST_EXPORT int server_type(void) { return sc_server_supernova; }
+#else
+extern "C" FAUST_EXPORT int server_type(void) { return sc_server_scsynth; }
+#endif
+
 // EOF
