@@ -2,7 +2,7 @@
 
 `faust2unity` transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio. 
 
-The compiled folder contains two different types of files :
+The compiled folder is an unity package which contains two different types of files :
 
     - Librairies (i.e. `libFaustPlugin_<file>.bundle`) containing the native C++ part.
     - a C# script (i.e. `FaustPlugin_<file>.cs`) containing the managed part which links the native part to the unity audio system and managed the plugin inspector interface.
@@ -19,13 +19,15 @@ Libraries are available for several platforms and architectures :
 
 `faust2unity` is used with the following command :
 
-`faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] <file1.dsp> [<file2.dsp>]`
+`faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-source] <file1.dsp> [<file2.dsp>]`
 
-By default it will create a folder containing the c# script and sub-folders with all avalaible architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different folders.
+By default it will create an unity package containing the c# script and sub-folders with all avalaible architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different folders.
 
-The library files should be in the Assets/Plugins folder in your Unity project. Then, the relevant architecture set up should be filled in for each file in the plugin inspector.
+The relevant architecture set up should be filled in for each file in the plugin inspector.
 
-Finally, attache the c# script to a game object. 
+Finally, the C# script should be attached to a game object. 
+
+The source files are available with the `source` command.
 
 
 ## Compiler requirements
@@ -49,6 +51,7 @@ The following options are available :
     - `-ios`        : produces an iOS library
     - `-android`    : produces Android armeabi-v7a and x86 libraries
     - `-linux`      : produces a Linux library
+    - `-source`     : produces an uncompressed folder with the selected architecture and the source files used to compile the libraries
     - `-help or -h` : shows different options and comments
 
 `faust2unity` script calls five different commands :

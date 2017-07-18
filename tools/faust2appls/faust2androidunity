@@ -3,7 +3,9 @@
 . faustpath
 
 #-------------------------------------------------------------------
-# Compiler settings
+# Dispatch arguments
+
+SOURCE="0"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -15,7 +17,10 @@ for p in $@; do
         echo "See architecture/unity/README.md for more info"
         exit
     fi
-    if [ ${p:0:1} = "-" ]; then
+
+    if [ $p = "-source" ]; then
+        SOURCE="1"
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -34,7 +39,7 @@ for p in $FILES; do
     f=$(basename "$p")
     NAME=${f%.dsp}
     SRCDIR=$(dirname "$p")
-    DIR=$SRCDIR/FaustPlugin_Android_$NAME
+    DIR=$SRCDIR/Android
     if [ -d "$DIR" ]; then
         rm -rf "$DIR"
     fi
@@ -54,6 +59,43 @@ for p in $FILES; do
     rm -rf "obj"
     rm -rf "$NAME.cpp"
     cd ..
+
+
+    if [ "$SOURCE" = "0" ]; then
+
+        # unitypackage compression dir for armeabi-v7a
+        DIR1=$(echo -n $RANDOM | md5)
+        if [ -d "$DIR1" ]; then
+            rm -rf "$DIR1"
+        fi
+        mkdir "$DIR1"
+
+        mv "$DIR/libs/armeabi-v7a/libFaustPlugin_$NAME.so" "$DIR1/asset"
+
+        # pathname file for unitypackage compression
+        echo "Assets/Plugins/FaustPlugin_$NAME/Android/armeabi-v7a/libFaustPlugin_$NAME.so" >> pathname
+        mv ./pathname ./$DIR1/pathname
+
+        # unitypackage compression dir for x86
+        DIR2=$(echo -n $RANDOM | md5)
+        if [ -d "$DIR2" ]; then
+            rm -rf "$DIR2"
+        fi
+        mkdir "$DIR2"
+
+        mv "$DIR/libs/x86/libFaustPlugin_$NAME.so" "$DIR2/asset"
+
+        # pathname file for unitypackage compression
+        echo "Assets/Plugins/FaustPlugin_$NAME/Android/x86/libFaustPlugin_$NAME.so" >> pathname
+        mv ./pathname ./$DIR2/pathname
+
+        rm -rf FaustPlugin_Android_$NAME
+        mv $DIR1 FaustPlugin_$NAME/$DIR1
+        mv $DIR2 FaustPlugin_$NAME/$DIR2
+    else
+        mv $DIR FaustPlugin_$NAME
+    fi
+
 
     echo "$f : Android armeabi-v7a and x86 compilations completed"
 done

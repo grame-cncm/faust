@@ -15,17 +15,20 @@ OSX="0"
 IOS="0"
 ANDROID="0"
 LINUX="0"
+SOURCE=""
+SRC=0
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2unity [-w32] [-ios] <file1.dsp> <file2.dsp>"
-        echo "Generates a folder with all available architecture libraries for faust unity plugin and the C# file required."
-        echo "Use -w32 to produce a w32 library"
-        echo "Use -w64 to produce a w64 library"
+        echo "faust2unity [-w32] .. [-android] [-source] <file1.dsp> [<file2.dsp>] .."
+        echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# file required. Use arguments to generate specific architectures"
+        echo "Use -w32 to produce a Windows 32 bits library"
+        echo "Use -w64 to produce a Windows 64 bits library"
         echo "Use -osx to produce a MACOSX library"
         echo "Use -ios to produce a iOS library"
-        echo "Use -android to produce android libraries (armabi-v7a and x86)."
+        echo "Use -android to produce android libraries (armeabi-v7a and x86)."
         echo "Use -linux to produce a linux library"
+        echo "Use -source to produce the source files (uncompressed folder)"
         echo "See architecture/unity/README.md for more info."
         exit
     fi
@@ -47,6 +50,9 @@ for p in $@; do
     elif [ $p = "-linux" ]; then
         LINUX="1"
         ALL="0"
+    elif [ $p = "-source" ]; then
+        SOURCE="-source"
+        SRC="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -56,13 +62,16 @@ for p in $@; do
     fi
 done
 
+ARCHIVES=""
+
 for p in $FILES; do
 
     CUR=$(pwd)
     f=$(basename "$p")
     SRCDIR=$(dirname "$p")
     NAME=${f%.dsp}
-    DIR=$SRCDIR/FaustPlugin_$NAME
+    FNAME=FaustPlugin_$NAME
+    DIR=$SRCDIR/$FNAME
 
     # creates final dir / overwrites it if already created
     if [ -d "$DIR" ]; then
@@ -72,6 +81,23 @@ for p in $FILES; do
 
     # adds README to final dir
     cp $FAUSTLIB/unity/README.md $DIR/README.md
+
+    if [ "$SRC" = "0" ]; then
+
+        # unitypackage compression dir for README.md
+        DIR1=$(echo -n $RANDOM | md5)
+        if [ -d "$DIR1" ]; then
+            rm -rf "$DIR1"
+        fi
+        mkdir "$DIR1"
+        mv "$DIR/README.md" "$DIR1/asset"
+
+        # pathname file for unitypackage compression
+        echo "Assets/Plugins/$FNAME/README.md" >> pathname
+        mv ./pathname ./$DIR1/pathname
+        mv ./$DIR1 ./$DIR/
+    fi
+
 
     # finds number of parameters
     faust -uim $f -o $NAME.cpp
@@ -96,47 +122,70 @@ for p in $FILES; do
     rm -rf $NAME.json
     rm -rf $f.json
 
+    if [ "$SRC" = "0" ]; then
+
+        # unitypackage compression dir for C# file
+        DIR2=$(echo -n $RANDOM | md5)
+        if [ -d "$DIR2" ]; then
+            rm -rf "$DIR2"
+        fi
+        mkdir "$DIR2"
+        mv "$DIR/$FNAME.cs" "$DIR2/asset"
+
+        # pathname file for unitypackage compression
+        echo "Assets/Scripts/$FNAME.cs" >> pathname
+        mv ./pathname ./$DIR2/pathname
+        mv ./$DIR2 ./$DIR/
+    fi
+
     # compiles c++ to binaries
 
-        # w64
-        if [ $W64 = "1" ] || [ $ALL = "1" ]; then
-            faust2w64unity $f || exit
-            mv $SRCDIR/FaustPlugin_w64_$NAME $DIR/w64
-        fi
+    # w64
+    if [ $W64 = "1" ] || [ $ALL = "1" ]; then
+        faust2w64unity $SOURCE $f || exit
+    fi
 
-        # w32
-        if [ $W32 = "1" ] || [ $ALL = "1" ]; then
-            faust2w32unity $f || exit
-            mv $SRCDIR/FaustPlugin_w32_$NAME $DIR/w32
+    # w32
+    if [ $W32 = "1" ] || [ $ALL = "1" ]; then
+            faust2w32unity $SOURCE $f || exit
+    fi
 
-        fi
+    # macos
+    if [ $OSX = "1" ] || [ $ALL = "1" ]; then
+        faust2osxiosunity $SOURCE $f || exit
+    fi
 
-        # macos
-        if [ $OSX = "1" ] || [ $ALL = "1" ]; then
-            faust2osxiosunity $f || exit
-            mv $SRCDIR/FaustPlugin_OSX_$NAME $DIR/OSX
+    # ios
+    if [ $IOS = "1" ] || [ $ALL = "1" ]; then
+        faust2osxiosunity -ios $SOURCE $f || exit
+    fi
 
-        fi
-        # ios
-        if [ $IOS = "1" ] || [ $ALL = "1" ]; then
-            faust2osxiosunity -ios $f || exit
-            mv $SRCDIR/FaustPlugin_iOS_$NAME $DIR/iOS
+    # android
+    if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
+        faust2androidunity $SOURCE $f || exit
+    fi
 
-        fi
-        # android
-        if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
-            faust2androidunity $f || exit
-            mv $SRCDIR/FaustPlugin_Android_$NAME $DIR/Android
-        fi
+    # Linux
+    if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
+        faust2linuxunity $SOURCE $f || exit
+    fi
 
-        # Linux
-        if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
-            faust2linuxunity $f || exit
-            mv $SRCDIR/FaustPlugin_linux_$NAME $DIR/Linux
-        fi
-
-    zip -r $DIR.zip $DIR > /dev/null;
-
-    echo "$DIR.zip archive created"
+    if [ "$SRC" = "1" ]; then
+        faust -i -a unityplugin.cpp $f -o $NAME.cpp
+        mv "$NAME.cpp" "$FNAME/$NAME.cpp"
+        cp "$f" "$FNAME/$f"
+        SNAME=$FNAME\_sources
+        mv "$FNAME" "$SNAME"
+        ARCHIVES="$ARCHIVES$SNAME;"
+    elif [ "$SRC" = "0" ]; then
+        cd $FNAME
+        tar zcvf FaustPlugin_$NAME.unitypackage * &> /dev/null
+        ARCHIVES="$ARCHIVES$FNAME.unitypackage;"
+        mv "$FNAME.unitypackage" ../
+        cd ..
+        rm -rf $DIR
+    fi
 
 done
+
+echo "$ARCHIVES"
