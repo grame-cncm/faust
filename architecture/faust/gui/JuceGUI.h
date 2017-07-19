@@ -1823,7 +1823,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
     
     private:
     
-        bool fUseDefault = true;
+        bool fDefault = true;
         std::stack<uiBase*> fBoxStack;
         uiBase* fCurrentBox = nullptr;   // Current box used in buildUserInterface logic.
         
@@ -1833,7 +1833,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {
-            return (fUseDefault) ? def : *zone;
+            return (fDefault) ? def : *zone;
         }
     
         /** Add generic box to the user interface. */
@@ -1910,7 +1910,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \brief   Constructor.
          * \details Initialize the JuceGUI specific variables. 
          */
-        JuceGUI(bool useDefault = true):fUseDefault(useDefault), fRadioGroupID(0)
+        JuceGUI(bool def = true):fDefault(def), fRadioGroupID(0)
         {}
         
         /**

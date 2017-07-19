@@ -272,7 +272,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
     
     public:
         
-        FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&, bool useDefault);
+        FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
         ~FaustPlugInAudioProcessorEditor();
         
         void paint (Graphics&) override;
@@ -488,7 +488,7 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    // initialisation that you need...
     
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
@@ -499,7 +499,11 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
    
-    fDSP->init(int(sampleRate));
+    // Setting the DSP default values has already been done by 'buildUserInterface(&fStateUI)' call
+    mydsp::classInit(int(sampleRate));
+    fDSP->instanceConstants(int(sampleRate));
+    fDSP->instanceClear();
+    
 #endif
 }
 
@@ -552,7 +556,7 @@ bool FaustPlugInAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* FaustPlugInAudioProcessor::createEditor()
 {
-    return new FaustPlugInAudioProcessorEditor (*this, fStateUI.getUseDefault());
+    return new FaustPlugInAudioProcessorEditor (*this);
 }
 
 //==============================================================================
@@ -571,7 +575,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
     
     fStateUI.setStateInformation(data, sizeInBytes);
-}
+ }
 
 //==============================================================================
 // This creates new instances of the plugin..
@@ -581,8 +585,8 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 //==============================================================================
-FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p, bool useDefault)
-: AudioProcessorEditor (&p), processor (p), fJuceGUI(useDefault)
+FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
+: AudioProcessorEditor (&p), processor (p), fJuceGUI(false)
 {
     addAndMakeVisible(fJuceGUI);
     
