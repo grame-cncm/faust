@@ -45,6 +45,7 @@ install:
 	install faust2jaqt $(dest)
 	install faust2juce $(dest)
 	install faust2ladspa $(dest)
+	install faust2linuxunity $(dest)
 	install faust2lv2 $(dest)
 	install faust2mathdoc $(dest)
 	install faust2mathviewer $(dest)
@@ -122,6 +123,7 @@ uninstall:
 	rm -f $(dest)/faust2jaqt
 	rm -f $(dest)/faust2juce
 	rm -f $(dest)/faust2ladspa
+	rm -f $(dest)/faust2linuxunity
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2mathdoc
 	rm -f $(dest)/faust2mathviewer

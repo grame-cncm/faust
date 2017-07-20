@@ -225,7 +225,7 @@ class dsp_parallelizer : public dsp {
             
             FAUSTFLOAT** outputs_dsp2 = (FAUSTFLOAT**)alloca(fDSP2->getNumOutputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < fDSP2->getNumOutputs(); chan++) {
-                outputs_dsp2[chan] = inputs[fDSP1->getNumOutputs() + chan];
+                outputs_dsp2[chan] = outputs[fDSP1->getNumOutputs() + chan];
             }
             
             fDSP2->compute(count, inputs_dsp2, outputs_dsp2);

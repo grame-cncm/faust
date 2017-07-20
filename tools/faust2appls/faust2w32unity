@@ -12,7 +12,9 @@ for p in $@; do
         echo "See architecture/unity/README.md for more info"
         exit
     fi
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-source" ]; then
+        SOURCE="1"
+    elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
@@ -44,19 +46,23 @@ for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     NAME=${f%.dsp}
+    FNAME=FaustPlugin_$NAME
     SRCDIR=$(dirname "$p")
-    DIR=$SRCDIR/FaustPlugin_w32_$NAME
+    DIR=x86
 
     # creates a temporary dir 
     TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
 
-    # creates final dir
-    if [ -d "$DIR" ]; then
-        rm -rf "$DIR"
+    if [ "$SOURCE" = "1" ]; then
+        # create final dir for source files
+        if [ -d "$DIR" ]; then
+            rm -rf "$DIR"
+        fi
+        mkdir "$DIR"
     fi
-    mkdir "$DIR"
+
 
     # compile faust to c++
     faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2w32unity"; exit 1)
@@ -64,14 +70,37 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $NAME$EXT $NAME.cpp
+		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $FNAME$EXT $NAME.cpp
 
     ) > /dev/null || (echo "$f : C++ to w32 library compilation failed in Faust2w32unity"; exit 1)
 
-    rm -rf "$SRCDIR/${f%.dsp}$EXT"
-    cp "$TMP/$NAME$EXT" "$SRCDIR/$NAME$EXT"
-    mv "$SRCDIR/$NAME$EXT" "$SRCDIR/$DIR/libFaustPlugin_$NAME$EXT"
-    rm -rf "$TDR"
+    rm -rf "$SRCDIR/$FNAME$EXT"
+
+    if [ "$SOURCE" = "1" ]; then
+
+        mv "$TMP/$FNAME$EXT" "$SRCDIR/$DIR/"
+        mv "$SRCDIR/$DIR" "$FNAME/$DIR"
+        rm -rf $TDR
+        rm -rf $TMP
+    else
+
+        DIR=$(echo -n $RANDOM | md5)
+        if [ -d "$DIR" ]; then
+            rm -rf "$DIR"
+        fi
+        mkdir "$DIR"
+
+        # unitypackage compression dir for x64
+        mv "$TMP/$FNAME$EXT" "$SRCDIR/$DIR/asset"
+        rm -rf "$TDR"
+        rm -rf "$TMP"
+
+        # pathname file for unitypackage compression
+        echo "Assets/Plugins/FaustPlugin_$NAME/x86/libFaustPlugin_$NAME.dll" >> pathname
+        mv ./pathname ./$DIR/pathname
+        mv ./$DIR ./FaustPlugin_$NAME/$DIR
+    fi
+
 
 echo "$f : w32 compilation completed"
 done

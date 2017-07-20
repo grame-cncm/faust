@@ -30,16 +30,16 @@
 
 #include "faust/gui/DecoratorUI.h"
 
-// A class to save/restore DSP state using JUCE
+// A class to save/restore DSP state using JUCE, which also set default values at construction time.
 
 class JuceStateUI : public GenericUI {
 
     private:
 
         std::vector<FAUSTFLOAT*> fZones;
-
+  
     public:
-
+    
         void getStateInformation (MemoryBlock& destData)
         {
             MemoryOutputStream stream (destData, true);
@@ -58,7 +58,7 @@ class JuceStateUI : public GenericUI {
         void setStateInformation (const void* data, int sizeInBytes)
         {
             MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
-
+       
             if (sizeof(FAUSTFLOAT) == sizeof(float)) {
                 for (int i = 0; i < sizeInBytes / sizeof(float); i++) {
                     *fZones[i] = stream.readFloat();
@@ -74,9 +74,9 @@ class JuceStateUI : public GenericUI {
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); };
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init; }
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init; }
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init;};
     
 };
 

@@ -18,7 +18,7 @@ public class model_Editor : Editor {
     private FaustUI_UI fUI;
     
     private void OnEnable() {
-        fJSON = readJSONFile();
+        fJSON = "tototata";
         fUI = FaustUI_UI.ReadJSONUi (fJSON);
         fUI.getUI (0).setNumParams ();
         _dsp = (model)target;

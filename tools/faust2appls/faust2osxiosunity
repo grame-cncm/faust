@@ -4,16 +4,13 @@
 #                                                                   #
 #  Compiles Faust programs to Unity audio plugins (OSX)	            #
 #                                                                   #
-#  (see https://docs.unity3d.com/Manual/Audio.html					#
-#  and https://bitbucket.org/Unity-Technologies/nativeaudioplugins)	#
-#                                                                   #
 #  (c) Grame, 2017                                                  #
 #                                                                   #
 #####################################################################
 #
 # Structure of a plugin for OSX
 #--------------------------------
-# AudioPluginFoo.bundle/
+# libFaustPlugin_foo.bundle/
 #	Contents/
 #		MacOS/
 #			AudioPluginFoo
@@ -92,6 +89,7 @@ DELIM
 }
 
 CUR=$(pwd)
+SOURCE=0
 
 for p in $@; do
 
@@ -106,6 +104,8 @@ for p in $@; do
     if [ $p = "-ios" ]; then
         IOS=1
         CXXFLAGS="-arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2"
+    elif [ $p = "-source" ]; then
+        SOURCE=1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -124,11 +124,13 @@ for f in $FILES; do
 
     if [ "$IOS" = "1" ]; then
 
-        DIR=$SRCDIR/FaustPlugin_iOS_$NAME
-        if [ -d "$DIR" ]; then
-            rm -rf "$DIR"
+        if [ "$SOURCE" = "1" ]; then
+            DIR=$SRCDIR/iOS
+            if [ -d "$DIR" ]; then
+                rm -rf "$DIR"
+            fi
+            mkdir "$DIR"
         fi
-        mkdir "$DIR"
 
         # compiles faust to c++
         faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity -ios"; exit 1)
@@ -137,8 +139,28 @@ for f in $FILES; do
         $CXX $CXXFLAGS -DAPPLE -fembed-bitcode -DPLUGINNAME="libFaustPlugin_$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o || (echo "$FNAME : C++ to iOS library compilation failed in faust2osxiosunity -ios"; exit 1)
         libtool $NAME.o -o libFaustPlugin_$NAME.a
         rm $NAME.o $NAME.cpp
-        mv libFaustPlugin_$NAME.a $DIR/libFaustPlugin_$NAME.a
-		echo "$FNAME : iOS compilation completed"
+
+        if [ "$SOURCE" = "0" ]; then
+
+            # unitypackage compression dir for iOS
+            DIR=$(echo -n $RANDOM | md5)
+            if [ -d "$DIR" ]; then
+                rm -rf "$DIR"
+            fi
+            mkdir "$DIR"
+            mv libFaustPlugin_$NAME.a $DIR/asset
+
+            # pathname file for unitypackage compression
+            echo "Assets/Plugins/FaustPlugin_$NAME/iOS/libFaustPlugin_$NAME.a" >> pathname
+            mv ./pathname ./$DIR/pathname
+            mv ./$DIR ./FaustPlugin_$NAME/$DIR
+        else
+            mv libFaustPlugin_$NAME.a $DIR/libFaustPlugin_$NAME.a
+            mv $DIR $SRCDIR/FaustPlugin_$NAME/
+        fi
+
+
+echo "$FNAME : iOS compilation completed"
 
     else
 
@@ -152,13 +174,14 @@ for f in $FILES; do
         MOS="$BNDL/Contents/MacOS/"
         mkdir -p "$MOS"
 
-        # creates final dir
-        DIR=$SRCDIR/FaustPlugin_OSX_$NAME
-        if [ -d "$DIR" ]; then
-            rm -rf "$DIR"
+        if [ "$SOURCE" = "1" ]; then
+            # creates final dir for source files
+            DIR=$SRCDIR/OSX
+            if [ -d "$DIR" ]; then
+                rm -rf "$DIR"
+            fi
+            mkdir "$DIR"
         fi
-        mkdir "$DIR"
-
         # compile faust to c++
         faust -i -a unity/unityplugin.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || (echo "$FNAME : Faust to C++ compilation failed in faust2osxiosunity"; exit 1)
 
@@ -167,8 +190,41 @@ for f in $FILES; do
         createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || (echo "$FNAME : Info.plist gerenation failed in faust2osxiosunity"; exit 1)
 
         rm -rf "$SRCDIR/$BNAME.bundle"
-        mv "$BNDL" "$SRCDIR/$DIR/"
-        rm -rf $TDR
+
+        if [ "$SOURCE" = "0" ]; then
+
+            # unitypackage compression dir for MacOS lib
+            DIR1=$(echo -n $RANDOM | md5)
+            if [ -d "$DIR1" ]; then
+            rm -rf "$DIR1"
+            fi
+            mkdir "$DIR1"
+            mv "$MOS/$BNAME" "$SRCDIR/$DIR1/asset"
+
+            # pathname file for unitypackage compression
+            echo "Assets/Plugins/FaustPlugin_$NAME/MacOS/libFaustPlugin_$NAME.bundle/Contents/MacOS/$BNAME" >> pathname
+            mv ./pathname ./$DIR1/pathname
+            mv ./$DIR1 ./FaustPlugin_$NAME/$DIR1
+
+            # unitypackage compression dir for Info.plist
+            DIR2=$(echo -n $RANDOM | md5)
+            if [ -d "$DIR2" ]; then
+            rm -rf "$DIR2"
+            fi
+            mkdir "$DIR2"
+            mv "$BNDL/Contents/Info.plist" "$SRCDIR/$DIR2/asset"
+            rm -rf $TDR
+
+            # pathname file for unitypackage compression
+            echo "Assets/Plugins/FaustPlugin_$NAME/MacOS/libFaustPlugin_$NAME.bundle/Contents/Info.plist" >> pathname
+            mv ./pathname ./$DIR2/pathname
+            mv ./$DIR2 ./FaustPlugin_$NAME/$DIR2
+
+        else
+            mv "$BNDL" "$DIR/"
+            mv "$DIR" "FaustPlugin_$NAME/$DIR"
+            rm -rf $TDR
+        fi
 
         echo "$FNAME : OSX compilation completed"
 
