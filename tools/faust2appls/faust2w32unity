@@ -69,6 +69,7 @@ for p in $FILES; do
 
     ) > /dev/null || (echo "$f : C++ to w32 library compilation failed in Faust2w32unity"; exit 1)
 
+    # moves binary to final dir
     rm -rf "$SRCDIR/$FNAME$EXT"
     mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
     rm -rf "$TDR"

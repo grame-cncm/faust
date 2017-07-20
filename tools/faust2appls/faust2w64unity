@@ -73,6 +73,7 @@ for p in $FILES; do
 
     rm -rf "$SRCDIR/$FNAME$EXT"
 
+    # moves binary to final dir 
     mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
     rm -rf "$TDR"
 

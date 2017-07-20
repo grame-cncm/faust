@@ -70,6 +70,7 @@ for p in $FILES; do
 
     ) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
 
+    # moves binary to final dir
     rm -rf "$SRCDIR/$FNAME$EXT"
     mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
     rm -rf "$TDR"

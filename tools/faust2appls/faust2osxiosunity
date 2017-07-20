@@ -124,7 +124,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
 
 
-    if [ "$IOS" = "1" ]; then
+    if [ "$IOS" = "1" ]; then # iOS part
 
         FIN=$FNAME/iOS
 
@@ -143,12 +143,13 @@ for p in $FILES; do
         libtool $TMP/$NAME.o -o $TMP/libFaustPlugin_$NAME.a
         rm $TMP/$NAME.o $TMP/$NAME.cpp
 
+        # moves binary to final
         mv $TMP/* $FIN/
         rm -rf $TMP
 
         echo "$f : iOS compilation completed"
 
-    else
+    else # MacOS part
 
         FIN=$FNAME/MacOS
 
@@ -174,6 +175,7 @@ for p in $FILES; do
 
         rm -rf "$SRCDIR/lib$FNAME.bundle"
 
+        # moves binary to final
         mv $BNDL $FIN/
         rm -rf $TDR
 

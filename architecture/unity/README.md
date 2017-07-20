@@ -8,6 +8,7 @@ The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage)
     - a C# script (i.e. `FaustPlugin_<dspname>.cs`) containing the managed part which links the native part to the Unity audio system and managed the plugin inspector interface.
 
 Libraries are available for several platforms and architectures : 
+
     - Windows 32 bits and 64 bits (.dll)
     - MacOS (.bundle)
     - iOS (.a)
@@ -29,7 +30,8 @@ Finally, the C# script should be attached to a game object.
 
 The source files are available with the `-source` argument.
 
-A folder (i.e. `FaustPlugin_<dspname>_Assets`) following the hierarchy of the Assets folder in a Unity project can be generated using the `-unpacked` argument. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
+Unity packages have a specific organization in order to be correctly read by the Unity editor. `faust2unity` calls `encoderunitypackage` to correctly encode the compiled files. The `-unpacked` argument stops the script before the encoding, the intermediate folder is named `FaustPlugin_<dspname>_Assets` and organized like the Assets hierarchy of a Unity project. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
+
 
 ## Compiler requirements
 
@@ -63,8 +65,8 @@ The following options are available :
     - `faust2osxiosunity [-ios] <file.dsp>`
     - `faust2androidunity <file.dsp>`
     - `faust2linuxunity <file.dsp>`
-    - `encoderunitypackage <file.dsp>`
+    - `encoderunitypackage <folder >`
 
-This commands can be called independently and will generate the libraries only (without the c# file). Specific compilation options can be changed in `faust2<platform>unity` scripts.
+These commands can be called independently and will generate the libraries only (without the c# file). Specific compilation options can be changed in `faust2<platform>unity` scripts.
 
 

@@ -6,7 +6,7 @@
 # Generates a folder with all available architecture libraries for faust unity
 # plugin and the C# and JSON files required
 
-#PHASE 1 : dispatch command arguments
+# Dispatch command arguments
 
 ALL="1"
 W32="0"
@@ -81,7 +81,7 @@ for p in $FILES; do
     fi
     mkdir "$FIN"
 
-    # adds README to final dir
+    # adds README to final dir while setting dspname
     sed "s/<dspname>/$NAME/g" $FAUSTLIB/unity/README.md > $FIN/README.md
 
     # finds number of parameters, required for the c# scripts
@@ -94,7 +94,7 @@ for p in $FILES; do
     rm $NAME.cpp
     rm params.txt
 
-    # compiles faust to c++ and json
+    # compiles faust to c++ and json (adds JSON to C# string)
     faust -json "$SRCDIR/$f" -o /dev/null;
     tr -d '\n' < $f.json > $NAME.json
     sed 's/\"/\\\\"/g;s/\//\\\//g' $NAME.json > $f.json
@@ -141,7 +141,7 @@ for p in $FILES; do
 
     # Dispatch files in Unity hierarchy
     if [ "$SRC" = "0" ]; then
-        if [ "$UNPCK" = "1" ]; then
+        if [ "$UNPCK" = "1" ]; then # Specific folder name if unpacked
             PLGN=$FNAME\_Assets/Plugins
             SCRPT=$FNAME\_Assets/Scripts
         else
@@ -168,13 +168,14 @@ for p in $FILES; do
         mv $FNAME $PLGN
 
         if [ "$UNPCK" = "0" ]; then
-            encoderunitypackage Assets
-            ARCHIVES="$ARCHIVES$FNAME.unitypackage;"
+            encoderunitypackage Assets # encode unity package
+            ARCHIVES="$ARCHIVES$FNAME.unitypackage;" # add package name ARCHIVES variable to display compile package name
         else
-            ARCHIVES="$ARCHIVES$FNAME_Assets;"
+            ARCHIVES="$ARCHIVES$FNAME_Assets;" # dd package name ARCHIVES variable to display compile folder
         fi
 
     elif [ "$SRC" = "1" ]; then
+        # add .dsp and .cpp files to sources folder
         faust -i -a unityplugin.cpp $f -o $NAME.cpp
         mv "$NAME.cpp" "$FNAME/$NAME.cpp"
         cp "$f" "$FNAME/$f"

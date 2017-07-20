@@ -14,7 +14,7 @@ for p in $@; do
         echo "Android sdk should be installed. Make sure the ANDROID_HOME environment variable is correctly set up. It should be pointing to the sdk folder."
         echo "Use 'faust2unity -android' to also create the c# and JSON files"
         echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
-        echo "See architecture/unity/README.md for more info"
+        echo "See architecture/unity/README.md for more info or in the compile folder"
         exit
     fi
 
@@ -40,7 +40,7 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
     FIN=$FNAME/Android
 
-    # creates a temparory dir
+    # creates a temporary dir
     TMP=$(mktemp -d android.XXXX)
 
     # checks if final dir exists
@@ -63,6 +63,7 @@ for p in $FILES; do
     rm -rf "$NAME.cpp"
     cd ..
 
+    # moves binaries to final dir and deletes libs folder
     mv $TMP/libs/* $TMP
     rm -rf $TMP/libs
 
