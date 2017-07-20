@@ -879,7 +879,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
          * \param   vert                        True if vertical, false if horizontal.
          * \param   names                       Contain the names of the different items.
          * \param   values                      Contain the "values" of the different items.
-         * \param   fRadioGroupID                RadioButton being multiple CheckButton in JUCE,
+         * \param   fRadioGroupID               RadioButton being multiple CheckButton in JUCE,
          *                                      we need an ID to know which are linked together.
          */
         uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
