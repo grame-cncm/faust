@@ -18,9 +18,7 @@ for p in $@; do
         exit
     fi
 
-    if [ $p = "-source" ]; then
-        SOURCE="1"
-    elif [ ${p:0:1} = "-" ]; then
+    if [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -38,19 +36,24 @@ for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     NAME=${f%.dsp}
+    FNAME=FaustPlugin_$NAME
     SRCDIR=$(dirname "$p")
-    DIR=$SRCDIR/Android
-    if [ -d "$DIR" ]; then
-        rm -rf "$DIR"
+    FIN=$FNAME/Android
+
+    # creates a temparory dir
+    TMP=$(mktemp -d android.XXXX)
+
+    # checks if final dir exists
+    if [ ! -d "$FIN" ]; then
+        mkdir -p "$FIN"
     fi
-    mkdir "$DIR"
 
     # compiles faust to c++
 
-    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$DIR/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2androidunity"; exit 1)
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2androidunity"; exit 1)
 
     # compiles c++ to binary
-    cd "$DIR"
+    cd "$TMP"
     cp -r "$FAUSTLIB/unity/Android/Android.mk" "Android.mk"
     cp -r "$FAUSTLIB/unity/Android/Application.mk" "Application.mk"
     $ANDROID_HOME/ndk-bundle/ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk FILE=$NAME > /dev/null || (echo "$f : C++ to armeabi-v7a and x86 library compilations failed in faust2androidunity"; exit 1)
@@ -60,42 +63,11 @@ for p in $FILES; do
     rm -rf "$NAME.cpp"
     cd ..
 
+    mv $TMP/libs/* $TMP
+    rm -rf $TMP/libs
 
-    if [ "$SOURCE" = "0" ]; then
-
-        # unitypackage compression dir for armeabi-v7a
-        DIR1=$(echo -n $RANDOM | md5)
-        if [ -d "$DIR1" ]; then
-            rm -rf "$DIR1"
-        fi
-        mkdir "$DIR1"
-
-        mv "$DIR/libs/armeabi-v7a/libFaustPlugin_$NAME.so" "$DIR1/asset"
-
-        # pathname file for unitypackage compression
-        echo "Assets/Plugins/FaustPlugin_$NAME/Android/armeabi-v7a/libFaustPlugin_$NAME.so" >> pathname
-        mv ./pathname ./$DIR1/pathname
-
-        # unitypackage compression dir for x86
-        DIR2=$(echo -n $RANDOM | md5)
-        if [ -d "$DIR2" ]; then
-            rm -rf "$DIR2"
-        fi
-        mkdir "$DIR2"
-
-        mv "$DIR/libs/x86/libFaustPlugin_$NAME.so" "$DIR2/asset"
-
-        # pathname file for unitypackage compression
-        echo "Assets/Plugins/FaustPlugin_$NAME/Android/x86/libFaustPlugin_$NAME.so" >> pathname
-        mv ./pathname ./$DIR2/pathname
-
-        rm -rf FaustPlugin_Android_$NAME
-        mv $DIR1 FaustPlugin_$NAME/$DIR1
-        mv $DIR2 FaustPlugin_$NAME/$DIR2
-    else
-        mv $DIR FaustPlugin_$NAME
-    fi
-
+    mv $TMP/* $FIN/
+    rm -rf $TMP
 
     echo "$f : Android armeabi-v7a and x86 compilations completed"
 done
