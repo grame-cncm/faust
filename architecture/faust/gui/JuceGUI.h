@@ -879,7 +879,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
          * \param   vert                        True if vertical, false if horizontal.
          * \param   names                       Contain the names of the different items.
          * \param   values                      Contain the "values" of the different items.
-         * \param   fRadioGroupID                RadioButton being multiple CheckButton in JUCE,
+         * \param   fRadioGroupID               RadioButton being multiple CheckButton in JUCE,
          *                                      we need an ID to know which are linked together.
          */
         uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
@@ -1822,14 +1822,20 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
 {
     
     private:
-        
+    
+        bool fDefault = true;
         std::stack<uiBase*> fBoxStack;
         uiBase* fCurrentBox = nullptr;   // Current box used in buildUserInterface logic.
         
         int fRadioGroupID;               // In case of radio buttons.
         //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
         ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V3();
-        
+    
+        FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
+        {
+            return (fDefault) ? def : *zone;
+        }
+    
         /** Add generic box to the user interface. */
         void openBox(uiBase* box)
         {
@@ -1844,13 +1850,13 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         void addSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, int kWidth, int kHeight, SliderType type)
         {
             if (isKnob(zone)) {
-                addKnob(label, zone, init, min, max, step);
+                addKnob(label, zone, defaultVal(zone, init), min, max, step);
             } else if (isRadio(zone)) {
-                addRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str(), false);
+                addRadioButtons(label, zone, defaultVal(zone, init), min, max, step, fRadioDescription[zone].c_str(), false);
             } else if (isMenu(zone)) {
-                addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
+                addMenu(label, zone, defaultVal(zone, init), min, max, step, fMenuDescription[zone].c_str());
             } else {
-                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
+                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
             }
         }
         
@@ -1870,21 +1876,21 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             }
             
             if (vert) {
-                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, names.size() * (kRadioButtonHeight - 25) + 25, init, min, max, true, names, values, String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, names.size() * (kRadioButtonHeight - 25) + 25, defaultVal(zone, init), min, max, true, names, values, String(fTooltip[zone]), fRadioGroupID++));
             } else {
-                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, init, min, max, false, names, values, String(fTooltip[zone]), fRadioGroupID++));
+                fCurrentBox->add(new uiRadioButton(this, zone, String(label), kCheckButtonWidth, kRadioButtonHeight, defaultVal(zone, init), min, max, false, names, values, String(fTooltip[zone]), fRadioGroupID++));
             }
         }
         
         /** Add a menu to the user interface. */
         void addMenu(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr)
         {
-            fCurrentBox->add(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, init, min, max, String(fTooltip[zone]), mdescr));
+            fCurrentBox->add(new uiMenu(this, zone, String(label), kMenuWidth, kMenuHeight, defaultVal(zone, init), min, max, String(fTooltip[zone]), mdescr));
         }
         
         /** Add a ciruclar slider to the user interface. */
         void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
+            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
         }
         
         /** Add a bargraph to the user interface. */
@@ -1904,7 +1910,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \brief   Constructor.
          * \details Initialize the JuceGUI specific variables. 
          */
-        JuceGUI():fRadioGroupID(0)
+        JuceGUI(bool def = true):fDefault(def), fRadioGroupID(0)
         {}
         
         /**
