@@ -92,6 +92,35 @@ with{
 	totalTime = attTime+relTime;
 };
 
+//------------------------`arfe`----------------------
+// ARFE (Attack and Release-to-Final-value Exponentially) envelope generator.
+// Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
+// `arfe` is a standard Faust function.
+//
+// #### Usage
+//
+// ```
+// arfe(a,r,f,g) : _
+// ```
+//
+// Where:
+//
+// * `a`, `r`: attack (sec), release (sec)
+// * `f`: final value to approach upon release (such as 0)
+// * `g`: gate signal ( >0 for attack, release begins when g returns to 0)
+//-----------------------------------------------------
+// Author: JOS
+// License: STK-4.3
+arfe(attT60,relT60,fv,gate) = envelope with {
+  ugate = gate>0;
+  samps = ugate : +~(*(ugate)); // ramp time in samples
+  attSamps = int(attT60 * ma.SR);
+  target = select2(ugate, fv, float(gate));
+  t60 = select2(ugate, relT60, attT60);
+  pole = ba.tau2pole(t60/6.91);
+  envelope = target : si.smooth(pole);
+};
+
 //------------------------`are`----------------------
 // ARE (Attack, Release) envelope generator with Exponential segments.
 // Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
@@ -110,15 +139,7 @@ with{
 //-----------------------------------------------------
 // Author: JOS
 // License: STK-4.3
-are(attT60,relT60,gate) = envelope with {
-  ugate = gate>0;
-  samps = ugate : +~(*(ugate)); // ramp time in samples
-  attSamps = int(attT60 * ma.SR);
-  target = select2(ugate, 1.0e-10, float(gate));
-  t60 = select2(ugate, relT60, attT60);
-  pole = ba.tau2pole(t60/6.91);
-  envelope = target : si.smooth(pole);
-};
+are(attT60,relT60,gate) = arfe(attT60,relT60,0,gate);
 
 //------------------------`asr`----------------------
 // ASR (Attack, Sustain, Release) envelope generator.

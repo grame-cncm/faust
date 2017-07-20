@@ -114,9 +114,9 @@ class FaustComponent : public AudioAppComponent, private Timer
                 
         #endif
 
-            addAndMakeVisible(juceGUI);
+            addAndMakeVisible(fJuceGUI);
             
-            fDSP->buildUserInterface(&juceGUI);
+            fDSP->buildUserInterface(&fJuceGUI);
             
         #if defined(MIDICTRL)
             fMIDIHandler = new juce_midi();
@@ -136,7 +136,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             }
         #endif
             
-            recommendedSize = juceGUI.getSize();
+            recommendedSize = fJuceGUI.getSize();
             setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 
             // specify the number of input and output channels that we want to open
@@ -199,7 +199,7 @@ class FaustComponent : public AudioAppComponent, private Timer
 
         void resized() override
         {
-            juceGUI.setBounds(getLocalBounds());
+            fJuceGUI.setBounds(getLocalBounds());
         }
 
         juce::Rectangle<int> getMinSize()
@@ -223,7 +223,7 @@ class FaustComponent : public AudioAppComponent, private Timer
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
         
-        JuceGUI juceGUI;
+        JuceGUI fJuceGUI;
         
         ScopedPointer<dsp> fDSP;
     

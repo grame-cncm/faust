@@ -1,50 +1,49 @@
 #! /bin/bash -e
 
-#-------------------------------------------------------------------
-#Dispatch command arguments
 
-SOURCE="0"
+
+#-------------------------------------------------------------------
+# Dispatch command arguments
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2w64unity <file1.dsp> [<file2.dsp>]"
-        echo "Creates Microsoft 64bits library for faust unity plugin."
-        echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)."
-        echo "Use 'faust2unity -w64' to also create the C# and JSON files"
+        echo "faust2linuxunity <file1.dsp> [<file2.dsp>]"
+        echo "Create Linux shared library for faust unity plugin."
+        echo "Use 'faust2unity -linux' to also create the c# file"
         echo "See architecture/unity/README.md for more info"
         exit
     fi
-
     if [ $p = "-source" ]; then
         SOURCE="1"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
-    elif [[ -f "$p" ]]; then
+	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
 
-#-----------------------------------------------------------------------
-# mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
-# the exact prefix should be specified in the environment variable MINGW
 
-: ${MINGWPREFIX="x86_64-w64-mingw32-"}
-CXX="${MINGWPREFIX}g++"
-(which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found. See -help for more info."; exit 1)
+#------------------------------------------------------------------------------
+# Compiler g++
+#
+
+CXX="g++"
+(which "$CXX" >/dev/null) || (echo "compiler $CXX not found. See -help for more info"; exit 1)
 
 
 #-------------------------------------------------------------------
 # Compiler settings
 
-CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,--enable-auto-import"
+CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,"
 LIB="-shared"
-EXT=".dll"
+EXT=".so"
+
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
-#
+
 for p in $FILES; do
 
     CUR=$(pwd)
@@ -52,11 +51,11 @@ for p in $FILES; do
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
     SRCDIR=$(dirname "$p")
-    DIR=x64
+    DIR=Linux
 
-    # create a temporary dir
+    # creates a temporary dir 
     TDR=$(mktemp -d faust.XXXXXX)
-    TMP=$TDR/$NAME
+    TMP=$TDR/${f%.dsp}
     mkdir "$TMP"
 
     if [ "$SOURCE" = "1" ]; then
@@ -67,21 +66,23 @@ for p in $FILES; do
         mkdir "$DIR"
     fi
 
+
     # compile faust to c++
-    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2w64unity"; exit 1)
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2linuxunity"; exit 1)
 
     # compile c++ to binary
     (
         cd "$TMP"
-		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $FNAME$EXT $NAME.cpp
-    ) > /dev/null || (echo "$f : C++ to w64 library compilation failed in faust2w64unity"; exit 1)
+		$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -o $FNAME$EXT $NAME.cpp
+
+    ) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
 
     rm -rf "$SRCDIR/$FNAME$EXT"
 
     if [ "$SOURCE" = "1" ]; then
 
         mv "$TMP/$FNAME$EXT" "$SRCDIR/$DIR/"
-        mv "$DIR" "$FNAME/$DIR"
+        mv "$SRCDIR/$DIR" "$FNAME/$DIR"
         rm -rf $TDR
         rm -rf $TMP
     else
@@ -98,12 +99,12 @@ for p in $FILES; do
         rm -rf "$TMP"
 
         # pathname file for unitypackage compression
-        echo "Assets/Plugins/FaustPlugin_$NAME/x64/libFaustPlugin_$NAME.dll" >> pathname
+        echo "Assets/Plugins/FaustPlugin_$NAME/Linux/libFaustPlugin_$NAME.dll" >> pathname
         mv ./pathname ./$DIR/pathname
         mv ./$DIR ./FaustPlugin_$NAME/$DIR
     fi
 
-echo "$f : w64 compilation completed"
+echo "$f : linux compilation completed"
 done
 
 

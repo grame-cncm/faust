@@ -66,15 +66,22 @@ import android.net.wifi.WifiManager;
 import android.media.AudioManager;
 
 public class FaustActivity extends Activity {
+    
+    private int sampleRate = 44100;
+    private int bufferSize = 512;
+    private int sensorIntervalMs = 0;
+    
 	private SensorManager mSensorManager;
 	private int numberOfParameters;
 	private UI ui = new UI();
 	private ParametersInfo parametersInfo = new ParametersInfo();
-    private long lastUIDate;
+    private long lastUIDateMs = 0;
+    private long lastSensorDateMs = 0;
     private WifiManager.MulticastLock lock;
     private boolean fBuildUI;
     private MonochromeView fMonoView;
     public static DspFaust dspFaust;
+    
 
     /**
      * Detects and toggles immersive mode (also known as "hidey bar" mode).
@@ -124,7 +131,10 @@ public class FaustActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        
         Log.d("FaustJava", "onCreate");
+        sensorIntervalMs = bufferSize/sampleRate*1000;
+        
         if (dspFaust == null) {
 
             WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
@@ -149,7 +159,7 @@ public class FaustActivity extends Activity {
             */
 
             // TODO: sr and buffer length should change in function of the device for best latency perfs
-            dspFaust = new DspFaust(44100,512);
+            dspFaust = new DspFaust(sampleRate, bufferSize);
 
             Osc.startListening();
         }
@@ -203,28 +213,32 @@ public class FaustActivity extends Activity {
 		public void onSensorChanged(SensorEvent se) {
 
             long curDate = java.lang.System.currentTimeMillis();
-            long deltaUI = curDate - lastUIDate;
+            long uiDeltaMs = curDate - lastUIDateMs;
+            long sensorDeltaMs = curDate - lastSensorDateMs;
+    
+            if (sensorDeltaMs > sensorIntervalMs) {
+                lastSensorDateMs = curDate;
+                if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                    // Update mapping at sensor rate, values are inverted to be coherent with iOS
+                    dspFaust.propagateAcc(0, -se.values[0]);
+                    dspFaust.propagateAcc(1, -se.values[1]);
+                    dspFaust.propagateAcc(2, -se.values[2]);
+                    if (!fBuildUI) {
+                        fMonoView.setColor(dspFaust.getScreenColor());
+                    }
+                }
 
-            if (se.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                // Update mapping at sensor rate, values are inverted to be coherent with iOS
-                dspFaust.propagateAcc(0, -se.values[0]);
-                dspFaust.propagateAcc(1, -se.values[1]);
-                dspFaust.propagateAcc(2, -se.values[2]);
-                if (!fBuildUI) {
-					fMonoView.setColor(dspFaust.getScreenColor());
-				}
-            }
-
-            if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
-                // Update mapping at sensor rate
-                dspFaust.propagateGyr(0, se.values[0]);
-                dspFaust.propagateGyr(1, se.values[1]);
-                dspFaust.propagateGyr(2, se.values[2]);
+                if (se.sensor.getType() == Sensor.TYPE_GYROSCOPE) {
+                    // Update mapping at sensor rate
+                    dspFaust.propagateGyr(0, se.values[0]);
+                    dspFaust.propagateGyr(1, se.values[1]);
+                    dspFaust.propagateGyr(2, se.values[2]);
+                }
             }
 
             // Update UI less often
-            if (deltaUI > 100) {
-                lastUIDate = curDate;
+            if (uiDeltaMs > 100) {
+                lastUIDateMs = curDate;
                 //Log.d("FaustJava", "CPULoad " + dsp_faust.getCPULoad());
                 ui.updateUIstate();
             }
