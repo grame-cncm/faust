@@ -180,11 +180,21 @@ for p in $FILES; do
     (
         cd "$TMP"
         faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
-        ${CXX=g++}  -O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP"
+        
+        #build for build scsynth
+        ${CXX=g++} $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        
+        #build for supernova
+        if [[ $(uname) == Linux ]]; then
+          ${CXX=g++} $BUILDFLAGS -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
+        fi
+
     )> $OUTDEV || exit
 
     ## move the produced files from tmp to source dir
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
+    cp "$TMP/${f%.dsp}_supernova.$EXT" "$SRCDIR/${f%.dsp}_supernova.$EXT"
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
     if [ $KEEP_SRC = 1 ]; then
         cp "$TMP/${f%.dsp}.cpp" "$SRCDIR/${f%.dsp}.cpp"
@@ -198,7 +208,11 @@ for p in $FILES; do
     fi
 
     # collects all the files produced
-     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.$EXT;$SRCDIR/${f%.dsp}.sc;"
+     BINARIES="$SRCDIR/${f%.dsp}.$EXT;"
+     if [[ $(uname) == Linux ]]; then
+       BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
+     fi
+     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.sc;"
 
 done
 
