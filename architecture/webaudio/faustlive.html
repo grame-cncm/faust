@@ -391,7 +391,7 @@ function activateAudioInput()
     }
    
     if (navigator.getUserMedia) {
-        navigator.getUserMedia({audio:true}, getDevice, function(e) {
+        navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
                 alert('Error getting audio input');
                 console.log(e);
         });

@@ -371,7 +371,7 @@
         }
         
         if (navigator.getUserMedia) {
-            navigator.getUserMedia({audio:true}, getDevice(DSP), function(e) {
+            navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice(DSP), function(e) {
                     alert('Error getting audio input');
                     console.log(e);
             });
