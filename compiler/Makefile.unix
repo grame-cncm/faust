@@ -241,12 +241,12 @@ libfaustworker.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	cp libfaustworker.js ../architecture/webaudio
 
 libfaust.wasm : $(common_objects) $(object_ba_wasm) libmain.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=0 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_wasm) libmain.o -o libfaust-wasm.js
 	cp libfaust-wasm.js libfaust-wasm.wasm ../architecture/webaudio
 
 libfaustworker.wasm : $(common_objects) $(object_ba_wasm) libmain.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=0 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_wasm) libmain.o -o libfaustworker-wasm.js
 	cp libfaustworker-wasm.js libfaustworker-wasm.wasm ../architecture/webaudio
 
