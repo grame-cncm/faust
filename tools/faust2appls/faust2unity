@@ -6,7 +6,7 @@
 # Generates a folder with all available architecture libraries for faust unity
 # plugin and the C# and JSON files required
 
-#PHASE 1 : dispatch command arguments
+# Dispatch command arguments
 
 ALL="1"
 W32="0"
@@ -15,8 +15,8 @@ OSX="0"
 IOS="0"
 ANDROID="0"
 LINUX="0"
-SOURCE=""
-SRC=0
+SRC="0"
+UNPCK="0"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -29,6 +29,7 @@ for p in $@; do
         echo "Use -android to produce android libraries (armeabi-v7a and x86)."
         echo "Use -linux to produce a linux library"
         echo "Use -source to produce the source files (uncompressed folder)"
+        echo "Use -unpacked to produce an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use \`encoderunitypackage <folder>\` to compress and pack it. "
         echo "See architecture/unity/README.md for more info."
         exit
     fi
@@ -51,8 +52,9 @@ for p in $@; do
         LINUX="1"
         ALL="0"
     elif [ $p = "-source" ]; then
-        SOURCE="-source"
         SRC="1"
+    elif [ $p = "-unpacked" ]; then
+        UNPCK="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -71,35 +73,18 @@ for p in $FILES; do
     SRCDIR=$(dirname "$p")
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
-    DIR=$SRCDIR/$FNAME
+    FIN=$SRCDIR/$FNAME
 
     # creates final dir / overwrites it if already created
-    if [ -d "$DIR" ]; then
-        rm -rf "$DIR"
+    if [ -d "$FIN" ]; then
+        rm -rf "$FIN"
     fi
-    mkdir "$DIR"
+    mkdir "$FIN"
 
-    # adds README to final dir
-    cp $FAUSTLIB/unity/README.md $DIR/README.md
+    # adds README to final dir while setting dspname
+    sed "s/<dspname>/$NAME/g" $FAUSTLIB/unity/README.md > $FIN/README.md
 
-    if [ "$SRC" = "0" ]; then
-
-        # unitypackage compression dir for README.md
-        DIR1=$(echo -n $RANDOM | md5)
-        if [ -d "$DIR1" ]; then
-            rm -rf "$DIR1"
-        fi
-        mkdir "$DIR1"
-        mv "$DIR/README.md" "$DIR1/asset"
-
-        # pathname file for unitypackage compression
-        echo "Assets/Plugins/$FNAME/README.md" >> pathname
-        mv ./pathname ./$DIR1/pathname
-        mv ./$DIR1 ./$DIR/
-    fi
-
-
-    # finds number of parameters
+    # finds number of parameters, required for the c# scripts
     faust -uim $f -o $NAME.cpp
     grep FAUST_ACTIVES $NAME.cpp > params.txt
     var1=$(cut -d" " -f3- params.txt)
@@ -109,7 +94,7 @@ for p in $FILES; do
     rm $NAME.cpp
     rm params.txt
 
-    # compiles faust to c++ and json
+    # compiles faust to c++ and json (adds JSON to C# string)
     faust -json "$SRCDIR/$f" -o /dev/null;
     tr -d '\n' < $f.json > $NAME.json
     sed 's/\"/\\\\"/g;s/\//\\\//g' $NAME.json > $f.json
@@ -117,74 +102,88 @@ for p in $FILES; do
 
 
     # generates c# file
-    sed -e "s/model/FaustPlugin_$NAME/g;s/plugname/libFaustPlugin_$NAME/g;s/_UI/_$NAME/g;s/Ctx/Context_$NAME/g;s/variables/$var/g;s/androidpluginname/FaustPlugin_$NAME/g;s/tototata/$JSON/g" $FAUSTLIB/unity/template.cs > $SRCDIR/$DIR/FaustPlugin_$NAME.cs
+    sed -e "s/model/$FNAME/g;s/plugname/lib$FNAME/g;s/_UI/_$NAME/g;s/Ctx/Context_$NAME/g;s/variables/$var/g;s/androidpluginname/$FNAME/g;s/tototata/$JSON/g" $FAUSTLIB/unity/template.cs > $FIN/$FNAME.cs
 
     rm -rf $NAME.json
     rm -rf $f.json
-
-    if [ "$SRC" = "0" ]; then
-
-        # unitypackage compression dir for C# file
-        DIR2=$(echo -n $RANDOM | md5)
-        if [ -d "$DIR2" ]; then
-            rm -rf "$DIR2"
-        fi
-        mkdir "$DIR2"
-        mv "$DIR/$FNAME.cs" "$DIR2/asset"
-
-        # pathname file for unitypackage compression
-        echo "Assets/Scripts/$FNAME.cs" >> pathname
-        mv ./pathname ./$DIR2/pathname
-        mv ./$DIR2 ./$DIR/
-    fi
 
     # compiles c++ to binaries
 
     # w64
     if [ $W64 = "1" ] || [ $ALL = "1" ]; then
-        faust2w64unity $SOURCE $f || exit
+        faust2w64unity $f || exit
     fi
 
     # w32
     if [ $W32 = "1" ] || [ $ALL = "1" ]; then
-            faust2w32unity $SOURCE $f || exit
+            faust2w32unity $f || exit
     fi
 
     # macos
     if [ $OSX = "1" ] || [ $ALL = "1" ]; then
-        faust2osxiosunity $SOURCE $f || exit
+        faust2osxiosunity $f || exit
     fi
 
     # ios
     if [ $IOS = "1" ] || [ $ALL = "1" ]; then
-        faust2osxiosunity -ios $SOURCE $f || exit
+        faust2osxiosunity -ios $f || exit
     fi
 
     # android
     if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
-        faust2androidunity $SOURCE $f || exit
+        faust2androidunity $f || exit
     fi
 
     # Linux
     if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
-        faust2linuxunity $SOURCE $f || exit
+        faust2linuxunity $f || exit
     fi
 
-    if [ "$SRC" = "1" ]; then
+    # Dispatch files in Unity hierarchy
+    if [ "$SRC" = "0" ]; then
+        if [ "$UNPCK" = "1" ]; then # Specific folder name if unpacked
+            PLGN=$FNAME\_Assets/Plugins
+            SCRPT=$FNAME\_Assets/Scripts
+        else
+            PLGN=Assets/Plugins
+            SCRPT=Assets/Scripts
+        fi
+
+        if [ ! -d "$PLGN" ]; then
+            mkdir -p $PLGN
+        else
+            rm -rf $PLGN
+            mkdir -p $PLGN
+        fi
+
+        if [ ! -d "$SCRPT" ]; then
+            mkdir -p $SCRPT
+        else
+            rm -rf $SCRPT
+            mkdir -p $SCRPT
+        fi
+
+        echo $NAME > .VAR
+        mv $FNAME/*.cs $SCRPT
+        mv $FNAME $PLGN
+
+        if [ "$UNPCK" = "0" ]; then
+            encoderunitypackage Assets # encode unity package
+            ARCHIVES="$ARCHIVES$FNAME.unitypackage;" # add package name ARCHIVES variable to display compile package name
+        else
+            ARCHIVES="$ARCHIVES$FNAME_Assets;" # dd package name ARCHIVES variable to display compile folder
+        fi
+
+    elif [ "$SRC" = "1" ]; then
+        # add .dsp and .cpp files to sources folder
         faust -i -a unityplugin.cpp $f -o $NAME.cpp
         mv "$NAME.cpp" "$FNAME/$NAME.cpp"
         cp "$f" "$FNAME/$f"
         SNAME=$FNAME\_sources
         mv "$FNAME" "$SNAME"
         ARCHIVES="$ARCHIVES$SNAME;"
-    elif [ "$SRC" = "0" ]; then
-        cd $FNAME
-        tar zcvf FaustPlugin_$NAME.unitypackage * &> /dev/null
-        ARCHIVES="$ARCHIVES$FNAME.unitypackage;"
-        mv "$FNAME.unitypackage" ../
-        cd ..
-        rm -rf $DIR
     fi
+
 
 done
 

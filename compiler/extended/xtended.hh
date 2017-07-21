@@ -30,7 +30,6 @@
 #include "garbageable.hh"
 
 struct ValueInst;
-
 class CodeGen;
 class CodeContainer;
 
@@ -77,6 +76,9 @@ class xtended : public virtual Garbageable {
                                 list<ValueInst*>& casted_args);
     
 };
+
+// True if two floating point numbers are close enough to be considered identical. It is used to recognize PI/n and 0 in some symbolic simplifications
+inline bool comparable(double x, double y) { return fabs(x-y) < 0.00001; }
 
 inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
 inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }

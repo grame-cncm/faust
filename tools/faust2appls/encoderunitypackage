@@ -1,0 +1,70 @@
+#! /bin/bash -e
+
+#-------------------------------------------------------------------
+#Dispatch command arguments
+
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "encoderunitypackage <folder>"
+        echo "Builds a unity package according to the specified sub folder hierarchy."
+        echo "Handles if the folder isn't called Assets/ (adds a parent folder called Assets/)"
+        echo "If the package is called FaustPlugin_<pluginname>, change <pluginname> with the correct name"
+        echo "See architecture/unity/README.md for more info"
+        exit
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+    elif [[ -d "$p" ]]; then
+	    FOLDER="$FOLDER $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+for p in $FOLDER; do
+
+    if [ ! $p = "Assets" ]; then
+        mkdir Assets
+        mv $p Assets
+        p=Assets
+    fi
+
+    if [ -f .VAR ]; then
+        FNAME=FaustPlugin_$(cat .VAR)
+    else
+        FNAME=FaustPlugin_\<pluginname\>
+    fi
+
+    rm -rf .VAR
+    TMP=$(mktemp -d unity.XXXX)
+    FILES=$(find $p -type f)
+
+    for f in $FILES; do
+        FILE=$(basename $f)
+        DIR=$(md5 -q $f)
+        if [ -d "$DIR" ]; then
+            rm -rf "$DIR"
+        fi
+        mkdir -p "$DIR"
+        mv $DIR $TMP/$DIR
+        echo "$f" >> $TMP/$DIR/pathname
+        mv "$f" "$TMP/$DIR/asset"
+    done
+
+    FILES=$(find $p -name "\.*")
+
+    for f in $FILES; do
+        rm -rf $f
+    done
+
+    cd unity.*
+    tar zcvf $FNAME.unitypackage * &> /dev/null
+    mv "$FNAME.unitypackage" ../
+    cd ..
+    rm -rf unity.* $p
+
+done
+
+

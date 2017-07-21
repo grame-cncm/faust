@@ -15,9 +15,7 @@ for p in $@; do
         exit
     fi
 
-    if [ $p = "-source" ]; then
-        SOURCE="1"
-    elif [ ${p:0:1} = "-" ]; then
+    if [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
@@ -52,19 +50,16 @@ for p in $FILES; do
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
     SRCDIR=$(dirname "$p")
-    DIR=x64
+    FIN=$FNAME/x64
 
     # create a temporary dir
     TDR=$(mktemp -d faust.XXXXXX)
     TMP=$TDR/$NAME
     mkdir "$TMP"
 
-    if [ "$SOURCE" = "1" ]; then
-        # create final dir for source files
-        if [ -d "$DIR" ]; then
-            rm -rf "$DIR"
-        fi
-        mkdir "$DIR"
+    # checks if final dir exists, if not creates it
+    if [ ! -d "$FIN" ]; then
+        mkdir -p "$FIN"
     fi
 
     # compile faust to c++
@@ -78,30 +73,9 @@ for p in $FILES; do
 
     rm -rf "$SRCDIR/$FNAME$EXT"
 
-    if [ "$SOURCE" = "1" ]; then
-
-        mv "$TMP/$FNAME$EXT" "$SRCDIR/$DIR/"
-        mv "$DIR" "$FNAME/$DIR"
-        rm -rf $TDR
-        rm -rf $TMP
-    else
-
-        DIR=$(echo -n $RANDOM | md5)
-        if [ -d "$DIR" ]; then
-            rm -rf "$DIR"
-        fi
-        mkdir "$DIR"
-
-        # unitypackage compression dir for x64
-        mv "$TMP/$FNAME$EXT" "$SRCDIR/$DIR/asset"
-        rm -rf "$TDR"
-        rm -rf "$TMP"
-
-        # pathname file for unitypackage compression
-        echo "Assets/Plugins/FaustPlugin_$NAME/x64/libFaustPlugin_$NAME.dll" >> pathname
-        mv ./pathname ./$DIR/pathname
-        mv ./$DIR ./FaustPlugin_$NAME/$DIR
-    fi
+    # moves binary to final dir 
+    mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
+    rm -rf "$TDR"
 
 echo "$f : w64 compilation completed"
 done

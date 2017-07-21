@@ -14,6 +14,7 @@ help:
 install:
 	mkdir -p $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
+	install encoderunitypackage $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2alsaconsole $(dest)
@@ -91,6 +92,7 @@ install:
 	install faustpath $(dest)
 
 uninstall:
+	rm -f $(dest)/encoderunitypackage
 	rm -f $(dest)/faust2sc
 	rm -f $(dest)/faust2alqt
 	rm -f $(dest)/faust2alsa
