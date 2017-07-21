@@ -1,8 +1,9 @@
 
-
 <script>
     
 'use strict';
+
+// Faust part
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
 var isWasm = (typeof (WebAssembly) !== "undefined");
@@ -17,7 +18,7 @@ function changeBufferSize(buffer_size)
     console.log(new_buffer_size);
     startNewDSP(new_buffer_size);
 }
- 
+
 // Audio input handling
 
 function activateAudioInput()
@@ -25,18 +26,18 @@ function activateAudioInput()
     if (!navigator.getUserMedia) {
         navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     }
-   
+    
     if (navigator.getUserMedia) {
         navigator.getUserMedia({audio:true}, getDevice, function(e) {
-                alert('Error getting audio input');
-                console.log(e);
-        });
+                               alert('Error getting audio input');
+                               console.log(e);
+                               });
     } else {
         alert('Audio input API not available');
     }
 }
 
-function getDevice(device) 
+function getDevice(device)
 {
     // Create an AudioNode from the stream.
     audio_input = audio_context.createMediaStreamSource(device);
@@ -73,7 +74,7 @@ function startDSPAux(dsp)
     DSP.setHandler(handler);
 }
 
-function startDSP() 
+function startDSP()
 {
     startNewDSP(1024);
 }
@@ -89,38 +90,38 @@ function startNewDSP(buffer_size)
 
 // To activate audio on iOS
 window.addEventListener('touchstart', function() {
-
-	// create empty buffer
-	var buffer = audio_context.createBuffer(1, 1, 22050);
-	var source = audio_context.createBufferSource();
-	source.buffer = buffer;
-
-	// connect to output (your speakers)
-	source.connect(audio_context.destination);
-
-	// play the file
-	source.noteOn(0);
-
-}, false);
-
-// General
-
-$(startDSP);
-
+                        
+                        // create empty buffer
+                        var buffer = audio_context.createBuffer(1, 1, 22050);
+                        var source = audio_context.createBufferSource();
+                        source.buffer = buffer;
+                        
+                        // connect to output (your speakers)
+                        source.connect(audio_context.destination);
+                        
+                        // play the file
+                        source.noteOn(0);
+                        
+                        }, false);
+                        
+                        // General
+                        
+                        $(startDSP);
+                        
 </script>
 
 <P>
 <center>
-<form method="POST" name="menu" >
-  <select name="selectedBuffer" 
-    onChange="changeBufferSize(this.form.selectedBuffer)">
-    <option value = 256> 256 </option>
-    <option value = 512> 512 </option>
-    <option selected value = 1024> 1024 </option>
-    <option value = 2048> 2048 </option>
-    <option value = 4096> 4096 </option>
-    <option value = 8192> 8192 </option>
-  </select>
-</form>
+    <form method="POST" name="menu" >
+        <select name="selectedBuffer" 
+            onChange="changeBufferSize(this.form.selectedBuffer)">
+            <option value = 256> 256 </option>
+            <option value = 512> 512 </option>
+            <option selected value = 1024> 1024 </option>
+            <option value = 2048> 2048 </option>
+            <option value = 4096> 4096 </option>
+            <option value = 8192> 8192 </option>
+        </select>
+    </form>
 </center>
 
