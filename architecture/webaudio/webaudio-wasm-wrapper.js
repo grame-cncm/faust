@@ -212,8 +212,8 @@ faust.factory_table = [];
 faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
-
-    var sha_key = Sha1.hash(code, true);
+	// Code memory type in the SHAKey to differentiate Monophonic and Polyphonic factories
+	var sha_key = Sha1.hash(code + ((internal_memory) ? "internal_memory": "external_memory") , true);
     var factory = faust.factory_table[sha_key];
     if (factory) {
         console.log("Existing library : " + factory.name);
@@ -574,7 +574,6 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             sp.onaudioprocess = sp.compute;
         
             if (sp.numIn > 0) {
-                //ins = Module._malloc(ptr_size * numIn);
                 sp.ins = sp.audio_heap_ptr_inputs;
                 for (i = 0; i < sp.numIn; i++) {
                     sp.HEAP32[(sp.ins >> 2) + i] = sp.audio_heap_inputs + ((buffer_size * sp.sample_size) * i);
@@ -588,7 +587,6 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             }
           
             if (sp.numOut > 0) {
-                //outs = Module._malloc(ptr_size * numOut);
                 sp.outs = sp.audio_heap_ptr_outputs;
                 for (i = 0; i < sp.numOut; i++) {
                     sp.HEAP32[(sp.outs >> 2) + i] = sp.audio_heap_outputs + ((buffer_size * sp.sample_size) * i);
@@ -1028,7 +1026,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                 }
 
                 // Prepare Ins buffer tables
-                var dspInChans = sp.HEAP32.subarray(sp.ins >> 2, (sp.ins + sp.numIn * ptr_size) >> 2);
+                var dspInChans = sp.HEAP32.subarray(sp.ins >> 2, (sp.ins + sp.numIn * sp.ptr_size) >> 2);
                 for (i = 0; i < sp.numIn; i++) {
                     sp.dspInChannnels[i] = sp.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sp.sample_size) >> 2);
                 }

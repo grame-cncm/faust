@@ -262,6 +262,9 @@
             border-color: #FF7F00;
             border-style: solid;
         }
+        
+        td { text-align: center; padding: 40px; }
+        
         </style>
         
     </head>
@@ -269,33 +272,60 @@
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
         <P> This page embeds the Faust compiler as a JavaScript library called <B>libfaust.js</B>, associated with the auxiliary WebAssembly library.
         You can compile Faust .dsp files by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
-        You can possibly change the buffer size and the polyphonic mode (assuming your DSP is polyphonic ready <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>).
-        <center>
-            
+        <P>
+        <H3>Buffer size </H3>
+        You can change the buffer size (from 256 to 8182 frames).
+        <P>
+        <H3>Polyphonic instrument </H3>
+        Assuming your DSP is polyphonic ready <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode.
+        <H3>Float denomals handling </H3>
+        Parameter: 0 means "nothing", 1 mode uses <B>fabs</B> and <B>denormal value treshhold</B> (slower), 2 mode uses a <B>bitmask</B> to detect denormal value (faster)
+        <P>
             <center>
-                <H4> Buffer size </H4>
-                <form method="POST" name="menu" >
-                    <select name="selectedBuffer"
-                        onChange="setBufferSize(this.form.selectedBuffer)">
-                        <option value = 256> 256 </option>
-                        <option value = 512> 512 </option>
-                        <option selected value = 1024> 1024 </option>
-                        <option value = 2048> 2048 </option>
-                        <option value = 4096> 4096 </option>
-                        <option value = 8192> 8192 </option>
-                    </select>
-                </form>
-            </center>
-            
-            <center>
-                <H4> Polyphony </H4>
-                <form method="POST" name="menu" >
-                    <select name="selectedPoly"
-                        onChange="setPoly(this.form.selectedPoly)">
-                        <option value = ON> ON </option>
-                        <option selected value = OFF> OFF </option>
-                    </select>
-                </form>
+            <table>
+            <tr>
+                <td>
+                <center>
+                    <H4> Buffer size </H4>
+                    <form method="POST" name="menu" >
+                        <select name="selectedBuffer"
+                            onChange="setBufferSize(this.form.selectedBuffer)">
+                            <option value = 256> 256 </option>
+                            <option value = 512> 512 </option>
+                            <option selected value = 1024> 1024 </option>
+                            <option value = 2048> 2048 </option>
+                            <option value = 4096> 4096 </option>
+                            <option value = 8192> 8192 </option>
+                        </select>
+                    </form>
+                </center>
+                
+                <td>
+                <center>
+                    <H4> Polyphonic instrument </H4>
+                    <form method="POST" name="menu" >
+                        <select name="selectedPoly"
+                            onChange="setPoly(this.form.selectedPoly)">
+                            <option value = ON> ON </option>
+                            <option selected value = OFF> OFF </option>
+                        </select>
+                    </form>
+                </center>
+                
+                <td>
+                <center>
+                    <H4> Float denormals handling</H4>
+                    <form method="POST" name="menu" >
+                        <select name="selectedFTZ"
+                            onChange="setFTZ(this.form.selectedFTZ)">
+                            <option value = 0> 0 </option>
+                            <option value = 1> 1 </option>
+                            <option selected value = 2> 2 </option>
+                        </select>
+                    </form>
+                </center>
+            </tr>
+            </table>
             </center>
             
             <div id="filedrag">
@@ -317,6 +347,8 @@
             
             var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
             var isWasm = (typeof (WebAssembly) !== "undefined");
+            var isPoly = false;
+             
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var buffer_size = 1024;
             var audio_input = null;
@@ -324,21 +356,29 @@
             var factory = null;
             var DSP = null;
             var dsp_code = null;
-            var faustsvg = null;
-            var isPoly = false;
-            var exportfilename = null;
+            var faust_svg = null;
             var poly_flag = "OFF";
+            var ftz_flag = "2";
+            var libraries_url = "http://127.0.0.1:8000/libraries/";
             
             function setBufferSize(bs_item)
             {
                 buffer_size = bs_item.options[bs_item.selectedIndex].value;
+                compileDSP();
             }
             
             function setPoly(poly_item)
             {
                 poly_flag = poly_item.options[poly_item.selectedIndex].value;
+                compileDSP();
             }
             
+            function setFTZ(ftz_item)
+            {
+                ftz_flag = ftz_item.options[ftz_item.selectedIndex].value;
+                compileDSP();
+            }
+      
             // MIDI input handling
             function keyOn(channel, pitch, velocity)
             {
@@ -453,21 +493,23 @@
                 audio_input.connect(DSP);
             }
             
-            function fileDragHover(e) {
+            function fileDragHover(e)
+            {
                 e.stopPropagation();
                 e.preventDefault();
                 e.target.className = (e.type === "dragover" ? "hover" : "");
             }
             
-            function fileSelectHandler(e) {
+            function fileSelectHandler(e)
+            {
                 fileDragHover(e);
                 var files = e.target.files || e.dataTransfer.files;
                 f = files[0];
                 uploadFile(f);
             }
             
-            function uploadOn(e, callback) {
-                
+            function uploadOn(e, callback)
+            {
                 if (!isWasm) {
                     alert("WebAssembly is not supported in this browser !")
                     return;
@@ -491,8 +533,7 @@
                     // 	Avoid error "mal formé" on firefox
                     xmlhttp.overrideMimeType('text/html');
                     xmlhttp.send();
-                }
-                else if (e.dataTransfer.getData('URL').split(':').shift() != "file") {
+                } else if (e.dataTransfer.getData('URL').split(':').shift() != "file") {
                     dsp_code = e.dataTransfer.getData('text');
                     
                     // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
@@ -523,11 +564,8 @@
                                 reader.readAsText(file);
                             }
                             
-                            console.log("CASE 31");
-                            
                             reader.onloadend = function(e) {
                                 dsp_code = "process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
-                                console.log("CASE 32");
                                 callback();
                             };
                         }
@@ -535,126 +573,122 @@
                 }
                 // CASE 4 : ANY OTHER STRANGE THING
                 else {
-                    console.log("CASE 4");
                     window.alert("This object is not Faust code...");
                 }
             }
             
-            function uploadFile(e) {
+            function compileDSP()
+            {
+                if (DSP) {
+                    if (audio_input) {
+                        audio_input.disconnect(DSP);
+                    }
+                    DSP.disconnect(audio_context.destination);
+                    if (isPoly) {
+                        faust.deletePolyDSPInstance(DSP);
+                    } else {
+                        faust.deleteDSPInstance(DSP);
+                    }
+                    DSP = null;
+                    _f4u$t.hard_delete(faust_svg);
+                }
                 
-                var intAltKey = e.altKey;
-                var intShiftKey = e.shiftKey;
+                if (dsp_code === null) {
+                    return;
+                }
                 
-                fileDragHover(e);
+                // Prepare args list
+                var argv = [];
+                argv.push("-ftz");
+                argv.push(ftz_flag);
+                argv.push("-I");
+                argv.push(libraries_url);
                 
-                uploadOn(e, function() {
-                         
-                         if (DSP) {
-                             if (audio_input) {
-                                audio_input.disconnect(DSP);
-                             }
-                             DSP.disconnect(audio_context.destination);
-                             if (isPoly) {
-                                faust.deletePolyDSPInstance(DSP);
-                             } else {
-                                faust.deleteDSPInstance(DSP);
-                             }
-                             DSP = null;
-                             _f4u$t.hard_delete(faustsvg);
-                         }
-                         
-                         if (intShiftKey || (poly_flag === "ON")) {
-                         
-                             isPoly = true;
-                             console.log("Poly DSP");
-                             
-                             // Create a poly DSP factory from the dsp code
-                             //factory = createPolyDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/libraries"]);
-                             faust.createPolyDSPFactory(dsp_code,
-                                                        ["-ftz", "2", "-I", "http://127.0.0.1:8000/libraries/"],
-                                                        function (factory) {
-                                                        
-                                                        if (!factory) {
-                                                            alert(faust.getErrorMessage());
-                                                            return;
-                                                        }
-                                                        
-                                                        faust.createPolyDSPInstance(factory,
-                                                                                    audio_context,
-                                                                                    buffer_size,
-                                                                                    16,
-                                                                                    function (dsp) {
-                                                                                    
-                                                                                    DSP = dsp;
-                                                                                    if (DSP.getNumInputs() > 0) {
-                                                                                        activateAudioInput();
-                                                                                    } else {
-                                                                                        audio_input = null;
-                                                                                    }
-                                                                                    
-                                                                                    // Setup UI
-                                                                                    _f4u$t.main_loop = function() {}
-                                                                                    
-                                                                                    faustsvg = $('<div />');
-                                                                                    $('body').append(faustsvg);
-                                                                                    var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-                                                                                    DSP.setHandler(handler);
-                                                                                    
-                                                                                    console.log(DSP.getNumInputs());
-                                                                                    console.log(DSP.getNumOutputs());
-                                                                                    
-                                                                                    DSP.connect(audio_context.destination);
-                                                                                    
-                                                                                    });
-                                                        
-                                                        
-                                                        });
-                         
-                         } else {
-                         
-                             isPoly = false;
-                             console.log("Mono DSP");
-                             
-                             // Create a mono DSP factory from the dsp code
-                             //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/libraries"]);
-                             faust.createDSPFactory(dsp_code,
-                                                    ["-ftz", "2", "-I", "http://127.0.0.1:8000/libraries/"],
-                                                    function (factory) {
-                                                    
-                                                    if (!factory) {
+                console.log(argv);
+                
+                if (poly_flag === "ON") {
+                    
+                    isPoly = true;
+                    console.log("Poly DSP");
+                    
+                    // Create a poly DSP factory from the dsp code
+                    faust.createPolyDSPFactory(dsp_code,
+                                               argv,
+                                               function (factory) {
+                                                   if (!factory) {
                                                         alert(faust.getErrorMessage());
                                                         return;
-                                                    }
-                                                    
-                                                    faust.createDSPInstance(factory,
-                                                                            audio_context,
-                                                                            buffer_size,
-                                                                            function (dsp) {
-                                                                            
-                                                                            DSP = dsp;
-                                                                            if (DSP.getNumInputs() > 0) {
+                                                   }
+                                                   faust.createPolyDSPInstance(factory,
+                                                                               audio_context,
+                                                                               buffer_size,
+                                                                               16,
+                                                                               function (dsp) {
+                                                                               
+                                                                                   DSP = dsp;
+                                                                                   if (DSP.getNumInputs() > 0) {
+                                                                                        activateAudioInput();
+                                                                                   } else {
+                                                                                        audio_input = null;
+                                                                                   }
+                                                                                   
+                                                                                   // Setup UI
+                                                                                   _f4u$t.main_loop = function() {}
+                                                                                   
+                                                                                   faust_svg = $('<div />');
+                                                                                   $('body').append(faust_svg);
+                                                                                   var handler = _f4u$t.main(DSP.json(), $(faust_svg), DSP.setParamValue);
+                                                                                   DSP.setHandler(handler);
+                                                                                   console.log(DSP.getNumInputs());
+                                                                                   console.log(DSP.getNumOutputs());
+                                                                                   DSP.connect(audio_context.destination);
+                                                                               });
+                                                });
+                                               
+                } else {
+                    
+                    isPoly = false;
+                    console.log("Mono DSP");
+                    
+                    // Create a mono DSP factory from the dsp code
+                    faust.createDSPFactory(dsp_code,
+                                           argv,
+                                           function (factory) {
+                                               if (!factory) {
+                                                    alert(faust.getErrorMessage());
+                                                    return;
+                                               }
+                                               faust.createDSPInstance(factory,
+                                                                       audio_context,
+                                                                       buffer_size,
+                                                                       function (dsp) {
+                                                                       
+                                                                           DSP = dsp;
+                                                                           if (DSP.getNumInputs() > 0) {
                                                                                 activateAudioInput();
-                                                                            } else {
+                                                                           } else {
                                                                                 audio_input = null;
-                                                                            }
-                                                                            
-                                                                            // Setup UI
-                                                                            _f4u$t.main_loop = function() {}
-                                                                            
-                                                                            faustsvg = $('<div />');
-                                                                            $('body').append(faustsvg);
-                                                                            var handler = _f4u$t.main(DSP.json(), $(faustsvg), DSP.setParamValue);
-                                                                            DSP.setHandler(handler);
-                                                                            
-                                                                            console.log(DSP.getNumInputs());
-                                                                            console.log(DSP.getNumOutputs());
-                                                                            
-                                                                            DSP.connect(audio_context.destination);
-                                                                            
-                                                                            });
-                                                    });
-                         }
-                    });
+                                                                           }
+                                                                           
+                                                                           // Setup UI
+                                                                           _f4u$t.main_loop = function() {}
+                                                                           
+                                                                           faust_svg = $('<div />');
+                                                                           $('body').append(faust_svg);
+                                                                           var handler = _f4u$t.main(DSP.json(), $(faust_svg), DSP.setParamValue);
+                                                                           DSP.setHandler(handler);
+                                                                           console.log(DSP.getNumInputs());
+                                                                           console.log(DSP.getNumOutputs());
+                                                                           DSP.connect(audio_context.destination);
+                                                                       });
+                                           });
+                }
+            }
+            
+            function uploadFile(e)
+            {
+                fileDragHover(e);
+                uploadOn(e, compileDSP);
             }
             
             function init()
@@ -848,7 +882,7 @@
                     var xmlhttp = new XMLHttpRequest();
                     
                     xmlhttp.onreadystatechange = function() {
-                        if (xmlhttp.readyState === 4 && xmlhttp.status === 200){
+                        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
                             var dsp_code = xmlhttp.responseText;
                             getSHAKey(document.getElementById("exportUrl").value, filename, dsp_code, updateQrCode, cancelLoader);
                         }
