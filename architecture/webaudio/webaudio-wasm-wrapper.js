@@ -212,8 +212,12 @@ faust.factory_table = [];
 faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
-	// Code memory type in the SHAKey to differentiate Monophonic and Polyphonic factories
-	var sha_key = Sha1.hash(code + ((internal_memory) ? "internal_memory": "external_memory") , true);
+    // Code memory type and argv in the SHAKey to differentiate compilation flags and Monophonic and Polyphonic factories
+    var argv_str = "";
+    for (var i = 0; i < argv.length; i++) {
+        argv_str += argv[i];
+    }
+    var sha_key = Sha1.hash(code + ((internal_memory) ? "internal_memory": "external_memory") + argv_str, true);
     var factory = faust.factory_table[sha_key];
     if (factory) {
         console.log("Existing library : " + factory.name);
@@ -717,6 +721,10 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
     }
     
     var memory_size = pow2limit(factory.getSize() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    
+    // At least 3, so take next power of 2 (= 4)
+    memory_size = Math.max(memory_size, 4);
+    
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 
