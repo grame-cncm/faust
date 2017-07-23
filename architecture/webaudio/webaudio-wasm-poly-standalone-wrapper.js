@@ -18,6 +18,9 @@
 
 var faust = faust || {};
 
+faust.error_msg = null;
+faust.getErrorMessage = function() { return faust.error_msg; };
+
 // Polyphonic Faust DSP
 
 /**
@@ -46,7 +49,14 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
     
-    var sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+    var sp;
+    try {
+        sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+    } catch (e) {
+        faust.error_msg = "Error in createScriptProcessor: " + e;
+        return null;
+    }
+        
     sp.jon_object = jon_object;
 
     sp.handler = null;

@@ -201,6 +201,7 @@ void WASTCodeContainer::produceClass()
         } else {
             *fOut << "(import \"memory\" \"memory\" (memory $0 ";
             *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << "))"; // memory initial pages
+            //*fOut << "1))"; // memory initial pages
         }
     
         // Always generated mathematical functions

@@ -476,7 +476,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         try {
             sp = context.createScriptProcessor(buffer_size, instance.exports.getNumInputs(0), instance.exports.getNumOutputs(0));
         } catch (e) {
-            faust.error_msg = e;
+            faust.error_msg = "Error in createScriptProcessor: " + e;
             callback(null);
             return;
         }
@@ -846,11 +846,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         }
         var sp;
         try {
-              sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+            sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
         } catch (e) {
-              faust.error_msg = e;
-              callback(null);
-              return;
+            faust.error_msg = "Error in createScriptProcessor: " + e;
+            callback(null);
+            return;
         }
         sp.jon_object = jon_object;
       

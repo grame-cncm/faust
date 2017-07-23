@@ -56,6 +56,11 @@ function startDSPAux(dsp)
         _f4u$t.hard_delete(faustsvg);
     }
     
+    if (!dsp) {
+        alert(faust.getErrorMessage());
+        return;
+    }
+    
     DSP = dsp;
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();

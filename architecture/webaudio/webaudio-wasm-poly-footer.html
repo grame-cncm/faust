@@ -138,7 +138,6 @@ function getDevice(device)
 
 function startDSPAux(dsp)
 {
-    activateMIDIInput();
     if (DSP_poly) {
         if (audio_input) {
             audio_input.disconnect(DSP_poly);
@@ -146,6 +145,13 @@ function startDSPAux(dsp)
         DSP.disconnect(audio_context.destination);
         _f4u$t.hard_delete(faustsvg);
     }
+    
+    if (!dsp) {
+        alert(faust.getErrorMessage());
+        return;
+    }
+    
+    activateMIDIInput();
     
     DSP_poly = dsp;
     DSP_poly.connect(audio_context.destination);
