@@ -802,7 +802,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
             *out << U32LEB(0); // memory flags
-            *out << U32LEB(genMemSize(getStructSize(), channels));  // memory initial pages
+            *out << U32LEB(0); // memory size set by JS code, so use a minimum value of 0
         }
         
         for (auto& import : fFunImports) {
@@ -920,7 +920,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             finishSection(start);
         }
     
-        void generateMemory(int channels)
+        void generateInternalMemory(int channels)
         {
             int32_t start = startSection(BinaryConsts::Section::Memory);
             *fOut << U32LEB(1); // num memories

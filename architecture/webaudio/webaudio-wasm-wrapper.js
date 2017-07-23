@@ -434,14 +434,14 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
 // 'mono' DSP
 
 /*
-	Memory layout for monophonic DSP : audio buffers pointers, then buffers, then DSP
+	Memory layout for monophonic DSP : DSP struct, audio buffers pointers, audio buffers 
 	
     dsp = 0;
     size = factory.getSize()
  
-	----------
-	audio_ptr:
-	----------
+	-----------
+	audio_ptrs:
+	-----------
 	audio_heap_ptr = audio_heap_ptr_inputs = factory.getSize()
     getNumInputsAux ==> size = getNumInputsAux * ptr_size
         ---
@@ -734,11 +734,11 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 faust.deleteDSPInstance = function (dsp) {}
 
 /*
-	Memory layout for polyphonic DSP : audio buffers pointers, then buffers, then DSP voices
+	Memory layout for polyphonic DSP : audio buffers pointers, audio buffers, DSP struct (voices)
 	
-	----------
-	audio_ptr:
-	----------
+	-----------
+	audio_ptrs:
+	-----------
 	audio_heap_ptr = audio_heap_ptr_inputs = 0
 		getNumInputsAux ==> size = getNumInputsAux * ptr_size
 			---
@@ -800,13 +800,9 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
         return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
     }
     
-    var memory_size = pow2limit(factory.getSize() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
-    
-    // At least 3, so take next power of 2 (= 4)
-    memory_size = Math.max(memory_size, 4);
-    
-    //return new WebAssembly.Memory({initial:memory_size});
-    return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
+	var memory_size = pow2limit(factory.getSize() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+  	memory_size = Math.max(2, memory_size); // As least 2
+	return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 
 // 'poly' DSP

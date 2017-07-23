@@ -200,8 +200,7 @@ void WASTCodeContainer::produceClass()
             *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << ")"; // memory initial pages
         } else {
             *fOut << "(import \"memory\" \"memory\" (memory $0 ";
-            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << "))"; // memory initial pages
-            //*fOut << "1))"; // memory initial pages
+            *fOut << "0))"; // memory size set by JS code, so use a minimum value of 0
         }
     
         // Always generated mathematical functions

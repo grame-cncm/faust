@@ -621,6 +621,7 @@ faust.createMemory = function (buffer_size, max_polyphony) {
     }
     
     var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 

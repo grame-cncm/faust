@@ -1,4 +1,3 @@
-Float denomals handling
 <!DOCTYPE html PUBLIC>
 <html>
     <head>
@@ -279,7 +278,7 @@ Float denomals handling
         <H3>Polyphonic instrument </H3>
         Assuming your DSP is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode.
         <H3>Float denomals handling </H3>
-        Parameter: 0 means no denormal handling, 1 mode uses <B>fabs</B> and <B>denormal value treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
+        Parameter: 0 means no denormal handling, 1 mode uses <B>fabs</B> and a <B>treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
         <P>
             <center>
             <table>
@@ -708,7 +707,7 @@ Float denomals handling
                 filedrag1.addEventListener("dragover", fileDragHover, false);
                 filedrag1.addEventListener("dragleave", fileDragHover, false);
                 filedrag1.addEventListener("drop", uploadFile, false);
-                filedrag1.textContent = "Drop your Faust .dsp file here."
+                filedrag1.textContent = "Drop your Faust .dsp file here (compiled using libfaust version " + faust.getLibFaustVersion() + ")";
             }
             
             // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)

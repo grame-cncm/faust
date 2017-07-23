@@ -158,8 +158,7 @@ for f in $FILES; do
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
-    rm $name.js
-    rm $name-temp2.html
+    rm $name.js $name-tmp.wasm $name-temp2.html
  
     # collect binary file name
 	BINARIES="$BINARIES$name.html;"

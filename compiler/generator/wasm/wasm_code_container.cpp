@@ -266,7 +266,7 @@ void WASMCodeContainer::produceClass()
     
     // Memory
     if (fInternalMemory) {
-        gGlobal->gWASMVisitor->generateMemory(fNumInputs + fNumOutputs);
+        gGlobal->gWASMVisitor->generateInternalMemory(fNumInputs + fNumOutputs);
     }
     
     // Exports
