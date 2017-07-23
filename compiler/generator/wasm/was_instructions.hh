@@ -32,19 +32,21 @@ using namespace std;
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 
-#define audioMemSize pow(2, offStrNum)
-#define wasmMemSize pow(2, 16)
+#define audioPtrSize int(pow(2, offStrNum))
+#define audioBufferSize int(pow(2, offStrNum))
+#define wasmBlockSize int(pow(2, 16))
 
 inline int pow2limit(int x)
 {
-    int n = wasmMemSize; // Minimum = 64 kB
+    int n = wasmBlockSize; // Minimum = 64 kB
     while (n < x) { n = 2 * n; }
     return n;
 }
 
+// DSP size + (inputs + outputs) * (audioPtrSize + max_buffer_size * audioBufferSize)
 inline int genMemSize(int struct_size, int channels)
 {
-    return (pow2limit(struct_size + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1;
+    return std::max((pow2limit(struct_size + channels * (audioPtrSize + (8192 * audioBufferSize))) / wasmBlockSize), 1);
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors

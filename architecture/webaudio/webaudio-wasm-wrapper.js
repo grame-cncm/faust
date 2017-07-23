@@ -138,14 +138,14 @@ Utf8.encode = function(strUni) {
     var strUtf = strUni.replace(
                                 /[\u0080-\u07ff]/g,  // U+0080 - U+07FF => 2 bytes 110yyyyy, 10zzzzzz
                                 function(c) { 
-                                var cc = c.charCodeAt(0);
-                                return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f); }
+                            		var cc = c.charCodeAt(0);
+                            		return String.fromCharCode(0xc0 | cc>>6, 0x80 | cc&0x3f); }
                                 );
     strUtf = strUtf.replace(
                             /[\u0800-\uffff]/g,  // U+0800 - U+FFFF => 3 bytes 1110xxxx, 10yyyyyy, 10zzzzzz
                             function(c) { 
-                            var cc = c.charCodeAt(0); 
-                            return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f); }
+                           		var cc = c.charCodeAt(0); 
+                        		return String.fromCharCode(0xe0 | cc>>12, 0x80 | cc>>6&0x3F, 0x80 | cc&0x3f); }
                             );
     return strUtf;
 }
@@ -161,14 +161,14 @@ Utf8.decode = function(strUtf) {
     var strUni = strUtf.replace(
                                 /[\u00e0-\u00ef][\u0080-\u00bf][\u0080-\u00bf]/g,  // 3-byte chars
                                 function(c) {  // (note parentheses for precence)
-                                var cc = ((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | ( c.charCodeAt(2)&0x3f); 
-                                return String.fromCharCode(cc); }
+                                	var cc = ((c.charCodeAt(0)&0x0f)<<12) | ((c.charCodeAt(1)&0x3f)<<6) | ( c.charCodeAt(2)&0x3f); 
+                                	return String.fromCharCode(cc); }
                                 );
     strUni = strUni.replace(
                             /[\u00c0-\u00df][\u0080-\u00bf]/g,                 // 2-byte chars
                             function(c) {  // (note parentheses for precence)
-                            var cc = (c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f;
-                            return String.fromCharCode(cc); }
+                            	var cc = (c.charCodeAt(0)&0x1f)<<6 | c.charCodeAt(1)&0x3f;
+                            	return String.fromCharCode(cc); }
                             );
     return strUni;
 }
@@ -432,6 +432,37 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
 
 // 'mono' DSP
+
+/*
+	Memory layout for monophonic DSP : audio buffers pointers, then buffers, then DSP
+	
+    dsp = 0;
+    size = factory.getSize()
+ 
+	----------
+	audio_ptr:
+	----------
+	audio_heap_ptr = audio_heap_ptr_inputs = factory.getSize()
+    getNumInputsAux ==> size = getNumInputsAux * ptr_size
+        ---
+        ---
+    audio_heap_ptr_outputs
+    getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
+        ---
+        ---
+    ---------------
+    audio_buffers:
+    ---------------
+    audio_heap_inputs
+    getNumInputsAux ==> size = getNumInputsAux * buffer_size * sample_size
+        ---
+        ---
+    audio_heap_outputs
+    getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
+        ---
+        ---
+*/
+
 faust.createDSPInstance = function (factory, context, buffer_size, callback) {
     
     var importObject = { imports: { print: arg => console.log(arg) } }
@@ -702,17 +733,58 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 
 faust.deleteDSPInstance = function (dsp) {}
 
+/*
+	Memory layout for polyphonic DSP : audio buffers pointers, then buffers, then DSP voices
+	
+	----------
+	audio_ptr:
+	----------
+	audio_heap_ptr = audio_heap_ptr_inputs = 0
+		getNumInputsAux ==> size = getNumInputsAux * ptr_size
+			---
+			---
+	audio_heap_ptr_outputs	
+		getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
+			---
+			---
+	audio_heap_ptr_mixing
+		getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
+			---
+			---
+	---------------
+	audio_buffers:
+    --------------
+	audio_heap_inputs 
+		getNumInputsAux ==> size = getNumInputsAux * buffer_size * sample_size
+			---
+			---
+	audio_heap_outputs 
+		getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
+			---
+			---
+	audio_heap_mixing 
+		getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
+			---
+			---
+	dsp_start
+		dsp_voices[0]  ==> size = factory.getSize()
+		dsp_voices[1]  ==> size = factory.getSize()
+		dsp_voices[2]  ==> size = factory.getSize()
+		dsp_voices[3]  ==> size = factory.getSize()		
+		.....
+*/
+  
 faust.createMemory = function (factory, buffer_size, max_polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
     var sample_size = 4;
     
-    function pow2limit(x)
+    function pow2limit (x)
     {
-        var n = 2;
+        var n = 65536; // Minimum = 64 kB
         while (n < x) { n = 2 * n; }
-        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+        return n;
     }
     
     // Keep JSON parsed object
@@ -814,7 +886,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
          
         // input items
         sp.inputs_items = [];
-      
+            
         // Start of HEAP index
         sp.audio_heap_ptr = 0;
 

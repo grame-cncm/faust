@@ -250,9 +250,9 @@ faust.max_buffer_size = 8192;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.pow2limit = function (x) {
-    var n = 2;
+    var n = 65536; // Minimum = 64 kB
     while (n < x) { n = 2 * n; }
-    return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+    return n;
 }
 
 faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {

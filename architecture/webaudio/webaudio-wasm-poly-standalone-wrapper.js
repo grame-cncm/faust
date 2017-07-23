@@ -592,9 +592,9 @@ faust.createMemory = function (buffer_size, max_polyphony) {
     
     function pow2limit(x)
     {
-        var n = 2;
-        while (n < x) { n = 2 * n; }
-        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+    	var n = 65536; // Minimum = 64 kB
+		while (n < x) { n = 2 * n; }
+		return n;
     }
     
     // Keep JSON parsed object

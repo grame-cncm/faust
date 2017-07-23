@@ -64,11 +64,11 @@ faust.mydsp = function (buffer_size, sample_rate) {
     var ptr_size = 4; 
     var sample_size = 4;    // float
     
-    function pow2limit (x)
+   	function pow2limit (x)
     {
-        var n = 2;
-        while (n < x) { n = 2 * n; }
-        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+		var n = 65536; // Minimum = 64 kB
+		while (n < x) { n = 2 * n; }
+		return n;
     }
      
     var memory_size = pow2limit(getSizemydsp() + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));

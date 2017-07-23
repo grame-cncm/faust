@@ -106,11 +106,11 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var ptr_size = 4; 
     var sample_size = 4;
     
-    function pow2limit(x)
+    function pow2limit (x)
     {
-        var n = 2;
+        var n = 65536; // Minimum = 64 kB
         while (n < x) { n = 2 * n; }
-        return (n < 65536) ? 65536 : n; // Minimum = 64 kB
+        return n;
     }
     
     // Output * 2 to handle mixing channels
