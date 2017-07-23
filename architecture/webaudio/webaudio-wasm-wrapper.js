@@ -186,7 +186,7 @@ Utf8.decode = function(strUtf) {
  Choose the license that best suits your project. The text of the MIT and GPL
  licenses are at the root directory.
  
- Additional code : GRAME 2014-2017
+ Additional code: GRAME 2014-2017
 */
 
 'use strict';
@@ -194,6 +194,19 @@ Utf8.decode = function(strUtf) {
 var faust_module = FaustModule(); // Emscripten generated module
 
 var faust = faust || {};
+
+// special asm2wasm imports
+faust.asm2wasm = {
+    "fmod": function(x, y) {
+        return x % y;
+    },
+    "log10": function(x) {
+        return window.Math.log(x) / window.Math.log(10);
+    },
+    "remainder": function(x, y) {
+        return x - window.Math.round(x/y) * y;
+    }
+};
 
 faust.createWasmCDSPFactoryFromString = faust_module.cwrap('createWasmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.expandCDSPFromString = faust_module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
@@ -212,6 +225,7 @@ faust.factory_table = [];
 faust.getErrorMessage = function() { return faust.error_msg; };
 
 faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
+    
     // Code memory type and argv in the SHAKey to differentiate compilation flags and Monophonic and Polyphonic factories
     var argv_str = "";
     for (var i = 0; i < argv.length; i++) {
@@ -420,27 +434,21 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
 // 'mono' DSP
 faust.createDSPInstance = function (factory, context, buffer_size, callback) {
     
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
-        "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
-        }
-    };
-    
     var importObject = { imports: { print: arg => console.log(arg) } }
-    
     importObject["global.Math"] = window.Math;
-    importObject["asm2wasm"] = asm2wasm;
+    importObject["asm2wasm"] = faust.asm2wasm;
     
     WebAssembly.instantiate(factory.module, importObject)
     .then(instance => {
     
-        var sp = context.createScriptProcessor(buffer_size, instance.exports.getNumInputs(0), instance.exports.getNumOutputs(0));
+        var sp;
+        try {
+            sp = context.createScriptProcessor(buffer_size, instance.exports.getNumInputs(0), instance.exports.getNumOutputs(0));
+        } catch (e) {
+            faust.error_msg = e;
+            callback(null);
+            return;
+        }
         
         sp.handler = null;
         sp.ins = null;
@@ -725,6 +733,7 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
     // At least 3, so take next power of 2 (= 4)
     memory_size = Math.max(memory_size, 4);
     
+    //return new WebAssembly.Memory({initial:memory_size});
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 
@@ -733,24 +742,12 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     
     var memory = faust.createMemory(factory, buffer_size, max_polyphony);
     
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
-        "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
-        }
-    };
-    
     var mixObject = { imports: { print: arg => console.log(arg) } }
     mixObject["memory"] = { "memory": memory};
     
     var importObject = { imports: { print: arg => console.log(arg) } }
     importObject["global.Math"] = window.Math;
-    importObject["asm2wasm"] = asm2wasm;
+    importObject["asm2wasm"] = faust.asm2wasm;
     importObject["memory"] = { "memory": memory};
     
     fetch('mixer32.wasm')
@@ -775,8 +772,14 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         {
             return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
         }
-      
-        var sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+        var sp;
+        try {
+              sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+        } catch (e) {
+              faust.error_msg = e;
+              callback(null);
+              return;
+        }
         sp.jon_object = jon_object;
       
         sp.handler = null;

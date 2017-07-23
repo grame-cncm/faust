@@ -42,6 +42,11 @@ inline int pow2limit(int x)
     return n;
 }
 
+inline int genMemSize(int struct_size, int channels)
+{
+    return (pow2limit(struct_size + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1;
+}
+
 // Base class for textual 'wast' and binary 'wasm' visitors
 struct WASInst {
     

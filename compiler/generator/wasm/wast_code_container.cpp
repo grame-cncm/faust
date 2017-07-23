@@ -174,12 +174,6 @@ void WASTCodeContainer::produceClass()
         // All mathematical functions (got from math library as variables) have to be first
         generateGlobalDeclarations(gGlobal->gWASTVisitor);
     
-        // Imported functions
-        /*
-        tab(n+1, *fOut); *fOut << "(func $print-i (import \"imports\" \"print\") (param i32))";
-        tab(n+1, *fOut); *fOut << "(func $print-f (import \"imports\" \"print\") (param f32))";
-        */
-    
         // Exported functions
         tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
         tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" (func $getNumOutputs))";
@@ -203,26 +197,16 @@ void WASTCodeContainer::produceClass()
         tab(n+1, *fOut);
         if (fInternalMemory) {
             *fOut << "(memory (export \"memory\") ";
-            *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << ")";
+            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << ")"; // memory initial pages
         } else {
             *fOut << "(import \"memory\" \"memory\" (memory $0 ";
-            *fOut << ((pow2limit(gGlobal->gWASTVisitor->getStructSize() + (fNumInputs + fNumOutputs) * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1) << "))";
+            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << "))"; // memory initial pages
         }
     
         // Always generated mathematical functions
         tab(n+1, *fOut);
         WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
         WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
-        
-        /*
-        tab(n+1, *fOut); *fOut << "(func $fmod" << isuffix() << " (type $0) (param $value " << realStr << ") (param $1 " << realStr << ") (result " << realStr << ")";
-        tab(n+2, *fOut); *fOut << "(return (call $" << realStr << "-rem (get_local $value) (get_local $1)))";
-        tab(n+1, *fOut); *fOut << ")";
-         
-        tab(n+1, *fOut); *fOut <<  "(func $log10" << isuffix() << " (type $2) (param $value " << realStr << ") (result " << realStr << ")";
-        tab(n+2, *fOut); *fOut << "(return (" << realStr << ".div (call $log (get_local $value)) (call $log (" << realStr << ".const 10))))";
-        tab(n+1, *fOut); *fOut << ")";
-        */
     
         // getNumInputs/getNumOutputs
         generateGetInputs("getNumInputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);

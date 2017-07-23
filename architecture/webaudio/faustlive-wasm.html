@@ -1,4 +1,4 @@
-
+Float denomals handling
 <!DOCTYPE html PUBLIC>
 <html>
     <head>
@@ -270,16 +270,16 @@
     </head>
     <body bgcolor= "#FFFFFF">
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
-        <P> This page embeds the Faust compiler as a JavaScript library called <B>libfaust.js</B>, associated with the auxiliary WebAssembly library.
+        <P> This page embeds the Faust compiler as a JavaScript library named <B>libfaust.js</B>, associated with the auxiliary WebAssembly library.
         You can compile Faust .dsp files by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
         <P>
         <H3>Buffer size </H3>
-        You can change the buffer size (from 256 to 8182 frames).
+        You can change the buffer size (from 256 to 8192 frames).
         <P>
         <H3>Polyphonic instrument </H3>
         Assuming your DSP is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode.
         <H3>Float denomals handling </H3>
-        Parameter: 0 means "nothing", 1 mode uses <B>fabs</B> and <B>denormal value treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
+        Parameter: 0 means no denormal handling, 1 mode uses <B>fabs</B> and <B>denormal value treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
         <P>
             <center>
             <table>

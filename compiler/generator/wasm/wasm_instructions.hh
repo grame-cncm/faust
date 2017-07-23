@@ -802,7 +802,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
             *out << U32LEB(0); // memory flags
-            *out << U32LEB((pow2limit(getStructSize() + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1); // memory initial pages
+            *out << U32LEB(genMemSize(getStructSize(), channels));  // memory initial pages
         }
         
         for (auto& import : fFunImports) {
@@ -925,7 +925,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             int32_t start = startSection(BinaryConsts::Section::Memory);
             *fOut << U32LEB(1); // num memories
             *fOut << U32LEB(0); // memory flags
-            *fOut << U32LEB((pow2limit(getStructSize() + channels * (audioMemSize + (8192 * audioMemSize))) / wasmMemSize) + 1); // memory initial pages
+            *fOut << U32LEB(genMemSize(getStructSize(), channels)); // memory initial pages
             finishSection(start);
         }
     
