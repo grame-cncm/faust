@@ -224,6 +224,10 @@ faust.factory_table = [];
 
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+faust.getLibFaustVersion = function () {
+    return faust_module.Pointer_stringify(faust.getCLibFaustVersion());
+}
+
 faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
     
     // Code memory type and argv in the SHAKey to differentiate compilation flags and Monophonic and Polyphonic factories
@@ -240,7 +244,7 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
         return;
     }
     
-    console.log("libfaust.js version : " + faust_module.Pointer_stringify(faust.getCLibFaustVersion()));
+    console.log("libfaust.js version : " + faust.getLibFaustVersion());
     
     // Allocate strings on the HEAP
     var factory_name = "mydsp" + faust.factory_number++;
@@ -325,13 +329,9 @@ faust.createPolyDSPFactory = function (code, argv, callback) {
     faust.createDSPFactoryAux(code, argv, callback, false);
 }
 
-faust.getLibFaustVersion = function () {
-    return faust_module.Pointer_stringify(faust.getCLibFaustVersion());
-}
-
 faust.expandDSP = function (code, argv) {
    
-    console.log("libfaust.js version : " + faust_module.Pointer_stringify(faust.getCLibFaustVersion()));
+    console.log("libfaust.js version : " + faust.getLibFaustVersion());
     
     // Force "ajs" compilation
     argv.push("-lang");
