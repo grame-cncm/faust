@@ -38,8 +38,11 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
+// This only works for gcc 5+ right now.
+#if __GNUC__ >= 5
 #define INTERPRETER_TRACE       1
 //#define FULL_INTERPRETER_TRACE  1
+#endif
 #define INTEGER_OVERFLOW        -1
 #define DIV_BY_ZERO             -2
 
