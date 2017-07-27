@@ -1,6 +1,8 @@
 package com.ccrma.faust;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.media.midi.MidiDevice;
 import android.media.midi.MidiDeviceInfo;
 import android.media.midi.MidiManager;
@@ -9,6 +11,8 @@ import android.media.midi.MidiReceiver;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -30,23 +34,18 @@ public class MainActivity extends AppCompatActivity {
     private Context context;
     private RelativeLayout mainLayout;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+    // Requesting permission to RECORD_AUDIO
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 200;
+    private boolean permissionToRecordAccepted = false;
+    private String [] permissions = {Manifest.permission.RECORD_AUDIO};
 
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        context = getApplicationContext();
-
-        startFaustDsp();
-
-        mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+    private void createFaust(){
+        if (dspFaust == null) {
+            dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
+        }
 
         MultiKeyboard multiKeyboard = new MultiKeyboard(this, dspFaust, null);
         mainLayout.addView(multiKeyboard);
-
 
         if(Build.VERSION.SDK_INT >= 23) {
             // MIDI Support
@@ -91,50 +90,78 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 public void onDeviceRemoved(final MidiDeviceInfo info) {
-
                 }
 
             }, new Handler(Looper.getMainLooper()));
         }
     }
 
-    private void startFaustDsp(){
-        if(dspFaust == null){
-            dspFaust = new DspFaust(Integer.valueOf(getResources().getString(R.string.sr)), Integer.valueOf(getResources().getString(R.string.bs)));
-            dspFaust.start();
+    // Record audio permission callback
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode){
+            case REQUEST_RECORD_AUDIO_PERMISSION:
+                permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                break;
+        }
+        if (!permissionToRecordAccepted) { // if permission is declined, the app is terminated
+            finish();
+        }
+        else { // otherwise we can instantiate our audio engine
+            createFaust();
         }
     }
 
-    private void stopFaustDsp(){
-        if(dspFaust != null){
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        context = getApplicationContext();
+        mainLayout = (RelativeLayout) findViewById(R.id.activity_main);
+
+        if(Build.VERSION.SDK_INT >= 23) {
+            ActivityCompat.requestPermissions(this, permissions, REQUEST_RECORD_AUDIO_PERMISSION);
+        }
+        else{
+            permissionToRecordAccepted = true;
+            createFaust();
+        }
+
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN);
+    }
+
+    @Override
+    protected void onPause(){
+        super.onPause();
+        if (permissionToRecordAccepted) {
             dspFaust.stop();
-            dspFaust = null;
         }
     }
 
     @Override
-    public void onPause(){
-        super.onPause();
-        dspFaust.stop();
-    }
-
-    @Override
-    public void onResume(){
-        super.onPause();
-        dspFaust.start();
+    protected void onResume(){
+        super.onResume();
+        if (permissionToRecordAccepted) {
+            if (!dspFaust.isRunning()) {
+                dspFaust.start();
+            }
+        }
     }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
-        dspFaust.stop();
+        dspFaust = null;
     }
 
     class FaustMidiReceiver extends MidiReceiver {
         public void onSend(byte[] data, int offset,
                            int count, long timestamp) {
             // we only consider MIDI messages containing 3 bytes (see is just an example)
-            if(count%3 == 0) {
+            if (permissionToRecordAccepted && (count%3 == 0)) {
                 int nMessages = count / 3; // in case the event contains several messages
                 for (int i = 0; i < nMessages; i++) {
                     int type = (int) (data[offset + i*3] & 0xF0);

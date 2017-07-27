@@ -1,35 +1,24 @@
 /************************************************************************
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef __jack_dsp__
@@ -47,6 +36,7 @@
 #endif
 #include "faust/audio/audio.h"
 #include "faust/dsp/dsp.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/midi/jack-midi.h"
 
 #if defined(_WIN32) && !defined(__MINGW32__)
@@ -200,10 +190,10 @@ class jackaudio : public audio {
                 fOutChannel[i] = (float*)jack_port_get_buffer(fOutputPorts[i], nframes);
             }
 
-            fDSP->compute(nframes, fInChannel, fOutChannel);
+            fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
             return 0;
         }
-
+ 
     public:
 
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
@@ -358,7 +348,8 @@ class jackaudio : public audio {
 
         virtual void setDsp(dsp* dsp)
         {
-            fDSP = dsp;
+            // Warning: possible memory leak here... 
+            fDSP = (sizeof(FAUSTFLOAT) == 8) ? (new dsp_sample_adapter<double, float>(dsp)) : dsp;
 
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 char buf[256];
@@ -529,7 +520,7 @@ class jackaudio_midi : public jackaudio, public jack_midi_handler {
             }
 
             // By convention timestamp of -1 means 'no timestamp conversion' : events already have a timestamp espressed in frames
-            fDSP->compute(-1, nframes, fInChannel, fOutChannel);
+            fDSP->compute(-1, nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
         }
 
         virtual void processMidiOut(jack_nframes_t nframes)

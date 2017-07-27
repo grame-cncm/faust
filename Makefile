@@ -1,4 +1,4 @@
-version := 0.9.99
+version := 0.10.3
 
 DESTDIR ?= 
 PREFIX ?= /usr/local
@@ -127,6 +127,9 @@ install :
 	cp -r architecture/android $(prefix)/share/faust/
 	cp -r architecture/api $(prefix)/share/faust/
 	cp -r architecture/max-msp $(prefix)/share/faust/
+	#install unity
+	rm -rf $(prefix)/share/faust/unity
+	cp -r architecture/unity $(prefix)/share/faust/
 
 	# install math documentation files
 	cp architecture/mathdoctexts-*.txt $(prefix)/share/faust/
@@ -169,6 +172,7 @@ uninstall :
 	rm -f $(prefix)/bin/faust$(EXE)
 	make -C tools/faust2appls uninstall
 	rm -f $(prefix)/bin/sound2faust$(EXE)
+	rm -f $(prefix)/bin/faustbench
 
 # make a faust distribution .zip file
 dist :

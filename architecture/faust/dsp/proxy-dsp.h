@@ -1,35 +1,24 @@
 /************************************************************************
-    IMPORTANT NOTE : this file contains two clearly delimited sections :
-    the ARCHITECTURE section (in two parts) and the USER section. Each section
-    is governed by its own copyright and license. Please check individually
-    each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef __proxy_dsp__
@@ -66,7 +55,10 @@ struct JSONUIDecoder {
     std::string fJSON;
     
     int fNumInputs, fNumOutputs; 
-    int fInputItems, fOutputItems; 
+    int fInputItems, fOutputItems;
+    
+    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
+    bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
 
     JSONUIDecoder(const std::string& json) 
     {
@@ -102,9 +94,9 @@ struct JSONUIDecoder {
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             string type = (*it)->type;
-            if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
+            if (isInput(type)) {
                 fInputItems++;
-            } else if (type == "hbargraph" || type == "vbargraph") {
+            } else if (isOutput(type)) {
                 fOutputItems++;          
             }
         }
@@ -130,6 +122,18 @@ struct JSONUIDecoder {
             m->declare((*it).first.c_str(), (*it).second.c_str());
         }
     }
+    
+    void resetUserInterface()
+    {
+        vector<itemInfo*>::iterator it;
+        int item = 0;
+        
+        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
+            if (isInput((*it)->type)) {
+                fInControl[item++] = STR2REAL((*it)->init);
+            }
+        }
+    }
    
     void buildUserInterface(UI* ui)
     {
@@ -152,10 +156,10 @@ struct JSONUIDecoder {
             FAUSTFLOAT max = STR2REAL((*it)->max);
             FAUSTFLOAT step = STR2REAL((*it)->step);
             
-            if (type == "vslider" || type == "hslider" || type == "nentry" || type == "button") {
+            if (isInput(type)) {
                 isInItem = true;
-            } else if (type == "hbargraph" || type == "vbargraph") {
-                isOutItem = true;        
+            } else if (isOutput(type)) {
+                isOutItem = true;
             }
             
             // Meta data declaration for input items
@@ -258,10 +262,18 @@ class proxy_dsp : public dsp {
         virtual void buildUserInterface(UI* ui) { fDecoder->buildUserInterface(ui); }
         
         // To possibly implement in a concrete proxy dsp 
-        virtual void init(int samplingRate) { fSamplingFreq = samplingRate; }
-        virtual void instanceInit(int samplingRate) {}
-        virtual void instanceConstants(int samplingRate) {}
-        virtual void instanceResetUserInterface() {}
+        virtual void init(int samplingFreq)
+        {
+            instanceInit(samplingFreq);
+        }
+        virtual void instanceInit(int samplingFreq)
+        {
+            instanceConstants(samplingFreq);
+            instanceResetUserInterface();
+            instanceClear();
+        }
+        virtual void instanceConstants(int samplingRate) { fSamplingFreq = samplingRate; }
+        virtual void instanceResetUserInterface() { fDecoder->resetUserInterface(); }
         virtual void instanceClear() {}
     
         virtual int getSampleRate() { return fSamplingFreq; }

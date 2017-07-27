@@ -1,6 +1,6 @@
-327.023 0x00/excitator/excitation
-0 0x00/excitator/play
-0.5 0x00/level
-0 0x00/resonator/attenuation
-271.994 0x00/resonator/duration
+327.023 karplus/excitator/excitation
+0 karplus/excitator/play
+0.5 karplus/level
+0 karplus/resonator/attenuation
+271.994 karplus/resonator/duration
 

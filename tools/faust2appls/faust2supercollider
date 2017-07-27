@@ -92,6 +92,7 @@ done
 #PHASE 2 : dispatch command arguments
 F2SC_DEBUG=0
 F2SC_DEBUG_MES=0
+SUPERNOVA_FLAG=0
 KEEP_SRC=0
 SYNTHDEF=""
 
@@ -113,6 +114,8 @@ for p in $@; do
         KEEP_SRC=1
     elif [ "$p" = -sd ] || [ "$p" = -synthdef ]; then
         SYNTHDEF="--synthdef"
+    elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
+        SUPERNOVA_FLAG=1
     elif [ "$p" = -icc ]; then
     	ignore=" "
     elif [ ${p:0:1} = "-" ]; then
@@ -180,12 +183,25 @@ for p in $FILES; do
     (
         cd "$TMP"
         faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
-        ${CXX=g++}  -O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP"
+        
+        #build for build scsynth
+        ${CXX=g++} $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
+        
+        #build for supernova
+        if [ $SUPERNOVA_FLAG = 1 ]; then
+          ${CXX=g++} $BUILDFLAGS -std=c++11 -DSUPERNOVA -Dmydsp=${f%.dsp} -o ${f%.dsp}_supernova.$EXT ${f%.dsp}.cpp
+        fi
+
     )> $OUTDEV || exit
 
     ## move the produced files from tmp to source dir
     cp "$TMP/${f%.dsp}.$EXT" "$SRCDIR/${f%.dsp}.$EXT"
+    if [ $SUPERNOVA_FLAG = 1 ]; then
+        cp "$TMP/${f%.dsp}_supernova.$EXT" "$SRCDIR/${f%.dsp}_supernova.$EXT"
+    fi
     cp "$TMP/${f%.dsp}.sc" "$SRCDIR/${f%.dsp}.sc"
+
     if [ $KEEP_SRC = 1 ]; then
         cp "$TMP/${f%.dsp}.cpp" "$SRCDIR/${f%.dsp}.cpp"
     fi
@@ -198,7 +214,11 @@ for p in $FILES; do
     fi
 
     # collects all the files produced
-     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.$EXT;$SRCDIR/${f%.dsp}.sc;"
+     BINARIES="$SRCDIR/${f%.dsp}.$EXT;"
+     if [ $SUPERNOVA_FLAG = 1 ]; then
+       BINARIES="$BINARIES$SRCDIR/${f%.dsp}_supernova.$EXT;"
+     fi
+     BINARIES="$BINARIES$SRCDIR/${f%.dsp}.sc;"
 
 done
 

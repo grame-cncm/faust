@@ -1,9 +1,9 @@
-//################################ maths.lib ##########################################
-// Mathematic library for Faust. Some functions are implemenented as Faust foreign
-// functions of `math.h` functions that are not part of Faust's primitives. Defines
-// also various constants and several utilities.
-//
-// The official prefix of this library is `ma`.
+//################################### maths.lib ##########################################
+//  Mathematic library for Faust. Its official prefix is `ma`.
+//########################################################################################
+// Some functions are implemenented as Faust foreign functions of `math.h` functions 
+// that are not part of Faust's primitives. Defines also various constants and several 
+// utilities.
 //########################################################################################
 
 // ## History
@@ -497,6 +497,22 @@ decimal = frac;
 // in filters.lib so we decided to keep that one... decimal is declared though for
 // backward compatibility.
 // decimal(n)	= n - floor(n);
+
+//-------------------------------`modulo`---------------------------------------
+// Modulus operation.
+//
+// #### Usage
+//
+// ```
+// modulo(x,N) : _
+// ```
+//
+// Where:
+//
+// * `x`: the numerator
+// * `N`: the denominator
+//------------------------------------------------------------------------------
+modulo(x,N) = (x % N + N) % N;
 
 
 //---------------`isnan`----------------

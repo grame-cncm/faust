@@ -61,6 +61,7 @@ extern int  gVecSize;
 extern bool gUIMacroSwitch;
 extern int  gVectorLoopVariant;
 extern bool	gGroupTaskSwitch;
+extern bool	gMemoryManager;
 
 extern map<Tree, set<Tree> > gMetaDataSet;
 static int gTaskCount = 0;
@@ -793,6 +794,10 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "int fSamplingFreq;\n";
 
     tab(n,fout); fout << "  public:";
+    
+    if (gMemoryManager) {
+        tab(n+1,fout); fout << "static dsp_memory_manager* fManager;" << endl;
+    }
 
     printMetadata(n+1, gMetaDataSet, fout);
 
@@ -815,6 +820,12 @@ void Klass::println(int n, ostream& fout)
     tab(n+1,fout); fout << "static void classInit(int samplingFreq) {";
         printlines (n+2, fStaticInitCode, fout);
     tab(n+1,fout); fout << "}";
+    
+    if (gMemoryManager) {
+        tab(n+1,fout); fout << "static void classDestroy() {";
+            printlines (n+2, fStaticDestroyCode, fout);
+        tab(n+1,fout); fout << "}";
+    }
 
     tab(n+1,fout); fout << "virtual void instanceConstants(int samplingFreq) {";
         tab(n+2,fout); fout << "fSamplingFreq = samplingFreq;";
@@ -829,15 +840,19 @@ void Klass::println(int n, ostream& fout)
         printlines (n+2, fClearCode, fout);
     tab(n+1,fout); fout << "}";
 
-    tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
-        tab(n+2,fout); fout << "classInit(samplingFreq);";
-        tab(n+2,fout); fout << "instanceInit(samplingFreq);";
-    tab(n+1,fout); fout << "}";
+    if (gMemoryManager) {
+        tab(n+1,fout); fout << "virtual void init(int samplingFreq) {}";
+    } else {
+        tab(n+1,fout); fout << "virtual void init(int samplingFreq) {";
+            tab(n+2,fout); fout << "classInit(samplingFreq);";
+            tab(n+2,fout); fout << "instanceInit(samplingFreq);";
+        tab(n+1,fout); fout << "}";
+    }
     
     tab(n+1,fout); fout << "virtual void instanceInit(int samplingFreq) {";
-    tab(n+2,fout); fout << "instanceConstants(samplingFreq);";
-    tab(n+2,fout); fout << "instanceResetUserInterface();";
-    tab(n+2,fout); fout << "instanceClear();";
+        tab(n+2,fout); fout << "instanceConstants(samplingFreq);";
+        tab(n+2,fout); fout << "instanceResetUserInterface();";
+        tab(n+2,fout); fout << "instanceClear();";
     tab(n+1,fout); fout << "}";
     
     tab(n+1,fout); fout << "virtual "<< fKlassName <<"* clone() {";
@@ -857,7 +872,11 @@ void Klass::println(int n, ostream& fout)
 	tab(n,fout); fout << "};\n" << endl;
 
 	printlines(n, fStaticFields, fout);
-
+    
+    if (gMemoryManager) {
+        tab(n, fout); fout << "dsp_memory_manager* " << fKlassName <<"::fManager = 0;" << endl;
+    }
+    
 	// generate user interface macros if needed
 	if (gUIMacroSwitch) {
 		tab(n, fout); fout << "#ifdef FAUST_UIMACROS";

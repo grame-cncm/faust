@@ -1,8 +1,3 @@
-// If other than 'faust2sc --prefix Faust' is used, sed this as well:
-#if !defined(SC_FAUST_PREFIX)
-# define SC_FAUST_PREFIX "Faust"
-#endif
-
 //-------------------------------------------------------------------
 // FAUST architecture file for SuperCollider.
 // Copyright (C) 2005-2012 Stefan Kersten.
@@ -22,6 +17,11 @@
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
 // 02111-1307 USA
 //-------------------------------------------------------------------
+
+// If other than 'faust2sc --prefix Faust' is used, sed this as well:
+#if !defined(SC_FAUST_PREFIX)
+#define SC_FAUST_PREFIX "Faust"
+#endif
 
 #include <map>
 #include <string>
@@ -530,5 +530,11 @@ FAUST_EXPORT void load(InterfaceTable* inTable)
     Print("Faust: %s numControls=%d\n", name.c_str(), g_numControls);
 #endif // NDEBUG
 }
+
+#ifdef SUPERNOVA 
+extern "C" FAUST_EXPORT int server_type(void) { return sc_server_supernova; }
+#else
+extern "C" FAUST_EXPORT int server_type(void) { return sc_server_scsynth; }
+#endif
 
 // EOF

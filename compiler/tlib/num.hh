@@ -27,7 +27,7 @@
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 Nums are tagged unions of ints and floats. Nums are completly described by 
-the num.h file, there is no num.cpp file.
+this header file.
 
  API:
  ----
@@ -51,9 +51,12 @@ the num.h file, there is no num.cpp file.
 #ifndef     __NUM__
 #define     __NUM__
 
+#include <math.h>
 
 //-------------------------------------------------------------------------
-// Class num = (int x (int + double))
+// Class num = (type x (int + double))
+//		type 0 -> int
+//		type 1 -> double
 //-------------------------------------------------------------------------
 class num
 {
@@ -64,7 +67,7 @@ class num
 	} fData;
 
  public:
-	// constructeurs
+	// constructors
 	num (int x=0) 		: fType(0) 			{ fData.i = x; }
 	//num (double x) 		: fType(1)  		{ fData.f = (double)x; }
 	num (double x) 		: fType(1)  		{ fData.f = x; }
@@ -73,14 +76,14 @@ class num
 	num& operator = (int n) 	{ fType = 0; fData.i = n; return *this; }
 	num& operator = (double n) 	{ fType = 1; fData.f = n; return *this; }
  	
-	// predicats
-	bool operator == (const num& n) const { return fType == n.fType && fData.i == n.fData.i; }
-	bool operator != (const num& n) const { return fType != n.fType || fData.i != n.fData.i; }
-	
 	// accessors
 	int			type() 		const 	{ return fType; }
 	operator 	int() 		const 	{ return (fType) ? int(fData.f) : fData.i; }
 	operator 	double() 	const 	{ return (fType) ? fData.f : double(fData.i); }
+	
+	// predicats
+	bool operator == (const num& n) const { return fType == n.fType && fData.i == n.fData.i; }
+	bool operator != (const num& n) const { return fType != n.fType || fData.i != n.fData.i; }
 	
 };
 
@@ -103,7 +106,7 @@ inline const num operator% (const num& x, const num& y)
 	{ return num(int(x)%int(y)); }
 
 
-// operations sur les bits
+// Bit shifting operations
 inline const num operator<< (const num& x, const num& y)	
 	{ return num(int(x)<<int(y)); }
 
@@ -111,7 +114,7 @@ inline const num operator>> (const num& x, const num& y)
 	{ return num(int(x)>>int(y)); }
 
 
-// operations booléennes sur les bits
+// Bitwise operations
 inline const num operator& (const num& x, const num& y)	
 	{ return num(int(x)&int(y)); }
 
@@ -122,7 +125,7 @@ inline const num operator^ (const num& x, const num& y)
 	{ return num(int(x)^int(y)); }
 
 
-// operations de comparaison
+// Comparaison operations
 inline const num operator> (const num& x, const num& y)	
 	{ return (isfloat(x)|isfloat(y)) ? num(double(x)>double(y)) : num(int(x)>int(y)); }
 

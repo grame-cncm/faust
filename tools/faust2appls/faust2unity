@@ -1,110 +1,60 @@
-#! /bin/bash -e
+#! /bin/bash
 
-#####################################################################
-#                                                                   #
-#  Compiles Faust programs to Unity audio plugins (OSX)	            #
-#                                                                   #
-#  (see https://docs.unity3d.com/Manual/Audio.html					#
-#  and https://bitbucket.org/Unity-Technologies/nativeaudioplugins)	#
-#                                                                   #
-#  (c) Grame, 2017                                                  #
-#                                                                   #
-#####################################################################
-#
-# Structure of a plugin for OSX
-#--------------------------------
-# AudioPluginFoo.bundle/
-#	Contents/
-#		MacOS/
-#			AudioPluginFoo
-#		Info.plist
-#
+. faustpath
 
-CXXFLAGS="-I. -O2 -fPIC -arch i386 -arch x86_64"
-LDFLAGS="-bundle"
-CXX="c++"
+#------------------------------------------------------------------------------
+# Generates a folder with all available architecture libraries for faust unity
+# plugin and the C# and JSON files required
 
+# Dispatch command arguments
 
-createInfoPList() {
-cat > "$2" << DELIM
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>BuildMachineOSBuild</key>
-	<string>16D32</string>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>English</string>
-	<key>CFBundleExecutable</key>
-	<string>$1</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.yourcompany.$1</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>$1</string>
-	<key>CFBundlePackageType</key>
-	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleSupportedPlatforms</key>
-	<array>
-		<string>MacOSX</string>
-	</array>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>CFPlugInDynamicRegisterFunction</key>
-	<string></string>
-	<key>CFPlugInDynamicRegistration</key>
-	<string>NO</string>
-	<key>CFPlugInFactories</key>
-	<dict>
-		<key>00000000-0000-0000-0000-000000000000</key>
-		<string>MyFactoryFunction</string>
-	</dict>
-	<key>CFPlugInTypes</key>
-	<dict>
-		<key>00000000-0000-0000-0000-000000000000</key>
-		<array>
-			<string>00000000-0000-0000-0000-000000000000</string>
-		</array>
-	</dict>
-	<key>CFPlugInUnloadFunction</key>
-	<string></string>
-	<key>DTCompiler</key>
-	<string>com.apple.compilers.llvm.clang.1_0</string>
-	<key>DTPlatformBuild</key>
-	<string>8C1002</string>
-	<key>DTPlatformVersion</key>
-	<string>GM</string>
-	<key>DTSDKBuild</key>
-	<string>16C58</string>
-	<key>DTSDKName</key>
-	<string>macosx10.12</string>
-	<key>DTXcode</key>
-	<string>0821</string>
-	<key>DTXcodeBuild</key>
-	<string>8C1002</string>
-</dict>
-</plist>
-DELIM
-}
-
-CUR=$(pwd)
+ALL="1"
+W32="0"
+W64="0"
+OSX="0"
+IOS="0"
+ANDROID="0"
+LINUX="0"
+SRC="0"
+UNPCK="0"
 
 for p in $@; do
-
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2unity [-ios] <file.dsp>"
-        echo "Use '-ios' to create an iOS static library"
+        echo "faust2unity [-w32] .. [-android] [-source] <file1.dsp> [<file2.dsp>] .."
+        echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# file required. Use arguments to generate specific architectures"
+        echo "Use -w32 to produce a Windows 32 bits library"
+        echo "Use -w64 to produce a Windows 64 bits library"
+        echo "Use -osx to produce a MACOSX library"
+        echo "Use -ios to produce a iOS library"
+        echo "Use -android to produce android libraries (armeabi-v7a and x86)."
+        echo "Use -linux to produce a linux library"
+        echo "Use -source to produce the source files (uncompressed folder)"
+        echo "Use -unpacked to produce an unpacked folder with files organized like the Unity Asset hierarchy. Use this options to add specific files in the unity package (in the Assets folder, then use \`encoderunitypackage <folder>\` to compress and pack it. "
+        echo "See architecture/unity/README.md for more info."
         exit
     fi
-
-    if [ $p = "-ios" ]; then
-        IOS=1
-        CXXFLAGS="-arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2"
+    if [ $p = "-w32" ]; then
+        W32="1"
+        ALL="0"
+    elif [ $p = "-w64" ]; then
+        W64="1"
+        ALL="0"
+    elif [ $p = "-osx" ]; then
+        OSX="1"
+        ALL="0"
+    elif [ $p = "-ios" ]; then
+        IOS="1"
+        ALL="0"
+    elif [ $p = "-android" ]; then
+        ANDROID="1"
+        ALL="0"
+    elif [ $p = "-linux" ]; then
+        LINUX="1"
+        ALL="0"
+    elif [ $p = "-source" ]; then
+        SRC="1"
+    elif [ $p = "-unpacked" ]; then
+        UNPCK="1"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -112,46 +62,129 @@ for p in $@; do
     else
         OPTIONS="$OPTIONS $p"
     fi
-
 done
 
-for f in $FILES; do
-	SRCDIR=$(dirname "$f")
-    FNAME=$(basename "$f")
-	NAME=${FNAME%.dsp}
+ARCHIVES=""
 
-    if [ "$IOS" = "1" ]; then
-        # compile faust to c++
-        faust -i -a unity.cpp "$SRCDIR/$NAME.dsp" -o $NAME.cpp || exit
-        $CXX $CXXFLAGS -DPLUGINNAME="$NAME" -std=c++11 -stdlib=libc++ -c -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk $NAME.cpp -o $NAME.o
-        libtool $NAME.o -o libaudioplugin$NAME.a
-        rm $NAME.o $NAME.cpp
-		echo "libaudioplugin$NAME.a;"
-    else
+for p in $FILES; do
 
-        BNAME=AudioPlugin${NAME} # should be capitalize
+    CUR=$(pwd)
+    f=$(basename "$p")
+    SRCDIR=$(dirname "$p")
+    NAME=${f%.dsp}
+    FNAME=FaustPlugin_$NAME
+    FIN=$SRCDIR/$FNAME
 
-        # creates a temporary dir
-        TDR=$(mktemp -d faust.XXX)
+    # creates final dir / overwrites it if already created
+    if [ -d "$FIN" ]; then
+        rm -rf "$FIN"
+    fi
+    mkdir "$FIN"
 
-        # creates the bundle inside
-        BNDL="$TDR/$BNAME.bundle"
-        MOS="$BNDL/Contents/MacOS/"
-        mkdir -p "$MOS"
+    # adds README to final dir while setting dspname
+    sed "s/<dspname>/$NAME/g" $FAUSTLIB/unity/README.md > $FIN/README.md
 
-        # compile faust to c++
-        faust -i -a unity.cpp "$SRCDIR/$NAME.dsp" -o "$MOS/$NAME.cpp" || exit
+    # finds number of parameters, required for the c# scripts
+    faust -uim $f -o $NAME.cpp
+    grep FAUST_ACTIVES $NAME.cpp > params.txt
+    var1=$(cut -d" " -f3- params.txt)
+    grep FAUST_PASSIVES $NAME.cpp > params.txt
+    var2=$(cut -d" " -f3- params.txt)
+    let "var=var1+var2"
+    rm $NAME.cpp
+    rm params.txt
 
-        $CXX $CXXFLAGS $LDFLAGS -DPLUGINNAME="$NAME" "$MOS/$NAME.cpp" -o "$MOS/$BNAME" || exit
-        rm "$MOS/$NAME.cpp"
-        createInfoPList "$BNAME" "$BNDL/Contents/Info.plist" || exit
+    # compiles faust to c++ and json (adds JSON to C# string)
+    faust -json "$SRCDIR/$f" -o /dev/null;
+    tr -d '\n' < $f.json > $NAME.json
+    sed 's/\"/\\\\"/g;s/\//\\\//g' $NAME.json > $f.json
+    JSON=$(<$f.json)
 
-        rm -rf "$SRCDIR/$BNAME.bundle"
-        mv "$BNDL" "$SRCDIR/"
-        rm -rf $TDR
 
-        echo "$SRCDIR/$BNAME.bundle;"
+    # generates c# file
+    sed -e "s/model/$FNAME/g;s/plugname/lib$FNAME/g;s/_UI/_$NAME/g;s/Ctx/Context_$NAME/g;s/variables/$var/g;s/androidpluginname/$FNAME/g;s/tototata/$JSON/g" $FAUSTLIB/unity/template.cs > $FIN/$FNAME.cs
 
+    rm -rf $NAME.json
+    rm -rf $f.json
+
+    # compiles c++ to binaries
+
+    # w64
+    if [ $W64 = "1" ] || [ $ALL = "1" ]; then
+        faust2w64unity $f || exit
     fi
 
+    # w32
+    if [ $W32 = "1" ] || [ $ALL = "1" ]; then
+            faust2w32unity $f || exit
+    fi
+
+    # macos
+    if [ $OSX = "1" ] || [ $ALL = "1" ]; then
+        faust2osxiosunity $f || exit
+    fi
+
+    # ios
+    if [ $IOS = "1" ] || [ $ALL = "1" ]; then
+        faust2osxiosunity -ios $f || exit
+    fi
+
+    # android
+    if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
+        faust2androidunity $f || exit
+    fi
+
+    # Linux
+    if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
+        faust2linuxunity $f || exit
+    fi
+
+    # Dispatch files in Unity hierarchy
+    if [ "$SRC" = "0" ]; then
+        if [ "$UNPCK" = "1" ]; then # Specific folder name if unpacked
+            PLGN=$FNAME\_Assets/Plugins
+            SCRPT=$FNAME\_Assets/Scripts
+        else
+            PLGN=Assets/Plugins
+            SCRPT=Assets/Scripts
+        fi
+
+        if [ ! -d "$PLGN" ]; then
+            mkdir -p $PLGN
+        else
+            rm -rf $PLGN
+            mkdir -p $PLGN
+        fi
+
+        if [ ! -d "$SCRPT" ]; then
+            mkdir -p $SCRPT
+        else
+            rm -rf $SCRPT
+            mkdir -p $SCRPT
+        fi
+
+        echo $NAME > .VAR
+        mv $FNAME/*.cs $SCRPT
+        mv $FNAME $PLGN
+
+        if [ "$UNPCK" = "0" ]; then
+            encoderunitypackage Assets # encode unity package
+            ARCHIVES="$ARCHIVES$FNAME.unitypackage;" # add package name ARCHIVES variable to display compile package name
+        else
+            ARCHIVES="$ARCHIVES$FNAME_Assets;" # dd package name ARCHIVES variable to display compile folder
+        fi
+
+    elif [ "$SRC" = "1" ]; then
+        # add .dsp and .cpp files to sources folder
+        faust -i -a unityplugin.cpp $f -o $NAME.cpp
+        mv "$NAME.cpp" "$FNAME/$NAME.cpp"
+        cp "$f" "$FNAME/$f"
+        SNAME=$FNAME\_sources
+        mv "$FNAME" "$SNAME"
+        ARCHIVES="$ARCHIVES$SNAME;"
+    fi
+
+
 done
+
+echo "$ARCHIVES"

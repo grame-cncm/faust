@@ -1,0 +1,82 @@
+#! /bin/bash -e
+
+#-------------------------------------------------------------------
+# Dispatch command arguments
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2linuxunity <file1.dsp> [<file2.dsp>]"
+        echo "Create Linux shared library for faust unity plugin."
+        echo "Use 'faust2unity -linux' to also create the c# file"
+        echo "See architecture/unity/README.md for more info"
+        exit
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+done
+
+
+#------------------------------------------------------------------------------
+# Compiler g++
+#
+
+CXX="g++"
+(which "$CXX" >/dev/null) || (echo "compiler $CXX not found. See -help for more info"; exit 1)
+
+
+#-------------------------------------------------------------------
+# Compiler settings
+
+CXXFLAGS="-O3 -mfpmath=sse -msse -ffast-math -Wl,"
+LIB="-shared"
+EXT=".so"
+
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    NAME=${f%.dsp}
+    FNAME=FaustPlugin_$NAME
+    SRCDIR=$(dirname "$p")
+    FIN=$FNAME/Linux
+
+    # creates a temporary dir 
+    TDR=$(mktemp -d faust.XXXXXX)
+    TMP=$TDR/${f%.dsp}
+    mkdir "$TMP"
+
+    # checks if final dir exists, if not creates it
+    if [ ! -d "$FIN" ]; then
+        mkdir -p "$FIN"
+    fi
+
+    # compile faust to c++
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2linuxunity"; exit 1)
+
+    # compile c++ to binary
+    (
+        cd "$TMP"
+		$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -o $FNAME$EXT $NAME.cpp
+
+    ) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
+
+    # moves binary to final dir
+    rm -rf "$SRCDIR/$FNAME$EXT"
+    mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
+    rm -rf "$TDR"
+
+    echo "$f : linux compilation completed"
+done
+
+
+

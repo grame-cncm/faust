@@ -1,0 +1,39 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to impulse tests			#
+#               (c) Grame, 2017                                     #
+#                                                                   #
+#####################################################################
+
+for p in $@; do
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+
+for f in $FILES; do
+
+	# compile Faust to c++
+    faust $OPTIONS -i -a impulsearch.cpp "$f" -o "$f.cpp" || exit
+
+	# compile c++ to binary
+	(
+		${CXX=g++} ${CXXFLAGS=-O3 -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
+	) > /dev/null || exit
+
+	# run the resulting binary to generate the impulse response
+	./"${f%.dsp}" -inpl -n 60000
+
+	# cleanup
+    rm "${f%.dsp}" "$f.cpp"
+done
+

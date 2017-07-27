@@ -8,6 +8,7 @@ ba = library("basics.lib");
 co = library("compressors.lib");
 de = library("delays.lib");
 dm = library("demos.lib");
+dx = library("dx7.lib");
 en = library("envelopes.lib");
 fi = library("filters.lib");
 ho = library("hoa.lib");

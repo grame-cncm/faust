@@ -131,7 +131,6 @@ for f in $FILES; do
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
-
     faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
 
 	rm au-arch-temp.cpp
@@ -211,11 +210,9 @@ for f in $FILES; do
 	mv Source/CocoaUI/FaustAU_Slider.h Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.h
 	mv Source/CocoaUI/FaustAU_Slider.m Source/CocoaUI/FaustAU_"$FILE_NAME"Slider.m
 
-
     xcodebuild ARCHS="i386 x86_64" HEADER_SEARCH_PATHS=$FINC CONFIGURATION_BUILD_DIR=$HOME/Library/Audio/Plug-Ins/Components > $PRINTDEV > ./build_errors.log || exit 1
 
-	if [ ! -d $AU_DIR/FaustAU.component/ ]
-	then
+	if [ ! -d $AU_DIR/FaustAU.component/ ]; then
 	echo Unable to generate Audio Unit
 		cd ..
 		if [ $DEBUG -eq 0 ]; then
@@ -224,23 +221,21 @@ for f in $FILES; do
 	    exit 1
 	fi
 
-	if [ -d $AU_DIR/"$FILE_NAME".component/ ]
-	then
+	if [ -d $AU_DIR/"$FILE_NAME".component/ ]; then
 		if [ $DEBUG -eq 0 ]; then
-		rm -r  $AU_DIR/"$FILE_NAME".component/
+            rm -r  $AU_DIR/"$FILE_NAME".component/
 		fi
 	fi
 
 	mv $AU_DIR/FaustAU.component $AU_DIR/"$FILE_NAME".component
 
-	if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]
-	then
+	if [ -d $AU_DIR/FaustAUCustomView.bundle/ ]; then
 		rm -r  $AU_DIR/FaustAUCustomView.bundle/
 	fi
 
 	cd ..
 	if [ $DEBUG -eq 0 ]; then
-	rm -r $TEMP_DIR
+        rm -r $TEMP_DIR
 	fi
 
 	echo "'$NAME'" Audio Unit generated and installed successfully

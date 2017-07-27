@@ -1,5 +1,10 @@
 #!/bin/bash
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
 OSCDEFS=""
 NVOICES=-1
 OSCDEFS=""
@@ -36,10 +41,6 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-# without having to configure CXX and CXXFLAGS
-CXX=g++
-CXXFLAGS=-O3
-
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB="-framework CoreServices -framework CoreMIDI -framework CoreFoundation -framework CoreAudio -framework AudioUnit"
 else
@@ -61,7 +62,7 @@ do
             CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
         fi
     elif [ $p = "-midi" ]; then
-        MIDIDEFS="-D MIDICTRL"
+        MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then

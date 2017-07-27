@@ -1,4 +1,4 @@
-1000 0x00/Freq
-1 0x00/Gain
-1 0x00/Q
+1000 peakNotch/Freq
+1 peakNotch/Gain
+1 peakNotch/Q
 

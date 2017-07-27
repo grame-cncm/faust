@@ -1,7 +1,7 @@
 // Spectrum analyzer
 
 
-declare name 		"spectrum_level";
+declare name 		"spectral_level";
 
 fl = library("filter.lib");
 

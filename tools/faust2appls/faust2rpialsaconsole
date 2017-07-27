@@ -19,16 +19,11 @@ BASE_DIR="/opt/rpicrosstool"
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
 #
-
-#CXXFLAGS="-Wall -g -D_debug_ -D_DEBUG_"
 CXXFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
+
 #-------------------------------------------------------------------
 # Kernel Sources Dir
-
 LINUX_KERNEL_INSTALL_DIR="$BASE_DIR/x-tools/arm-unknown-linux-gnueabi/arm-unknown-linux-gnueabi/"
-
-
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -36,18 +31,13 @@ LINUX_KERNEL_INSTALL_DIR="$BASE_DIR/x-tools/arm-unknown-linux-gnueabi/arm-unknow
 # if -omp : -openmp or -fopenmp -> OPENMP
 # existing *.dsp files          -> FILES
 #
-
 # Toolchain cross-compilation for Raspberry Pi
 
 CXX=$BASE_DIR"/x-tools/arm-unknown-linux-gnueabi/bin/arm-unknown-linux-gnueabi-c++"
 
-
 # Librairies and includes directories for Rapsberry Pi
-
-
 LD_LIBRARY_PATHS="-L$LINUX_KERNEL_INSTALL_DIR/lib -lasound"
 INCLUDES_DIR="-L$LINUX_KERNEL_INSTALL_DIR_INCLUDE/include/"
-
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -78,8 +68,6 @@ for p in $@; do
 	fi
 done
 
-
-
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
 #
@@ -97,7 +85,6 @@ for f in $FILES; do
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

@@ -8,6 +8,11 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
 NVOICES=-1
 EFFECT=""
 
@@ -153,7 +158,7 @@ for p in $FILES; do
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
  
-	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+	$CXX $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -O3 -mfpmath=sse -msse -msse2 -msse3 -ffast-math -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

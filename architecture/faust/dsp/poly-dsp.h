@@ -6,21 +6,19 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
-
+ 
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
-
+ 
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
-
+ 
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
  architecture section is not modified.
-
- ************************************************************************
  ************************************************************************/
 
 #ifndef __poly_dsp__
@@ -37,7 +35,6 @@
 #include <limits.h>
 
 #include "faust/gui/MidiUI.h"
-#include "faust/gui/JSONUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
@@ -103,11 +100,12 @@ class GroupUI : public GUI, public PathBuilder
         GroupUI(FAUSTFLOAT* zone, uiCallback cb, void* arg)
         {
             fPanic = new uiCallbackItem(this, zone, cb, arg);
-        };
+        }
+    
         virtual ~GroupUI()
         {
             // 'fPanic' is kept and deleted in GUI, so do not delete here
-        };
+        }
 
         // -- widget's layouts
         void openTabBox(const char* label)
@@ -466,7 +464,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         }
 
     public:
-
+    
         /**
          * Constructor.
          *
@@ -517,22 +515,28 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void init(int samplingRate)
         {
+            decorator_dsp::init(samplingRate);
+            fVoiceGroup->init(samplingRate);
+            fPanic = FAUSTFLOAT(0);
+            
             // Init voices
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->init(samplingRate);
             }
         }
-
-        void instanceInit(int samplingRate)
+    
+        void instanceInit(int samplingFreq)
         {
-            // Init voices
-            for (int i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->instanceInit(samplingRate);
-            }
+            instanceConstants(samplingFreq);
+            instanceResetUserInterface();
+            instanceClear();
         }
 
         void instanceConstants(int samplingRate)
         {
+            decorator_dsp::instanceConstants(samplingRate);
+            fVoiceGroup->instanceConstants(samplingRate);
+            
             // Init voices
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceConstants(samplingRate);
@@ -541,6 +545,10 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void instanceResetUserInterface()
         {
+            decorator_dsp::instanceResetUserInterface();
+            fVoiceGroup->instanceResetUserInterface();
+            fPanic = FAUSTFLOAT(0);
+            
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceResetUserInterface();
             }
@@ -548,6 +556,9 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         void instanceClear()
         {
+            decorator_dsp::instanceClear();
+            fVoiceGroup->instanceClear();
+            
             for (int i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceClear();
             }

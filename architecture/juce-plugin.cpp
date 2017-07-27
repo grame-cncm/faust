@@ -286,7 +286,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
         
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FaustPlugInAudioProcessorEditor)
         
-        JuceGUI juceGUI;
+        JuceGUI fJuceGUI;
     
 };
 
@@ -488,7 +488,7 @@ bool FaustPlugInAudioProcessor::supportsDoublePrecisionProcessing() const
 void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    // initialisation that you need...
     
 #ifdef JUCE_POLY
     fSynth->setCurrentPlaybackSampleRate (sampleRate);
@@ -499,7 +499,11 @@ void FaustPlugInAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
         fDSP = new dsp_adapter(fDSP.release(), getTotalNumInputChannels(), getTotalNumOutputChannels(), 4096);
     }
    
-    fDSP->init(int(sampleRate));
+    // Setting the DSP default values has already been done by 'buildUserInterface(&fStateUI)' call
+    mydsp::classInit(int(sampleRate));
+    fDSP->instanceConstants(int(sampleRate));
+    fDSP->instanceClear();
+    
 #endif
 }
 
@@ -571,7 +575,7 @@ void FaustPlugInAudioProcessor::setStateInformation (const void* data, int sizeI
     // whose contents will have been created by the getStateInformation() call.
     
     fStateUI.setStateInformation(data, sizeInBytes);
-}
+ }
 
 //==============================================================================
 // This creates new instances of the plugin..
@@ -582,17 +586,17 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 
 //==============================================================================
 FaustPlugInAudioProcessorEditor::FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor& p)
-: AudioProcessorEditor (&p), processor (p)
+: AudioProcessorEditor (&p), processor (p), fJuceGUI(false)
 {
-    addAndMakeVisible(juceGUI);
+    addAndMakeVisible(fJuceGUI);
     
 #ifdef JUCE_POLY
-    p.fSynth->buildUserInterface(&juceGUI);
+    p.fSynth->buildUserInterface(&fJuceGUI);
 #else
-    p.fDSP->buildUserInterface(&juceGUI);
+    p.fDSP->buildUserInterface(&fJuceGUI);
 #endif
     
-    juce::Rectangle<int> recommendedSize = juceGUI.getSize();
+    juce::Rectangle<int> recommendedSize = fJuceGUI.getSize();
     setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 }
 
@@ -607,7 +611,7 @@ void FaustPlugInAudioProcessorEditor::paint (Graphics& g)
 
 void FaustPlugInAudioProcessorEditor::resized()
 {
-    juceGUI.setBounds(getLocalBounds());
+    fJuceGUI.setBounds(getLocalBounds());
 }
 
 // Globals

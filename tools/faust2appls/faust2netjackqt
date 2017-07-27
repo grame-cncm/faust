@@ -8,7 +8,6 @@
 #####################################################################
 
 . faustpath
-
 . faustoptflags
 
 CXXFLAGS=$MYCXXFLAGS

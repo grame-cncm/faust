@@ -1,0 +1,75 @@
+#! /bin/bash -e
+
+. faustpath
+
+#-------------------------------------------------------------------
+# Dispatch arguments
+
+SOURCE="0"
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2androidunity <file1.dsp> [<file2.dsp>]"
+        echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
+        echo "Android sdk should be installed. Make sure the ANDROID_HOME environment variable is correctly set up. It should be pointing to the sdk folder."
+        echo "Use 'faust2unity -android' to also create the c# and JSON files"
+        echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
+        echo "See architecture/unity/README.md for more info or in the compile folder"
+        exit
+    fi
+
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+#-------------------------------------------------------------------
+# compiles the *.dsp files
+#
+
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+    NAME=${f%.dsp}
+    FNAME=FaustPlugin_$NAME
+    SRCDIR=$(dirname "$p")
+    FIN=$FNAME/Android
+
+    # creates a temporary dir
+    TMP=$(mktemp -d android.XXXX)
+
+    # checks if final dir exists
+    if [ ! -d "$FIN" ]; then
+        mkdir -p "$FIN"
+    fi
+
+    # compiles faust to c++
+
+    faust -i -a unity/unityplugin.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/$NAME.cpp" || (echo "$f : Faust to C++ compilation failed in faust2androidunity"; exit 1)
+
+    # compiles c++ to binary
+    cd "$TMP"
+    cp -r "$FAUSTLIB/unity/Android/Android.mk" "Android.mk"
+    cp -r "$FAUSTLIB/unity/Android/Application.mk" "Application.mk"
+    $ANDROID_HOME/ndk-bundle/ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk FILE=$NAME > /dev/null || (echo "$f : C++ to armeabi-v7a and x86 library compilations failed in faust2androidunity"; exit 1)
+    rm -rf "Android.mk"
+    rm -rf "Application.mk"
+    rm -rf "obj"
+    rm -rf "$NAME.cpp"
+    cd ..
+
+    # moves binaries to final dir and deletes libs folder
+    mv $TMP/libs/* $TMP
+    rm -rf $TMP/libs
+
+    mv $TMP/* $FIN/
+    rm -rf $TMP
+
+    echo "$f : Android armeabi-v7a and x86 compilations completed"
+done
+

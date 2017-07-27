@@ -12,6 +12,6 @@ LOCAL_MODULE := libOSCFaust
 LOCAL_SRC_FILES         := $(subst $(LOCAL_PATH)/,,$(wildcard $(SRC)/faust/src/*/*.cpp) $(wildcard $(SRC)/faust/src/*.cpp) $(wildcard $(SRC)/oscpack/osc/*.cpp) $(wildcard $(SRC)/oscpack/ip/*.cpp) $(wildcard $(SRC)/oscpack/ip/posix/*.cpp))
 LOCAL_EXPORT_C_INCLUDES := $(addprefix $(SRC)/, interface)
 LOCAL_C_INCLUDES        := $(subst $(LOCAL_PATH)/../,,$(SRC)/faust $(wildcard $(SRC)/faust/src/*) $(SRC)/oscpack $(SRC)/..)
-LOCAL_CPPFLAGS          := -Dandroid -frtti -fexceptions
+LOCAL_CPPFLAGS          := -Dandroid -frtti -O3 -fexceptions
 
 include $(BUILD_SHARED_LIBRARY)

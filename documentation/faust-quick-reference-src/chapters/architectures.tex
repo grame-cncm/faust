@@ -20,33 +20,33 @@ The architecture to be used is specified at compile time with the \lstinline'-a'
 \hline
 \texttt{alchemy-as.cpp} 	& Flash - ActionScript plugin \\
 \texttt{ca-qt.cpp} 			& CoreAudio QT4 standalone application  \\
-\texttt{jack-gtk.cpp} 		& Jack GTK standalone application  \\
-\texttt{jack-qt.cpp} 		& Jack QT4 standalone application  \\
-\texttt{jack-console.cpp} 	& Jack command line application  \\
-\texttt{jack-internal.cpp} 	& Jack server plugin  \\
-%%\texttt{jack-wx.cpp} 		& Jack wxWindows standalone application  \\
+\texttt{jack-gtk.cpp} 		& JACK GTK standalone application  \\
+\texttt{jack-qt.cpp} 		& JACK QT4 standalone application  \\
+\texttt{jack-console.cpp} 	& JACK command line application  \\
+\texttt{jack-internal.cpp} 	& JACK server plugin  \\
+%%\texttt{jack-wx.cpp} 	& Jack wxWindows standalone application  \\
 \texttt{alsa-gtk.cpp} 		& ALSA GTK standalone application  \\
 \texttt{alsa-qt.cpp} 		& ALSA QT4 standalone application  \\
 \texttt{oss-gtk.cpp} 		& OSS GTK standalone application  \\
-%%\texttt{oss-wx.cpp} 		& OSS wxWindows standalone application  \\
+%%\texttt{oss-wx.cpp} 	& OSS wxWindows standalone application  \\
 \texttt{pa-gtk.cpp} 		& PortAudio GTK standalone application  \\
-\texttt{pa-qt.cpp} 			& PortAudio QT4 standalone application  \\
-%%\texttt{pa-wx.cpp} 		& PortAudio wxWindows standalone application  \\
+\texttt{pa-qt.cpp} 		& PortAudio QT4 standalone application  \\
+%%\texttt{pa-wx.cpp} 	& PortAudio wxWindows standalone application  \\
 \hline
-\texttt{max-msp.cpp} 		& Max/MSP external  \\
+\texttt{max-msp.cpp} 	& Max/MSP external  \\
 \texttt{vst.cpp} 			& VST plugin  \\
 \texttt{vst2p4.cpp} 		& VST 2.4 plugin  \\
-\texttt{vsti-mono.cpp} 		& VSTi mono instrument  \\
+\texttt{vsti-mono.cpp} 	& VSTi mono instrument  \\
 \texttt{vsti-poly.cpp} 		& VSTi polyphonic instrument  \\
 \texttt{ladspa.cpp} 		& LADSPA plugin  \\
-\texttt{q.cpp} 				& Q language plugin  \\
+\texttt{q.cpp} 			& Q language plugin  \\
 \texttt{supercollider.cpp} 	& SuperCollider Unit Generator  \\
 \texttt{snd-rt-gtk.cpp} 	& Snd-RT music programming language  \\
 \texttt{csound.cpp} 		& CSOUND opcode  \\
 \texttt{puredata.cpp} 		& PD external  \\
 \hline
 \texttt{sndfile.cpp} 		& sound file transformation command \\
-\texttt{bench.cpp} 			& speed benchmark   \\
+\texttt{bench.cpp} 		& speed benchmark   \\
 \texttt{octave.cpp} 		& Octave plugin   \\
 \texttt{plot.cpp} 			& Command line application    \\
 \texttt{sndfile.cpp} 		& Command line application    \\
@@ -56,7 +56,6 @@ The architecture to be used is specified at compile time with the \lstinline'-a'
 \caption{Available architectures.}
 \label{tab:availablearch}
 \end{table}%
-
 
 The main available architecture files are listed table \ref{tab:availablearch}. Since \faust 0.9.40 some of these architectures are a modular combination of an \emph{audio module} and one or more \emph{user interface modules}. Among these user interface modules OSCUI provide supports for Open Sound Control allowing \faust programs to be controlled by OSC messages. 
 
@@ -71,8 +70,16 @@ class audio {
            audio() {}
   virtual ~audio() {}
   virtual bool init(const char*, dsp*) = 0;
-  virtual bool start()                 = 0;
-  virtual void stop()                  = 0;
+  virtual bool start() = 0;
+  virtual void stop() = 0;
+  virtual void shutdown(shutdown_callback cb, void* arg)  {}
+  virtual int getBufferSize() = 0;
+  virtual int getSampleRate() = 0;
+    
+  virtual int getNumInputs() = 0;
+  virtual int getNumOutputs() = 0;
+    
+  virtual float getCPULoad() { return 0.f; }
 };
 \end{lstlisting} 
 
@@ -87,16 +94,16 @@ Table \ref{tab:aarch} gives the audio architectures currently available for vari
 \bf{Audio system} & \bf{Operating system} \\
 \hline
 Alsa  & Linux \\
-Core audio 		& Mac OS X, iOS \\
-Jack 				& Linux, Mac OS X, Windows \\
-Portaudio 			& Linux, Mac OS X, Windows \\
-OSC					& Linux, Mac OS X, Windows \\
-VST					& Mac OS X, Windows \\
-Max/MSP				& Mac OS X, Windows \\
-CSound				& Linux, Mac OS X, Windows \\
+CoreAudio 		& Mac OS X, iOS \\
+JACK 			& Linux, Mac OS X, Windows \\
+PortAudio 			& Linux, Mac OS X, Windows \\
+OSC				& Linux, Mac OS X, Windows \\
+VST				& Mac OS X, Windows \\
+Max/MSP			& Mac OS X, Windows \\
+Csound			& Linux, Mac OS X, Windows \\
 SuperCollider		& Linux, Mac OS X, Windows \\
 PureData			& Linux, Mac OS X, Windows \\
-Pure 				& Linux, Mac OS X, Windows \\
+Pure 			& Linux, Mac OS X, Windows \\
 \hline
 \end{tabular}
 \end{center}
@@ -145,40 +152,54 @@ A \faust UI architecture module derives an \emph{UI} class (Figure \ref{tab:ui})
 \begin{center}
 %\begin{lstlisting}[basicstyle=\ttfamily\tiny\color{yotxt}]
 \begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif
+
 class UI
 {
  public:
            UI() {}
   virtual ~UI() {}
+  
+     -- widget layouts
+  virtual void openTabBox(const char* l)  = 0;
+  virtual void openHorizontalBox(const char* l) = 0;
+  virtual void openVerticalBox(const char* l) = 0;
+  virtual void closeBox() = 0;
 
    -- active widgets
-  virtual void addButton(const char* l, float* z)       = 0;
-  virtual void addCheckButton(const char* l, float* z)  = 0;
+  virtual void addButton(const char* l, FAUSTFLOAT* z)      
+  	 = 0;
+  virtual void addCheckButton(const char* l, FAUSTFLOAT* z) 
+  	 = 0;
   
-  virtual void addVerticalSlider(const char* l, float* z, 
-          float init, float min, float max, float step) = 0;
+  virtual void addVerticalSlider(const char* l,
+          FAUSTFLOAT* z, 
+          FAUSTFLOAT init, FAUSTFLOAT min, 
+          FAUSTFLOAT max, FAUSTFLOAT step) = 0;
           
-  virtual void addHorizontalSlider(const char* l, float* z, 
-          float init, float min, float max, float step) = 0;
+  virtual void addHorizontalSlider(const char* l, 
+          FAUSTFLOAT* z, 
+          FAUSTFLOAT init, FAUSTFLOAT min,
+          FAUSTFLOAT max, FAUSTFLOAT step) = 0;
           
-  virtual void addNumEntry(const char* l, float* z, 
-      float init, float min, float max, float step)     = 0;
+  virtual void addNumEntry(const char* l, FAUSTFLOAT* z, 
+          FAUSTFLOAT init, FAUSTFLOAT min,
+          FAUSTFLOAT max, FAUSTFLOAT step)  = 0;
       
    -- passive widgets
   virtual void addHorizontalBargraph(const char* l,
-                        float* z, float min, float max) = 0;
+                        FAUSTFLOAT* z, FAUSTFLOAT min, 
+                        FAUSTFLOAT max) = 0;
                         
   virtual void addVerticalBargraph(const char* l, 
-                        float* z, float min, float max) = 0; 
+                        FAUSTFLOAT* z, FAUSTFLOAT min, 
+                        FAUSTFLOAT max) = 0; 
                         
-   -- widget layouts
-  virtual void openTabBox(const char* l)                = 0;
-  virtual void openHorizontalBox(const char* l)         = 0;
-  virtual void openVerticalBox(const char* l)           = 0;
-  virtual void closeBox()                               = 0;
-        
    -- metadata declarations
-  virtual void declare(float*, const char*, const char* ) {}
+  virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 };
 \end{lstlisting} 
 \end{center}
@@ -189,10 +210,10 @@ class UI
 %---------------------------------------------------
 \subsection{Active widgets}
 \label{sec:awidget}
-Active widgets are graphical elements that control a parameter value. They are initialized with the widget name and a pointer to the linked value.
+Active widgets are graphical elements that control a parameter value. They are initialized with the widget name and a pointer to the linked value, using the FAUSTFLOAT macro type (defined at compile time as either float or double).
 The widget currently considered are \code{Button},  \code{CheckButton},  \code{VerticalSlider},  \code{HorizontalSlider} and  \code{NumEntry}. \\
 A GUI architecture must implement a method \\
-\code{addXxx(const char* name, float* zone, ...)} for each active widget.
+\code{addXxx(const char* name, FAUSTFLOAT* zone, ...)} for each active widget.
 Additional parameters are available for \code{Slider} and \code{NumEntry}: the \code{init},  \code{min},  \code{max} and \code{step} values.
 
 %---------------------------------------------------
@@ -201,7 +222,7 @@ Additional parameters are available for \code{Slider} and \code{NumEntry}: the \
 Passive widgets are graphical elements that reflect values. Similarly to active widgets, they are initialized with the widget name and a pointer to the linked value.
 The widget currently considered are  \code{HorizontalBarGraph} and  \code{VerticalBarGraph}. \\
 A UI architecture must implement a method \\
-\code{addXxx(const char* name, float* zone, ...)} for each passive widget.
+\code{addXxx(const char* name, FAUSTFLOAT* zone, ...)} for each passive widget.
 Additional parameters are available, depending on the passive widget type.
 
 %---------------------------------------------------
@@ -219,7 +240,7 @@ Note that all the widgets are added to the current box.
 \subsection{Metadata}
 \label{sec:metadata}
 The \faust language allows widget labels to contain metadata enclosed in square brackets. These metadata are handled at GUI level by a \code{declare} method taking as argument, a pointer to the widget associated zone, the metadata key and value: \\
-\htab\code{declare(float* zone, const char* key, const char* value)} \\
+\htab\code{declare(FAUSTFLOAT* zone, const char* key, const char* value)} \\
 
 
 %%Table \ref{tab:uiarch} gives the UI architectures currently available.
@@ -231,7 +252,7 @@ The \faust language allows widget labels to contain metadata enclosed in square 
 \hline
 console  & a textual command line UI \\
 GTK  & a GTK-based GUI \\
-Qt   & a multi-platform Qt-based GUI \\
+QT   & a multi-platform QT-based GUI \\
 FUI  & a file-based UI to store and recall modules states \\
 OSC  & OSC control (see \ref{sec:oscgui}) \\
 \hline
@@ -240,4 +261,231 @@ OSC  & OSC control (see \ref{sec:oscgui}) \\
 \caption{Available UI architectures.}
 \label{tab:uiarch}
 \end{table}%
+
+%---------------------------------------------------
+\section{Developing a new architecture file}
+\label{sec:architecture}
+
+Developing a new architecture file typically means writing a generic C++ file, that will be populated with the actual output of the \faust compiler, in order to produce a complete C++ file, ready to be compiled as a standalone application or plugin. 
+
+The architecture to be used is specified at compile time with the \lstinline'-a' option. It must contain the \code{<<includeIntrinsic>>} and \code{<<includeclass>>} lines that will be looked at by the \faust compiler, and replaced by the generated C++ class. 
+
+Look at the \code{minimal.cpp} example located in the architecture folder:
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+#include "faust/gui/PrintUI.h"
+#include "faust/gui/meta.h"
+#include "faust/audio/dummy-audio.h"
+
+using std::max;
+using std::min;
+
+//-------------------------------------------------
+//  FAUST generated signal processor
+//-------------------------------------------------
+
+<<includeIntrinsic>>
+
+<<includeclass>>
+
+int main(int argc, char *argv[])
+{
+    mydsp DSP;
+    PrintUI ui;
+    
+    // Activate the UI
+    // (here that only prints the control paths)
+    DSP.buildUserInterface(&ui);
+
+    // Allocate the audio driver to render 
+    // 5 buffers of 512 frames
+    dummyaudio audio(5);
+    audio.init("Test", &DSP);
+    
+    // Render buffers...
+    audio.start();
+    
+    audio.stop();
+}
+\end{lstlisting} 
+
+Calling \lstinline'faust -a minimal.cpp noise.dsp -a noise.cpp' will produce a ready to compile  \code{noise.cpp} file:
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+#include "faust/gui/PrintUI.h"
+#include "faust/gui/meta.h"
+#include "faust/audio/dummy-audio.h"
+
+using std::max;
+using std::min;
+
+//---------------------------------------------------
+//  FAUST generated signal processor
+//--------------------------------------------------
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif  
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+
+class mydsp : public dsp {
+  private:
+	FAUSTFLOAT fslider0;
+	int iRec0[2];
+	int fSamplingFreq;
+
+  public:
+	virtual void metadata(Meta* m) { 
+		m->declare("name", "Noise");
+		m->declare("version", "1.1");
+		m->declare("author", "Grame");
+		m->declare("license", "BSD");
+		m->declare("copyright", "(c)GRAME 2009");
+	}
+
+	virtual int getNumInputs() { return 0; }
+	virtual int getNumOutputs() { return 1; }
+	static void classInit(int samplingFreq) {
+	}
+	virtual void instanceConstants(int samplingFreq) {
+		fSamplingFreq = samplingFreq;
+	}
+	virtual void instanceResetUserInterface() {
+		fslider0 = 0.5f;
+	}
+	virtual void instanceClear() {
+		for (int i=0; i<2; i++) iRec0[i] = 0;
+	}
+	virtual void init(int samplingFreq) {
+		classInit(samplingFreq);
+		instanceInit(samplingFreq);
+	}
+	virtual void instanceInit(int samplingFreq) {
+		instanceConstants(samplingFreq);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	virtual mydsp* clone() {
+		return new mydsp();
+	}
+	virtual int getSampleRate() {
+		return fSamplingFreq;
+	}
+	virtual void buildUserInterface(UI* ui_interface) {
+		ui_interface->openVerticalBox("Noise");
+		ui_interface->declare(&fslider0, "acc", "0 0 -10 0 10");
+		ui_interface->declare(&fslider0, "style", "knob");
+		ui_interface->addVerticalSlider("Volume", &fslider0, 0.5f, 0.0f, 1.0f, 0.1f);
+		ui_interface->closeBox();
+	}
+	virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
+		float fSlow0 = (4.656613e-10f * float(fslider0));
+		FAUSTFLOAT* output0 = output[0];
+		for (int i=0; i<count; i++) {
+			iRec0[0] = ((1103515245 * iRec0[1]) + 12345);
+			output0[i] = (FAUSTFLOAT)(fSlow0 * iRec0[0]);
+			// post processing
+			iRec0[1] = iRec0[0];
+		}
+	}
+};
+
+int main(int argc, char* argv[])
+{
+    mydsp DSP;
+    PrintUI ui;
+    
+    // Activate the UI
+    // (here that only prints the control paths)
+    DSP.buildUserInterface(&ui);
+
+    // Allocate the audio driver to render 
+    // 5 buffers of 512 frames
+    dummyaudio audio(5);
+    audio.init("Test", &DSP);
+    
+    // Render buffers...
+    audio.start();
+    
+    audio.stop();
+}
+\end{lstlisting} 
+
+You can possibly add the \lstinline'-i' option to actually inline all \code{#include "faust/xxx/yyy"} headers (all files starting with "faust"). Then you will have to write a \code{faust2xxx} script that will chain the \faust compilation step and the C++ compilation one. Look at scripts in the tools/faust2appls folder for real examples. 
+
+Developing the adapted C++ file may require "aggregating" the generated \code{mydsp} class (subclass of \code{dsp} base class defined in faust/dsp/dsp.h header) in your specific class, or "subclassing" and extend it.  So you will have to write something like:
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class my_class : public base_interface {
+
+  private:
+	 
+	mydsp fDSP;
+		
+  public:
+  
+	my_class()
+	{
+		// Do something specific
+	}
+	
+	virtual ~my_class()
+	{
+		// Do something specific
+	}
+	
+	// Do something specific
+	
+	void my_compute(int count, 
+		FAUSTFLOAT** inputs, 
+		FAUSTFLOAT** outputs,....)
+	{
+		// Do something specific
+		fDSP.compute(count,  inputs,  outputs);
+	}
+	
+	// Do something specific
+};
+
+\end{lstlisting} 
+
+or:
+
+\begin{lstlisting}[basicstyle=\ttfamily\footnotesize\color{yotxt}]
+class my_class : public mydsp  {
+
+  private:
+  
+  	// Do something specific
+		
+  public:
+  
+	my_class()
+	{
+		// Do something specific
+	}
+	
+	virtual ~my_class()
+	{
+		// Do something specific
+	}
+	
+	// Do something specific
+	
+	void my_compute(int count, 
+		FAUSTFLOAT** inputs, 
+		FAUSTFLOAT** outputs,....)
+	{
+		// Do something specific
+		compute(count,  inputs,  outputs);
+	}
+	
+	// Do something specific
+};
+\end{lstlisting} 
+
+This way your architecture file will be adapted to any "shape" of the generated code. That is, depending if you generate purely scalar, or vector code (using the \lstinline'-vec' option), or any other option, the generated \code{mydsp}  class will always be correctly inserted in the final C++ file. Look for instance at \code{csound.cpp} and \code{unity.cpp} architecture files in the architecture folder for real examples. 
 

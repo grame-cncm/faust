@@ -1,0 +1,73 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Process files with Faust DSP                        #
+#               (c) Grame, 2017                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+CXX=g++
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+  FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/music.lib ]
+then
+  FAUSTLIB=/usr/local/share/faust
+  JSFILE_PATH="ui.js"
+elif [ -f /usr/share/faust/music.lib ]
+then
+  FAUSTLIB=/usr/share/faust
+  JSFILE_PATH="ui.js"
+else
+  error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
+
+#PHASE 2 : dispatch command arguments
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2sndfile <file.dsp>"
+    fi
+    
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+
+for f in $FILES; do
+
+    # compile Faust DSP then create the binary
+    faust -i -a "$FAUSTLIB/sndfile.cpp" $OPTIONS "$f" -o "$f.cpp" || exit
+    (
+        $CXX $CXXFLAGS "$f.cpp" `pkg-config --cflags --static --libs sndfile` -o "${f%.dsp}"
+    ) > /dev/null || exit
+
+    # remove c++ file
+    rm "$f.cpp"
+
+done
+
+

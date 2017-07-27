@@ -628,7 +628,7 @@ bvav2nuv(bv,av) = par(m,M+1,nu(m)) with {
 };
 
 //--------------------`iir_lat2`-----------------------
-// Two-multiply latice IIR filter or arbitrary order.
+// Two-multiply latice IIR filter of arbitrary order.
 //
 // #### Usage
 //
@@ -660,7 +660,7 @@ with {
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //------------------------------------------------------------
 allpassnt(0,sv) = _;
 allpassnt(n,sv) =
@@ -674,7 +674,7 @@ with {
 };
 
 //--------------------`iir_kl`-----------------------
-// Kelly-Lochbaum ladder IIR filter or arbitrary order.
+// Kelly-Lochbaum ladder IIR filter of arbitrary order.
 //
 // #### Usage
 //
@@ -710,7 +710,7 @@ with {
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //------------------------------------------------------------
 allpassnklt(0,sv) = _;
 allpassnklt(n,sv) = _ <: *(s),(*(1+s) : (+
@@ -723,7 +723,7 @@ with {
 };
 
 //--------------------`iir_lat1`-----------------------
-// One-multiply latice IIR filter or arbitrary order.
+// One-multiply latice IIR filter of arbitrary order.
 //
 // #### Usage
 //
@@ -759,7 +759,7 @@ with {
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //------------------------------------------------------------
 allpassn1mt(0,sv) = _;
 allpassn1mt(n,sv)= _ <: _,_ : ((+:*(s) <: _,_),_ : _,+ : ro.crossnn(1)
@@ -815,7 +815,7 @@ with {
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1,1)
+// * `sv`: the reflection coefficients (-1,1)
 //
 // #### References
 // * J. D. Markel and A. H. Gray, Linear Prediction of Speech, New York: Springer Verlag, 1976.
@@ -970,7 +970,7 @@ with{
 // #### Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //
 // #### References
 // * J. O. Smith and R. Michon, "Nonlinear Allpass Ladder Filters in FAUST", in
@@ -995,7 +995,7 @@ with { s = ba.take(n,sv); };
 // Where:
 //
 // * `n`: the order of the filter
-// * `tv`: the reflexion coefficients (-PI PI)
+// * `tv`: the reflection coefficients (-PI PI)
 //----------------------------------------------
 // power-normalized (reflection coefficients s = sin(t)):
 allpassnn(0,tv) = _;
@@ -1017,7 +1017,7 @@ with { c=cos(ba.take(n,tv));  s=sin(ba.take(n,tv)); };
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //----------------------------------------------
 // Kelly-Lochbaum:
 allpassnkl(0,sv) = _;
@@ -1038,7 +1038,7 @@ with { s = ba.take(n,sv); };
 // Where:
 //
 // * `n`: the order of the filter
-// * `sv`: the reflexion coefficients (-1 1)
+// * `sv`: the reflection coefficients (-1 1)
 //----------------------------------------------
 // one-multiply:
 allpassn1m(0,sv) = _;

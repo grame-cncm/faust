@@ -14,10 +14,12 @@ help:
 install:
 	mkdir -p $(dest)
 	install ../faust2sc-1.0.0/faust2sc $(dest)
+	install encoderunitypackage $(dest)
 	install faust2alqt $(dest)
 	install faust2alsa $(dest)
 	install faust2alsaconsole $(dest)
 	install faust2android $(dest)
+	install faust2androidunity $(dest)
 	install faust2api $(dest)
 	install faust2asmjs $(dest)
 	install faust2atomsnippets $(dest)
@@ -28,6 +30,7 @@ install:
 	install faust2csound $(dest)
 	install faust2dssi $(dest)
 	install faust2dummy $(dest)
+	install faust2dummymem $(dest)
 	install faust2eps $(dest)
 	install faust2faustvst $(dest)
 	install faust2firefox $(dest)
@@ -41,6 +44,7 @@ install:
 	install faust2jaqt $(dest)
 	install faust2juce $(dest)
 	install faust2ladspa $(dest)
+	install faust2linuxunity $(dest)
 	install faust2lv2 $(dest)
 	install faust2mathdoc $(dest)
 	install faust2mathviewer $(dest)
@@ -56,6 +60,7 @@ install:
 	install faust2plot $(dest)
 	install faust2png $(dest)
 	install faust2puredata $(dest)
+	install faust2osxiosunity $(dest)
 	install faust2raqt $(dest)
 	install faust2ros $(dest)
 	install faust2rosgtk $(dest)
@@ -63,6 +68,7 @@ install:
 	install faust2rpinetjackconsole $(dest)
 	install faust2sig $(dest)
 	install faust2sigviewer $(dest)
+	install faust2sndfile $(dest)
 	install faust2smartkeyb $(dest)
 	install faust2supercollider $(dest)
 	install faust2svg $(dest)
@@ -72,17 +78,21 @@ install:
 	install faust2w32max6 $(dest)
 	install faust2w32msp $(dest)
 	install faust2w32puredata $(dest)
+	install faust2w32unity $(dest)
 	install faust2w32vst $(dest)
+	install faust2w64unity $(dest)
 	install faust2webaudioasm $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
 
 uninstall:
+	rm -f $(dest)/encoderunitypackage
 	rm -f $(dest)/faust2sc
 	rm -f $(dest)/faust2alqt
 	rm -f $(dest)/faust2alsa
 	rm -f $(dest)/faust2alsaconsole
 	rm -f $(dest)/faust2android
+	rm -f $(dest)/faust2androidunity
 	rm -f $(dest)/faust2api
 	rm -f $(dest)/faust2asmjs
 	rm -f $(dest)/faust2atomsnippets
@@ -93,6 +103,7 @@ uninstall:
 	rm -f $(dest)/faust2csound
 	rm -f $(dest)/faust2dssi
 	rm -f $(dest)/faust2dummy
+	rm -f $(dest)/faust2dummymem
 	rm -f $(dest)/faust2eps
 	rm -f $(dest)/faust2faustvst
 	rm -f $(dest)/faust2firefox
@@ -106,6 +117,7 @@ uninstall:
 	rm -f $(dest)/faust2jaqt
 	rm -f $(dest)/faust2juce
 	rm -f $(dest)/faust2ladspa
+	rm -f $(dest)/faust2linuxunity
 	rm -f $(dest)/faust2lv2
 	rm -f $(dest)/faust2mathdoc
 	rm -f $(dest)/faust2mathviewer
@@ -121,6 +133,7 @@ uninstall:
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
 	rm -f $(dest)/faust2puredata
+	rm -f $(dest)/faust2osxiosunity
 	rm -f $(dest)/faust2raqt
 	rm -f $(dest)/faust2ros
 	rm -f $(dest)/faust2rosgtk
@@ -128,6 +141,7 @@ uninstall:
 	rm -f $(dest)/faust2rpinetjackconsole
 	rm -f $(dest)/faust2sig
 	rm -f $(dest)/faust2sigviewer
+	rm -f $(dest)/faust2sndfile
 	rm -f $(dest)/faust2smartkeyb
 	rm -f $(dest)/faust2supercollider
 	rm -f $(dest)/faust2svg
@@ -137,7 +151,9 @@ uninstall:
 	rm -f $(dest)/faust2w32max6
 	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2w32puredata
+	rm -f $(dest)/faust2w32unity
 	rm -f $(dest)/faust2w32vst
+	rm -f $(dest)/faust2w64unity
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faustpath

@@ -1,33 +1,28 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
-
- ************************************************************************
- ************************************************************************/
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
  
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ ************************************************************************/
+
 #ifndef FAUST_FUI_H
 #define FAUST_FUI_H
-
-#include "faust/gui/UI.h"
 
 #include <string>
 #include <map>
@@ -37,7 +32,7 @@
 #include <iostream>
 #include <fstream>
 
-#if 1
+#include "faust/gui/UI.h"
 
 /*******************************************************************************
  * FUI : used to save and recall the state of the user interface
@@ -54,7 +49,7 @@ class FUI : public UI
         std::stack<std::string> fGroupStack;
         std::vector<std::string> fNameList;
         std::map<std::string, FAUSTFLOAT*> fName2Zone;
-        std::map<FAUSTFLOAT*, bool> fButtons;
+        std::vector<FAUSTFLOAT*> fButtons;
 
         // labels are normalized by replacing white spaces by underscores and by removing parenthesis
         std::string normalizeLabel(const char* label)
@@ -76,7 +71,9 @@ class FUI : public UI
             std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
             fNameList.push_back(fullname);
             fName2Zone[fullname] = zone;
-            fButtons[zone] = button;
+            if (button) {
+                fButtons.push_back(zone);
+            }
         }
 
         // keep track of full group names in a stack
@@ -94,11 +91,10 @@ class FUI : public UI
             fGroupStack.pop();
         }
 
-
     public:
 
-        FUI() 			{}
-        virtual ~FUI() 	{}
+        FUI() {}
+        virtual ~FUI() {}
 
         // -- Save and recall methods
 
@@ -110,7 +106,7 @@ class FUI : public UI
             for (unsigned int i = 0; i < fNameList.size(); i++) {
                 std::string	n = fNameList[i];
                 FAUSTFLOAT*	z = fName2Zone[n];
-                f << *z << ' ' << n.c_str() << std::endl;
+                f << *z << ' ' << n << std::endl;
             }
 
             f << std::endl;
@@ -137,12 +133,8 @@ class FUI : public UI
 
         void setButtons(bool state)
         {
-            std::map<FAUSTFLOAT*, bool>::iterator it;
-            for (it = fButtons.begin(); it != fButtons.end(); it++) {
-                FAUSTFLOAT* zone = (*it).first;
-                if ((*it).second) {
-                    *zone = state;
-                }
+            for (int i = 0; i < fButtons.size(); i++) {
+                *fButtons[i] = state;
             }
         }
 
@@ -157,11 +149,11 @@ class FUI : public UI
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone, true); }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addElement(label, zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT , FAUSTFLOAT)
+        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT, FAUSTFLOAT)
                                                                     { addElement(label, zone); }
 
         // -- passive widgets (are ignored)
@@ -174,8 +166,6 @@ class FUI : public UI
         virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 
 };
-
-#endif
 
 #endif
 

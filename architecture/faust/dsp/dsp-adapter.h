@@ -1,32 +1,31 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef __dsp_adapter__
 #define __dsp_adapter__
 
 #include <string.h>
+#include <iostream>
 #include "faust/dsp/dsp.h"
 
 // Adapts a DSP for a different number of inputs/outputs
@@ -101,19 +100,19 @@ class dsp_adapter : public decorator_dsp {
 
 // Adapts a DSP for a different sample size
 
-template <typename SAMPLE_TYPE>
+template <typename TYPE_INT, typename TYPE_EXT>
 class dsp_sample_adapter : public decorator_dsp {
     
     protected:
     
-        SAMPLE_TYPE** fAdaptedInputs;
-        SAMPLE_TYPE** fAdaptedOutputs;
+        TYPE_INT** fAdaptedInputs;
+        TYPE_INT** fAdaptedOutputs;
     
         void adaptInputBuffers(int count, FAUSTFLOAT** inputs)
         {
             for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    fAdaptedInputs[chan][frame] = SAMPLE_TYPE(inputs[chan][frame]);
+                    fAdaptedInputs[chan][frame] = TYPE_INT(reinterpret_cast<TYPE_EXT**>(inputs)[chan][frame]);
                 }
             }
         }
@@ -122,7 +121,7 @@ class dsp_sample_adapter : public decorator_dsp {
         {
             for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
                 for (int frame = 0; frame < count; frame++) {
-                    outputs[chan][frame] = SAMPLE_TYPE(fAdaptedOutputs[chan][frame]);
+                    reinterpret_cast<TYPE_EXT**>(outputs)[chan][frame] = TYPE_EXT(fAdaptedOutputs[chan][frame]);
                 }
             }
         }
@@ -131,14 +130,14 @@ class dsp_sample_adapter : public decorator_dsp {
     
         dsp_sample_adapter(dsp* dsp):decorator_dsp(dsp)
         {
-            fAdaptedInputs = new SAMPLE_TYPE*[dsp->getNumInputs()];
+            fAdaptedInputs = new TYPE_INT*[dsp->getNumInputs()];
             for (int i = 0; i < dsp->getNumInputs(); i++) {
-                fAdaptedInputs[i] = new SAMPLE_TYPE[4096];
+                fAdaptedInputs[i] = new TYPE_INT[4096];
             }
             
-            fAdaptedOutputs = new SAMPLE_TYPE*[dsp->getNumOutputs()];
+            fAdaptedOutputs = new TYPE_INT*[dsp->getNumOutputs()];
             for (int i = 0; i < dsp->getNumOutputs(); i++) {
-                fAdaptedOutputs[i] = new SAMPLE_TYPE[4096];
+                fAdaptedOutputs[i] = new TYPE_INT[4096];
             }
         }
     

@@ -76,14 +76,15 @@ protected:
 
 	list<Klass* >		fSubClassList;
 
-	list<string>		fDeclCode;
-	list<string>		fStaticInitCode;		///< static init code for class constant tables
-	list<string>		fStaticFields;			///< static fields after class
+    list<string>		fDeclCode;
+    list<string>		fStaticInitCode;		///< static init code for class constant tables
+    list<string>		fStaticDestroyCode;		///< static destroy code for class constant tables
+    list<string>		fStaticFields;			///< static fields after class
     list<string>		fInitCode;
     list<string>		fInitUICode;
     list<string>		fClearCode;
-	list<string>		fUICode;
-	list<string>		fUIMacro;
+    list<string>		fUICode;
+    list<string>		fUIMacro;
 
 #if 0
     list<string>        fSlowDecl;
@@ -155,6 +156,7 @@ protected:
     void addClearCode (const string& str)	{ fClearCode.push_back(str); }
 
     void addStaticInitCode (const string& str)	{ fStaticInitCode.push_back(str); }
+    void addStaticDestroyCode (const string& str)	{ fStaticDestroyCode.push_back(str); }
 
 	void addStaticFields (const string& str)	{ fStaticFields.push_back(str); }
 

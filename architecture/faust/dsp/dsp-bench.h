@@ -1,26 +1,25 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
  
-************************************************************************/
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
+ ************************************************************************/
 
 #ifndef __dsp_bench__
 #define __dsp_bench__
@@ -258,26 +257,38 @@ class time_bench {
     A class to measure DSP CPU use.
 */
 
+#define NV 4096     // number of vectors in BIG buffer (should exceed cache)
+
 class measure_dsp : public decorator_dsp {
     
     protected:
     
         FAUSTFLOAT** fInputs;
+        FAUSTFLOAT** fAllInputs;
         FAUSTFLOAT** fOutputs;
+        FAUSTFLOAT** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
+        int fIDX;
     
         void init()
         {
+            fIDX = 0;
+            
             fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                fInputs[i] = new FAUSTFLOAT[fBufferSize];
-                memset(fInputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+                fAllInputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fInputs[i] = fAllInputs[i];
+                memset(fAllInputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
             }
+            
             fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
+            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                fOutputs[i] = new FAUSTFLOAT[fBufferSize];
-                memset(fOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
+                fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
+                fOutputs[i] = fAllOutputs[i];
+                memset(fAllOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
             }
         }
     
@@ -318,13 +329,17 @@ class measure_dsp : public decorator_dsp {
         virtual ~measure_dsp()
         {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                delete [] fInputs[i];
+                delete [] fAllInputs[i];
             }
             delete [] fInputs;
+            delete [] fAllInputs;
+            
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                delete [] fOutputs[i];
+                delete [] fAllOutputs[i];
             }
-            delete[] fOutputs;
+            delete [] fOutputs;
+            delete [] fAllOutputs;
+            
             delete fBench;
             // DSP is deallocated by the decorator_dsp class.
         }
@@ -334,6 +349,7 @@ class measure_dsp : public decorator_dsp {
          */
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
+            AVOIDDENORMALS;
             fBench->startMeasure();
             fDSP->compute(count, inputs, outputs);
             fBench->stopMeasure();
@@ -350,6 +366,16 @@ class measure_dsp : public decorator_dsp {
         void computeAll()
         {
             do {
+                for (int i = 0; i < fDSP->getNumInputs(); i++) {
+                    FAUSTFLOAT* allinputs = fAllInputs[i];
+                    fIDX = (1 + fIDX) % NV;
+                    fInputs[i] = &allinputs[fIDX * fBufferSize];
+                }
+                for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                    FAUSTFLOAT* alloutputs = fAllOutputs[i];
+                    fIDX = (1 + fIDX) % NV;
+                    fOutputs[i] = &alloutputs[fIDX * fBufferSize];
+                }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());
         }

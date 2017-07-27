@@ -53,6 +53,7 @@ Function Type | Function Name | Description
 [dB to Linear](#db2linear) | [`ba.`](#basics.lib)[`db2linear`](#db2linear) | Converts dB to linear values
 [Linear to dB](#linear2db) | [`ba.`](#basics.lib)[`linear2db`](#linear2db) | Converts linear values to dB
 [MIDI Key to Hz](#midikey2hz) | [`ba.`](#basics.lib)[`midikey2hz`](#midikey2hz) | Converts a MIDI key number into a frequency
+[Hz to MIDI Key](#hz2midikey) | [`ba.`](#basics.lib)[`hz2midikey`](#hz2midikey) | Converts a frequency into MIDI key number
 [Pole to T60](#pole2tau) | [`ba.`](#basics.lib)[`pole2tau`](#pole2tau) | Converts a pole into a time constant (t60)
 [Samples to Seconds](#samp2sec) | [`ba.`](#basics.lib)[`samp2sec`](#samp2sec) | Converts samples to seconds
 [Seconds to Samples](#sec2samp) | [`ba.`](#basics.lib)[`sec2samp`](#sec2samp) | Converts seconds to samples

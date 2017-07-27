@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
+	Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.9.99"
+#define FAUSTVERSION "0.10.3"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -132,6 +132,7 @@ bool			gSimpleNames 	= false;
 bool            gSimplifyDiagrams = false;
 bool			gLessTempSwitch = false;
 int				gMaxCopyDelay	= 16;
+bool            gMemoryManager	= false;
 string			gArchFile;
 string			gOutputFile;
 list<string>	gInputFiles;
@@ -170,6 +171,8 @@ bool            gInPlace        = false;        // add cache to input for correc
 bool            gInjectFlag     = false;        // inject an external source file into the architecture file
 string          gInjectFile     = "";           // instead of a compiled dsp file
 
+// FTZ
+int             gFTZMode       = 0;             // 0: no ftz; 1: FTZ by abscmp; 2: FTZ by bitmask
 
 //-- command line tools
 
@@ -302,6 +305,10 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i+1 < argc)) {
             gMaxCopyDelay = atoi(argv[i+1]);
             i += 2;
+            
+        } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
+            gMemoryManager = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-sd", "--simplify-diagrams")) {
             gSimplifyDiagrams = true;
@@ -395,6 +402,14 @@ bool process_cmdline(int argc, char* argv[])
         } else if (isCmd(argv[i], "-e", "--export-dsp")) {
             gExportDSP = true;
             i += 1;
+
+        } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
+            gFTZMode = atoi(argv[i+1]);
+            if ((gFTZMode>2) || (gFTZMode<0)) {
+                std::cerr << "ERROR : invalid -ftz option: " << gFTZMode << std::endl;
+                exit(1);
+            }
+            i += 2;
 
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if (strstr(argv[i+1], "http://") != 0) {
@@ -515,6 +530,7 @@ void printhelp()
 	cout << "-rb \t\tgenerate --right-balanced expressions\n";
 	cout << "-lt \t\tgenerate --less-temporaries in compiling delays\n";
 	cout << "-mcd <n> \t--max-copy-delay <n> threshold between copy and ring buffer implementation (default 16 samples)\n";
+    cout << "-mem \t\t--memory allocate static in global state using a custom memory manager\n";
 	cout << "-a <file> \tC++ architecture file\n";
 	cout << "-i \t\t--inline-architecture-files \n";
 	cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
@@ -541,6 +557,7 @@ void printhelp()
     cout << "-e       \t--export-dsp export expanded DSP (all included libraries) \n";
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
+  	cout << "-ftz <m> \t--flush-to-zero <mode>, 0 (default): no FTZ, 1: abs-compare, 2: bitmask code added to recursive signals\n";
   	cout << "\nexample :\n";
 	cout << "---------\n";
 

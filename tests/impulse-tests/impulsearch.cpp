@@ -17,10 +17,13 @@
 #include <cfloat>
 #include <vector>
 
+#include "faust/misc.h"
 #include "faust/gui/console.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
+#include "faust/gui/DecoratorUI.h"
 #include "faust/audio/channels.h"
+#include "faust/dsp/poly-dsp.h"
 
 using std::max;
 using std::min;
@@ -29,51 +32,39 @@ using std::min;
 
 using namespace std;
 
-struct Meta: map < const char *, const char *>
-{
-    void declare(const char *key, const char *value)
-    {
-        (*this)[key] = value;
-    }
-};
-
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //----------------------------------------------------------------------------
 // DSP control UI
 //----------------------------------------------------------------------------
 
-struct CheckControlUI : public UI {
+struct CheckControlUI : public GenericUI {
     
     vector<FAUSTFLOAT> fControlDefault;
     vector<FAUSTFLOAT*> fControlZone;
-    
-    virtual void openTabBox(const char* label) {}
-    virtual void openHorizontalBox(const char* label)  {}
-    virtual void openVerticalBox(const char* label)  {}
-    virtual void closeBox() {};
-    
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fControlZone.push_back(zone); fControlDefault.push_back(FAUSTFLOAT(0)); }
+   
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
-        fControlZone.push_back(zone); fControlDefault.push_back(init);
+        addItem(zone, init);
     }
- 
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
-    {}
     
-    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
-    
+    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
+    {
+        fControlZone.push_back(zone);
+        fControlDefault.push_back(init);
+    }
+   
     bool checkDefaults()
     {
         for (int i= 0; i < fControlDefault.size(); i++) {
@@ -98,7 +89,7 @@ struct CheckControlUI : public UI {
 
 <<includeclass>>
 
-mydsp DSP;
+mydsp* DSP;
 
 static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
 {
@@ -112,57 +103,119 @@ static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
     return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
 }
 
-int main(int argc, char* argv[])
+static void testPolyphony(dsp* voice)
 {
-    char rcfilename[256];
+    mydsp_poly* DSP = new mydsp_poly(voice, 4, true, false);
     
-    FUI finterface;
-    snprintf(rcfilename, 255, "%src", argv[0]);
-    
-    CheckControlUI controlui;
-    
-    DSP.buildUserInterface(&finterface);
- 
     // Get control and then 'initRandom'
-    DSP.buildUserInterface(&controlui);
+    CheckControlUI controlui;
+    DSP->buildUserInterface(&controlui);
     controlui.initRandom();
     
-    // Init signal processor and the user interface values
-    DSP.init(44100);
+    // init signal processor and the user interface values:
+    DSP->init(44100);
     
     // Check getSampleRate
-    if (DSP.getSampleRate() != 44100) {
+    if (DSP->getSampleRate() != 44100) {
         cerr << "ERROR in getSampleRate" << std::endl;
     }
-   
+    
     // Check default after 'init'
-    DSP.buildUserInterface(&controlui);
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'init'" << std::endl;
     }
     
     // Check default after 'instanceResetUserInterface'
     controlui.initRandom();
-    DSP.instanceResetUserInterface();
+    DSP->instanceResetUserInterface();
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'instanceResetUserInterface'" << std::endl;
     }
     
     // Check default after 'instanceInit'
     controlui.initRandom();
-    DSP.instanceInit(44100);
+    DSP->instanceInit(44100);
     if (!controlui.checkDefaults()) {
         cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
     }
     
     // Init again
-    DSP.init(44100);
- 
-    int nins = DSP.getNumInputs();
+    DSP->init(44100);
+    
+    int nins = DSP->getNumInputs();
     channels ichan(kFrames, nins);
-
-    int nouts = DSP.getNumOutputs();
+    
+    int nouts = DSP->getNumOutputs();
     channels ochan(kFrames, nouts);
+    
+    DSP->keyOn(0, 60, 100);
+    DSP->keyOn(0, 67, 100);
+    DSP->keyOn(0, 72, 100);
+    
+    int nbsamples = 1000;
+    
+    // Compute audio frames
+    while (nbsamples > 0) {
+        int nFrames = min(kFrames, nbsamples);
+        DSP->compute(nFrames, ichan.buffers(), ochan.buffers());
+        nbsamples -= nFrames;
+    }
+    
+    delete DSP;
+}
+
+int main(int argc, char* argv[])
+{
+    char rcfilename[256];
+    FUI finterface;
+    snprintf(rcfilename, 255, "%src", argv[0]);
+    
+    bool inpl = isopt(argv, "-inpl");
+    
+    DSP = new mydsp();
+    
+    DSP->buildUserInterface(&finterface);
+ 
+    // Get control and then 'initRandom'
+    CheckControlUI controlui;
+    DSP->buildUserInterface(&controlui);
+    controlui.initRandom();
+    
+    // Init signal processor and the user interface values
+    DSP->init(44100);
+    
+    // Check getSampleRate
+    if (DSP->getSampleRate() != 44100) {
+        cerr << "ERROR in getSampleRate" << std::endl;
+    }
+   
+    // Check default after 'init'
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'init'" << std::endl;
+    }
+    
+    // Check default after 'instanceResetUserInterface'
+    controlui.initRandom();
+    DSP->instanceResetUserInterface();
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceResetUserInterface'" << std::endl;
+    }
+    
+    // Check default after 'instanceInit'
+    controlui.initRandom();
+    DSP->instanceInit(44100);
+    if (!controlui.checkDefaults()) {
+        cerr << "ERROR in checkDefaults after 'instanceInit'" << std::endl;
+    }
+    
+    // Init again
+    DSP->init(44100);
+ 
+    int nins = DSP->getNumInputs();
+    int nouts = DSP->getNumOutputs();
+    
+    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
+    channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
 
     int nbsamples = 60000;
     int linenum = 0;
@@ -181,20 +234,20 @@ int main(int argc, char* argv[])
     try {
         while (nbsamples > 0) {
             if (run == 0) {
-                ichan.impulse();
+                ichan->impulse();
                 finterface.setButtons(true);
             }
-            if (run == 1) {
-                ichan.zero();
+            if (run >= 1) {
+                ichan->zero();
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
-            DSP.compute(nFrames, ichan.buffers(), ochan.buffers());
+            DSP->compute(nFrames, ichan->buffers(), ochan->buffers());
             run++;
             for (int i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);
                 for (int c = 0; c < nouts; c++) {
-                    FAUSTFLOAT f = normalize(ochan.buffers()[c][i]);
+                    FAUSTFLOAT f = normalize(ochan->buffers()[c][i]);
                     printf(" %8.6f", f);
                 }
                 printf("\n");
@@ -204,5 +257,8 @@ int main(int argc, char* argv[])
     } catch (...) {
         cerr << "ERROR in " << argv[1] << " line : " << i << std::endl;
     }
+    
+    testPolyphony(DSP);
+    
     return 0;
 }

@@ -435,7 +435,7 @@ class DspFaust
         // #### Arguments
         //
         // * `p`: the UI parameter id
-        // * `acc`: the accelerometer axis (**0**: x, **1**: y, **2**: z)
+        // * `gyr`: the gyroscope axis (**0**: x, **1**: y, **2**: z)
         // * `curve`: the curve (**0**: up, **1**: down, **2**: up and down)
         // * `amin`: mapping min point
         // * `amid`: mapping middle point

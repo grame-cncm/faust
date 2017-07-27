@@ -1,50 +1,53 @@
 /************************************************************************
-    FAUST Architecture File
-    Copyright (C) 2003-2016 GRAME, Centre National de Creation Musicale
-    ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it
-    and/or modify it under the terms of the GNU General Public License
-    as published by the Free Software Foundation; either version 3 of
-    the License, or (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program; If not, see <http://www.gnu.org/licenses/>.
-
-    EXCEPTION : As a special exception, you may create a larger work
-    that contains this FAUST architecture section and distribute
-    that work under terms of your choice, so long as this FAUST
-    architecture section is not modified.
-
-
- ************************************************************************
+ FAUST Architecture File
+ Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ ---------------------------------------------------------------------
+ This Architecture section is free software; you can redistribute it
+ and/or modify it under the terms of the GNU General Public License
+ as published by the Free Software Foundation; either version 3 of
+ the License, or (at your option) any later version.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ 
+ You should have received a copy of the GNU General Public License
+ along with this program; If not, see <http://www.gnu.org/licenses/>.
+ 
+ EXCEPTION : As a special exception, you may create a larger work
+ that contains this FAUST architecture section and distribute
+ that work under terms of your choice, so long as this FAUST
+ architecture section is not modified.
  ************************************************************************/
 
 #ifndef API_UI_H
 #define API_UI_H
 
-#include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
-#include "faust/gui/PathBuilder.h"
-#include "faust/gui/ValueConverter.h"
 #include <sstream>
 #include <string>
 #include <vector>
 #include <iostream>
 #include <map>
 
+#include "faust/gui/meta.h"
+#include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
+#include "faust/gui/ValueConverter.h"
+
 class APIUI : public PathBuilder, public Meta, public UI
 {
+    public:
+    
+        enum ItemType { kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph };
+  
     protected:
     
         enum { kLin = 0, kLog = 1, kExp = 2 };
     
         int fNumParameters;
-        std::vector<std::string> fName;
+        std::vector<std::string> fPaths;
+        std::vector<std::string> fLabels;
         std::map<std::string, int> fPathMap;
         std::map<std::string, int> fLabelMap;
         std::vector<ValueConverter*> fConversion;
@@ -54,6 +57,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::vector<FAUSTFLOAT> fMax;
         std::vector<FAUSTFLOAT> fStep;
         std::vector<std::string> fUnit;
+        std::vector<ItemType> fItemType;
         std::vector<std::string> fTooltip;
         std::vector<ZoneControl*> fAcc[3];
         std::vector<ZoneControl*> fGyr[3];
@@ -79,16 +83,19 @@ class APIUI : public PathBuilder, public Meta, public UI
                                 FAUSTFLOAT init,
                                 FAUSTFLOAT min,
                                 FAUSTFLOAT max,
-                                FAUSTFLOAT step)
+                                FAUSTFLOAT step,
+                                ItemType type)
         {
             std::string path = buildPath(label);
             fPathMap[path] = fLabelMap[label] = fNumParameters++;
-            fName.push_back(path);
+            fPaths.push_back(path);
+            fLabels.push_back(label);
             fZone.push_back(zone);
             fInit.push_back(init);
             fMin.push_back(min);
             fMax.push_back(max);
             fStep.push_back(step);
+            fItemType.push_back(type);
 
             //handle unit metadata
             fUnit.push_back(fCurrentUnit);
@@ -235,7 +242,7 @@ class APIUI : public PathBuilder, public Meta, public UI
      public:
     
         enum Type { kAcc = 0, kGyr = 1, kNoType };
-
+   
         APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0)
         {}
 
@@ -272,39 +279,39 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            addParameter(label, zone, 0, 0, 1, 1);
+            addParameter(label, zone, 0, 0, 1, 1, kButton);
         }
 
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            addParameter(label, zone, 0, 0, 1, 1);
+            addParameter(label, zone, 0, 0, 1, 1, kCheckButton);
         }
 
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kVSlider);
         }
 
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kHSlider);
         }
 
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            addParameter(label, zone, init, min, max, step);
+            addParameter(label, zone, init, min, max, step, kNumEntry);
         }
 
         // -- passive widgets
 
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addParameter(label, zone, min, min, max, (max-min)/1000.0);
+            addParameter(label, zone, min, min, max, (max-min)/1000.0, kHBargraph);
         }
 
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            addParameter(label, zone, min, min, max, (max-min)/1000.0);
+            addParameter(label, zone, min, min, max, (max-min)/1000.0, kVBargraph);
         }
 
         // -- metadata declarations
@@ -349,26 +356,27 @@ class APIUI : public PathBuilder, public Meta, public UI
                 return -1;
             }
         }
-		const char* getParamAddress(int p)	{ return fName[p].c_str(); }
-		const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-		const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
-		FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
-		FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
-		FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
-		FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
+        const char* getParamAddress(int p)	{ return fPaths[p].c_str(); }
+        const char* getParamLabel(int p)	{ return fLabels[p].c_str(); }
+        const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
+        const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
+        FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
+        FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
+        FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
+        FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
 
         FAUSTFLOAT* getParamZone(int p)         { return fZone[p]; }
-		FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
-		void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
+        FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
+        void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 
-		double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
-		void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
+        double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
+        void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
 
-		double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
-		double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
+        double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }
+        double ratio2value(int p, double r)	{ return fConversion[p]->ui2faust(r); }
     
         /**
-         * Return the control type (kAcc, kGyr, or -1) for a given paramater
+         * Return the control type (kAcc, kGyr, or -1) for a given parameter
          *
          * @param p - the UI parameter index
          *
@@ -388,6 +396,18 @@ class APIUI : public PathBuilder, public Meta, public UI
                 }
             }
             return kNoType;
+        }
+    
+        /**
+         * Return the Item type (kButton = 0, kCheckButton, kVSlider, kHSlider, kNumEntry, kHBargraph, kVBargraph) for a given parameter
+         *
+         * @param p - the UI parameter index
+         *
+         * @return the Item type
+         */
+        ItemType getParamItemType(int p)
+        {
+            return fItemType[p];
         }
    
         /**
