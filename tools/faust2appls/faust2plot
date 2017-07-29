@@ -10,23 +10,6 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
-
-#-------------------------------------------------------------------
-# Check darwin specifics
-#
-if [[ $(uname) == Darwin ]]; then
-    MARCH=""
-else 
-    MARCH="-march=native"
-fi
-	
-#-------------------------------------------------------------------
-# Default compilation flags for gcc and icc :
-#
-MYGCCFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -80,7 +63,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3} $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

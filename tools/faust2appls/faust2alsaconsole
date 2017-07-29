@@ -3,7 +3,7 @@
 OSCDEFS=""
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to alsa-gtk                 #
+#               Compiles Faust programs to CLI alsa                 #
 #               (c) Grame, 2009-2011                                #
 #                                                                   #
 #####################################################################
@@ -12,16 +12,6 @@ OSCDEFS=""
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
-
-#-------------------------------------------------------------------
-# Default compilation flags for gcc and icc :
-#
-if [[ $(uname -m) == armv6l ]]; then
-	MYGCCFLAGS="-O3 -march=armv6zk -mcpu=arm1176jzf-s -mtune=arm1176jzf-s -mfpu=vfp -mfloat-abi=hard -ffast-math -ftree-vectorize"
-else
-	MYGCCFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-fi
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
