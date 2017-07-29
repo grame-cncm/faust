@@ -29,7 +29,7 @@
 #include "wss_code_container.hh"
 #include "llvm_dsp_aux.hh"
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
     #include <llvm/Support/FileSystem.h>
     #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
@@ -38,7 +38,7 @@
     #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
     #define STREAM_ERROR std::error_code
 #else
     #define STREAM_ERROR std::string
@@ -131,7 +131,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LlvmValue genFloat(const string& number)
         {
-        #if defined(LLVM_40)
+        #if defined(LLVM_40) || defined(LLVM_50)
             return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
         #else
             return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));

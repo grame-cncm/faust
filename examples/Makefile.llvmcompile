@@ -52,7 +52,7 @@ LLVM_VERSION  = LLVM_39
 LLVM_PREFIX = /opt/local/libexec/llvm-3.9/bin
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0 4.0.1))
 LLVM_VERSION  = LLVM_40
 LLVM_PREFIX = /opt/local/libexec/llvm-4.0/bin
 endif

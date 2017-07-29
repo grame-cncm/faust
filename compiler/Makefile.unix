@@ -156,7 +156,12 @@ else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0 4.0.1))
     LLVM_VERSION = LLVM_40
     CLANGLIBS=$(CLANGLIBSLIST)
     CXXFLAGS += -std=gnu++11
-    
+
+else ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 5.0.0))
+    LLVM_VERSION = LLVM_50
+    CLANGLIBS=$(CLANGLIBSLIST)
+    CXXFLAGS += -std=gnu++11
+
 else
     $(error "Unknown LLVM version $(LLVM_VERSION)")
 

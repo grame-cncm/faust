@@ -32,7 +32,7 @@ static bool noNtrl(const Node& n) { return falsePredicate(n); }
 
 #if LLVM_BUILD
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
 #include <llvm/IR/Instructions.h>
 #else
 #include <llvm/Instructions.h>

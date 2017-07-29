@@ -31,7 +31,7 @@
 #include "faust/gui/meta.h"
 #include "faust/gui/CInterface.h"
 
-#define LVVM_BACKEND_NAME       "Faust LLVM backend"
+#define LLVM_BACKEND_NAME       "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS     "declare compilation_options    "
 

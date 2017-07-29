@@ -130,28 +130,28 @@ class CodeContainer : public virtual Garbageable {
         }
 
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
-        void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst * count, bool omp);
+        void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp);
 
         void printCompilationOptions(ostream& dst)
         {
-            dst << "Compilation options: ";
-            if (gGlobal->gVectorSwitch) {
+            if (gGlobal->gSchedulerSwitch) {
+                dst << "-sch"
+                << " -vs " << gGlobal->gVecSize
+                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
+                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
+                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
+                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
+                << " -ftz " << gGlobal->gFTZMode
+                << ((gGlobal->gMemoryManager) ? " -mem" : "")
+                << endl;
+            } else if (gGlobal->gVectorSwitch) {
                 dst << "-vec" << " -lv " << gGlobal->gVectorLoopVariant
                 << " -vs " << gGlobal->gVecSize
                 << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
                 << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
                 << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " <<  gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "")
-                << endl;
-            } else if (gGlobal->gSchedulerSwitch) {
-                dst << "-sch" << " -vs " << gGlobal->gVecSize
-                << " -vs " << gGlobal->gVecSize
-                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
-                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
-                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " <<  gGlobal->gFTZMode
+                << " -ftz " << gGlobal->gFTZMode
                 << ((gGlobal->gMemoryManager) ? " -mem" : "")
                 << endl;
             } else if (gGlobal->gOpenMPSwitch) {
@@ -161,7 +161,7 @@ class CodeContainer : public virtual Garbageable {
                 << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
                 << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " <<  gGlobal->gFTZMode
+                << " -ftz " << gGlobal->gFTZMode
                 << ((gGlobal->gMemoryManager) ? " -mem" : "")
                 << endl;
             } else {
@@ -197,6 +197,7 @@ class CodeContainer : public virtual Garbageable {
             }
             
             dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+            dst << "Compilation options: ";
             printCompilationOptions(dst);
             dst << "------------------------------------------------------------ */" << endl;
         }
@@ -472,8 +473,8 @@ class CodeContainer : public virtual Garbageable {
         string getFaustPowerName() { return fKlassName + "_faustpower"; }
 
         // UI construction
-        void addUIMacro(const string& str)  { fUIMacro.push_back(str); }
-        void addUICode(const string& str)	{ fUICode.push_back(str); }
+        void addUIMacro(const string& str) { fUIMacro.push_back(str); }
+        void addUICode(const string& str) { fUICode.push_back(str); }
 
         virtual CodeContainer* createScalarContainer(const string& name, int sub_container_type) = 0;
 
@@ -486,8 +487,8 @@ class CodeContainer : public virtual Garbageable {
     
         virtual void dump(ostream* dst) {}
     
-        void incUIActiveCount()    { fNumActives++; }
-        void incUIPassiveCount()   { fNumPassives++; }
+        void incUIActiveCount() { fNumActives++; }
+        void incUIPassiveCount() { fNumPassives++; }
     
         virtual dsp_factory_base* produceFactory() { faustassert(false); return 0; }
     
@@ -497,7 +498,5 @@ inline bool isElement(const set<CodeLoop*>& S, CodeLoop* l)
 {
 	return S.find(l) != S.end();
 }
-
-void printHeader(ostream& dst);
 
 #endif
