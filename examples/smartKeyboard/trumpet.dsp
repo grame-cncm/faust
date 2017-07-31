@@ -23,7 +23,6 @@ import("stdfaust.lib");
 declare interface "SmartKeyboard{
 	'Number of Keyboards':'5',
 	'Max Keyboard Polyphony':'1',
-	'Inter-Keyboard Slide':'1',
 	'Mono Mode':'1',
 	'Keyboard 0 - Number of Keys':'13',
 	'Keyboard 1 - Number of Keys':'13',
@@ -35,7 +34,12 @@ declare interface "SmartKeyboard{
 	'Keyboard 2 - Lowest Key':'67',
 	'Keyboard 3 - Lowest Key':'62',
 	'Keyboard 4 - Lowest Key':'57',
-	'Rounding Mode':'2'
+	'Rounding Mode':'2',
+	'Keyboard 0 - Send Y':'1',
+	'Keyboard 1 - Send Y':'1',
+	'Keyboard 2 - Send Y':'1',
+	'Keyboard 3 - Send Y':'1',
+	'Keyboard 4 - Send Y':'1',
 }";
 
 // standard parameters
@@ -50,6 +54,6 @@ y = hslider("y[midi:ctrl 1]",1,0,1,0.001) : si.smoo;
 gate = t+s : min(1);
 freq = f*bend;
 cutoff = y*4000+50;
-envelope = gate*gain : si.smoo;	
+envelope = gate*gain : si.smoo;
 
 process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
