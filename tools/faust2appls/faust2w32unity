@@ -62,6 +62,7 @@ for p in $FILES; do
     f=$(basename "$p")
     NAME=${f%.dsp}
     FNAME=FaustPlugin_$NAME
+    LIBNAME=lib$FNAME$EXT
     SRCDIR=$(dirname "$p")
     FIN=$FNAME/x86
 
@@ -81,13 +82,13 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $FNAME$EXT $NAME.cpp
+		$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
 
     ) > /dev/null || (echo "$f : C++ to w32 library compilation failed in Faust2w32unity"; exit 1)
 
     # moves binary to final dir
-    rm -rf "$SRCDIR/$FNAME$EXT"
-    mv "$TMP/$FNAME$EXT" "$FIN/$FNAME$EXT"
+    rm -rf "$SRCDIR/$LIBNAME"
+    mv "$TMP/$LIBNAME" "$FIN/$LIBNAME"
     rm -rf "$TDR"
 
     echo "$f : w32 compilation completed"
