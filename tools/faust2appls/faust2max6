@@ -136,7 +136,6 @@ grep "declare nvoices" $FILES && POLY="POLY1" 2>/dev/null
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    SPEC="-spec macx-g++"
     EXT="~.mxo"
 fi
 

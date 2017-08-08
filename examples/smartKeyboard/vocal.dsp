@@ -25,6 +25,8 @@ declare interface "SmartKeyboard{
 	'Max Keyboard Polyphony':'0',
 	'Keyboard 0 - Number of Keys':'1',
 	'Keyboard 0 - Send Freq':'0',
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send X':'1',
 	'Keyboard 0 - Piano Keyboard':'0'
 }";
 
