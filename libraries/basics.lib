@@ -1,4 +1,6 @@
-//################################## basics.lib ###########################################
+//#################################### basics.lib ########################################
+// A library of basic elements. Its official prefix is `ba`.
+//########################################################################################
 // A library of basic elements for Faust organized in 5 sections:
 //
 // * Conversion Tools
@@ -6,8 +8,7 @@
 // * Array Processing/Pattern Matching
 // * Selectors (Conditions)
 // * Other Tools (Misc)
-//
-// The official prefix of this library is `ba`.
+
 //########################################################################################
 
 /************************************************************************

@@ -18,10 +18,8 @@ OSCDEFS=""
 # Check darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
-    MARCH=""
     SPEC="-fPIC -bundle"
 else
-    MARCH="-march=native"
     SPEC="-fPIC -shared"
 fi
 
@@ -38,7 +36,7 @@ fi
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
-		CXXFLAGS='-O3 -xT -ftz -fno-alias -fp-model fast=2'
+		CXXFLAGS=$MYICCFLAGS
     fi
 done
 

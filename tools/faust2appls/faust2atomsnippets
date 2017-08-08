@@ -163,7 +163,7 @@ for file in args:
 						foo = matchComment.group(1)
 						print("\t'%s':" % (foo,))
 						print("\t\t'prefix': '%s'" % (foo,))
-						print("\t\t'body': '%s.%s'" (libprefix, foo))
+						print("\t\t'body': '%s.%s'" % (libprefix, foo))
 					if matchComment or matchSection or matchTitle:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation

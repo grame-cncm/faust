@@ -21,8 +21,6 @@ CXXFLAGS=$MYGCCFLAGS
 # existing *.dsp files          -> FILES
 #
 
-CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
 for p in $@; do

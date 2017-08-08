@@ -34,6 +34,8 @@ declare interface "SmartKeyboard{
 	'Keyboard 0 - Number of Keys':'2',
 	'Keyboard 0 - Send Freq':'0',
 	'Keyboard 0 - Piano Keyboard':'0',
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send Key X':'1',
 	'Keyboard 0 - Key 0 - Label':'Mod Index',
 	'Keyboard 0 - Key 1 - Label':'Mod Freq'
 }";
@@ -44,15 +46,16 @@ f = hslider("freq",300,50,2000,0.01);
 bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 gain = hslider("gain",1,0,1,0.01);
 key = hslider("key",0,0,1,1) : int;
-x = hslider("x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
+kb0k0x = hslider("kb0k0x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
+kb0k1x = hslider("kb0k1x[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
 s = hslider("sustain[midi:ctrl 64]",0,0,1,1);
 t = button("gate");
 
 // fomating parameters
 gate = t+s : min(1);
 freq = f*bend;
-index = (x : ba.sAndH(key == 0))*1000;
-modFreqRatio = x : ba.sAndH(key == 1);
+index = kb0k0x*1000;
+modFreqRatio = kb0k1x;
 
 envelope = gain*gate : si.smoo;
 

@@ -29,7 +29,7 @@ declare name "fm";
 
 import("stdfaust.lib");
 
-//========================= Smart Keyboard Configuration ================================= 
+//========================= Smart Keyboard Configuration =================================
 // (1 keyboards with 1 key configured as a pad.
 //========================================================================================
 
@@ -37,7 +37,9 @@ declare interface "SmartKeyboard{
 	'Number of Keyboards':'1',
 	'Keyboard 0 - Number of Keys':'1',
 	'Keyboard 0 - Piano Keyboard':'0',
-	'Keyboard 0 - Static Mode':'1'
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send X':'1',
+	'Keyboard 0 - Send Y':'1'
 }";
 
 //================================ Instrument Parameters =================================
