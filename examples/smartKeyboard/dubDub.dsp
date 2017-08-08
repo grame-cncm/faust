@@ -30,7 +30,7 @@ declare name "dubDub";
 
 import("stdfaust.lib");
 
-//========================= Smart Keyboard Configuration ================================= 
+//========================= Smart Keyboard Configuration =================================
 // (1 keyboards with 1 key configured as a pad.
 //========================================================================================
 
@@ -38,7 +38,9 @@ declare interface "SmartKeyboard{
 	'Number of Keyboards':'1',
 	'Keyboard 0 - Number of Keys':'1',
 	'Keyboard 0 - Piano Keyboard':'0',
-	'Keyboard 0 - Static Mode':'1'
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send X':'1',
+	'Keyboard 0 - Send Y':'1'
 }";
 
 
@@ -64,7 +66,7 @@ gain = hslider("gain[acc: 1 0 -10 0 10]",0.5,0,1,0.01);
 // sawtooth frequency
 minFreq = 80;
 maxFreq = 500;
-freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,2);
+freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
 
 // filter q
 q = 8;
@@ -82,4 +84,4 @@ generalGain = gain : ba.lin2LogGain : si.smoo;
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.dubDub(freq,filterCutoff,q,gate)*generalGain;
+process = sy.dubDub(freq,filterCutoff,q,gate)*generalGain <: _,_;

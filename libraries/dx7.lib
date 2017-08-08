@@ -1,4 +1,6 @@
-//##################################### dx7.lib ################################
+//#################################### dx7.lib #########################################
+// Yamaha DX7 emulation library. Its official prefix is `dx`.
+//########################################################################################
 // Yamaha DX7 emulation library. The various functions available in this library
 // are used by the libraries generated from `.syx` DX7 preset files. This
 // toolkit was greatly inspired by the CSOUND DX7 emulation package:

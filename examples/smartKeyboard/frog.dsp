@@ -30,16 +30,17 @@ declare name "frog";
 
 import("stdfaust.lib");
 
-//========================= Smart Keyboard Configuration ================================= 
+//========================= Smart Keyboard Configuration =================================
 // (1 keyboards with 1 key configured as a pad.
 //========================================================================================
 
 declare interface "SmartKeyboard{
 	'Number of Keyboards':'1',
 	'Keyboard 0 - Number of Keys':'1',
-	'keyb0_keybMode':'0',
 	'Keyboard 0 - Piano Keyboard':'0',
-	'Keyboard 0 - Static Mode':'1'
+	'Keyboard 0 - Static Mode':'1',
+	'Keyboard 0 - Send X':'1',
+	'Keyboard 0 - Send Y':'1'
 }";
 
 //================================ Instrument Parameters =================================
@@ -60,14 +61,14 @@ cutoff = hslider("cutoff[acc: 0 0 -10 0 10]",2500,50,5000,0.01);
 
 maxFreq = 100;
 minFreq = 1;
-freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,2);
+freq = x*(maxFreq-minFreq) + minFreq : si.polySmooth(gate,0.999,1);
 
 maxQ = 40;
 minQ = 1;
 q = (1-y)*(maxQ-minQ) + minQ : si.smoo;
-filterCutoff = cutoff : si.smoo; 
+filterCutoff = cutoff : si.smoo;
 
 //============================================ DSP =======================================
 //========================================================================================
 
-process = sy.dubDub(freq,filterCutoff,q,gate);
+process = sy.dubDub(freq,filterCutoff,q,gate) <: _,_;

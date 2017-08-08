@@ -8,38 +8,10 @@ OSCDEFS=""
 #                                                                   #
 #####################################################################
 
-#-------------------------------------------------------------------
-# Set Faust include path
+. faustpath
+. faustoptflags
 
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-  FAUSTLIB=/usr/local/share/faust/
-elif [ -f /usr/share/faust/music.lib ]
-then
-  FAUSTLIB=/usr/share/faust/
-else
-  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
-
-
-#-------------------------------------------------------------------
-# Check darwin specifics
-#
-if [[ $(uname) == Darwin ]]; then
-    MARCH=""
-else 
-    MARCH="-march=native"
-fi
-
-#-------------------------------------------------------------------
-# Default compilation flags for gcc and icc :
-#
-MYGCCFLAGS="-O3 $MARCH -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
-MYICCFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
-
+CXXFLAGS=$MYGCCFLAGS
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

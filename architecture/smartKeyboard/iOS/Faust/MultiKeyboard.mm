@@ -57,7 +57,7 @@
     DspFaust *faustDsp;
     long *voices;
     
-	// OTHER
+    // OTHER
     NSString *documentsDirectory;
     NSString *currentPresetName;
 }
@@ -67,10 +67,10 @@
     if(self){
         // TODO should be deleted at some point
         /*
-        for(int i=0; i<dsp->getParamsCount(); i++){
-            printf("%s\n",dsp->getParamAddress(i));
-        }
-        */
+         for(int i=0; i<dsp->getParamsCount(); i++){
+         printf("%s\n",dsp->getParamAddress(i));
+         }
+         */
         
         faustDsp = dsp;
         currentPresetName = presetName;
@@ -83,25 +83,26 @@
         if(currentPresetName == nil){
             // Declaring default parameters
             keyboardParameters = [NSMutableDictionary dictionaryWithDictionary:@{
-                                                                     @"Number of Keyboards":[NSNumber numberWithInt:1],
-                                                                     @"Max Fingers":[NSNumber numberWithInt:10],
-                                                                     @"Max Keyboard Polyphony":[NSNumber numberWithInt:16],
-                                                                     @"Mono Mode":[NSNumber numberWithInt:1],
-                                                                     @"Rounding Mode":[NSNumber numberWithInt:0],
-                                                                     @"Inter-Keyboard Slide":[NSNumber numberWithInt:1],
-                                                                     @"Send Current Key":[NSNumber numberWithInt:1],
-                                                                     @"Send Current Keyboard":[NSNumber numberWithInt:1],
-                                                                     @"Send Sensors":[NSNumber numberWithInt:1],
-                                                                     @"Rounding Update Speed":[NSNumber numberWithFloat:0.06],
-                                                                     @"Rounding Pole":[NSNumber numberWithFloat:0.9],
-                                                                     @"Rounding Threshold":[NSNumber numberWithFloat:3],
-                                                                     @"Rounding Cycles":[NSNumber numberWithInt:5]
-                                                                     }];
-         
+                                                                                 @"Number of Keyboards":[NSNumber numberWithInt:1],
+                                                                                 @"Max Fingers":[NSNumber numberWithInt:10],
+                                                                                 @"Max Keyboard Polyphony":[NSNumber numberWithInt:16],
+                                                                                 @"Mono Mode":[NSNumber numberWithInt:1],
+                                                                                 @"Rounding Mode":[NSNumber numberWithInt:0],
+                                                                                 @"Inter-Keyboard Slide":[NSNumber numberWithInt:1],
+                                                                                 @"Send Current Key":[NSNumber numberWithInt:1],
+                                                                                 @"Send Current Keyboard":[NSNumber numberWithInt:1],
+                                                                                 @"Send Fingers Count":[NSNumber numberWithInt:0],
+                                                                                 @"Send Sensors":[NSNumber numberWithInt:1],
+                                                                                 @"Rounding Update Speed":[NSNumber numberWithFloat:0.06],
+                                                                                 @"Rounding Pole":[NSNumber numberWithFloat:0.9],
+                                                                                 @"Rounding Threshold":[NSNumber numberWithFloat:3],
+                                                                                 @"Rounding Cycles":[NSNumber numberWithInt:5]
+                                                                                 }];
+            
             NSString *JSONInterface = [NSString stringWithUTF8String:faustDsp->getJSONMeta()];
             // isolating the parameters of SmartKeyboard from the JSON description and checking if the key exist
             NSRange r1 = [JSONInterface rangeOfString:@"SmartKeyboard{"];
-        
+            
             // processing the metadata and updating the global parameters with the configuration from the Faust file
             if(r1.length>0){
                 NSRange r2 = [[JSONInterface substringFromIndex:r1.location] rangeOfString:@"}"];
@@ -112,7 +113,7 @@
                 // updating default parameters with user defined parameters
                 if(error == nil){
                     for(int i=0; i<[userParameters count]; i++){
-						// TODO: currently only saves to int
+                        // TODO: currently only saves to int
                         //keyboardParameters[[userParameters allKeys][i]] = [NSNumber numberWithInt:[[userParameters valueForKey:[userParameters allKeys][i]] intValue]];
                         keyboardParameters[[userParameters allKeys][i]] = [userParameters valueForKey:[userParameters allKeys][i]];
                     }
@@ -144,9 +145,9 @@
 
 /***************************************************************************
  BUILDS THE KEYBOARD INTERFACE
-    This is done based on what is indicated in the parameters dictionnary.
-    This method can be called everytime the parameters of the interface have
-    changed.
+ This is done based on what is indicated in the parameters dictionnary.
+ This method can be called everytime the parameters of the interface have
+ changed.
  ***************************************************************************/
 - (void)buildInterface{
     [self clean]; // dealocate previous instances first
@@ -181,16 +182,31 @@
             keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Orientation",i]] = [NSNumber numberWithInt:0];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send X",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",i]] = [NSNumber numberWithInt:1];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",i]] = [NSNumber numberWithInt:0];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Y",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",i]] = [NSNumber numberWithInt:1];
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Numbered X",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered X",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Numbered Y",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered Y",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Key X",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key X",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Key Y",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Y",i]] = [NSNumber numberWithInt:0];
+        }
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Key Status",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Status",i]] = [NSNumber numberWithInt:0];
         }
         if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Freq",i]] == nil){
             keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",i]] = [NSNumber numberWithInt:1];
         }
-        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Count Fingers",i]] == nil){
-            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Count Fingers",i]] = [NSNumber numberWithInt:0];
+        if([keyboardParameters objectForKey:[NSString stringWithFormat:@"Keyboard %d - Send Keyboard Freq",i]] == nil){
+            keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",i]] = [NSNumber numberWithInt:0];
         }
     }
     
@@ -339,9 +355,9 @@
 
 /***************************************************************************
  PROCESS TOUCH EVENT
-    Process touch events by tracking the position of each finger on
-    the screen and sending keyboard actions. Thus it takes care
-    of handling polyphony.
+ Process touch events by tracking the position of each finger on
+ the screen and sending keyboard actions. Thus it takes care
+ of handling polyphony.
  ***************************************************************************/
 
 -(void)processTouchEvent:(int)eventType withTouchPoint:(CGPoint)touchPoint withFingerId:(int)fingerId{
@@ -375,147 +391,144 @@
             fingersOnKeyboardsCount[currentKeyboard]++;
         }
         
-        // no poly mode
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",currentKeyboard]] intValue] == 0){
-            [self sendSynthControlAction:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-        }
-        // poly mode
-        else{
-            // default mode if poly keyboards
-            if([keyboardParameters[@"Mono Mode"] intValue] == 0 || [keyboardParameters[@"Max Keyboard Polyphony"] intValue]>1){
-                // if touch up
-                if(eventType == 0){
-                    // cancel corresponding previous key (in case of fast move event)
-                    if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
-                        [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+        // default mode if poly keyboards
+        if([keyboardParameters[@"Mono Mode"] intValue] == 0 ||
+           [keyboardParameters[@"Max Keyboard Polyphony"] intValue]>1 ||
+           [keyboardParameters[@"Max Keyboard Polyphony"] intValue] == 0){
+            // if touch up
+            if(eventType == 0){
+                // cancel corresponding previous key (in case of fast move event)
+                if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
+                    [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+                }
+                // cancel corresponding key
+                [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                currentKeyboard = -1;
+                currentKeyIdInRow = -1;
+            }
+            // if touch down
+            else if(eventType == 1 &&
+                    (fingersOnKeyboardsCount[currentKeyboard]<=[keyboardParameters[@"Max Keyboard Polyphony"] intValue] ||
+                     [keyboardParameters[@"Max Keyboard Polyphony"] intValue] == 0)){
+                        [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
                     }
-                    // cancel corresponding key
-                    [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+            // if move
+            else if(eventType == 2){
+                // moved to another keyboard
+                if(currentKeyboard != previousTouchedKeyboards[fingerId]){
+                    // cancel key in previous keyboard
+                    [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+                    // initiate new event only if there are keys available
+                    if(fingersOnKeyboardsCount[currentKeyboard]<=[keyboardParameters[@"Max Keyboard Polyphony"] intValue] && [keyboardParameters[@"Inter-Keyboard Slide"] boolValue]){
+                        [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                    }
+                }
+                // moved to another key within the same keyboard
+                else if(currentKeyIdInRow != previousTouchedKeys[fingerId] && [[[zones objectAtIndex:previousTouchedKeyboards[fingerId]] objectAtIndex:previousTouchedKeys[fingerId]] getStatus] == 1){
+                    // cancel previous key
+                    [self sendKeyboardAction:3 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+                    // inititate new event
+                    [self sendKeyboardAction:4 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                }
+                // move within the same key
+                else{
+                    [self sendKeyboardAction:2 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                }
+            }
+        }
+        
+        else if([keyboardParameters[@"Mono Mode"] intValue] == 1){
+            int currentKeyDown = -1;
+            for(int i=0; i<[keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",currentKeyboard]] intValue]; i++){
+                if([[[zones objectAtIndex:currentKeyboard] objectAtIndex:i] getStatus] == 1){
+                    currentKeyDown = i;
+                }
+            }
+            
+            // if touch up
+            if(eventType == 0){
+                // cancel corresponding previous key (in case of fast move event)
+                if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
+                    [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+                }
+                // cancel corresponding key
+                [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                if(fingersOnKeyboardsCount[currentKeyboard]>0 && monoMode_previousActiveFinger[currentKeyboard] == fingerId){
+                    float kb = currentKeyboard*zoneHeight;
+                    for(int i=0; i<[keyboardParameters[@"Max Fingers"] intValue]; i++){
+                        if(previousTouchPoints[0][i].y >= kb && previousTouchPoints[0][i].y < zoneHeight+kb && previousTouchPoints[0][i].y != touchPoint.y && i != monoMode_previousActiveFinger[currentKeyboard]){
+                            currentContinuousKey = previousTouchPoints[0][i].x/zoneWidths[currentKeyboard];
+                            currentKeyIdInRow = fmin(int(currentContinuousKey),([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",currentKeyboard]] intValue]-1));
+                            [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:i];
+                            monoMode_previousActiveFinger[currentKeyboard] = i;
+                            break;
+                        }
+                    }
+                }
+                else{
                     currentKeyboard = -1;
                     currentKeyIdInRow = -1;
                 }
-                // if touch down
-                else if(eventType == 1 && fingersOnKeyboardsCount[currentKeyboard]<=[keyboardParameters[@"Max Keyboard Polyphony"] intValue]){
-                    [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+            }
+            // if touch down
+            else if(eventType == 1){
+                if(currentKeyDown>=0){
+                    [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
                 }
-                // if move
-                else if(eventType == 2){
-                    // moved to another keyboard
-                    if(currentKeyboard != previousTouchedKeyboards[fingerId]){
-                        // cancel key in previous keyboard
-                        [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
-                        // initiate new event only if there are keys available
-                        if(fingersOnKeyboardsCount[currentKeyboard]<=[keyboardParameters[@"Max Keyboard Polyphony"] intValue] && [keyboardParameters[@"Inter-Keyboard Slide"] boolValue]){
-                            [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                monoMode_previousActiveFinger[currentKeyboard] = fingerId;
+            }
+            // if move
+            else if(eventType == 2){
+                // moved to another keyboard
+                if(currentKeyboard != previousTouchedKeyboards[fingerId]){
+                    // cancel key in previous keyboard
+                    [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
+                    
+                    if([keyboardParameters[@"Inter-Keyboard Slide"] boolValue]){
+                        // new note if remaining finger in previous keyboard
+                        if(fingersOnKeyboardsCount[previousTouchedKeyboards[fingerId]]>0 && previousTouchedKeys[fingerId] == previousTouchedKeys[monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]]){
+                            float kb = previousTouchedKeyboards[fingerId]*zoneHeight;
+                            for(int i=0; i<[keyboardParameters[@"Max Fingers"] intValue]; i++){
+                                if(previousTouchPoints[0][i].y >= kb && previousTouchPoints[0][i].y < zoneHeight+kb && previousTouchPoints[0][i].y != touchPoint.y && i != monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]){
+                                    currentContinuousKey = previousTouchPoints[0][i].x/zoneWidths[previousTouchedKeyboards[fingerId]];
+                                    int localKeyIdInRow = fmin(int(currentContinuousKey),([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",previousTouchedKeyboards[fingerId]]] intValue]-1));
+                                    [self sendKeyboardAction:1 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:localKeyIdInRow withFingerId:i];
+                                    monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]] = i;
+                                    break;
+                                }
+                            }
                         }
+                        if(currentKeyDown>=0){
+                            [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
+                        }
+                        [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                        monoMode_previousActiveFinger[currentKeyboard] = fingerId;
                     }
-                    // moved to another key within the same keyboard
-                    else if(currentKeyIdInRow != previousTouchedKeys[fingerId] && [[[zones objectAtIndex:previousTouchedKeyboards[fingerId]] objectAtIndex:previousTouchedKeys[fingerId]] getStatus] == 1){
+                }
+                // moved to another key within the same keyboard
+                else if(currentKeyIdInRow != previousTouchedKeys[fingerId] && [[[zones objectAtIndex:previousTouchedKeyboards[fingerId]] objectAtIndex:previousTouchedKeys[fingerId]] getStatus] == 1){
+                    if(fingersOnKeyboardsCount[currentKeyboard]>1 && monoMode_previousActiveFinger[currentKeyboard] != fingerId){
+                        if(currentKeyDown>=0){
+                            [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
+                        }
+                        [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
+                        monoMode_previousActiveFinger[currentKeyboard] = fingerId;
+                    }
+                    else{
                         // cancel previous key
                         [self sendKeyboardAction:3 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
                         // inititate new event
                         [self sendKeyboardAction:4 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
                     }
-                    // move within the same key
-                    else{
-                        [self sendKeyboardAction:2 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                    }
                 }
-            }
-            
-            else if([keyboardParameters[@"Mono Mode"] intValue] == 1){
-                int currentKeyDown = -1;
-                for(int i=0; i<[keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",currentKeyboard]] intValue]; i++){
-                    if([[[zones objectAtIndex:currentKeyboard] objectAtIndex:i] getStatus] == 1){
-                        currentKeyDown = i;
-                    }
-                }
-                
-                // if touch up
-                if(eventType == 0){
-                    // cancel corresponding previous key (in case of fast move event)
-                    if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
-                        [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
-                    }
-                    // cancel corresponding key
-                    [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                    if(fingersOnKeyboardsCount[currentKeyboard]>0 && monoMode_previousActiveFinger[currentKeyboard] == fingerId){
-                        float kb = currentKeyboard*zoneHeight;
-                        for(int i=0; i<[keyboardParameters[@"Max Fingers"] intValue]; i++){
-                            if(previousTouchPoints[0][i].y >= kb && previousTouchPoints[0][i].y < zoneHeight+kb && previousTouchPoints[0][i].y != touchPoint.y && i != monoMode_previousActiveFinger[currentKeyboard]){
-                                currentContinuousKey = previousTouchPoints[0][i].x/zoneWidths[currentKeyboard];
-                                currentKeyIdInRow = fmin(int(currentContinuousKey),([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",currentKeyboard]] intValue]-1));
-                                [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:i];
-                                monoMode_previousActiveFinger[currentKeyboard] = i;
-                                break;
-                            }
-                        }
-                    }
-                    else{
-                        currentKeyboard = -1;
-                        currentKeyIdInRow = -1;
-                    }
-                }
-                // if touch down
-                else if(eventType == 1){
-                    if(currentKeyDown>=0){
-                        [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
-                    }
-                    [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                    monoMode_previousActiveFinger[currentKeyboard] = fingerId;
-                }
-                // if move
-                else if(eventType == 2){
-                    // moved to another keyboard
-                    if(currentKeyboard != previousTouchedKeyboards[fingerId]){
-                        // cancel key in previous keyboard
-                        [self sendKeyboardAction:0 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
-                        
-                        if([keyboardParameters[@"Inter-Keyboard Slide"] boolValue]){
-                            // new note if remaining finger in previous keyboard
-                            if(fingersOnKeyboardsCount[previousTouchedKeyboards[fingerId]]>0 && previousTouchedKeys[fingerId] == previousTouchedKeys[monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]]){
-                                float kb = previousTouchedKeyboards[fingerId]*zoneHeight;
-                                for(int i=0; i<[keyboardParameters[@"Max Fingers"] intValue]; i++){
-                                    if(previousTouchPoints[0][i].y >= kb && previousTouchPoints[0][i].y < zoneHeight+kb && previousTouchPoints[0][i].y != touchPoint.y && i != monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]){
-                                        currentContinuousKey = previousTouchPoints[0][i].x/zoneWidths[previousTouchedKeyboards[fingerId]];
-                                        int localKeyIdInRow = fmin(int(currentContinuousKey),([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Number of Keys",previousTouchedKeyboards[fingerId]]] intValue]-1));
-                                        [self sendKeyboardAction:1 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:localKeyIdInRow withFingerId:i];
-                                        monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]] = i;
-                                        break;
-                                    }
-                                }
-                            }
-                            if(currentKeyDown>=0){
-                                [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
-                            }
-                            [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                            monoMode_previousActiveFinger[currentKeyboard] = fingerId;
-                        }
-                    }
-                    // moved to another key within the same keyboard
-                    else if(currentKeyIdInRow != previousTouchedKeys[fingerId] && [[[zones objectAtIndex:previousTouchedKeyboards[fingerId]] objectAtIndex:previousTouchedKeys[fingerId]] getStatus] == 1){
-                        if(fingersOnKeyboardsCount[currentKeyboard]>1 && monoMode_previousActiveFinger[currentKeyboard] != fingerId){
-                            if(currentKeyDown>=0){
-                                [self sendKeyboardAction:0 withKeyboardId:currentKeyboard withKeyId:currentKeyDown withFingerId:monoMode_previousActiveFinger[currentKeyboard]];
-                            }
-                            [self sendKeyboardAction:1 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                            monoMode_previousActiveFinger[currentKeyboard] = fingerId;
-                        }
-                        else{
-                            // cancel previous key
-                            [self sendKeyboardAction:3 withKeyboardId:previousTouchedKeyboards[fingerId] withKeyId:previousTouchedKeys[fingerId] withFingerId:fingerId];
-                            // inititate new event
-                            [self sendKeyboardAction:4 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                        }
-                    }
-                    // move within the same key
-                    else{
-                        [self sendKeyboardAction:2 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
-                    }
+                // move within the same key
+                else{
+                    [self sendKeyboardAction:2 withKeyboardId:currentKeyboard withKeyId:currentKeyIdInRow withFingerId:fingerId];
                 }
             }
         }
-    
+        
         // updating previous data for comparison
         previousTouchedKeyboards[fingerId] = currentKeyboard;
         previousTouchedKeys[fingerId] = currentKeyIdInRow;
@@ -529,8 +542,8 @@
 
 /***************************************************************************
  SEND KEYBOARD ACTION
-    Reflects the user's actions on the keyboard and send
-    synthControlAction
+ Reflects the user's actions on the keyboard and send
+ synthControlAction
  ***************************************************************************/
 -(void)sendKeyboardAction:(int)eventType withKeyboardId:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId{
     // key up
@@ -551,18 +564,33 @@
             if(!otherFingerInKey){
                 [[[zones objectAtIndex:keyboardId] objectAtIndex:keyId] setStatus:0];
             }
-            [self sendPolySynthControlAction:eventType withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId];
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",keyboardId]] intValue]){
+                [self sendSynthControlAction:keyboardId withKeyId:keyId withFingerId:fingerId withEventType:eventType withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+            }
+            else{
+                [self sendPolySynthControlAction:eventType withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+            }
             //if(fingersOnScreenCount == 0) [self resetKeyboard];
         }
     }
     // key down
     else if(eventType == 1 || eventType == 4){
         [[[zones objectAtIndex:keyboardId] objectAtIndex:keyId] setStatus:1];
-        [self sendPolySynthControlAction:eventType withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId];
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",keyboardId]] intValue]){
+            [self sendSynthControlAction:keyboardId withKeyId:keyId withFingerId:fingerId withEventType:eventType withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+        }
+        else{
+            [self sendPolySynthControlAction:eventType withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+        }
     }
     // move within the same key
     else if(eventType == 2){
-        [self sendPolySynthControlAction:2 withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId];
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Freq",keyboardId]] intValue]){
+            [self sendSynthControlAction:keyboardId withKeyId:keyId withFingerId:fingerId withEventType:eventType withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+        }
+        else{
+            [self sendPolySynthControlAction:eventType withKeyboardId:keyboardId withKeyId:keyId withFingerId:fingerId withFingersOnKeyb:fingersOnKeyboardsCount[keyboardId]];
+        }
     }
     if(fingersOnScreenCount == 0) [self resetKeyboard]; // TODO: this is kind of a terrible fix but it does the job for now
 }
@@ -574,27 +602,37 @@
  scales, etc.
  ***************************************************************************/
 
--(void)sendSynthControlAction:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId{
-    if([keyboardParameters[@"Send Current Keyboard"] intValue]) faustDsp->setParamValue("keyboard", keyboardId);
-    if([keyboardParameters[@"Send Current Key"] intValue]) faustDsp->setParamValue("key", keyId);
-    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Count Fingers",keyboardId]] intValue] == 0){
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue("x", fmod(currentContinuousKey,1));
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue("y", currentKeyboardY);
-    }
-    else{
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setParamValue(("x" + std::to_string(fingerId)).c_str(), fmod(currentContinuousKey,1));
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setParamValue(("y" + std::to_string(fingerId)).c_str(), currentKeyboardY);
-    }
+-(void)sendSynthControlAction:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId withEventType:(int)eventType withFingersOnKeyb:(int)fingersOnKeyb{
+    if([keyboardParameters[@"Send Current Keyboard"] intValue])
+        faustDsp->setParamValue("keyboard", keyboardId);
+    if([keyboardParameters[@"Send Current Key"] intValue])
+        faustDsp->setParamValue("key", keyId);
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue])
+        faustDsp->setParamValue("x", fmod(currentContinuousKey,1));
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue])
+        faustDsp->setParamValue("y", currentKeyboardY);
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered X",keyboardId]] intValue])
+        faustDsp->setParamValue(("x" + std::to_string(fingerId)).c_str(), fmod(currentContinuousKey,1));
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered Y",keyboardId]] intValue])
+        faustDsp->setParamValue(("y" + std::to_string(fingerId)).c_str(), currentKeyboardY);
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key X",keyboardId]] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "x").c_str() , fmod(currentContinuousKey,1));
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Y",keyboardId]] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "y").c_str() , currentKeyboardY);
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Status",keyboardId]] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "status").c_str() , eventType);
+    if([keyboardParameters[@"Send Fingers Count"] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "fingers").c_str() , fingersOnKeyb);
 }
 
 /***************************************************************************
  SEND POLY SYNTH CONTROL ACTION
-    Sends polyphonic actions to the Faust process depending on events
-    happening on the keyboard. Takes care of applying slides,
-    scales, etc.
+ Sends polyphonic actions to the Faust process depending on events
+ happening on the keyboard. Takes care of applying slides,
+ scales, etc.
  ***************************************************************************/
 
--(void)sendPolySynthControlAction:(int)eventType withKeyboardId:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId{
+-(void)sendPolySynthControlAction:(int)eventType withKeyboardId:(int)keyboardId withKeyId:(int)keyId withFingerId:(int)fingerId withFingersOnKeyb:(int)fingersOnKeyb{
     float pitch = 0; // the MIDI pitch of the note
     // delete (note off)
     if((eventType == 0 || (eventType == 3 && [keyboardParameters[@"Rounding Mode"] intValue] == 0)) && voices[fingerId] != -1){
@@ -661,6 +699,8 @@
                 refPitch[fingerId] = floor(pitch);
             }
             faustDsp->setVoiceParamValue("freq", voices[fingerId], [self mtof:refPitch[fingerId]]);
+            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Keyboard Freq",keyboardId]] intValue])
+                faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "freq").c_str(), [self mtof:refPitch[fingerId]]);
         }
     }
     // update
@@ -697,30 +737,46 @@
         if(voices[fingerId] != -1 && pitch != -1){
             if([keyboardParameters[@"Rounding Mode"] intValue] == 1){
                 faustDsp->setVoiceParamValue("bend", voices[fingerId], powf(2, (pitch-refPitch[fingerId])/12));
+                if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Keyboard Freq",keyboardId]] intValue])
+                    faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "bend").c_str(), powf(2, (pitch-refPitch[fingerId])/12));
             }
             else if([keyboardParameters[@"Rounding Mode"] intValue] == 2){
                 if(rounding[fingerId]){ // if rounding is activated, pitch is quantized to the nearest integer
                     faustDsp->setVoiceParamValue("bend", voices[fingerId], powf(2, (floor(pitch)-refPitch[fingerId])/12));
+                    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Keyboard Freq",keyboardId]] intValue])
+                        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "bend").c_str(), powf(2, (floor(pitch)-refPitch[fingerId])/12));
                 }
                 else{
                     faustDsp->setVoiceParamValue("bend", voices[fingerId], powf(2, (pitch-0.5-refPitch[fingerId])/12));
+                    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Keyboard Freq",keyboardId]] intValue])
+                        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "bend").c_str(), powf(2, (pitch-0.5-refPitch[fingerId])/12));
                 }
             }
         }
     }
     
     if(voices[fingerId] != -1){
-        if([keyboardParameters[@"Send Current Keyboard"] intValue]) faustDsp->setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
-        if([keyboardParameters[@"Send Current Key"] intValue]) faustDsp->setVoiceParamValue("key", voices[fingerId], keyId);
-        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Count Fingers",keyboardId]] intValue] == 0){
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("x", voices[fingerId], fmod(currentContinuousKey,1));
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
-        }
-        else{
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue(("x" + std::to_string(fingerId)).c_str(), voices[fingerId], fmod(currentContinuousKey,1));
-            if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue] == 1) faustDsp->setVoiceParamValue(("y" + std::to_string(fingerId)).c_str(), voices[fingerId], currentKeyboardY);
-        }
+        if([keyboardParameters[@"Send Current Keyboard"] intValue])
+            faustDsp->setParamValue("keyboard", keyboardId);
+        if([keyboardParameters[@"Send Current Key"] intValue])
+            faustDsp->setParamValue("key", keyId);
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send X",keyboardId]] intValue])
+            faustDsp->setParamValue("x", fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Y",keyboardId]] intValue])
+            faustDsp->setParamValue("y", currentKeyboardY);
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered X",keyboardId]] intValue])
+            faustDsp->setParamValue(("x" + std::to_string(fingerId)).c_str(), fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Numbered Y",keyboardId]] intValue])
+            faustDsp->setParamValue(("y" + std::to_string(fingerId)).c_str(), currentKeyboardY);
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key X",keyboardId]] intValue])
+            faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "x").c_str() , fmod(currentContinuousKey,1));
+        if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Y",keyboardId]] intValue])
+            faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "y").c_str() , currentKeyboardY);
     }
+    if([keyboardParameters[[NSString stringWithFormat:@"Keyboard %d - Send Key Status",keyboardId]] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "k" + std::to_string(keyId) + "status").c_str() , eventType);
+    if([keyboardParameters[@"Send Fingers Count"] intValue])
+        faustDsp->setParamValue(("kb" + std::to_string(keyboardId) + "fingers").c_str() , fingersOnKeyb);
 }
 
 -(void)resetDspToDefault{
@@ -768,9 +824,9 @@
                 else if(scalesCoeff[currentScale][i%7] == 1) scaleAdd-=2;
             }
         }
-    
+        
         scaledPitch = keybRefPitch+scaleAdd+
-            (keyboardPitch*scalesCoeff[currentScale][(int)keyboardPitch%7]);
+        (keyboardPitch*scalesCoeff[currentScale][(int)keyboardPitch%7]);
     }
     else{
         scaledPitch = pitch;
@@ -930,7 +986,7 @@
         delete[] fingersOnKeyboardsCount;
         fingersOnKeyboardsCount = NULL;
     }
-	if(rounding){
+    if(rounding){
         delete[] rounding;
         rounding = NULL;
     }
