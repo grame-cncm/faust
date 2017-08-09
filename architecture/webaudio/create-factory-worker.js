@@ -47,7 +47,7 @@ onmessage = function(e) {
     	Module._free(error_msg_ptr);
         
         // Free C allocated asm.js module
-        freeCDSP(factory_code_ptr);
+        freeCMemory(factory_code_ptr);
         
         // Free 'argv' C side array
         for (var i = 0; i < argv.length; i++) {
