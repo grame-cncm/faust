@@ -74,7 +74,7 @@
 #define LLVM_OPTIMIZATION -1  // means 'maximum'
 #define DEFAULT_CODE "process = _,_;"
 
-const char* TEXT_APPL_LIST[] = {"Smultron", "TextWrangler", "TextExit", "" };
+const char* TEXT_APPL_LIST[] = {"Atom", "Smultron", "TextWrangler", "TextExit", "" };
 
 //===================
 // Faust DSP Factory
