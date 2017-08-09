@@ -53,7 +53,7 @@
 #include "jgraphics.h"
 #include "ext_drag.h"
 
-#define DEFAULT_SOURCE_CODE "process=_,_;"
+#define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
 #define FAUSTGEN_VERSION "1.15"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
