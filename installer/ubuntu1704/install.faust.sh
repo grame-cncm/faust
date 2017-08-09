@@ -73,6 +73,7 @@ function installfaust {
 
 	if [ -n "$INSTALL_ROS" ]; then
 		# Install ROS Jade, see $(lsb_release -sc) instead of xenial
+		echo "INSTALL ROS"
 		$SUDO sh -c 'echo "deb http://packages.ros.org/ros/ubuntu  $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 		$SUDO apt-key adv --keyserver hkp://ha.pool.sks-keyservers.net:80 --recv-key 421C365BD9FF1F717815A3895523BAEEB01FA116
 		$SUDO apt-get -y update
@@ -81,6 +82,7 @@ function installfaust {
 
 	if [ -n "$INSTALL_BELA" ]; then
 		# Install Bela
+		echo "INSTALL BELA"
 		$SUDO apt-get install -y gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf
 		if [ ! -d /usr/local/beaglert ]; then
 		    git clone https://github.com/BelaPlatform/Bela.git
@@ -95,16 +97,21 @@ function installfaust {
 		fi
 	fi
 
-	if [ -n $INSTALL_ANDROID ]; then
+	if [ -n "$INSTALL_ANDROID" ]; then
 		# Install Android development tools
 		## install java 8
+		echo "INSTALL ANDROID SDK AND NDK"
 		$SUDO apt install -y openjdk-8-jdk
 
 		## install android sdk
-		if [ ! -d /opt/android ]; then
-		    $SUDO install -d /opt/android/sdk
-			wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
-			unzip sdk-tools-linux-3859397.zip
+		if [ ! -d /opt/android/sdk ]; then
+		    	$SUDO install -d /opt/android/sdk
+			if [ ! -e sdk-tools-linux-3859397.zip ]; then
+				wget https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip
+			fi
+			if [ ! -d tools ]; then
+				unzip sdk-tools-linux-3859397.zip
+			fi
 		   	$SUDO ./tools/bin/sdkmanager --sdk_root=/opt/android/sdk "build-tools;25.0.3" "cmake;3.6.4111459" "platforms;android-25" "tools" "ndk-bundle" "extras;android;m2repository"		
 			export ANDROID_HOME=/opt/android/sdk
 			export ANDROID_NDK_HOME=$ANDROID_HOME/ndk-bundle
@@ -114,7 +121,8 @@ function installfaust {
 	fi
 
 	if [ -n "$INSTALL_LATEX" ]; then
-	# Install Latex
+		# Install Latex
+		echo "INSTALL LATEX"
 		$SUDO apt-get install -y texlive-full
 	fi
 
@@ -122,6 +130,7 @@ function installfaust {
 	if [ ! -d "faust" ]; then
 		git clone https://github.com/grame-cncm/faust.git
 	fi
+	
 
 	# Update and compile Faust
 	cd faust
@@ -134,7 +143,6 @@ function installfaust {
 	echo "Now testing the installation..."
 	cd ./tests/architecture-tests
 	./testsuccess linux
-	./testsuccess web
 	echo "Testing Done!"
 	cd ..
 }
