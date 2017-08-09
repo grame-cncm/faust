@@ -115,12 +115,12 @@ function installfaust {
 
 	if [ -n "$INSTALL_LATEX" ]; then
 	# Install Latex
-	$SUDO apt-get install -y texlive-full
+		$SUDO apt-get install -y texlive-full
+	fi
 
 	# Install Faust if needed
 	if [ ! -d "faust" ]; then
 		git clone https://github.com/grame-cncm/faust.git
-	fi
 	fi
 
 	# Update and compile Faust
