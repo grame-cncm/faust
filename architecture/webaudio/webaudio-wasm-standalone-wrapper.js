@@ -89,7 +89,7 @@ faust.mydsp = function (instance, context, buffer_size) {
      
     // Start of HEAP index
     
-    // DSP is placed first with index 0. Audio buffer start at the end od DSP.
+    // DSP is placed first with index 0. Audio buffer start at the end of DSP.
     sp.audio_heap_ptr = getSizemydsp();
 
     // Setup pointers offset

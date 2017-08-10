@@ -426,7 +426,8 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
       faust.factory_table[sha_key] = factory;
  
       callback(factory);
-    });
+    })
+    .catch(function() { faust.error_msg = "Faust DSP factory cannot be compiled"; callback(null); });
 }
 
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
@@ -729,7 +730,9 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         // Call continuation
         callback(sp);
            
-}); };
+    })
+    .catch(function() { faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
+}
 
 faust.deleteDSPInstance = function (dsp) {}
 
@@ -822,8 +825,6 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     .then(mix_res => mix_res.arrayBuffer())
     .then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
     .then(mix_module =>  // mix_module.instance
-          
-    function ()
     {
         WebAssembly.instantiate(factory.module, importObject)
         .then(dsp_instance => {
@@ -1285,8 +1286,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         // Call continuation
         callback(sp);
           
-    }); } ());
-
+    }); })
+    .catch(function() { faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
 }
 
 faust.deletePolyDSPInstance = function (dsp) {}

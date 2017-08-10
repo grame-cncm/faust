@@ -89,7 +89,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     // default values
     var default_values = [];
     
-    // DSP is placed first with index 0. Audio buffer start at the end od DSP.
+    // DSP is placed first with index 0. Audio buffer start at the end of DSP.
     var audio_heap_ptr = getSizemydsp();
   
     // Setup pointers offset

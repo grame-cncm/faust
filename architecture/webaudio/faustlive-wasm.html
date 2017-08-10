@@ -347,6 +347,10 @@
             var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
             var isWasm = (typeof (WebAssembly) !== "undefined");
             var isPoly = false;
+            
+            if (!isWasm) {
+                alert("WebAssembly is not supported in this browser, the page will not work !")
+            }
              
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var buffer_size = 1024;
