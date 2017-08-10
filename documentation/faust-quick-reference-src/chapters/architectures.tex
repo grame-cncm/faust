@@ -16,10 +16,10 @@ The architecture to be used is specified at compile time with the \lstinline'-a'
 \begin{center}
 \begin{tabular}{|l|l|l|}
 \hline
-\textbf{File name}			& \textbf{Description}   \\
+\textbf{File name}		& \textbf{Description}   \\
 \hline
 \texttt{alchemy-as.cpp} 	& Flash - ActionScript plugin \\
-\texttt{ca-qt.cpp} 			& CoreAudio QT4 standalone application  \\
+\texttt{ca-qt.cpp} 		& CoreAudio QT4 standalone application  \\
 \texttt{jack-gtk.cpp} 		& JACK GTK standalone application  \\
 \texttt{jack-qt.cpp} 		& JACK QT4 standalone application  \\
 \texttt{jack-console.cpp} 	& JACK command line application  \\
@@ -53,7 +53,7 @@ The architecture to be used is specified at compile time with the \lstinline'-a'
 \hline
 \end{tabular}
 \end{center}
-\caption{Available architectures.}
+\caption{Some of the available architectures.}
 \label{tab:availablearch}
 \end{table}%
 
@@ -83,10 +83,9 @@ class audio {
 };
 \end{lstlisting} 
 
-
 The API is simple enough to give a great flexibility to audio architectures implementations. The \code{init} method should initialize the audio. At \code{init} exit, the system should be in a safe state to recall the \code{dsp} object state.
 
-Table \ref{tab:aarch} gives the audio architectures currently available for various operating systems.
+Table \ref{tab:aarch} gives some of the audio architectures currently available for various operating systems.
 \begin{table}[htp]
 \begin{center}
 \begin{tabular}{|c|c|}
@@ -107,7 +106,7 @@ Pure 			& Linux, Mac OS X, Windows \\
 \hline
 \end{tabular}
 \end{center}
-\caption{\faust audio architectures.}
+\caption{Some of \faust audio architectures.}
 \label{tab:aarch}
 \end{table}%
  
@@ -236,31 +235,70 @@ A UI architecture must support the following methods to setup this hierarchy : \
 \htab\code{closeBox(const char* label)} \\
 Note that all the widgets are added to the current box.
 
-%---------------------------------------------------
-\subsection{Metadata}
-\label{sec:metadata}
-The \faust language allows widget labels to contain metadata enclosed in square brackets. These metadata are handled at GUI level by a \code{declare} method taking as argument, a pointer to the widget associated zone, the metadata key and value: \\
-\htab\code{declare(FAUSTFLOAT* zone, const char* key, const char* value)} \\
-
-
-%%Table \ref{tab:uiarch} gives the UI architectures currently available.
+%%Table \ref{tab:uiarch} gives some of the UI architectures currently available.
 \begin{table}[htp]
 \begin{center}
 \begin{tabular}{|c|l|}
 \hline
 \bf{UI} & \bf{Comment} \\
 \hline
-console  & a textual command line UI \\
-GTK  & a GTK-based GUI \\
-QT   & a multi-platform QT-based GUI \\
-FUI  & a file-based UI to store and recall modules states \\
-OSC  & OSC control (see \ref{sec:oscgui}) \\
+console & a textual command line UI \\
+GTKUI & a GTK-based GUI \\
+QTGUI & a multi-platform QT-based GUI \\
+FUI & a file-based UI to store and recall modules states \\
+OSCUI & OSC control (see section \ref{sec:osc}) \\
+httpdUI & HTTP control (see section \ref{sec:http}) \\
+...  & ... \\
 \hline
 \end{tabular}
 \end{center}
-\caption{Available UI architectures.}
+\caption{Some of the available UI architectures.}
 \label{tab:uiarch}
 \end{table}%
+
+%---------------------------------------------------
+\subsection{Metadata}
+\label{sec:metadata}
+The \faust language allows widget labels to contain metadata enclosed in square brackets as key/value pairs. These metadata are handled at GUI level by a \code{declare} method taking as argument, a pointer to the widget associated zone, the metadata key and value: \\
+\htab\code{declare(FAUSTFLOAT* zone, const char* key, const char* value)} \\
+
+Here is the table of currently supported medatada:
+
+%%Table \ref{tab:uiarch} gives some of the UI architectures currently available.
+\begin{table}[htp]
+\begin{center}
+\begin{tabular}{|c|l|}
+\hline
+\bf{Key} & \bf{Vaue} \\
+\hline
+tooltip & actual string content \\
+hidden & \code{0} or \code{1} \\
+size & actual value \\
+unit & \code{Hz} or \code{dB} \\
+scale & \code{log} or \code{exp} \\
+style & \code{knob} or \code{led} or \code{numerical} \\
+style & \code{radio\{\'label1\':v1;\'label2\':v2...\}}  \\
+style & \code{menu\{\'label1\':v1;\'label2\':v2...\}}  \\
+acc & \code{axe curve amin amid amax}  \\
+gyr & \code{axe curve amin amid amax}  \\
+screencolor & \code{red} or \code{green}  or \code{blue} or \code{white}    \\
+
+\hline
+\end{tabular}
+\end{center}
+\caption{Supported medatada.}
+\label{tab:metadata}
+\end{table}%
+
+Some typical example where several metadata are defined could be: 
+
+ \htab\code{nentry("freq [unit:Hz][scale:log][acc:0 0 -30 0 30][style:menu\{\'white noise\':0;\'pink noise\':1;\'sine\':2\}][hidden:0]", 0, 20, 100, 1)} 
+ 
+ or: 
+ 
+ \htab\code{vslider("freq [unit:dB][style:knob][gyr:0 0 -30 0 30]", 0, 20, 100, 1)} 
+ 
+ Note that medatada are not supported in all architecture files. Some of them like (\code{acc} or \code{gyr} for exemple) only make sense on platforms with accelerometers or gyroscopes sensors. The set of medatada may be extended in the future. 
 
 %---------------------------------------------------
 \section{Developing a new architecture file}

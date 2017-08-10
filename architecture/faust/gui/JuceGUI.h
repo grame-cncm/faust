@@ -1910,7 +1910,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \brief   Constructor.
          * \details Initialize the JuceGUI specific variables. 
          */
-        JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID muast start at 1
+        JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID must start at 1
         {}
         
         /**
