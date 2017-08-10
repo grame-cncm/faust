@@ -403,6 +403,7 @@ faust.createmydsp = function(filename, context, buffer_size, callback)
     fetch(filename)
     .then(dsp_file => dsp_file.arrayBuffer())
     .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-    .then(dsp_module => { callback(faust.mydsp(dsp_module.instance, context, buffer_size)); });
+    .then(dsp_module => callback(faust.mydsp(dsp_module.instance, context, buffer_size)))
+    .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
 }
 

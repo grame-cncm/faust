@@ -665,5 +665,7 @@ faust.createmydsp = function(filename, context, buffer_size, max_polyphony, call
           fetch(filename)
           .then(dsp_file => dsp_file.arrayBuffer())
           .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-          .then(dsp_module => { callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, max_polyphony)); }));
+          .then(dsp_module => callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, max_polyphony)))
+          .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); }))
+    .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
 }

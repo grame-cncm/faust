@@ -228,7 +228,7 @@ faust.getLibFaustVersion = function () {
     return faust_module.Pointer_stringify(faust.getCLibFaustVersion());
 }
 
-faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
+faust.createDSPFactoryAux = function (code, argv, internal_memory, callback) {
     
     // Code memory type and argv in the SHAKey to differentiate compilation flags and Monophonic and Polyphonic factories
     var argv_str = "";
@@ -322,11 +322,11 @@ faust.createDSPFactoryAux = function (code, argv, callback, internal_memory) {
 };
 
 faust.createDSPFactory = function (code, argv, callback) {
-    faust.createDSPFactoryAux(code, argv, callback, true);
+    faust.createDSPFactoryAux(code, argv, true, callback);
 }
 
 faust.createPolyDSPFactory = function (code, argv, callback) {
-    faust.createDSPFactoryAux(code, argv, callback, false);
+    faust.createDSPFactoryAux(code, argv, false, callback);
 }
 
 faust.expandDSP = function (code, argv) {
