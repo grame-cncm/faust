@@ -338,7 +338,8 @@ void WASMCodeContainer::produceClass()
     generateMetaData(&json_visitor);
     
     // Generate JSON and getSize
-    tab(n, fHelper); fHelper << "/*\n" << "Helper code generated with FAUST version " << FAUSTVERSION << endl;
+    tab(n, fHelper); fHelper << "/*\n" << "Code generated with Faust version " << FAUSTVERSION << endl;
+    fHelper << "Compilation options: ";
     printCompilationOptions(fHelper);
     fHelper << "*/\n";
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";

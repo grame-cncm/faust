@@ -395,7 +395,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      * - static tables initialization
      * - call 'instanceInit': constants and instance state initialisation
      *
-     * @param sample_rate - the sampling rate in Herz
+     * @param sample_rate - the sampling rate in Hertz
      */
     sp.init = function (sample_rate)
     {
@@ -445,8 +445,8 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     }
 
     /**
-     * Setup a control output handler with a function of type (path_to_control, value)
-     * to be used on each generated output value. This handlet will be called
+     * Setup a control output handler with a function of type (path, value)
+     * to be used on each generated output value. This handler will be called
      * each audio cycle at the end of the 'compute' method.
      *
      * @param hd - a function of type function(path_to_control, value)
@@ -564,7 +564,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     /**
      * Get DSP JSON description with its UI and metadata.
      *
-     * @return  DSP JSON description
+     * @return DSP JSON description
      */
     sp.json = function ()
     {
