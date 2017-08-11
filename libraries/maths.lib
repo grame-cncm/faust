@@ -1,7 +1,7 @@
 //################################### maths.lib ##########################################
 //  Mathematic library for Faust. Its official prefix is `ma`.
 //########################################################################################
-// Some functions are implemenented as Faust foreign functions of `math.h` functions 
+// Some functions are implemented as Faust foreign functions of `math.h` functions 
 // that are not part of Faust's primitives. Defines also various constants and several 
 // utilities.
 //########################################################################################
