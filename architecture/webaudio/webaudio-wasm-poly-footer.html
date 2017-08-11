@@ -133,7 +133,7 @@ function getDevice(device)
     audio_input = audio_context.createMediaStreamSource(device);
     
     // Connect it to the destination.
-    audio_input.connect(DSP_poly.getProcessor());
+    audio_input.connect(DSP_poly);
 }
 
 function startDSPAux(dsp)
@@ -142,7 +142,7 @@ function startDSPAux(dsp)
         if (audio_input) {
             audio_input.disconnect(DSP_poly);
         }
-        DSP.disconnect(audio_context.destination);
+        DSP_poly.disconnect(audio_context.destination);
         _f4u$t.hard_delete(faustsvg);
     }
     
@@ -156,16 +156,16 @@ function startDSPAux(dsp)
     DSP_poly = dsp;
     DSP_poly.connect(audio_context.destination);
     
-    console.log(DSP_poly.json());
-    console.log(DSP_poly.controls());
+    console.log(DSP_poly.getJSON());
+    console.log(DSP_poly.getParams());
     
     // kludge...ideally, this needs to not be part of the imported JS
     _f4u$t.main_loop = function() {}
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    var handler = _f4u$t.main(DSP_poly.json(), faustsvg, DSP_poly.setParamValue);
-    DSP_poly.setHandler(handler);
+    var handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, DSP_poly.setParamValue);
+    DSP_poly.setOutputParamHandler(handler);
 }
 
 function startDSP()

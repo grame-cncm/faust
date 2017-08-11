@@ -37,16 +37,16 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony, callback) {
 
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux ()
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux ()
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
     var sp;
@@ -57,13 +57,13 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         return null;
     }
         
-    sp.jon_object = jon_object;
+    sp.json_object = json_object;
 
-    sp.handler = null;
+    sp.output_handler = null;
     sp.ins = null;
     sp.outs = null;
     sp.mixing = null;
-    sp.compute_callback = callback;
+    sp.compute_handler = callback;
     
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
@@ -203,10 +203,10 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     sp.update_outputs = function ()
     {
-        if (sp.outputs_items.length > 0 && sp.handler && sp.outputs_timer-- === 0) {
+        if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
             sp.outputs_timer = 5;
             for (var i = 0; i < sp.outputs_items.length; i++) {
-                sp.handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.outputs_items[i]]));
+                sp.output_handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.outputs_items[i]]));
             }
         }
     }
@@ -225,8 +225,8 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
         
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
-        if (sp.compute_callback) {
-            sp.compute_callback(buffer_size);
+        if (sp.compute_handler) {
+            sp.compute_handler(buffer_size);
         }
         
         // First clear the outputs
@@ -346,7 +346,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
         
         // bargraph
-        sp.parse_ui(sp.jon_object.ui);
+        sp.parse_ui(sp.json_object.ui);
         
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < sp.inputs_items.length; i++) {
@@ -449,11 +449,19 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      * to be used on each generated output value. This handler will be called
      * each audio cycle at the end of the 'compute' method.
      *
-     * @param hd - a function of type function(path_to_control, value)
+     * @param handler - a function of type function(path, value)
      */
-    sp.setHandler = function (hd)
+    sp.setOutputParamHandler = function (handler)
     {
-        sp.handler = hd;
+        sp.output_handler = handler;
+    }
+    
+    /**
+     * Get the current output handler.
+     */
+    sp.getOutputParamHandler = function ()
+    {
+        return sp.output_handler;
     }
     
     /**
@@ -527,10 +535,10 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     {}
 
     /**
-     * Set control value.
+     * Set parameter value.
      *
-     * @param path - the path to the wanted control (retrieved using 'controls' method)
-     * @param val - the float value for the wanted control
+     * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
+     * @param val - the float value for the wanted parameter
      */
     sp.setParamValue = function (path, val)
     {
@@ -540,9 +548,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     }
 	
     /**
-     * Get control value.
+     * Get parameter value.
      *
-     * @param path - the path to the wanted control (retrieved using 'controls' method)
+     * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
      *
      * @return the float value
      */
@@ -552,11 +560,11 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     }
 
     /**
-     * Get the table of all control paths.
+     * Get the table of all input parameter paths.
      *
-     * @return the table of all control paths
+     * @returnthe table of all input parameter paths
      */
-    sp.controls = function()
+    sp.getParams = function()
     {
         return sp.inputs_items;
     }
@@ -566,26 +574,28 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      *
      * @return DSP JSON description
      */
-    sp.json = function ()
+    sp.getJSON = function ()
     {
         return getJSONmydsp();
     }
     
     /**
-     * Set a compute callback of type function(buffer_size) to be called each audio cycle
+     * Set a compute handler to be called each audio cycle
      * (for instance to synchronize playing a MIDIFile...).
+     * 
+     * @param handler - a function of type function(buffer_size)
      */
-    sp.setComputeCallback = function (callback)
+    sp.setComputeHandler = function (handler)
     {
-        sp.compute_callback = callback;
+        sp.compute_handler = handler;
     }
     
     /**
-     * Get the current compute callback
+     * Get the current compute handler.
      */
-    sp.getComputeCallback = function ()
+    sp.getComputeHandler = function ()
     {
-        return sp.compute_callback;
+        return sp.compute_handler;
     }
     
     // Init resulting DSP
@@ -608,16 +618,16 @@ faust.createMemory = function (buffer_size, max_polyphony) {
     }
     
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux ()
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux ()
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
     var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;

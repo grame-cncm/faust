@@ -646,8 +646,8 @@
                                                                                    
                                                                                    faust_svg = $('<div />');
                                                                                    $('body').append(faust_svg);
-                                                                                   var handler = _f4u$t.main(DSP.json(), $(faust_svg), DSP.setParamValue);
-                                                                                   DSP.setHandler(handler);
+                                                                                   var handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
+                                                                                   DSP.setOutputParamHandler(handler);
                                                                                    console.log(DSP.getNumInputs());
                                                                                    console.log(DSP.getNumOutputs());
                                                                                    DSP.connect(audio_context.destination);
@@ -689,8 +689,8 @@
                                                                            
                                                                            faust_svg = $('<div />');
                                                                            $('body').append(faust_svg);
-                                                                           var handler = _f4u$t.main(DSP.json(), $(faust_svg), DSP.setParamValue);
-                                                                           DSP.setHandler(handler);
+                                                                           var handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
+                                                                           DSP.setOutputParamHandler(handler);
                                                                            console.log(DSP.getNumInputs());
                                                                            console.log(DSP.getNumOutputs());
                                                                            DSP.connect(audio_context.destination);

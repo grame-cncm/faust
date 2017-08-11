@@ -482,7 +482,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             return;
         }
         
-        sp.handler = null;
+        sp.output_handler = null;
         sp.ins = null;
         sp.outs = null;
        
@@ -528,10 +528,10 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
        
         sp.update_outputs = function ()
         {
-            if (sp.ouputs_items.length > 0 && sp.handler && sp.ouputs_timer-- === 0) {
+            if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
                 sp.ouputs_timer = 5;
                 for (var i = 0; i < sp.ouputs_items.length; i++) {
-                    sp.handler(sp.ouputs_items[i], instance.exports.getParamValue(sp.dsp, factory.pathTable[sp.ouputs_items[i]]));
+                    sp.output_handler(sp.ouputs_items[i], instance.exports.getParamValue(sp.dsp, factory.pathTable[sp.ouputs_items[i]]));
                 }
             }
         }
@@ -658,46 +658,98 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             }
         }
         
+        /*
+     	 Public API to be used to control the DSP.
+    	*/
+    	
+    	/* Return current sample rate */
+    	sp.getSampleRate = function ()
+        {
+            return context.sampleRate;
+        }
+        
+        /* Return instance number of audio inputs. */
         sp.getNumInputs = function ()
         {
             return instance.exports.getNumInputs(sp.dsp);
         }
         
+        /* Return instance number of audio outputs. */
         sp.getNumOutputs = function ()
         {
             return instance.exports.getNumOutputs(sp.dsp);
         }
         
+        /**
+     	 * Global init, doing the following initialization:
+     	 * - static tables initialization
+     	 * - call 'instanceInit': constants and instance state initialisation
+     	 *
+     	 * @param sample_rate - the sampling rate in Hertz
+     	 */
         sp.init = function (sample_rate)
         {
             instance.exports.init(sp.dsp, sample_rate);
         }
         
-        sp.instanceInit  = function (sample_rate)
+        /**
+         * Init instance state.
+         *
+         * @param sample_rate - the sampling rate in Hertz
+         */
+        sp.instanceInit = function (sample_rate)
         {
             instance.exports.instanceInit(sp.dsp, sample_rate);
         }
         
-        sp.instanceConstants  = function (sample_rate)
+        /**
+         * Init instance constant state.
+         *
+         * @param sample_rate - the sampling rate in Hertz
+         */
+        sp.instanceConstants = function (sample_rate)
         {
             instance.exports.instanceConstants(sp.dsp, sample_rate);
         }
         
+        /* Init default control parameters values. */
         sp.instanceResetUserInterface = function ()
         {
             instance.exports.instanceResetUserInterface(sp.dsp);
         }
         
+        /* Init instance state (delay lines...).*/
         sp.instanceClear = function ()
         {
             instance.exports.instanceClear(sp.dsp);
         }
      
-        sp.setHandler = function (hd)
+        /**
+         * Setup a control output handler with a function of type (path, value)
+         * to be used on each generated output value. This handler will be called
+         * each audio cycle at the end of the 'compute' method.
+         *
+         * @param handler - a function of type function(path, value)
+         */
+        sp.setOutputParamHandler = function (handler)
         {
-            sp.handler = hd;
+            sp.output_handler = handler;
         }
-         
+        
+        /**
+         * Get the current output handler.
+         */
+        sp.getOutputParamHandler = function ()
+   		{
+        	return sp.output_handler;
+    	}
+        
+        /**
+         * Set parameter value.
+         *
+         * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
+         * @param val - the float value for the wanted control
+         */
         sp.setParamValue = function (path, val)
         {
             var values = sp.value_table[path];
@@ -709,17 +761,34 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             }
         }
         
+        /**
+         * Get parameter value.
+         *
+         * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
+         *
+         * @return the float value
+         */
         sp.getParamValue = function (path)
         {
             return instance.exports.getParamValue(sp.dsp, factory.pathTable[path]);
         }
         
-        sp.controls = function()
+        /**
+         * Get the table of all control paths.
+         *
+         * @return the table of all input parameters paths
+         */
+        sp.getParams = function()
         {
             return inputs_items;
         }
         
-        sp.json = function ()
+        /**
+         * Get DSP JSON description with its UI and metadata
+         *
+         * @return DSP JSON description
+         */
+        sp.getJSON = function ()
         {
             return factory.getJSON();
         }
@@ -791,16 +860,16 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
     }
     
     // Keep JSON parsed object
-    var jon_object = JSON.parse(factory.getJSON());
+    var json_object = JSON.parse(factory.getJSON());
     
     function getNumInputsAux ()
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux ()
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
 	var memory_size = pow2limit(factory.getSize() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
@@ -830,16 +899,16 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         .then(dsp_instance => {
            
         // Keep JSON parsed object
-        var jon_object = JSON.parse(factory.getJSON());
+        var json_object = JSON.parse(factory.getJSON());
           
         function getNumInputsAux ()
         {
-            return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+            return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
         }
           
         function getNumOutputsAux ()
         {
-            return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+            return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
         }
         var sp;
         try {
@@ -849,13 +918,13 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             callback(null);
             return;
         }
-        sp.jon_object = jon_object;
+        sp.json_object = json_object;
       
-        sp.handler = null;
+        sp.output_handler = null;
         sp.ins = null;
         sp.outs = null
         sp.mixing = null;
-        sp.compute_callback = null;
+        sp.compute_handler = null;
               
         sp.dspInChannnels = [];
         sp.dspOutChannnels = [];
@@ -985,10 +1054,10 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
      
         sp.update_outputs = function ()
         {
-            if (sp.ouputs_items.length > 0 && sp.handler && sp.ouputs_timer-- === 0) {
+            if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
                 sp.ouputs_timer = 5;
                 for (var i = 0; i < sp.ouputs_items.length; i++) {
-                    sp.handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.ouputs_items[i]]));
+                    sp.output_handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.ouputs_items[i]]));
                 }
             }
         }
@@ -1007,8 +1076,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
 
             // Possibly call an externally given callback (for instance to play a MIDIFile...)
-            if (sp.compute_callback) {
-                sp.compute_callback(buffer_size);
+            if (sp.compute_handler) {
+                sp.compute_handler(buffer_size);
             }
         
             // First clear the outputs
@@ -1129,7 +1198,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
        
             // bargraph
-            sp.parse_ui(sp.jon_object.ui);
+            sp.parse_ui(sp.json_object.ui);
             
             // keep 'keyOn/keyOff' labels
             for (i = 0; i < sp.inputs_items.length; i++) {
@@ -1150,17 +1219,36 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
                 sp.factory.init(sp.dsp_voices[i], context.sampleRate);
             }
         }
-          
+        
+    	/*
+     	 Public API to be used to control the DSP.
+    	*/
+        
+        /* Return current sample rate. */
+        sp.getSampleRate = function ()
+        {
+            return context.sampleRate;
+        }
+        
+        /* Return instance number of audio inputs. */
         sp.getNumInputs = function ()
         {
             return getNumInputsAux();
         }
 
+        /* Return instance number of audio outputs. */
         sp.getNumOutputs = function ()
         {
             return getNumOutputsAux();
         }
         
+       /**
+        * Global init, doing the following initialization:
+        * - static tables initialization
+        * - call 'instanceInit': constants and instance state initialisation
+        *
+        * @param sample_rate - the sampling rate in Hertz
+        */
         sp.init = function (sample_rate)
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1168,6 +1256,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+       /**
+        * Init instance state.
+        *
+        * @param sample_rate - the sampling rate in Hertz
+        */
         sp.instanceInit = function (sample_rate)
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1175,6 +1268,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+       /**
+        * Init instance constant state.
+        *
+        * @param sample_rate - the sampling rate in Hertz
+        */
         sp.instanceConstants = function (sample_rate)
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1182,6 +1280,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+        /* Init default control parameters values. */
         sp.instanceResetUserInterface = function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1189,6 +1288,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+        /* Init instance state (delay lines...). */
         sp.instanceClear = function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1196,11 +1296,33 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
-        sp.setHandler = function (hd)
+       /**
+        * Setup a control output handler with a function of type (path, value)
+        * to be used on each generated output value. This handler will be called
+        * each audio cycle at the end of the 'compute' method.
+        *
+        * @param handler - a function of type function(path, value)
+        */
+        sp.setOutputParamHandler = function (handler)
         {
-            sp.handler = hd;
+            sp.output_handler = handler;
         }
+        
+       /**
+        * Get the current output handler.
+        */
+      	sp.getOutputParamHandler = function ()
+    	{
+        	return sp.output_handler;
+    	}
 
+       /**
+        * Instantiates a new polyphonic voice.
+        *
+        * @param channel - the MIDI channel (0..15, not used for now)
+        * @param pitch - the MIDI pitch (0..127)
+        * @param velocity - the MIDI velocity (0..127)
+        */
         sp.keyOn = function (channel, pitch, velocity)
         {
             var voice = sp.newVoiceAux();
@@ -1211,6 +1333,13 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             sp.dsp_voices_trigger[voice] = true; // so that envelop is always re-initialized
         }
 
+       /**
+        * De-instantiates a polyphonic voice.
+        *
+        * @param channel - the MIDI channel (0..15, not used for now)
+        * @param pitch - the MIDI pitch (0..127)
+        * @param velocity - the MIDI velocity (0..127)
+        */
         sp.keyOff = function (channel, pitch, velocity)
         {
             var voice = sp.getVoice(pitch, false);
@@ -1225,6 +1354,9 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+       /**
+        * Gently terminates all the active voices.
+        */
         sp.allNotesOff = function ()
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1233,16 +1365,33 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+       /**
+        * Controller 123 allNoteOff only is handled.
+        *
+        * @param channel - the MIDI channel (0..15, not used for now)
+        * @param ctrl - the MIDI controller number (0..127)
+        * @param value - the MIDI controller value (0..127)
+        */
         sp.ctrlChange = function (channel, ctrl, value)
         {
-            if (ctrl === 123 || ctrl === 120) {
+            if (ctrl === 123) {
                 sp.allNotesOff();
             }
         }
 
+       /**
+        * PitchWeel: empty for now.
+        *
+        */
         sp.pitchWheel = function (channel, wheel)
         {}
 
+       /**
+        * Set parameter value.
+        *
+        * @param path - the path to the wanted parameter (retrieved using 'getParams' method)
+        * @param val - the float value for the wanted parameter
+        */
         sp.setParamValue = function (path, val)
         {
             for (var i = 0; i < max_polyphony; i++) {
@@ -1250,34 +1399,55 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
         }
 
+       /**
+        * Get parameter value.
+        *
+        * @param path - the path to the wanted parameter (retrieved using 'controls' method)
+        *
+        * @return the float value
+        */
         sp.getParamValue = function (path)
         {
             return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
         }
 
-        sp.controls = function()
+       /**
+        * Get the table of all input parameters paths.
+        *
+        * @return the table of all input parameters paths
+        */
+        sp.getParams = function()
         {
             return sp.inputs_items;
         }
 
-        sp.json = function ()
+       /**
+        * Get DSP JSON description with its UI and metadata.
+        *
+        * @return DSP JSON description
+        */
+        sp.getJSON = function ()
         {
             return factory.getJSON();
         }
-
-        sp.getSampleRate = function ()
+ 
+       /**
+        * Set a compute handler to be called each audio cycle
+        * (for instance to synchronize playing a MIDIFile...).
+        *
+        * @param handler - a function of type function(buffer_size)
+        */
+        sp.setComputeHandler = function (handler)
         {
-            return context.sampleRate;
-        }
-    
-        sp.setComputeCallback = function (callback)
-        {
-            sp.compute_callback = callback;
+            sp.compute_handler = handler;
         }
         
-        sp.getComputeCallback = function ()
+       /**
+        * Get the current compute handler.
+        */
+        sp.getComputeHandler = function ()
         {
-            return sp.compute_callback;
+            return sp.compute_handler;
         }
        
         // Init resulting DSP

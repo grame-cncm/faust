@@ -35,23 +35,23 @@ window.Math.tan = global.Math.tan;
 
 faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
-    var handler = null;
+    var output_handler = null;
     var ins, outs;
     
     var dspInChannnels = [];
     var dspOutChannnels = [];
    
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
     var numIn = getNumInputsAux();
@@ -110,10 +110,10 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         
     function update_outputs () 
     {
-        if (ouputs_items.length > 0 && handler && ouputs_timer-- === 0) {
+        if (ouputs_items.length > 0 && output_handler && ouputs_timer-- === 0) {
             ouputs_timer = 5;
             for (var i = 0; i < ouputs_items.length; i++) {
-                handler(ouputs_items[i], factory.getParamValue(dsp, pathTable[ouputs_items[i]]));
+                output_handler(ouputs_items[i], factory.getParamValue(dsp, pathTable[ouputs_items[i]]));
             }
         }
     }
@@ -230,7 +230,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         }
                                 
         // bargraph
-        parse_ui(jon_object.ui);
+        parse_ui(json_object.ui);
         
         // Init DSP
         factory.init(dsp, sample_rate);
@@ -260,10 +260,10 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     
     // External API
     return {
-    
-        destroy : function ()
+     	
+        getSampleRate : function () 
         {
-            // Nothing to do
+            return factory.getSampleRate(dsp);
         },
         
         getNumInputs : function () 
@@ -275,12 +275,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         {
             return getNumOutputsAux();
         },
-        
-        getSampleRate : function () 
-        {
-            return factory.getSampleRate(dsp);
-        },
-        
+               
         init : function (sample_rate) 
         {
             factory.init(dsp, sample_rate);
@@ -306,9 +301,14 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             factory.instanceClear(dsp);
         },
         
-        setHandler : function (hd)
+        setOutputParamHandler : function (handler)
         {
-            handler = hd;
+            output_handler = handler;
+        },
+        
+        getOutputParamHandler : function ()
+        {
+            return output_handler;
         },
         
         setParamValue : function (path, val) 
@@ -326,17 +326,17 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             return factory.getParamValue(dsp, pathTable[path]);
         },
         
-        controls : function()
+        getParams : function()
         {
             return inputs_items;
         },
         
-        buttons : function()
+        getButtonsParams : function()
         {
             return buttons_items;
         },
         
-        json : function ()
+        getJSON : function ()
         {
             return getJSONmydsp();
         },
@@ -398,7 +398,7 @@ var normalize = function(f)
 
 var setButtons = function(dsp, value)
 {
-    var buttons = dsp.buttons();
+    var buttons = dsp.getButtonsParams();
     for (var i = 0; i < buttons.length; i++) {
          dsp.setParamValue(buttons[i], value);
     }
@@ -427,7 +427,7 @@ function startDSP(instance, buffer_size)
     //console.log(DSP.json());
     //console.log(DSP.buttons());
     //console.log(control_data);
-    //console.log(DSP.controls());
+    //console.log(DSP.getParams());
 
     // Write output file header
     console.log("number_of_inputs  : ", DSP.getNumInputs());
@@ -441,7 +441,7 @@ function startDSP(instance, buffer_size)
     }
 
     // Check setParamValue/getParamValue
-    var path_table = DSP.controls();
+    var path_table = DSP.getParams();
     for (var i = 0; i < path_table.length; i++) {
         DSP.setParamValue1(path_table[i], 0.1234);
         if (DSP.getParamValue(path_table[i]) !== 0.1234) {

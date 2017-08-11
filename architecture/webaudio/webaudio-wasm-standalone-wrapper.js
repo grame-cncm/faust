@@ -35,16 +35,16 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 faust.mydsp = function (instance, context, buffer_size) {
 
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux ()
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux ()
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
 
     var sp;
@@ -55,9 +55,9 @@ faust.mydsp = function (instance, context, buffer_size) {
         return null;
     }
     
-    sp.jon_object = jon_object;
+    sp.json_object = json_object;
     
-    sp.handler = null;
+    sp.output_handler = null;
     sp.ins = null;
     sp.outs = null;
     
@@ -110,10 +110,10 @@ faust.mydsp = function (instance, context, buffer_size) {
         
     sp.update_outputs = function ()
     {
-        if (sp.outputs_items.length > 0 && sp.handler && sp.outputs_timer-- === 0) {
+        if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
             sp.outputs_timer = 5;
             for (var i = 0; i < sp.outputs_items.length; i++) {
-                sp.handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.outputs_items[i]]));
+                sp.output_handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.outputs_items[i]]));
             }
         }
     }
@@ -226,7 +226,7 @@ faust.mydsp = function (instance, context, buffer_size) {
         }
                                 
         // bargraph
-        sp.parse_ui(sp.jon_object.ui);
+        sp.parse_ui(sp.json_object.ui);
         
         // Init DSP
         sp.factory.init(sp.dsp, context.sampleRate);
@@ -243,25 +243,25 @@ faust.mydsp = function (instance, context, buffer_size) {
     /*
      Public API to be used to control the DSP.
     */
-    
+
     /* Return current sample rate */
     sp.getSampleRate = function ()
     {
         return context.sampleRate;
     }
-    
+
     /* Return instance number of audio inputs. */
     sp.getNumInputs = function ()
     {
         return getNumInputsAux();
     }
-    
+
     /* Return instance number of audio outputs. */
     sp.getNumOutputs = function ()
     {
         return getNumOutputsAux();
     }
-    
+
     /**
      * Global init, doing the following initialization:
      * - static tables initialization
@@ -273,7 +273,7 @@ faust.mydsp = function (instance, context, buffer_size) {
     {
         sp.factory.init(sp.dsp, sample_rate);
     }
-    
+
     /** 
      * Init instance state.
      *
@@ -283,7 +283,7 @@ faust.mydsp = function (instance, context, buffer_size) {
     {
         sp.factory.instanceInit(sp.dsp, sample_rate);
     }
-    
+
     /** 
      * Init instance constant state.
      *
@@ -293,13 +293,13 @@ faust.mydsp = function (instance, context, buffer_size) {
     {
         sp.factory.instanceConstants(sp.dsp, sample_rate);
     }
-    
+
     /* Init default control parameters values. */
     sp.instanceResetUserInterface = function ()
     {
         sp.factory.instanceResetUserInterface(sp.dsp);
     }
-    
+
     /* Init instance state (delay lines...).*/
     sp.instanceClear = function ()
     {
@@ -311,18 +311,26 @@ faust.mydsp = function (instance, context, buffer_size) {
      * to be used on each generated output value. This handler will be called
      * each audio cycle at the end of the 'compute' method.
      *
-     * @param hd - a function of type function(path_to_control, value)
+     * @param handler - a function of type function(path, value)
      */
-    sp.setHandler = function (hd)
-    {
-        sp.handler = hd;
-    }
+     sp.setOutputParamHandler = function (handler)
+     {
+         sp.output_handler = handler;
+     }
+
+     /**
+     * Get the current output handler.
+     */
+     sp.getOutputParamHandler = function ()
+     {
+         return sp.output_handler;
+     }
 
     /**
      * Set control value.
      *
-     * @param path - the path to the wanted control (retrieved using 'controls' method)
-     * @param val - the float value for the wanted control
+     * @param path - the path to the wanted control (retrieved using 'getParams' method)
+     * @param val - the float value for the wanted parameter
      */
     sp.setParamValue = function (path, val)
     {
@@ -348,11 +356,11 @@ faust.mydsp = function (instance, context, buffer_size) {
     }
     
     /**
-     * Get the table of all control paths.
+     * Get the table of all input parameters paths.
      *
-     * @return the table of all control paths
+     * @return the table of all input parameter paths.
      */
-    sp.controls = function()
+    sp.getParams = function()
     {
         return sp.inputs_items;
     }
@@ -362,7 +370,7 @@ faust.mydsp = function (instance, context, buffer_size) {
      *
      * @return DSP JSON description
      */
-    sp.json = function ()
+    sp.getJSON = function ()
     {
         return getJSONmydsp();
     }

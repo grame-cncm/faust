@@ -45,16 +45,16 @@ faust.mydsp = function (buffer_size, sample_rate) {
     var dspOutChannnels = [];
    
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
     var numIn = getNumInputsAux();
@@ -238,7 +238,7 @@ faust.mydsp = function (buffer_size, sample_rate) {
         }
                                 
         // bargraph
-        parse_ui(jon_object.ui);
+        parse_ui(json_object.ui);
         
         // Init DSP
         factory.init(dsp, sample_rate);

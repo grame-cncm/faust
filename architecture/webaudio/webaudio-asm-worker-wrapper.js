@@ -357,16 +357,16 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, sha_k
     var getJSON = eval("getJSON" + factory_name);
     
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSON());
+    var json_object = JSON.parse(getJSON());
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
     var dsp_memory_size;

@@ -87,16 +87,16 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
     var fDate = 0;
     
     // Keep JSON parsed object
-    var jon_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONmydsp());
     
     function getNumInputsAux () 
     {
-        return (jon_object.inputs !== undefined) ? parseInt(jon_object.inputs) : 0;
+        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
     }
     
     function getNumOutputsAux () 
     {
-        return (jon_object.outputs !== undefined) ? parseInt(jon_object.outputs) : 0;
+        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
       
     var numIn = getNumInputsAux();
@@ -382,7 +382,7 @@ faust.mydsp_poly = function (context, buffer_size, max_polyphony, callback) {
         }
         
         // bargraph
-        parse_ui(jon_object.ui);
+        parse_ui(json_object.ui);
         
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < inputs_items.length; i++) {
