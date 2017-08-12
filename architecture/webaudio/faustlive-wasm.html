@@ -276,7 +276,7 @@
         You can change the buffer size (from 256 to 8192 frames).
         <P>
         <H3>Polyphonic instrument </H3>
-        Assuming your DSP is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, and test it with a MIDI device or application (usable with Chrome with uses the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
+        Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, and test it with a MIDI device or application (usable with Chrome with uses the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
         <H3>Float denormals handling </H3>
         Parameter: 0 means no denormal handling, 1 mode uses <B>fabs</B> and a <B>treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
         <P>
@@ -324,12 +324,12 @@
                     </form>
                 </center>
                 
-                <td>
-                <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save DSP parameters</B><br>
             </tr>
             </table>
             </center>
             
+            <center> <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save DSP control parameters</B> </center>
+                
             <div id="filedrag">
                 Loading JavaScript/WebAssembly ressources...
             </div>
