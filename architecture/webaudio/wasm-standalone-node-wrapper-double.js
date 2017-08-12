@@ -32,7 +32,6 @@ window.Math.sqrt = global.Math.sqrt;
 window.Math.tan = global.Math.tan;
 
 // Standard Faust DSP
-
 faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
     var output_handler = null;
@@ -417,7 +416,7 @@ var control_data;
 
 function startDSP(instance, buffer_size)
 {
-  // Creates DSP and buffers
+	// Creates DSP and buffers
     var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
     create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
 
@@ -512,16 +511,6 @@ function startDSP(instance, buffer_size)
     
 }
 
-// Create WASM context, read WASM file and start
-
-function instantiate(bytes, imports)
-{
-    try {
-    	//return WebAssembly.instantiate(bytes, imports).then(result => result.instance);
-       	return WebAssembly.compile(bytes).then(m => new WebAssembly.Instance(m, imports));
-   } catch (e) {}
-}
-
 var asm2wasm = { // special asm2wasm imports
     "fmod": function(x, y) {
         return x % y;
@@ -547,9 +536,7 @@ var importObject = { imports: { print: arg => console.log(arg) } }
 importObject["global.Math"] = window.Math;
 importObject["asm2wasm"] = asm2wasm;
 var response = toUint8Array(fs.readFileSync('DSP.wasm'));
-//console.log(response);
 var bytes = response.buffer;
-//console.log("bytes " + bytes);
 
 var res = WebAssembly.compile(bytes)
         .then(m => { WebAssembly.instantiate(m, importObject)

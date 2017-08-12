@@ -13,6 +13,7 @@ var audio_input = null;
 var midi_input = [];
 var DSP_poly = null;
 var faustsvg = null;
+var output_handler = null;
 
 function changeBufferSize(buffer_size)
 {
@@ -136,6 +137,32 @@ function getDevice(device)
     audio_input.connect(DSP_poly);
 }
 
+// Save/Load functions using local storage (no yet working since 'params' does not reflect the polyphonic layout...)
+function saveDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP_poly.getParams();
+        for (var i = 0; i < params.length; i++) {
+            localStorage.setItem(params[i], DSP_poly.getParamValue(params[i]));
+        }
+    }
+}
+
+function loadDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP_poly.getParams();
+        for (var i = 0; i < params.length; i++) {
+            if (localStorage.getItem(params[i])) {
+                // Restore DSP state
+                DSP_poly.setParamValue(params[i], Number(localStorage.getItem(params[i])));
+                // Restore GUI state
+                output_handler(params[i], Number(localStorage.getItem(params[i])));
+            }
+        }
+    }
+}
+
 function startDSPAux(dsp)
 {
     if (DSP_poly) {
@@ -164,8 +191,11 @@ function startDSPAux(dsp)
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    var handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, DSP_poly.setParamValue);
-    DSP_poly.setOutputParamHandler(handler);
+    output_handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, DSP_poly.setParamValue);
+    DSP_poly.setOutputParamHandler(output_handler);
+    
+    // No yet working
+    //loadDSP();
 }
 
 function startDSP()
@@ -199,9 +229,11 @@ window.addEventListener('touchstart', function() {
                         }, false);
                         
                         // Polyphonic instrument
-                        
                         $(startDSP);
                         
+// Save DSP state to local storage
+setInterval(function() { saveDSP(); }, 1000);
+
 </script>
 
 <P>

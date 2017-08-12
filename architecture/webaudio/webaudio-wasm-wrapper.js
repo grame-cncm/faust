@@ -614,7 +614,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             var i;
             
             // Setup web audio context
-            console.log("buffer_size %d", buffer_size);
+            console.log("buffer_size " + buffer_size);
             sp.onaudioprocess = sp.compute;
         
             if (sp.numIn > 0) {
@@ -780,7 +780,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
          */
         sp.getParams = function()
         {
-            return inputs_items;
+            return sp.inputs_items;
         }
         
         /**
@@ -1165,7 +1165,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             var i;
              
             // Setup web audio context
-            console.log("buffer_size %d", buffer_size);
+            console.log("buffer_size " + buffer_size);
             sp.onaudioprocess = sp.compute;
         
             if (sp.numIn > 0) {

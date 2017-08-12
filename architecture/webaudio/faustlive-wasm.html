@@ -323,6 +323,9 @@
                         </select>
                     </form>
                 </center>
+                
+                <td>
+                <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save DSP parameters</B><br>
             </tr>
             </table>
             </center>
@@ -362,6 +365,7 @@
             var faust_svg = null;
             var poly_flag = "OFF";
             var ftz_flag = "2";
+            var output_handler = null;
             var libraries_url = "http://127.0.0.1:8000/libraries/";
             //var libraries_url = "http://faust.grame.fr/modules/libraries/";
             
@@ -497,6 +501,40 @@
                 audio_input.connect(DSP);
             }
             
+            function setLocalStorage(state)
+            {
+                console.log(state);
+                if (typeof(Storage) !== "undefined") {
+                    localStorage.setItem("FaustLocalStorage", ((state) ? "on" : "off"));
+                }
+            }
+            
+            // Save/Load functions using local storage
+            function saveDSP()
+            {
+                if (typeof(Storage) !== "undefined") {
+                    var params = DSP.getParams();
+                    for (var i = 0; i < params.length; i++) {
+                        localStorage.setItem(params[i], DSP.getParamValue(params[i]));
+                    }
+                }
+            }
+            
+            function loadDSP()
+            {
+                if (typeof(Storage) !== "undefined") {
+                    var params = DSP.getParams();
+                    for (var i = 0; i < params.length; i++) {
+                        if (localStorage.getItem(params[i])) {
+                            // Restore DSP state
+                            DSP.setParamValue(params[i], Number(localStorage.getItem(params[i])));
+                            // Restore GUI state
+                            output_handler(params[i], Number(localStorage.getItem(params[i])));
+                        }
+                    }
+                }
+            }
+            
             function fileDragHover(e)
             {
                 e.stopPropagation();
@@ -629,28 +667,31 @@
                                                                                16,
                                                                                function (dsp) {
                                                                                
-                                                                                   if (!dsp) {
+                                                                                    if (!dsp) {
                                                                                         alert(faust.getErrorMessage());
                                                                                         return;
-                                                                                   }
+                                                                                    }
                                                                                
-                                                                                   DSP = dsp;
-                                                                                   if (DSP.getNumInputs() > 0) {
+                                                                                    DSP = dsp;
+                                                                                    if (DSP.getNumInputs() > 0) {
                                                                                         activateAudioInput();
-                                                                                   } else {
+                                                                                    } else {
                                                                                         audio_input = null;
-                                                                                   }
+                                                                                    }
                                                                                    
-                                                                                   // Setup UI
-                                                                                   _f4u$t.main_loop = function() {}
+                                                                                    // Setup UI
+                                                                                    _f4u$t.main_loop = function() {}
                                                                                    
-                                                                                   faust_svg = $('<div />');
-                                                                                   $('body').append(faust_svg);
-                                                                                   var handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
-                                                                                   DSP.setOutputParamHandler(handler);
-                                                                                   console.log(DSP.getNumInputs());
-                                                                                   console.log(DSP.getNumOutputs());
-                                                                                   DSP.connect(audio_context.destination);
+                                                                                    faust_svg = $('<div />');
+                                                                                    $('body').append(faust_svg);
+                                                                                    output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
+                                                                                    DSP.setOutputParamHandler(output_handler);
+                                                                                    console.log(DSP.getNumInputs());
+                                                                                    console.log(DSP.getNumOutputs());
+                                                                                    DSP.connect(audio_context.destination);
+                                                                               
+                                                                                    // No yet working
+                                                                                    //if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
                                                                                });
                                                 });
                                                
@@ -672,28 +713,30 @@
                                                                        buffer_size,
                                                                        function (dsp) {
                                                                        
-                                                                           if (!dsp) {
+                                                                            if (!dsp) {
                                                                                 alert(faust.getErrorMessage());
                                                                                 return;
-                                                                           }
+                                                                            }
                                                                        
-                                                                           DSP = dsp;
-                                                                           if (DSP.getNumInputs() > 0) {
+                                                                            DSP = dsp;
+                                                                            if (DSP.getNumInputs() > 0) {
                                                                                 activateAudioInput();
-                                                                           } else {
+                                                                            } else {
                                                                                 audio_input = null;
-                                                                           }
+                                                                            }
                                                                            
-                                                                           // Setup UI
-                                                                           _f4u$t.main_loop = function() {}
+                                                                            // Setup UI
+                                                                            _f4u$t.main_loop = function() {}
                                                                            
-                                                                           faust_svg = $('<div />');
-                                                                           $('body').append(faust_svg);
-                                                                           var handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
-                                                                           DSP.setOutputParamHandler(handler);
-                                                                           console.log(DSP.getNumInputs());
-                                                                           console.log(DSP.getNumOutputs());
-                                                                           DSP.connect(audio_context.destination);
+                                                                            faust_svg = $('<div />');
+                                                                            $('body').append(faust_svg);
+                                                                            output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
+                                                                            DSP.setOutputParamHandler(output_handler);
+                                                                            console.log(DSP.getNumInputs());
+                                                                            console.log(DSP.getNumOutputs());
+                                                                            DSP.connect(audio_context.destination);
+                                                                       
+                                                                            if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
                                                                        });
                                            });
                 }
@@ -708,12 +751,19 @@
             function init()
             {
                 activateMIDIInput();
+                
+                var ls = document.getElementById("localstorage");
+                ls.checked = (localStorage.getItem("FaustLocalStorage") === "on");
+                
                 var filedrag1 = document.getElementById("filedrag");
                 filedrag1.addEventListener("dragover", fileDragHover, false);
                 filedrag1.addEventListener("dragleave", fileDragHover, false);
                 filedrag1.addEventListener("drop", uploadFile, false);
                 filedrag1.textContent = "Drop your Faust .dsp file here (compiled using libfaust version " + faust.getLibFaustVersion() + ")";
             }
+            
+            // Save DSP state to local storage
+            setInterval(function() { if (DSP && localStorage.getItem("FaustLocalStorage") === "on") saveDSP(); }, 1000);
             
             // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             FaustModule()['onRuntimeInitialized'] = init;

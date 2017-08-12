@@ -11,6 +11,7 @@ var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContex
 var audio_input = null;
 var DSP = null;
 var faustsvg = null;
+var output_handler = null;
 
 function changeBufferSize(buffer_size)
 {
@@ -46,6 +47,32 @@ function getDevice(device)
     audio_input.connect(DSP);
 }
 
+// Save/Load functions using local storage
+function saveDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP.getParams();
+        for (var i = 0; i < params.length; i++) {
+            localStorage.setItem(params[i], DSP.getParamValue(params[i]));
+        }
+    }
+}
+
+function loadDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP.getParams();
+        for (var i = 0; i < params.length; i++) {
+            if (localStorage.getItem(params[i])) {
+                // Restore DSP state
+                DSP.setParamValue(params[i], Number(localStorage.getItem(params[i])));
+                // Restore GUI state
+                output_handler(params[i], Number(localStorage.getItem(params[i])));
+            }
+        }
+    }
+}
+
 function startDSPAux(dsp)
 {
     if (DSP) {
@@ -62,6 +89,7 @@ function startDSPAux(dsp)
     }
     
     DSP = dsp;
+    
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
@@ -75,8 +103,11 @@ function startDSPAux(dsp)
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    var handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
-    DSP.setOutputParamHandler(handler);
+    output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
+    DSP.setOutputParamHandler(output_handler);
+    
+    // Load DSP state from local storage
+    loadDSP();
 }
 
 function startDSP()
@@ -110,8 +141,10 @@ window.addEventListener('touchstart', function() {
                         }, false);
                         
                         // General
-                        
                         $(startDSP);
+                        
+// Save DSP state to local storage
+setInterval(function() { saveDSP(); }, 1000);
                         
 </script>
 
