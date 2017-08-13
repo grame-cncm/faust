@@ -994,59 +994,70 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             sp.dsp_voices_trigger[i] = false;
         }
 
-        // Always returns a voice
-        sp.newVoiceAux = function ()
+        sp.getPlayingVoice = function(pitch)
         {
-            var voice = sp.getVoice(sp.kFreeVoice, true);
+            var voice_playing = sp.kNoVoice;
+            var oldest_date_playing = Number.MAX_VALUE;
+          
+            for (var i = 0; i < max_polyphony; i++) {
+                if (sp.dsp_voices_state[i] === pitch) {
+                    // Keeps oldest playing voice
+                    if (sp.dsp_voices_date[i] < oldest_date_playing) {
+                        oldest_date_playing = sp.dsp_voices_date[i];
+                        voice_playing = i;
+                    }
+                }
+            }
+              
+            return voice_playing;
+        }
+              
+        // Always returns a voice
+        sp.allocVoice = function(voice)
+        {
+            sp.dsp_voices_date[voice] = sp.fDate++;
+            sp.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
             sp.dsp_voices_state[voice] = sp.kActiveVoice;
             return voice;
         }
     
-        sp.getVoice = function(note, steal)
+        sp.getFreeVoice = function()
         {
             for (var i = 0; i < max_polyphony; i++) {
-                if (sp.dsp_voices_state[i] === note) {
-                    if (steal) { sp.dsp_voices_date[i] = sp.fDate++; }
-                    return i;
+                if (sp.dsp_voices_state[i] === sp.kFreeVoice) {
+                    return sp.allocVoice(i);
                 }
             }
 
-            if (steal) {
-                var voice_release = sp.kNoVoice;
-                var voice_playing = sp.kNoVoice;
-                var oldest_date_release = Number.MAX_VALUE;
-                var oldest_date_playing = Number.MAX_VALUE;
+            var voice_release = sp.kNoVoice;
+            var voice_playing = sp.kNoVoice;
+            var oldest_date_release = Number.MAX_VALUE;
+            var oldest_date_playing = Number.MAX_VALUE;
 
-                // Scan all voices
-                for (var i = 0; i < max_polyphony; i++) {
-                    // Try to steal a voice in kReleaseVoice mode...
-                    if (sp.dsp_voices_state[i] === sp.kReleaseVoice) {
-                        // Keeps oldest release voice
-                        if (sp.dsp_voices_date[i] < oldest_date_release) {
-                            oldest_date_release = sp.dsp_voices_date[i];
-                            voice_release = i;
-                        }
-                    } else {
-                        if (sp.dsp_voices_date[i] < oldest_date_playing) {
-                            oldest_date_playing = sp.dsp_voices_date[i];
-                            voice_playing = i;
-                        }
+            // Scan all voices
+            for (var i = 0; i < max_polyphony; i++) {
+                // Try to steal a voice in kReleaseVoice mode...
+                if (sp.dsp_voices_state[i] === sp.kReleaseVoice) {
+                    // Keeps oldest release voice
+                    if (sp.dsp_voices_date[i] < oldest_date_release) {
+                        oldest_date_release = sp.dsp_voices_date[i];
+                        voice_release = i;
+                    }
+                } else {
+                    if (sp.dsp_voices_date[i] < oldest_date_playing) {
+                        oldest_date_playing = sp.dsp_voices_date[i];
+                        voice_playing = i;
                     }
                 }
+            }
 
-                // Then decide which one to steal
-                if (oldest_date_release != Number.MAX_VALUE) {
-                    console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
-                    sp.dsp_voices_date[voice_release] = sp.fDate++;
-                    sp.dsp_voices_trigger[voice_release] = true;
-                    return voice_release;
-                } else {
-                    console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
-                    sp.dsp_voices_date[voice_playing] = sp.fDate++;
-                    sp.dsp_voices_trigger[voice_playing] = true;
-                    return voice_playing;
-                }
-
+            // Then decide which one to steal
+            if (oldest_date_release != Number.MAX_VALUE) {
+                console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
+                return sp.allocVoice(voice_release);
+            } else if (oldest_date_playing != Number.MAX_VALUE) {
+                console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
+                return sp.allocVoice(voice_playing);
             } else {
                 return sp.kNoVoice;
             }
@@ -1325,12 +1336,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.keyOn = function (channel, pitch, velocity)
         {
-            var voice = sp.newVoiceAux();
+            var voice = sp.getFreeVoice();
             //console.log("keyOn voice %d", voice);
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
             sp.dsp_voices_state[voice] = pitch;
-            sp.dsp_voices_trigger[voice] = true; // so that envelop is always re-initialized
         }
 
        /**
@@ -1342,7 +1352,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.keyOff = function (channel, pitch, velocity)
         {
-            var voice = sp.getVoice(pitch, false);
+            var voice = sp.getPlayingVoice(pitch);
             if (voice !== sp.kNoVoice) {
                 //console.log("keyOff voice %d", voice);
                 // No use of velocity for now...
@@ -1374,7 +1384,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.ctrlChange = function (channel, ctrl, value)
         {
-            if (ctrl === 123) {
+            if (ctrl === 123 || ctrl === 120) {
                 sp.allNotesOff();
             }
         }

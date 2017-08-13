@@ -144,8 +144,8 @@ window.addEventListener('touchstart', function() {
                         $(startDSP);
                         
 // Save DSP state to local storage
-setInterval(function() { saveDSP(); }, 1000);
-                        
+setInterval(function() { if (DSP) saveDSP(); }, 1000);
+ 
 </script>
 
 <P>
