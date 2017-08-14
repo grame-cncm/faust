@@ -471,11 +471,11 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
     importObject["asm2wasm"] = faust.asm2wasm;
     
     WebAssembly.instantiate(factory.module, importObject)
-    .then(instance => {
+    .then(dsp_instance => {
     
         var sp;
         try {
-            sp = context.createScriptProcessor(buffer_size, instance.exports.getNumInputs(0), instance.exports.getNumOutputs(0));
+            sp = context.createScriptProcessor(buffer_size, dsp_instance.exports.getNumInputs(0), dsp_instance.exports.getNumOutputs(0));
         } catch (e) {
             faust.error_msg = "Error in createScriptProcessor: " + e;
             callback(null);
@@ -506,14 +506,15 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         // Start of DSP memory : DSP is placed first with index 0
         sp.dsp = 0;
         
-        sp.HEAP = instance.exports.memory.buffer;
+        sp.factory = dsp_instance.exports;
+        sp.HEAP = dsp_instance.exports.memory.buffer;
         sp.HEAP32 = new Int32Array(sp.HEAP);
         sp.HEAPF32 = new Float32Array(sp.HEAP);
         
         // Start of HEAP index
         
-        sp.numIn = instance.exports.getNumInputs(sp.dsp);
-        sp.numOut = instance.exports.getNumOutputs(sp.dsp);
+        sp.numIn = sp.factory.getNumInputs(sp.dsp);
+        sp.numOut = sp.factory.getNumOutputs(sp.dsp);
         
         // DSP is placed first with index 0. Audio buffer starts at the end of DSP.
         sp.audio_heap_ptr = factory.getSize();
@@ -531,7 +532,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
                 sp.ouputs_timer = 5;
                 for (var i = 0; i < sp.ouputs_items.length; i++) {
-                    sp.output_handler(sp.ouputs_items[i], instance.exports.getParamValue(sp.dsp, factory.pathTable[sp.ouputs_items[i]]));
+                    sp.output_handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp, factory.pathTable[sp.ouputs_items[i]]));
                 }
             }
         }
@@ -553,12 +554,12 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             for (i = 0; i < sp.inputs_items.length; i++) {
                 var path = sp.inputs_items[i];
                 var values = sp.value_table[path];
-                instance.exports.setParamValue(sp.dsp, factory.pathTable[path], values[0]);
+                sp.factory.setParamValue(sp.dsp, factory.pathTable[path], values[0]);
                 values[0] = values[1];
             }
 
             // Compute
-            instance.exports.compute(sp.dsp, buffer_size, sp.ins, sp.outs);
+            sp.factory.compute(sp.dsp, buffer_size, sp.ins, sp.outs);
            
             // Update bargraph
             sp.update_outputs();
@@ -647,13 +648,13 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             sp.parse_ui(JSON.parse(factory.getJSON()).ui);
         
             // Init DSP
-            instance.exports.init(sp.dsp, context.sampleRate);
+            sp.factory.init(sp.dsp, context.sampleRate);
           
              // Init 'value' table
             for (var i = 0; i < sp.inputs_items.length; i++) {
                 var path = sp.inputs_items[i];
                 var values = new Float32Array(2);
-                values[0] = values[1] = instance.exports.getParamValue(sp.dsp, factory.pathTable[path]);
+                values[0] = values[1] = sp.factory.getParamValue(sp.dsp, factory.pathTable[path]);
                 sp.value_table[path] = values;
             }
         }
@@ -671,13 +672,13 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         /* Return instance number of audio inputs. */
         sp.getNumInputs = function ()
         {
-            return instance.exports.getNumInputs(sp.dsp);
+            return sp.factory.getNumInputs(sp.dsp);
         }
         
         /* Return instance number of audio outputs. */
         sp.getNumOutputs = function ()
         {
-            return instance.exports.getNumOutputs(sp.dsp);
+            return sp.factory.getNumOutputs(sp.dsp);
         }
         
         /**
@@ -689,7 +690,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
      	 */
         sp.init = function (sample_rate)
         {
-            instance.exports.init(sp.dsp, sample_rate);
+            sp.factory.init(sp.dsp, sample_rate);
         }
         
         /**
@@ -699,7 +700,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
          */
         sp.instanceInit = function (sample_rate)
         {
-            instance.exports.instanceInit(sp.dsp, sample_rate);
+            sp.factory.instanceInit(sp.dsp, sample_rate);
         }
         
         /**
@@ -709,19 +710,19 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
          */
         sp.instanceConstants = function (sample_rate)
         {
-            instance.exports.instanceConstants(sp.dsp, sample_rate);
+            sp.factory.instanceConstants(sp.dsp, sample_rate);
         }
         
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = function ()
         {
-            instance.exports.instanceResetUserInterface(sp.dsp);
+            sp.factory.instanceResetUserInterface(sp.dsp);
         }
         
         /* Init instance state (delay lines...).*/
         sp.instanceClear = function ()
         {
-            instance.exports.instanceClear(sp.dsp);
+            sp.factory.instanceClear(sp.dsp);
         }
      
         /**
@@ -754,7 +755,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         {
             var values = sp.value_table[path];
             if (values) {
-                if (instance.exports.getParamValue(sp.dsp, factory.pathTable[path]) === values[0]) {
+                if (sp.factory.getParamValue(sp.dsp, factory.pathTable[path]) === values[0]) {
                     values[0] = val;
                 } 
                 values[1] = val;
@@ -770,7 +771,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
          */
         sp.getParamValue = function (path)
         {
-            return instance.exports.getParamValue(sp.dsp, factory.pathTable[path]);
+            return sp.factory.getParamValue(sp.dsp, factory.pathTable[path]);
         }
         
         /**

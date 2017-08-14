@@ -26,15 +26,16 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 /**
  * Constructor
  *
- * @param instance - the wasm instance
+ * @param mixer_instance - the wasm mixer instance
+ * @param dsp_instance - the wasm DSP instance
  * @param memory - the wasm memory
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
  *
- * @return a valid dsp object or null
+ * @return a valid WebAudio ScriptProcessorNode object or null
  */
-faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony, callback) {
+faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony) {
 
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
@@ -63,7 +64,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.ins = null;
     sp.outs = null;
     sp.mixing = null;
-    sp.compute_handler = callback;
+    sp.compute_handler = null;
     
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
@@ -652,7 +653,7 @@ faust.createMemory = function (buffer_size, max_polyphony) {
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
- * @param callback - a callback taking the allocated DSP as parameter
+ * @param callback - a callback taking the created ScriptProcessorNode as parameter
  */
 faust.createmydsp = function(filename, context, buffer_size, max_polyphony, callback)
 {

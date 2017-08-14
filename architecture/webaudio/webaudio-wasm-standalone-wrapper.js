@@ -26,13 +26,13 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 /** 
 * Constructor
 *
-* @param instance - the wasm instance
+* @param dsp_instance - the wasm instance
 * @param context - the Web Audio context
 * @param buffer_size - the buffer_size in frames
 * 
-* @return a valid DSP object or null 
+* @return a valid WebAudio ScriptProcessorNode object or null
 */
-faust.mydsp = function (instance, context, buffer_size) {
+faust.mydsp = function (dsp_instance, context, buffer_size) {
 
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
@@ -71,8 +71,8 @@ faust.mydsp = function (instance, context, buffer_size) {
     sp.ptr_size = 4;
     sp.sample_size = 4;
     
-    sp.factory = instance.exports;
-    sp.HEAP = instance.exports.memory.buffer;
+    sp.factory = dsp_instance.exports;
+    sp.HEAP = dsp_instance.exports.memory.buffer;
     sp.HEAP32 = new Int32Array(sp.HEAP);
     sp.HEAPF32 = new Float32Array(sp.HEAP);
      
@@ -387,7 +387,7 @@ faust.mydsp = function (instance, context, buffer_size) {
 * @param filename - the wasm filename
 * @param context - the Web Audio context
 * @param buffer_size - the buffer_size in frames
-* @param callback - a callback taking the allocated DSP as parameter
+* @param callback - a callback taking the created ScriptProcessorNode as parameter
 */
 faust.createmydsp = function(filename, context, buffer_size, callback)
 {
