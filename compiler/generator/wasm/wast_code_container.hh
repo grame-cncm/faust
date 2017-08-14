@@ -78,4 +78,17 @@ class WASTScalarCodeContainer : public WASTCodeContainer {
 
 };
 
+class WASTVectorCodeContainer : public WASTCodeContainer {
+    
+    protected:
+        
+    public:
+        
+        WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+        virtual ~WASTVectorCodeContainer();
+        
+        void generateCompute(int tab);
+    
+};
+
 #endif

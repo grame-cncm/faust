@@ -405,4 +405,17 @@ void WASMScalarCodeContainer::generateCompute()
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 
+// Vector
+WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory)
+    :WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
+{
+    // No array on stack, move all of them in struct
+    gGlobal->gMachineMaxStackSize = -1;
+}
+
+WASMVectorCodeContainer::~WASMVectorCodeContainer()
+{}
+
+void WASMVectorCodeContainer::generateCompute()
+{}
 

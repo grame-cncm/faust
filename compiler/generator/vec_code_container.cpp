@@ -153,7 +153,7 @@ void VectorCodeContainer::processFIR(void)
         moveStack2Struct();
     } else {
         // Sort arrays to be at the begining
-        fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
+        //fComputeBlockInstructions->fCode.sort(sortArrayDeclarations);
     }
     
     string fullcount = "fullcount";

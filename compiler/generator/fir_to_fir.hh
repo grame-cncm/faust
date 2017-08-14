@@ -79,9 +79,9 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
             // Variable moved to the Struct
             fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
             
-            // For local thread access (in compute), rewrite the Declare instruction by a Store
+            // For local thread access (in compute), rewrite the Declare instruction by a Store and put in Init section
             if (inst->fValue) {
-                fContainer->pushComputeBlockMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
+                fContainer->pushInitMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
             }
             
             // Mark inst to be removed

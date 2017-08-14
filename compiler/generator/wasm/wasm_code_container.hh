@@ -75,4 +75,17 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
 
 };
 
+class WASMVectorCodeContainer : public WASMCodeContainer {
+    
+    protected:
+        
+    public:
+        
+        WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+        virtual ~WASMVectorCodeContainer();
+        
+        void generateCompute();
+    
+};
+
 #endif

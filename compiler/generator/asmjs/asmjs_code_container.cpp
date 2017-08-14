@@ -441,7 +441,7 @@ ASMJAVAScriptVectorCodeContainer::ASMJAVAScriptVectorCodeContainer(const string&
     :VectorCodeContainer(numInputs, numOutputs), ASMJAVAScriptCodeContainer(name, numInputs, numOutputs, out)
 {
     // No array on stack, move all of them in struct
-    gGlobal->gMachineMaxStackSize = 0;
+    gGlobal->gMachineMaxStackSize = -1;
 }
 
 ASMJAVAScriptVectorCodeContainer::~ASMJAVAScriptVectorCodeContainer()

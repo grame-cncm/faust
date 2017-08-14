@@ -395,3 +395,17 @@ DeclareFunInst* WASInst::generateIntMax()
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);
 }
+
+// Vector
+WASTVectorCodeContainer::WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory)
+    :WASTCodeContainer(name, numInputs, numOutputs, out, internal_memory)
+{
+    // No array on stack, move all of them in struct
+    gGlobal->gMachineMaxStackSize = -1;
+}
+
+WASTVectorCodeContainer::~WASTVectorCodeContainer()
+{}
+
+void WASTVectorCodeContainer::generateCompute(int n)
+{}
