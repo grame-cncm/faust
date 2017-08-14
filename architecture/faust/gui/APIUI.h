@@ -153,7 +153,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 fCurrentGyr = "";
             }
         
-            // handle screencolor metadata "...[screencolor:red|green|blue]..."
+            // handle screencolor metadata "...[screencolor:red|green|blue|white]..."
             if (fCurrentColor.size() > 0) {
                 if ((fCurrentColor == "red") && (fRedReader == 0)) {
                     fRedReader = new ZoneReader(zone, min, max);
@@ -333,7 +333,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 			} else if (strcmp(key, "gyr") == 0) {
 				fCurrentGyr = val;
 			} else if (strcmp(key, "screencolor") == 0) {
-                fCurrentColor = val; // val = "red", "green" or "blue"
+                fCurrentColor = val; // val = "red", "green", "blue" or "white"
             } else if (strcmp(key, "tooltip") == 0) {
                 fCurrentTooltip = val;
             }

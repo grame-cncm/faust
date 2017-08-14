@@ -27,13 +27,14 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/GUI.h"
+#include "faust/gui/PathBuilder.h"
 
 // Link AudioParameterBool with on/off parameter
 
 struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwnedItem {
     
-    FaustPlugInAudioParameterBool(GUI* gui, FAUSTFLOAT* zone, const char* label)
-        :AudioParameterBool(label, label, false), uiOwnedItem(gui, zone)
+    FaustPlugInAudioParameterBool(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label)
+    :AudioParameterBool(path, label, false), uiOwnedItem(gui, zone)
     {}
     
     void reflectZone() override
@@ -54,8 +55,8 @@ struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwned
 
 struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwnedItem {
     
-    FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const char* label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    :AudioParameterFloat(label, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
+    FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    :AudioParameterFloat(path, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
     {}
     
     void reflectZone() override
@@ -74,7 +75,7 @@ struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwn
 
 // A class to create AudioProcessorParameter objects for each zone
 
-class JuceParameterUI : public GUI {
+class JuceParameterUI : public GUI, public PathBuilder {
     
     private:
         
@@ -85,42 +86,61 @@ class JuceParameterUI : public GUI {
         JuceParameterUI(AudioProcessor* processor):fProcessor(processor)
         {}
         
+        // -- widget's layouts
+        
+        virtual void openTabBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        virtual void openHorizontalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        virtual void openVerticalBox(const char* label)
+        {
+            fControlsLevel.push_back(label);
+        }
+        virtual void closeBox()
+        {
+            fControlsLevel.pop_back();
+        }
+        
         // -- active widgets
         
         virtual void addButton(const char* label, FAUSTFLOAT* zone)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, zone, label));
+            fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, zone, buildPath(label), label));
         }
         virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, zone, label));
+            fProcessor->addParameter(new FaustPlugInAudioParameterBool(this, zone, buildPath(label), label));
         }
         
         virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, init, min, max, step));
+            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, buildPath(label), label, init, min, max, step));
         }
         
         virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, init, min, max, step));
+            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, buildPath(label), label, init, min, max, step));
         }
         
         virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, init, min, max, step));
+            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, buildPath(label), label, init, min, max, step));
         }
         
         // -- passive widgets
         
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, 0, min, max, 0));
+            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, buildPath(label), label, 0, min, max, 0));
         }
         
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
         {
-            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, label, 0, min, max, 0));
+            fProcessor->addParameter(new FaustPlugInAudioParameterFloat(this, zone, buildPath(label), label, 0, min, max, 0));
         }
     
 };
