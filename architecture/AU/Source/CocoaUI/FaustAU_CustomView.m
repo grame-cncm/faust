@@ -1,6 +1,5 @@
 
-#import "FaustAU_CustomView.h"
-
+#include "FaustAU_CustomView.h"
 #include "FaustAU.h"
 
 @implementation FaustAU_CustomView
@@ -79,9 +78,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 - (auUI*) dspUI
 {
     auUI* dspUI;
-    
     UInt32 dataSize = sizeof(auUI*);
-    
     ComponentResult result = AudioUnitGetProperty(mAU,
                                                   (AudioUnitPropertyID)kAudioUnitCustomProperty_dspUI,
                                                   kAudioUnitScope_Global,
@@ -97,14 +94,11 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
  }
 */
 
-- (void)dealloc {
-    
+- (void)dealloc
+{
      [self unsetTimer];
-     
      [self removeListeners];
-     
      [[NSNotificationCenter defaultCenter] removeObserver: self];
-    
      [super dealloc];
 }
 
@@ -135,7 +129,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     return button;
-    
 }
 
 - (NSButton*)addCheckButton:(NSBox*) nsBox :(auCheckButton*)fButton :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
@@ -176,9 +169,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     return button;
-    
 }
-
 
 - (NSTextField*)addTextField:(NSBox*) nsBox :(const char*)label :(int)controlId :(NSPoint&) origin :(bool)isVerticalBox
 {
@@ -199,9 +190,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     [nsBox addSubview:textField];
     
     return textField;
-    
 }
-
 
 - (FaustAU_Slider*)addSlider:(NSBox*) nsBox :(auSlider*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
@@ -210,10 +199,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     NSTextField* labelTextField = NULL;
     
     if (strcmp(fSlider->fLabel.c_str(), "")) {
-    
         labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
         [labelTextField setAlignment: NSRightTextAlignment];
-    
         labelWidth = 100;
     }
     
@@ -224,12 +211,10 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     if (fSlider->fIsVertical) {
         width = 15;
         height = 100;
-    }
-    else{
+    } else {
         width = 300;
         height = 45;
     }
-    
     
     FaustAU_Slider* slider;
     slider = [[FaustAU_Slider alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)];
@@ -281,11 +266,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         [slider setLabelTextField: labelTextField];
     
     [slider setValueTextField: valueTextField];
-    
     return slider;
-    
 }
-
 
 - (NSArray*)generateArrayFrom:(float)start to:(float)stop step:(float)step
 {
@@ -301,18 +283,14 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     return a;
 }
 
-
 - (FaustAU_Knob*)addKnob:(NSBox*) nsBox :(auSlider*)fSlider :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
-    
     NSTextField* labelTextField;
     int labelWidth = 0;
     
     if (strcmp(fSlider->fLabel.c_str(), "")) {
-        
         labelTextField = [self addTextField :nsBox :fSlider->fLabel.c_str() :200 :origin :isVerticalBox];
         [labelTextField setAlignment: NSRightTextAlignment];
-        
         labelWidth = 100;
     }
     
@@ -324,7 +302,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     float value;
     
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
-    
     int initAngle =  225.0 - 270.0 * (value - fSlider->fMin) / (fSlider->fMax - fSlider->fMin);
     
     FaustAU_Knob *knob = [[FaustAU_Knob alloc] initWithFrame:NSMakeRect(origin.x + labelWidth, origin.y, width, height)
@@ -337,9 +314,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     
     knob->control = controlId;
-    
     knob->controlPoint->delegate = self;
-    
     knob->controlPoint->data = [self generateArrayFrom:fSlider->fMin to:fSlider->fMax step:fSlider->fStep]; //TODO step
     
     NSString *identifier = [NSString stringWithFormat:@"%d",controlId];
@@ -347,11 +322,9 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [nsBox addSubview:knob];
     
-    
     AudioUnitGetParameter(mAU, controlId, kAudioUnitScope_Global, 0, &value);
     char valueString[100];
     sprintf(valueString, "%9.2f", value);
-    
     
     NSPoint org;
     org.x = origin.x + labelWidth + 28;
@@ -380,11 +353,8 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         [knob setLabelTextField: labelTextField];
     
     [knob setValueTextField: valueTextField];
-    
     return knob;
-    
 }
-
 
 - (FaustAU_Bargraph*)addBargraph:(NSBox*) nsBox :(auBargraph*)fBargraph :(int)controlId :(NSPoint&) origin :(NSSize&) size :(bool)isVerticalBox
 {
@@ -392,13 +362,10 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     int labelWidth = 0;
     
     if (strcmp(fBargraph->fLabel.c_str(), "")) {
-        
         labelTextField = [self addTextField :nsBox :fBargraph->fLabel.c_str() :200 :origin :isVerticalBox];
         [labelTextField setAlignment: NSRightTextAlignment];
-        
         labelWidth = 100;
     }
-    
     
     int width;
     int height;
@@ -407,8 +374,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     if (fBargraph->fIsVertical) {
         width = 35;
         height = 100;
-    }
-    else {
+    } else {
         width = 300;
         height = 55;
     }
@@ -487,11 +453,11 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     bool hasChildView = false;
     
-      for (int i = 0; i < fThisBox->children.size(); i++) {
-        if (fThisBox->isVertical)
-            childUIObject = fThisBox->children[fThisBox->children.size() - i - 1]; //not isFlipped
+      for (int i = 0; i < fThisBox->fChildren.size(); i++) {
+        if (fThisBox->fIsVertical)
+            childUIObject = fThisBox->fChildren[fThisBox->fChildren.size() - i - 1]; //not isFlipped
         else
-            childUIObject = fThisBox->children[i];
+            childUIObject = fThisBox->fChildren[i];
 
         for (int j = 0; j < dspUI->fUITable.size(); j++)
         {
@@ -500,34 +466,34 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         }
         
         if (dynamic_cast<auBox*>(childUIObject)) {
-            [self addBox :nsThisBox :(auBox*)childUIObject :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+            [self addBox :nsThisBox :(auBox*)childUIObject :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
         }
         else
         {
             if (dynamic_cast<auButton*>(childUIObject)) {
-                childView = [self addButton :nsThisBox :(auButton*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+                childView = [self addButton :nsThisBox :(auButton*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
             }
             else if (dynamic_cast<auCheckButton*>(childUIObject)) {
-                childView = [self addCheckButton :nsThisBox :(auCheckButton*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+                childView = [self addCheckButton :nsThisBox :(auCheckButton*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
             }
             
             else if (dynamic_cast<auSlider*>(childUIObject)) {
-                if (dspUI->knobSet.count(childUIObject->fZone)) { //isKnob
-                    childView = [self addKnob :nsThisBox :(auSlider*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+                if (dspUI->isKnob(childUIObject->fZone)) { //isKnob
+                    childView = [self addKnob :nsThisBox :(auSlider*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
                 }
                 else {
-                    childView = [self addSlider :nsThisBox :(auSlider*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+                    childView = [self addSlider :nsThisBox :(auSlider*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
                 }
+                 
             }
             else if (dynamic_cast<auBargraph*>(childUIObject)) {
-                childView = [self addBargraph :nsThisBox :(auBargraph*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->isVertical];
+                childView = [self addBargraph :nsThisBox :(auBargraph*)childUIObject :controlId :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical];
             }
             
             hasChildView = true;
             
             if (childView)
                 viewMap[controlId] = childView;
-            
         }
     }
     
@@ -536,7 +502,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
      
      auButton showHideAUButton(fThisBox->fLabel.c_str(), NULL);
      
-     NSButton* showHideButton = [self addButton :nsThisBox :&showHideAUButton :-100 :thisBoxOrigin :thisBoxSize :fThisBox->isVertical]; //TODO -100
+     NSButton* showHideButton = [self addButton :nsThisBox :&showHideAUButton :-100 :thisBoxOrigin :thisBoxSize :fThisBox->fIsVertical]; //TODO -100
      /*
      
      // NSButton* showHideBtton = [[NSButton alloc] initWithFrame:NSMakeRect(0 //*thisBoxOrigin.x//, frame.size.//height - 30,  35, 70 )];
@@ -580,7 +546,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     }
     
     return nsThisBox;
-    
 }
 
 -(void)repaint
@@ -631,12 +596,12 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
         [self addSubview:button];
     }
     
-    
     [self setFrame:frame];
     [self setNeedsDisplay:YES];
 }
 
-- (void)setAU:(AudioUnit)inAU {
+- (void)setAU:(AudioUnit)inAU
+{
 	if (mAU)
 		[self removeListeners];
     
@@ -686,7 +651,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 - (void)update
 {
     [self synchronizeUIWithParameterValues];
-    
     [self setNeedsDisplay:YES];
 }
 
@@ -696,9 +660,7 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                   withObject:(id)object
 {
     [ (FaustAU_Knob*)object setDoubleValue :value ];
-    
     int paramId = [[object identifier] intValue];
-    
     ComponentResult result = AudioUnitSetParameter(mAU,
                                                    paramId, //AudioUnitParameterID
                                                    kAudioUnitScope_Global,
@@ -719,7 +681,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     [object setNeedsDisplay:TRUE];
 }
-
 
 - (void)showHide:(id)sender
 {
@@ -750,7 +711,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     //[self repaint];
 }
 
-
 - (void)buttonPushed:(id)sender
 {
     int state =  ((FaustAU_Button*)sender)->buttonState;
@@ -762,15 +722,13 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
                                                    (AudioUnitElement)0, //inElement
                                                    state, //inValue
                                                    0); //inBufferOffsetInFrames
-    
-	AudioUnitParameter parameter = {mAU,
+ 	AudioUnitParameter parameter = {mAU,
         paramId, //paramId
         kAudioUnitScope_Global,
         0 }; //mElement
 	
 	NSAssert(	AUParameterSet(mAUEventListener, sender, &parameter, (Float32)state, 0) == noErr,
              @"[FaustAU_CustomView paramChanged:] AUParameterSet()");
-    
 }
 
 - (void)xmlButtonPushed:(id)sender
@@ -809,7 +767,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     
     data = [dataString dataUsingEncoding:NSUTF8StringEncoding];
     [filemgr createFileAtPath: outputFileName contents: data attributes: nil];
-    
 }
 
 - (void)monitorButtonPushed:(id)sender
@@ -824,7 +781,6 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
 
 - (void)paramChanged:(id)sender
 {
-   	
     float value =  [sender doubleValue]; //TODO
     int paramId = [[sender identifier] intValue];
     
@@ -838,17 +794,17 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
     NSString *string = [NSString stringWithFormat:@"%9.2f", value];
     [paramValues[paramId] setStringValue: string];
     
-	AudioUnitParameter parameter = {mAU,
+	AudioUnitParameter parameter = { mAU,
         paramId, //paramId
         kAudioUnitScope_Global,
         0 }; //mElement
 	
 	NSAssert(	AUParameterSet(mAUEventListener, sender, &parameter, (Float32)value, 0) == noErr,
              @"[FaustAU_CustomView paramChanged:] AUParameterSet()");
-    
 }
 
-- (void)synchronizeUIWithParameterValues {
+- (void)synchronizeUIWithParameterValues
+{
     auUI* dspUI = [self dspUI];
     
     NSView* subView = NULL;
@@ -863,21 +819,16 @@ void addParamListener (AUEventListenerRef listener, void* refCon, AudioUnitEvent
             
             if (subView)
             {
-                if (dynamic_cast<auBargraph*>(dspUI->fUITable[i])
-                    ) {
-                    
+                if (dynamic_cast<auBargraph*>(dspUI->fUITable[i])) {
                     value = *(dspUI->fUITable[i]->fZone);
-                    
                     [subView setDoubleValue:value];
-                    
                 }
             }
         }
     }
 }
 
-- (void)eventListener:(void *) inObject event:(const AudioUnitEvent *)inEvent value:(Float32)inValue {
-}
-
+- (void)eventListener:(void *) inObject event:(const AudioUnitEvent *)inEvent value:(Float32)inValue
+{}
 
 @end

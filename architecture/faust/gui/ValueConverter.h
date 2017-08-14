@@ -513,7 +513,8 @@ class ZoneReader
 
         virtual ~ZoneReader() {}
 
-        int getValue() {
+        int getValue()
+        {
             if (fZone != 0) {
                 return (int)fInterpolator(*fZone);
             } else {
