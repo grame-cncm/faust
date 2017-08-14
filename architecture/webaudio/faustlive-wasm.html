@@ -696,7 +696,7 @@
                                                                                     } else {
                                                                                         audio_input = null;
                                                                                     }
-                                                                                   
+                                                                               
                                                                                     // Setup UI
                                                                                     _f4u$t.main_loop = function() {}
                                                                                    
@@ -706,10 +706,10 @@
                                                                                     DSP.setOutputParamHandler(output_handler);
                                                                                     console.log(DSP.getNumInputs());
                                                                                     console.log(DSP.getNumOutputs());
+                                                                                    DSP.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
                                                                                     DSP.connect(audio_context.destination);
                                                                                
-                                                                                    // No yet working
-                                                                                    //if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
+                                                                                    if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
                                                                                });
                                                 });
                                                
@@ -752,6 +752,7 @@
                                                                             DSP.setOutputParamHandler(output_handler);
                                                                             console.log(DSP.getNumInputs());
                                                                             console.log(DSP.getNumOutputs());
+                                                                            DSP.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
                                                                             DSP.connect(audio_context.destination);
                                                                        
                                                                             if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();

@@ -184,6 +184,7 @@ function startDSPAux(dsp)
     DSP_poly.connect(audio_context.destination);
     
     console.log(DSP_poly.getJSON());
+    DSP_poly.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
     console.log(DSP_poly.getParams());
     
     // kludge...ideally, this needs to not be part of the imported JS
@@ -194,8 +195,8 @@ function startDSPAux(dsp)
     output_handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, DSP_poly.setParamValue);
     DSP_poly.setOutputParamHandler(output_handler);
     
-    // No yet working
-    //loadDSP();
+    // Load DSP state from local storage
+    loadDSP();
 }
 
 function startDSP()
@@ -232,7 +233,7 @@ window.addEventListener('touchstart', function() {
                         $(startDSP);
                         
 // Save DSP state to local storage
-setInterval(function() { if (DSP) saveDSP(); }, 1000);
+setInterval(function() { if (DSP_poly) saveDSP(); }, 1000);
 
 </script>
 

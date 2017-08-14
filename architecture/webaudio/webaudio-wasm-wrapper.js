@@ -724,6 +724,16 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         {
             sp.factory.instanceClear(sp.dsp);
         }
+        
+        /**
+         * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
+         *
+         * @param handler - the Meta handler as a 'declare' function of type (key, value)
+         */
+        sp.metadata = function (handler)
+        {
+          	factory.metadata(handler);
+        }
      
         /**
          * Setup a control output handler with a function of type (path, value)
@@ -1306,6 +1316,16 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             for (var i = 0; i < max_polyphony; i++) {
                 sp.factory.instanceClear(sp.dsp_voices[i]);
             }
+        }
+              
+       /**
+        * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
+        *
+        * @param handler - the Meta handler as a 'declare' function of type (key, value)
+        */
+        sp.metadata = function (handler)
+        {
+            factory.metadata(handler);
         }
 
        /**

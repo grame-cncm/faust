@@ -305,6 +305,16 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     {
         sp.factory.instanceClear(sp.dsp);
     }
+    
+    /**
+     * Trigger the Meta handler with instance specific calls to 'declare' (key, value) metadata.
+     *
+     * @param handler - the Meta handler as a 'declare' function of type (key, value)
+     */
+    sp.metadata = function (handler)
+    {
+        metadatamydsp(handler);
+    }
 
     /**
      * Setup a control output handler with a function of type (path, value)
