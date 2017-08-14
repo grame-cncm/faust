@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 FILENAME=$1
 CLASSNAME=`basename $FILENAME .dsp`

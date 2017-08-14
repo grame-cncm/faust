@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 AOPT=""
 DST=results-$(date +%y%m%d.%H%M%S)
 

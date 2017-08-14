@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # For additional installations uncomment the following lines
 #INSTALL_LATEX=1

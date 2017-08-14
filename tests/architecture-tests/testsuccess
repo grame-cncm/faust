@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ## exclusion list for faust errors
 XLIST1="faust2md"

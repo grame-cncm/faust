@@ -1,4 +1,4 @@
-#! /bin/bash -e
+#!/usr/bin/env bash -e
 
 #  usage : faust2sig foo.dsp        -> foo-sig.pdf
 #  usage : faust2sig -svg foo.dsp   -> foo-sig.svg
