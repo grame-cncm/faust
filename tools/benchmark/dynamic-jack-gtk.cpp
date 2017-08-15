@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
     int argc1 = 0;
     const char* argv1[32];
     
-    cout << "Compiled with additional options: ";
+    cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
         if ((string(argv[i]) == "-llvm")
             || (string(argv[i]) == "-interp")

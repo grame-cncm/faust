@@ -278,7 +278,7 @@
         <H3>Polyphonic instrument </H3>
         Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome with uses the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
         <H3>Float denormals handling </H3>
-        Value = 0 means no denormal handling, 1 mode uses <B>fabs</B> and a <B>treshhold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
+        Value = 0 means no denormal handling, 1 mode uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
         <P>
             <center>
             <table>
@@ -287,7 +287,7 @@
                 <center>
                     <H4> Buffer size </H4>
                     <form method="POST" name="menu" >
-                        <select name="selectedBuffer"
+                        <select id="selectedBuffer" name="selectedBuffer"
                             onChange="setBufferSize(this.form.selectedBuffer)">
                             <option value = 256> 256 </option>
                             <option value = 512> 512 </option>
@@ -303,14 +303,14 @@
                 <center>
                     <H4> Polyphonic instrument and voices </H4>
                     <form method="POST" name="menu" >
-                        <select name="selectedPoly"
+                        <select id="selectedPoly" name="selectedPoly"
                             onChange="setPoly(this.form.selectedPoly)">
                             <option value = ON> ON </option>
                             <option selected value = OFF> OFF </option>
                         </select>
                     </form>
                     <form method="POST" name="menu" >
-                        <select name="polyVoices"
+                        <select id="polyVoices" name="polyVoices"
                             onChange="setPolyVoices(this.form.polyVoices)">
                             <option value = 4> 4 </option>
                             <option value = 8> 8 </option>
@@ -326,7 +326,7 @@
                 <center>
                     <H4> Float denormals handling</H4>
                     <form method="POST" name="menu" >
-                        <select name="selectedFTZ"
+                        <select id="selectedFTZ" name="selectedFTZ"
                             onChange="setFTZ(this.form.selectedFTZ)">
                             <option value = 0> 0 </option>
                             <option value = 1> 1 </option>
@@ -339,7 +339,7 @@
             </table>
             </center>
             
-            <center> <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save DSP control parameters</B> </center>
+            <center> <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save page and DSP control parameters state</B> </center>
                 
             <div id="filedrag">
                 Loading JavaScript/WebAssembly ressources...
@@ -528,9 +528,20 @@
             }
             
             // Save/Load functions using local storage
-            function saveDSP()
+            
+            function restoreMenu(id, value)
             {
-                if (typeof(Storage) !== "undefined") {
+                for (var i = 0; i < document.getElementById(id).length; i++) {
+                    if (document.getElementById(id).options[i].value === value) {
+                        document.getElementById(id).selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+        
+            function saveDSPState()
+            {
+                if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
                     var params = DSP.getParams();
                     for (var i = 0; i < params.length; i++) {
                         localStorage.setItem(params[i], DSP.getParamValue(params[i]));
@@ -538,9 +549,19 @@
                 }
             }
             
-            function loadDSP()
+            function savePageState()
             {
-                if (typeof(Storage) !== "undefined") {
+                if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
+                    localStorage.setItem("buffer_size", buffer_size);
+                    localStorage.setItem("poly_flag", poly_flag);
+                    localStorage.setItem("ftz_flag", ftz_flag);
+                    localStorage.setItem("poly_nvoices", poly_nvoices);
+                }
+            }
+            
+            function loadDSPState()
+            {
+                if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
                     var params = DSP.getParams();
                     for (var i = 0; i < params.length; i++) {
                         if (localStorage.getItem(params[i])) {
@@ -550,6 +571,22 @@
                             output_handler(params[i], Number(localStorage.getItem(params[i])));
                         }
                     }
+                }
+            }
+            
+            function loadPageState()
+            {
+                if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
+                    buffer_size = localStorage.getItem("buffer_size");
+                    poly_flag = localStorage.getItem("poly_flag");
+                    ftz_flag = localStorage.getItem("ftz_flag");
+                    poly_nvoices = localStorage.getItem("poly_nvoices");
+                    
+                    // Restore menus
+                    restoreMenu("selectedBuffer", buffer_size);
+                    restoreMenu("selectedPoly", poly_flag);
+                    restoreMenu("polyVoices", poly_nvoices);
+                    restoreMenu("selectedFTZ", ftz_flag);
                 }
             }
             
@@ -653,7 +690,7 @@
                     _f4u$t.hard_delete(faust_svg);
                 }
                 
-                if (dsp_code === null) {
+                if (!dsp_code) {
                     return;
                 }
                 
@@ -675,11 +712,12 @@
                     faust.createPolyDSPFactory(dsp_code,
                                                argv,
                                                function (factory) {
-                                                   if (!factory) {
+                                                    if (!factory) {
                                                         alert(faust.getErrorMessage());
                                                         return;
-                                                   }
-                                                   faust.createPolyDSPInstance(factory,
+                                                    }
+                                               
+                                                    faust.createPolyDSPInstance(factory,
                                                                                audio_context,
                                                                                buffer_size,
                                                                                poly_nvoices,
@@ -706,10 +744,10 @@
                                                                                     DSP.setOutputParamHandler(output_handler);
                                                                                     console.log(DSP.getNumInputs());
                                                                                     console.log(DSP.getNumOutputs());
-                                                                                    DSP.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
+                                                                                    DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                                                                                     DSP.connect(audio_context.destination);
                                                                                
-                                                                                    if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
+                                                                                    loadDSPState();
                                                                                });
                                                 });
                                                
@@ -752,10 +790,10 @@
                                                                             DSP.setOutputParamHandler(output_handler);
                                                                             console.log(DSP.getNumInputs());
                                                                             console.log(DSP.getNumOutputs());
-                                                                            DSP.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
+                                                                            DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                                                                             DSP.connect(audio_context.destination);
                                                                        
-                                                                            if (localStorage.getItem("FaustLocalStorage") === "on") loadDSP();
+                                                                            loadDSPState();
                                                                        });
                                            });
                 }
@@ -767,12 +805,18 @@
                 uploadOn(e, compileDSP);
             }
             
+            function initPage()
+            {
+                // Restore 'save' checkbox state
+                document.getElementById("localstorage").checked = (localStorage.getItem("FaustLocalStorage") === "on");
+                
+                // Load page state
+                loadPageState();
+            }
+            
             function init()
             {
                 activateMIDIInput();
-                
-                var ls = document.getElementById("localstorage");
-                ls.checked = (localStorage.getItem("FaustLocalStorage") === "on");
                 
                 var filedrag1 = document.getElementById("filedrag");
                 filedrag1.addEventListener("dragover", fileDragHover, false);
@@ -781,8 +825,12 @@
                 filedrag1.textContent = "Drop your Faust .dsp file here (compiled using libfaust version " + faust.getLibFaustVersion() + ")";
             }
             
+            // Init page
+            initPage();
+            
             // Save DSP state to local storage
-            setInterval(function() { if (DSP && localStorage.getItem("FaustLocalStorage") === "on") saveDSP(); }, 1000);
+            setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
+            
             
             // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             FaustModule()['onRuntimeInitialized'] = init;
@@ -880,15 +928,15 @@
             
             <script>
                 
-                function onEnterKey(e)
-                {
-                    if (!e) { var e = window.event; }
-                    
-                    if (e.keyCode === 13) {
-                        e.preventDefault();
-                        updateFWTargets();
-                    }
+            function onEnterKey(e)
+            {
+                if (!e) { var e = window.event; }
+                
+                if (e.keyCode === 13) {
+                    e.preventDefault();
+                    updateFWTargets();
                 }
+            }
             
             function openExport()
             {
@@ -957,7 +1005,7 @@
             {
                 document.getElementById("loader").style.visibility = "visible";
                 
-                if (dsp_code === null) {
+                if (!dsp_code) {
                     
                     var url = window.location.href.split('.html').shift() + ".dsp";
                     var filename = url.toString().split( '/' ).pop();
@@ -1083,8 +1131,8 @@
             
             changeOrientation("topright");
             //changeOrientation("bottomright");
-            // changeOrientation("bottomleft");
-            // changeOrientation("topleft");
+            //changeOrientation("bottomleft");
+            //changeOrientation("topleft");
             
             updateFWTargets();
             

@@ -56,7 +56,7 @@ int main(int argc, char* argv[])
     const char* argv1[64];
     int argc1 = 0;
     
-    cout << "Compiled with additional options: ";
+    cout << "Compiled with additional options : ";
     for (argc1 = 0; argc1 < (argc - 2); argc1++) {
         argv1[argc1] = argv[index + argc1];
         cout << argv1[argc1] << " ";

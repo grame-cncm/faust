@@ -184,7 +184,7 @@ function startDSPAux(dsp)
     DSP_poly.connect(audio_context.destination);
     
     console.log(DSP_poly.getJSON());
-    DSP_poly.metadata({ declare: function(key, value) { console.log("key = " + key + "value = " + value); }});
+    DSP_poly.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(DSP_poly.getParams());
     
     // kludge...ideally, this needs to not be part of the imported JS
