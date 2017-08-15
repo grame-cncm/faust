@@ -291,10 +291,26 @@ class dsp_optimizer {
             }
             std::cout << " : ";
         }
+    
+        std::vector <std::string> addArgvItems(const std::vector <std::string>& item, int argc, const char* argv[])
+        {
+            std::vector <std::string> res_item = item;
+            for (int i = 0; i < argc ; i++) {
+                res_item.push_back(argv[i]);
+            }
+            return res_item;
+        }
         
-        bool computeOne(const std::vector<std::string>& item, int argc, const char* argv[], double& res)
+        bool computeOne(const std::vector<std::string>& item, double& res)
         {
             printItem(item);
+            
+            int argc = 0;
+            const char* argv[64];
+            for (int i = 0; i < item.size(); i++) {
+                argv[argc++] = item[i].c_str();
+            }
+            argv[argc] = 0;  // NULL terminated argv
             
             if (fInput == "") {
                 fFactory = createDSPFactoryFromFile(fFilename.c_str(), argc, argv, fTarget, fError, fOptLevel);
@@ -330,7 +346,7 @@ class dsp_optimizer {
             double res = 0.;
             
             for (int i = 0; i < options.size(); i++) {
-                if (computeOne(options[i], fArgc, fArgv, res)) {
+                if (computeOne(addArgvItems(options[i], fArgc, fArgv), res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
                     std::cerr << "computeOne error..." << std::endl;
@@ -394,7 +410,7 @@ class dsp_optimizer {
             std::cout << "Estimate timing parameters" << std::endl;
             double res;
             fBench = new time_bench(500, 10);
-            if (computeOne(fOptionsTable[0], fArgc, fArgv, res)) {
+            if (computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), res)) {
                 double duration = fBench->measureDurationUsec();
                 int cout = int (500 * (5 * 1e6 / duration));
                 std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
@@ -412,7 +428,8 @@ class dsp_optimizer {
          * Constructor.
          *
          * @param filename - the DSP filename
-         * @param library_path - the Faust library path
+         * @param argc - the number of parameters in argv array 
+         * @param argv - the array of parameters
          * @param target - the LLVM machine target (using empty string will take current machine settings)
          * @param buffer_size - the buffer size in sampels
          * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
@@ -432,7 +449,8 @@ class dsp_optimizer {
          * Constructor.
          *
          * @param input - the Faust program as a string
-         * @param library_path - the Faust library path
+         * @param argc - the number of parameters in argv array
+         * @param argv - the array of parameters
          * @param target - the LLVM machine target (using empty string will take current machine settings)
          * @param buffer_size - the buffer size in sampels
          * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'

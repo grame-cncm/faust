@@ -56,17 +56,21 @@ int main(int argc, char* argv[])
     const char* argv1[64];
     int argc1 = 0;
     
-    cout << "Compiled with additional options : ";
-    for (argc1 = 0; argc1 < (argc - 2); argc1++) {
-        argv1[argc1] = argv[index + argc1];
-        cout << argv1[argc1] << " ";
+    if ((argc - 2) > 0) {
+        cout << "Compiled with additional options : ";
+        for (argc1 = 0; argc1 < (argc - 2); argc1++) {
+            argv1[argc1] = argv[index + argc1];
+            cout << argv1[argc1] << " ";
+        }
+        cout << endl;
     }
-    cout << endl;
     
     // Add library
     argv1[argc1++] = "-I";
     argv1[argc1++] = "/usr/local/share/faust";
-  
+ 
+    argv1[argc1] = 0;  // NULL terminated argv
+    
     try {
         if (is_double) {
             bench(dsp_optimizer<double>(argv[argc-1], argc1, argv1, "", buffer_size), argv[1]);

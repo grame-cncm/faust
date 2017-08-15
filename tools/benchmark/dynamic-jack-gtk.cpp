@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
     
     int argc1 = 0;
-    const char* argv1[32];
+    const char* argv1[64];
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
@@ -151,6 +151,8 @@ int main(int argc, char* argv[])
         cout << argv[i] << " ";
     }
     cout << endl;
+    
+    argv1[argc1] = 0;  // NULL terminated argv
     
 #ifdef INTERP_PLUGIN
     cout << "Using interpreter plugin backend" << endl;
