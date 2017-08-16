@@ -86,6 +86,13 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
  * @return the expanded DSP or a empty string in case of failure
  */
 EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+    
+/**
+ * The free function to be used on memory returned by createAsmCDSPFactoryFromFile or createAsmCDSPFactoryFromString.
+ *
+ * @param ptr - the pointer to be deleted.
+ */
+EXPORT void freeCMemory(void* ptr);
 
 #ifdef __cplusplus
 }

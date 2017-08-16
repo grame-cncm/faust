@@ -215,6 +215,7 @@ faust.getWasmCModule = faust_module.cwrap('getWasmCModule', 'number', ['number']
 faust.getWasmCModuleSize = faust_module.cwrap('getWasmCModuleSize', 'number', ['number']);
 faust.getWasmCHelpers = faust_module.cwrap('getWasmCHelpers', 'number', ['number']);
 faust.freeCWasmModule = faust_module.cwrap('freeCWasmModule', null, ['number']);
+faust.freeCMemory = faust_module.cwrap('freeCMemory', null, ['number']);
 faust.cleanupAfterException = faust_module.cwrap('cleanupAfterException', null, []);
 faust.getErrorAfterException = faust_module.cwrap('getErrorAfterException', 'number', []);
 
@@ -271,7 +272,15 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback) {
     }
     
     try {
+    	var d1 = new Date();
+    	var time1 = d1.getTime();
+    
         var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr, internal_memory);
+        
+        var d2 = new Date();
+        var time2 = d2.getTime();
+        console.log("Faust compilation duration : " + (time2 - time1));
+
         faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
         
         if (module_code_ptr === 0) {
@@ -321,21 +330,44 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback) {
     
 };
 
+/**
+ * Create a DSP factory from source code as a string to be used for monophonic DSP 
+ *
+ * @param code - the source code as a string
+ * @param argv - and array of paramaters to be given to the Faust compiler
+ * @param callback - a callback taking the created DSP factory as parameter, or null in case of error
+ */
 faust.createDSPFactory = function (code, argv, callback) {
     faust.createDSPFactoryAux(code, argv, true, callback);
 }
 
+/**
+ * Create a DSP factory from source code as a string to be used for polyphonic DSP 
+ *
+ * @param code - the source code as a string
+ * @param argv - and array of paramaters to be given to the Faust compiler
+ * @param callback - a callback taking the created DSP factory as parameter, or null in case of error
+ */
 faust.createPolyDSPFactory = function (code, argv, callback) {
     faust.createDSPFactoryAux(code, argv, false, callback);
 }
 
+/**
+ * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
+ * All compilations options are 'normalized' and included as a comment in the expanded string.
+ *
+ * @param code - the source code as a string
+ * @param argv - and array of paramaters to be given to the Faust compiler
+ * 
+ * @return the expanded DSP as a string (possibly empty).
+ */
 faust.expandDSP = function (code, argv) {
    
     console.log("libfaust.js version : " + faust.getLibFaustVersion());
     
     // Force "ajs" compilation
     argv.push("-lang");
-    argv.push("ajs");
+    argv.push("wasm");
     
     // Allocate strings on the HEAP
     var code_ptr = faust_module._malloc(code.length + 1);
@@ -344,8 +376,8 @@ faust.expandDSP = function (code, argv) {
     var sha_key_ptr = faust_module._malloc(64);
     var error_msg_ptr = faust_module._malloc(4096);
     
-    faust_module.stringToUTF8(name, name_ptr, lengthBytesUTF8(name) + 1);
-    faust_module.stringToUTF8(code, code_ptr, lengthBytesUTF8(code) + 1);
+    faust_module.stringToUTF8(name, name_ptr, faust_module.lengthBytesUTF8(name) + 1);
+    faust_module.stringToUTF8(code, code_ptr, faust_module.lengthBytesUTF8(code) + 1);
     
     // Add 'cn' option with the factory name
     argv = (argv === undefined) ? new Array() : argv;
@@ -356,7 +388,7 @@ faust.expandDSP = function (code, argv) {
     var argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
     for (var i = 0; i < argv.length; i++) {
         var arg_ptr = faust_module._malloc(argv[i].length + 1);
-        faust_module.stringToUTF8(argv[i], arg_ptr, lengthBytesUTF8(argv[i]) + 1);
+        faust_module.stringToUTF8(argv[i], arg_ptr, faust_module.lengthBytesUTF8(argv[i]) + 1);
         argv_ptr_buffer[i] = arg_ptr;
     }
     
@@ -383,11 +415,28 @@ faust.expandDSP = function (code, argv) {
     return expand_dsp;
 };
 
+/**
+ * Write a Faust DSP factory into struct containing name, Faust wasm compiled code, and helpers code.
+ * 
+ * @param factory - the DSP factory
+ *
+ * @return the machine code as a struct.
+ */
 faust.writeDSPFactoryToMachine = function (factory)
 {
     return { name : factory.name, code : factory.code, helpers : factory.helpers };
 }
 
+/**
+ * Create a Faust DSP factory from a machine code struct. Note that the library keeps an internal cache of all 
+ * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return 
+ * the same factory. You will have to explicitly use deleteDSPFactory when the factory is no more needed.
+ * 
+ * @param machine - the machine code struct
+ * @param callback - a callback taking the created DSP factory as parameter, or null in case of error
+ *
+ * @return the DSP factory on success, otherwise a null pointer.
+ */
 faust.readDSPFactoryFromMachine = function (machine, callback)
 {
     var sha_key = Sha1.hash(machine.code, true);
@@ -402,9 +451,17 @@ faust.readDSPFactoryFromMachine = function (machine, callback)
 
 faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpers_code, sha_key, callback)
 {
+    var d1 = new Date();
+    var time1 = d1.getTime();
+    
     WebAssembly.compile(factory_code)
     .then(module => {
           
+      var d2 = new Date();
+      var time2 = d2.getTime();
+      console.log("WASM compilation duration : " + (time2 - time1));
+     
+    
       var factory = {};
       
       factory.code = factory_code;
@@ -464,15 +521,30 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
         ---
 */
 
+/**
+ * Create a ScriptProcessorNode Web Audio object from a factory
+ *
+ * @param factory - the DSP factory
+ * @param context - the Web Audio context
+ * @param buffer_size - the buffer_size in frames
+ * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
+ */
 faust.createDSPInstance = function (factory, context, buffer_size, callback) {
     
     var importObject = { imports: { print: arg => console.log(arg) } }
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = faust.asm2wasm;
     
+    var d1 = new Date();
+    var time1 = d1.getTime();
+    
     WebAssembly.instantiate(factory.module, importObject)
     .then(dsp_instance => {
     
+        var d2 = new Date();
+        var time2 = d2.getTime();
+        console.log("Instantiation duration : " + (time2 - time1));
+
         var sp;
         try {
             sp = context.createScriptProcessor(buffer_size, dsp_instance.exports.getNumInputs(0), dsp_instance.exports.getNumOutputs(0));
@@ -889,9 +961,22 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
 }
 
 // 'poly' DSP
+
+/**
+ * Create a ScriptProcessorNode Web Audio object from a wasm filename
+ *
+ * @param factory - the DSP factory
+ * @param context - the Web Audio context
+ * @param buffer_size - the buffer_size in frames
+ * @param max_polyphony - the number of polyphonic voices
+ * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
+ */
 faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyphony, callback) {
     
     var memory = faust.createMemory(factory, buffer_size, max_polyphony);
+    
+    var d1 = new Date();
+    var time1 = d1.getTime();
     
     var mixObject = { imports: { print: arg => console.log(arg) } }
     mixObject["memory"] = { "memory": memory};
@@ -908,7 +993,11 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     {
         WebAssembly.instantiate(factory.module, importObject)
         .then(dsp_instance => {
-           
+        
+        var d2 = new Date();
+        var time2 = d2.getTime();
+        console.log("Instantiation duration : " + (time2 - time1));
+
         // Keep JSON parsed object
         var json_object = JSON.parse(factory.getJSON());
           

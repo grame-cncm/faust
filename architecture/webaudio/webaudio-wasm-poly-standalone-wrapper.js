@@ -657,13 +657,13 @@ faust.createMemory = function (buffer_size, max_polyphony) {
 }
 
 /**
- * Create a mydsp object from a wasm filename
+ * Create a ScriptProcessorNode Web Audio object from a wasm filename
  *
  * @param filename - the wasm filename
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
- * @param callback - a callback taking the created ScriptProcessorNode as parameter
+ * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
 faust.createmydsp = function(filename, context, buffer_size, max_polyphony, callback)
 {

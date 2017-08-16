@@ -141,6 +141,13 @@ extern "C" {
     EXPORT void freeCWasmModule(WasmModule* ptr);
     
     /**
+     * The free function to be used on memory returned by createAsmCDSPFactoryFromFile or createAsmCDSPFactoryFromString.
+     *
+     * @param ptr - the pointer to be deleted.
+     */
+    EXPORT void freeCMemory(void* ptr);
+    
+    /**
      * Get the library version.
      *
      * @return the library version as a static string.

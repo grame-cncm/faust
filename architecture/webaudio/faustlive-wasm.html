@@ -626,10 +626,15 @@
                         }
                     }
                     
-                    xmlhttp.open("GET", url, false);
-                    // 	Avoid error "mal formé" on firefox
-                    xmlhttp.overrideMimeType('text/html');
-                    xmlhttp.send();
+                    try {
+                        xmlhttp.open("GET", url, false);
+                        // Avoid error "mal formé" on firefox
+                        xmlhttp.overrideMimeType('text/html');
+                        xmlhttp.send();
+                    } catch (err) {
+                        alert(err);
+                    }
+                   
                 } else if (e.dataTransfer.getData('URL').split(':').shift() != "file") {
                     dsp_code = e.dataTransfer.getData('text');
                     
@@ -756,6 +761,9 @@
                     isPoly = false;
                     console.log("Mono DSP");
                     
+                    //var expanded = faust.expandDSP(dsp_code, argv);
+                    //console.log(expanded);
+                    
                     // Create a mono DSP factory from the dsp code
                     faust.createDSPFactory(dsp_code,
                                            argv,
@@ -822,7 +830,7 @@
                 filedrag1.addEventListener("dragover", fileDragHover, false);
                 filedrag1.addEventListener("dragleave", fileDragHover, false);
                 filedrag1.addEventListener("drop", uploadFile, false);
-                filedrag1.textContent = "Drop your Faust .dsp file here (compiled using libfaust version " + faust.getLibFaustVersion() + ")";
+                filedrag1.textContent = "Drop a Faust .dsp file or URL here (to be compiled using libfaust version " + faust.getLibFaustVersion() + ")";
             }
             
             // Init page

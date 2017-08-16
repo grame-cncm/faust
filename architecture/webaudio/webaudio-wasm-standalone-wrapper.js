@@ -392,12 +392,12 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 };
 
 /** 
-* Create a mydsp object from a wasm filename
+* Create a ScriptProcessorNode Web Audio object from a wasm filename
 *
 * @param filename - the wasm filename
 * @param context - the Web Audio context
 * @param buffer_size - the buffer_size in frames
-* @param callback - a callback taking the created ScriptProcessorNode as parameter
+* @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
 */
 faust.createmydsp = function(filename, context, buffer_size, callback)
 {

@@ -136,6 +136,7 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
     
     addKeyValueIfExisting(options, newoptions, "-mcd", "16");
     addKeyValueIfExisting(options, newoptions, "-cn", "");
+    addKeyValueIfExisting(options, newoptions, "-ftz", "0");
     
     //------STEP4 - Add other types of Faust options
     /*
@@ -377,3 +378,9 @@ EXPORT string generateSHA1(const string& dsp_content)
     
     return sha1key;
 }
+
+EXPORT void freeCMemory(void* ptr)
+{
+    free(ptr);
+}
+
