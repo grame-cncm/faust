@@ -107,159 +107,159 @@ struct VariableSizeCounter : public DispatchVisitor {
 
 struct Loop2FunctionBuider : public DispatchVisitor {
 
-        // Variable management
-        map <string, Address::AccessType> fLocalVarTable;
-        list <string> fAddedVarTable;
+    // Variable management
+    map <string, Address::AccessType> fLocalVarTable;
+    list <string> fAddedVarTable;
 
-        // Function definition creation
-        list<NamedTyped*> fArgsTypeList;
-        DeclareFunInst* fFunctionDef;
+    // Function definition creation
+    list<NamedTyped*> fArgsTypeList;
+    DeclareFunInst* fFunctionDef;
 
-        // Function call creation
-        list<ValueInst*> fArgsValueList;
-        DropInst* fFunctionCall;
+    // Function call creation
+    list<ValueInst*> fArgsValueList;
+    DropInst* fFunctionCall;
 
-        void createParameter(Address* address)
-        {
-            switch(address->getAccess()) {
+    void createParameter(Address* address)
+    {
+        switch(address->getAccess()) {
 
-                case Address::kStack:
-                case Address::kLoop: {
-                    string name = address->getName();
-                    if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
+            case Address::kStack:
+            case Address::kLoop: {
+                string name = address->getName();
+                if (fLocalVarTable.find(name) == fLocalVarTable.end()) {
 
-                        if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
-
-                            // Be sure variable is defined
-                            //cerr << "createParameter kStack " << name << endl;
-                            faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
-
-                            // Local in the enclosing context, becomes a fun parameter
-                            BasicCloneVisitor cloner;
-                            fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
-
-                            // It becomes a value in the fun-call argument list
-                            fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
-
-                            // Variable added in parameter list
-                            fAddedVarTable.push_back(name);
-                        }
-
-                    } else {
-                        // Loop own local, nothing to do
-                    }
-                    break;
-                }
-
-                case Address::kFunArgs: {
-                    string name = address->getName();
                     if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
-                        cout << "createParameter kFunArgs " << name << endl;
+                        //cerr << "createParameter kStack " << name << endl;
                         faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
-                        // Parameter in the enclosing function, becomes a fun parameter
+                        // Local in the enclosing context, becomes a fun parameter
                         BasicCloneVisitor cloner;
                         fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
-                        // It becomes a value in the fun-call argument list : keep it's kFunArgs status
-                        fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
+                        // It becomes a value in the fun-call argument list
+                        fArgsValueList.push_back(InstBuilder::genLoadStackVar(name));
 
                         // Variable added in parameter list
                         fAddedVarTable.push_back(name);
                     }
-                    break;
+
+                } else {
+                    // Loop own local, nothing to do
                 }
-
-                case Address::kStruct:
-                case Address::kStaticStruct:
-                case Address::kGlobal:
-                    // Nothing to do
-                    break;
-
-                case Address::kLink:
-                    // TO CHECK
-                    break;
-
-                default:
-                    break;
+                break;
             }
-        }
 
-        virtual void visit(DeclareVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
+            case Address::kFunArgs: {
+                string name = address->getName();
+                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), name) == fAddedVarTable.end()) {  // First encounter
 
-            if (inst->fAddress->getAccess() == Address::kStack || inst->fAddress->getAccess() == Address::kLoop) {
-                // Keep local variables in the loop
-                fLocalVarTable[inst->fAddress->getName()] = inst->fAddress->getAccess();
-            }
-        }
+                    // Be sure variable is defined
+                    cout << "createParameter kFunArgs " << name << endl;
+                    faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
-        virtual void visit(LoadVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            createParameter(inst->fAddress);
-        }
+                    // Parameter in the enclosing function, becomes a fun parameter
+                    BasicCloneVisitor cloner;
+                    fArgsTypeList.push_back(InstBuilder::genNamedTyped(name, gGlobal->gVarTypeTable[name]->clone(&cloner)));
 
-        virtual void visit(LoadVarAddressInst* inst)
-        {}
+                    // It becomes a value in the fun-call argument list : keep it's kFunArgs status
+                    fArgsValueList.push_back(InstBuilder::genLoadFunArgsVar(name));
 
-        virtual void visit(StoreVarInst* inst)
-        {
-            DispatchVisitor::visit(inst);
-            createParameter(inst->fAddress);
-        }
-
-        Loop2FunctionBuider(const string& fun_name, BlockInst* block, bool add_object = false)
-        {
-            // This prepare fArgsTypeList and fArgsValueList
-            block->accept(this);
-
-            // Change the status of all variables used in function parameter list
-            struct LoopCloneVisitor : public BasicCloneVisitor {
-
-                list <string>& fAddedVarTable;
-
-                LoopCloneVisitor(list <string>& table):fAddedVarTable(table)
-                {}
-
-                virtual Address* visit(NamedAddress* address)
-                {
-                    if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
-                        return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
-                    } else {
-                        return BasicCloneVisitor::visit(address);
-                    }
+                    // Variable added in parameter list
+                    fAddedVarTable.push_back(name);
                 }
-
-            };
-
-            // Put loop in new function
-            LoopCloneVisitor cloner(fAddedVarTable);
-            BlockInst* function_code = dynamic_cast<BlockInst*>(block->clone(&cloner));
-            //BlockInst* function_code = InstBuilder::genBlockInst();
-
-            // Add a Ret (void) instruction
-            function_code->pushBackInst(InstBuilder::genRetInst());
-
-            // Add "dsp" arg in function prototype and in parameter list
-            if (add_object) {
-                fArgsTypeList.push_front(InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
-                fArgsValueList.push_front(InstBuilder::genLoadFunArgsVar("dsp"));
+                break;
             }
 
-            // Create function type
-            BasicTyped* result = InstBuilder::genBasicTyped(Typed::kVoid);
-            FunTyped* fun_type = InstBuilder::genFunTyped(fArgsTypeList, result, FunTyped::kLocal);
+            case Address::kStruct:
+            case Address::kStaticStruct:
+            case Address::kGlobal:
+                // Nothing to do
+                break;
 
-            // Creates function definition
-            fFunctionDef = InstBuilder::genDeclareFunInst(fun_name, fun_type, function_code);
+            case Address::kLink:
+                // TO CHECK
+                break;
 
-            // Creates function call
-            fFunctionCall = InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
+            default:
+                break;
         }
+    }
+
+    virtual void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+
+        if (inst->fAddress->getAccess() == Address::kStack || inst->fAddress->getAccess() == Address::kLoop) {
+            // Keep local variables in the loop
+            fLocalVarTable[inst->fAddress->getName()] = inst->fAddress->getAccess();
+        }
+    }
+
+    virtual void visit(LoadVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+        createParameter(inst->fAddress);
+    }
+
+    virtual void visit(LoadVarAddressInst* inst)
+    {}
+
+    virtual void visit(StoreVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+        createParameter(inst->fAddress);
+    }
+
+    Loop2FunctionBuider(const string& fun_name, BlockInst* block, bool add_object = false)
+    {
+        // This prepare fArgsTypeList and fArgsValueList
+        block->accept(this);
+
+        // Change the status of all variables used in function parameter list
+        struct LoopCloneVisitor : public BasicCloneVisitor {
+
+            list <string>& fAddedVarTable;
+
+            LoopCloneVisitor(list <string>& table):fAddedVarTable(table)
+            {}
+
+            virtual Address* visit(NamedAddress* address)
+            {
+                if (find(fAddedVarTable.begin(), fAddedVarTable.end(), address->fName) != fAddedVarTable.end()) {
+                    return InstBuilder::genNamedAddress(address->fName, Address::kFunArgs);
+                } else {
+                    return BasicCloneVisitor::visit(address);
+                }
+            }
+
+        };
+
+        // Put loop in new function
+        LoopCloneVisitor cloner(fAddedVarTable);
+        BlockInst* function_code = dynamic_cast<BlockInst*>(block->clone(&cloner));
+        //BlockInst* function_code = InstBuilder::genBlockInst();
+
+        // Add a Ret (void) instruction
+        function_code->pushBackInst(InstBuilder::genRetInst());
+
+        // Add "dsp" arg in function prototype and in parameter list
+        if (add_object) {
+            fArgsTypeList.push_front(InstBuilder::genNamedTyped("dsp", InstBuilder::genBasicTyped(Typed::kObj_ptr)));
+            fArgsValueList.push_front(InstBuilder::genLoadFunArgsVar("dsp"));
+        }
+
+        // Create function type
+        BasicTyped* result = InstBuilder::genBasicTyped(Typed::kVoid);
+        FunTyped* fun_type = InstBuilder::genFunTyped(fArgsTypeList, result, FunTyped::kLocal);
+
+        // Creates function definition
+        fFunctionDef = InstBuilder::genDeclareFunInst(fun_name, fun_type, function_code);
+
+        // Creates function call
+        fFunctionCall = InstBuilder::genDropInst(InstBuilder::genFunCallInst(fun_name, fArgsValueList));
+    }
 
 };
 

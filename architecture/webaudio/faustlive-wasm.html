@@ -577,10 +577,10 @@
             function loadPageState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
-                    buffer_size = localStorage.getItem("buffer_size");
-                    poly_flag = localStorage.getItem("poly_flag");
-                    ftz_flag = localStorage.getItem("ftz_flag");
-                    poly_nvoices = localStorage.getItem("poly_nvoices");
+                    buffer_size = (localStorage.getItem("buffer_size") ? localStorage.getItem("buffer_size") : 1024);
+                    poly_flag = (localStorage.getItem("poly_flag") ? localStorage.getItem("poly_flag") : "OFF");
+                    poly_nvoices = (localStorage.getItem("poly_nvoices") ? localStorage.getItem("poly_nvoices") : 16);
+                    ftz_flag = (localStorage.getItem("ftz_flag") ? localStorage.getItem("ftz_flag") : 2);
                     
                     // Restore menus
                     restoreMenu("selectedBuffer", buffer_size);
