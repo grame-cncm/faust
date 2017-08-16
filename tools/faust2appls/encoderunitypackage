@@ -23,7 +23,7 @@
 
 # The Unity hierarchy will be the same as the original folder hierarchy.
 # However, the first folder needs to be called "Assets", if not the script creates it before packing.
-# When the package is imported, Unity retrieves the hierarchy from the pathnama files
+# When the package is imported, Unity retrieves the hierarchy from the pathname files
 
 
 #-------------------------------------------------------------------

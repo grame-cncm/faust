@@ -20,10 +20,10 @@ public class FaustPlugin_model : MonoBehaviour
     * @return The parameter value */
     public float getParameter (int param)
     {
-    		if (IsInstantiated ())  // if the the plugin is instantiated, the parameter value is changed directly in the plugin
-    			return ctx.getParameterValue (param);
-    		else  					// if not, the value is stored in parameters[]
-          return parameters [param];
+        if (IsInstantiated ())  // if the the plugin is instantiated, the parameter value is changed directly in the plugin
+            return ctx.getParameterValue (param);
+        else  					// if not, the value is stored in parameters[]
+            return parameters [param];
 
     }
 

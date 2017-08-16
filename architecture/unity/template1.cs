@@ -35,7 +35,7 @@ namespace FaustUtilities_model {
 			// @brief Method called when you click on the inspector
 	    public override void OnInspectorGUI() {
 	      	GUI.enabled = true;
-	        GUILayout.BeginVertical (); // Each block of elements needs to be wrap by Begin/EndVertical or Begin/EndHorizontal whether it's a vertical or horizontal group
+	        GUILayout.BeginVertical (); // Each block of elements needs to be wrapped by Begin/EndVertical or Begin/EndHorizontal whether it's a vertical or horizontal group
 	        GUILayout.BeginHorizontal ();
 	        GUILayout.FlexibleSpace ();
 					// Button to reset the initial parameter value
@@ -171,7 +171,7 @@ namespace FaustUtilities_model {
 	        }
 	    }
 
-			/* @brief Method to add the different elements on the inspector and deals with the varition of the parameter
+			/* @brief Method to add the different elements on the inspector and deals with the variation of the parameter
 			* @param item Which item will be displayed */
 	    void addComponent(Group item){
 	        int numparam = item.numparam;

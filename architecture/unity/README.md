@@ -10,7 +10,7 @@ The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage)
 Libraries are available for several platforms and architectures :
 
     - Windows 32 bits and 64 bits (.dll)
-    - MacOS (.bundle)
+    - macOS (.bundle)
     - iOS (.a)
     - Android armeabi-v7a and x86 (.so)
     - Linux (.so).
@@ -22,22 +22,22 @@ Libraries are available for several platforms and architectures :
 
 `faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-source] [-unpacked] <file1.dsp> [<file2.dsp>]`
 
-By default it will create a Unity package containing the c# script and sub-folders with all avalaible architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different packages.
+By default it will create a Unity package containing the c# script and sub-folders with all available architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different packages.
 
 The relevant architecture set up should be filled in for each file in the plugin inspector.
 
-Finally, the C# script `FaustPlugin_<dspname>` should be attached to a game object. `FaustPlugin_<dspname>.cs` contains the dsp class and methods that allow to access and change the parameters (i.e. `getParameter()` and `setParameter()`). `Faustutilities_<dspname>` contains all necessary background processes to access the plugin and generate the inspector interface. This file shouldn't be changed.
+Finally, the C# script `FaustPlugin_<dspname>` should be attached to a game object. `FaustPlugin_<dspname>.cs` is the public interface and contains the dsp class and methods that allow to access and change the parameters (i.e. `getParameter()` and `setParameter()`). `FaustUtilities_<dspname>` contains additional code to access the plugin and generate the inspector interface. This file shouldn't be changed.
 
-The source files are available with the `-source` argument.
+The source files can be produced with the `-source` argument.
 
-Unity packages have a specific organization in order to be correctly read by the Unity editor. `faust2unity` calls `encoderunitypackage` to correctly encode the compiled files. The `-unpacked` argument stops the script before the encoding, the intermediate folder is named `FaustPlugin_<dspname>_Assets` and organized like the Assets hierarchy of a Unity project. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
+Unity packages have a specific organization in order to be correctly read by the Unity editor. `faust2unity` calls `encoderunitypackage` to correctly encode the compiled files. The `-unpacked` argument stops the script before the encoding step, the intermediate folder is named `FaustPlugin_<dspname>_Assets` and organized like the Assets hierarchy of a Unity project. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
 
 
 ## Compiler requirements
 
 ### Windows 32 bits and 64 bits
 
-The compiler used for Windows libraries is Mingw (http://www.mingw.org). `i686-w64-mingw32-gcc` (32bits) and `x86_64-w64-mingw32-gcc` (64bits) packages have to be installed. They are available on [Macports](https://www.macports.org).
+The compiler used for Windows libraries is Mingw (http://www.mingw.org). `i686-w64-mingw32-gcc` (32bits) and `x86_64-w64-mingw32-gcc` (64bits) packages have to be installed. On macOS, they are available on [Macports](https://www.macports.org).
 
 ### Android
 
@@ -50,7 +50,7 @@ The following options are available :
 
     - `-w32`        : produces a Windows 32bits library
     - `-w64`        : produces a Windows 64bits library
-    - `-osx`        : produces a MacOS library
+    - `-osx`        : produces a macOS library
     - `-ios`        : produces an iOS library
     - `-android`    : produces Android armeabi-v7a and x86 libraries
     - `-linux`      : produces a Linux library
