@@ -1,13 +1,13 @@
-# Faust2unity 
+# Faust2unity
 
-`faust2unity` transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio. 
+`faust2unity` transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio.
 
 The compiled folder is a Unity package (i.e. FaustPlugin_<dspname>.unitypackage) which contains two different types of files :
 
     - Librairies (i.e. `libFaustPlugin_<dspname>.bundle`) containing the native C++ part.
-    - a C# script (i.e. `FaustPlugin_<dspname>.cs`) containing the managed part which links the native part to the Unity audio system and managed the plugin inspector interface.
+    - 2 C# scripts (i.e. `FaustPlugin_<dspname>.cs` and `FaustUtilities_<dspname>.cs`) containing the methods and classes which links the native part to the Unity audio system and managed the plugin inspector interface.
 
-Libraries are available for several platforms and architectures : 
+Libraries are available for several platforms and architectures :
 
     - Windows 32 bits and 64 bits (.dll)
     - MacOS (.bundle)
@@ -26,7 +26,7 @@ By default it will create a Unity package containing the c# script and sub-folde
 
 The relevant architecture set up should be filled in for each file in the plugin inspector.
 
-Finally, the C# script should be attached to a game object. 
+Finally, the C# script `FaustPlugin_<dspname>` should be attached to a game object. `FaustPlugin_<dspname>.cs` contains the dsp class and methods that allow to access and change the parameters (i.e. `getParameter()` and `setParameter()`). `Faustutilities_<dspname>` contains all necessary background processes to access the plugin and generate the inspector interface. This file shouldn't be changed.
 
 The source files are available with the `-source` argument.
 
@@ -42,12 +42,12 @@ The compiler used for Windows libraries is Mingw (http://www.mingw.org). `i686-w
 ### Android
 
 Android SDK (containing Android NDK) should be installed to generate Android libraries and the ANDROID_HOME environment variable should be defined. It should point on the sdk folder. If the SDK has been installed by Android Studio, the path should be `~/Library/Android/sdk`. Other architectures are available in the Android NDK. To use them, the `achitecture/unity/Android/Android.mk` file should be updated and the APP_ABI line should be modified. See [Android NDK](https://developer.android.com/ndk/guides/android_mk.html) for more info.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
+
 ## Options
 
 The following options are available :
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                
+
     - `-w32`        : produces a Windows 32bits library
     - `-w64`        : produces a Windows 64bits library
     - `-osx`        : produces a MacOS library
@@ -60,13 +60,11 @@ The following options are available :
 
 `faust2unity` script calls six different commands :
 
-    - `faust2w32unity <file.dsp>` 
+    - `faust2w32unity <file.dsp>`
     - `faust2w64unity <file.dsp>`
     - `faust2osxiosunity [-ios] <file.dsp>`
     - `faust2androidunity <file.dsp>`
     - `faust2linuxunity <file.dsp>`
-    - `encoderunitypackage <folder >`
+    - `encoderunitypackage <folder>`
 
-These commands can be called independently and will generate the libraries only (without the c# file). Specific compilation options can be changed in `faust2<platform>unity` scripts.
-
-
+These commands can be called independently and will generate the libraries only (without the c# files). Specific compilation options can be changed in `faust2<platform>unity` scripts.
