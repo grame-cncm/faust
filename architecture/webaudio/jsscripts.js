@@ -1361,7 +1361,6 @@ _f4u$t.make_audio_ui = function(dsp, svg) {
   faust_svg.make();
 }
 
- 
 // faust_jquery_svg_backend.js
 
 _f4u$t.make_rectangle_via_rect = function(svg, parent, rf, x, y, w, h, ops) {

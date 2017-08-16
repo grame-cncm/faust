@@ -400,9 +400,8 @@
 
             <script src="jsscripts.js"></script>
             <script src="libfaust-wasm.js"></script>
-            <script src="webaudio-wasm-wrapper.js"></script>
             <script src="WebMIDIAPI.js"></script>
-
+            <script src="webaudio-wasm-wrapper.js"></script>
             <script type="text/javascript">
 
             'use strict';
@@ -790,8 +789,6 @@
                                                                                     }
 
                                                                                     // Setup UI
-                                                                                    _f4u$t.main_loop = function() {}
-
                                                                                     faust_svg = $('<div />');
                                                                                     $('body').append(faust_svg);
                                                                                     output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
@@ -836,8 +833,6 @@
                                                                             }
 
                                                                             // Setup UI
-                                                                            _f4u$t.main_loop = function() {}
-
                                                                             faust_svg = $('<div />');
                                                                             $('body').append(faust_svg);
                                                                             output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
@@ -861,17 +856,20 @@
 
             function initPage()
             {
+                // No polling from the server needed, so use an empty loop
+                _f4u$t.main_loop = function() {}
+                
                 // Restore 'save' checkbox state
                 document.getElementById("localstorage").checked = (localStorage.getItem("FaustLocalStorage") === "on");
 
                 // Load page state
                 loadPageState();
             }
-
+            
             function init()
             {
                 activateMIDIInput();
-
+                
                 var filedrag1 = document.getElementById("filedrag");
                 filedrag1.addEventListener("dragover", fileDragHover, false);
                 filedrag1.addEventListener("dragleave", fileDragHover, false);
@@ -884,10 +882,11 @@
 
             // Save DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
-
-
-            // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
-            FaustModule()['onRuntimeInitialized'] = init;
+            
+            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready
+            // (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
+            
+            faust_module['onRuntimeInitialized'] = init;
 
             </script>
 

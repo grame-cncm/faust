@@ -187,7 +187,7 @@ function startDSPAux(dsp)
     DSP_poly.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(DSP_poly.getParams());
     
-    // kludge...ideally, this needs to not be part of the imported JS
+    // No polling from the server needed, so use an empty loop
     _f4u$t.main_loop = function() {}
     
     faustsvg = $('<div />');

@@ -508,7 +508,6 @@ function startDSP(instance, buffer_size)
         }
         nbsamples -= nFrames;
     }
-    
 }
 
 var asm2wasm = { // special asm2wasm imports
