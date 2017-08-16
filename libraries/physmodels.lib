@@ -809,10 +809,10 @@ with{
 ks_ui_MIDI = gate : impulseExcitation*gain : ks( (freq : f2l), damping )
 with{
 	f = hslider("v:karplus/h:[0]params/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:karplus/h:[0]params/[1]bend[style:knob][hide:1][midi:pitchwheel]"
+	bend = hslider("v:karplus/h:[0]params/[1]bend[style:knob][hidden:1][midi:pitchwheel]"
 	,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:karplus/h:[0]params/[2]gain[style:knob]",0.8,0,1,0.01);
-	s = hslider("v:karplus/h:[0]params/[3]sustain[hide:1][midi:ctrl 64][style:knob]"
+	s = hslider("v:karplus/h:[0]params/[3]sustain[hidden:1][midi:ctrl 64][style:knob]"
 	,0,0,1,1);
 	damping = hslider("v:karplus/h:[0]params/[1]damping[midi:ctrl 1][style:knob]"
 	,0.01,0,1,0.01) : si.smoo;
@@ -885,10 +885,10 @@ pluckString(stringLength,1,1,1,gain,trigger) : elecGuitarModel(stringLength, plu
 elecGuitar_ui_MIDI = elecGuitar(stringLength,pluckPosition,gain,gate)*outGain
 with{
 	f = hslider("v:elecGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:elecGuitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel][style:knob]"
+	bend = hslider("v:elecGuitar/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel][style:knob]"
 	,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:elecGuitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
-	s = hslider("v:elecGuitar/h:[0]midi/[3]sustain[hide:1]
+	s = hslider("v:elecGuitar/h:[0]midi/[3]sustain[hidden:1]
 	[midi:ctrl 64][style:knob]",0,0,1,1);
   pluckPosition = hslider("v:elecGuitar/[1]pluckPosition[midi:ctrl 1]",0.8,0,1,0.01) : si.smoo;
   outGain = hslider("v:elecGuitar/[2]outGain",0.5,0,1,0.01);
@@ -979,10 +979,10 @@ pluckString(stringLength,1,1.5,1,gain,trigger) : guitarModel(stringLength, pluck
 guitar_ui_MIDI = guitar(stringLength,pluckPosition,gain,gate)*outGain
 with{
 	f = hslider("v:guitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:guitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:guitar/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:guitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
-	s = hslider("v:guitar/h:[0]midi/[3]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:guitar/h:[0]midi/[3]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
   pluckPosition = hslider("v:guitar/pluckPosition[midi:ctrl 1]"
 	,0.8,0,1,0.01) : si.smoo;
@@ -1057,10 +1057,10 @@ pluckString(stringLength,1,1.5,1,gain,trigger) : nylonGuitarModel(stringLength, 
 nylonGuitar_ui_MIDI = nylonGuitar(stringLength,pluckPosition,gain,gate)*outGain
 with{
 	f = hslider("v:nylonGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:nylonGuitar/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:nylonGuitar/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:nylonGuitar/h:[0]midi/[2]gain[style:knob]",0.8,0,1,0.01);
-	s = hslider("v:nylonGuitar/h:[0]midi/[3]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:nylonGuitar/h:[0]midi/[3]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
   pluckPosition = hslider("v:nylonGuitar/pluckPosition[midi:ctrl 1]"
 	,0.8,0,1,0.01) : si.smoo;
@@ -1294,13 +1294,13 @@ with{
 violin_ui_MIDI = violinModel(stringLength,bowPress,bowVel,bowPos)*outGain
 with{
 	f = hslider("v:violin/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:violin/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:violin/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:violin/h:[0]midi/[2]gain[style:knob]
 	",0.6,0,1,0.01);
 	envAttack = hslider("v:violin/h:[0]midi/[3]envAttack[style:knob]
 	",1,0,30,0.01)*0.001;
-	s = hslider("v:violin/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:violin/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	bowPress = hslider("v:violin/h:[1]bow/[0]pressure[style:knob]
 	[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
@@ -1626,13 +1626,13 @@ clarinet_ui_MIDI =
 clarinetModel(tubeLength,blow,reedStiffness,bellOpening)*outGain
 with{
 	f = hslider("v:clarinet/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:clarinet/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:clarinet/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:clarinet/h:[0]midi/[2]gain[style:knob]
 	",0.6,0,1,0.01);
 	envAttack = hslider("v:clarinet/h:[0]midi/[3]envAttack[style:knob]
 	",1,0,30,0.01)*0.001;
-	s = hslider("v:clarinet/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:clarinet/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	reedStiffness = hslider("v:clarinet/h:[1]otherParams/[0]reedStiffness
 	[midi:ctrl 1][style:knob]",0.5,0,1,0.01);
@@ -1732,13 +1732,13 @@ brass_ui = hgroup("brass",blower_ui : brassModel_ui);
 brass_ui_MIDI = brassModel(tubeLength,lipsTension,mute,pressure)*outGain
 with{
   f = hslider("v:brass/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:brass/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:brass/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:brass/h:[0]midi/[2]gain[style:knob]
 	",0.5,0,1,0.01);
 	envAttack = hslider("v:brass/h:[0]midi/[3]envAttack[style:knob]
 	",1,0,30,0.01)*0.001;
-  s = hslider("v:brass/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+  s = hslider("v:brass/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
   lipsTension = hslider("v:brass/h:[1]otherParams/[0]lipsTension[style:knob]
 	[midi:ctrl 1]",0.5,0,1,0.01) : si.smoo;
@@ -1839,13 +1839,13 @@ flute_ui = hgroup("flute",blower_ui : fluteModel_ui);
 flute_ui_MIDI = fluteModel(tubeLength,mouthPosition,blow)*outGain
 with{
 	f = hslider("v:flute/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:flute/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:flute/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:flute/h:[0]midi/[2]gain[style:knob]
 	",0.9,0,1,0.01);
 	envAttack = hslider("v:flute/h:[0]midi/[3]envAttack[style:knob]
 	",1,0,30,0.01)*0.001;
-	s = hslider("v:flute/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:flute/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	mouthPosition = hslider("v:flute/h:[1]otherParams/[0]mouthPosition
 	[style:knob][midi:ctrl 1]",0.5,0,1,0.01)
@@ -3504,14 +3504,14 @@ with{
 SFFormantModelFofCycle_ui_MIDI = SFFormantModelFofCycle(voiceType,vowel,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
 	",0.9,0,1,0.01);
 	corrFactor = 75.0;
 	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
 	",10,0,30,0.01)*0.001;
-	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
 	[style:knob]",0,0,4,1);
@@ -3543,14 +3543,14 @@ with{
 SFFormantModelFofSmooth_ui_MIDI = SFFormantModelFofSmooth(voiceType,vowel,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
 	",0.9,0,1,0.01);
 	corrFactor = 25.0;
 	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
 	",10,0,30,0.01)*0.001;
-	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
 	[style:knob]",0,0,4,1);
@@ -3582,13 +3582,13 @@ with{
 SFFormantModelBP_ui_MIDI = SFFormantModelBP(voiceType,vowel,fricative,freq2,envelope)*outGain
 with{
 	freq1 = hslider("v:vocal/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
-	bend = hslider("v:vocal/h:[0]midi/[1]bend[hide:1][midi:pitchwheel]
+	bend = hslider("v:vocal/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel]
 	[style:knob]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
 	gain = hslider("v:vocal/h:[0]midi/[2]gain[style:knob]
 	",0.9,0,1,0.01);
 	envAttack = hslider("v:vocal/h:[0]midi/[3]envAttack[style:knob]
 	",10,0,30,0.01)*0.001;
-	s = hslider("v:vocal/h:[0]midi/[4]sustain[hide:1][midi:ctrl 64]
+	s = hslider("v:vocal/h:[0]midi/[4]sustain[hidden:1][midi:ctrl 64]
 	[style:knob]",0,0,1,1);
 	voiceType = hslider("v:vocal/h:[1]otherParams/[0]voiceType
 	[style:knob]",0,0,4,1);
