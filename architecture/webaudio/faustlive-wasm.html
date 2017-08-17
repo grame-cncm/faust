@@ -1,14 +1,69 @@
-<!DOCTYPE html PUBLIC>
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="ie=edge">
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:300,400" rel="stylesheet">
+
         <style type="text/css">
-            body {
-                background-color: #FFFFFF;
+            * {
+                font-family: 'Roboto', sans-serif;
+                font-size: 14px;
+                font-weight:normal;
+
             }
-        
+            body {
+                margin-left: 10%;
+                margin-right: 10%;
+            }
+            h1 {
+                font-family: 'Open Sans', sans-serif;
+                font-size: 30px;
+                font-weight: lighter;
+            }
+            h2 {
+                font-family: 'Open Sans', sans-serif;
+                font-size: 24px;
+            }
+            h3 {
+                font-family: 'Open Sans', sans-serif;
+                font-size: 16px;
+                font-weight: bold;
+            }
+            h4 {
+                font-family: 'Open Sans', sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+            }
+
+            .config {
+                display:grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                grid-gap: 8px;
+            }
+
+            .config-element {
+                border: none;
+                background-color: #9FA8EB;
+                padding: 10px;
+            }
+            .config-element p {
+                font-style: italic;
+            }
+            .config-element ul {
+                font-style: italic;
+                list-style-type: none;
+            }
+            .config-element li {
+                font-style: italic;
+                list-style-type: none;
+            }
+
+            .line2 {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
         /* WEBKIT */
         text {
             -webkit-touch-callout: none;
@@ -18,354 +73,347 @@
             -ms-user-select: none;
             user-select: none;
         }
-        
+
         .faust-group-label {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 13px;
             fill: rgba(199,190,162,0.6);
         }
-        
+
         .faust-tooltip-text {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 13px;
         }
-        
+
         .faust-button-label {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 13px;
             fill: rgba(0,182,253,0.6);
         }
-        
+
         .faust-tgroup-label {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 13px;
             fill: rgba(0,182,253,0.6);
         }
-        
+
         .faust-label {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 13px;
             fill: rgba(0,182,253,0.6);
         }
-        
+
         .faust-value-text {
             font-family: Arial, Verdana, Helvetica, sans;
             font-size: 11px;
             font-weight: bold;
             fill: rgb(82,79,79);
         }
-        
+
         path {
             -webkit-user-select: none;
         }
-        
+
         rect {
             -webkit-user-select: none;
             -moz-user-select: none;
             user-select: none;
         }
-        
+
         }
-        
+
         circle {
             -webkit-user-select: none;
         }
-        
+
         text:hover {
             cursor: default;
         }
-        
+
         path.faust-vbox {
             fill : white;
             stroke : black;
         }
-        
+
         path.faust-rbutton-groove {
             fill : rgb(152,251,152);
             stroke : black;
         }
-        
+
         path.faust-rbutton-handle {
             fill : grey;
             stroke : black;
         }
-        
+
         rect.faust-hslider-meter {
             fill : url(#horizontalSliderMeterGradient);
         }
-        
+
         rect.faust-hslider-groove {
             fill : rgba(28,126,192,0.65);
             stroke : rgba(0,182,253,0.9);
         }
-        
+
         rect.faust-hslider-handle {
             fill : url(#horizontalSliderHandleGradient);
             stroke : black;
         }
-        
+
         rect.faust-vslider-meter {
             fill : url(#verticalSliderMeterGradient);
         }
-        
+
         rect.faust-vslider-groove {
             fill : rgba(28,126,192, 0.65);
             stroke : rgba(0,182,253,0.9);
         }
-        
+
         rect.faust-vslider-handle {
             fill : url(#verticalSliderHandleGradient);
             stroke : black;
         }
-        
+
         rect.faust-hbargraph-curtain {
             fill : rgb(20,20,20);
             stroke : black;
         }
-        
+
         // hbargraph meters cannot be defined via CSS because their widths and
         // heights are dynamic
-        
+
         rect.faust-hbargraph-meter {
             fill : url(#horizontalBarGraphMeterGradient);
             stroke : black;
         }
-        
+
         rect.faust-vbargraph-curtain {
             fill : rgb(20,20,20);
             stroke : black;
         }
-        
+
         rect.faust-vbargraph-meter {
             fill : url(#verticalBarGraphMeterGradient);
             stroke : black;
         }
-        
+
         rect.faust-checkbox-box {
             fill : white;
             stroke : black;
         }
-        
+
         path.faust-checkbox-check {
             fill : black;
             stroke : black;
         }
-        
+
         rect.faust-nentry-box {
             fill : url(#numericalEntryUpGradient);
             stroke : black;
         }
-        
+
         path.faust-nentry-operation {
             stroke : black;
         }
-        
+
         rect.faust-button-box {
             fill : url(#buttonUpGradient);
             stroke : black;
         }
-        
+
         rect.faust-tgroup-box {
             fill : url(#tabGroupUpGradient);
             stroke : black;
         }
-        
+
         circle.faust-rbutton-groove {
             fill : url(#rotatingButtonHandleGradient);
         }
-        
+
         circle.faust-rbutton-dot {
             fill : pink;
             stroke : black;
         }
-        
+
         path.faust-rbutton-meter {
             fill : rgb(50,50,50);
         }
-        
+
         path.faust-rbutton-mgroove {
             fill : url(#rotatingButtonMeterGradient);
         }
-        
+
         // as all of the above rectangles could be implemented as paths, we duplicate the definitions for paths
-        
+
         path.faust-hslider-groove {
             fill : red;
             stroke : black;
         }
-        
+
         path.faust-hslider-handle {
             fill : url(#horizontalSliderHandleGradient);
             stroke : black;
         }
-        
+
         path.faust-vslider-groove {
             fill : red;
             stroke : black;
         }
-        
+
         path.faust-vslider-handle {
             fill : url(#verticalSliderHandleGradient);
             stroke : black;
         }
-        
+
         path.faust-hbargraph-curtain {
             fill : rgb(0,255,255);
             stroke : black;
         }
-        
+
         path.faust-hbargraph-meter {
             fill : grey;
             stroke : black;
         }
-        
+
         path.faust-vbargraph-curtain {
             fill : rgb(0,255,255);
             stroke : black;
         }
-        
+
         path.faust-vbargraph-meter {
             fill : grey;
             stroke : black;
         }
-        
+
         path.faust-checkbox-box {
             fill : white;
             stroke : black;
         }
-        
+
         path.faust-nentry-box {
             fill : url(#numericalEntryUpGradient);
             stroke : black;
         }
-        
+
         path.faust-button-box {
             fill : #B0B0B0;
             stroke : black;
         }
-        
+
         #filedrag{
             font-weight: bold;
             text-align: center;
             padding: 1em 0;
             margin: 1em 0;
-            color: #CECECE;
-            border: 8px dashed #CECECE;
-            border-radius: 7px;
+            color: #8d97e8;
+            border: 4px dashed #8d97e8;
             cursor: default;
             font-size : 20px;
         }
-        
+
         #filedrag.hover{
             color: #FF7F00;
             border-color: #FF7F00;
             border-style: solid;
         }
-        
+
         td { text-align: center; padding: 40px; }
-        
+
         </style>
-        
+
     </head>
     <body bgcolor= "#FFFFFF">
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
         <P> This page embeds the Faust compiler as a JavaScript library named <B>libfaust.js</B>, associated with the auxiliary WebAssembly library.
         You can compile Faust .dsp files by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
-        <P>
-        <H3>Buffer size </H3>
-        You can change the buffer size (from 256 to 8192 frames).
-        <P>
-        <H3>Polyphonic instrument </H3>
-        Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome with uses the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
-        <H3>Float denormals handling </H3>
-        Value = 0 means no denormal handling, 1 mode uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower), 2 mode uses a <B>bitmask</B> to detect denormal values (faster)
-        <P>
-            <center>
-            <table>
-            <tr>
-                <td>
-                <center>
-                    <H4> Buffer size </H4>
-                    <form method="POST" name="menu" >
-                        <select id="selectedBuffer" name="selectedBuffer"
-                            onChange="setBufferSize(this.form.selectedBuffer)">
-                            <option value = 256> 256 </option>
-                            <option value = 512> 512 </option>
-                            <option selected value = 1024> 1024 </option>
-                            <option value = 2048> 2048 </option>
-                            <option value = 4096> 4096 </option>
-                            <option value = 8192> 8192 </option>
-                        </select>
-                    </form>
-                </center>
-                
-                <td>
-                <center>
-                    <H4> Polyphonic instrument and voices </H4>
-                    <form method="POST" name="menu" >
-                        <select id="selectedPoly" name="selectedPoly"
-                            onChange="setPoly(this.form.selectedPoly)">
-                            <option value = ON> ON </option>
-                            <option selected value = OFF> OFF </option>
-                        </select>
-                    </form>
-                    <form method="POST" name="menu" >
-                        <select id="polyVoices" name="polyVoices"
-                            onChange="setPolyVoices(this.form.polyVoices)">
-                            <option value = 4> 4 </option>
-                            <option value = 8> 8 </option>
-                            <option selected value = 16> 16 </option>
-                            <option value = 32> 32 </option>
-                            <option value = 64> 64 </option>
-                            <option value = 128> 128 </option>
-                        </select>
-                    </form>
-                </center>
-                
-                <td>
-                <center>
-                    <H4> Float denormals handling</H4>
-                    <form method="POST" name="menu" >
-                        <select id="selectedFTZ" name="selectedFTZ"
-                            onChange="setFTZ(this.form.selectedFTZ)">
-                            <option value = 0> 0 </option>
-                            <option value = 1> 1 </option>
-                            <option selected value = 2> 2 </option>
-                        </select>
-                    </form>
-                </center>
-                
-            </tr>
-            </table>
-            </center>
-            
-            <center> <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save page and DSP control parameters state</B> </center>
-                
+        <div class="config">
+
+            <div class="config-element">
+                <H3>Buffer size </H3>
+                <form method="POST" name="menu" >
+                    <select id="selectedBuffer" name="selectedBuffer"
+                        onChange="setBufferSize(this.form.selectedBuffer)">
+                        <option value = 256> 256 </option>
+                        <option value = 512> 512 </option>
+                        <option selected value = 1024> 1024 </option>
+                        <option value = 2048> 2048 </option>
+                        <option value = 4096> 4096 </option>
+                        <option value = 8192> 8192 </option>
+                    </select>
+                </form>
+                <p>You can change the buffer size (from 256 to 8192 frames).</p>
+            </div>
+
+            <div class="config-element">
+                <H3>Polyphonic instrument </H3>
+                <div class="line2">
+                <form method="POST" name="menu" >
+                    <select id="selectedPoly" name="selectedPoly"
+                        onChange="setPoly(this.form.selectedPoly)">
+                        <option value = ON> ON </option>
+                        <option selected value = OFF> OFF </option>
+                    </select>
+                </form>
+                <form method="POST" name="menu" >
+                    <select id="polyVoices" name="polyVoices"
+                        onChange="setPolyVoices(this.form.polyVoices)">
+                        <option value = 4> 4 </option>
+                        <option value = 8> 8 </option>
+                        <option selected value = 16> 16 </option>
+                        <option value = 32> 32 </option>
+                        <option value = 64> 64 </option>
+                        <option value = 128> 128 </option>
+                    </select>
+                </form>
+                </div>
+                <p>Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome with uses the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).</p>
+            </div>
+
+            <div class="config-element">
+                <H3>Float denormals handling </H3>
+                <form method="POST" name="menu" >
+                    <select id="selectedFTZ" name="selectedFTZ"
+                        onChange="setFTZ(this.form.selectedFTZ)">
+                        <option value = 0> 0 </option>
+                        <option value = 1> 1 </option>
+                        <option selected value = 2> 2 </option>
+                    </select>
+                </form>
+
+                    <p>0: means no denormal handling,</p>
+                    <p>1: uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower),<p>
+                    <p>2: uses a <B>bitmask</B> to detect denormal values (faster).</p>
+
+
+            </div>
+
+        </div>
+
+            <p> <input id="localstorage" type="checkbox" onclick="setLocalStorage(checked)"> <B>Save page and DSP control parameters state</B> </p>
+
             <div id="filedrag">
                 Loading JavaScript/WebAssembly ressources...
             </div>
-            
+
             <form id="upload" action="CompilerResponse" method="POST" enctype="multipart/form-data">
                 <input type="hidden" id="MAX_FILE_SIZE" name="MAX_FILE_SIZE" value="5000000" />
             </form>
-            
+
             <script src="jsscripts.js"></script>
             <script src="libfaust-wasm.js"></script>
-            <script src="webaudio-wasm-wrapper.js"></script>
             <script src="WebMIDIAPI.js"></script>
-            
+            <script src="webaudio-wasm-wrapper.js"></script>
             <script type="text/javascript">
-                
+
             'use strict';
-            
+
             var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
             var isWasm = (typeof (WebAssembly) !== "undefined");
             var isPoly = false;
-            
+
             if (!isWasm) {
                 alert("WebAssembly is not supported in this browser, the page will not work !")
             }
-             
+
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var buffer_size = 1024;
             var audio_input = null;
@@ -378,33 +426,33 @@
             var ftz_flag = "2";
             var poly_nvoices = 16;
             var output_handler = null;
-            var libraries_url = "http://127.0.0.1:8000/libraries/";
-            //var libraries_url = "http://faust.grame.fr/modules/libraries/";
-            
+            //var libraries_url = "http://127.0.0.1:8000/libraries/";
+            var libraries_url = "http://faust.grame.fr/modules/libraries/";
+
             function setBufferSize(bs_item)
             {
                 buffer_size = bs_item.options[bs_item.selectedIndex].value;
                 compileDSP();
             }
-            
+
             function setPoly(poly_item)
             {
                 poly_flag = poly_item.options[poly_item.selectedIndex].value;
                 compileDSP();
             }
-            
+
             function setPolyVoices(voices_item)
             {
                 poly_nvoices = voices_item.options[voices_item.selectedIndex].value;
                 compileDSP();
             }
-            
+
             function setFTZ(ftz_item)
             {
                 ftz_flag = ftz_item.options[ftz_item.selectedIndex].value;
                 compileDSP();
             }
-      
+
             // MIDI input handling
             function keyOn(channel, pitch, velocity)
             {
@@ -412,35 +460,35 @@
                     DSP.keyOn(channel, pitch, velocity);
                 }
             }
-            
+
             function keyOff(channel, pitch, velocity)
             {
                 if (DSP && isPoly) {
                     DSP.keyOff(channel, pitch, velocity);
                 }
             }
-            
+
             function pitchWheel(channel, bend)
             {
                 if (DSP && isPoly) {
                     DSP.pitchWheel(channel, bend);
                 }
             }
-            
+
             function ctrlChange(channel, ctrl, value)
             {
                 if (DSP && isPoly) {
                     DSP.ctrlChange(channel, ctrl, value);
                 }
             }
-            
+
             function midiMessageReceived(ev)
             {
                 var cmd = ev.data[0] >> 4;
                 var channel = ev.data[0] & 0xf;
                 var data1 = ev.data[1];
                 var data2 = ev.data[2];
-                
+
                 if (channel === 9) {
                     return;
                 } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
@@ -453,12 +501,12 @@
                     pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
                 }
             }
-            
+
             function onerrorcallback(error)
             {
                 console.log(error);
             }
-            
+
             function onsuccesscallbackJazz(access)
             {
                 var inputs = access.getInputs();
@@ -468,7 +516,7 @@
                     input.onmessage = midiMessageReceived;
                 }
             }
-            
+
             function onsuccesscallbackStandard(access)
             {
                 for (var input of access.inputs.values()) {
@@ -477,7 +525,7 @@
                     console.log(input.name);
                 }
             }
-            
+
             function activateMIDIInput()
             {
                 console.log("activateMIDIInput");
@@ -491,7 +539,7 @@
                     alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
                 }
             }
-            
+
             // Audio input handling
             function activateAudioInput()
             {
@@ -499,7 +547,7 @@
                 if (!navigator.getUserMedia) {
                     navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
                 }
-                
+
                 if (navigator.getUserMedia) {
                     navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
                                            alert('Error getting audio input');
@@ -509,16 +557,16 @@
                     alert('Audio input API not available');
                 }
             }
-            
+
             function getDevice(device)
             {
                 // Create an AudioNode from the stream.
                 audio_input = audio_context.createMediaStreamSource(device);
-                
+
                 // Connect it to the destination.
                 audio_input.connect(DSP);
             }
-            
+
             function setLocalStorage(state)
             {
                 console.log(state);
@@ -526,9 +574,9 @@
                     localStorage.setItem("FaustLocalStorage", ((state) ? "on" : "off"));
                 }
             }
-            
+
             // Save/Load functions using local storage
-            
+
             function restoreMenu(id, value)
             {
                 for (var i = 0; i < document.getElementById(id).length; i++) {
@@ -538,7 +586,7 @@
                     }
                 }
             }
-        
+
             function saveDSPState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
@@ -548,7 +596,7 @@
                     }
                 }
             }
-            
+
             function savePageState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
@@ -558,7 +606,7 @@
                     localStorage.setItem("poly_nvoices", poly_nvoices);
                 }
             }
-            
+
             function loadDSPState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
@@ -573,7 +621,7 @@
                     }
                 }
             }
-            
+
             function loadPageState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
@@ -581,7 +629,7 @@
                     poly_flag = (localStorage.getItem("poly_flag") ? localStorage.getItem("poly_flag") : "OFF");
                     poly_nvoices = (localStorage.getItem("poly_nvoices") ? localStorage.getItem("poly_nvoices") : 16);
                     ftz_flag = (localStorage.getItem("ftz_flag") ? localStorage.getItem("ftz_flag") : 2);
-                    
+
                     // Restore menus
                     restoreMenu("selectedBuffer", buffer_size);
                     restoreMenu("selectedPoly", poly_flag);
@@ -589,14 +637,14 @@
                     restoreMenu("selectedFTZ", ftz_flag);
                 }
             }
-            
+
             function fileDragHover(e)
             {
                 e.stopPropagation();
                 e.preventDefault();
                 e.target.className = (e.type === "dragover" ? "hover" : "");
             }
-            
+
             function fileSelectHandler(e)
             {
                 fileDragHover(e);
@@ -604,28 +652,28 @@
                 f = files[0];
                 uploadFile(f);
             }
-            
+
             function uploadOn(e, callback)
             {
                 if (!isWasm) {
                     alert("WebAssembly is not supported in this browser !")
                     return;
                 }
-                
+
                 // CASE 1 : THE DROPPED OBJECT IS A URL TO SOME FAUST CODE
                 if (e.dataTransfer.getData('URL') && e.dataTransfer.getData('URL').split(':').shift() != "file") {
                     var url = e.dataTransfer.getData('URL');
                     var filename = url.toString().split( '/' ).pop();
                     filename = filename.toString().split('.').shift();
                     var xmlhttp = new XMLHttpRequest();
-                    
+
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
                             dsp_code = "process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
                             callback();
                         }
                     }
-                    
+
                     try {
                         xmlhttp.open("GET", url, false);
                         // Avoid error "mal formé" on firefox
@@ -634,10 +682,10 @@
                     } catch (err) {
                         alert(err);
                     }
-                   
+                    
                 } else if (e.dataTransfer.getData('URL').split(':').shift() != "file") {
                     dsp_code = e.dataTransfer.getData('text');
-                    
+
                     // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
                     if (dsp_code) {
                         dsp_code = "process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
@@ -647,17 +695,17 @@
                     else {
                         var files = e.target.files || e.dataTransfer.files;
                         var file = files[0];
-                        
+
                         if (location.host.indexOf("sitepointstatic") >= 0) return;
-                        
+
                         var request = new XMLHttpRequest();
                         if (request.upload) {
-                            
+
                             var reader = new FileReader();
                             var ext = file.name.toString().split('.').pop();
                             var filename = file.name.toString().split('.').shift();
                             var type;
-                            
+
                             if (ext === "dsp") {
                                 type = "dsp";
                                 reader.readAsText(file);
@@ -665,7 +713,7 @@
                                 type = "json";
                                 reader.readAsText(file);
                             }
-                            
+
                             reader.onloadend = function(e) {
                                 dsp_code = "process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
                                 callback();
@@ -678,7 +726,7 @@
                     window.alert("This object is not Faust code...");
                 }
             }
-            
+
             function compileDSP()
             {
                 if (DSP) {
@@ -694,25 +742,25 @@
                     DSP = null;
                     _f4u$t.hard_delete(faust_svg);
                 }
-                
+
                 if (!dsp_code) {
                     return;
                 }
-                
+
                 // Prepare args list
                 var argv = [];
                 argv.push("-ftz");
                 argv.push(ftz_flag);
                 argv.push("-I");
                 argv.push(libraries_url);
-                
+
                 console.log(argv);
-                
+
                 if (poly_flag === "ON") {
-                    
+
                     isPoly = true;
                     console.log("Poly DSP");
-                    
+
                     // Create a poly DSP factory from the dsp code
                     faust.createPolyDSPFactory(dsp_code,
                                                argv,
@@ -721,28 +769,26 @@
                                                         alert(faust.getErrorMessage());
                                                         return;
                                                     }
-                                               
+
                                                     faust.createPolyDSPInstance(factory,
                                                                                audio_context,
                                                                                buffer_size,
                                                                                poly_nvoices,
                                                                                function (dsp) {
-                                                                               
+
                                                                                     if (!dsp) {
                                                                                         alert(faust.getErrorMessage());
                                                                                         return;
                                                                                     }
-                                                                               
+
                                                                                     DSP = dsp;
                                                                                     if (DSP.getNumInputs() > 0) {
                                                                                         activateAudioInput();
                                                                                     } else {
                                                                                         audio_input = null;
                                                                                     }
-                                                                               
+
                                                                                     // Setup UI
-                                                                                    _f4u$t.main_loop = function() {}
-                                                                                   
                                                                                     faust_svg = $('<div />');
                                                                                     $('body').append(faust_svg);
                                                                                     output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
@@ -751,19 +797,16 @@
                                                                                     console.log(DSP.getNumOutputs());
                                                                                     DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                                                                                     DSP.connect(audio_context.destination);
-                                                                               
+
                                                                                     loadDSPState();
                                                                                });
                                                 });
-                                               
+
                 } else {
-                    
+
                     isPoly = false;
                     console.log("Mono DSP");
-                    
-                    //var expanded = faust.expandDSP(dsp_code, argv);
-                    //console.log(expanded);
-                    
+
                     // Create a mono DSP factory from the dsp code
                     faust.createDSPFactory(dsp_code,
                                            argv,
@@ -776,22 +819,20 @@
                                                                        audio_context,
                                                                        buffer_size,
                                                                        function (dsp) {
-                                                                       
+
                                                                             if (!dsp) {
                                                                                 alert(faust.getErrorMessage());
                                                                                 return;
                                                                             }
-                                                                       
+
                                                                             DSP = dsp;
                                                                             if (DSP.getNumInputs() > 0) {
                                                                                 activateAudioInput();
                                                                             } else {
                                                                                 audio_input = null;
                                                                             }
-                                                                           
+
                                                                             // Setup UI
-                                                                            _f4u$t.main_loop = function() {}
-                                                                           
                                                                             faust_svg = $('<div />');
                                                                             $('body').append(faust_svg);
                                                                             output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
@@ -800,24 +841,27 @@
                                                                             console.log(DSP.getNumOutputs());
                                                                             DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                                                                             DSP.connect(audio_context.destination);
-                                                                       
+
                                                                             loadDSPState();
                                                                        });
                                            });
                 }
             }
-            
+
             function uploadFile(e)
             {
                 fileDragHover(e);
                 uploadOn(e, compileDSP);
             }
-            
+
             function initPage()
             {
+                // No polling from the server needed, so use an empty loop
+                _f4u$t.main_loop = function() {}
+                
                 // Restore 'save' checkbox state
                 document.getElementById("localstorage").checked = (localStorage.getItem("FaustLocalStorage") === "on");
-                
+
                 // Load page state
                 loadPageState();
             }
@@ -830,26 +874,27 @@
                 filedrag1.addEventListener("dragover", fileDragHover, false);
                 filedrag1.addEventListener("dragleave", fileDragHover, false);
                 filedrag1.addEventListener("drop", uploadFile, false);
-                filedrag1.textContent = "Drop a Faust .dsp file or URL here (to be compiled using libfaust version " + faust.getLibFaustVersion() + ")";
+                filedrag1.textContent = "Drop a Faust .dsp file or URL here (compiled using libfaust version " + faust.getLibFaustVersion() + ")";
             }
-            
+
             // Init page
             initPage();
-            
+
             // Save DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
             
+            // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready
+            // (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             
-            // Module 'onRuntimeInitialized' will be called when code is ready (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
-            FaustModule()['onRuntimeInitialized'] = init;
-            
+            faust_module['onRuntimeInitialized'] = init;
+
             </script>
-            
+
             <!-- Add FaustWeb Compilation service to Page -->
-            <div id="export" style="color:white; position: absolute; width:400px; padding:2px 2px 2px 2px; background-color:7F7F7F; visibility:hidden; ">
-                
+            <div id="export" style="color:white; position: absolute; width:400px; padding:2px 2px 2px 2px; background-color:hsla(59, 99%, 50%, 0.92); visibility:hidden; ">
+
                 <div id="centerDiv" style="position:relative; margin-right:auto; margin-left:auto; text-align:center;">
-                    <input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:11px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; margin-right:auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr" onkeyup="onEnterKey()"/>
+                    <input id="exportUrl" style="color:black; border:0px; text-align:center; font-size:11px; background-color:#00000000; outline: 0px solid transparent; position:relative; margin-left:auto; margin-right:auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr" onkeyup="onEnterKey()"/>
                     </br>
                     </br>
                     </br>
@@ -873,11 +918,11 @@
                     </select>
                     </br>
                     </br>
-                    <input id="exportButton" type="button" value="Export" onclick="getFaustSource()" style="border: 2px solid white; border-radius:8px; color:white; font-size:16px;  background-color:transparent;"/>
+                    <input id="exportButton" type="button" value="Export" onclick="getFaustSource()" style="border: 2px solid black; border-radius:4px; color:black; font-size:16px;  background-color:transparent;"/>
                     </br>
                     </br>
                     <div id="qrDiv">
-                        
+
                         <div id="loader" style="visibility:hidden;">
                             <svg width='50px' height='50px' xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid" class="uil-ring">
                                 <rect x="0" y="0" width="100" height="100" fill="none" class="bk"></rect>
@@ -897,7 +942,7 @@
                 </div>
                 </br>
             </div>
-            
+
             <div id="plusImg" style="position: absolute; z-index=4; visibility:visible;">
                 <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
                     width="50.000000pt" height="51.000000pt" viewBox="0 0 50.000000 51.000000"
@@ -930,96 +975,96 @@
                     </g>
                 </svg>
             </div>
-            
+
             <script src="ExportLib.js"></script>
             <script src="qrcode.js"></script>
-            
+
             <script>
-                
+
             function onEnterKey(e)
             {
                 if (!e) { var e = window.event; }
-                
+
                 if (e.keyCode === 13) {
                     e.preventDefault();
                     updateFWTargets();
                 }
             }
-            
+
             function openExport()
             {
                 document.getElementById("plusImg").style.visibility = "hidden";
                 document.getElementById("moinsImg").style.visibility = "visible";
                 document.getElementById("export").style.visibility = "visible";
             }
-            
+
             function closeExport(event)
             {
                 if (!event) { event = window.event; }
-                
+
                 var target = event.target
                 while (target && target != document.getElementById("export") && target != document.getElementById("plusImg"))
                 target= target.parentNode;
-                
+
                 if (!target) {
                     document.getElementById("plusImg").style.visibility = "visible";
                     document.getElementById("moinsImg").style.visibility = "hidden";
                     document.getElementById("export").style.visibility = "hidden";
                 }
             }
-            
+
             function updateQrCode(sha)
             {
                 // Empty Div before adding new qrcode
                 var toEmpty = document.getElementById("qrDiv");
-                
+
                 document.getElementById("loader").style.visibility = "hidden";
-                
+
                 for (var i = toEmpty.children.length-1; i >= 0;  i--) {
                     if (toEmpty.children[i].id != "loader") {
                         toEmpty.removeChild(toEmpty.children[i]);
                     }
                 }
-                
+
                 var plateform = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
                 var architecture = document.getElementById("Architecture").options[document.getElementById("Architecture").selectedIndex].value;
                 var output = "binary.zip";
-                
+
                 if (plateform === "android") {
                     output = "binary.apk";
                 }
-                
+
                 var link = document.createElement('a');
                 link.href = document.getElementById("exportUrl").value + "/" + sha + "/" + plateform + "/" + architecture + "/" + output;
-                
+
                 // 	Delete existing content if existing
                 var qrcodeSpan = document.getElementById('qrcodeDiv');
                 if (qrcodeSpan) {
                     qrcodeSpan.parentNode.removeChild(qrcodeSpan);
                 }
-                
+
                 var myWhiteDiv = getQrCode(document.getElementById("exportUrl").value, sha, plateform, architecture, output, 130);
-                
+
                 document.getElementById("qrDiv").appendChild(link);
                 link.appendChild(myWhiteDiv);
             }
-            
+
             function cancelLoader()
             {
                 document.getElementById("loader").style.visibility = "hidden";
             }
-            
+
             function getFaustSource()
             {
                 document.getElementById("loader").style.visibility = "visible";
-                
+
                 if (!dsp_code) {
-                    
+
                     var url = window.location.href.split('.html').shift() + ".dsp";
                     var filename = url.toString().split( '/' ).pop();
                     filename = filename.toString().split('.').shift();
                     var xmlhttp = new XMLHttpRequest();
-                    
+
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
                             var dsp_code = xmlhttp.responseText;
@@ -1033,35 +1078,35 @@
                     getSHAKey(document.getElementById("exportUrl").value, "FaustDSP", dsp_code, updateQrCode, cancelLoader);
                 }
             }
-            
+
             function cleanComboBox(id)
             {
                 while (document.getElementById(id).childNodes.length>0) {
                     document.getElementById(id).removeChild(document.getElementById(id).childNodes[0]);
                 }
             }
-            
+
             function changeArchs()
             {
                 // CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
                 cleanComboBox("Architecture");
-                
+
                 var plat = document.getElementById("Platform").options[document.getElementById("Platform").selectedIndex].value;
                 var archs = getArchitectures(window.json, plat);
-                
+
                 for (var j = 0; j < archs.length; j++) {
                     var a = document.createElement('option');
                     a.text=archs[j];
                     document.getElementById("Architecture").options.add(a);
                 }
             }
-            
+
             function updateFWTargets()
             {
                 // CLEAN COMBOBOX BEFORE ADDING NEW OPTIONS
                 cleanComboBox("Platform");
                 cleanComboBox("Architecture");
-                
+
                 getTargets(document.getElementById("exportUrl").value, function(json) {
                     window.json = json;
                     var plats = getPlatforms(json);
@@ -1075,82 +1120,82 @@
                     changeArchs();
                 }, function(){});
             }
-            
+
             function changeOrientation(orientation)
             {
                 if (orientation === "topright") {
-                    
+
                     document.getElementById("plusImg").style.top = "0px";
                     document.getElementById("plusImg").style.right = "0px";
                     document.getElementById("moinsImg").style.top = "0px";
                     document.getElementById("moinsImg").style.right = "0px";
-                    
+
                     document.getElementById("export").style.top = "0%";
                     document.getElementById("export").style.right = "0%";
-                    document.getElementById("export").style.boxShadow ="0px 2px 2px 0px white";
+                    /*document.getElementById("export").style.boxShadow ="0px 2px 2px 0px white";
                     document.getElementById("export").style.borderRadius ="0px 0px 0px 25px";
                     document.getElementById("export").style.borderBottom = "3px solid white";
-                    document.getElementById("export").style.borderLeft ="3px solid white";
-                    
+                    document.getElementById("export").style.borderLeft ="3px solid white";*/
+
                 } else if (orientation === "bottomright") {
-                    
+
                     document.getElementById("plusImg").style.bottom = "0px";
                     document.getElementById("plusImg").style.right = "0px";
                     document.getElementById("moinsImg").style.bottom = "0px";
                     document.getElementById("moinsImg").style.right = "0px";
-                    
+
                     document.getElementById("export").style.bottom = "0%";
                     document.getElementById("export").style.right = "0%";
                     document.getElementById("export").style.boxShadow ="2px 2px 0px px white";
                     document.getElementById("export").style.borderRadius ="25px 0px 0px 0px";
                     document.getElementById("export").style.borderTop = "3px solid white";
                     document.getElementById("export").style.borderLeft ="3px solid white";
-                    
+
                 } else if (orientation === "bottomleft") {
-                    
+
                     document.getElementById("plusImg").style.bottom = "0px";
                     document.getElementById("plusImg").style.left = "0px";
                     document.getElementById("moinsImg").style.bottom = "0px";
                     document.getElementById("moinsImg").style.left = "0px";
-                    
+
                     document.getElementById("export").style.bottom = "0%";
                     document.getElementById("export").style.left = "0%";
                     document.getElementById("export").style.boxShadow ="2px 0px 2px 0px white";
                     document.getElementById("export").style.borderRadius ="0px 25px 0px 0px";
                     document.getElementById("export").style.borderTop = "3px solid white";
                     document.getElementById("export").style.borderRight ="3px solid white";
-                    
+
                 } else if (orientation === "topleft") {
-                    
+
                     document.getElementById("plusImg").style.top = "0px";
                     document.getElementById("plusImg").style.left = "0px";
                     document.getElementById("moinsImg").style.top = "0px";
                     document.getElementById("moinsImg").style.left = "0px";
-                    
+
                     document.getElementById("export").style.top = "0%";
                     document.getElementById("export").style.left = "0%";
                     document.getElementById("export").style.boxShadow ="0px 0px 2px 2px white";
                     document.getElementById("export").style.borderRadius ="0px 0px 25px 0px";
                     document.getElementById("export").style.borderBottom = "3px solid white";
                     document.getElementById("export").style.borderRight ="3px solid white";
-                    
+
                 }
             }
-            
+
             changeOrientation("topright");
             //changeOrientation("bottomright");
             //changeOrientation("bottomleft");
             //changeOrientation("topleft");
-            
+
             updateFWTargets();
-            
+
             document.getElementById("refreshButton").onclick=updateFWTargets;
             document.getElementById("plusImg").onclick=openExport;
             document.getElementById("moinsImg").onclick=closeExport;
             document.body.addEventListener("click", closeExport, false);
             </script>
-            
+
             <!-- End FaustWeb Compilation Service -->
-            
+
             </body>
 </html>
