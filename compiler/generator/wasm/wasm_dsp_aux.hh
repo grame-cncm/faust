@@ -115,12 +115,16 @@ extern "C" {
     /**
      * Get the WebAssembly module from the WasmRes structure.
      *
+     * @param module - the WebAssembly module
+     *
      * @return the WebAssembly module as an array of bytes.
      */
     EXPORT const char* getWasmCModule(WasmModule* module);
     
     /**
-     * Get the WebAssembly module size
+     * Get the WebAssembly module size.
+     *
+     * @param module - the WebAssembly module
      *
      * @return the WebAssembly module size.
      */
@@ -129,23 +133,20 @@ extern "C" {
     /**
      * Get the additional helper functions module from the WasmRes structure.
      *
+     * @param module - the WebAssembly module
+     *
      * @return the additional helper functions as a string.
      */
     EXPORT const char* getWasmCHelpers(WasmModule* module);
     
     /**
-     * The free function to be used on memory returned by createWasmCDSPFactoryFromFile or createWasmCDSPFactoryFromString.
+     * The free function to be used on memory returned by createWasmCDSPFactoryFromString.
+     *
+     * @param module - the WebAssembly module
      * 
      * @param ptr - the WasmRes structure to be deleted.
      */
-    EXPORT void freeCWasmModule(WasmModule* ptr);
-    
-    /**
-     * The free function to be used on memory returned by createAsmCDSPFactoryFromFile or createAsmCDSPFactoryFromString.
-     *
-     * @param ptr - the pointer to be deleted.
-     */
-    EXPORT void freeCMemory(void* ptr);
+    EXPORT void freeWasmCModule(WasmModule* module);
     
     /**
      * Get the library version.

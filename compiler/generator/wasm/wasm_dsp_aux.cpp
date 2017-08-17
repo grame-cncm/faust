@@ -149,7 +149,7 @@ EXPORT const char* getWasmCHelpers(WasmModule* module)
     return module->fHelpers;
 }
 
-EXPORT void freeCWasmModule(WasmModule* module)
+EXPORT void freeWasmCModule(WasmModule* module)
 {
     free((void*)module->fCode);
     free((void*)module->fHelpers);

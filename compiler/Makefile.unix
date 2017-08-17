@@ -233,7 +233,7 @@ wasm : CXX = emcc
 wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 wasm : ARCHFLAGS =
 wasm : libfaust.wasm libfaustworker.wasm
-wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeCWasmModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
+wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
 
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	$(CXX) -O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
