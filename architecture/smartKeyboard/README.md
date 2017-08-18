@@ -55,7 +55,7 @@ Say something about the first time you run it and gradle doing its shit
 
 `faust2smartkeyb` uses `faust2api` internally. Thus, Faust codes provided to `faust2smartkeyb` must respect the same standards as for `faust2api` (check the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) for more information about this).
 
-The following code is similar to the one presented in the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) in the [MIDI Enabled Polyphonic Object](https://ccrma.stanford.edu/~rmichon/faust2api/#midi-enabled-polyphonic-object) section and can be downloaded [here](misc/ex1.dsp):
+The following code is similar to the one presented in the [`faust2api` documentation](https://ccrma.stanford.edu/~rmichon/faust2api/) in the [MIDI Enabled Polyphonic Object](https://ccrma.stanford.edu/~rmichon/faust2api/#midi-enabled-polyphonic-object):
 
 ```
 import("stdfaust.lib");
