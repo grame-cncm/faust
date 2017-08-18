@@ -1,3 +1,31 @@
+
+/*
+Code generated with Faust version 2.3.8
+Compilation options: -scal -ftz 0
+*/
+
+function getSizenoise() {
+	return 16;
+}
+
+function getPathTablenoise() {
+	var pathTable = [];
+	pathTable["/Noise/Volume"] = 0;
+	return pathTable;
+}
+
+function getJSONnoise() {
+	return "{  \"name\": \"Noise\",  \"inputs\": \"0\",  \"outputs\": \"1\",  \"meta\": [    { \"author\": \"Grame\" },   { \"copyright\": \"(c)GRAME 2009\" },   { \"license\": \"BSD\" },   { \"name\": \"Noise\" },   { \"version\": \"1.1\" }  ],  \"ui\": [    {    \"type\": \"vgroup\",    \"label\": \"Noise\",    \"items\": [      {      \"type\": \"vslider\",      \"label\": \"Volume\",      \"address\": \"/Noise/Volume\",      \"meta\": [       { \"acc\": \"0 0 -10 0 10\" },       { \"style\": \"knob\" }      ],      \"init\": \"0.5\",      \"min\": \"0\",      \"max\": \"1\",      \"step\": \"0.1\"     }    ]   }  ] } ";
+}
+
+function metadatanoise(m) {
+	m.declare("author", "Grame");
+	m.declare("copyright", "(c)GRAME 2009");
+	m.declare("license", "BSD");
+	m.declare("name", "Noise");
+	m.declare("version", "1.1");
+}
+
 /*
  faust2webaudio
  
@@ -32,10 +60,10 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 * 
 * @return a valid WebAudio ScriptProcessorNode object or null
 */
-faust.mydsp = function (dsp_instance, context, buffer_size) {
+faust.noise = function (dsp_instance, context, buffer_size) {
 
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONnoise());
     
     function getNumInputsAux ()
     {
@@ -90,7 +118,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of HEAP index
     
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    sp.audio_heap_ptr = getSizemydsp();
+    sp.audio_heap_ptr = getSizenoise();
 
     // Setup pointers offset
     sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
@@ -103,7 +131,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of DSP memory : DSP is placed first with index 0
     sp.dsp = 0;
  
-    sp.pathTable = getPathTablemydsp();
+    sp.pathTable = getPathTablenoise();
     
     // Allocate table for 'setParamValue'
     sp.value_table = [];
@@ -180,19 +208,12 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     
     sp.parse_item = function (item)
     {
-        if (item.type === "vgroup" 
-        	|| item.type === "hgroup" 
-        	|| item.type === "tgroup") {
+        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
             sp.parse_items(item.items);
-        } else if (item.type === "hbargraph" 
-        	|| item.type === "vbargraph") {
+        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
-        } else if (item.type === "vslider" 
-        	|| item.type === "hslider" 
-        	|| item.type === "button" 
-        	|| item.type === "checkbox" 
-        	|| item.type === "nentry") {
+        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
         }
@@ -320,7 +341,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
      */
     sp.metadata = function (handler)
     {
-        metadatamydsp(handler);
+        metadatanoise(handler);
     }
 
     /**
@@ -389,7 +410,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
      */
     sp.getJSON = function ()
     {
-        return getJSONmydsp();
+        return getJSONnoise();
     }
 
     // Init resulting DSP
@@ -405,7 +426,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 * @param buffer_size - the buffer_size in frames
 * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
 */
-faust.createmydsp = function(context, buffer_size, callback)
+faust.createnoise = function(context, buffer_size, callback)
 {
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -424,10 +445,10 @@ faust.createmydsp = function(context, buffer_size, callback)
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
     
-    fetch('mydsp.wasm')
+    fetch('noise.wasm')
     .then(dsp_file => dsp_file.arrayBuffer())
     .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-    .then(dsp_module => callback(faust.mydsp(dsp_module.instance, context, buffer_size)))
+    .then(dsp_module => callback(faust.noise(dsp_module.instance, context, buffer_size)))
     .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
 }
 

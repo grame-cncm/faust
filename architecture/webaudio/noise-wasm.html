@@ -1,0 +1,47 @@
+<html>
+<head>
+<H1> Faust generated WebAudio node </H1>
+</head>
+<body>
+    
+<P> Noise volume:
+<input type="range" oninput="changeVolume(event) "min="0" max="1" value="0.5" step="0.01"/>
+
+<!-- Load 'faust2wasm' script generated .js file -->
+<script src="noise.js"></script>
+
+<script>
+
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var noise = null;
+
+// Slider handler to change the 'noise' volume
+function changeVolume(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    noise.setParamValue("/Noise/Volume", val);
+}
+
+function startnoise()
+{
+    // Create the Faust generated node
+    faust.createnoise(audio_context, 1024,
+                      function (node) {
+                            noise = node;
+                            console.log(noise.getJSON());
+                            console.log(noise.getParams());
+                            // Connect it to output as a regular WebAudio node
+                            noise.connect(audio_context.destination);
+                      });
+}
+
+// Load handler
+window.addEventListener("load", startnoise);
+
+</script>
+
+</body>
+</html>

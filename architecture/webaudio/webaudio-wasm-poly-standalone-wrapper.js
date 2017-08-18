@@ -309,12 +309,19 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     sp.parse_item = function (item)
     {
-        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
+        if (item.type === "vgroup" 
+        	|| item.type === "hgroup" 
+        	|| item.type === "tgroup") {
             sp.parse_items(item.items);
-        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
+        } else if (item.type === "hbargraph" 
+        	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
-        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+        } else if (item.type === "vslider" 
+        	|| item.type === "hslider" 
+        	|| item.type === "button" 
+        	|| item.type === "checkbox" 
+        	|| item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
         }
@@ -659,13 +666,12 @@ faust.createMemory = function (buffer_size, max_polyphony) {
 /**
  * Create a ScriptProcessorNode Web Audio object from a wasm filename
  *
- * @param filename - the wasm filename
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
  * @param max_polyphony - the number of polyphonic voices
  * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
-faust.createmydsp = function(filename, context, buffer_size, max_polyphony, callback)
+faust.createmydsp = function(context, buffer_size, max_polyphony, callback)
 {
     var memory = faust.createMemory(buffer_size, max_polyphony);
     
@@ -693,7 +699,7 @@ faust.createmydsp = function(filename, context, buffer_size, max_polyphony, call
     .then(mix_res => mix_res.arrayBuffer())
     .then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
     .then(mix_module =>
-          fetch(filename)
+          fetch('mydsp.wasm')
           .then(dsp_file => dsp_file.arrayBuffer())
           .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
           .then(dsp_module => callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, max_polyphony)))

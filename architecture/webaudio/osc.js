@@ -1,3 +1,45 @@
+
+/*
+Code generated with Faust version 2.3.8
+Compilation options: -scal -ftz 0
+*/
+
+function getSizeosc() {
+	return 48;
+}
+
+function getPathTableosc() {
+	var pathTable = [];
+	pathTable["/Oscillator/freq"] = 8;
+	pathTable["/Oscillator/volume"] = 36;
+	return pathTable;
+}
+
+function getJSONosc() {
+	return "{  \"name\": \"osc\",  \"inputs\": \"0\",  \"outputs\": \"1\",  \"meta\": [    { \"author\": \"Grame\" },   { \"basics.lib/name\": \"Faust Basic Element Library\" },   { \"basics.lib/version\": \"0.0\" },   { \"copyright\": \"(c)GRAME 2009\" },   { \"filters.lib/name\": \"Faust Filters Library\" },   { \"filters.lib/version\": \"0.0\" },   { \"license\": \"BSD\" },   { \"maths.lib/author\": \"GRAME\" },   { \"maths.lib/copyright\": \"GRAME\" },   { \"maths.lib/license\": \"LGPL with exception\" },   { \"maths.lib/name\": \"Faust Math Library\" },   { \"maths.lib/version\": \"2.0\" },   { \"name\": \"osc\" },   { \"oscillators.lib/name\": \"Faust Oscillator Library\" },   { \"oscillators.lib/version\": \"0.0\" },   { \"signals.lib/name\": \"Faust Signal Routing Library\" },   { \"signals.lib/version\": \"0.0\" },   { \"version\": \"1.0\" }  ],  \"ui\": [    {    \"type\": \"vgroup\",    \"label\": \"Oscillator\",    \"items\": [      {      \"type\": \"hslider\",      \"label\": \"freq\",      \"address\": \"/Oscillator/freq\",      \"meta\": [       { \"unit\": \"Hz\" }      ],      \"init\": \"1000\",      \"min\": \"20\",      \"max\": \"24000\",      \"step\": \"1\"     },     {      \"type\": \"hslider\",      \"label\": \"volume\",      \"address\": \"/Oscillator/volume\",      \"meta\": [       { \"unit\": \"dB\" }      ],      \"init\": \"0\",      \"min\": \"-96\",      \"max\": \"0\",      \"step\": \"0.1\"     }    ]   }  ] } ";
+}
+
+function metadataosc(m) {
+	m.declare("author", "Grame");
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("copyright", "(c)GRAME 2009");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("license", "BSD");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.0");
+	m.declare("name", "osc");
+	m.declare("oscillators.lib/name", "Faust Oscillator Library");
+	m.declare("oscillators.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("version", "1.0");
+}
+
 /*
  faust2webaudio
  
@@ -32,10 +74,10 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 * 
 * @return a valid WebAudio ScriptProcessorNode object or null
 */
-faust.mydsp = function (dsp_instance, context, buffer_size) {
+faust.osc = function (dsp_instance, context, buffer_size) {
 
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_object = JSON.parse(getJSONosc());
     
     function getNumInputsAux ()
     {
@@ -90,7 +132,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of HEAP index
     
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    sp.audio_heap_ptr = getSizemydsp();
+    sp.audio_heap_ptr = getSizeosc();
 
     // Setup pointers offset
     sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
@@ -103,7 +145,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of DSP memory : DSP is placed first with index 0
     sp.dsp = 0;
  
-    sp.pathTable = getPathTablemydsp();
+    sp.pathTable = getPathTableosc();
     
     // Allocate table for 'setParamValue'
     sp.value_table = [];
@@ -180,19 +222,12 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     
     sp.parse_item = function (item)
     {
-        if (item.type === "vgroup" 
-        	|| item.type === "hgroup" 
-        	|| item.type === "tgroup") {
+        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
             sp.parse_items(item.items);
-        } else if (item.type === "hbargraph" 
-        	|| item.type === "vbargraph") {
+        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
-        } else if (item.type === "vslider" 
-        	|| item.type === "hslider" 
-        	|| item.type === "button" 
-        	|| item.type === "checkbox" 
-        	|| item.type === "nentry") {
+        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
         }
@@ -320,7 +355,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
      */
     sp.metadata = function (handler)
     {
-        metadatamydsp(handler);
+        metadataosc(handler);
     }
 
     /**
@@ -389,7 +424,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
      */
     sp.getJSON = function ()
     {
-        return getJSONmydsp();
+        return getJSONosc();
     }
 
     // Init resulting DSP
@@ -405,7 +440,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 * @param buffer_size - the buffer_size in frames
 * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
 */
-faust.createmydsp = function(context, buffer_size, callback)
+faust.createosc = function(context, buffer_size, callback)
 {
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -424,10 +459,10 @@ faust.createmydsp = function(context, buffer_size, callback)
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
     
-    fetch('mydsp.wasm')
+    fetch('osc.wasm')
     .then(dsp_file => dsp_file.arrayBuffer())
     .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-    .then(dsp_module => callback(faust.mydsp(dsp_module.instance, context, buffer_size)))
+    .then(dsp_module => callback(faust.osc(dsp_module.instance, context, buffer_size)))
     .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
 }
 
