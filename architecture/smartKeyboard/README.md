@@ -390,6 +390,14 @@ Default value: 1
 
 ---
 
+### `Send Current Keyboard`
+
+When 1, send the number of the current keyboard (associated with the [`keyboard`](#keyboard) standard parameter).
+
+Default value: 1
+
+---
+
 ### `Send Fingers Count`
 
 Send the number of fingers present on each keyboard using the [`kbNfingers` standard parameter](#kbnfingers) where `N` is the keyboard number.
@@ -427,6 +435,18 @@ A coefficient to multiply to `freq` to bend it (`bend = 1` corresponds to no ben
 ### `gate`
 
 The trigger signal sent when a finger touches the screen (1) or when it stops touching it (0). If `Rounding Mode = 0`, then "0" and "1" are sent everytime a finger slides to a new key (a new voice is allocated everytime).
+
+---
+
+### `key`
+
+The key ID in the current keyboard.
+
+---
+
+### `keyboard`
+
+The ID of the current keyboard.
 
 ---
 
