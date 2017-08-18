@@ -32,6 +32,7 @@ function startnoise()
                       function (node) {
                             noise = node;
                             console.log(noise.getJSON());
+                            // Print path to be used with 'setParamValue'
                             console.log(noise.getParams());
                             // Connect it to output as a regular WebAudio node
                             noise.connect(audio_context.destination);

@@ -43,6 +43,7 @@ function startosc()
                       function (node) {
                             osc = node;
                             console.log(osc.getJSON());
+                            // Print paths to be used with 'setParamValue'
                             console.log(osc.getParams());
                             // Connect it to output as a regular WebAudio node
                             osc.connect(audio_context.destination);

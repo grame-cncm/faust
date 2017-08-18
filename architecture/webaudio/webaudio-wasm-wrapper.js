@@ -332,10 +332,10 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback) {
 };
 
 /**
- * Create a DSP factory from source code as a string to be used for monophonic DSP 
+ * Create a DSP factory from source code as a string to be used to create 'monophonic' DSP 
  *
  * @param code - the source code as a string
- * @param argv - and array of paramaters to be given to the Faust compiler
+ * @param argv - an array of parameters to be given to the Faust compiler
  * @param callback - a callback taking the created DSP factory as parameter, or null in case of error
  */
 faust.createDSPFactory = function (code, argv, callback) {
@@ -343,10 +343,10 @@ faust.createDSPFactory = function (code, argv, callback) {
 }
 
 /**
- * Create a DSP factory from source code as a string to be used for polyphonic DSP 
+ * Create a DSP factory from source code as a string to be used to create 'polyphonic' DSP 
  *
  * @param code - the source code as a string
- * @param argv - and array of paramaters to be given to the Faust compiler
+ * @param argv - an array of parameters to be given to the Faust compiler
  * @param callback - a callback taking the created DSP factory as parameter, or null in case of error
  */
 faust.createPolyDSPFactory = function (code, argv, callback) {
@@ -947,7 +947,7 @@ faust.deleteDSPInstance = function (dsp) {}
 		.....
 */
   
-faust.createMemory = function (factory, buffer_size, max_polyphony) {
+faust.createMemory = function (factory, buffer_size, polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
@@ -973,7 +973,7 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
         return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
-	var memory_size = pow2limit(factory.getSize() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+	var memory_size = pow2limit(factory.getSize() * polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
   	memory_size = Math.max(2, memory_size); // As least 2
 	return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
@@ -981,17 +981,17 @@ faust.createMemory = function (factory, buffer_size, max_polyphony) {
 // 'poly' DSP
 
 /**
- * Create a ScriptProcessorNode Web Audio object from a wasm filename
+ * Create a 'polyphonic' ScriptProcessorNode Web Audio object from a factory
  *
  * @param factory - the DSP factory
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
- * @param max_polyphony - the number of polyphonic voices
+ * @param polyphony - the number of polyphonic voices
  * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
-faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyphony, callback) {
+faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony, callback) {
     
-    var memory = faust.createMemory(factory, buffer_size, max_polyphony);
+    var memory = faust.createMemory(factory, buffer_size, polyphony);
     
     var d1 = new Date();
     var time1 = d1.getTime();
@@ -1104,7 +1104,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
 
         sp.pathTable = factory.pathTable;
     
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.dsp_voices[i] = sp.dsp_start + i * factory.getSize();
             sp.dsp_voices_state[i] = sp.kFreeVoice;
             sp.dsp_voices_level[i] = 0;
@@ -1117,7 +1117,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             var voice_playing = sp.kNoVoice;
             var oldest_date_playing = Number.MAX_VALUE;
           
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 if (sp.dsp_voices_state[i] === pitch) {
                     // Keeps oldest playing voice
                     if (sp.dsp_voices_date[i] < oldest_date_playing) {
@@ -1141,7 +1141,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
     
         sp.getFreeVoice = function()
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 if (sp.dsp_voices_state[i] === sp.kFreeVoice) {
                     return sp.allocVoice(i);
                 }
@@ -1153,7 +1153,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             var oldest_date_playing = Number.MAX_VALUE;
 
             // Scan all voices
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 // Try to steal a voice in kReleaseVoice mode...
                 if (sp.dsp_voices_state[i] === sp.kReleaseVoice) {
                     // Keeps oldest release voice
@@ -1213,7 +1213,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             sp.mixer.clearOutput(buffer_size, sp.numOut, sp.outs);
 
             // Compute all running voices
-            for (i = 0; i < max_polyphony; i++) {
+            for (i = 0; i < polyphony; i++) {
                 if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
                     if (sp.dsp_voices_trigger[i]) {
                         // FIXME : properly cut the buffer in 2 slices...
@@ -1351,7 +1351,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
             }
             
             // Init DSP voices
-            for (i = 0; i < max_polyphony; i++) {
+            for (i = 0; i < polyphony; i++) {
                 sp.factory.init(sp.dsp_voices[i], context.sampleRate);
             }
         }
@@ -1387,7 +1387,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.init = function (sample_rate)
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.init(sp.dsp_voices[i], sample_rate);
             }
         }
@@ -1399,7 +1399,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.instanceInit = function (sample_rate)
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.instanceInit(sp.dsp_voices[i], sample_rate);
             }
         }
@@ -1411,7 +1411,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.instanceConstants = function (sample_rate)
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 fsp.actory.instanceConstants(sp.dsp_voices[i], sample_rate);
             }
         }
@@ -1419,7 +1419,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         /* Init default control parameters values. */
         sp.instanceResetUserInterface = function ()
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.instanceResetUserInterface(sp.dsp_voices[i]);
             }
         }
@@ -1427,7 +1427,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         /* Init instance state (delay lines...). */
         sp.instanceClear = function ()
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.instanceClear(sp.dsp_voices[i]);
             }
         }
@@ -1504,7 +1504,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.allNotesOff = function ()
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
                 sp.dsp_voices_state[i] = sp.kReleaseVoice;
             }
@@ -1539,7 +1539,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, max_polyp
         */
         sp.setParamValue = function (path, val)
         {
-            for (var i = 0; i < max_polyphony; i++) {
+            for (var i = 0; i < polyphony; i++) {
                 sp.factory.setParamValue(sp.dsp_voices[i], sp.pathTable[path], val);
             }
         }

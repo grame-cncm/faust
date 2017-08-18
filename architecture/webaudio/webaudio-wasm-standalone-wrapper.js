@@ -248,7 +248,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     }
     
     /*
-     Public API to be used to control the DSP.
+    	Public API to be used to control the WebAudio node.
     */
 
     /* Return current sample rate */
@@ -399,7 +399,8 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 };
 
 /** 
-* Create a ScriptProcessorNode Web Audio object from a wasm filename
+* Create a ScriptProcessorNode Web Audio object 
+* by loading and compiling the Faust wasm file
 *
 * @param context - the Web Audio context
 * @param buffer_size - the buffer_size in frames

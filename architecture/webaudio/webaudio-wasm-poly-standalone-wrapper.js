@@ -31,11 +31,11 @@ faust.getErrorMessage = function() { return faust.error_msg; };
  * @param memory - the wasm memory
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
- * @param max_polyphony - the number of polyphonic voices
+ * @param polyphony - the number of polyphonic voices
  *
  * @return a valid WebAudio ScriptProcessorNode object or null
  */
-faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, max_polyphony) {
+faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, polyphony) {
 
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
@@ -136,7 +136,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     sp.pathTable = getPathTablemydsp();
   
-    for (var i = 0; i < max_polyphony; i++) {
+    for (var i = 0; i < polyphony; i++) {
         sp.dsp_voices[i] = sp.dsp_start + i * getSizemydsp();
         sp.dsp_voices_state[i] = sp.kFreeVoice;
         sp.dsp_voices_level[i] = 0;
@@ -149,7 +149,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         var voice_playing = sp.kNoVoice;
         var oldest_date_playing = Number.MAX_VALUE;
         
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             if (sp.dsp_voices_state[i] === pitch) {
                 // Keeps oldest playing voice
                 if (sp.dsp_voices_date[i] < oldest_date_playing) {
@@ -173,7 +173,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     sp.getFreeVoice = function()
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             if (sp.dsp_voices_state[i] === sp.kFreeVoice) {
                 return sp.allocVoice(i);
             }
@@ -185,7 +185,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         var oldest_date_playing = Number.MAX_VALUE;
 
         // Scan all voices
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             // Try to steal a voice in kReleaseVoice mode...
             if (sp.dsp_voices_state[i] === sp.kReleaseVoice) {
                 // Keeps oldest release voice
@@ -245,7 +245,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         sp.mixer.clearOutput(buffer_size, sp.numOut, sp.outs);
         
         // Compute all running voices
-        for (i = 0; i < max_polyphony; i++) {
+        for (i = 0; i < polyphony; i++) {
             if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
                 if (sp.dsp_voices_trigger[i]) {
                     // FIXME : properly cut the buffer in 2 slices...
@@ -382,13 +382,13 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         }
         
         // Init DSP voices
-        for (i = 0; i < max_polyphony; i++) {
+        for (i = 0; i < polyphony; i++) {
             sp.factory.init(sp.dsp_voices[i], context.sampleRate);
         }
     }
     
     /*
-     Public API to be used to control the DSP.
+    	Public API to be used to control the WebAudio node.
     */
     
     /* Return current sample rate. */
@@ -418,7 +418,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.init = function (sample_rate)
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.init(sp.dsp_voices[i], sample_rate);
         }
     }
@@ -430,7 +430,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.instanceInit = function (sample_rate)
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.instanceInit(sp.dsp_voices[i], sample_rate);
         }
     }
@@ -442,7 +442,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.instanceConstants = function (sample_rate)
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.instanceConstants(sp.dsp_voices[i], sample_rate);
         }
     }
@@ -450,7 +450,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     /* Init default control parameters values. */
     sp.instanceResetUserInterface = function ()
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.instanceResetUserInterface(sp.dsp_voices[i]);
         }
     }
@@ -458,7 +458,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
 	/* Init instance state (delay lines...). */
     sp.instanceClear = function ()
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.instanceClear(sp.dsp_voices[i]);
         }
     }
@@ -535,7 +535,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.allNotesOff = function ()
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
             sp.dsp_voices_state[i] = sp.kReleaseVoice;
         }
@@ -570,7 +570,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.setParamValue = function (path, val)
     {
-        for (var i = 0; i < max_polyphony; i++) {
+        for (var i = 0; i < polyphony; i++) {
             sp.factory.setParamValue(sp.dsp_voices[i], sp.pathTable[path], val);
         }
     }
@@ -632,7 +632,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     return sp;
 };
 
-faust.createMemory = function (buffer_size, max_polyphony) {
+faust.createMemory = function (buffer_size, polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
@@ -658,22 +658,24 @@ faust.createMemory = function (buffer_size, max_polyphony) {
         return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
     }
     
-    var memory_size = pow2limit(getSizemydsp() * max_polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    var memory_size = pow2limit(getSizemydsp() * polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
 
 /**
- * Create a ScriptProcessorNode Web Audio object from a wasm filename
+ * Create a 'polyphonic' ScriptProcessorNode Web Audio object 
+ * by loading and compiling the Faust wasm file 
+ * to be use for the voice, and allocating the number of needed voices
  *
  * @param context - the Web Audio context
  * @param buffer_size - the buffer_size in frames
- * @param max_polyphony - the number of polyphonic voices
+ * @param polyphony - the number of polyphonic voices
  * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
-faust.createmydsp = function(context, buffer_size, max_polyphony, callback)
+faust.createmydsp_poly = function(context, buffer_size, polyphony, callback)
 {
-    var memory = faust.createMemory(buffer_size, max_polyphony);
+    var memory = faust.createMemory(buffer_size, polyphony);
     
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -688,12 +690,12 @@ faust.createmydsp = function(context, buffer_size, max_polyphony, callback)
     };
     
     var mixObject = { imports: { print: arg => console.log(arg) } }
-    mixObject["memory"] = { "memory": memory};
+    mixObject["memory"] = { "memory": memory };
     
     var importObject = { imports: { print: arg => console.log(arg) } }
     importObject["global.Math"] = window.Math;
     importObject["asm2wasm"] = asm2wasm;
-    importObject["memory"] = { "memory": memory};
+    importObject["memory"] = { "memory": memory };
     
     fetch('mixer32.wasm')
     .then(mix_res => mix_res.arrayBuffer())
@@ -702,7 +704,7 @@ faust.createmydsp = function(context, buffer_size, max_polyphony, callback)
           fetch('mydsp.wasm')
           .then(dsp_file => dsp_file.arrayBuffer())
           .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-          .then(dsp_module => callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, max_polyphony)))
+          .then(dsp_module => callback(faust.mydsp_poly(mix_module.instance, dsp_module.instance, memory, context, buffer_size, polyphony)))
           .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); }))
     .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
 }
