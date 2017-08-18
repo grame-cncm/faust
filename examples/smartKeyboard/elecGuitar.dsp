@@ -62,5 +62,6 @@ freq = f*bend : max(60); // min freq is 60 Hz
 
 stringLength = freq : pm.f2l;
 pluckPosition = 0.8;
+mute = gate : si.polySmooth(gate,0.999,1);
 
-process = pm.elecGuitar(stringLength,pluckPosition,gain,gate) <: _,_;
+process = pm.elecGuitar(stringLength,pluckPosition,mute,gain,gate) <: _,_;

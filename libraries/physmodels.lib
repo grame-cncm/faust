@@ -832,22 +832,27 @@ with{
 // #### Usage
 //
 // ```
-// elecGuitarModel(length,pluckPosition,excitation) : _
+// elecGuitarModel(length,pluckPosition,mute,excitation) : _
 // ```
 //
 // Where:
 //
 // * `length`: the length of the string in meters
 // * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `mute`: mute coefficient (1 for no mute and 0 for instant mute)
 // * `excitation`: excitation signal
 //----------------------------------
-elecGuitarModel(length,pluckPosition,excitation) = endChain(egChain)
+elecGuitarModel(length,pluckPosition,mute,excitation) = endChain(egChain)
 with{
   maxStringLength = maxLength;
 	lengthTuning = 0.11; // tuned "by hand"
 	stringL = length-lengthTuning;
-  egChain = chain(elecGuitarNuts :
-		openStringPick(stringL,0.05,pluckPosition,excitation) : elecGuitarBridge);
+	muteBlock = *(mute),*(mute),_;
+  egChain = chain(
+		elecGuitarNuts :
+		openStringPick(stringL,0.05,pluckPosition,excitation) :
+		muteBlock :
+		elecGuitarBridge);
 };
 
 //-------`elecGuitar`----------
@@ -867,11 +872,13 @@ with{
 //
 // * `length`: the length of the string in meters
 // * `pluckPosition`: pluck position (0-1) (1 is on the bridge)
+// * `mute`: mute coefficient (1 for no mute and 0 for instant mute)
 // * `gain`: gain of the pluck (0-1)
 // * `trigger`: trigger signal (1 for on, 0 for off)
 //----------------------------------
-elecGuitar(stringLength,pluckPosition,gain,trigger) =
-pluckString(stringLength,1,1,1,gain,trigger) : elecGuitarModel(stringLength, pluckPosition);
+elecGuitar(stringLength,pluckPosition,mute,gain,trigger) =
+pluckString(stringLength,1,1,1,gain,trigger) :
+elecGuitarModel(stringLength,pluckPosition,mute);
 
 //-------`elecGuitar_ui_MIDI`----------
 // Ready-to-use MIDI-enabled electric guitar physical model with built-in UI.
@@ -882,7 +889,7 @@ pluckString(stringLength,1,1,1,gain,trigger) : elecGuitarModel(stringLength, plu
 // elecGuitar_ui_MIDI : _
 // ```
 //----------------------------------
-elecGuitar_ui_MIDI = elecGuitar(stringLength,pluckPosition,gain,gate)*outGain
+elecGuitar_ui_MIDI = elecGuitar(stringLength,pluckPosition,1,gain,gate)*outGain
 with{
 	f = hslider("v:elecGuitar/h:[0]midi/[0]freq[style:knob]",440,50,1000,0.01);
 	bend = hslider("v:elecGuitar/h:[0]midi/[1]bend[hidden:1][midi:pitchwheel][style:knob]"

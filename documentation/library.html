@@ -5052,11 +5052,12 @@ with{
 <h3 id="elecguitarmodel"><code>elecGuitarModel</code></h3>
 <p>A simple electric guitar model (without audio effects, of course) with selectable pluck position. This model implements a single string. Additional strings should be created by making a polyphonic applications out of this function. Pitch is changed by changing the length of the string and not through a finger model.</p>
 <h4 id="usage-314">Usage</h4>
-<pre><code>elecGuitarModel(length,pluckPosition,excitation) : _</code></pre>
+<pre><code>elecGuitarModel(length,pluckPosition,mute,excitation) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>length</code>: the length of the string in meters</li>
 <li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>mute</code>: mute coefficient (1 for no mute and 0 for instant mute)</li>
 <li><code>excitation</code>: excitation signal</li>
 </ul>
 <hr />
@@ -5068,6 +5069,7 @@ with{
 <ul>
 <li><code>length</code>: the length of the string in meters</li>
 <li><code>pluckPosition</code>: pluck position (0-1) (1 is on the bridge)</li>
+<li><code>mute</code>: mute coefficient (1 for no mute and 0 for instant mute)</li>
 <li><code>gain</code>: gain of the pluck (0-1)</li>
 <li><code>trigger</code>: trigger signal (1 for on, 0 for off)</li>
 </ul>
