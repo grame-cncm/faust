@@ -208,12 +208,19 @@ faust.noise = function (dsp_instance, context, buffer_size) {
     
     sp.parse_item = function (item)
     {
-        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
+        if (item.type === "vgroup" 
+        	|| item.type === "hgroup" 
+        	|| item.type === "tgroup") {
             sp.parse_items(item.items);
-        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
+        } else if (item.type === "hbargraph" 
+        	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
-        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+        } else if (item.type === "vslider" 
+        	|| item.type === "hslider" 
+        	|| item.type === "button" 
+        	|| item.type === "checkbox" 
+        	|| item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
         }
@@ -269,7 +276,7 @@ faust.noise = function (dsp_instance, context, buffer_size) {
     }
     
     /*
-     Public API to be used to control the DSP.
+    	Public API to be used to control the WebAudio node.
     */
 
     /* Return current sample rate */
@@ -420,7 +427,8 @@ faust.noise = function (dsp_instance, context, buffer_size) {
 };
 
 /** 
-* Create a ScriptProcessorNode Web Audio object from a wasm filename
+* Create a ScriptProcessorNode Web Audio object 
+* by loading and compiling the Faust wasm file
 *
 * @param context - the Web Audio context
 * @param buffer_size - the buffer_size in frames
