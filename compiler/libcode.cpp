@@ -1380,16 +1380,9 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
         throw faustexception(gGlobal->gErrorMessage);
     }
     Tree lsignals = gGlobal->gLsignalsTree;
+    
+    if (gGlobal->gDetailsSwitch) { cout << "output signals are : " << endl; printSignal(lsignals, stderr); }
  
-    if (gGlobal->gDetailsSwitch) {
-        cout << "output signals are : " << endl;
-        Tree ls = lsignals;
-        while (! isNil(ls)) {
-            cout << ppsig(hd(ls)) << endl;
-            ls = tl(ls);
-        }
-    }
-
     endTiming("propagation");
  
     /*************************************************************************
