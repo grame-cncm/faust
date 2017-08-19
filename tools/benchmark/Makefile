@@ -1,5 +1,10 @@
 LIB := ../../compiler
 
+DESTDIR ?=
+PREFIX ?= /usr/local
+
+prefix := $(DESTDIR)$(PREFIX)
+
 all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk
 
 faustbench-llvm: faustbench-llvm.cpp
@@ -16,12 +21,14 @@ dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 
 
 install:
-
-	cp faustbench /usr/local/bin
-	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk  /usr/local/bin || echo dynamic-jack-gtk not found
-	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  /usr/local/bin || echo dynamic-jack-gtk-plugin not found
-	([ -e faustbench-llvm ]) && cp faustbench-llvm /usr/local/bin || echo faustbench-llvm not found
-	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp /usr/local/bin || echo faustbench-llvm-interp not found
+ 
+	cp faustbenchwasm $(prefix)/bin
+	cp wasm-node-bench.js $(prefix)/share/faust/webaudio
+	cp faustbench $(prefix)/bin
+	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk  $(prefix)/bin || echo dynamic-jack-gtk not found
+	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  $(prefix)/bin || echo dynamic-jack-gtk-plugin not found
+	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
+	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
 
 clean:
 

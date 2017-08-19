@@ -67,7 +67,6 @@ To build Faust on MacOSX or Linux, just run the following commands from the root
 	make
 	sudo make install
 
-	
 ### Windows
 
 #### Using Visual Studio
@@ -180,7 +179,6 @@ Dominique Fober, Stephane Letz and Karim Barkati, and from the
 ASTREE project : Jerome Barthelemy (IRCAM), Alain Bonardi (IRCAM),
 Raffaele Ciavarella (IRCAM), Pierre Jouvelot (Ecole des
 Mines/ParisTech), Laurent Pottier (U. Saint-Etienne)
-
 
 ## Questions and suggestions
 
