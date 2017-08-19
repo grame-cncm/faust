@@ -361,8 +361,12 @@ void global::init()
     gSymbolicBoxProperty = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
     gSymListProp = new property<Tree>();
+    
+    // Essential predefined types
+    
     gMemoizedTypes = new property<AudioType*>();
-
+    gAllocationCount = 0;
+  
     TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
 
@@ -429,8 +433,6 @@ void global::init()
     // Setup standard "C" local 
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
     setlocale(LC_ALL, "C");
-    
-    gAllocationCount = 0;
     
     // source file injection
     gInjectFlag = false;    // inject an external source file into the architecture file

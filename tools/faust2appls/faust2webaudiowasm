@@ -11,6 +11,7 @@ SVG=""
 
 EMCC="false"
 POLY="false"
+OPT="false"
 EXPORT="false"
 
 #-------------------------------------------------------------------
@@ -37,9 +38,10 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowasm [-poly] [-links] [-emcc] <file.dsp>"
+        echo "faust2webaudiowasm [-poly] [-links] [-opt] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
+        echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
     elif [ $p = "-links" ]; then
         SVG="-svg"
@@ -56,6 +58,8 @@ for p in $@; do
         EXPORT="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
+    elif [ $p = "-opt" ]; then
+        OPT="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
     elif [ ${p:0:1} = "-" ]; then
@@ -110,6 +114,11 @@ for f in $FILES; do
             faust -lang wasm-e $SVG $OPTIONS $f -o $name.wasm || exit
         else
             faust -lang wasm $SVG $OPTIONS $f -o $name.wasm || exit
+        fi
+        # wasm ==> wasm optimizations
+        if [ $OPT = "true" ]; then
+            echo "Optimize wasm module"
+            wasm-opt $name.wasm -O3 -o $name.wasm
         fi
     fi
 
