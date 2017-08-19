@@ -17,8 +17,9 @@ import("stdfaust.lib");
 upfront(x) 	= (x-x') > 0.0;
 decay(n,x)	= x - (x>0)/n;
 release(n)	= + ~ decay(n);
-trigger(n) 	= upfront : release(n) : >(0.0) : +(leak);
-leak 		= 1.0/65536.0;
+//trigger(n) = upfront : release(n) : >(0.0) : +(leak);
+//leak = 1.0/65536.0; // avoid denormals on Intel : removed since ftz is done at hardware level, and can be activated with -ftz for wasm
+trigger(n)	= upfront : release(n) : >(0.0);
 
 size 		= hslider("excitation (samples)", 128, 2, 512, 1);
 
