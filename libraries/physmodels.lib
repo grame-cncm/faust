@@ -64,7 +64,7 @@ speedOfSound = 340;
 
 //--------------`maxLength`----------
 // The default maximum length (3) in meters of strings and tubes used in this
-// library. This variable should be overriden allow longer strings or tubes.
+// library. This variable should be overriden to allow longer strings or tubes.
 //--------------------------------------
 maxLength = 3;
 
@@ -73,7 +73,7 @@ maxLength = 3;
 //========================================================================================
 
 //--------------`f2l`----------
-// Frequency to lentgh in meters.
+// Frequency to length in meters.
 //
 // #### Usage
 //
@@ -88,7 +88,7 @@ maxLength = 3;
 f2l(freq) = speedOfSound/freq;
 
 //--------------`l2f`----------
-// Lentgh in meters to frequency.
+// Length in meters to frequency.
 //
 // #### Usage
 //
