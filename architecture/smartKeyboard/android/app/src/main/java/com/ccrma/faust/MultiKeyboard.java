@@ -676,7 +676,7 @@ public class MultiKeyboard extends ViewGroup {
                 }
                 dspFaust.setVoiceParamValue("freq", voices[fingerId], mtof(refPitch[fingerId]));
                 if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
-                    dspFaust.setParamValue(String.format("kb%dfreq", keyboardId), mtof(refPitch[fingerId]));
+                    dspFaust.setVoiceParamValue(String.format("kb%dfreq", keyboardId), voices[fingerId], mtof(refPitch[fingerId]));
                 }
             }
         }
@@ -718,20 +718,20 @@ public class MultiKeyboard extends ViewGroup {
                 if((int)keyboardParameters.get("Rounding Mode") == 1){
                     dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
                     if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
-                        dspFaust.setParamValue(String.format("kb%dbend", keyboardId), (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
+                        dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
                     }
                 }
                 else if((int)keyboardParameters.get("Rounding Mode") == 2){
                     if(rounding[fingerId]){ // if rounding is activated, pitch is quantized to the nearest integer
                         dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
                         if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
-                            dspFaust.setParamValue(String.format("kb%dbend", keyboardId), (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
+                            dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
                         }
                     }
                     else{
                         dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
                         if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
-                            dspFaust.setParamValue(String.format("kb%dbend", keyboardId), (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
+                            dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
                         }
                     }
                 }
@@ -740,22 +740,23 @@ public class MultiKeyboard extends ViewGroup {
 
         if(voices[fingerId] != -1){
             if((int)keyboardParameters.get("Send Current Keyboard") == 1)
-                dspFaust.setParamValue("keyboard", keyboardId);
+                dspFaust.setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
             if((int)keyboardParameters.get("Send Current Key") == 1)
-                dspFaust.setParamValue("key", keyId);
+                dspFaust.setVoiceParamValue("key",voices[fingerId], keyId);
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
-                dspFaust.setParamValue("x", (currentContinuousKey % 1f));
+                dspFaust.setVoiceParamValue("x", voices[fingerId], (currentContinuousKey % 1f));
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
-                dspFaust.setParamValue("y", currentKeyboardY);
+                dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered X", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("x%d", fingerId), (currentContinuousKey % 1f));
+                dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], (currentContinuousKey % 1f));
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered Y", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("y%d", fingerId), currentKeyboardY);
+                dspFaust.setVoiceParamValue(String.format("y%d", fingerId), voices[fingerId], currentKeyboardY);
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key X", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("kb%dk%dx", keyboardId, keyId), (currentContinuousKey % 1f));
+                dspFaust.setVoiceParamValue(String.format("kb%dk%dx", keyboardId, keyId), voices[fingerId], (currentContinuousKey % 1f));
             if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Y", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("kb%dk%dy", keyboardId, keyId), currentKeyboardY);
+                dspFaust.setVoiceParamValue(String.format("kb%dk%dy", keyboardId, keyId), voices[fingerId], currentKeyboardY);
         }
+        // TODO: there should be a better option that putting these guys outside of the previou condition
         if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Status", keyboardId)) == 1)
             dspFaust.setParamValue(String.format("kb%dk%dstatus", keyboardId, keyId), eventType);
         if((int)keyboardParameters.get("Send Fingers Count") == 1) {

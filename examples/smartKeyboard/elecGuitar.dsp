@@ -1,6 +1,6 @@
 //################################### elecGuitar.dsp #####################################
 // Faust instruments specifically designed for `faust2smartkeyb` where an electric
-// guitar physical model is controlled using an isomorphic keyboard. Rock on! 
+// guitar physical model is controlled using an isomorphic keyboard. Rock on!
 //
 // ## `SmartKeyboard` Use Strategy
 //
@@ -28,7 +28,7 @@
 // MIT Licence: https://opensource.org/licenses/MIT
 //########################################################################################
 
-// Interface with 6 monophonic keyboards one fourth apart from each other 
+// Interface with 6 monophonic keyboards one fourth apart from each other
 declare interface "SmartKeyboard{
 	'Number of Keyboards':'6',
 	'Max Keyboard Polyphony':'1',
@@ -60,34 +60,8 @@ t = button("gate");
 gate = t+s : min(1);
 freq = f*bend : max(60); // min freq is 60 Hz
 
-// noise excitation triggered by gate, the excitation duration is controlled
-// by breq
-noiseburst = no.noise : *(gate : ba.impulsify : trigger(P))
-with {
-	 P = ma.SR/(freq+300);
-  	 diffgtz(x) = x != x';
-  	 decay(n,x) = x - (x>0)/n;
-  	 release(n) = + ~ decay(n);
-  	 trigger(n) = diffgtz : release(n) : > (0.0);
-};
+stringLength = freq : pm.f2l;
+pluckPosition = 0.8;
+mute = gate : si.polySmooth(gate,0.999,1);
 
-// string waveguide with fractional delay
-string = +~(de.fdelay4(2048,n) : bridge(brightness,resDuration))
-with{
-	// string parameters
-	brightness = 0.3; // (0-1)
-	resDuration = 8*(gate : si.smoo); // in secs
-	n = ma.SR/freq;
-
-	// bridge reflection filter
-	bridge(B,t60,x) = dampingFilter(rho,h0,h1,x)
-	with{
-		dampingFilter(rho,h0,h1,x) = rho * (h0 * x' + h1*(x+x''));
-		h0 = (1.0 + B)/2;
-		h1 = (1.0 - B)/4;
-		rho = pow(0.001,1.0/(freq*t60));
-	};
-};
-
-// putting it all together
-process = noiseburst : fi.lowpass(2,freq*5) : string <: _,_;
+process = pm.elecGuitar(stringLength,pluckPosition,mute,gain,gate) <: _,_;
