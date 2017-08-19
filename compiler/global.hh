@@ -94,6 +94,7 @@ struct global {
     list<string>    gArchitectureDirList;   //dir list enrobage.cpp/fopensearch() searches for architecture files
     list<string>    gLibraryList;
     string          gOutputDir;
+    string          gImportFilename;
     Tree            gExpandedDefList;
 
     //-- command line arguments

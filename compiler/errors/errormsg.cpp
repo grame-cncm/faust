@@ -36,7 +36,6 @@ void lexerror(const char* msg)
     throw faustexception(fullmsg);
 }
 
-
 void yyerror(const char* msg)
 {
     stringstream error;

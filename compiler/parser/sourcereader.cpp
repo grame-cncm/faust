@@ -243,7 +243,7 @@ void SourceReader::checkName()
 }
 
 /**
- * Parse a single faust source file. returns the list of
+ * Parse a single Faust source file. returns the list of
  * definitions it contains.
  * 
  * @param fname the name of the file to parse
@@ -308,8 +308,10 @@ Tree SourceReader::parsefile(const char* fname)
         // Try to open with the complete URL
         Tree res = 0;
         for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
-            string url = *i + fname;
-            if ((res = parsefile(url.c_str()))) return res;
+            // Keep the created filename in the global state, so that the 'yyfilename'
+            // global variable always points to a valid string
+            gGlobal->gImportFilename = *i + fname;
+            if ((res = parsefile(gGlobal->gImportFilename.c_str()))) return res;
         }
         stringstream error;
         error << "ERROR : unable to open file " << yyfilename << endl;
