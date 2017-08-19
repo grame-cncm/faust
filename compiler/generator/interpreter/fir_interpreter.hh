@@ -38,8 +38,8 @@
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case...
 */
 
-// This only works for gcc 5+ right now.
-#if __GNUC__ >= 5
+// This only works for gcc 5+ or clang right now.
+#if (__GNUC__ >= 5) || __clang__
 #define INTERPRETER_TRACE       1
 //#define FULL_INTERPRETER_TRACE  1
 #endif
