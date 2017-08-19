@@ -236,7 +236,7 @@ with {
 //
 // * `RN`: rates in seconds
 // * `LN`: levels (0-1)
-// * `t`: trigger signa
+// * `t`: trigger signal
 //-----------------------------------------------------
 dx7envelope(R1,R2,R3,R4,L1,L2,L3,L4,t) = up*on : ba.sAndH(on) : down
 with{
