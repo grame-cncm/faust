@@ -2594,7 +2594,7 @@ modesT60s(i) = t60*pow(1-(modesFreqs(i)/2016.94)*t60DecayRatio,t60DecaySlope);
 //----------------------------------
 germanBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
-germanBellModel(0.5,strikePosition,30,1,2.5);
+germanBellModel(50,strikePosition,30,1,2.5);
 
 //-------`germanBell_ui`----------
 // German church bell physical model based on [`germanBell`](#germanbell) with
