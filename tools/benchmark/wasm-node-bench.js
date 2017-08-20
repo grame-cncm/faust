@@ -435,7 +435,10 @@ function bench(instance)
     }
 
     // Do the bench and keep result
-    measures.push(benchOne(DSP, run));
+    var duration = benchOne(DSP, run);
+    measures.push(duration);
+    
+    console.log("DSP CPU % : " + ((duration * sample_rate) / (run * buffer_size * 10)));
 
     // Compare every two tests (normal/optimized)
     if (measures.length % 2 === 0) {

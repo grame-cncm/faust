@@ -43,6 +43,7 @@ for f in $FILES; do
 
     # compile Faust to wasm
     faust $OPTIONS -lang wasm-i "$f" -o $name.wasm || exit
+    # -iit : optimize under the helpful assumption that no surprising traps occur (from load, div/mod, etc.)
     wasm-opt -O3 $name.wasm -o $name-opt.wasm
 
     # create the nodejs ready file
