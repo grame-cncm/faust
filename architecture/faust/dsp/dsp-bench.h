@@ -52,6 +52,8 @@
 #include <mach/mach_time.h>
 #endif
 
+#define SAMPLE_RATE 44100.0
+
 /*
     A class to do do timing measurements
 */
@@ -250,6 +252,11 @@ class time_bench {
         }
     
         bool isRunning() { return (fMeasure <= (fMeasureCount + fSkip)); }
+    
+        int getCount()
+        {
+            return fMeasure;
+        }
 
 };
 
@@ -420,6 +427,11 @@ class measure_dsp : public decorator_dsp {
         }
     
         bool isRunning() { return fBench->isRunning(); }
+    
+        float getCPULoad()
+        {
+            return (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
+        }
     
 };
 

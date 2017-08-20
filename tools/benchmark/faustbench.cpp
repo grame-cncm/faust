@@ -91,7 +91,7 @@ static double bench(dsp* dsp, const string& name)
     dsp->init(48000);
     measure_dsp mes(dsp, 1024, 5);
     mes.measure();
-    cout << name << " : " << mes.getStats() << endl;
+    cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
     return mes.getStats();
 }
 

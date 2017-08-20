@@ -35,6 +35,8 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-bench.h"
 
+#define SAMPLE_RATE 44100.0
+
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
 */
@@ -149,7 +151,9 @@ class dsp_optimizer {
             
             fBench->closeMeasure();
             double res = fBench->getStats(fVSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            std::cout << res << std::endl;
+            double cpu_load = (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fVSIZE * 1000.0);
+            
+            std::cout << res << " (DSP CPU % : " << (cpu_load * 100) << ")" << std::endl;
             
             freeBuffers(numOutChan, outChannel);
             return res;
