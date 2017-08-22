@@ -767,9 +767,9 @@ static void initFaustDirectories()
     
     gGlobal->gArchitectureDirList.push_back(gGlobal->gMasterDirectory);
     if (char* envpath = getenv("FAUST_ARCH_PATH")) { gGlobal->gArchitectureDirList.push_back(envpath); }
-    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustDirectory+"/architecture");
-    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperDirectory+"/architecture");
-    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperSuperDirectory+"/architecture");
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustDirectory + "/architecture");
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperDirectory + "/architecture");
+    gGlobal->gArchitectureDirList.push_back(gGlobal->gFaustSuperSuperDirectory + "/architecture");
 #ifdef INSTALL_PREFIX
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
@@ -817,7 +817,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
     if (gGlobal->gDrawPSSwitch || gGlobal->gDrawSVGSwitch) {
         string projname = gGlobal->makeDrawPathNoExt();
-        if (gGlobal->gDrawPSSwitch)  { drawSchema(process, subst("$0-ps",  projname).c_str(), "ps"); }
+        if (gGlobal->gDrawPSSwitch)  { drawSchema(process, subst("$0-ps", projname).c_str(), "ps"); }
         if (gGlobal->gDrawSVGSwitch) { drawSchema(process, subst("$0-svg", projname).c_str(), "svg"); }
     }
 
@@ -828,7 +828,7 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
     }
 
     if (gGlobal->gDetailsSwitch) {
-        cout <<"process has " << numInputs <<" inputs, and " << numOutputs <<" outputs" << endl;
+        cout << "process has " << numInputs <<" inputs, and " << numOutputs << " outputs" << endl;
     }
 
     endTiming("evaluation");

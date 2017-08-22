@@ -26,8 +26,8 @@
 #include "remote_dsp_aux.h"
 #include "faust/gui/ControlUI.h"
 #include "faust/gui/MidiUI.h"
-#include "faust/dsp/llvm-dsp.h"
-#include "faust/dsp/interpreter-dsp.h"
+#include "llvm-dsp.h"
+#include "interpreter-dsp.h"
 #include "utilities.h"
 #include "rn_base64.h"
 

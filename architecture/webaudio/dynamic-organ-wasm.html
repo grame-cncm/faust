@@ -32,10 +32,12 @@ var libraries_url = "http://127.0.0.1:8000/libraries/";
 // Slider handler to change the 'noise' volume
 function changeVolume(event)
 {
-    var val = event.target.value;
-    val = parseFloat(val);
-    console.log(val);
-    organ.setParamValue("/FaustDSP/volume", val);
+    if (organ) {
+        var val = event.target.value;
+        val = parseFloat(val);
+        console.log(val);
+        organ.setParamValue("/FaustDSP/volume", val);
+    }
 }
 
 // MIDI input handling
