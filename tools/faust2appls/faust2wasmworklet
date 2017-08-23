@@ -3,7 +3,8 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 
-CODE_WRAPPER=""
+CODE_WRAPPER1=""
+CODE_WRAPPER2=""
 JS_WRAPPER=""
 COMB="false"
 COMB_SRC=
@@ -76,22 +77,22 @@ if [ $POLY = true ]; then
     WASM="wasm-e"
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
-        CODE_WRAPPER=webaudio-asm-poly.cpp
+        CODE_WRAPPER1=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-wasm-poly-emcc.js
     else
         echo "Compiled with 'wasm' backend in polyphonic mode"
-        CODE_WRAPPER=webaudio-wasm-poly-standalone-wrapper.js
+        CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
     fi
 else
     WASM="wasm"
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
-        CODE_WRAPPER=webaudio-asm.cpp
+        CODE_WRAPPER1=webaudio-asm.cpp
         JS_WRAPPER=webaudio-wasm-emcc.js
-
-    else
+  else
         echo "Compiled with 'wasm' backend"
-        CODE_WRAPPER=webaudio-wasm-standalone-wrapper.js
+        CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
+        CODE_WRAPPER2=webaudio-poly-workletnode-standalone-wrapper.js
     fi
 fi
 
@@ -107,7 +108,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
-        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
         # wasm ==> wasm optimizations
@@ -136,7 +137,8 @@ for f in $FILES; do
         rm $name-temp.js
         rm $name.cpp
     else
-        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name.js
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
     fi
 
 	# collect binary file name
@@ -153,7 +155,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or asm.js code
     if [ $EMCC = emcc ] ; then
-        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
        # wasm ==> wasm optimizations
@@ -188,10 +190,11 @@ for f in $FILES; do
         COMB_WRAPPED+=$name-wrapper.js
         
     else
+        # TODO
         echo $name.js
-        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name.js
-        cat $name.js >> comb.js
-        rm $name.js
+        #sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+        #cat $name.js >> comb.js
+        #rm $name.js
     fi
   	
 done
