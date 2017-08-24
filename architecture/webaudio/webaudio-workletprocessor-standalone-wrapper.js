@@ -64,25 +64,24 @@ class mydsp_processor extends AudioWorkletProcessor {
         
         faust.parse_ui(json_object.ui,
                        function (item) {
-                       
-                       if (item.type === "vgroup"
-                           || item.type === "hgroup"
-                           || item.type === "tgroup") {
-                            faust.parse_items(item.items);
-                       } else if (item.type === "hbargraph"
-                                  || item.type === "vbargraph") {
-                            // Keep bargraph adresses
-                            ///this.outputs_items.push(item.address);
-                       } else if (item.type === "vslider"
-                                  || item.type === "hslider"
-                                  || item.type === "button"
-                                  || item.type === "checkbox"
-                                  || item.type === "nentry") {
-                            params.push({ name: item.address,
-                                   defaultValue: item.init,
-                                   minValue: item.min,
-                                   maxValue: item.max });
-                       }
+                           if (item.type === "vgroup"
+                               || item.type === "hgroup"
+                               || item.type === "tgroup") {
+                                faust.parse_items(item.items);
+                           } else if (item.type === "hbargraph"
+                                      || item.type === "vbargraph") {
+                                // Keep bargraph adresses
+                                ///this.outputs_items.push(item.address);
+                           } else if (item.type === "vslider"
+                                      || item.type === "hslider"
+                                      || item.type === "button"
+                                      || item.type === "checkbox"
+                                      || item.type === "nentry") {
+                                params.push({ name: item.address,
+                                       defaultValue: item.init,
+                                       minValue: item.min,
+                                       maxValue: item.max });
+                           }
                        });
         
         return params;
@@ -203,23 +202,24 @@ class mydsp_processor extends AudioWorkletProcessor {
             }
             
             // bargraph
-            faust.parse_ui(this.json_object.ui, function (item){
-                           if (item.type === "vgroup"
-                               || item.type === "hgroup"
-                               || item.type === "tgroup") {
-                                faust.parse_items(item.items);
-                           } else if (item.type === "hbargraph"
-                                      || item.type === "vbargraph") {
-                                // Keep bargraph adresses
-                                this.outputs_items.push(item.address);
-                           } else if (item.type === "vslider"
-                                      || item.type === "hslider"
-                                      || item.type === "button"
-                                      || item.type === "checkbox"
-                                      || item.type === "nentry") {
-                                // Keep inputs adresses
-                                this.inputs_items.push(item.address);
-                           }
+            faust.parse_ui(this.json_object.ui,
+                           function (item){
+                               if (item.type === "vgroup"
+                                   || item.type === "hgroup"
+                                   || item.type === "tgroup") {
+                                    faust.parse_items(item.items);
+                               } else if (item.type === "hbargraph"
+                                          || item.type === "vbargraph") {
+                                    // Keep bargraph adresses
+                                    this.outputs_items.push(item.address);
+                               } else if (item.type === "vslider"
+                                          || item.type === "hslider"
+                                          || item.type === "button"
+                                          || item.type === "checkbox"
+                                          || item.type === "nentry") {
+                                    // Keep inputs adresses
+                                    this.inputs_items.push(item.address);
+                               }
                            });
             
             // Init DSP
