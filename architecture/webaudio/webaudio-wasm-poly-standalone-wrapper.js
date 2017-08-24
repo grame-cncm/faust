@@ -40,19 +40,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
     
-    function getNumInputsAux ()
-    {
-        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux ()
-    {
-        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-    }
-    
     var sp;
     try {
-        sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+        sp = context.createScriptProcessor(buffer_size, parseInt(json_object.inputs), parseInt(json_object.outputs));
     } catch (e) {
         faust.error_msg = "Error in createScriptProcessor: " + e;
         return null;
@@ -74,15 +64,15 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.fGainLabel = "";
     sp.fDate = 0;
     
-    sp.numIn = getNumInputsAux();
-    sp.numOut = getNumOutputsAux();
+    sp.numIn = parseInt(sp.json_object.inputs);
+    sp.numOut = parseInt(sp.json_object.outputs);
     
     // Memory allocator
     sp.ptr_size = 4;
     sp.sample_size = 4;
     
-    console.log(getNumInputsAux());
-    console.log(getNumOutputsAux());
+    console.log(sp.numIn);
+    console.log(sp.numOut);
     
     sp.factory = dsp_instance.exports;
     sp.HEAP = memory.buffer;
@@ -105,16 +95,16 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     
     // Setup pointers offset
     sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
-    sp.audio_heap_ptr_outputs = sp.audio_heap_ptr_inputs + (getNumInputsAux() * sp.ptr_size);
-    sp.audio_heap_ptr_mixing = sp.audio_heap_ptr_outputs + (getNumOutputsAux() * sp.ptr_size);
+    sp.audio_heap_ptr_outputs = sp.audio_heap_ptr_inputs + (sp.numIn * sp.ptr_size);
+    sp.audio_heap_ptr_mixing = sp.audio_heap_ptr_outputs + (sp.numOut * sp.ptr_size);
     
     // Setup buffer offset
-    sp.audio_heap_inputs = sp.audio_heap_ptr_mixing + (getNumOutputsAux() * sp.ptr_size);
-    sp.audio_heap_outputs = sp.audio_heap_inputs + (getNumInputsAux() * buffer_size * sp.sample_size);
-    sp.audio_heap_mixing = sp.audio_heap_outputs + (getNumOutputsAux() * buffer_size * sp.sample_size);
+    sp.audio_heap_inputs = sp.audio_heap_ptr_mixing + (sp.numOut * sp.ptr_size);
+    sp.audio_heap_outputs = sp.audio_heap_inputs + (sp.numIn * buffer_size * sp.sample_size);
+    sp.audio_heap_mixing = sp.audio_heap_outputs + (sp.numOut * buffer_size * sp.sample_size);
     
     // Setup DSP voices offset
-    sp.dsp_start = sp.audio_heap_mixing + (getNumOutputsAux() * buffer_size * sp.sample_size);
+    sp.dsp_start = sp.audio_heap_mixing + (sp.numOut * buffer_size * sp.sample_size);
     
     // wasm mixer
     sp.mixer = mixer_instance.exports;
@@ -400,13 +390,13 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     /* Return instance number of audio inputs. */
     sp.getNumInputs = function ()
     {
-        return getNumInputsAux();
+        return sp.numIn;
     }
     
     /* Return instance number of audio outputs. */
     sp.getNumOutputs = function ()
     {
-        return getNumOutputsAux();
+        return sp.numOut;
     }
     
     /**
@@ -647,18 +637,7 @@ faust.createMemory = function (buffer_size, polyphony) {
     
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
-    
-    function getNumInputsAux ()
-    {
-        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux ()
-    {
-        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-    }
-    
-    var memory_size = pow2limit(getSizemydsp() * polyphony + ((getNumInputsAux() + getNumOutputsAux() * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    var memory_size = pow2limit(getSizemydsp() * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }

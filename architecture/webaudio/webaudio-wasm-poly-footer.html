@@ -80,7 +80,7 @@ function onerrorcallback(error)
 function onsuccesscallbackJazz(access)
 {
     var inputs = access.getInputs();
-    for (var i = 0; i <inputs.length; i++) {
+    for (var i = 0; i < inputs.length; i++) {
         var input = access.getInput(inputs[i]);
         midi_input.push(input);
         input.onmessage = midiMessageReceived;
@@ -100,7 +100,7 @@ function activateMIDIInput()
 {
     console.log("activateMIDIInput");
     if (typeof (navigator.requestMIDIAccess) !== "undefined") {
-        if (navigator.requestMIDIAccess() != undefined) {
+        if (navigator.requestMIDIAccess() !== undefined) {
             navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
         } else{
             navigator.requestMIDIAccess(onsuccesscallbackJazz, onerrorcallback);

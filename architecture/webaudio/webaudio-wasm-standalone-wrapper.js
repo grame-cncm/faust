@@ -37,19 +37,9 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
     
-    function getNumInputsAux ()
-    {
-        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux ()
-    {
-        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-    }
-
     var sp;
     try {
-        sp = context.createScriptProcessor(buffer_size, getNumInputsAux(), getNumOutputsAux());
+        sp = context.createScriptProcessor(buffer_size, parseInt(json_object.inputs), parseInt(json_object.outputs));
     } catch (e) {
         faust.error_msg = "Error in createScriptProcessor: " + e;
         return null;
@@ -64,8 +54,8 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
     
-    sp.numIn = getNumInputsAux();
-    sp.numOut = getNumOutputsAux();
+    sp.numIn = parseInt(json_object.inputs);
+    sp.numOut = parseInt(json_object.outputs);
      
     // Memory allocator
     sp.ptr_size = 4;
@@ -260,13 +250,13 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     /* Return instance number of audio inputs. */
     sp.getNumInputs = function ()
     {
-        return getNumInputsAux();
+        return sp.numIn;
     }
 
     /* Return instance number of audio outputs. */
     sp.getNumOutputs = function ()
     {
-        return getNumOutputsAux();
+        return sp.numOut;
     }
 
     /**

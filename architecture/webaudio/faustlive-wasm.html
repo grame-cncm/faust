@@ -39,7 +39,7 @@
 
             .config {
                 display:grid;
-                grid-template-columns: 1fr 1fr 1fr;
+                grid-template-columns: 1fr 1fr 1fr 1fr;
                 grid-gap: 8px;
             }
 
@@ -325,12 +325,12 @@
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
         <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), and compiled with its WebAssembly generating backend.
         <P> You can compile Faust .dsp files by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
-        <P>Settings (buffer size, polyphonic mode and voices, ftz mode) can be changed dynamically and the DSP will be recompiled on the fly.
+        <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, ftz mode) can be changed dynamically and the DSP will be recompiled on the fly.
         <div class="config">
 
             <div class="config-element">
                 <H3>Buffer size </H3>
-                <form method="POST" name="menu" >
+                <form method="POST" name="menu">
                     <select id="selectedBuffer" name="selectedBuffer"
                         onChange="setBufferSize(this.form.selectedBuffer)">
                         <option value = 256> 256 </option>
@@ -347,14 +347,14 @@
             <div class="config-element">
                 <H3>Polyphonic instrument </H3>
                 <div class="line2">
-                <form method="POST" name="menu" >
+                <form method="POST" name="menu">
                     <select id="selectedPoly" name="selectedPoly"
                         onChange="setPoly(this.form.selectedPoly)">
                         <option value = ON> ON </option>
                         <option selected value = OFF> OFF </option>
                     </select>
                 </form>
-                <form method="POST" name="menu" >
+                <form method="POST" name="menu">
                     <select id="polyVoices" name="polyVoices"
                         onChange="setPolyVoices(this.form.polyVoices)">
                         <option value = 4> 4 </option>
@@ -368,10 +368,23 @@
                 </div>
                 <p>Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome which implements the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>). <p> Be sure to launch the HTML page <B>after</B> your MIDI application(s)/devices(s) to be sure MIDI ports are properly detected.</p>
             </div>
+            
+            <div class="config-element">
+                <H3>ScriptProcessor/AudioWorklet</H3>
+                <form method="POST" name="menu" >
+                    <select id="selectedRenderingMode" name="selectedRenderingMode"
+                        onChange="setRenderingMode(this.form.selectedRenderingMode)">
+                        <option selected value = ScriptProcessor> ScriptProcessor </option>
+                        <option value = AudioWorklet> AudioWorklet </option>
+                    </select>
+                </form>
+                <p>ScriptProcessor: audio rendering is done using old ScriptProcessor model</p>
+                <p>AudioWorklet: audio rendering is done using new AudioWorklet model<p>
+            </div>
 
             <div class="config-element">
                 <H3>Float denormals handling </H3>
-                <form method="POST" name="menu" >
+                <form method="POST" name="menu">
                     <select id="selectedFTZ" name="selectedFTZ"
                         onChange="setFTZ(this.form.selectedFTZ)">
                         <option value = 0> 0 </option>
@@ -379,12 +392,9 @@
                         <option selected value = 2> 2 </option>
                     </select>
                 </form>
-
                     <p>0: means no denormal handling</p>
                     <p>1: uses <B>fabs</B> and a <B>threshold</B> to detect denormal values (slower)<p>
                     <p>2: uses a <B>bitmask</B> to detect denormal values (faster)</p>
-
-
             </div>
 
         </div>
@@ -427,6 +437,7 @@
             var poly_flag = "OFF";
             var ftz_flag = "2";
             var poly_nvoices = 16;
+            var rendering_mode = "ScriptProcessor";
             var output_handler = null;
             var libraries_url = "http://127.0.0.1:8000/libraries/";
             //var libraries_url = "http://faust.grame.fr/modules/libraries/";
@@ -446,6 +457,12 @@
             function setPolyVoices(voices_item)
             {
                 poly_nvoices = voices_item.options[voices_item.selectedIndex].value;
+                compileDSP();
+            }
+            
+            function setRenderingMode(rendering_item)
+            {
+                rendering_mode = rendering_item.options[rendering_item.selectedIndex].value;
                 compileDSP();
             }
 
@@ -512,7 +529,7 @@
             function onsuccesscallbackJazz(access)
             {
                 var inputs = access.getInputs();
-                for (var i = 0; i <inputs.length; i++) {
+                for (var i = 0; i < inputs.length; i++) {
                     var input = access.getInput(inputs[i]);
                     midi_input.push(input);
                     input.onmessage = midiMessageReceived;
@@ -532,7 +549,7 @@
             {
                 console.log("activateMIDIInput");
                 if (typeof (navigator.requestMIDIAccess) !== "undefined") {
-                    if (navigator.requestMIDIAccess() != undefined) {
+                    if (navigator.requestMIDIAccess() !== undefined) {
                         navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
                     } else{
                         navigator.requestMIDIAccess(onsuccesscallbackJazz, onerrorcallback);
@@ -606,6 +623,7 @@
                     localStorage.setItem("poly_flag", poly_flag);
                     localStorage.setItem("ftz_flag", ftz_flag);
                     localStorage.setItem("poly_nvoices", poly_nvoices);
+                    localStorage.setItem("rendering_mode", rendering_mode);
                 }
             }
 
@@ -631,12 +649,14 @@
                     poly_flag = (localStorage.getItem("poly_flag") ? localStorage.getItem("poly_flag") : "OFF");
                     poly_nvoices = (localStorage.getItem("poly_nvoices") ? localStorage.getItem("poly_nvoices") : 16);
                     ftz_flag = (localStorage.getItem("ftz_flag") ? localStorage.getItem("ftz_flag") : 2);
+                    rendering_mode = (localStorage.getItem("rendering_mode") ? localStorage.getItem("rendering_mode") : "ScriptProcessor");
 
                     // Restore menus
                     restoreMenu("selectedBuffer", buffer_size);
                     restoreMenu("selectedPoly", poly_flag);
                     restoreMenu("polyVoices", poly_nvoices);
                     restoreMenu("selectedFTZ", ftz_flag);
+                    restoreMenu("selectedRenderingMode", rendering_mode);
                 }
             }
 

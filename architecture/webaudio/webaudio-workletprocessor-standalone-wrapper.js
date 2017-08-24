@@ -1,5 +1,5 @@
 /*
- faust2webaudio
+ faust2wasm
  
  Additional code: GRAME 2017
 */
@@ -30,6 +30,7 @@ faust.importObject["asm2wasm"] = faust.asm2wasm;
 // WebAssembly instance
 faust.mydsp_instance = null;
 
+// JSON parsing functions
 faust.parse_ui = function (ui, callback)
 {
     for (var i = 0; i < ui.length; i++) {
@@ -53,16 +54,14 @@ faust.parse_items = function (items, callback)
 }
 
 // Monophonic Faust DSP
-
-class mydsp_processor extends AudioWorkletProcessor {
+class mydspProcessor extends AudioWorkletProcessor {
     
     static get parameterDescriptors () {
         
         // Analyse JSON to generate AudioParam parameters
-        var json_object = JSON.parse(getJSONmydsp());
         var params = [];
         
-        faust.parse_ui(json_object.ui,
+        faust.parse_ui(JSON.parse(getJSONmydsp()).ui,
                        function (item) {
                            if (item.type === "vgroup"
                                || item.type === "hgroup"
@@ -91,20 +90,7 @@ class mydsp_processor extends AudioWorkletProcessor {
     {
         super(options);
         
-        // Keep JSON parsed object
-        var json_object = JSON.parse(getJSONmydsp());
-        
-        function getNumInputsAux ()
-        {
-            return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-        }
-        
-        function getNumOutputsAux ()
-        {
-            return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-        }
-        
-        this.json_object = json_object;
+        this.json_object = JSON.parse(getJSONmydsp());
         
         this.output_handler = null;
         this.ins = null;
@@ -113,8 +99,8 @@ class mydsp_processor extends AudioWorkletProcessor {
         this.dspInChannnels = [];
         this.dspOutChannnels = [];
         
-        this.numIn = getNumInputsAux();
-        this.numOut = getNumOutputsAux();
+        this.numIn = parseInt(this.json_object.inputs);
+        this.numOut = parseInt(this.json_object.outputs);
         
         // Memory allocator
         this.ptr_size = 4;
@@ -171,10 +157,6 @@ class mydsp_processor extends AudioWorkletProcessor {
         {
             var i;
             
-            // Setup web audio context
-            //console.log("buffer_size %d", buffer_size);
-            this.onaudioprocess = this.compute;
-            
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
@@ -203,7 +185,7 @@ class mydsp_processor extends AudioWorkletProcessor {
             
             // bargraph
             faust.parse_ui(this.json_object.ui,
-                           function (item){
+                           function (item) {
                                if (item.type === "vgroup"
                                    || item.type === "hgroup"
                                    || item.type === "tgroup") {
@@ -233,8 +215,7 @@ class mydsp_processor extends AudioWorkletProcessor {
                 this.value_table[path] = values;
             }
         }
-   
-        
+       
         // Init resulting DSP
         this.initAux();
     }
@@ -278,8 +259,8 @@ class mydsp_processor extends AudioWorkletProcessor {
 fetch('mydsp.wasm')
 .then(dsp_file => dsp_file.arrayBuffer())
 .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, faust.importObject))
-.then(dsp_module => faust.mydsp_instance = dsp_module.instance; registerProcessor('mydsp', mydsp_processor);)
-.catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; callback(null); });
+.then(dsp_module => faust.mydsp_instance = dsp_module.instance; registerProcessor('mydsp', mydspProcessor);)
+.catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; });
 
 
 
