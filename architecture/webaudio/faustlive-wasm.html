@@ -324,15 +324,16 @@
     <body bgcolor= "#FFFFFF">
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
         <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), and compiled with its WebAssembly generating backend.
-        <P> You can compile Faust .dsp files by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
+        <P> You can compile Faust .dsp files or URL by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
         <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, ftz mode) can be changed dynamically and the DSP will be recompiled on the fly.
         <div class="config">
 
             <div class="config-element">
-                <H3>Buffer size </H3>
+                <H3>Buffer size</H3>
                 <form method="POST" name="menu">
                     <select id="selectedBuffer" name="selectedBuffer"
                         onChange="setBufferSize(this.form.selectedBuffer)">
+                        <option value = 128> 128 </option>
                         <option value = 256> 256 </option>
                         <option value = 512> 512 </option>
                         <option selected value = 1024> 1024 </option>
@@ -341,11 +342,11 @@
                         <option value = 8192> 8192 </option>
                     </select>
                 </form>
-                <p>You can change the buffer size (from 256 to 8192 frames).</p>
+                <p>You can change the buffer size (from 256 to 8192 frames in ScripProcessor mode, will be fixed at 128 frames in AudioWorklet mode).</p>
             </div>
 
             <div class="config-element">
-                <H3>Polyphonic instrument </H3>
+                <H3>Polyphonic instrument</H3>
                 <div class="line2">
                 <form method="POST" name="menu">
                     <select id="selectedPoly" name="selectedPoly"
@@ -383,7 +384,7 @@
             </div>
 
             <div class="config-element">
-                <H3>Float denormals handling </H3>
+                <H3>Float denormals handling</H3>
                 <form method="POST" name="menu">
                     <select id="selectedFTZ" name="selectedFTZ"
                         onChange="setFTZ(this.form.selectedFTZ)">
@@ -444,7 +445,12 @@
 
             function setBufferSize(bs_item)
             {
-                buffer_size = bs_item.options[bs_item.selectedIndex].value;
+                buffer_size = parseInt(bs_item.options[bs_item.selectedIndex].value);
+                if (buffer_size === 128 && rendering_mode === "ScriptProcessor") {
+                    console.log("buffer_size cannot be set to 128 in ScriptProcessor mode !");
+                    buffer_size = 256;
+                    restoreMenu("selectedBuffer", buffer_size);
+                }
                 compileDSP();
             }
 
@@ -456,13 +462,22 @@
 
             function setPolyVoices(voices_item)
             {
-                poly_nvoices = voices_item.options[voices_item.selectedIndex].value;
+                poly_nvoices = parseInt(voices_item.options[voices_item.selectedIndex].value);
                 compileDSP();
             }
             
             function setRenderingMode(rendering_item)
             {
                 rendering_mode = rendering_item.options[rendering_item.selectedIndex].value;
+                if (rendering_mode === "AudioWorklet") {
+                    buffer_size = 128;
+                    restoreMenu("selectedBuffer", buffer_size);
+                    document.getElementById("selectedBuffer").disabled = true;
+                } else {
+                    buffer_size = 1024;
+                    restoreMenu("selectedBuffer", buffer_size);
+                    document.getElementById("selectedBuffer").disabled = false;
+                }
                 compileDSP();
             }
 
@@ -599,7 +614,8 @@
             function restoreMenu(id, value)
             {
                 for (var i = 0; i < document.getElementById(id).length; i++) {
-                    if (document.getElementById(id).options[i].value === value) {
+                    // Weak comparison here
+                    if (document.getElementById(id).options[i].value == value) {
                         document.getElementById(id).selectedIndex = i;
                         break;
                     }
@@ -645,18 +661,22 @@
             function loadPageState()
             {
                 if (typeof(Storage) !== "undefined" && localStorage.getItem("FaustLocalStorage") === "on") {
-                    buffer_size = (localStorage.getItem("buffer_size") ? localStorage.getItem("buffer_size") : 1024);
+                    buffer_size = parseInt(localStorage.getItem("buffer_size") ? localStorage.getItem("buffer_size") : 1024);
                     poly_flag = (localStorage.getItem("poly_flag") ? localStorage.getItem("poly_flag") : "OFF");
-                    poly_nvoices = (localStorage.getItem("poly_nvoices") ? localStorage.getItem("poly_nvoices") : 16);
-                    ftz_flag = (localStorage.getItem("ftz_flag") ? localStorage.getItem("ftz_flag") : 2);
+                    poly_nvoices = parseInt(localStorage.getItem("poly_nvoices") ? localStorage.getItem("poly_nvoices") : 16);
+                    ftz_flag = (localStorage.getItem("ftz_flag") ? localStorage.getItem("ftz_flag") : "2");
                     rendering_mode = (localStorage.getItem("rendering_mode") ? localStorage.getItem("rendering_mode") : "ScriptProcessor");
-
+                    
                     // Restore menus
                     restoreMenu("selectedBuffer", buffer_size);
                     restoreMenu("selectedPoly", poly_flag);
                     restoreMenu("polyVoices", poly_nvoices);
                     restoreMenu("selectedFTZ", ftz_flag);
                     restoreMenu("selectedRenderingMode", rendering_mode);
+                    
+                    if (rendering_mode === "AudioWorklet") {
+                        document.getElementById("selectedBuffer").disabled = true;
+                    }
                 }
             }
 
@@ -903,6 +923,12 @@
             
             function init()
             {
+                // Check AudioWorklet support
+                if ((typeof (AudioWorklet) === "undefined")) {
+                    document.getElementById("selectedRenderingMode").disabled = true;
+                    alert("AudioWorklet is not supported, ScriptProcessor model only will be availlable");
+                }
+                
                 activateMIDIInput();
                 
                 var filedrag1 = document.getElementById("filedrag");

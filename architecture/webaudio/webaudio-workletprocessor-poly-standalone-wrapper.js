@@ -11,6 +11,8 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+faust.buffer_size = 128;
+
 faust.createMemory = function (buffer_size, polyphony) {
     
     // Memory allocator
@@ -44,8 +46,9 @@ faust.asm2wasm = { // special asm2wasm imports
     }
 }
 
+// Polyphony
 faust.polyphony = 16;
-faust.memory = faust.createMemory(128, faust.polyphony);
+faust.memory = faust.createMemory(faust.buffer_size, faust.polyphony);
 
 faust.importObject = { imports: { print: arg => console.log(arg) } }
 faust.importObject["global.Math"] = window.Math;
@@ -167,11 +170,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         // Setup buffer offset
         this.audio_heap_inputs = this.audio_heap_ptr_mixing + (getNumOutputsAux() * this.ptr_size);
-        this.audio_heap_outputs = this.audio_heap_inputs + (getNumInputsAux() * buffer_size * this.sample_size);
-        this.audio_heap_mixing = this.audio_heap_outputs + (getNumOutputsAux() * buffer_size * this.sample_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (getNumInputsAux() * faust.buffer_size * this.sample_size);
+        this.audio_heap_mixing = this.audio_heap_outputs + (getNumOutputsAux() * faust.buffer_size * this.sample_size);
         
         // Setup DSP voices offset
-        this.dsp_start = this.audio_heap_mixing + (getNumOutputsAux() * buffer_size * this.sample_size);
+        this.dsp_start = this.audio_heap_mixing + (getNumOutputsAux() * faust.buffer_size * this.sample_size);
         
         // wasm mixer
         this.mixer = faust.mixer_instance.exports;
@@ -292,19 +295,19 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         {
             var i;
             
-            console.log("buffer_size %d", buffer_size);
+            console.log("buffer_size %d", faust.buffer_size);
             this.onaudioprocess = this.compute;
             
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
-                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((faust.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Ins buffer tables
                 var dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
                 for (i = 0; i < this.numIn; i++) {
-                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * this.sample_size) >> 2);
+                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + faust.buffer_size * this.sample_size) >> 2);
                 }
             }
             
@@ -314,19 +317,37 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                 this.mixing = this.audio_heap_ptr_mixing;
                 
                 for (i = 0; i < this.numOut; i++) {
-                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((buffer_size * this.sample_size) * i);
-                    this.HEAP32[(this.mixing >> 2) + i] = this.audio_heap_mixing + ((buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((faust.buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.mixing >> 2) + i] = this.audio_heap_mixing + ((faust.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Out buffer tables
                 var dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
                 for (i = 0; i < this.numOut; i++) {
-                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * this.sample_size) >> 2);
+                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + faust.buffer_size * this.sample_size) >> 2);
                 }
             }
             
-            // bargraph
-            this.parse_ui(this.json_object.ui);
+            // Parse UI
+            faust.parse_ui(this.json_object.ui,
+                           function (item) {
+                               if (item.type === "vgroup"
+                                   || item.type === "hgroup"
+                                   || item.type === "tgroup") {
+                                    faust.parse_items(item.items);
+                               } else if (item.type === "hbargraph"
+                                          || item.type === "vbargraph") {
+                                    // Keep bargraph adresses
+                                    this.outputs_items.push(item.address);
+                               } else if (item.type === "vslider"
+                                          || item.type === "hslider"
+                                          || item.type === "button"
+                                          || item.type === "checkbox"
+                                          || item.type === "nentry") {
+                                    // Keep inputs adresses
+                                    this.inputs_items.push(item.address);
+                               }
+                           });
             
             // keep 'keyOn/keyOff' labels
             for (i = 0; i < this.inputs_items.length; i++) {
@@ -445,11 +466,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (this.compute_handler) {
-            this.compute_handler(buffer_size);
+            this.compute_handler(faust.buffer_size);
         }
         
         // First clear the outputs
-        this.mixer.clearOutput(buffer_size, this.numOut, this.outs);
+        this.mixer.clearOutput(faust.buffer_size, this.numOut, this.outs);
         
         // Compute all running voices
         for (i = 0; i < polyphony; i++) {
@@ -459,14 +480,14 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                     this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
                     this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
                     this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 1.0);
-                    this.factory.compute(this.dsp_voices[i], buffer_size, this.ins, this.mixing);
+                    this.factory.compute(this.dsp_voices[i], faust.buffer_size, this.ins, this.mixing);
                     this.dsp_voices_trigger[i] = false;
                 } else {
                     // Compute regular voice
-                    this.factory.compute(this.dsp_voices[i], buffer_size, this.ins, this.mixing);
+                    this.factory.compute(this.dsp_voices[i], faust.buffer_size, this.ins, this.mixing);
                 }
                 // Mix it in result
-                this.dsp_voices_level[i] = this.mixer.mixVoice(buffer_size, this.numOut, this.mixing, this.outs);
+                this.dsp_voices_level[i] = this.mixer.mixVoice(faust.buffer_size, this.numOut, this.mixing, this.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
                 if ((this.dsp_voices_level[i] < 0.001) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
                     this.dsp_voices_state[i] = this.kFreeVoice;

@@ -22,7 +22,7 @@ dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 
 install:
  
-	cp faustbenchwasm $(prefix)/bin
+	cp faustbench-wasm $(prefix)/bin
 	cp wasm-node-bench.js $(prefix)/share/faust/webaudio
 	cp faustbench $(prefix)/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk  $(prefix)/bin || echo dynamic-jack-gtk not found

@@ -11,6 +11,8 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+faust.buffer_size = 128;
+
 faust.asm2wasm = { // special asm2wasm imports
     "fmod": function(x, y) {
         return x % y;
@@ -133,7 +135,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         
         // Setup buffer offset
         this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
-        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * 128 * this.sample_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * faust.buffer_size * this.sample_size);
         
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;
@@ -160,30 +162,30 @@ class mydspProcessor extends AudioWorkletProcessor {
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
-                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((128 * this.sample_size) * i);
+                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((faust.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Ins buffer tables
                 var dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
                 for (i = 0; i < this.numIn; i++) {
-                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + 128 * this.sample_size) >> 2);
+                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + faust.buffer_size * this.sample_size) >> 2);
                 }
             }
             
             if (this.numOut > 0) {
                 this.outs = this.audio_heap_ptr_outputs;
                 for (i = 0; i < this.numOut; i++) {
-                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((128 * this.sample_size) * i);
+                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((faust.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Out buffer tables
                 var dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
                 for (i = 0; i < this.numOut; i++) {
-                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + 128 * this.sample_size) >> 2);
+                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + faust.buffer_size * this.sample_size) >> 2);
                 }
             }
             
-            // bargraph
+            // Parse UI
             faust.parse_ui(this.json_object.ui,
                            function (item) {
                                if (item.type === "vgroup"
@@ -242,8 +244,9 @@ class mydspProcessor extends AudioWorkletProcessor {
          }
          */
         
+        // TODO : check if inputs, outputs can be directly used 
         // Compute
-        this.factory.compute(this.dsp, 128, this.ins, this.outs);
+        this.factory.compute(this.dsp, faust.buffer_size, this.ins, this.outs);
         
         // Copy outputs
         for (var channel = 0; channel < input.length; ++channel) {

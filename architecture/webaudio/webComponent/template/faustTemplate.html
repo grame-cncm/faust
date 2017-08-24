@@ -332,30 +332,30 @@
 		faustProto.createdCallback = function() {
         
             root = this.createShadowRoot();
-			root.appendChild(document.importNode(tmpl.content, true));
+            root.appendChild(document.importNode(tmpl.content, true));
 
-			var sandBox = root.querySelector("#faustSandbox");
-			// div to insert svg representation
-			var container = root.querySelector("#container");
-			
-			// Register evenement
-			sandBox.onkeyup = function(evt) {
-				processFaust(sandBox, container);
-			};
-			
-			// Get the text content of component
-			var initCode = this.textContent;
-			if (initCode) {
-				sandBox.value = initCode;
-				processFaust(sandBox, container);
-			}
-			
-			// Read attributes and display or not the textarea
-			var isFaustCode = this.getAttribute("faustCode");
-			if (isFaustCode == "false") {
-				root.querySelector("#faustCode").style.display="none";
-				root.querySelector("#container").style.width = "100%";
-			}
+            var sandBox = root.querySelector("#faustSandbox");
+            // div to insert svg representation
+            var container = root.querySelector("#container");
+
+            // Register evenement
+            sandBox.onkeyup = function(evt) {
+                processFaust(sandBox, container);
+            };
+
+            // Get the text content of component
+            var initCode = this.textContent;
+            if (initCode) {
+                sandBox.value = initCode;
+                processFaust(sandBox, container);
+            }
+
+            // Read attributes and display or not the textarea
+            var isFaustCode = this.getAttribute("faustCode");
+            if (isFaustCode == "false") {
+                root.querySelector("#faustCode").style.display="none";
+                root.querySelector("#container").style.width = "100%";
+            }
 		};
 
 		// Register our new element
@@ -393,40 +393,41 @@
 		
 	function processFaust(sandBox, container) {
       	
-		console.log("processFaust");
+        console.log("processFaust");
         console.log(sandBox.value);
         console.log(container);
-        
+
         var factory = null;
         var DSP = null;
         var faustsvg = null;
-        
+
         // Create a DSP factory from the dsp code
         var factory = faust.createDSPFactory(sandBox.value);
         if (!factory) {
             alert(faust.getErrorMessage());
             return;
         }
-        
+
         // Then creates one DSP instance
         DSP = faust.createDSPInstance(factory, audio_context, buffer_size);
         if (DSP.getNumInputs() > 0) {
             activateAudioInput(DSP);
         }
-        
+
         // Setup UI
         _f4u$t.main_loop = function() {}
         var handler = _f4u$t.main(DSP.json(), container.innerHTML, DSP.setParamValue);
         DSP.setHandler(handler);
-        
+
         console.log(DSP.getNumInputs());
         console.log(DSP.getNumOutputs());
-        
+
         DSP.start();
     }
 	
 	$(document).ready(function() {
 		initComponent();
 	});
+    
 </script>
 

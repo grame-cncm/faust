@@ -73,9 +73,9 @@ int main(int argc, char* argv[])
     
     try {
         if (is_double) {
-            bench(dsp_optimizer<double>(argv[argc-1], argc1, argv1, "", buffer_size), argv[1]);
+            bench(dsp_optimizer<double>(argv[argc-1], argc1, argv1, "", buffer_size, -1), argv[1]);
         } else {
-            bench(dsp_optimizer<float>(argv[argc-1], argc1, argv1, "", buffer_size), argv[1]);
+            bench(dsp_optimizer<float>(argv[argc-1], argc1, argv1, "", buffer_size, -1), argv[1]);
         }
     } catch (...) {}
     

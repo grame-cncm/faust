@@ -100,12 +100,19 @@ faust.DSP_poly = function (context, buffer_size, max_polyphony, callback) {
     
     function parse_item (item) 
     {
-        if (item.type === "vgroup" || item.type === "hgroup" || item.type === "tgroup") {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
             parse_items(item.items);
-        } else if (item.type === "hbargraph" || item.type === "vbargraph") {
+        } else if (item.type === "hbargraph"
+                   || item.type === "vbargraph") {
             // Keep bargraph adresses
             ouputs_items.push(item.address);
-        } else if (item.type === "vslider" || item.type === "hslider" || item.type === "button" || item.type === "checkbox" || item.type === "nentry") {
+        } else if (item.type === "vslider"
+                   || item.type === "hslider"
+                   || item.type === "button"
+                   || item.type === "checkbox"
+                   || item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
         }
