@@ -1,22 +1,23 @@
+// @notes MODEL, RELEVANTJSONFILE, PLUGNAME and ANDROIDPLUGINNAME are replaced during processing
 using System;
 using System.Text;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using UnityEngine;
 
-/* @brief This file is not supposed to be changed or understood.
-* @brief It contains all necessary classes and methods to communicate with the plugin and build the inspector interface.
+/* @brief This file contains additionnal codes to communicate with the plugin and build the inspector interface
+* @brief It shouldn't be changed
 */
-namespace FaustUtilities_model {
+namespace FaustUtilities_MODEL {
 
 	#if UNITY_EDITOR
 	using UnityEditor;
 
-	[CustomEditor(typeof(FaustPlugin_model))]
+	[CustomEditor(typeof(FaustPlugin_MODEL))]
 	public class FaustPlugin_Editor : Editor {
 
 			// Initialization of the dsp
-	    private FaustPlugin_model _dsp;
+	    private FaustPlugin_MODEL _dsp;
 
 			// Initialization of the UI related variables
 	    private string fJSON;
@@ -25,17 +26,17 @@ namespace FaustUtilities_model {
 
 			// @brief All instantiations have to be done in the OnEnable() method.
 	    private void OnEnable() {
-	      	fJSON = "tototata";
+	      	fJSON = "RELEVANTJSONFILE";
 					if (!FaustUI.fJSONParser (ref fJSON, out fUI)) // Parses the JSON file
 						UnityEngine.Debug.LogError ("Error JSON Parser");
 					param = fUI.getUI (0).setNumParams (param); // Sets the parameter number
-	        _dsp = (FaustPlugin_model)target; // Sets which component will be edited in the inspector
+	        _dsp = (FaustPlugin_MODEL)target; // Sets which component will be edited in the inspector
 	    }
 
 			// @brief Method called when you click on the inspector
 	    public override void OnInspectorGUI() {
 	      	GUI.enabled = true;
-	        GUILayout.BeginVertical (); // Each block of elements needs to be wrapped by Begin/EndVertical or Begin/EndHorizontal whether it's a vertical or horizontal group
+	        GUILayout.BeginVertical (); // Each block of elements needs to be wrap by Begin/EndVertical or Begin/EndHorizontal whether it's a vertical or horizontal group
 	        GUILayout.BeginHorizontal ();
 	        GUILayout.FlexibleSpace ();
 					// Button to reset the initial parameter value
@@ -71,7 +72,7 @@ namespace FaustUtilities_model {
 			/* @brief Method to display a bargraph
 			* @param value Current value of the param in the dsp
 			* @param item Which item is displayed */
-	    void progressBar (float value, Group item) {
+	    private void progressBar (float value, Group item) {
 	        EditorGUILayout.Space();
 	        EditorGUILayout.BeginHorizontal ();
 	        if (item.label == "0x00") // If the name of the parameter haven't been set, the default name 0X00 is erased
@@ -88,7 +89,7 @@ namespace FaustUtilities_model {
 			* @param value Current value of the param in the dsp
 			* @param item Which item is displayed
 			* @return the new value of the param */
-	    float hSlider (float value, Group item){
+	    private float hSlider (float value, Group item){
 	        EditorGUILayout.BeginHorizontal ();
 	        if (item.label == "0x00")
 	        	item.label = "";
@@ -102,7 +103,7 @@ namespace FaustUtilities_model {
 			* @param value Current value of the param in the dsp
 			* @param item Which item is displayed
 			* @return the new value of the entry */
-	    float numEntry(float value, Group item){
+	    private float numEntry(float value, Group item){
 	        EditorGUILayout.BeginHorizontal ();
 	        if (item.label == "0x00")
 	        	item.label = "";
@@ -116,7 +117,7 @@ namespace FaustUtilities_model {
 			* @param value Current value of the param in the dsp
 			* @param item Which item is displayed
 			* @return the new value of the param*/
-	    float checkBox (float value, Group item){
+	    private float checkBox (float value, Group item){
 	        EditorGUILayout.BeginHorizontal ();
 	        if (item.label == "0x00")
 	        	item.label = "";
@@ -133,7 +134,7 @@ namespace FaustUtilities_model {
 			* @param value Current value of the param in the dsp
 			* @param item Which item is displayed
 			* @return the new value if the button*/
-	    float button(Group item){
+	    private float button(Group item){
 	        EditorGUILayout.BeginHorizontal ();
 	        if (item.label == "0x00")
 	        		item.label = "";
@@ -150,7 +151,7 @@ namespace FaustUtilities_model {
 			/* @brief Method to dipslay a helpbox when the mouse is on the parameter, use the metadata from the json
 			* @param item Which item is displayed
 			* @return the string to display*/
-	    string helpBox (Group item)
+	    private string helpBox (Group item)
 	    {
 	    	string message = "";
 	        if (item.meta != null) {
@@ -171,9 +172,9 @@ namespace FaustUtilities_model {
 	        }
 	    }
 
-			/* @brief Method to add the different elements on the inspector and deals with the variation of the parameter
+			/* @brief Method to add the different elements on the inspector and deals with the varition of the parameter
 			* @param item Which item will be displayed */
-	    void addComponent(Group item){
+	    private void addComponent(Group item){
 	        int numparam = item.numparam;
 					// Tests the type of the item and checks if there is a variation of the parameter
 	        if (item.type == "vslider" || item.type == "hslider") {
@@ -200,7 +201,7 @@ namespace FaustUtilities_model {
 
 			/* @brief Recursive method to organize the layout of the inspector
 			* @param item Which item is displayed */
-	    void makeLayoutGrp (Group item){
+	    private void makeLayoutGrp (Group item){
 					// If the items.items is null, the item is actually an item (slider, etc) and not a group because it doesn't contain any item
 	        if (item.items != null){
 							// If not, the item is a group of items
@@ -226,7 +227,7 @@ namespace FaustUtilities_model {
 			/* @brief Method to change the value of a param in the dsp
 			* @param value Value of the param in the dsp
 			* @param newvalue Current value of the param in the inspector */
-	    void changeValueParam (float value, float newvalue, int param)
+	    private void changeValueParam (float value, float newvalue, int param)
 			{
 				if (newvalue != value)
 					_dsp.setParameter (param, newvalue);
@@ -243,11 +244,11 @@ namespace FaustUtilities_model {
 	    private IntPtr _context;
 
 	    #if UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR || UNITY_STANDALONE_LINUX
-	    const string _dllName = "plugname";
+	    const string _dllName = "PLUGNAME";
 	    #elif UNITY_IOS
 	    const string _dllName = "__Internal";
 	    #elif UNITY_ANDROID
-	    const string _dllName = "androidpluginname";
+	    const string _dllName = "ANDROIDPLUGINNAME";
 	    #else
 	    Debug.LogError("Architecture not supported by the plugin");
 	    #endif
@@ -328,276 +329,276 @@ namespace FaustUtilities_model {
 	        return ui[i];
 	    }
 
-		public static bool fJSONParser (ref string fJSON, out FaustUI faustUI)
-		{
-			faustUI = new FaustUI ();
-			bool success = false;
-			StringBuilder key, value;
-			if (parseChar (ref fJSON, '{')) {
-				do{
-					if (parseDQString(ref fJSON, out key) && parseChar(ref fJSON, ':')){
-						switch(key.ToString()){
-							case "name":
-								success = parseDQString(ref fJSON, out value);
-								faustUI.name = value.ToString();
-								break;
-							case "inputs":
-								success = parseDQString(ref fJSON, out value);
-								faustUI.inputs = Convert.ToInt32(value.ToString());
-								break;
-							case "outputs":
-								success = parseDQString(ref fJSON, out value);
-								faustUI.outputs = Convert.ToInt32(value.ToString());
-								break;
-							case "meta":
-								success = parseGlobalMetaData(ref fJSON);
-								break;
-							case "ui":
-								faustUI.ui = new List<Group>();
-								int numitems = 0;
-								success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
-								break;
-							default:
-								success = false;
-								break;
-						}
-					}
-				} while(parseChar(ref fJSON, ','));
-			}
-			parseChar(ref fJSON, '}');
-			return success;
-		}
-
-		public static void skipBlank (ref string s)
-		{
-			while (Char.IsWhiteSpace(s.ToCharArray()[0])) {
-				s = skipChar (ref s, 1);
-			}
-		}
-
-		public static bool parseChar (ref string s, char x)
-		{
-			skipBlank (ref s);
-			if (s.ToCharArray () [0] == x) {
-				s = skipChar (ref s, 1);
-				return true;
-			} else {
-				return false;
-			}
-		}
-
-		public static string skipChar (ref string s, int count)
-		{
-			return s.Remove (0, count);
-		}
-
-		public static bool parseString (ref string s, char quote, out StringBuilder name)
-		{
-			bool valid = false;
-			name = new StringBuilder ();
-			skipBlank (ref s);
-			char[] c = s.ToCharArray ();
-			if(c[0] == quote){
-				int i = 1;
-				while(c[i] != quote){
-					name.Append (c [i]);
-					i++;
-				}
-				valid = true;
-				s = skipChar (ref s, name.ToString ().Length + 2);
-			}
-			return valid;
-		}
-
-		public static bool parseDQString(ref string s, out StringBuilder word)
-		{
-			return parseString (ref s, '"', out word);
-		}
-
-		public static bool parseItemMetaData(ref string s, List<Meta> metadatas)
-		{
-		    StringBuilder metaKey, metaValue;
-		    if (parseChar(ref s, ':') && parseChar(ref s, '[')) {
-		        do {
-		            if (parseChar(ref s, '{') && parseDQString(ref s, out metaKey) && parseChar(ref s, ':') && parseDQString(ref s, out metaValue) && parseChar(ref s, '}')) {
-		            	switch(metaKey.ToString())
-		            	{
-							case "unit":
-								Meta meta1 = new Meta();
-								meta1.unit = metaValue.ToString();
-								metadatas.Add(meta1);
-								break;
-							case "tooltip":
-								Meta meta2 = new Meta();
-								meta2.tooltip = metaValue.ToString();
-								metadatas.Add(meta2);
-								break;
-							case "scale":
-								Meta meta3 = new Meta();
-								meta3.scale = metaValue.ToString() ;
-								metadatas.Add(meta3);
-								break;
-							default:
-								break;
-		            	}
-		            }
-		        } while (parseChar(ref s, ','));
-		        return parseChar(ref s, ']');
-		    } else {
-		        return false;
-		    }
-		}
-
-		public static bool parseGlobalMetaData(ref string s)
-		{
-		    if (parseChar(ref s, '[')) {
-				while (!parseChar (ref s, ']')){
-					s = skipChar(ref s, 1);
-				}
-				return true;
-		    } else {
-		        return false;
-		    }
-		}
-
-		public static bool parseUI (ref string s, ref List<Group> uiItems, ref int numItems)
-		{
-			if (parseChar (ref s, '[')) {
-
-				StringBuilder label;
-				StringBuilder value;
-
-				do {
-					if (parseChar (ref s, '{')) {
-						do {
-							if (parseDQString (ref s, out label)) {
-
-								switch(label.ToString()){
-									case "type":
-										if (uiItems.Count != 0) {
-											numItems++;
-										}
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											Group item = new Group ();
-											item.type = value.ToString ();
-											uiItems.Add (item);
-										}
-										break;
-									case "label":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											uiItems [numItems].label = value.ToString ();
-										}
-										break;
-									case "address":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											uiItems [numItems].address = value.ToString ();
-										}
-										break;
-									case "meta":
-										uiItems [numItems].meta = new List<Meta>();
-										if (!parseItemMetaData (ref s, uiItems [numItems].meta)) {
-											return false;
-										}
-										break;
-									case "init":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											float x = Convert.ToSingle (value.ToString ());
-											uiItems [numItems].init = x;
-										}
-										break;
-									case "min":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											float x = Convert.ToSingle (value.ToString ());
-											uiItems [numItems].min = x;
-										}
-										break;
-									case "max":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											float x = Convert.ToSingle (value.ToString ());
-											uiItems [numItems].max = x;
-										}
-										break;
-									case "step":
-										if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
-											float x = Convert.ToSingle (value.ToString ());
-											uiItems [numItems].step = x;
-										}
-										break;
-									case "items":
-										uiItems[numItems].items = new List<Group>() ;
-										int numItems2 = 0;
-										if (parseChar (ref s, ':') && !parseUI (ref s, ref uiItems[numItems].items, ref numItems2))
-											return false;
-										break ;
-									default:
-										return false;
-								}
-							} else {
-								return false;
+			public static bool fJSONParser (ref string fJSON, out FaustUI faustUI)
+			{
+				faustUI = new FaustUI ();
+				bool success = false;
+				StringBuilder key, value;
+				if (parseChar (ref fJSON, '{')) {
+					do{
+						if (parseDQString(ref fJSON, out key) && parseChar(ref fJSON, ':')){
+							switch(key.ToString()){
+								case "name":
+									success = parseDQString(ref fJSON, out value);
+									faustUI.name = value.ToString();
+									break;
+								case "inputs":
+									success = parseDQString(ref fJSON, out value);
+									faustUI.inputs = Convert.ToInt32(value.ToString());
+									break;
+								case "outputs":
+									success = parseDQString(ref fJSON, out value);
+									faustUI.outputs = Convert.ToInt32(value.ToString());
+									break;
+								case "meta":
+									success = parseGlobalMetaData(ref fJSON);
+									break;
+								case "ui":
+									faustUI.ui = new List<Group>();
+									int numitems = 0;
+									success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
+									break;
+								default:
+									success = false;
+									break;
 							}
-						} while (parseChar (ref s, ','));
-						parseChar (ref s, '}');
-					} else {
-						return false;
-					}
-				} while (parseChar (ref s, ','));
-				return parseChar (ref s, ']');
+						}
+					} while(parseChar(ref fJSON, ','));
+				}
+				parseChar(ref fJSON, '}');
+				return success;
+			}
 
-			} else {
-				return false;
+			private static void skipBlank (ref string s)
+			{
+				while (Char.IsWhiteSpace(s.ToCharArray()[0])) {
+					s = skipChar (ref s, 1);
+				}
+			}
+
+			private static bool parseChar (ref string s, char x)
+			{
+				skipBlank (ref s);
+				if (s.ToCharArray () [0] == x) {
+					s = skipChar (ref s, 1);
+					return true;
+				} else {
+					return false;
+				}
+			}
+
+			private static string skipChar (ref string s, int count)
+			{
+				return s.Remove (0, count);
+			}
+
+			private static bool parseString (ref string s, char quote, out StringBuilder name)
+			{
+				bool valid = false;
+				name = new StringBuilder ();
+				skipBlank (ref s);
+				char[] c = s.ToCharArray ();
+				if(c[0] == quote){
+					int i = 1;
+					while(c[i] != quote){
+						name.Append (c [i]);
+						i++;
+					}
+					valid = true;
+					s = skipChar (ref s, name.ToString ().Length + 2);
+				}
+				return valid;
+			}
+
+			private static bool parseDQString(ref string s, out StringBuilder word)
+			{
+				return parseString (ref s, '"', out word);
+			}
+
+			private static bool parseItemMetaData(ref string s, List<Meta> metadatas)
+			{
+			    StringBuilder metaKey, metaValue;
+			    if (parseChar(ref s, ':') && parseChar(ref s, '[')) {
+			        do {
+			            if (parseChar(ref s, '{') && parseDQString(ref s, out metaKey) && parseChar(ref s, ':') && parseDQString(ref s, out metaValue) && parseChar(ref s, '}')) {
+			            	switch(metaKey.ToString())
+			            	{
+								case "unit":
+									Meta meta1 = new Meta();
+									meta1.unit = metaValue.ToString();
+									metadatas.Add(meta1);
+									break;
+								case "tooltip":
+									Meta meta2 = new Meta();
+									meta2.tooltip = metaValue.ToString();
+									metadatas.Add(meta2);
+									break;
+								case "scale":
+									Meta meta3 = new Meta();
+									meta3.scale = metaValue.ToString() ;
+									metadatas.Add(meta3);
+									break;
+								default:
+									break;
+			            	}
+			            }
+			        } while (parseChar(ref s, ','));
+			        return parseChar(ref s, ']');
+			    } else {
+			        return false;
+			    }
+			}
+
+			private static bool parseGlobalMetaData(ref string s)
+			{
+			    if (parseChar(ref s, '[')) {
+					while (!parseChar (ref s, ']')){
+						s = skipChar(ref s, 1);
+					}
+					return true;
+			    } else {
+			        return false;
+			    }
+			}
+
+			private static bool parseUI (ref string s, ref List<Group> uiItems, ref int numItems)
+			{
+				if (parseChar (ref s, '[')) {
+
+					StringBuilder label;
+					StringBuilder value;
+
+					do {
+						if (parseChar (ref s, '{')) {
+							do {
+								if (parseDQString (ref s, out label)) {
+
+									switch(label.ToString()){
+										case "type":
+											if (uiItems.Count != 0) {
+												numItems++;
+											}
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												Group item = new Group ();
+												item.type = value.ToString ();
+												uiItems.Add (item);
+											}
+											break;
+										case "label":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												uiItems [numItems].label = value.ToString ();
+											}
+											break;
+										case "address":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												uiItems [numItems].address = value.ToString ();
+											}
+											break;
+										case "meta":
+											uiItems [numItems].meta = new List<Meta>();
+											if (!parseItemMetaData (ref s, uiItems [numItems].meta)) {
+												return false;
+											}
+											break;
+										case "init":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												float x = Convert.ToSingle (value.ToString ());
+												uiItems [numItems].init = x;
+											}
+											break;
+										case "min":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												float x = Convert.ToSingle (value.ToString ());
+												uiItems [numItems].min = x;
+											}
+											break;
+										case "max":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												float x = Convert.ToSingle (value.ToString ());
+												uiItems [numItems].max = x;
+											}
+											break;
+										case "step":
+											if (parseChar (ref s, ':') && parseDQString (ref s, out value)) {
+												float x = Convert.ToSingle (value.ToString ());
+												uiItems [numItems].step = x;
+											}
+											break;
+										case "items":
+											uiItems[numItems].items = new List<Group>() ;
+											int numItems2 = 0;
+											if (parseChar (ref s, ':') && !parseUI (ref s, ref uiItems[numItems].items, ref numItems2))
+												return false;
+											break ;
+										default:
+											return false;
+									}
+								} else {
+									return false;
+								}
+							} while (parseChar (ref s, ','));
+							parseChar (ref s, '}');
+						} else {
+							return false;
+						}
+					} while (parseChar (ref s, ','));
+					return parseChar (ref s, ']');
+
+				} else {
+					return false;
+				}
 			}
 		}
-	}
 
-	/* @brief Class representing an item (slider, etc) or a group
-	* @brief if it's an item List<Group> is null */
-	public class Group
-	{
-	    public string type;
-	    public string label;
-	    public List<Meta> meta;
-	    public List<Group> items;
-	    public string address;
-	    public float init;
-	    public float min;
-	    public float max;
-	    public float step;
-	    public int numparam;
-	    public bool groupstate = true;
+		/* @brief Class representing an item (slider, etc) or a group
+		* @brief if it's an item List<Group> is null */
+		public class Group
+		{
+		    public string type;
+		    public string label;
+		    public List<Meta> meta;
+		    public List<Group> items;
+		    public string address;
+		    public float init;
+		    public float min;
+		    public float max;
+		    public float step;
+		    public int numparam;
+		    public bool groupstate = true;
 
-			/* @brief Recursive method to set the number of a parameter
-			* @brief it gives a unique ID to the parameters and uses it to communicate with the plugin
-			*/
-	    public int setNumParams(int param){
-	        if(items != null){
-	            for(int i=0; i<items.Count; i++){
-	                param = items[i].setNumParams (param);
+				/* @brief Recursive method to set the number of a parameter
+				* @brief it gives a unique ID to the parameters and uses it to communicate with the plugin
+				*/
+		    public int setNumParams(int param){
+		        if(items != null){
+		            for(int i=0; i<items.Count; i++){
+		                param = items[i].setNumParams (param);
 
-	            }
-	            return param;
-	        } else {
-	            numparam = param;
-	            param++;
-	            return param;
-	        }
-	    }
+		            }
+		            return param;
+		        } else {
+		            numparam = param;
+		            param++;
+		            return param;
+		        }
+		    }
 
-	    public Group getItem(int param){
-	        Group result = null;
-	        if(items != null){
-	            for(int i=0; i<items.Count; i++){
-	                Group item = items [i].getItem (param);
-	                if (item != null)
-	                result = item;
-	            }
-	            return result;
-	        } else {
-	            if (this.numparam == param)
-	            return this;
-	            else
-	            return null;
-	        }
-	    }
+		    public Group getItem(int param){
+		        Group result = null;
+		        if(items != null){
+		            for(int i=0; i<items.Count; i++){
+		                Group item = items [i].getItem (param);
+		                if (item != null)
+		                result = item;
+		            }
+		            return result;
+		        } else {
+		            if (this.numparam == param)
+		            return this;
+		            else
+		            return null;
+		        }
+		    }
 	}
 
 	/* @brief Class to parse the metadatas of an item (not the global metadatas)
