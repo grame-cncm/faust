@@ -5,8 +5,8 @@
 
 // Faust part
 
-var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var isWasm = (typeof (WebAssembly) !== "undefined");
+var isWebKitAudio = (typeof(webkitAudioContext) !== "undefined");
+var isWasm = (typeof(WebAssembly) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_input = null;
 var DSP = null;
@@ -96,7 +96,9 @@ function startDSPAux(dsp)
     DSP.connect(audio_context.destination);
     
     console.log(DSP.getJSON());
-    DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+    
+    // TODO: emcc
+    //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(DSP.getParams());
     
     // No polling from the server needed, so use an empty loop
@@ -141,9 +143,15 @@ window.addEventListener('touchstart', function() {
                         
                         }, false);
                         
-                        // General
-                        $(startDSP);
-                        
+// Start monophonic instrument
+if (typeof (Module) !== "undefined") {
+    console.log("Compiled with EMCC");
+    Module['onRuntimeInitialized'] = startDSP;
+} else {
+    console.log("Compiled with WASM backend");
+    startDSP();
+}
+
 // Save DSP state to local storage
 setInterval(function() { if (DSP) saveDSP(); }, 1000);
  

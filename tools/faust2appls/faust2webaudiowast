@@ -43,6 +43,7 @@ for p in $@; do
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        exit
     elif [ $p = "-links" ]; then
         SVG="-svg"
         LINKS="<div style=\"text-align:center;height:20px\"> 

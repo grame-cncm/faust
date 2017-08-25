@@ -16,7 +16,6 @@ else
   error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -36,7 +35,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

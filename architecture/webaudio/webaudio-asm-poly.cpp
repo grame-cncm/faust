@@ -104,7 +104,7 @@ extern "C" {
     {
         dsp->instanceClear();
     }
-
+   
     const char* mydsp_poly_getJSON(mydsp_poly_wrap* poly)
     {
         return poly->getJSON();

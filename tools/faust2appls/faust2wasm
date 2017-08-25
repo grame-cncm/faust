@@ -39,7 +39,6 @@ else
   echo "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -54,6 +53,7 @@ for p in $@; do
         echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        exit
     elif [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then

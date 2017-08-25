@@ -102,7 +102,7 @@ extern "C" {
     {
         dsp->instanceClear();
     }
-
+    
     void mydsp_compute(mydsp_wrap* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
     {
         dsp->compute(count, inputs, outputs);
@@ -117,7 +117,7 @@ extern "C" {
     {
         return dsp->getNumOutputs();
     }
-      
+    
     const char* mydsp_getJSON(mydsp_wrap* dsp)
     {
         return dsp->getJSON();
