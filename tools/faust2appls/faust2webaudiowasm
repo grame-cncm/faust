@@ -3,7 +3,8 @@
 #-------------------------------------------------------------------
 # Wrapping resources
 HTML_FOOTER=""
-CODE_WRAPPER=""
+CODE_WRAPPER1=""
+CODE_WRAPPER2=""
 JS_WRAPPER=""
 
 LINKS=""
@@ -13,6 +14,7 @@ EMCC="false"
 POLY="false"
 OPT="false"
 EXPORT="false"
+WORKLET="false"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -38,10 +40,11 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowasm [-poly] [-links] [-opt] [-emcc] <file.dsp>"
+        echo "faust2webaudiowasm [-poly] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     elif [ $p = "-links" ]; then
@@ -61,6 +64,8 @@ for p in $@; do
         POLY="true"
     elif [ $p = "-opt" ]; then
         OPT="true"
+    elif [ $p = "-worklet" ]; then
+        WORKLET="true"
     elif [ $p = "-emcc" ]; then
         EMCC=emcc
     elif [ ${p:0:1} = "-" ]; then
@@ -80,21 +85,32 @@ if [ $POLY = "true" ]; then
     HTML_FOOTER=webaudio-wasm-poly-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
-        CODE_WRAPPER=webaudio-asm-poly.cpp
+        CODE_WRAPPER1=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-wasm-poly-emcc.js
     else
-        echo "Compiled with 'wasm' backend in polyphonic mode"
-        CODE_WRAPPER=webaudio-wasm-poly-standalone-wrapper.js
+        if [ $WORKLET = "true" ]; then
+            echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
+            CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
+        else
+            echo "Compiled with 'wasm' backend in polyphonic mode"
+            CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
+        fi
     fi
 else
     HTML_FOOTER=webaudio-wasm-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
-        CODE_WRAPPER=webaudio-asm.cpp
+        CODE_WRAPPER1=webaudio-asm.cpp
         JS_WRAPPER=webaudio-wasm-emcc.js
     else
-        echo "Compiled with 'wasm' backend"
-        CODE_WRAPPER=webaudio-wasm-standalone-wrapper.js
+        if [ $WORKLET = "true" ]; then
+            echo "Compiled with 'wasm' backend in AudioWorklet mode"
+            CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
+            CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
+        else
+            echo "Compiled with 'wasm' backend"
+            CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
+        fi
     fi
 fi
 
@@ -109,7 +125,7 @@ for f in $FILES; do
     
     # compile the Faust DSP to C++ or wasm code
     if [ $EMCC = emcc ] ; then
-        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
+        faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         if [ $POLY = "true" ]; then
             faust -lang wasm-e $SVG $OPTIONS $f -o $name.wasm || exit
@@ -147,9 +163,15 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     if [ $EMCC != emcc ] ; then
-        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER >> $name-temp2.html
+        if [ $WORKLET = "true" ]; then
+            cp $name.js $name-processor.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
+            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER2 >> $name.js
+        else
+            sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
+        fi
+        sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     fi
     echo "</script>" >> $name-temp2.html
     echo "</head>" >> $name-temp2.html
@@ -163,9 +185,8 @@ for f in $FILES; do
     echo "</html>" >> $name-temp2.html
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
-    rm $name.js
-    rm $name-temp2.html
- 
+    rm $name.js $name-temp2.html
+
     # collect binary file name
 	BINARIES="$BINARIES$name.html;"
 

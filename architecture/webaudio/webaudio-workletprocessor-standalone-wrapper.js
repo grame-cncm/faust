@@ -262,7 +262,7 @@ class mydspProcessor extends AudioWorkletProcessor {
 fetch('mydsp.wasm')
 .then(dsp_file => dsp_file.arrayBuffer())
 .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, faust.importObject))
-.then(dsp_module => faust.mydsp_instance = dsp_module.instance; registerProcessor('mydsp', mydspProcessor);)
+.then(dsp_module => { faust.mydsp_instance = dsp_module.instance; registerProcessor('mydsp', mydspProcessor); })
 .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; });
 
 

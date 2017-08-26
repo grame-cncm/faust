@@ -42,19 +42,9 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
    
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
-    
-    function getNumInputsAux () 
-    {
-        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux () 
-    {
-        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-    }
-    
-    var numIn = getNumInputsAux();
-    var numOut = getNumOutputsAux();
+      
+    var numIn = parseInt(json_object.inputs);
+    var numOut = parseInt(json_object.outputs);
      
     // Memory allocator
     var ptr_size = 8;
@@ -267,12 +257,12 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         
         getNumInputs : function () 
         {
-            return getNumInputsAux();
+            return parseInt(json_object.inputs);
         },
         
         getNumOutputs : function () 
         {
-            return getNumOutputsAux();
+            return parseInt(json_object.outputs);
         },
                
         init : function (sample_rate) 

@@ -326,6 +326,7 @@
         <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), and compiled with its WebAssembly generating backend.
         <P> You can compile Faust .dsp files or URL by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
         <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, ftz mode) can be changed dynamically and the DSP will be recompiled on the fly.
+        <P>Clicking on the yellow cross on the top right allows to access to the GRAME online compiler, to generated and get any available target.
         <div class="config">
 
             <div class="config-element">
@@ -342,7 +343,7 @@
                         <option value = 8192> 8192 </option>
                     </select>
                 </form>
-                <p>You can change the buffer size (from 256 to 8192 frames in ScripProcessor mode, will be fixed at 128 frames in AudioWorklet mode).</p>
+                <p>You can change the buffer size (from 256 to 8192 frames in ScripProcessor mode, it will be fixed at 128 frames in AudioWorklet mode).</p>
             </div>
 
             <div class="config-element">

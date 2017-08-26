@@ -10,7 +10,7 @@ var faust = faust || {};
 
 class mydsp_polyNode extends AudioWorkletNode {
     
-    constructor (context, options) {
+    constructor(context, options) {
         
         var json_object = JSON.parse(getJSONmydsp());
      
@@ -25,15 +25,15 @@ class mydsp_polyNode extends AudioWorkletNode {
         this.port.start();
     }
     
-    getJSON = function ()
+    getJSON()
     {
         return getJSONmydsp();
     }
 }
 
-faust.createmydsp_poly = function(context, callback)
+faust.createmydsp_poly = function(context, buffer_size, callback)
 {
     // The main global scope
-    window.audioWorklet.addModule("mydsp-processor.js").then(callback(new mydsp_polyNode()));
+    window.audioWorklet.addModule("mydsp-processor.js").then(callback(new mydsp_polyNode(context)));
 }
 

@@ -516,9 +516,9 @@ fetch('mixer32.wasm')
       fetch('mydsp.wasm')
       .then(dsp_file => dsp_file.arrayBuffer())
       .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-      .then(dsp_module => faust.mixer_instance = mix_module.instance;
-                        faust.mydsp_instance = dsp_module.instance;
-                        registerProcessor('mydsp_poly', mydsp_polyProcessor);)
+      .then(dsp_module => { faust.mixer_instance = mix_module.instance;
+                            faust.mydsp_instance = dsp_module.instance;
+                            registerProcessor('mydsp_poly', mydsp_polyProcessor); })
 .catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; });
 
 

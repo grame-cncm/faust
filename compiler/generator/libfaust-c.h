@@ -28,8 +28,6 @@
 extern "C" {
 #endif
     
-// Public C interface without LLVM
-
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a filename.
  *
