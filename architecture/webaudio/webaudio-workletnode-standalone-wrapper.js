@@ -35,7 +35,7 @@ class mydspNode extends AudioWorkletNode {
     
     constructor(context, options) {
         
-        this.json_object = JSON.parse(getJSONmydsp());
+        var json_object = JSON.parse(getJSONmydsp());
         
         // input/output items
         this.inputs_items = [];
@@ -47,7 +47,7 @@ class mydspNode extends AudioWorkletNode {
         options.channelCount = 1;
         
         // Parse UI
-        faust.parse_ui(this.json_object.ui,
+        faust.parse_ui(json_object.ui,
                        function (item) {
                            if (item.type === "vgroup"
                                || item.type === "hgroup"

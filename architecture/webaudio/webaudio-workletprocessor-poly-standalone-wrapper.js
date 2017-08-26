@@ -11,9 +11,7 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
-faust.buffer_size = 128;
-
-faust.createMemory = function (buffer_size, polyphony) {
+faust.createMemory = function (inputs, outputs, buffer_size, polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
@@ -26,10 +24,7 @@ faust.createMemory = function (buffer_size, polyphony) {
         return n;
     }
     
-    // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
-    
-    var memory_size = pow2limit(getSizemydsp() * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    var memory_size = pow2limit(getSizemydsp() * polyphony + ((inputs + outputs * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
@@ -46,9 +41,11 @@ faust.asm2wasm = { // special asm2wasm imports
     }
 }
 
+// Audio buffer size
+faust.buffer_size = 128;
+
 // Polyphony
 faust.polyphony = 16;
-faust.memory = faust.createMemory(faust.buffer_size, faust.polyphony);
 
 faust.importObject = { imports: { print: arg => console.log(arg) } }
 faust.importObject["global.Math"] = window.Math;
@@ -145,7 +142,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.sample_size = 4;
         
         this.factory = faust.mydsp_instance.exports;
-        this.HEAP = faust.memory.buffer;
+        this.HEAP = faust.createMemory(this.numIn, this.numOut, faust.buffer_size, faust.polyphony).buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
@@ -165,16 +162,16 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         // Setup pointers offset
         this.audio_heap_ptr_inputs = this.audio_heap_ptr;
-        this.audio_heap_ptr_outputs = this.audio_heap_ptr_inputs + (getNumInputsAux() * this.ptr_size);
-        this.audio_heap_ptr_mixing = this.audio_heap_ptr_outputs + (getNumOutputsAux() * this.ptr_size);
+        this.audio_heap_ptr_outputs = this.audio_heap_ptr_inputs + (this.numIn * this.ptr_size);
+        this.audio_heap_ptr_mixing = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
         
         // Setup buffer offset
-        this.audio_heap_inputs = this.audio_heap_ptr_mixing + (getNumOutputsAux() * this.ptr_size);
-        this.audio_heap_outputs = this.audio_heap_inputs + (getNumInputsAux() * faust.buffer_size * this.sample_size);
-        this.audio_heap_mixing = this.audio_heap_outputs + (getNumOutputsAux() * faust.buffer_size * this.sample_size);
+        this.audio_heap_inputs = this.audio_heap_ptr_mixing + (this.numOut * this.ptr_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * faust.buffer_size * this.sample_size);
+        this.audio_heap_mixing = this.audio_heap_outputs + (this.numOut * faust.buffer_size * this.sample_size);
         
         // Setup DSP voices offset
-        this.dsp_start = this.audio_heap_mixing + (getNumOutputsAux() * faust.buffer_size * this.sample_size);
+        this.dsp_start = this.audio_heap_mixing + (this.numOut * faust.buffer_size * this.sample_size);
         
         // wasm mixer
         this.mixer = faust.mixer_instance.exports;
@@ -519,7 +516,7 @@ fetch('mixer32.wasm')
       .then(dsp_module => { faust.mixer_instance = mix_module.instance;
                             faust.mydsp_instance = dsp_module.instance;
                             registerProcessor('mydsp_poly', mydsp_polyProcessor); })
-.catch(function() { faust.error_msg = "Faust DSP cannot be loaded or compiled"; });
+.catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
 
 
 
