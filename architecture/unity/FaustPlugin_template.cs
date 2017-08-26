@@ -18,7 +18,7 @@ using FaustUtilities_MODEL;
 [RequireComponent (typeof (AudioSource))] // Automatically attached the script to an Audiosource
 public class FaustPlugin_MODEL : MonoBehaviour
 {
-	 // Array containing the value of each parameter, has to be public to be serialized by the Unity engine
+    // Array containing the value of each parameter, has to be public to be serialized by the Unity engine
     public float[] parameters = new float[VARIABLES];
 
     // Initializes the interface between the plugin and Unity
@@ -37,7 +37,6 @@ public class FaustPlugin_MODEL : MonoBehaviour
             return ctx.getParameterValue (param);
         else  					// if not, the value is stored in parameters[]
             return parameters [param];
-
     }
 
     /* @brief Sets a parameter value in the plugin
@@ -46,10 +45,9 @@ public class FaustPlugin_MODEL : MonoBehaviour
     public void setParameter(int param, float x)
     {
         if (IsInstantiated ())
-          ctx.setParameterValue (param, x);
+            ctx.setParameterValue (param, x);
         else
-          parameters[param] = x;
-
+            parameters[param] = x;
     }
 
     /* @brief Instantiates the plugin and the interface between the plugin and Unity
@@ -59,9 +57,8 @@ public class FaustPlugin_MODEL : MonoBehaviour
         ctx = new Faust_Context (getBufferSize());
         ctx.Context_init (AudioSettings.outputSampleRate);
 
-    	for(int i=0; i<parameters.Length; i++)
-          setParameter (i, parameters [i]);
-
+        for (int i=0; i<parameters.Length; i++)
+            setParameter (i, parameters [i]);
     }
 
     /* @brief Fills the Unity audio buffer with the audio datas computed by the plugin
