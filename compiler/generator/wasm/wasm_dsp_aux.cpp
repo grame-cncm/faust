@@ -27,11 +27,35 @@
 
 #include "compatibility.hh"
 #include "wasm_dsp_aux.hh"
+#include "dsp_factory.hh"
 #include "Text.hh"
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 dsp_factory_table<SDsp_factory> gWasmFactoryTable;
+
+wasm_dsp_factory::~wasm_dsp_factory()
+{
+    delete fFactory;
+}
+
+std::string wasm_dsp_factory::getName() { return fFactory->getName(); }
+
+std::string wasm_dsp_factory::getSHAKey() { return fFactory->getSHAKey(); }
+void wasm_dsp_factory::setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
+
+std::string wasm_dsp_factory::getDSPCode() { return fFactory->getDSPCode(); }
+void wasm_dsp_factory::setDSPCode(std::string code) { fFactory->setDSPCode(code); }
+
+wasm_dsp* wasm_dsp_factory::createDSPInstance() { return nullptr; }
+
+void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager) {}
+dsp_memory_manager* wasm_dsp_factory::getMemoryManager() { return nullptr; }
+
+void wasm_dsp_factory::write(std::ostream* out, bool binary, bool small) { fFactory->write(out, binary, small); }
+void wasm_dsp_factory::writeAux(std::ostream* out, bool binary, bool small) { fFactory->writeAux(out, binary, small); }
+
+std::string wasm_dsp_factory::getBinaryCode() { return fFactory->getBinaryCode(); }
 
 // C++ API
 

@@ -411,10 +411,10 @@ function benchOne(dsp, run)
 
 function bench(instance)
 {
-    // Creates DSP and buffers
+    // Creates DSP 
     var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
 
-    // First call
+    // First call : create buffers and estimate z proper 'run' value 
     if (run === -1) {
         // Setup buffers
         create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);

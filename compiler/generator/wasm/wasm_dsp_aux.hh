@@ -27,9 +27,10 @@
 #include "export.hh"
 #include "faust/dsp/dsp.h"
 #include "dsp_aux.hh"
-#include "dsp_factory.hh"
 
 using namespace std;
+
+class dsp_factory_base;
 
 class EXPORT wasm_dsp : public dsp {};
 
@@ -39,33 +40,30 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
         
         dsp_factory_base* fFactory;
         
-        virtual ~wasm_dsp_factory()
-        {
-            delete fFactory;
-        }
-        
+        virtual ~wasm_dsp_factory();
+    
     public:
         
         wasm_dsp_factory(dsp_factory_base* factory):fFactory(factory)
         {}
     
-        std::string getName() { return fFactory->getName(); }
+        std::string getName();
         
-        std::string getSHAKey() { return fFactory->getSHAKey(); }
-        void setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
+        std::string getSHAKey();
+        void setSHAKey(std::string sha_key);
         
-        std::string getDSPCode() { return fFactory->getDSPCode(); }
-        void setDSPCode(std::string code) { fFactory->setDSPCode(code); }
-    
-        wasm_dsp* createDSPInstance() { return nullptr; }
-    
-        void setMemoryManager(dsp_memory_manager* manager) {}
-        dsp_memory_manager* getMemoryManager() { return nullptr; }
-    
-        void write(std::ostream* out, bool binary, bool small = false) { fFactory->write(out, binary, small); }
-        void writeAux(std::ostream* out, bool binary, bool small = false) { fFactory->writeAux(out, binary, small); }
-    
-        std::string getBinaryCode() { return fFactory->getBinaryCode(); }
+        std::string getDSPCode();
+        void setDSPCode(std::string code);
+        
+        wasm_dsp* createDSPInstance();
+        
+        void setMemoryManager(dsp_memory_manager* manager);
+        dsp_memory_manager* getMemoryManager();
+        
+        void write(std::ostream* out, bool binary, bool small = false);
+        void writeAux(std::ostream* out, bool binary, bool small = false);
+        
+        std::string getBinaryCode();
     
 };
 

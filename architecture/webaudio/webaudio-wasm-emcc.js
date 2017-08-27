@@ -169,7 +169,7 @@ faust.DSP = function (ptr, context, buffer_size) {
             
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(sp.ins >> 2, (sp.ins + sp.numIn * sp.ptr_size) >> 2);
-            for (i = 0; i < numIn; i++) {
+            for (i = 0; i < sp.numIn; i++) {
                 sp.dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sp.sample_size) >> 2);
             }
         }
