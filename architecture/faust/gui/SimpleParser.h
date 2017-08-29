@@ -44,6 +44,7 @@ struct itemInfo {
     std::string type;
     std::string label;
     std::string address;
+    std::string index;
     std::string init;
     std::string min;
     std::string max;
@@ -366,6 +367,13 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
                     if (parseChar(p, ':') && parseDQString(p, value)) {
                         itemInfo* item = uiItems[numItems];
                         item->address = value;
+                    }
+                }
+                
+                else if (label == "index") {
+                    if (parseChar(p, ':') && parseDQString(p, value)) {
+                        itemInfo* item = uiItems[numItems];
+                        item->index = value;
                     }
                 }
                 
