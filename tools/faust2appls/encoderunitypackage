@@ -25,7 +25,6 @@
 # However, the first folder needs to be called "Assets", if not the script creates it before packing.
 # When the package is imported, Unity retrieves the hierarchy from the pathname files
 
-
 #-------------------------------------------------------------------
 #Dispatch command arguments
 

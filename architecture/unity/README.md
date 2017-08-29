@@ -1,4 +1,4 @@
-# Faust2unity
+# faust2unity
 
 `faust2unity` transforms a Faust DSP program into a fully working Unity audio plugin, which can be an effect or a synthesiser to perform procedural audio.
 
@@ -15,14 +15,13 @@ Libraries are available for several platforms and architectures :
     - Android armeabi-v7a and x86 (.so)
     - Linux (.so).
 
-
 ## How to use
 
 `faust2unity` is used with the following command :
 
 `faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-source] [-unpacked] <file1.dsp> [<file2.dsp>]`
 
-By default it will create a Unity package containing the c# script and sub-folders with all available architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different packages.
+By default it will create a Unity package containing the C# script and sub-folders with all available architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different packages.
 
 The relevant architecture set up should be filled in for each file in the plugin inspector.
 
@@ -31,7 +30,6 @@ Finally, the C# script `FaustPlugin_<dspname>` should be attached to a game obje
 The source files can be produced with the `-source` argument.
 
 Unity packages have a specific organization in order to be correctly read by the Unity editor. `faust2unity` calls `encoderunitypackage` to correctly encode the compiled files. The `-unpacked` argument stops the script before the encoding step, the intermediate folder is named `FaustPlugin_<dspname>_Assets` and organized like the Assets hierarchy of a Unity project. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
-
 
 ## Compiler requirements
 
@@ -42,7 +40,6 @@ The compiler used for Windows libraries is Mingw (http://www.mingw.org). `i686-w
 ### Android
 
 Android SDK (containing Android NDK) should be installed to generate Android libraries and the ANDROID_HOME environment variable should be defined. It should point on the sdk folder. If the SDK has been installed by Android Studio, the path should be `~/Library/Android/sdk`. Other architectures are available in the Android NDK. To use them, the `achitecture/unity/Android/Android.mk` file should be updated and the APP_ABI line should be modified. See [Android NDK](https://developer.android.com/ndk/guides/android_mk.html) for more info.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             
-
 
 ## Options
 
@@ -67,4 +64,4 @@ The following options are available :
     - `faust2linuxunity <file.dsp>`
     - `encoderunitypackage <folder>`
 
-These commands can be called independently and will generate the libraries only (without the c# files). Specific compilation options can be changed in `faust2<platform>unity` scripts.
+These commands can be called independently and will generate the libraries only (without the C# files). Specific compilation options can be changed in `faust2<platform>unity` scripts.
