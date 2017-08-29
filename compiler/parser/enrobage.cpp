@@ -349,13 +349,13 @@ static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
  */
 static bool isAbsolutePathname(const string& filename)
 {
-    //test windows absolute pathname "x:xxxxxx"
-    if (filename.size() > 1 && filename[1] == ':') return true;
-    
-    // test unix absolute pathname "/xxxxxx"
-    if (filename.size() > 0 && filename[0] == '/') return true;
-    
-    return false;
+	//test windows absolute pathname "x:xxxxxx"
+	if (filename.size() > 1 && filename[1] == ':') return true;
+
+	// test unix absolute pathname "/xxxxxx"
+	if (filename.size() > 0 && filename[0] == '/') return true;
+
+	return false;
 }
 
 /**
