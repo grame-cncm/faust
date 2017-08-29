@@ -1,0 +1,98 @@
+<html>
+<head>
+<H1> Faust generated WebAudio nodes connected together</H1>
+</head>
+<body>
+    
+<P> <H3>Karplus</H3>
+
+<P> Gate:
+<input type="button" onmousedown="changeButton(event)" onmouseup"changeButton1(event)"/>
+
+<H3>Freeverb</H3>
+
+<P> Wet:
+<input type="range" oninput="changeWet(event) "min="0" max="1" value="0.5" step="0.05"/>
+<P> RoomSize:
+<input type="range" oninput="changeRoomSize(event) "min="0" max="1" value="0.5" step="0.05"/>
+
+
+<!-- Load 'faust2wasm' script generated .js file -->
+<script src="karplus.js"></script>
+
+<!-- Load 'faust2wasm' script generated .js file -->
+<script src="freeverb.js"></script>
+
+<script>
+    
+if (typeof (WebAssembly) === "undefined") {
+    alert("WebAssembly is not supported in this browser, the page will not work !")
+}
+
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var karplus = null;
+var freeverb = null;
+
+
+// Botton to hit karplus
+function changeButton(event)
+{
+    karplus.setParamValue("/karplus/gate", 1);
+    karplus.setParamValue("/karplus/gate", 0);
+}
+
+// Slider handler to change the 'freeverb' Wet
+function changeWet(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    freeverb.setParamValue("/Freeverb/Wet", val);
+}
+
+
+// Slider handler to change the 'freeverb' RoomSize
+function changeRoomSize(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    freeverb.setParamValue("/Freeverb/Wet", val);
+}
+
+function start()
+{
+    // Create the Faust generated node
+    faust.createkarplus(audio_context, 1024,
+                      function (node1) {
+                            karplus = node1;
+                        
+                            console.log(karplus.getJSON());
+                            // Print paths to be used with 'setParamValue'
+                            console.log(karplus.getParams());
+                        
+                            faust.createfreeverb(audio_context, 1024,
+                                                function (node2) {
+                                                    freeverb = node2;
+                                                 
+                                                    console.log(freeverb.getJSON());
+                                                    // Print paths to be used with 'setParamValue'
+                                                    console.log(freeverb.getParams());
+                                                 
+                                                    // Connect karplus to freeverb
+                                                    karplus.connect(freeverb);
+                                                 
+                                                    // Connect freeverb to output
+                                                    freeverb.connect(audio_context.destination);
+                                                 });
+                      });
+}
+
+// Load handler
+window.addEventListener("load", start);
+
+</script>
+
+</body>
+</html>
