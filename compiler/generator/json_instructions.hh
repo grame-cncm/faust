@@ -35,9 +35,24 @@ using namespace std;
 
 struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     
-        map <string, string> fPathTable;   // Table : field_name, complete path
-
+        map <string, string> fPathTable;      // Table : field_name, complete path
+      
+        JSONInstVisitor(const std::string& name,
+                        int inputs,
+                        int outputs,
+                        const std::string& sha_key,
+                        const std::string& dsp_code,
+                        const std::string& version,
+                        const std::string& options,
+                        const std::string& size,
+                        const std::map<std::string, int>& path_table)
+        :JSONUI(name, inputs, outputs, sha_key, dsp_code, version, options, size, path_table)
+        {}
+    
         JSONInstVisitor(int inputs, int outputs):JSONUI(inputs, outputs)
+        {}
+    
+        JSONInstVisitor():JSONUI()
         {}
     
         virtual ~JSONInstVisitor()

@@ -142,8 +142,7 @@ class CodeContainer : public virtual Garbageable {
                 << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
                 << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "")
-                << endl;
+                << ((gGlobal->gMemoryManager) ? " -mem" : "");
             } else if (gGlobal->gVectorSwitch) {
                 dst << "-vec" << " -lv " << gGlobal->gVectorLoopVariant
                 << " -vs " << gGlobal->gVecSize
@@ -152,8 +151,7 @@ class CodeContainer : public virtual Garbageable {
                 << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
                 << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "")
-                << endl;
+                << ((gGlobal->gMemoryManager) ? " -mem" : "");
             } else if (gGlobal->gOpenMPSwitch) {
                 dst << "-omp" << " -vs " << gGlobal->gVecSize
                 << " -vs " << gGlobal->gVecSize
@@ -162,14 +160,12 @@ class CodeContainer : public virtual Garbageable {
                 << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
                 << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "")
-                << endl;
+                << ((gGlobal->gMemoryManager) ? " -mem" : "");
             } else {
                 dst << "-scal"
                 << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
                 << " -ftz " <<  gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "")
-                << endl;
+                << ((gGlobal->gMemoryManager) ? " -mem" : "");
             }
         }
     

@@ -88,7 +88,8 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         }
         
         void init(const std::string& name,
-                  int inputs, int outputs,
+                  int inputs,
+                  int outputs,
                   const std::string& sha_key,
                   const std::string& dsp_code,
                   const std::string& version,
@@ -160,7 +161,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& size,
                   const std::map<std::string, int>& path_table)
         {
-            init(name, inputs, outputs, sha_key, dsp_code, size, version, options, path_table);
+            init(name, inputs, outputs, sha_key, dsp_code,  version, options, size, path_table);
         }
 
         JSONUIAux(const std::string& name, int inputs, int outputs)
@@ -349,8 +350,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
             if (fVersion != "") { tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\","; }
             if (fOptions != "") { tab(fTab, fJSON); fJSON << "\"options\": \"" << fOptions << "\","; }
-            tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\",";
-            tab(fTab, fJSON); fJSON << "\"options\": \"" << fOptions << "\",";
             if (fDSPSize != "") { tab(fTab, fJSON); fJSON << "\"size\": \"" << fDSPSize << "\","; }
             if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
             if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
@@ -364,7 +363,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             } else {
                 fJSON << fUI.str();
             }
-            tab(fTab, fJSON); fJSON << "}" << std::endl;
+            tab(fTab, fJSON); fJSON << "}";
             return (flat) ? flatten(fJSON.str()) : fJSON.str();
         }
     

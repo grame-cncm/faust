@@ -16,6 +16,8 @@ OPT="false"
 EXPORT="false"
 WORKLET="false"
 
+OPTIONS="-ftz 2"
+
 #-------------------------------------------------------------------
 # Set Faust include path
 

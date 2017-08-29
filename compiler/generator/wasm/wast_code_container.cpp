@@ -291,7 +291,28 @@ void WASTCodeContainer::produceClass()
     // Helper code
     
     // User interface : prepare the JSON string...
-    JSONInstVisitor json_visitor(fNumInputs, fNumOutputs);
+    stringstream options;
+    printCompilationOptions(options);
+    
+    stringstream size;
+    size << gGlobal->gWASTVisitor->getStructSize();
+    
+    map <string, string>::iterator it;
+    
+    // First generation to prepare fPathTable
+    JSONInstVisitor json_visitor1;
+    generateUserInterface(&json_visitor1);
+    
+    std::map<std::string, int> path_index_table;
+    map <string, WASTInstVisitor::MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
+    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
+        // Setup path index
+        WASTInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
+        path_index_table[(*it).second] = tmp.fOffset;
+    }
+    
+    // Full generation
+    JSONInstVisitor json_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
     
@@ -310,7 +331,6 @@ void WASTCodeContainer::produceClass()
     // Fields to path
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
-        map <string, string>::iterator it;
         map <string, WASTInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASTVisitor->getFieldTable();
         for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
             WASTInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
