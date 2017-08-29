@@ -16,24 +16,25 @@
  * 
  * See LICENSE file for details
  * 
- * --------------------------------- Modified by Yann Orlarey, Grame to be used
- * within Faust (2013/01/23)
+ * Modified by Yann Orlarey, Grame to be used within Faust (2013/01/23)
  * 
  */
 
+#include <cstdlib> 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
 #include <sys/types.h>
-#ifndef WIN32
+#ifndef _WIN32
 #include <strings.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <sys/time.h>
+#define herror perror
 #else
 #include <winsock2.h>
 #define close closesocket
@@ -45,7 +46,7 @@
 #include "compatibility.hh"
 #include "sourcefetcher.hh"
 
-#define VERSION "0"
+#define VERSION "0.2"
 
 /* Globals */
 int timeout = DEFAULT_READ_TIMEOUT;
@@ -54,26 +55,26 @@ char* referer = NULL;
 int hideUserAgent = 0;
 int hideReferer = 1;
 static int followRedirects = DEFAULT_REDIRECTS;	/* # of redirects to  follow */
-extern const char* http_errlist[];	/* Array of HTTP Fetcher error messages */
-extern char convertedError[128];	/* Buffer to used when errors contain %d */
+extern const char* http_errlist[];              /* Array of HTTP Fetcher error messages */
+extern char convertedError[128];                /* Buffer to used when errors contain %d */
 static int errorSource = 0;
 static int http_errno = 0;
-static int errorInt = 0;	/* When the error message has a %d in it, this variable is inserted */
+static int errorInt = 0;                        /* When the error message has a %d in it, this variable is inserted */
 
-const char     *http_errlist[] =
+const char* http_errlist[] =
 {
-	"Success",		/* HF_SUCCESS		 */
-	"Internal Error. What the hell?!",	/* HF_METAERROR		 */
-	"Got NULL url",		/* HF_NULLURL		 */
-	"Timed out, no metadata for %d seconds",	/* HF_HEADTIMEOUT 	 */
-	"Timed out, no data for %d seconds",	/* HF_DATATIMEOUT	 */
-	"Couldn't find return code in HTTP response",	/* HF_FRETURNCODE	 */
-	"Couldn't convert return code in HTTP response",	/* HF_CRETURNCODE	 */
-	"Request returned a status code of %d",	/* HF_STATUSCODE	 */
-	"Couldn't convert Content-Length to integer",	/* HF_CONTENTLEN	 */
-	"Network error (description unavailable)",	/* HF_HERROR		 */
-	"Status code of %d but no Location: field",	/* HF_CANTREDIRECT  */
-	"Followed the maximum number of redirects (%d)"	/* HF_MAXREDIRECTS  */
+	"Success",                                          /* HF_SUCCESS		*/
+	"Internal Error. What the hell?!",                  /* HF_METAERROR		*/
+	"Got NULL url",                                     /* HF_NULLURL		*/
+	"Timed out, no metadata for %d seconds",            /* HF_HEADTIMEOUT 	*/
+	"Timed out, no data for %d seconds",                /* HF_DATATIMEOUT	*/
+	"Couldn't find return code in HTTP response",       /* HF_FRETURNCODE	*/
+	"Couldn't convert return code in HTTP response",	/* HF_CRETURNCODE	*/
+	"Request returned a status code of %d",             /* HF_STATUSCODE	*/
+	"Couldn't convert Content-Length to integer",       /* HF_CONTENTLEN	*/
+	"Network error, description unavailable",           /* HF_HERROR		*/
+	"Status code of %d but no Location: field",         /* HF_CANTREDIRECT  */
+	"Followed the maximum number of redirects (%d)"     /* HF_MAXREDIRECTS  */
 };
 
 /*
@@ -86,12 +87,12 @@ char convertedError[128];
  * Actually downloads the page, registering a hit (donation) If the fileBuf
  * passed in is NULL, the url is downloaded and then freed; otherwise the
  * necessary space is allocated for fileBuf. Returns size of download on
- * success, -1 on error is set,
+ * success, -1 on error is set.
  */
 int http_fetch(const char *url_tmp, char **fileBuf)
 {
-	fd_set	rfds;
-	struct timeval	tv;
+	fd_set rfds;
+	struct timeval tv;
 	char headerBuf [HEADER_BUF_SIZE];
 	char *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
 	int sock, bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
@@ -162,7 +163,6 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			tempSize = (int)strlen("GET ") + (int)strlen(charIndex) +
 				(int)strlen(HTTP_VERSION) + 4;
 			/* + 4 is for ' ', '\r', '\n', and NULL */
-
 			if (_checkBufSize(&requestBuf, &bufsize, tempSize) ||
 			    snprintf(requestBuf, bufsize, "GET %s %s\r\n",
 				     charIndex, HTTP_VERSION) < 0) {
@@ -256,7 +256,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 		requestBuf = tmp;
 
 		sock = makeSocket(host);	/* errorSource set within
-						 * makeSocket */
+                                    * makeSocket */
 		if (sock == -1) {
 			free(url);
 			free(requestBuf);
@@ -276,7 +276,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 
 		/* Grab enough of the response to get the metadata */
 		ret = _http_read_header(sock, headerBuf);	/* errorSource set
-								 * within */
+                                                    * within */
 		if (ret < 0) {
 			close(sock);
 			return -1;
@@ -303,7 +303,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 		if (i < 200 || i > 307) {
 			close(sock);
 			errorInt = i;	/* Status code, to be inserted in
-					 * error string */
+                             * error string */
 			errorSource = FETCHER_ERROR;
 			http_errno = HF_STATUSCODE;
 			return -1;
@@ -327,7 +327,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			if (!charIndex) {
 				close(sock);
 				errorInt = i;	/* Status code, to be
-						 * inserted in error string */
+                                 * inserted in error string */
 				errorSource = FETCHER_ERROR;
 				http_errno = HF_CANTREDIRECT;
 				return -1;
@@ -339,7 +339,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			if (*charIndex == '\0') {
 				close(sock);
 				errorInt = i;	/* Status code, to be
-						 * inserted in error string */
+                                 * inserted in error string */
 				errorSource = FETCHER_ERROR;
 				http_errno = HF_CANTREDIRECT;
 				return -1;
@@ -363,14 +363,14 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	} while (!found && (followRedirects < 0 || redirectsFollowed <= followRedirects));
 
 	if (url) {		/* Redirection code may malloc this, then
-				 * exceed followRedirects */
+                     * exceed followRedirects */
 		free(url);
 		url = NULL;
 	}
 	if (redirectsFollowed >= followRedirects && !found) {
 		close(sock);
 		errorInt = followRedirects;	/* To be inserted in error
-						 * string */
+                                     * string */
 		errorSource = FETCHER_ERROR;
 		http_errno = HF_MAXREDIRECTS;
 		return -1;
@@ -480,7 +480,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	pageBuf = tmp;
 	pageBuf[bytesRead] = '\0';	/* NULL terminate the data */
 
-	if (fileBuf == NULL)	/* They just wanted us to "hit" the url */
+	if (fileBuf == NULL)        /* They just wanted us to "hit" the url */
 		free(pageBuf);
 	else
 		*fileBuf = pageBuf;
@@ -494,9 +494,9 @@ int http_fetch(const char *url_tmp, char **fileBuf)
  */
 int http_setUserAgent(const char *newAgent)
 {
-	static int	freeOldAgent = 0;	/* Indicates previous
-						 * malloc's */
-	char           *tmp;
+	static int freeOldAgent = 0;	/* Indicates previous
+                                     * malloc's */
+	char* tmp;
 
 	if (newAgent == NULL) {
 		if (freeOldAgent)
@@ -525,9 +525,9 @@ int http_setUserAgent(const char *newAgent)
  */
 int http_setReferer(const char *newReferer)
 {
-	static int	freeOldReferer = 0;	/* Indicated previous
-						 * malloc's */
-	char           *tmp;
+	static int freeOldReferer = 0;	/* Indicated previous
+                                    * malloc's */
+	char* tmp;
 
 	if (newReferer == NULL) {
 		if (freeOldReferer)
@@ -582,7 +582,7 @@ void http_setRedirects(int redirects)
  */
 int http_parseFilename(const char *url, char **filename)
 {
-	char           *ptr;
+	char* ptr;
 
 	if (url == NULL) {
 		errorSource = FETCHER_ERROR;
@@ -655,7 +655,7 @@ void http_perror(const char *string)
  */
 const char* http_strerror()
 {
-	extern int	errno;
+	extern int errno;
 
 	if (errorSource == ERRNO)
 		return strerror(errno);
@@ -674,13 +674,13 @@ const char* http_strerror()
 			 * errorInt. convertedError[128] has been declared
 			 * for that purpose
 			 */
-			char           *stringIndex, *originalError;
+			char *stringIndex, *originalError;
 
 			originalError = (char *)http_errlist[http_errno];
 			convertedError[0] = 0;	/* Start off with NULL */
 			stringIndex = strstr(originalError, "%d");
 			strncat(convertedError, originalError,	/* Copy up to %d */
-                labs(stringIndex - originalError));
+            labs(stringIndex - originalError));
 			sprintf(&convertedError[strlen(convertedError)], "%d", errorInt);
 			stringIndex += 2;	/* Skip past the %d */
 			strcat(convertedError, stringIndex);
@@ -699,9 +699,9 @@ const char* http_strerror()
  */
 int _http_read_header(int sock, char *headerPtr)
 {
-	fd_set		rfds;
-	struct timeval	tv;
-	int		bytesRead = 0, newlines = 0, ret, selectRet;
+	fd_set rfds;
+	struct timeval tv;
+	int	bytesRead = 0, newlines = 0, ret, selectRet;
 
 	while (newlines != 2 && bytesRead != HEADER_BUF_SIZE) {
 		FD_ZERO(&rfds);
@@ -756,12 +756,12 @@ int _http_read_header(int sock, char *headerPtr)
  */
 int makeSocket(char *host)
 {
-	int		sock;	/* Socket descriptor */
+	int	sock;               /* Socket descriptor */
 	struct sockaddr_in sa;	/* Socket address */
-	struct hostent *hp;	/* Host entity */
-	int		ret;
-	int		port;
-	char           *p;
+	struct hostent* hp;     /* Host entity */
+	int	ret;
+	int	port;
+	char* p;
 
 	/* Check for port number specified in URL */
 	p = strchr(host, ':');
@@ -802,8 +802,8 @@ int makeSocket(char *host)
  */
 int _checkBufSize(char **buf, int *bufsize, int more)
 {
-	char           *tmp;
-	int		roomLeft = (int)*bufsize - (int)(strlen(*buf) + 1);
+	char* tmp;
+	int	roomLeft = (int)*bufsize - (int)(strlen(*buf) + 1);
 	if (roomLeft > more)
 		return 0;
 	tmp = (char *)realloc(*buf, *bufsize + more + 1);
