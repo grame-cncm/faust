@@ -44,7 +44,7 @@ inline FAUSTFLOAT STR2REAL(const std::string& s) { return (strtod(s.c_str(), NUL
 //  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
 
-typedef std::map<std::string, pair <int, FAUSTFLOAT*>> controlMap;
+typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
 
 struct JSONUIDecoder {
 
