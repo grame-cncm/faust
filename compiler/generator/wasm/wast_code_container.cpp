@@ -42,6 +42,40 @@ using namespace std;
 
 */
 
+void WASTCodeContainer::generateJSON()
+{
+    WASTInstVisitor visitor(fOut, fInternalMemory);
+    generateDeclarations(&visitor);
+    
+    // User interface : prepare the JSON string...
+    stringstream options;
+    printCompilationOptions(options);
+    
+    stringstream size;
+    size << visitor.getStructSize();
+    
+    map <string, string>::iterator it;
+    
+    // First generation to prepare fPathTable
+    JSONInstVisitor json_visitor1;
+    generateUserInterface(&json_visitor1);
+    
+    std::map<std::string, int> path_index_table;
+    map <string, WASTInstVisitor::MemoryDesc>& fieldTable1 = visitor.getFieldTable();
+    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
+        // Setup path index
+        WASTInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
+        path_index_table[(*it).second] = tmp.fOffset;
+    }
+    
+    // Full generation
+    fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&fJSONVisitor);
+    generateMetaData(&fJSONVisitor);
+    
+    fJSON = fJSONVisitor.JSON(true);
+}
+
 dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
@@ -162,6 +196,9 @@ void WASTCodeContainer::produceClass()
   
     tab(n, *fOut);
     gGlobal->gWASTVisitor->Tab(n);
+    
+    // Prepare JSON
+    generateJSON();
     
     tab(n, *fOut); *fOut << "(module";
     
@@ -290,37 +327,12 @@ void WASTCodeContainer::produceClass()
     
     // Helper code
     
-    // User interface : prepare the JSON string...
-    stringstream options;
-    printCompilationOptions(options);
-    
-    stringstream size;
-    size << gGlobal->gWASTVisitor->getStructSize();
-    
-    map <string, string>::iterator it;
-    
-    // First generation to prepare fPathTable
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
-    
-    std::map<std::string, int> path_index_table;
-    map <string, WASTInstVisitor::MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        // Setup path index
-        WASTInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
-    }
-    
-    // Full generation
-    JSONInstVisitor json_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&json_visitor);
-    generateMetaData(&json_visitor);
-    
     // Generate JSON and getSize
+    map <string, string>::iterator it;
     tab(n, fHelper); fHelper << "/*\n" << "Code generated with Faust version " << FAUSTVERSION << endl;
     fHelper << "Compilation options: ";
     printCompilationOptions(fHelper);
-    fHelper << "*/\n";
+    fHelper << "\n*/\n";
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
         tab(n+1, fHelper);
         fHelper << "return " << gGlobal->gWASTVisitor->getStructSize() << ";";
@@ -332,7 +344,7 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
         map <string, WASTInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASTVisitor->getFieldTable();
-        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        for (it = fJSONVisitor.fPathTable.begin(); it != fJSONVisitor.fPathTable.end(); it++) {
             WASTInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
             tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
         }
@@ -343,7 +355,7 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper);
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
         tab(n+1, fHelper);
-        fHelper << "return \""; fHelper << json_visitor.JSON(true); fHelper << "\";";
+        fHelper << "return \""; fHelper << fJSON; fHelper << "\";";
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}";
     

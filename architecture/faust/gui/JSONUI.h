@@ -86,39 +86,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 fMetaAux.clear();
             }
         }
-        
-        void init(const std::string& name,
-                  int inputs,
-                  int outputs,
-                  const std::string& sha_key,
-                  const std::string& dsp_code,
-                  const std::string& version,
-                  const std::string& options,
-                  const std::string& size,
-                  const std::map<std::string, int>& path_table)
-        {
-            fTab = 1;
-            
-            // Start Meta generation
-            tab(fTab, fMeta); fMeta << "\"meta\": [";
-            fCloseMetaPar = ' ';
-            
-            // Start UI generation
-            tab(fTab, fUI); fUI << "\"ui\": [";
-            fCloseUIPar = ' ';
-            fTab += 1;
-            
-            fName = name;
-            fInputs = inputs;
-            fOutputs = outputs;
-            fExpandedCode = dsp_code;
-            fSHAKey = sha_key;
-            fDSPSize = size;
-            fPathTable = path_table;
-            fVersion = version;
-            fOptions = options;
-        }
-        
+    
         inline std::string flatten(const std::string& src)
         {
             std::stringstream dst;
@@ -183,7 +151,42 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         
         void setInputs(int inputs) { fInputs = inputs; }
         void setOutputs(int outputs) { fOutputs = outputs; }
-
+    
+        // Init may be called multiple times so fMeta and fUI are reinitialized
+        void init(const std::string& name,
+                  int inputs,
+                  int outputs,
+                  const std::string& sha_key,
+                  const std::string& dsp_code,
+                  const std::string& version,
+                  const std::string& options,
+                  const std::string& size,
+                  const std::map<std::string, int>& path_table)
+        {
+            fTab = 1;
+            
+            // Start Meta generation
+            fMeta.str("");
+            tab(fTab, fMeta); fMeta << "\"meta\": [";
+            fCloseMetaPar = ' ';
+            
+            // Start UI generation
+            fUI.str("");
+            tab(fTab, fUI); fUI << "\"ui\": [";
+            fCloseUIPar = ' ';
+            fTab += 1;
+            
+            fName = name;
+            fInputs = inputs;
+            fOutputs = outputs;
+            fExpandedCode = dsp_code;
+            fSHAKey = sha_key;
+            fDSPSize = size;
+            fPathTable = path_table;
+            fVersion = version;
+            fOptions = options;
+        }
+   
         // -- widget's layouts
     
         virtual void openGenericGroup(const char* label, const char* name)
