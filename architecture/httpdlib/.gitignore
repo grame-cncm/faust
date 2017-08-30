@@ -1,0 +1,8 @@
+libHTTPDFaust.a
+libHTTPDFaust.dylib
+src/hexa/jsscripts
+src/hexa/jsscripts.cpp
+src/hexa/jsscripts.o
+src/hexa/stylesheet
+src/hexa/stylesheet.cpp
+src/hexa/stylesheet.o
