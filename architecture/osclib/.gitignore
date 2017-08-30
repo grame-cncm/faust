@@ -2,3 +2,4 @@ libOSCFaust.a
 liboscpack.a
 android/libs
 android/obj
+libOSCFaust*.dylib
