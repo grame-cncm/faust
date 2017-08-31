@@ -48,7 +48,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Math Library";
-declare version "2.0";
+declare version "2.1";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
