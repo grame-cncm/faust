@@ -245,7 +245,7 @@ namespace FaustUtilities_MODEL {
 
 		private IntPtr _context;
 
-        #if UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR || UNITY_STANDALONE_LINUX
+        #if UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR || UNITY_STANDALONE_LINUX || UNITY_WSA || UNITY_WSA_10_0
         const string _dllName = "PLUGNAME";
         #elif UNITY_IOS
         const string _dllName = "__Internal";
