@@ -207,7 +207,7 @@ ios : IPHONEOS_DEPLOYMENT_TARGET=9.0
 ios : CXX = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang
 ios : CXXFLAGS = -arch armv7 -arch armv7s -arch arm64 -pipe -O3 -gdwarf-2 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk
 ios : CXXFLAGS += -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-ios : CXXFLAGS += -stdlib=libc++ -std=c++11 -DTARGET_OS_IPHONE -DINTERP_BUILD -DINTERP_PLUGIN
+ios : CXXFLAGS += -stdlib=libc++ -std=c++11 -I../architecture -DTARGET_OS_IPHONE -DINTERP_BUILD -DINTERP_PLUGIN
 ios : libfaustinterp.a libfaustplugin.a
 
 ios-llvm : IPHONEOS_DEPLOYMENT_TARGET=9.0
@@ -232,7 +232,7 @@ wasm : CC = emcc
 wasm : CXX = emcc
 wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture -O3 -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 wasm : ARCHFLAGS =
-wasm : libfaust.wasm libfaustworker.wasm
+wasm : libfaust.wasm
 wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
 
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
@@ -249,11 +249,6 @@ libfaust.wasm : $(common_objects) $(object_ba_wasm) libmain.o
 	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_wasm) libmain.o -o libfaust-wasm.js
 	cp libfaust-wasm.js libfaust-wasm.wasm ../architecture/webaudio
-
-libfaustworker.wasm : $(common_objects) $(object_ba_wasm) libmain.o
-	$(CXX) -O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s BUILD_AS_WORKER=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
-            $(common_objects) $(object_ba_wasm) libmain.o -o libfaustworker-wasm.js
-	cp libfaustworker-wasm.js libfaustworker-wasm.wasm ../architecture/webaudio
 
 libfaustmachine.a : generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o
 	libtool $(LIBFLAGS) generator/llvm/machine/llvm_machine_dsp_aux.o generator/llvm/rn_base64.o -static -o libfaustmachine.a

@@ -121,12 +121,12 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    dsp_factory* factory = 0;
-    dsp* DSP = 0;
-    mydsp_poly* dsp_poly = NULL;
-    MidiUI* midiinterface = 0;
-    httpdUI* httpdinterface = 0;
-    GUI* oscinterface = 0;
+    dsp_factory* factory = nullptr;
+    dsp* DSP = nullptr;
+    mydsp_poly* dsp_poly = nullptr;
+    MidiUI* midiinterface = nullptr;
+    httpdUI* httpdinterface = nullptr;
+    GUI* oscinterface = nullptr;
     jackaudio_midi audio;
     string error_msg;
     

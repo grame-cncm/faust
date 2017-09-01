@@ -44,31 +44,32 @@ using namespace std;
 
 void WASTCodeContainer::generateJSON()
 {
+    // Compute fields indexes
     WASTInstVisitor visitor(fOut, fInternalMemory);
     generateDeclarations(&visitor);
     
-    // User interface : prepare the JSON string...
+    // Compilation options
     stringstream options;
     printCompilationOptions(options);
     
+    // Get DSP size
     stringstream size;
     size << visitor.getStructSize();
     
-    map <string, string>::iterator it;
-    
     // First generation to prepare fPathTable
-    JSONInstVisitor json_visitor1;
-    generateUserInterface(&json_visitor1);
+    JSONInstVisitor json_visitor;
+    generateUserInterface(&json_visitor);
     
+    map <string, string>::iterator it;
     std::map<std::string, int> path_index_table;
     map <string, WASTInstVisitor::MemoryDesc>& fieldTable1 = visitor.getFieldTable();
-    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
-        // Setup path index
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        // Get field index
         WASTInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    // Full generation
+    // Full JSON generation
     fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
     generateUserInterface(&fJSONVisitor);
     generateMetaData(&fJSONVisitor);
