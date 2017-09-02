@@ -44,41 +44,6 @@ using namespace std;
 
 */
 
-void WASMCodeContainer::generateJSON()
-{
-    // Compute fields indexes
-    WASMInstVisitor visitor(&fBinaryOut, fInternalMemory);
-    generateDeclarations(&visitor);
-    
-    // Compilation options
-    stringstream options;
-    printCompilationOptions(options);
-    
-    // Get DSP size
-    stringstream size;
-    size << visitor.getStructSize();
-    
-    // First generation to prepare fPathTable
-    JSONInstVisitor json_visitor;
-    generateUserInterface(&json_visitor);
-    
-    map <string, string>::iterator it;
-    std::map<std::string, int> path_index_table;
-    map <string, WASMInstVisitor::MemoryDesc>& fieldTable1 = visitor.getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-        // Get field index
-        WASMInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
-    }
-    
-    // Full JSON generation
-    fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&fJSONVisitor);
-    generateMetaData(&fJSONVisitor);
-    
-    fJSON = fJSONVisitor.JSON(true);
-}
-
 dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
@@ -272,9 +237,6 @@ void WASMCodeContainer::produceInternal()
 
 void WASMCodeContainer::produceClass()
 {
-    // Prepare JSON
-    generateJSON();
-    
     // Module definition
     gGlobal->gWASMVisitor->generateModuleHeader();
     
@@ -399,9 +361,9 @@ void WASMCodeContainer::produceClass()
     // Fields to path
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
-        map <string, WASMInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
+        map <string, MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
         for (it = fJSONVisitor.fPathTable.begin(); it != fJSONVisitor.fPathTable.end(); it++) {
-            WASMInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
+            MemoryDesc tmp = fieldTable[(*it).first];
             tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
         }
         tab(n+1, fHelper); fHelper << "return pathTable;";

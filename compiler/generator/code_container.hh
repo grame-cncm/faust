@@ -107,7 +107,9 @@ class CodeContainer : public virtual Garbageable {
         
         bool fGeneratedSR;
   
-        JSONInstVisitor fJSON;
+        // For JSON generation
+        JSONInstVisitor fJSONVisitor;
+        std::string fJSON;
         
         void merge(set<string>& dst, set<string>& src)
         {
@@ -294,8 +296,9 @@ class CodeContainer : public virtual Garbageable {
     
         void generateDAGLoop(BlockInst* loop_code, DeclareVarInst* count);
         
-        void generateJSON();
+        void generateJSONFile();
         void generateMetaData(JSONUI* json);
+        void generateJSON();
     
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void);

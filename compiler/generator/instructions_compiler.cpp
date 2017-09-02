@@ -347,6 +347,9 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
     
     // Generate JSON
     fContainer->generateJSON();
+    if (gGlobal->gPrintJSONSwitch) {
+        fContainer->generateJSONFile();
+    }
        
     endTiming("compileMultiSignal");
 }

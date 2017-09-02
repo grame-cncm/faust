@@ -27,6 +27,7 @@
 #include "binop.hh"
 #include "text_instructions.hh"
 #include "typing_instructions.hh"
+#include "struct_manager.hh"
 
 using namespace std;
 
@@ -61,21 +62,6 @@ inline int genMemSize(int struct_size, int channels, int json_len)
 
 // Base class for textual 'wast' and binary 'wasm' visitors
 struct WASInst {
-    
-    // Description of field layout in memory block
-    struct MemoryDesc {
-        
-        MemoryDesc()
-        {}
-        
-        MemoryDesc(int offset, int size, Typed::VarType type)
-        :fOffset(offset), fSize(size), fType(type)
-        {}
-        
-        int fOffset;
-        int fSize;
-        Typed::VarType fType;
-    };
     
     // Description of math functions
     struct MathFunDesc {

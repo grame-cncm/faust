@@ -188,6 +188,10 @@ class dsp_factory {
         virtual std::string getName() = 0;
         virtual std::string getSHAKey() = 0;
         virtual std::string getDSPCode() = 0;
+    
+        // TODO
+        /* virtual std::string getJSON() = 0; */
+    
         virtual dsp* createDSPInstance() = 0;
     
         virtual void setMemoryManager(dsp_memory_manager* manager) = 0;

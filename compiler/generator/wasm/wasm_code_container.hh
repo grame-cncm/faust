@@ -37,16 +37,12 @@ class WASMCodeContainer : public virtual CodeContainer {
         BufferWithRandomAccess fBinaryOut;
         std::stringstream fHelper;
         int fInternalMemory; // Whether memory is allocated inside wasm module or JS
-        JSONInstVisitor fJSONVisitor;
-        std::string fJSON;
     
         DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
         DeclareFunInst* generateClassInit(const string& name);
         DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual);
-    
-        void generateJSON();
   
     public:
 

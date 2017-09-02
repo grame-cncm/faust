@@ -25,6 +25,7 @@
 #include "instructions.hh"
 #include "typing_instructions.hh"
 #include "fir_interpreter.hh"
+#include "struct_manager.hh"
 #include "exception.hh"
 
 using namespace std;
@@ -32,25 +33,10 @@ using namespace std;
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
 
-        struct MemoryDesc {
-            
-            MemoryDesc():
-            fOffset(-1), fSize(-1), fType(Typed::kNoType)
-            {}
-            
-            MemoryDesc(int offset, int size, Typed::VarType type):
-                fOffset(offset), fSize(size), fType(type)
-            {}
-            
-            int fOffset;
-            int fSize;
-            Typed::VarType fType;
-        };
-    
         /*
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
-         */
+        */
         static map <string, FIRInstruction::Opcode> gMathLibTable;
         
         int fRealHeapOffset;    // Offset in Real HEAP    

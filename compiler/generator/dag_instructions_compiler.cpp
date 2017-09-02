@@ -116,6 +116,9 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
     
     // Generate JSON
     fContainer->generateJSON();
+    if (gGlobal->gPrintJSONSwitch) {
+        fContainer->generateJSONFile();
+    }
 }
 
 /**

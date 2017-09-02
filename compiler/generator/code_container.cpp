@@ -28,6 +28,7 @@
 #include "global.hh"
 #include "type_manager.hh"
 #include "text_instructions.hh"
+#include "struct_manager.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;
@@ -38,8 +39,6 @@ void CodeContainer::initializeCodeContainer(int numInputs, int numOutputs)
     fNumOutputs = numOutputs;
     fInputRates.resize(numInputs, 0);
     fOutputRates.resize(numOutputs, 0);
-    fJSON.setInputs(numInputs);
-    fJSON.setOutputs(numOutputs);
 }
 
 CodeContainer::CodeContainer()
@@ -61,8 +60,7 @@ CodeContainer::CodeContainer()
     fComputeFunctions(InstBuilder::genBlockInst()),
     fUserInterfaceInstructions(InstBuilder::genBlockInst()),
     fSubContainerType(kInt), fFullCount("count"),
-    fGeneratedSR(false),
-    fJSON(-1, -1)
+    fGeneratedSR(false)
 {
     fCurLoop = new CodeLoop(0, "i");
 }
@@ -718,18 +716,45 @@ void CodeContainer::generateMetaData(JSONUI* json)
     }
 }
 
+void CodeContainer::generateJSONFile()
+{
+    ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
+    xout << fJSONVisitor.JSON();
+}
+
 void CodeContainer::generateJSON()
 {
-    if (gGlobal->gPrintJSONSwitch) {
+    // Compute fields indexes and DSP structure size
+    StructMemoryInstVisitor visitor;
+    generateDeclarations(&visitor);
     
-        // Add global metadata
-        generateMetaData(&fJSON);
-      
-        // Generate JSON
-        generateUserInterface(&fJSON);
-        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-        xout << fJSON.JSON();
-    } 
+    // Prepare compilation options
+    stringstream options;
+    printCompilationOptions(options);
+    
+    // Prepare DSP size
+    stringstream size;
+    size << visitor.getStructSize();
+    
+    // First generation to prepare fPathTable
+    JSONInstVisitor json_visitor;
+    generateUserInterface(&json_visitor);
+    
+    map <string, string>::iterator it;
+    std::map<std::string, int> path_index_table;
+    map <string, MemoryDesc>& fieldTable = visitor.getFieldTable();
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        // Get field index
+        MemoryDesc tmp = fieldTable[(*it).first];
+        path_index_table[(*it).second] = tmp.fOffset;
+    }
+    
+    // Full JSON generation
+    fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&fJSONVisitor);
+    generateMetaData(&fJSONVisitor);
+    
+    fJSON = fJSONVisitor.JSON(true);
 }
 
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)

@@ -88,23 +88,23 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("version") != fMetadatas.end()) {
             fVersion = fMetadatas["version"];
-            fMetadatas.erase("size");
+            fMetadatas.erase("version");
         } else {
-            fNumInputs = -1;
+            fVersion = "";
         }
         
         if (fMetadatas.find("options") != fMetadatas.end()) {
             fOptions = fMetadatas["options"];
-            fMetadatas.erase("size");
+            fMetadatas.erase("options");
         } else {
-            fNumInputs = -1;
+            fOptions = "";
         }
         
         if (fMetadatas.find("size") != fMetadatas.end()) {
             fDSPSize = atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");
         } else {
-            fNumInputs = -1;
+            fDSPSize = -1;
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {

@@ -36,8 +36,6 @@ class WASTCodeContainer : public virtual CodeContainer {
         std::ostream* fOut;
         std::stringstream fHelper;
         int fInternalMemory;
-        JSONInstVisitor fJSONVisitor;
-        std::string fJSON;
     
         void generateWASTBlock(BlockInst* instructions)
         {
@@ -48,8 +46,6 @@ class WASTCodeContainer : public virtual CodeContainer {
         }
     
         DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
-    
-        void generateJSON();
   
     public:
 

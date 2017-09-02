@@ -43,41 +43,6 @@ using namespace std;
 
 */
 
-void WASTCodeContainer::generateJSON()
-{
-    // Compute fields indexes
-    WASTInstVisitor visitor(fOut, fInternalMemory);
-    generateDeclarations(&visitor);
-    
-    // Compilation options
-    stringstream options;
-    printCompilationOptions(options);
-    
-    // Get DSP size
-    stringstream size;
-    size << visitor.getStructSize();
-    
-    // First generation to prepare fPathTable
-    JSONInstVisitor json_visitor;
-    generateUserInterface(&json_visitor);
-    
-    map <string, string>::iterator it;
-    std::map<std::string, int> path_index_table;
-    map <string, WASTInstVisitor::MemoryDesc>& fieldTable1 = visitor.getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-        // Get field index
-        WASTInstVisitor::MemoryDesc tmp = fieldTable1[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
-    }
-    
-    // Full JSON generation
-    fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&fJSONVisitor);
-    generateMetaData(&fJSONVisitor);
-    
-    fJSON = fJSONVisitor.JSON(true);
-}
-
 dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(fKlassName, "", "",
@@ -198,9 +163,6 @@ void WASTCodeContainer::produceClass()
   
     tab(n, *fOut);
     gGlobal->gWASTVisitor->Tab(n);
-    
-    // Prepare JSON
-    generateJSON();
     
     tab(n, *fOut); *fOut << "(module";
     
@@ -351,9 +313,9 @@ void WASTCodeContainer::produceClass()
     // Fields to path
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
-        map <string, WASTInstVisitor::MemoryDesc>& fieldTable = gGlobal->gWASTVisitor->getFieldTable();
+        map <string, MemoryDesc>& fieldTable = gGlobal->gWASTVisitor->getFieldTable();
         for (it = fJSONVisitor.fPathTable.begin(); it != fJSONVisitor.fPathTable.end(); it++) {
-            WASTInstVisitor::MemoryDesc tmp = fieldTable[(*it).first];
+            MemoryDesc tmp = fieldTable[(*it).first];
             tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
         }
         tab(n+1, fHelper); fHelper << "return pathTable;";
