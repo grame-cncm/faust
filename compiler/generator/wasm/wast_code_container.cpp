@@ -39,6 +39,7 @@ using namespace std;
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun
  - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)
  - memory can be allocated internally in the module and exported, or externally in JS and imported
+ - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before* using the DSP instance
 
 */
 
@@ -232,15 +233,21 @@ void WASTCodeContainer::produceClass()
         // After field declaration...
         generateSubContainers();
     
+        // Generate memory
         tab(n+1, *fOut);
         if (fInternalMemory) {
             *fOut << "(memory (export \"memory\") ";
-            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs) << ")"; // memory initial pages
+            // Since fJSON is written in date segment at offset 0, the memory size must be computed taking account fJSON size and DSP + audio buffer size
+            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, fJSON.size()) << ")"; // memory initial pages
         } else {
             *fOut << "(import \"memory\" \"memory\" (memory $0 ";
             *fOut << "0))"; // memory size set by JS code, so use a minimum value of 0
         }
     
+        // Generate one data segment containing the JSON string starting at offset 0
+        tab(n+1, *fOut);
+        *fOut << "(data (i32.const 0) \"" << fJSON << "\\00\")";
+     
         // Always generated mathematical functions
         tab(n+1, *fOut);
         WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);

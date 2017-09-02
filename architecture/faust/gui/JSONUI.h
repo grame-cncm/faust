@@ -87,6 +87,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             }
         }
     
+        // Add escape (that is  '\') for internal strings
         inline std::string flatten(const std::string& src)
         {
             std::stringstream dst;

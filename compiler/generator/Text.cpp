@@ -263,7 +263,7 @@ string checkReal(double val)
     return (strcmp(ifloat(), "float") == 0) ? checkFloat(val) : checkDouble(val);
 }
 
-string indent(string const & str, int tabs)
+string indent(const string& str, int tabs)
 {
     stringstream instream(str);
     stringstream outstream;

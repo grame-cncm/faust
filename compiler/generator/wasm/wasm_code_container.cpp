@@ -304,7 +304,7 @@ void WASMCodeContainer::produceClass()
     
     // Memory
     if (fInternalMemory) {
-        gGlobal->gWASMVisitor->generateInternalMemory(fNumInputs + fNumOutputs);
+        gGlobal->gWASMVisitor->generateInternalMemory(fNumInputs + fNumOutputs, fJSON.size());
     }
     
     // Exports
@@ -363,7 +363,10 @@ void WASMCodeContainer::produceClass()
     generateComputeFunctions(gGlobal->gWASMVisitor);
     
     gGlobal->gWASMVisitor->finishSection(functions_start);
-   
+    
+    // Data segment contains the JSON string starting at offset 0, removing the espace character
+    gGlobal->gWASMVisitor->generateJSON(removeChar(fJSON, '\\'));
+    
     // Finally produce output stream
     fBinaryOut.writeTo(*fOut);
     

@@ -87,6 +87,16 @@ inline bool startWithRes(const string& str, const string& prefix, string& res)
     }   
 }
 
+inline string removeChar(const string& str, char c)
+{
+    std::string res;
+    res.reserve(str.size()); // optional, avoids buffer reallocations in the loop
+    for (size_t i = 0; i < str.size(); ++i) {
+        if (str[i] != c) res += str[i];
+    }
+    return res;
+}
+
 inline bool replaceExtension(const string& str, const string& term, string& res)
 {
     size_t pos = str.rfind('.');

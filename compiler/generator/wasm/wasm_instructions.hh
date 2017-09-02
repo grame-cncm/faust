@@ -920,12 +920,12 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             finishSection(start);
         }
     
-        void generateInternalMemory(int channels)
+        void generateInternalMemory(int channels, int json_len)
         {
             int32_t start = startSection(BinaryConsts::Section::Memory);
             *fOut << U32LEB(1); // num memories
             *fOut << U32LEB(0); // memory flags
-            *fOut << U32LEB(genMemSize(getStructSize(), channels)); // memory initial pages
+            *fOut << U32LEB(genMemSize(getStructSize(), channels, json_len)); // memory initial pages
             finishSection(start);
         }
     
@@ -993,6 +993,29 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             *fOut << int8_t(BinaryConsts::End);
             size_t size = fOut->size() - start;
             fOut->writeAt(size_pos, U32LEB(size));
+        }
+    
+        void generateJSON(const string& json)
+        {
+            // One data segment only
+            int data_segment_num = 1;
+            int32_t start = startSection(BinaryConsts::Section::Data);
+            *fOut << U32LEB(data_segment_num);
+            // For each segment (= 1 here)
+            // Linear memory 0 in the MVP
+            *fOut << U32LEB(0);
+            // Offset defined as an 'initializer expression' is 0
+            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(0);
+            *fOut << int8_t(BinaryConsts::End);
+            // Write the JSON string
+            size_t size = json.size();
+            *fOut << U32LEB(size + 1); // Including null character
+            for (size_t i = 0; i < size; i++) {
+                *fOut << int8_t(json[i]);
+            }
+            // Finish the string
+            *fOut << int8_t('0');
+            finishSection(start);
         }
     
         virtual void visit(DeclareVarInst* inst)

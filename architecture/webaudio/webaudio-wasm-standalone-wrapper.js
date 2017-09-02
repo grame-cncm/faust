@@ -21,6 +21,16 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+function Heap2Str(buf)
+{
+    var str = "";
+    var i = 0;
+    while (buf[i] !== 0) {
+        str += String.fromCharCode(buf[i++]);
+    }
+    return str;
+}
+
 // Monophonic Faust DSP
 
 /** 
@@ -65,7 +75,13 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     sp.HEAP = dsp_instance.exports.memory.buffer;
     sp.HEAP32 = new Int32Array(sp.HEAP);
     sp.HEAPF32 = new Float32Array(sp.HEAP);
-     
+    
+    // JSON is as offset 0
+    /*
+    var HEAPU8 = new Uint8Array(sp.HEAP);
+    console.log(Heap2Str(HEAPU8));
+    */
+    
     console.log(sp.HEAP);
     console.log(sp.HEAP32);
     console.log(sp.HEAPF32);

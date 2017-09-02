@@ -36,6 +36,16 @@ using namespace std;
 #define audioBufferSize int(pow(2, offStrNum))
 #define wasmBlockSize int(pow(2, 16))
 
+/*
+ wast/wasm module ABI:
+
+ - in internal memory mode, a memory segment is allocated, otherwise it is given by the external runtime
+ - DSP fields start at offset 0, then followed by audio buffers
+ - JSON string is written at offset 0, to be copied and converted in a string 
+ by the runtime (JS or else) before using the DSP itsef.
+ 
+*/
+
 inline int pow2limit(int x)
 {
     int n = wasmBlockSize; // Minimum = 64 kB
@@ -43,10 +53,10 @@ inline int pow2limit(int x)
     return n;
 }
 
-// DSP size + (inputs + outputs) * (audioPtrSize + max_buffer_size * audioBufferSize)
-inline int genMemSize(int struct_size, int channels)
+// DSP size + (inputs + outputs) * (audioPtrSize + max_buffer_size * audioBufferSize), json_len
+inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max((pow2limit(struct_size + channels * (audioPtrSize + (8192 * audioBufferSize))) / wasmBlockSize), 1);
+    return std::max((pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioBufferSize)))) / wasmBlockSize), 1);
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors
@@ -72,7 +82,7 @@ struct WASInst {
         
         enum Gen { kWAS,    // Implemented in wasm definition
             kExtMath,       // Implemented in JS Math context
-            kInt32WAS,        // Manually implemented in wast/wasm backends
+            kInt32WAS,      // Manually implemented in wast/wasm backends
             kExtWAS };      // Manually implemented in JS
         
         MathFunDesc()
@@ -160,6 +170,7 @@ struct WASInst {
     void setSubContainerType(int type) { fSubContainerType = type; }
     int getSubContainerType() { return fSubContainerType; }
     
+    // The DSP size in bytes
     int getStructSize() { return fStructOffset; }
     
     map <string, MemoryDesc>& getFieldTable() { return fFieldTable; }
