@@ -25,6 +25,7 @@
  ************************************************************************/
 
 #include "faustgen~.h"
+#include "faust/dsp/libfaust.h"
 
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"

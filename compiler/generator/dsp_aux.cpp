@@ -317,6 +317,26 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
     }
 }
 
+
+EXPORT string generateSHA1(const string& dsp_content)
+{
+    // compute SHA1 key
+    unsigned char obuf[20] = {0};
+    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
+    
+    // convert SHA1 key into hexadecimal string
+    string sha1key;
+    for (int i = 0; i < 20; i++) {
+        const char* H = "0123456789ABCDEF";
+        char c1 = H[(obuf[i] >> 4)];
+        char c2 = H[(obuf[i] & 15)];
+        sha1key += c1;
+        sha1key += c2;
+    }
+    
+    return sha1key;
+}
+
 EXPORT const char* expandCDSPFromFile(const char* filename, 
                                     int argc, const char* argv[], 
                                     char* sha_key,
@@ -360,23 +380,9 @@ EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_co
     return res;
 }
 
-EXPORT string generateSHA1(const string& dsp_content)
+EXPORT void generateCSHA1(const char* data, char* sha_key)
 {
-    // compute SHA1 key
-    unsigned char obuf[20] = {0};
-    SHA1((const unsigned char*)dsp_content.c_str(), dsp_content.size(), obuf);
-    
-    // convert SHA1 key into hexadecimal string
-    string sha1key;
-    for (int i = 0; i < 20; i++) {
-        const char* H = "0123456789ABCDEF";
-        char c1 = H[(obuf[i] >> 4)];
-        char c2 = H[(obuf[i] & 15)];
-        sha1key += c1;
-        sha1key += c2;
-    }
-    
-    return sha1key;
+    strncpy(sha_key, generateSHA1(data).c_str(), 64);
 }
 
 EXPORT void freeCMemory(void* ptr)

@@ -9,6 +9,12 @@
 package com.grame.faust;
 
 public class FaustJNI {
+  public final static native String expandCDSPFromFile(String jarg1, int jarg2, long jarg3, String jarg4, String jarg5);
+  public final static native String expandCDSPFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5, String jarg6);
+  public final static native boolean generateCAuxFilesFromFile(String jarg1, int jarg2, long jarg3, String jarg4);
+  public final static native boolean generateCAuxFilesFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5);
+  public final static native void generateCSHA1(String jarg1, String jarg2);
+  public final static native void freeCMemory(long jarg1);
   public final static native long new_llvm_dsp_factory();
   public final static native void delete_llvm_dsp_factory(long jarg1);
   public final static native long new_llvm_dsp();
@@ -40,10 +46,6 @@ public class FaustJNI {
   public final static native String writeCDSPFactoryToMachine(long jarg1, llvm_dsp_factory jarg1_, String jarg2);
   public final static native long readCDSPFactoryFromMachineFile(String jarg1, String jarg2);
   public final static native void writeCDSPFactoryToMachineFile(long jarg1, llvm_dsp_factory jarg1_, String jarg2, String jarg3);
-  public final static native String expandCDSPFromFile(String jarg1, int jarg2, long jarg3, String jarg4, String jarg5);
-  public final static native String expandCDSPFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5, String jarg6);
-  public final static native boolean generateCAuxFilesFromFile(String jarg1, int jarg2, long jarg3, String jarg4);
-  public final static native boolean generateCAuxFilesFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5);
   public final static native int getNumInputsCDSPInstance(long jarg1, llvm_dsp jarg1_);
   public final static native int getNumOutputsCDSPInstance(long jarg1, llvm_dsp jarg1_);
   public final static native void buildUserInterfaceCDSPInstance(long jarg1, llvm_dsp jarg1_, long jarg2);
@@ -59,8 +61,6 @@ public class FaustJNI {
   public final static native void setCMemoryManager(long jarg1, llvm_dsp_factory jarg1_, long jarg2);
   public final static native long createCDSPInstance(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteCDSPInstance(long jarg1, llvm_dsp jarg1_);
-  public final static native void generateCSHA1(String jarg1, String jarg2);
-  public final static native void freeCMemory(long jarg1);
   public final static native long createCDSPFactoryFromFileAux(String jarg1, String jarg2, String jarg3, int jarg4);
   public final static native long createCDSPFactoryFromStringAux(String jarg1, String jarg2, String jarg3, String jarg4, int jarg5);
   public final static native String getCDSPLastError();

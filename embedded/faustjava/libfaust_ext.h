@@ -34,6 +34,7 @@
 ************************************************************************/
 
 #include "faust/dsp/llvm-c-dsp.h"
+#include "faust/dsp/libfaust-c.h"
 
 llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename, const char* argv,
                                                 const char* target, int opt_level);
@@ -42,4 +43,5 @@ llvm_dsp_factory* createCDSPFactoryFromStringAux(const char* name_app, const cha
                                                 const char* argv, const char* target, int opt_level);
                                                 
 const char* getCDSPLastError();
+
     

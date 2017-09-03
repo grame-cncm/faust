@@ -23,9 +23,12 @@
 #include <errno.h>
 #include <string.h>
 #include <libgen.h>
-#include "remote_dsp_aux.h"
+
 #include "faust/gui/ControlUI.h"
 #include "faust/gui/MidiUI.h"
+#include "faust/gui/MidiUI.h"
+#include "remote_dsp_aux.h"
+#include "libfaust.h"
 #include "llvm-dsp.h"
 #include "interpreter-dsp.h"
 #include "utilities.h"

@@ -231,12 +231,197 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 
 
 #include "faust/dsp/llvm-c-dsp.h"
+#include "faust/dsp/libfaust-c.h"
 #include "libfaust_ext.h"
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_expandCDSPFromFile(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jlong jarg3, jstring jarg4, jstring jarg5) {
+  jstring jresult = 0 ;
+  char *arg1 = (char *) 0 ;
+  int arg2 ;
+  char **arg3 ;
+  char *arg4 = (char *) 0 ;
+  char *arg5 = (char *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return 0;
+  }
+  arg2 = (int)jarg2; 
+  arg3 = *(char ***)&jarg3; 
+  arg4 = 0;
+  if (jarg4) {
+    arg4 = (char *)jenv->GetStringUTFChars(jarg4, 0);
+    if (!arg4) return 0;
+  }
+  arg5 = 0;
+  if (jarg5) {
+    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
+    if (!arg5) return 0;
+  }
+  result = (char *)expandCDSPFromFile((char const *)arg1,arg2,(char const *(*))arg3,arg4,arg5);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  
+  if (arg4) jenv->ReleaseStringUTFChars(jarg4, (const char *)arg4);
+  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
+  return jresult;
+}
+
+
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_expandCDSPFromString(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jint jarg3, jlong jarg4, jstring jarg5, jstring jarg6) {
+  jstring jresult = 0 ;
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  char **arg4 ;
+  char *arg5 = (char *) 0 ;
+  char *arg6 = (char *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return 0;
+  }
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  arg3 = (int)jarg3; 
+  arg4 = *(char ***)&jarg4; 
+  arg5 = 0;
+  if (jarg5) {
+    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
+    if (!arg5) return 0;
+  }
+  arg6 = 0;
+  if (jarg6) {
+    arg6 = (char *)jenv->GetStringUTFChars(jarg6, 0);
+    if (!arg6) return 0;
+  }
+  result = (char *)expandCDSPFromString((char const *)arg1,(char const *)arg2,arg3,(char const *(*))arg4,arg5,arg6);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  
+  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
+  if (arg6) jenv->ReleaseStringUTFChars(jarg6, (const char *)arg6);
+  return jresult;
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromFile(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jlong jarg3, jstring jarg4) {
+  jboolean jresult = 0 ;
+  char *arg1 = (char *) 0 ;
+  int arg2 ;
+  char **arg3 ;
+  char *arg4 = (char *) 0 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return 0;
+  }
+  arg2 = (int)jarg2; 
+  arg3 = *(char ***)&jarg3; 
+  arg4 = 0;
+  if (jarg4) {
+    arg4 = (char *)jenv->GetStringUTFChars(jarg4, 0);
+    if (!arg4) return 0;
+  }
+  result = (bool)generateCAuxFilesFromFile((char const *)arg1,arg2,(char const *(*))arg3,arg4);
+  jresult = (jboolean)result; 
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  
+  if (arg4) jenv->ReleaseStringUTFChars(jarg4, (const char *)arg4);
+  return jresult;
+}
+
+
+SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromString(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jint jarg3, jlong jarg4, jstring jarg5) {
+  jboolean jresult = 0 ;
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  int arg3 ;
+  char **arg4 ;
+  char *arg5 = (char *) 0 ;
+  bool result;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return 0;
+  }
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return 0;
+  }
+  arg3 = (int)jarg3; 
+  arg4 = *(char ***)&jarg4; 
+  arg5 = 0;
+  if (jarg5) {
+    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
+    if (!arg5) return 0;
+  }
+  result = (bool)generateCAuxFilesFromString((char const *)arg1,(char const *)arg2,arg3,(char const *(*))arg4,arg5);
+  jresult = (jboolean)result; 
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+  
+  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_generateCSHA1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return ;
+  }
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return ;
+  }
+  generateCSHA1((char const *)arg1,arg2);
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_freeCMemory(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  void *arg1 = (void *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(void **)&jarg1; 
+  freeCMemory(arg1);
+}
+
 
 SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_new_1llvm_1dsp_1factory(JNIEnv *jenv, jclass jcls) {
   jlong jresult = 0 ;
@@ -817,158 +1002,6 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_writeCDSPFactoryToMachineF
 }
 
 
-SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_expandCDSPFromFile(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jlong jarg3, jstring jarg4, jstring jarg5) {
-  jstring jresult = 0 ;
-  char *arg1 = (char *) 0 ;
-  int arg2 ;
-  char **arg3 ;
-  char *arg4 = (char *) 0 ;
-  char *arg5 = (char *) 0 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
-  }
-  arg2 = (int)jarg2; 
-  arg3 = *(char ***)&jarg3; 
-  arg4 = 0;
-  if (jarg4) {
-    arg4 = (char *)jenv->GetStringUTFChars(jarg4, 0);
-    if (!arg4) return 0;
-  }
-  arg5 = 0;
-  if (jarg5) {
-    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
-    if (!arg5) return 0;
-  }
-  result = (char *)expandCDSPFromFile((char const *)arg1,arg2,(char const *(*))arg3,arg4,arg5);
-  if (result) jresult = jenv->NewStringUTF((const char *)result);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  
-  if (arg4) jenv->ReleaseStringUTFChars(jarg4, (const char *)arg4);
-  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
-  return jresult;
-}
-
-
-SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_expandCDSPFromString(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jint jarg3, jlong jarg4, jstring jarg5, jstring jarg6) {
-  jstring jresult = 0 ;
-  char *arg1 = (char *) 0 ;
-  char *arg2 = (char *) 0 ;
-  int arg3 ;
-  char **arg4 ;
-  char *arg5 = (char *) 0 ;
-  char *arg6 = (char *) 0 ;
-  char *result = 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
-  }
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return 0;
-  }
-  arg3 = (int)jarg3; 
-  arg4 = *(char ***)&jarg4; 
-  arg5 = 0;
-  if (jarg5) {
-    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
-    if (!arg5) return 0;
-  }
-  arg6 = 0;
-  if (jarg6) {
-    arg6 = (char *)jenv->GetStringUTFChars(jarg6, 0);
-    if (!arg6) return 0;
-  }
-  result = (char *)expandCDSPFromString((char const *)arg1,(char const *)arg2,arg3,(char const *(*))arg4,arg5,arg6);
-  if (result) jresult = jenv->NewStringUTF((const char *)result);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
-  
-  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
-  if (arg6) jenv->ReleaseStringUTFChars(jarg6, (const char *)arg6);
-  return jresult;
-}
-
-
-SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromFile(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jlong jarg3, jstring jarg4) {
-  jboolean jresult = 0 ;
-  char *arg1 = (char *) 0 ;
-  int arg2 ;
-  char **arg3 ;
-  char *arg4 = (char *) 0 ;
-  bool result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
-  }
-  arg2 = (int)jarg2; 
-  arg3 = *(char ***)&jarg3; 
-  arg4 = 0;
-  if (jarg4) {
-    arg4 = (char *)jenv->GetStringUTFChars(jarg4, 0);
-    if (!arg4) return 0;
-  }
-  result = (bool)generateCAuxFilesFromFile((char const *)arg1,arg2,(char const *(*))arg3,arg4);
-  jresult = (jboolean)result; 
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  
-  if (arg4) jenv->ReleaseStringUTFChars(jarg4, (const char *)arg4);
-  return jresult;
-}
-
-
-SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromString(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2, jint jarg3, jlong jarg4, jstring jarg5) {
-  jboolean jresult = 0 ;
-  char *arg1 = (char *) 0 ;
-  char *arg2 = (char *) 0 ;
-  int arg3 ;
-  char **arg4 ;
-  char *arg5 = (char *) 0 ;
-  bool result;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return 0;
-  }
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return 0;
-  }
-  arg3 = (int)jarg3; 
-  arg4 = *(char ***)&jarg4; 
-  arg5 = 0;
-  if (jarg5) {
-    arg5 = (char *)jenv->GetStringUTFChars(jarg5, 0);
-    if (!arg5) return 0;
-  }
-  result = (bool)generateCAuxFilesFromString((char const *)arg1,(char const *)arg2,arg3,(char const *(*))arg4,arg5);
-  jresult = (jboolean)result; 
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
-  
-  if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
-  return jresult;
-}
-
-
 SWIGEXPORT jint JNICALL Java_com_grame_faust_FaustJNI_getNumInputsCDSPInstance(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
   jint jresult = 0 ;
   llvm_dsp *arg1 = (llvm_dsp *) 0 ;
@@ -1169,38 +1202,6 @@ SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_deleteCDSPInstance(JNIEnv 
   (void)jarg1_;
   arg1 = *(llvm_dsp **)&jarg1; 
   deleteCDSPInstance(arg1);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_generateCSHA1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
-  char *arg1 = (char *) 0 ;
-  char *arg2 = (char *) 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return ;
-  }
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return ;
-  }
-  generateCSHA1((char const *)arg1,arg2);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
-}
-
-
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_freeCMemory(JNIEnv *jenv, jclass jcls, jlong jarg1) {
-  void *arg1 = (void *) 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = *(void **)&jarg1; 
-  freeCMemory(arg1);
 }
 
 

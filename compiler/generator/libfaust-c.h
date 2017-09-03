@@ -39,10 +39,10 @@ extern "C" {
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-EXPORT const char* expandCDSPFromFile(const char* filename, 
-                                    int argc, const char* argv[], 
-                                    char* sha_key,
-                                    char* error_msg);
+const char* expandCDSPFromFile(const char* filename, 
+                                int argc, const char* argv[],
+                                char* sha_key,
+                                char* error_msg);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
@@ -55,11 +55,11 @@ EXPORT const char* expandCDSPFromFile(const char* filename,
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-EXPORT const char* expandCDSPFromString(const char* name_app, 
-                                    const char* dsp_content, 
-                                    int argc, const char* argv[], 
-                                    char* sha_key,
-                                    char* error_msg);
+const char* expandCDSPFromString(const char* name_app, 
+                                const char* dsp_content,
+                                int argc, const char* argv[], 
+                                char* sha_key,
+                                char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -71,7 +71,7 @@ EXPORT const char* expandCDSPFromString(const char* name_app,
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -83,14 +83,28 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+
     
 /**
- * The free function to be used on memory returned by expandCDSPFromFile, expandCDSPFromString, createAsmCDSPFactoryFromFile orcreateAsmCDSPFactoryFromString.
+ * Compute a SHA1 key from a string
+ *
+ * @param data - the string to be converted in SHA1 key
+ * @param key - a 64 characters buffer to be filled with the computed key
+ *
+ */
+void generateCSHA1(const char* data, char* key);
+    
+/**
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, 
+ * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode, 
+ * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
+ *
+ * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
  *
  * @param ptr - the pointer to be deleted.
  */
-EXPORT void freeCMemory(void* ptr);
+void freeCMemory(void* ptr);
 
 #ifdef __cplusplus
 }

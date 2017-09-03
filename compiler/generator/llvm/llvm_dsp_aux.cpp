@@ -1884,11 +1884,6 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
     }
 }
 
-EXPORT void generateCSHA1(const char* data, char* sha_key)
-{
-    strncpy(sha_key, generateSHA1(data).c_str(), 64);
-}
-
 // Helper functions
 
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)

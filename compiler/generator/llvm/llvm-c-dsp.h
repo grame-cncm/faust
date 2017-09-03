@@ -338,68 +338,6 @@ extern "C"
      */
     void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
     
-    
-    /**
-     * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
-     * All compilations options are 'normalized' and included as a comment in the expanded string.
-     
-     * @param filename - the DSP filename
-     * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
-     * @param sha_key - the SHA key to be filled
-     * @param error_msg - the error string to be filled
-     *
-     * @return the expanded DSP as a string on success (to be deleted by the caller using freeCMemory), otherwise a null pointer.
-     */ 
-    char* expandCDSPFromFile(const char* filename, 
-                           int argc, const char* argv[], 
-                           char* sha_key,
-                           char* error_msg);
-    
-    /**
-     * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
-     * All compilations options are 'normalized' and included as a comment in the expanded string.
-     
-     * @param name_app - the name of the Faust program
-     * @param dsp_content - the Faust program as a string
-     * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
-     * @param sha_key - the SHA key to be filled
-     * @param error_msg - the error string to be filled
-     *
-     * @return the expanded DSP as a string on success (to be deleted by the caller using freeCMemory), otherwise a null pointer.
-     */ 
-    char* expandCDSPFromString(const char* name_app, 
-                             const char* dsp_content, 
-                             int argc, const char* argv[], 
-                             char* sha_key,
-                             char* error_msg);
-    
-    /**
-     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
-     
-     * @param filename - the DSP filename
-     * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
-     * @param error_msg - the error string to be filled
-     *
-     * @return true if compilation succedeed, false and an error_msg in case of failure.
-     */ 
-    bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
-    
-    /**
-     * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
-     
-     * @param name_app - the name of the Faust program
-     * @param dsp_content - the Faust program as a string
-     * @param argc - the number of parameters in argv array
-     * @param argv - the array of parameters
-     * @param error_msg - the error string to be filled
-     *
-     * @return true if compilation succedeed, false and an error_msg in case of failure.
-     */ 
-    bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
-    
     /**
      * Instance functions.
      */
@@ -446,25 +384,6 @@ extern "C"
      * @param dsp - the DSP instance to be deleted.
      */ 
     void deleteCDSPInstance(llvm_dsp* dsp);
-    
-    /**
-     * Compute a SHA1 key from a string
-     * 
-     * @param data - the string to be converted in SHA1 key
-     * @param key - a 64 characters buffer to be filled with the computed key 
-     *
-     */ 
-    void generateCSHA1(const char* data, char* key);
-    
-    /**
-     * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, getCDSPCode, getCLibraryList, 
-     * getAllCDSPFactories, writeCDSPFactoryToBitcode, writeCDSPFactoryToIR, writeCDSPFactoryToMachine, 
-     * expandCDSPFromString and expandCDSPFromFile.
-     * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
-     * 
-     * @param ptr - the pointer to be deleted.
-     */
-    void freeCMemory(void* ptr);
     
 #ifdef __cplusplus
 }

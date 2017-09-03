@@ -382,67 +382,6 @@ void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& 
 DEPRECATED(void metadataDSPFactory(llvm_dsp_factory* factory, Meta* meta));
 
 /**
- * From a DSP source file, creates a 'self-contained' DSP source string where all needed librairies have been included.
- * All compilations options are 'normalized' and included as a comment in the expanded string.
- 
- * @param filename - the DSP filename
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param sha_key - the SHA key to be filled
- * @param error_msg - the error string to be filled
- *
- * @return the expanded DSP as a string (possibly empty).
- */ 
-std::string expandDSPFromFile(const std::string& filename, 
-                              int argc, const char* argv[],
-                              std::string& sha_key,
-                              std::string& error_msg);
-
-/**
- * From a DSP source string, creates a 'self-contained' DSP source string where all needed librairies have been included.
- * All compilations options are 'normalized' and included as a comment in the expanded string.
- 
- * @param name_app - the name of the Faust program
- * @param dsp_content - the Faust program as a string
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param sha_key - the SHA key to be filled
- * @param error_msg - the error string to be filled
- *
- * @return the expanded DSP as a string (possibly empty).
- */ 
-std::string expandDSPFromString(const std::string& name_app, 
-                                const std::string& dsp_content, 
-                                int argc, const char* argv[], 
-                                std::string& sha_key,
-                                std::string& error_msg);
-
-/**
- * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
- 
- * @param filename - the DSP filename
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled
- *
- * @return true if compilation succedeed, false and an error_msg in case of failure.
- */ 
-bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
-
-/**
- * From a DSP source file, generates auxiliary files : SVG, XML, ps... depending of the 'argv' parameters.
- 
- * @param name_app - the name of the Faust program
- * @param dsp_content - the Faust program as a string
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled
- *
- * @return true if compilation succedeed, false and an error_msg in case of failure.
- */ 
-bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
-
-/**
  * Create a Faust DSP instance.
  * 
  * @deprecated : use factory createDSPInstance method.

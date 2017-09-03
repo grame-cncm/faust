@@ -9,6 +9,30 @@
 package com.grame.faust;
 
 public class Faust {
+  public static String expandCDSPFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
+    return FaustJNI.expandCDSPFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
+  }
+
+  public static String expandCDSPFromString(String name_app, String dsp_content, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
+    return FaustJNI.expandCDSPFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
+  }
+
+  public static boolean generateCAuxFilesFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String error_msg) {
+    return FaustJNI.generateCAuxFilesFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
+  }
+
+  public static boolean generateCAuxFilesFromString(String name_app, String dsp_content, int argc, SWIGTYPE_p_p_char argv, String error_msg) {
+    return FaustJNI.generateCAuxFilesFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
+  }
+
+  public static void generateCSHA1(String data, String key) {
+    FaustJNI.generateCSHA1(data, key);
+  }
+
+  public static void freeCMemory(SWIGTYPE_p_void ptr) {
+    FaustJNI.freeCMemory(SWIGTYPE_p_void.getCPtr(ptr));
+  }
+
   public static String getCLibFaustVersion() {
     return FaustJNI.getCLibFaustVersion();
   }
@@ -128,22 +152,6 @@ public class Faust {
     FaustJNI.writeCDSPFactoryToMachineFile(llvm_dsp_factory.getCPtr(factory), factory, machine_code_path, target);
   }
 
-  public static String expandCDSPFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
-    return FaustJNI.expandCDSPFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
-  }
-
-  public static String expandCDSPFromString(String name_app, String dsp_content, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
-    return FaustJNI.expandCDSPFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
-  }
-
-  public static boolean generateCAuxFilesFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String error_msg) {
-    return FaustJNI.generateCAuxFilesFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
-  }
-
-  public static boolean generateCAuxFilesFromString(String name_app, String dsp_content, int argc, SWIGTYPE_p_p_char argv, String error_msg) {
-    return FaustJNI.generateCAuxFilesFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
-  }
-
   public static int getNumInputsCDSPInstance(llvm_dsp dsp) {
     return FaustJNI.getNumInputsCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
   }
@@ -204,14 +212,6 @@ public class Faust {
 
   public static void deleteCDSPInstance(llvm_dsp dsp) {
     FaustJNI.deleteCDSPInstance(llvm_dsp.getCPtr(dsp), dsp);
-  }
-
-  public static void generateCSHA1(String data, String key) {
-    FaustJNI.generateCSHA1(data, key);
-  }
-
-  public static void freeCMemory(SWIGTYPE_p_void ptr) {
-    FaustJNI.freeCMemory(SWIGTYPE_p_void.getCPtr(ptr));
   }
 
   public static llvm_dsp_factory createCDSPFactoryFromFileAux(String filename, String argv, String target, int opt_level) {
