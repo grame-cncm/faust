@@ -205,8 +205,7 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     
     vector<string> res2 = reorganizeCompilationOptionsAux(res1);
     
-    string res3;
-    string sep;
+    string sep, res3;
     for (size_t i = 0; i < res2.size(); i++) {
         res3 = res3 + sep + res2[i];
         sep = " ";

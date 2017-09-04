@@ -159,7 +159,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string
                                                             int argc, const char* argv[],
                                                             std::string& error_msg);
 /**
- * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
+ * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 

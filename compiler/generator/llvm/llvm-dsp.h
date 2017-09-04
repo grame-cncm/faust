@@ -181,7 +181,7 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const 
                                              std::string& error_msg, int opt_level = -1);
 
 /**
- * Delete a Faust DSP factory, that is decrements it's reference counter, possible really deleting the internal pointer. 
+ * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted with C++ delete.
  * Beware : all kept factories and DSP pointers (in local variables...) thus become invalid.
  * 
@@ -398,15 +398,6 @@ DEPRECATED(llvm_dsp* createDSPInstance(llvm_dsp_factory* factory));
  * @param dsp - the DSP instance to be deleted.
  */ 
 DEPRECATED(void deleteDSPInstance(llvm_dsp* dsp));
-
-/**
- * Compute a SHA1 key from a string
- * 
- * @param data - the string to be converted in SHA1 key
- *
- * @return the computed SHA1 key.
- */ 
-std::string generateSHA1(const std::string& data);
 
 /*!
  @}

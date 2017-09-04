@@ -132,7 +132,7 @@ static void testPolyphony(dsp_factory* factory, bool is_mem_alloc = false)
     DSP->buildUserInterface(&controlui);
     controlui.initRandom();
     
-    // init signal processor and the user interface values:
+    // init signal processor and the user interface values
     DSP->init(44100);
     
     // Check getSampleRate
