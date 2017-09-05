@@ -30,7 +30,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] [-fast] [-double] [Additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faustbench [-ios] [-fast] [-double] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-fast' to execute only some tests"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"

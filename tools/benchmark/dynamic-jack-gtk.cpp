@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
     #ifdef INTERP_PLUGIN
         cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.dsp" << endl;
     #else
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] <compiler-options> foo.dsp" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
     #endif
         exit(EXIT_FAILURE);
     }
