@@ -16,7 +16,11 @@ Here are the available options:
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
 
-Additional Faust compiler options can be given.
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed when closing the application. For developers: trace mode is activated by setting the *FAUST_INTERP_TRACE* environment variable to "on". Then *FAUST_INTERP_TRACE_MODE* environment variable can be set to values from 1 to 3: 
+
+ - 1 mode collects the number of FP_SUBNORMAL values generated in the audio computation (not that you'll have to deactivate hardware flush-to-zero protection, typically by removing the AVOIDDENORMALS macro added arround the call to the DSP compute method in architecture files)
+ - 2 mode also collects the number of FP_INFINITE and FP_NAN float values
+ - 3 mode also collects the number of INTEGER_OVERFLOW and DIV_BY_ZERO operations
 
 ## faustbench
 

@@ -96,7 +96,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of HEAP index
     
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    sp.audio_heap_ptr = getSizemydsp();
+    sp.audio_heap_ptr = parseInt(json_object.size);
 
     // Setup pointers offset
     sp.audio_heap_ptr_inputs = sp.audio_heap_ptr;
@@ -109,7 +109,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // Start of DSP memory : DSP is placed first with index 0
     sp.dsp = 0;
  
-    sp.pathTable = getPathTablemydsp();
+    sp.pathTable = [];
     
     // Allocate table for 'setParamValue'
     sp.value_table = [];
@@ -194,6 +194,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
         	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
+            sp.pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider" 
         	|| item.type === "hslider" 
         	|| item.type === "button" 
@@ -201,6 +202,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
         	|| item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
+            sp.pathTable[item.address] = parseInt(item.index);
         }
     }
       
@@ -326,7 +328,11 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
      */
     sp.metadata = function (handler)
     {
-        metadatamydsp(handler);
+    	if (json_object.meta) {
+    		json_object.meta.forEach(function(meta) { 
+    			handler.declare(Object.keys(meta)[0], Object.values(meta)[0]); 
+    		});
+       	}
     }
 
     /**

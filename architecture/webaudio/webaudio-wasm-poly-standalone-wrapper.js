@@ -124,10 +124,10 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.kReleaseVoice = -2;
     sp.kNoVoice = -3;
     
-    sp.pathTable = getPathTablemydsp();
+    sp.pathTable = [];
   
     for (var i = 0; i < polyphony; i++) {
-        sp.dsp_voices[i] = sp.dsp_start + i * getSizemydsp();
+        sp.dsp_voices[i] = sp.dsp_start + i * parseInt(json_object.size);
         sp.dsp_voices_state[i] = sp.kFreeVoice;
         sp.dsp_voices_level[i] = 0;
         sp.dsp_voices_date[i] = 0;
@@ -307,6 +307,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             sp.outputs_items.push(item.address);
+            sp.pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider" 
         	|| item.type === "hslider" 
         	|| item.type === "button" 
@@ -314,6 +315,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         	|| item.type === "nentry") {
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
+            sp.pathTable[item.address] = parseInt(item.index);
         }
     }
     
@@ -460,7 +462,11 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
      */
     sp.metadata = function (handler)
     {
-        metadatamydsp(handler);
+       if (json_object.meta) {
+    		json_object.meta.forEach(function(meta) { 
+    			handler.declare(Object.keys(meta)[0], Object.values(meta)[0]); 
+    		});
+       	}
     }
 
     /**
@@ -637,7 +643,7 @@ faust.createMemory = function (buffer_size, polyphony) {
     
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
-    var memory_size = pow2limit(getSizemydsp() * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }

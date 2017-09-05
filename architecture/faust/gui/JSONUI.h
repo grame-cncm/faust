@@ -239,12 +239,12 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
             if (fPathTable.size() > 0) {
+                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
                 tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             } else {
-                fUI << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
@@ -269,10 +269,10 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
             }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
@@ -308,10 +308,10 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
             }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
