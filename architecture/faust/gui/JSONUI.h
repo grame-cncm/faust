@@ -230,7 +230,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         }
     
         // -- active widgets
-    
+  
         virtual void addGenericButton(const char* label, const char* name)
         {
             std::string path = buildPath(label);
@@ -240,11 +240,11 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"";
             if (fPathTable.size() > 0) {
                 tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             } else {
-                tab(fTab + 1, fUI); fUI << ((fMetaAux.size() > 0) ? "," : "");
+                fUI << ((fMetaAux.size() > 0) ? "," : "");
             }
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
