@@ -153,7 +153,7 @@ class DspFaust
         //
         // * `voice`: the address of the voice given by `newVoice`
         //--------------------------------------------------------
-        int deleteVoice(long);
+        int deleteVoice(unsigned long);
 
         //-----------------`void allNotesOff()`----------------
         // Gently terminates all the active voices. 
@@ -250,7 +250,7 @@ class DspFaust
         // from `keyOn`
         // * `value`: value of the parameter
         //--------------------------------------------------------
-        void setVoiceParamValue(const char*, long, float);
+        void setVoiceParamValue(const char*, unsigned long, float);
         
         //----`void setVoiceValue(int id, long voice, float value)`-----
         // Set the value of one of the parameters of the Faust
@@ -264,7 +264,7 @@ class DspFaust
         // from `keyOn`
         // * `value`: value of the parameter
         //--------------------------------------------------------
-        void setVoiceParamValue(int, long, float);
+        void setVoiceParamValue(int, unsigned long, float);
         
         //----`float getVoiceParamValue(const char* address, long voice)`----
         // Returns the value of a parameter in function of its
@@ -276,7 +276,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        float getVoiceParamValue(const char*, long);
+        float getVoiceParamValue(const char*, unsigned long);
         
         //----`float getVoiceParamValue(int id, long voice)`----
         // Returns the value of a parameter in function of its
@@ -288,7 +288,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        float getVoiceParamValue(int, long);
+        float getVoiceParamValue(int, unsigned long);
         
         //----`const char* getParamAddress(int id)`---------------
         // Returns the address (path) of a parameter in function
@@ -310,7 +310,7 @@ class DspFaust
         // * `voice`: address of the polyphonic voice (retrieved
         // from `keyOn`)
         //--------------------------------------------------------
-        const char* getVoiceParamAddress(int, long);
+        const char* getVoiceParamAddress(int, unsigned long);
         
         //-------`float getParamMin(const char* address)`---------
         // Returns the minimum value of a parameter in function of
@@ -372,25 +372,25 @@ class DspFaust
         //--------------------------------------------------------
         float getParamInit(int);
         
-        //-----`const char* getParamTooltip(const char* address)`-----
-        // Returns the tooltip (description) of a parameter in function of
-        // its address (path).
+        //-----`const char* getMetadata(const char* address, const char* key)`-----
+        // Returns the metadataof a parameter in function of
+        // its address (path) and the metadata key.
         //
         // #### Arguments
         //
         // * `address`: address (path) of the parameter
         //--------------------------------------------------------
-        const char* getParamTooltip(const char*);
+        const char* getMetadata(const char*, const char*);
         
-        //----`const char* getParamTooltip(int id)`---------------
-        // Returns the tooltip (description) of a parameter in function
-        // of its ID.
+        //----`const char* getMetadata(int id, const char* key)`---------------
+        // Returns the metadataof a parameter in function of
+        // its iD and the metadata key.
         //
         // #### Arguments
         //
         // * `id`: id of the parameter
         //--------------------------------------------------------
-        const char* getParamTooltip(int);
+        const char* getMetadata(int, const char*);
         
         //----`void propagateAcc(int acc, float v)`---------------
         // Propagate the RAW value of a specific accelerometer

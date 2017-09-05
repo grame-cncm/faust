@@ -26,6 +26,7 @@
 
 #include <vector>
 #include <map>
+#include <utility>
 #include <assert.h>
 
 #include "faust/gui/UI.h"
@@ -42,6 +43,8 @@ inline FAUSTFLOAT STR2REAL(const std::string& s) { return (strtod(s.c_str(), NUL
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
+
+typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
 
 struct JSONUIDecoder {
 
@@ -63,7 +66,8 @@ struct JSONUIDecoder {
     
     int fDSPSize;
     
-    std::map<std::string, int> fPathTable;
+    controlMap fPathInputTable;     // [path, <zone, index>]
+    controlMap fPathOutputTable;    // [path, <zone, index>]
     
     bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
     bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
@@ -84,23 +88,23 @@ struct JSONUIDecoder {
         
         if (fMetadatas.find("version") != fMetadatas.end()) {
             fVersion = fMetadatas["version"];
-            fMetadatas.erase("size");
+            fMetadatas.erase("version");
         } else {
-            fNumInputs = -1;
+            fVersion = "";
         }
         
         if (fMetadatas.find("options") != fMetadatas.end()) {
             fOptions = fMetadatas["options"];
-            fMetadatas.erase("size");
+            fMetadatas.erase("options");
         } else {
-            fNumInputs = -1;
+            fOptions = "";
         }
         
         if (fMetadatas.find("size") != fMetadatas.end()) {
             fDSPSize = atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");
         } else {
-            fNumInputs = -1;
+            fDSPSize = -1;
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
@@ -128,13 +132,32 @@ struct JSONUIDecoder {
             } else if (isOutput(type)) {
                 fOutputItems++;          
             }
-            if ((*it)->address != "") {
-                fPathTable[(*it)->address] = atoi((*it)->index.c_str());
-            }
         }
         
         fInControl = new FAUSTFLOAT[fInputItems];
         fOutControl = new FAUSTFLOAT[fOutputItems];
+        
+        int counterIn = 0;
+        int counterOut = 0;
+        
+        // Prepare the fPathTable
+        for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
+            string type = (*it)->type;
+            // Meta data declaration for input items
+            if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
+                if ((*it)->address != "") {
+                    fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                }
+                counterIn++;
+            }
+            // Meta data declaration for output items
+            else if ((*it)->type.find("bargraph") != string::npos) {
+                if ((*it)->address != "") {
+                    fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                }
+                counterOut++;
+            }
+        }
     }
     
     virtual ~JSONUIDecoder() 
