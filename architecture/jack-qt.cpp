@@ -115,6 +115,11 @@ int main(int argc, char *argv[])
 
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 255, "%s/.%src", home, name);
+    
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
+        exit(1);
+    }
    
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
