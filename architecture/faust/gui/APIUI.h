@@ -56,9 +56,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::vector<FAUSTFLOAT> fMin;
         std::vector<FAUSTFLOAT> fMax;
         std::vector<FAUSTFLOAT> fStep;
-        std::vector<std::string> fUnit;
         std::vector<ItemType> fItemType;
-        std::vector<std::string> fTooltip;
+        std::vector<std::map<std::string, std::string> > fMetaData;
         std::vector<ZoneControl*> fAcc[3];
         std::vector<ZoneControl*> fGyr[3];
 
@@ -96,20 +95,30 @@ class APIUI : public PathBuilder, public Meta, public UI
             fMax.push_back(max);
             fStep.push_back(step);
             fItemType.push_back(type);
+            
+            std::map<std::string, std::string> metadata;
 
             //handle unit metadata
-            fUnit.push_back(fCurrentUnit);
+            metadata["unit"] = fCurrentUnit;
             fCurrentUnit = "";
             
             //handle tooltip metadata
-            fTooltip.push_back(fCurrentTooltip);
+            metadata["tooltip"] = fCurrentTooltip;
             fCurrentTooltip = "";
 
             //handle scale metadata
             switch (fCurrentScale) {
-                case kLin : fConversion.push_back(new LinearValueConverter(0, 1, min, max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0, 1, min, max)); break;
-                case kExp : fConversion.push_back(new ExpValueConverter(0, 1, min, max)); break;
+                case kLin:
+                    fConversion.push_back(new LinearValueConverter(0, 1, min, max));
+                    metadata["scale"] = "lin";
+                    break;
+                case kLog:
+                    fConversion.push_back(new LogValueConverter(0, 1, min, max));
+                    metadata["scale"] = "log";
+                    break;
+                case kExp: fConversion.push_back(new ExpValueConverter(0, 1, min, max));
+                    metadata["scale"] = "exp";
+                    break;
             }
             fCurrentScale = kLin;
             
@@ -132,6 +141,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
                 }
+                metadata["acc"] = fCurrentAcc;
                 fCurrentAcc = "";
             }
        
@@ -150,6 +160,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect gyr metadata : " << fCurrentGyr << std::endl;
                 }
+                metadata["gyr"] = fCurrentAcc;
                 fCurrentGyr = "";
             }
         
@@ -173,7 +184,10 @@ class APIUI : public PathBuilder, public Meta, public UI
                     std::cerr << "incorrect screencolor metadata : " << fCurrentColor << std::endl;
                 }
             }
+            metadata["screencolor"] = fCurrentColor;
             fCurrentColor = "";
+            
+            fMetaData.push_back(metadata);
         }
 
         int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
@@ -358,8 +372,21 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
         const char* getParamAddress(int p)	{ return fPaths[p].c_str(); }
         const char* getParamLabel(int p)	{ return fLabels[p].c_str(); }
-        const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-        const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
+        std::map<const char*, const char*> getMetadata(int p)
+        {
+            std::map<const char*, const char*> res;
+            std::map<std::string, std::string> metadata = fMetaData[p];
+            std::map<std::string, std::string>::iterator it;
+            for (it = metadata.begin(); it != metadata.end(); ++it) {
+                res[(*it).first.c_str()] = (*it).second.c_str();
+            }
+            return res;
+        }
+
+        const char* getMetadata(int p, const char* key)
+        {
+            return (fMetaData[p].find(key) != fMetaData[p].end()) ? fMetaData[p][key].c_str() : "";
+        }
         FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
         FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
         FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }

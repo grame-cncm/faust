@@ -36,7 +36,7 @@ class AudioChannels
         
         AudioChannels(int nframes, int nchannels) : fNumFrames(nframes), fNumChannels(nchannels)
         {
-            fChannels    = new FAUSTFLOAT*[nchannels];
+            fChannels = new FAUSTFLOAT*[nchannels];
             
             // allocate audio channels
             for (unsigned int i = 0; i < fNumChannels; i++) {
@@ -149,17 +149,17 @@ class unitydsp : public mydsp
                 // fill the parameters definitions
                 strncpy(pdef[i].name, fUI.getParamAddress(i), 15);
                 pdef[i].name[15] = 0;
-                strncpy(pdef[i].unit, fUI.getParamUnit(i), 15);
-                pdef[i].unit[15]        = 0;
-                pdef[i].description     = strndup(fUI.getParamTooltip(i), 256);
-                pdef[i].min             = fUI.getParamMin(i);
-                pdef[i].max             = fUI.getParamMax(i);
-                pdef[i].defaultval      = fUI.getParamInit(i);
-                pdef[i].displayscale    = 1;
+                strncpy(pdef[i].unit, fUI.getMetadata("unit", i), 15);
+                pdef[i].unit[15] = 0;
+                pdef[i].description = strndup(fUI.getMetadata("tooltip", i), 256);
+                pdef[i].min = fUI.getParamMin(i);
+                pdef[i].max = fUI.getParamMax(i);
+                pdef[i].defaultval = fUI.getParamInit(i);
+                pdef[i].displayscale = 1;
                 pdef[i].displayexponent = 1;
             }
             definition->numparameters = n;
-            definition->paramdefs     = pdef;
+            definition->paramdefs = pdef;
         }
         
         void unityProcess(float* inbuffer, float* outbuffer, unsigned int length, int inchannels, int outchannels)
