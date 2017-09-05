@@ -1,8 +1,8 @@
 //################################### maths.lib ##########################################
 //  Mathematic library for Faust. Its official prefix is `ma`.
 //########################################################################################
-// Some functions are implemented as Faust foreign functions of `math.h` functions 
-// that are not part of Faust's primitives. Defines also various constants and several 
+// Some functions are implemented as Faust foreign functions of `math.h` functions
+// that are not part of Faust's primitives. Defines also various constants and several
 // utilities.
 //########################################################################################
 
@@ -48,7 +48,7 @@ closed source license or any other license if you decide so.
 ************************************************************************/
 
 declare name "Faust Math Library";
-declare version "2.0";
+declare version "2.1";
 declare author "GRAME";
 declare copyright "GRAME";
 declare license "LGPL with exception";
@@ -67,7 +67,7 @@ declare license "LGPL with exception";
 // SR : _
 // ```
 //-----------------------------------------------------------------------------
-SR 			= min(192000.0, max(1000.0, fconstant(int fSamplingFreq, <math.h>)));
+SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
 
 
 //---------------------------------`BS`---------------------------------------
