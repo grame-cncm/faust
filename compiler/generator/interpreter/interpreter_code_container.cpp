@@ -190,24 +190,46 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     FIRMetaBlockInstruction* metadata_block = produceMetadata(name);
     
     // Then create factory
-    return new interpreter_dsp_factory_aux<T>(name, "",
-                                              gGlobal->gReader.listSrcFiles(),
-                                              INTERP_FILE_VERSION,
-                                              fNumInputs, fNumOutputs,
-                                              getInterpreterVisitor<T>()->fIntHeapOffset,
-                                              getInterpreterVisitor<T>()->fRealHeapOffset,
-                                              getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-                                              getInterpreterVisitor<T>()->getFieldOffset("count"),
-                                              getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-                                              INTER_MAX_OPT_LEVEL,
-                                              metadata_block,
-                                              getInterpreterVisitor<T>()->fUserInterfaceBlock,
-                                              init_static_block,
-                                              init_block,
-                                              resetui_block,
-                                              clear_block,
-                                              compute_control_block,
-                                              compute_dsp_block);
+    const char* trace = getenv("FAUST_INTERP_TRACE");
+    if (trace && strcasecmp(trace, "on") == 0) {
+        return new interpreter_dsp_factory_aux<T, true>(name, "",
+                                                      gGlobal->gReader.listSrcFiles(),
+                                                      INTERP_FILE_VERSION,
+                                                      fNumInputs, fNumOutputs,
+                                                      getInterpreterVisitor<T>()->fIntHeapOffset,
+                                                      getInterpreterVisitor<T>()->fRealHeapOffset,
+                                                      getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                                                      getInterpreterVisitor<T>()->getFieldOffset("count"),
+                                                      getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                                                      INTER_MAX_OPT_LEVEL,
+                                                      metadata_block,
+                                                      getInterpreterVisitor<T>()->fUserInterfaceBlock,
+                                                      init_static_block,
+                                                      init_block,
+                                                      resetui_block,
+                                                      clear_block,
+                                                      compute_control_block,
+                                                      compute_dsp_block);
+    } else {
+        return new interpreter_dsp_factory_aux<T, false>(name, "",
+                                                        gGlobal->gReader.listSrcFiles(),
+                                                        INTERP_FILE_VERSION,
+                                                        fNumInputs, fNumOutputs,
+                                                        getInterpreterVisitor<T>()->fIntHeapOffset,
+                                                        getInterpreterVisitor<T>()->fRealHeapOffset,
+                                                        getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                                                        getInterpreterVisitor<T>()->getFieldOffset("count"),
+                                                        getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                                                        INTER_MAX_OPT_LEVEL,
+                                                        metadata_block,
+                                                        getInterpreterVisitor<T>()->fUserInterfaceBlock,
+                                                        init_static_block,
+                                                        init_block,
+                                                        resetui_block,
+                                                        clear_block,
+                                                        compute_control_block,
+                                                        compute_dsp_block);
+    }
 }
 
 template <class T>

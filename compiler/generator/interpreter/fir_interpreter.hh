@@ -40,22 +40,21 @@
 
 // This only works for gcc 5+ or clang right now.
 #if (__GNUC__ >= 5) || __clang__
-#define INTERPRETER_TRACE       1
 //#define FULL_INTERPRETER_TRACE  1
 #endif
 #define INTEGER_OVERFLOW        -1
 #define DIV_BY_ZERO             -2
 
-template <class T>
+template <class T, bool TRACE>
 struct interpreter_dsp_factory_aux;
 
 // FIR bytecode interpreter
-template <class T>
+template <class T, bool TRACE>
 class FIRInterpreter  {
     
     protected:
     
-        interpreter_dsp_factory_aux<T>* fFactory;
+        interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     
         int* fIntHeap;
         T* fRealHeap;
@@ -69,12 +68,6 @@ class FIRInterpreter  {
         int fIntrumentMode;
     
         std::map<int, long long> fRealStats;
-    
-        #define push_int(val) (int_stack[int_stack_index++] = val)
-        #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
-            
-        #define pop_int() (int_stack[--int_stack_index])
-        #define pop_addr() (address_stack[--addr_stack_index])
     
         void printStats()
         {
@@ -96,14 +89,11 @@ class FIRInterpreter  {
             }
         }
     
-    #ifdef INTERPRETER_TRACE
-    
         inline void warning_overflow(InstructionIT it)
         {
             if (fIntrumentMode >= 3) {
                 fRealStats[INTEGER_OVERFLOW]++;
             }
-            
         #ifdef FULL_INTERPRETER_TRACE
             std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
             fTraceContext.write(&std::cout);
@@ -125,7 +115,7 @@ class FIRInterpreter  {
         #endif
         }
     
-        inline T check_real(InstructionIT it, T val)
+        inline T check_real_aux(InstructionIT it, T val)
         {
             if (fIntrumentMode == 0) {
                 // Nothing
@@ -154,9 +144,6 @@ class FIRInterpreter  {
         #endif
             return val;
         }
-        
-        #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
-        #define pop_real(it) check_real(it, real_stack[--real_stack_index])
     
         /*
           Keeps the latest TRACE_STACK_SIZE executed instructions, to be displayed when an error occurs.
@@ -255,10 +242,20 @@ class FIRInterpreter  {
             return index;
         #endif
         }
-    #else
-        #define push_real(it, val) (real_stack[real_stack_index++] = val)
-        #define pop_real(it) (real_stack[--real_stack_index])
-    #endif
+    
+        inline T check_real(InstructionIT it, T val)
+        {
+            return (TRACE) ? check_real_aux(it, val) : val;
+        }
+    
+        #define push_int(val) (int_stack[int_stack_index++] = val)
+        #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
+            
+        #define pop_int() (int_stack[--int_stack_index])
+        #define pop_addr() (address_stack[--addr_stack_index])
+    
+        #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
+        #define pop_real(it) check_real(it, real_stack[--real_stack_index])
     
         void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
         {
@@ -498,23 +495,8 @@ class FIRInterpreter  {
             int int_stack[fIntStackSize];
             InstructionIT address_stack[64];
           
-            //int max_real_stack = 0;
-            //int max_int_stack = 0;
-            
-            //#define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
-            //#define dispatch_next() { (*it)->write(&std::cout); std::cout << "int_stack_index " << int_stack_index << " real_stack_index " << real_stack_index << std::endl; \
-            //max_real_stack = std::max(max_real_stack, real_stack_index); max_int_stack = std::max(max_int_stack, int_stack_index); \
-            //faustassert(real_stack_index >= 0 && int_stack_index >= 0); \
-            //it++; goto *fDispatchTable[(*it)->fOpcode]; }
-     
-            
-        #ifdef INTERPRETER_TRACE
             #define dispatch_first() { traceInstruction(it); goto *fDispatchTable[(*it)->fOpcode]; }
             #define dispatch_next() { traceInstruction(it); it++; goto *fDispatchTable[(*it)->fOpcode]; }
-        #else
-            #define dispatch_first() { goto *fDispatchTable[(*it)->fOpcode]; }
-            #define dispatch_next() { it++; goto *fDispatchTable[(*it)->fOpcode]; }
-        #endif
             
             #define dispatch_branch1() { it = (*it)->fBranch1->fInstructions.begin(); dispatch_first(); }
             #define dispatch_branch2() { it = (*it)->fBranch2->fInstructions.begin(); dispatch_first(); }
@@ -553,104 +535,106 @@ class FIRInterpreter  {
                     // Memory operations
                     do_kLoadReal:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        push_real(it, fRealHeap[assert_real_heap(it, (*it)->fOffset1)]);
-                    #else
-                        push_real(it, fRealHeap[(*it)->fOffset1]);
-                    #endif
+                        if (TRACE) {
+                            push_real(it, fRealHeap[assert_real_heap(it, (*it)->fOffset1)]);
+                        } else {
+                            push_real(it, fRealHeap[(*it)->fOffset1]);
+                        }
+
                         dispatch_next();
                     }
-                        
+                    
                     do_kLoadInt:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        push_int(fIntHeap[assert_int_heap(it, (*it)->fOffset1)]);
-                    #else
-                        push_int(fIntHeap[(*it)->fOffset1]);
-                    #endif
+                        if (TRACE) {
+                            push_int(fIntHeap[assert_int_heap(it, (*it)->fOffset1)]);
+                        } else {
+                            push_int(fIntHeap[(*it)->fOffset1]);
+                        }
                         dispatch_next();
                     }
-                        
+                    
                     do_kStoreReal:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = pop_real(it);
-                    #else
-                        fRealHeap[(*it)->fOffset1] = pop_real(it);
-                    #endif
+                        if (TRACE) {
+                            fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = pop_real(it);
+                        } else {
+                            fRealHeap[(*it)->fOffset1] = pop_real(it);
+                        }
                         dispatch_next();
                     }
-                        
+                    
                     do_kStoreInt:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = pop_int();
-                    #else
-                        fIntHeap[(*it)->fOffset1] = pop_int();
-                    #endif
+                        if (TRACE) {
+                            fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = pop_int();
+                        } else {
+                            fIntHeap[(*it)->fOffset1] = pop_int();
+                        }
                         dispatch_next();
                     }
                     
                     // Directly store a value
                     do_kStoreRealValue:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = (*it)->fRealValue;
-                    #else
-                        fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
-                    #endif
+                        if (TRACE) {
+                            fRealHeap[assert_real_heap(it, (*it)->fOffset1)] = (*it)->fRealValue;
+                        } else {
+                            fRealHeap[(*it)->fOffset1] = (*it)->fRealValue;
+                        }
                         dispatch_next();
                     }
                     
                     do_kStoreIntValue:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = (*it)->fIntValue;
-                    #else
-                        fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
-                    #endif
+                        if (TRACE) {
+                            fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = (*it)->fIntValue;
+                        } else {
+                            fIntHeap[(*it)->fOffset1] = (*it)->fIntValue;
+                        }
                         dispatch_next();
                     }
                     
                     do_kLoadIndexedReal:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        push_real(it, fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
-                    #else
-                        push_real(it, fRealHeap[(*it)->fOffset1 + pop_int()]);
-                    #endif
+                        if (TRACE) {
+                            push_real(it, fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)]);
+                        } else {
+                            push_real(it, fRealHeap[(*it)->fOffset1 + pop_int()]);
+                        }
+                        
                         dispatch_next();
                     }
-                        
+                    
                     do_kLoadIndexedInt:
                     {
                         int offset = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        push_int(fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)]);
-                    #else
-                        push_int(fIntHeap[(*it)->fOffset1 + offset]);
-                    #endif
+                        if (TRACE) {
+                            push_int(fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)]);
+                        } else {
+                            push_int(fIntHeap[(*it)->fOffset1 + offset]);
+                        }
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedReal:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)] = pop_real(it);
-                    #else
-                        fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real(it);
-                    #endif
+                        if (TRACE) {
+                            fRealHeap[(*it)->fOffset1 + assert_real_heap(it, pop_int(), (*it)->fOffset2)] = pop_real(it);
+                        } else {
+                            fRealHeap[(*it)->fOffset1 + pop_int()] = pop_real(it);
+                        }
                         dispatch_next();
                     }
                     
                     do_kStoreIndexedInt:
                     {
                         int offset = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)] = pop_int();
-                    #else
-                        fIntHeap[(*it)->fOffset1 + offset] = pop_int();
-                    #endif
+                        if (TRACE) {
+                            fIntHeap[(*it)->fOffset1 + assert_int_heap(it, offset, (*it)->fOffset2)] = pop_int();
+                        } else {
+                            fIntHeap[(*it)->fOffset1 + offset] = pop_int();
+                        }
                         dispatch_next();
                     }
                     
@@ -735,21 +719,21 @@ class FIRInterpreter  {
                     // Input/output access
                     do_kLoadInput:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        push_real(it, fInputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())]);
-                    #else
-                        push_real(it, fInputs[(*it)->fOffset1][pop_int()]);
-                    #endif
+                        if (TRACE) {
+                            push_real(it, fInputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())]);
+                        } else {
+                            push_real(it, fInputs[(*it)->fOffset1][pop_int()]);
+                        }
                         dispatch_next();
                     }
                         
                     do_kStoreOutput:
                     {
-                    #ifdef INTERPRETER_TRACE
-                        fOutputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())] = pop_real(it);
-                     #else
-                        fOutputs[(*it)->fOffset1][pop_int()] = pop_real(it);
-                    #endif
+                        if (TRACE) {
+                            fOutputs[(*it)->fOffset1][assert_audio_buffer(it, pop_int())] = pop_real(it);
+                        } else {
+                            fOutputs[(*it)->fOffset1][pop_int()] = pop_real(it);
+                        }
                         dispatch_next();
                     }
                     
@@ -811,15 +795,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        int res;
-                        if (__builtin_sadd_overflow(v1, v2, &res)) {
-                            warning_overflow(it);
+                        if (TRACE) {
+                            int res;
+                            if (__builtin_sadd_overflow(v1, v2, &res)) {
+                                warning_overflow(it);
+                            }
+                            push_int(res);
+                        } else {
+                            push_int(v1 + v2);
                         }
-                        push_int(res);
-                    #else
-                        push_int(v1 + v2);
-                    #endif
                         dispatch_next();
                     }
                     
@@ -835,15 +819,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        int res;
-                        if (__builtin_ssub_overflow(v1, v2, &res)) {
-                            warning_overflow(it);
+                        if (TRACE) {
+                            int res;
+                            if (__builtin_ssub_overflow(v1, v2, &res)) {
+                                warning_overflow(it);
+                            }
+                            push_int(res);
+                        } else {
+                            push_int(v1 - v2);
                         }
-                        push_int(res);
-                    #else
-                        push_int(v1 - v2);
-                    #endif
                         dispatch_next();
                     }
                     
@@ -859,15 +843,15 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        int res;
-                        if (__builtin_smul_overflow(v1, v2, &res)) {
-                            warning_overflow(it);
+                        if (TRACE) {
+                            int res;
+                            if (__builtin_smul_overflow(v1, v2, &res)) {
+                                warning_overflow(it);
+                            }
+                            push_int(res);
+                        } else {
+                            push_int(v1 * v2);
                         }
-                        push_int(res);
-                    #else
-                        push_int(v1 * v2);
-                    #endif
                         dispatch_next();
                     }
                     
@@ -875,9 +859,9 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real(it);
                         T v2 = pop_real(it);
-                    #ifdef INTERPRETER_TRACE
-                        check_div_zero(it, v2);
-                    #endif
+                        if (TRACE) {
+                            check_div_zero(it, v2);
+                        }
                         push_real(it, v1 / v2);
                         dispatch_next();
                     }
@@ -886,9 +870,9 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        check_div_zero(it, v2);
-                    #endif
+                        if (TRACE) {
+                            check_div_zero(it, v2);
+                        }
                         push_int(v1 / v2);
                         dispatch_next();
                     }
@@ -897,9 +881,9 @@ class FIRInterpreter  {
                     {
                         T v1 = pop_real(it);
                         T v2 = pop_real(it);
-                    #ifdef INTERPRETER_TRACE
-                        check_div_zero(it, v2);
-                    #endif
+                        if (TRACE) {
+                            check_div_zero(it, v2);
+                        }
                         push_real(it, std::remainder(v1, v2));
                         dispatch_next();
                     }
@@ -908,9 +892,9 @@ class FIRInterpreter  {
                     {
                         int v1 = pop_int();
                         int v2 = pop_int();
-                    #ifdef INTERPRETER_TRACE
-                        check_div_zero(it, v2);
-                    #endif
+                        if (TRACE) {
+                            check_div_zero(it, v2);
+                        }
                         push_int(v1 % v2);
                         dispatch_next();
                     }
@@ -2523,7 +2507,7 @@ class FIRInterpreter  {
     
     public:
     
-        FIRInterpreter(interpreter_dsp_factory_aux<T>* factory)
+        FIRInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
         {
             /*
             std::cout << "FIRInterpreter :"
@@ -2557,9 +2541,15 @@ class FIRInterpreter  {
             fRealStats[FP_NAN] = 0;
             fRealStats[FP_SUBNORMAL] = 0;
             
-            const char* intrumentation = getenv("FAUST_INTERP");
-            fIntrumentMode = (intrumentation) ? atoi(intrumentation) : 0;
-        }
+            const char* trace = getenv("FAUST_INTERP_TRACE");
+            if (trace && (strcasecmp(trace, "on") == 0)) {
+                const char* mode = getenv("FAUST_INTERP_TRACE_MODE");
+                fIntrumentMode = (mode) ? atoi(mode) : 1;
+                std::cout << "Interpreter trace is on, with mode " << fIntrumentMode << std::endl;
+            } else {
+                fIntrumentMode = 0;
+            }
+         }
     
         virtual ~FIRInterpreter()
         {
@@ -2570,10 +2560,9 @@ class FIRInterpreter  {
                 delete [] fRealHeap;
                 delete [] fIntHeap;
             }
-            
-        #ifdef INTERPRETER_TRACE
-            printStats();
-        #endif
+            if (TRACE) {
+                printStats();
+            }
         }
     
         // Freeze values
