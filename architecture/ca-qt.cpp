@@ -232,7 +232,7 @@ int main(int argc, char *argv[])
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-    
+      
 #ifdef IOS
     APIUI apiui;
     Sensors sensors(&apiui);
@@ -240,6 +240,11 @@ int main(int argc, char *argv[])
 
 	snprintf(name, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, name);
+    
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
+        exit(1);
+    }
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
