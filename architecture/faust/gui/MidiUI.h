@@ -197,21 +197,22 @@ class uiMidiClock : public uiMidiTimedItem
         {}
         virtual ~uiMidiClock()
         {}
-        
-        void modifyZone(double date, FAUSTFLOAT v) 	
-        { 
-            if (fInputCtrl) {
-                fState = !fState;
-                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
-            }
-        }
-        
+    
         virtual void reflectZone()
         {
             FAUSTFLOAT v = *fZone;
             fCache = v;
             fMidiOut->clock(0);
         }
+    
+        void modifyZone(double date, FAUSTFLOAT v)
+        {
+            if (fInputCtrl) {
+                fState = !fState;
+                uiMidiTimedItem::modifyZone(date, FAUSTFLOAT(fState));
+            }
+        }
+
 };
 
 class uiMidiProgChange : public uiMidiItem
