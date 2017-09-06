@@ -323,10 +323,11 @@
     </head>
     <body bgcolor= "#FFFFFF">
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
-        <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), and compiled with its WebAssembly generating backend.
+        <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), including its WebAssembly generating backend, and compiled using <a href="http://kripken.github.io/emscripten-site/">Emscripten</a>.
+            
         <P> You can compile Faust .dsp files or URL by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
         <P>Settings (buffer size, polyphonic mode and voices, audio rendering model, ftz mode) can be changed dynamically and the DSP will be recompiled on the fly.
-        <P>Clicking on the yellow cross on the top right allows to access to the GRAME online compiler, to generated and get any available target.
+        <P>Clicking on the yellow cross on the top right allows to access to the GRAME online compiler, to generate  different targets (like for instance standalone applications, VST, Max/MSP plugins, iOS or JUCE ready projects...).
         <div class="config">
 
             <div class="config-element">

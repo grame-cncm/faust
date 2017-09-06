@@ -169,7 +169,7 @@ endif
 
 ifeq ($(system), Darwin)
     #CXXFLAGS += -g
-    CXXFLAGS += -O3
+    CXXFLAGS += -I /opt/local/include
     CXXFLAGS += -stdlib=libc++
 else
     ifneq ($(findstring MINGW32, $(system)),)
