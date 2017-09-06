@@ -1390,13 +1390,13 @@ static inline const char* transmit_value(int num)
     _maxText.text = [NSString stringWithFormat:@"%1.1f", _maxSlider.value];
     
     // If default parameters : remove widget from list
-    if (_selectedWidget->getAssignationType() == kAssignationNone)
-    {
-        for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
-        {
-            if (*i == _selectedWidget)
-            {
-                _assignatedWidgets.erase(i);
+    if (_selectedWidget->getAssignationType() == kAssignationNone) {
+        i = _assignatedWidgets.begin();
+        while (i != _assignatedWidgets.end()) {
+            if (*i == _selectedWidget) {
+                i = _assignatedWidgets.erase(i);
+            } else {
+                i++;
             }
         }
     }
@@ -1485,8 +1485,9 @@ static inline const char* transmit_value(int num)
     
     // Reset DSP state to default
     DSP->init(int(sample_rate));
-    
-    for (i = _assignatedWidgets.begin(); i != _assignatedWidgets.end(); i++)
+     
+    i = _assignatedWidgets.begin();
+    while (i != _assignatedWidgets.end())
     {
         // Reset to default state
         (*i)->resetParameters();
@@ -1518,7 +1519,7 @@ static inline const char* transmit_value(int num)
         
         [[NSUserDefaults standardUserDefaults] synchronize];
         
-        _assignatedWidgets.erase(i);
+        i = _assignatedWidgets.erase(i);
     }
     
     [self loadWidgetsPreferences];
