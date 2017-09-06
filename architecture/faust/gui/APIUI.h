@@ -75,7 +75,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::string fCurrentGyr;
         std::string fCurrentColor;
         std::string fCurrentTooltip;
-
+        std::map<std::string, std::string> fCurrentMetadata;
+    
         // Add a generic parameter
         virtual void addParameter(const char* label,
                                 FAUSTFLOAT* zone,
@@ -96,28 +97,15 @@ class APIUI : public PathBuilder, public Meta, public UI
             fStep.push_back(step);
             fItemType.push_back(type);
             
-            std::map<std::string, std::string> metadata;
-
-            //handle unit metadata
-            metadata["unit"] = fCurrentUnit;
-            fCurrentUnit = "";
-            
-            //handle tooltip metadata
-            metadata["tooltip"] = fCurrentTooltip;
-            fCurrentTooltip = "";
-
             //handle scale metadata
             switch (fCurrentScale) {
                 case kLin:
                     fConversion.push_back(new LinearValueConverter(0, 1, min, max));
-                    metadata["scale"] = "lin";
                     break;
                 case kLog:
                     fConversion.push_back(new LogValueConverter(0, 1, min, max));
-                    metadata["scale"] = "log";
                     break;
                 case kExp: fConversion.push_back(new ExpValueConverter(0, 1, min, max));
-                    metadata["scale"] = "exp";
                     break;
             }
             fCurrentScale = kLin;
@@ -141,7 +129,6 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect acc metadata : " << fCurrentAcc << std::endl;
                 }
-                metadata["acc"] = fCurrentAcc;
                 fCurrentAcc = "";
             }
        
@@ -160,7 +147,6 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     std::cerr << "incorrect gyr metadata : " << fCurrentGyr << std::endl;
                 }
-                metadata["gyr"] = fCurrentAcc;
                 fCurrentGyr = "";
             }
         
@@ -184,10 +170,10 @@ class APIUI : public PathBuilder, public Meta, public UI
                     std::cerr << "incorrect screencolor metadata : " << fCurrentColor << std::endl;
                 }
             }
-            metadata["screencolor"] = fCurrentColor;
             fCurrentColor = "";
             
-            fMetaData.push_back(metadata);
+            fMetaData.push_back(fCurrentMetadata);
+            fCurrentMetadata.clear();
         }
 
         int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
@@ -332,7 +318,10 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-			if (strcmp(key, "scale") == 0) {
+            // Keep matadata
+            fCurrentMetadata[key] = val;
+            
+            if (strcmp(key, "scale") == 0) {
                 if (strcmp(val, "log") == 0) {
                     fCurrentScale = kLog;
                 } else if (strcmp(val, "exp") == 0) {
@@ -340,13 +329,13 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     fCurrentScale = kLin;
                 }
-			} else if (strcmp(key, "unit") == 0) {
-				fCurrentUnit = val;
-			} else if (strcmp(key, "acc") == 0) {
-				fCurrentAcc = val;
-			} else if (strcmp(key, "gyr") == 0) {
-				fCurrentGyr = val;
-			} else if (strcmp(key, "screencolor") == 0) {
+            } else if (strcmp(key, "unit") == 0) {
+                fCurrentUnit = val;
+            } else if (strcmp(key, "acc") == 0) {
+                fCurrentAcc = val;
+            } else if (strcmp(key, "gyr") == 0) {
+                fCurrentGyr = val;
+            } else if (strcmp(key, "screencolor") == 0) {
                 fCurrentColor = val; // val = "red", "green", "blue" or "white"
             } else if (strcmp(key, "tooltip") == 0) {
                 fCurrentTooltip = val;
