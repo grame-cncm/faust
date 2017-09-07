@@ -73,6 +73,10 @@ win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
+debug :
+	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
+
+
 plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
