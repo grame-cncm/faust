@@ -37,7 +37,7 @@ EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string&
     return reinterpret_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
-#ifndef INTERP_PLUGIN
+//#ifndef INTERP_PLUGIN
 
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, 
                                                                   int argc, const char* argv[], 
@@ -107,7 +107,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     }
 }
 
-#endif
+//#endif
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {

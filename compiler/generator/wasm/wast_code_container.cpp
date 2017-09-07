@@ -303,6 +303,8 @@ void WASTCodeContainer::produceClass()
     fHelper << "Compilation options: ";
     printCompilationOptions(fHelper);
     fHelper << "\n*/\n";
+    
+    // GetSize
     tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
         tab(n+1, fHelper);
         fHelper << "return " << gGlobal->gWASTVisitor->getStructSize() << ";";
