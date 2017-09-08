@@ -920,13 +920,15 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             finishSection(start);
         }
     
-        void generateInternalMemory(int channels, int json_len)
+        // Return the stream position where the memory size value will have to be written
+        size_t generateInternalMemory()
         {
             int32_t start = startSection(BinaryConsts::Section::Memory);
             *fOut << U32LEB(1); // num memories
             *fOut << U32LEB(0); // memory flags
-            *fOut << U32LEB(genMemSize(getStructSize(), channels, json_len)); // memory initial pages
+            size_t size_pos = fOut->writeU32LEBPlaceholder();
             finishSection(start);
+            return size_pos;
         }
     
         void generateFuncSignatures()

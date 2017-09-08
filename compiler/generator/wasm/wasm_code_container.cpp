@@ -31,7 +31,7 @@ using namespace std;
 /*
  WASM backend and module description:
  
- - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
+ - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS, remainder in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
  - 'faustpower' function actually fallback to regular 'pow' (see powprim.h)
@@ -265,8 +265,11 @@ void WASMCodeContainer::produceClass()
     generateDeclarations(gGlobal->gWASMVisitor);
     
     // Memory
+    
+    // Keep location of memory generation
+    size_t begin_memory = -1;
     if (fInternalMemory) {
-        gGlobal->gWASMVisitor->generateInternalMemory(fNumInputs + fNumOutputs, fJSON.size());
+        begin_memory = gGlobal->gWASMVisitor->generateInternalMemory();
     }
     
     // Exports
@@ -326,25 +329,47 @@ void WASMCodeContainer::produceClass()
     
     gGlobal->gWASMVisitor->finishSection(functions_start);
     
-    // Data segment contains the JSON string starting at offset 0, removing the espace character
-    gGlobal->gWASMVisitor->generateJSON(removeChar(fJSON, '\\'));
+    // JSON generation
     
-    // Finally produce output stream
-    fBinaryOut.writeTo(*fOut);
-    
-    // Helper code
-    int n = 0;
-    
-    // User interface : prepare the JSON string
+    // Prepare compilation options
     stringstream options;
     printCompilationOptions(options);
     
     stringstream size;
     size << gGlobal->gWASMVisitor->getStructSize();
     
-    map <string, string>::iterator it;
+    JSONInstVisitor json_visitor;
+    generateUserInterface(&json_visitor);
     
-    // First generation to prepare fPathTable
+    map <string, string>::iterator it;
+    std::map<std::string, int> path_index_table;
+    map <string, MemoryDesc>& fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        // Get field index
+        MemoryDesc tmp = fieldTable1[(*it).first];
+        path_index_table[(*it).second] = tmp.fOffset;
+    }
+    
+    JSONInstVisitor res_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&res_visitor);
+    generateMetaData(&res_visitor);
+    
+    string json = res_visitor.JSON(true);
+    
+    // Memory size can now be written
+    if (fInternalMemory) {
+        // Since json is written in data segment at offset 0, the memory size must be computed taking account json size and DSP + audio buffer size
+        fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size())));
+    }
+    
+    // Data segment contains the json string starting at offset 0,
+    gGlobal->gWASMVisitor->generateJSON(removeChar(json, '\\'));
+    
+    // Finally produce output stream
+    fBinaryOut.writeTo(*fOut);
+    
+    // Helper code
+    int n = 0;
     
     // Generate JSON and getSize
     tab(n, fHelper); fHelper << "/*\n" << "Code generated with Faust version " << FAUSTVERSION << endl;
@@ -364,7 +389,7 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
         map <string, MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
-        for (it = fJSONVisitor.fPathTable.begin(); it != fJSONVisitor.fPathTable.end(); it++) {
+        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
             MemoryDesc tmp = fieldTable[(*it).first];
             tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
         }
@@ -375,7 +400,7 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper);
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
         tab(n+1, fHelper);
-        fHelper << "return \""; fHelper << fJSON; fHelper << "\";";
+        fHelper << "return \""; fHelper << json; fHelper << "\";";
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}";
     

@@ -31,7 +31,7 @@ using namespace std;
 /*
  WAST backend and module description:
  
- - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from the from JS "global.Math",
+ - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from JS "global.Math",
    or are externally implemented (log10 in JS using log, fmod in JS)
  - local variables have to be declared first on the block, before being actually initialized or set: this is done using MoveVariablesInFront3
  - 'faustpower' function actually fallback to regular 'pow' (see powprim.h)
@@ -58,18 +58,18 @@ WASTCodeContainer::WASTCodeContainer(const string& name, int numInputs, int numO
     
     // Allocate one static visitor to be shared by main and sub containers
     if (!gGlobal->gWASTVisitor) {
-        gGlobal->gWASTVisitor = new WASTInstVisitor(fOut, fInternalMemory);
+        gGlobal->gWASTVisitor = new WASTInstVisitor(&fOutAux, fInternalMemory);
     }
 }
 
 CodeContainer* WASTCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
-    return new WASTScalarCodeContainer(name, 0, 1, fOut, sub_container_type, true);
+    return new WASTScalarCodeContainer(name, 0, 1, &fOutAux, sub_container_type, true);
 }
 
 CodeContainer* WASTCodeContainer::createScalarContainer(const string& name, int sub_container_type, bool internal_memory)
 {
-    return new WASTScalarCodeContainer(name, 0, 1, fOut, sub_container_type, internal_memory);
+    return new WASTScalarCodeContainer(name, 0, 1, &fOutAux, sub_container_type, internal_memory);
 }
 
 CodeContainer* WASTCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool internal_memory)
@@ -161,10 +161,10 @@ void WASTCodeContainer::produceClass()
 {
     int n = 0;
   
-    tab(n, *fOut);
+    tab(n, fOutAux);
     gGlobal->gWASTVisitor->Tab(n);
     
-    tab(n, *fOut); *fOut << "(module";
+    tab(n, fOutAux); fOutAux << "(module";
     
         // Global declarations (mathematical functions, global variables...)
         gGlobal->gWASTVisitor->Tab(n+1);
@@ -176,17 +176,17 @@ void WASTCodeContainer::produceClass()
         generateGlobalDeclarations(gGlobal->gWASTVisitor);
     
         // Exported functions
-        tab(n+1, *fOut); *fOut << "(export \"getNumInputs\" (func $getNumInputs))";
-        tab(n+1, *fOut); *fOut << "(export \"getNumOutputs\" (func $getNumOutputs))";
-        tab(n+1, *fOut); *fOut << "(export \"getSampleRate\" (func $getSampleRate))";
-        tab(n+1, *fOut); *fOut << "(export \"init\" (func $init))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceInit\" (func $instanceInit))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceConstants\" (func $instanceConstants))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceResetUserInterface\" (func $instanceResetUserInterface))";
-        tab(n+1, *fOut); *fOut << "(export \"instanceClear\" (func $instanceClear))";
-        tab(n+1, *fOut); *fOut << "(export \"setParamValue\" (func $setParamValue))";
-        tab(n+1, *fOut); *fOut << "(export \"getParamValue\" (func $getParamValue))";
-        tab(n+1, *fOut); *fOut << "(export \"compute\" (func $compute))";
+        tab(n+1, fOutAux); fOutAux << "(export \"getNumInputs\" (func $getNumInputs))";
+        tab(n+1, fOutAux); fOutAux << "(export \"getNumOutputs\" (func $getNumOutputs))";
+        tab(n+1, fOutAux); fOutAux << "(export \"getSampleRate\" (func $getSampleRate))";
+        tab(n+1, fOutAux); fOutAux << "(export \"init\" (func $init))";
+        tab(n+1, fOutAux); fOutAux << "(export \"instanceInit\" (func $instanceInit))";
+        tab(n+1, fOutAux); fOutAux << "(export \"instanceConstants\" (func $instanceConstants))";
+        tab(n+1, fOutAux); fOutAux << "(export \"instanceResetUserInterface\" (func $instanceResetUserInterface))";
+        tab(n+1, fOutAux); fOutAux << "(export \"instanceClear\" (func $instanceClear))";
+        tab(n+1, fOutAux); fOutAux << "(export \"setParamValue\" (func $setParamValue))";
+        tab(n+1, fOutAux); fOutAux << "(export \"getParamValue\" (func $getParamValue))";
+        tab(n+1, fOutAux); fOutAux << "(export \"compute\" (func $compute))";
     
         // Fields : compute the structure size to use in 'new'
         gGlobal->gWASTVisitor->Tab(n+1);
@@ -195,23 +195,11 @@ void WASTCodeContainer::produceClass()
         // After field declaration...
         generateSubContainers();
     
-        // Generate memory
-        tab(n+1, *fOut);
-        if (fInternalMemory) {
-            *fOut << "(memory (export \"memory\") ";
-            // Since fJSON is written in date segment at offset 0, the memory size must be computed taking account fJSON size and DSP + audio buffer size
-            *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, fJSON.size()) << ")"; // memory initial pages
-        } else {
-            *fOut << "(import \"memory\" \"memory\" (memory $0 ";
-            *fOut << "0))"; // memory size set by JS code, so use a minimum value of 0
-        }
+        // Keep location of memory generation
+        streampos begin_memory = fOutAux.tellp();
     
-        // Generate one data segment containing the JSON string starting at offset 0
-        tab(n+1, *fOut);
-        *fOut << "(data (i32.const 0) \"" << fJSON << "\\00\")";
-     
         // Always generated mathematical functions
-        tab(n+1, *fOut);
+        tab(n+1, fOutAux);
         WASInst::generateIntMin()->accept(gGlobal->gWASTVisitor);
         WASInst::generateIntMax()->accept(gGlobal->gWASTVisitor);
     
@@ -220,8 +208,8 @@ void WASTCodeContainer::produceClass()
         generateGetOutputs("getNumOutputs", "dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // Inits
-        tab(n+1, *fOut); *fOut << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); gGlobal->gWASTVisitor->Tab(n+2);
+        tab(n+1, fOutAux); fOutAux << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
                 DspRenamer renamer;
@@ -229,10 +217,10 @@ void WASTCodeContainer::produceClass()
                 BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
                 generateWASTBlock(inlined);
             }
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
-            tab(n+2, *fOut); gGlobal->gWASTVisitor->Tab(n+2);
+        tab(n+1, fOutAux); fOutAux << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
+            tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
                 DspRenamer renamer;
@@ -240,25 +228,25 @@ void WASTCodeContainer::produceClass()
                 BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
                 generateWASTBlock(inlined);
             }
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceResetUserInterface (param $dsp i32)";
-            tab(n+2, *fOut); gGlobal->gWASTVisitor->Tab(n+2);
+        tab(n+1, fOutAux); fOutAux << "(func $instanceResetUserInterface (param $dsp i32)";
+            tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
                 generateWASTBlock(renamer.getCode(fResetUserInterfaceInstructions));
             }
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << ")";
     
-        tab(n+1, *fOut); *fOut << "(func $instanceClear (param $dsp i32)";
-            tab(n+2, *fOut); gGlobal->gWASTVisitor->Tab(n+2);
+        tab(n+1, fOutAux); fOutAux << "(func $instanceClear (param $dsp i32)";
+            tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
                 DspRenamer renamer;
                 generateWASTBlock(renamer.getCode(fClearInstructions));
             }
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << ")";
     
         gGlobal->gWASTVisitor->Tab(n+1);
     
@@ -272,33 +260,83 @@ void WASTCodeContainer::produceClass()
         generateGetSampleRate("dsp", false, false)->accept(gGlobal->gWASTVisitor);
     
         // setParamValue
-        tab(n+1, *fOut); *fOut << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(" << realStr << ".store ";
-                tab(n+3, *fOut); *fOut << "(i32.add (get_local $dsp) (get_local $index))";
-                tab(n+3, *fOut); *fOut << "(get_local $value)";
-            tab(n+2, *fOut); *fOut << ")";
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << "(func $setParamValue (param $dsp i32) (param $index i32) (param $value " << realStr << ")";
+            tab(n+2, fOutAux); fOutAux << "(" << realStr << ".store ";
+                tab(n+3, fOutAux); fOutAux << "(i32.add (get_local $dsp) (get_local $index))";
+                tab(n+3, fOutAux); fOutAux << "(get_local $value)";
+            tab(n+2, fOutAux); fOutAux << ")";
+        tab(n+1, fOutAux); fOutAux << ")";
     
         // getParamValue
-        tab(n+1, *fOut); *fOut << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
-            tab(n+2, *fOut); *fOut << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
-        tab(n+1, *fOut); *fOut << ")";
+        tab(n+1, fOutAux); fOutAux << "(func $getParamValue (param $dsp i32) (param $index i32) (result " << realStr << ")";
+            tab(n+2, fOutAux); fOutAux << "(return (" << realStr << ".load (i32.add (get_local $dsp) (get_local $index))))";
+        tab(n+1, fOutAux); fOutAux << ")";
     
         // compute
         generateCompute(n);
         
         // Possibly generate separated functions
         gGlobal->gWASTVisitor->Tab(n+1);
-        tab(n+1, *fOut);
+        tab(n+1, fOutAux);
         generateComputeFunctions(gGlobal->gWASTVisitor);
     
-    tab(n, *fOut); *fOut << ")";
-    tab(n, *fOut);
+    tab(n, fOutAux); fOutAux << ")";
+    tab(n, fOutAux);
+    
+    // JSON generation
+    
+    // Prepare compilation options
+    stringstream options;
+    printCompilationOptions(options);
+    
+    stringstream size;
+    size << gGlobal->gWASTVisitor->getStructSize();
+    
+    JSONInstVisitor json_visitor;
+    generateUserInterface(&json_visitor);
+    
+    map <string, string>::iterator it;
+    std::map<std::string, int> path_index_table;
+    map <string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
+    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+        // Get field index
+        MemoryDesc tmp = fieldTable1[(*it).first];
+        path_index_table[(*it).second] = tmp.fOffset;
+    }
+    
+    JSONInstVisitor res_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&res_visitor);
+    generateMetaData(&res_visitor);
+    
+    string json = res_visitor.JSON(true);
+    
+    // Now that DSP structure size is known, concatenate stream parts to produce the final stream
+    string tmp_aux = fOutAux.str();
+    string begin = tmp_aux.substr(0, begin_memory);
+    string end = tmp_aux.substr(begin_memory);
+    
+    // Write begining of code stream on *fOut
+    *fOut << begin;
+    
+    // Insert memory generation
+    if (fInternalMemory) {
+        *fOut << "(memory (export \"memory\") ";
+        // Since json is written in data segment at offset 0, the memory size must be computed taking account json size and DSP + audio buffer size
+        *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size()) << ")"; // memory initial pages
+    } else {
+        *fOut << "(import \"memory\" \"memory\" (memory $0 0))"; // memory size set by JS code, so use a minimum value of 0
+    }
+    
+    // Generate one data segment containing the JSON string starting at offset 0
+    tab(n+1, *fOut);
+    *fOut << "(data (i32.const 0) \"" << json << "\\00\")";
+    
+    // And write end of code stream on *fOut
+    *fOut << end;
     
     // Helper code
     
     // Generate JSON and getSize
-    map <string, string>::iterator it;
     tab(n, fHelper); fHelper << "/*\n" << "Code generated with Faust version " << FAUSTVERSION << endl;
     fHelper << "Compilation options: ";
     printCompilationOptions(fHelper);
@@ -316,7 +354,7 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
         tab(n+1, fHelper); fHelper << "var pathTable = [];";
         map <string, MemoryDesc>& fieldTable = gGlobal->gWASTVisitor->getFieldTable();
-        for (it = fJSONVisitor.fPathTable.begin(); it != fJSONVisitor.fPathTable.end(); it++) {
+        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
             MemoryDesc tmp = fieldTable[(*it).first];
             tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
         }
@@ -327,7 +365,7 @@ void WASTCodeContainer::produceClass()
     tab(n, fHelper);
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
         tab(n+1, fHelper);
-        fHelper << "return \""; fHelper << fJSON; fHelper << "\";";
+        fHelper << "return \""; fHelper << json; fHelper << "\";";
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}";
     
@@ -352,14 +390,14 @@ void WASTCodeContainer::produceClass()
 
 void WASTScalarCodeContainer::generateCompute(int n)
 {
-    tab(n+1, *fOut); *fOut << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
-        tab(n+2, *fOut);
+    tab(n+1, fOutAux); fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+        tab(n+2, fOutAux);
         gGlobal->gWASTVisitor->Tab(n+2);
         fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
         block->accept(gGlobal->gWASTVisitor);
-    tab(n+1, *fOut); *fOut << ")";
+    tab(n+1, fOutAux); fOutAux << ")";
 }
 
 DeclareFunInst* WASInst::generateIntMin()

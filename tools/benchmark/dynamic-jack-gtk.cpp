@@ -109,7 +109,6 @@ int main(int argc, char* argv[])
     bool is_httpd = isopt(argv, "-httpd");
     int nvoices = lopt(argv, "-nvoices", -1);
     
-    bool midi_sync = false;
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {

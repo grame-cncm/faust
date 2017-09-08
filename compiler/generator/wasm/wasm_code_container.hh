@@ -43,7 +43,7 @@ class WASMCodeContainer : public virtual CodeContainer {
         DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
         DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual);
-  
+   
     public:
 
         WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory = true);

@@ -228,6 +228,7 @@ ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
 ## For the Web/ASMJS, only compile the ASMJS backend
+asmjs : OPT= -O3
 asmjs : CC = emcc
 asmjs : CXX = emcc
 asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD -I../architecture $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -236,6 +237,7 @@ asmjs : libfaust.js libfaustworker.js
 asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']"
 
 ## For the Web/WASM, only compile the WASM backend
+wasm : OPT= -O3
 wasm : CC = emcc
 wasm : CXX = emcc
 wasm : CXXFLAGS = -DEMCC -DWASM_BUILD -I../architecture $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -559,7 +561,7 @@ generator/description.o: global.hh parser/sourcereader.hh boxes/boxes.hh tlib/pr
 generator/description.o: signals/interval.hh generator/instructions.hh generator/Text.hh evaluate/loopDetector.hh
 generator/description.o: tlib/occurrences.hh tlib/compatibility.hh
 generator/dsp_aux.o: tlib/compatibility.hh generator/dsp_aux.hh generator/export.hh errors/exception.hh dsp_factory.hh
-generator/dsp_aux.o: utils/TMutex.h generator/Text.hh generator/libfaust.h generator/libfaust-c.h
+generator/dsp_aux.o: generator/Text.hh generator/libfaust.h generator/libfaust-c.h
 generator/export.o: generator/export.hh errors/exception.hh global.hh parser/sourcereader.hh boxes/boxes.hh
 generator/export.o: tlib/tlib.hh tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh
 generator/export.o: tlib/shlysis.hh signals/signals.hh signals/binop.hh generator/interpreter/fir_opcode.hh

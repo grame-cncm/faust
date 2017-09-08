@@ -107,10 +107,6 @@ class CodeContainer : public virtual Garbageable {
         
         bool fGeneratedSR;
   
-        // For JSON generation
-        JSONInstVisitor fJSONVisitor;
-        std::string fJSON;
-        
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;
@@ -197,7 +193,7 @@ class CodeContainer : public virtual Garbageable {
             dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
             dst << "Compilation options: ";
             printCompilationOptions(dst);
-            dst << "------------------------------------------------------------ */" << endl;
+            dst << "\n------------------------------------------------------------ */" << endl;
         }
     
         virtual void generateSR()
@@ -298,7 +294,7 @@ class CodeContainer : public virtual Garbageable {
         
         void generateJSONFile();
         void generateMetaData(JSONUI* json);
-        void generateJSON();
+        void generateJSON(JSONInstVisitor* visitor);
     
         /* can be overridden by subclasses to reorder the FIR before the actual code generation */
         virtual void processFIR(void);

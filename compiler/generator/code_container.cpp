@@ -718,43 +718,21 @@ void CodeContainer::generateMetaData(JSONUI* json)
 
 void CodeContainer::generateJSONFile()
 {
+    JSONInstVisitor json_visitor;
+    generateJSON(&json_visitor);
     ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
-    xout << fJSONVisitor.JSON();
+    xout << json_visitor.JSON();
 }
 
-void CodeContainer::generateJSON()
+void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 {
-    // Compute fields indexes and DSP structure size
-    StructMemoryInstVisitor visitor;
-    generateDeclarations(&visitor);
-    
     // Prepare compilation options
     stringstream options;
     printCompilationOptions(options);
     
-    // Prepare DSP size
-    stringstream size;
-    size << visitor.getStructSize();
-    
-    // First generation to prepare fPathTable
-    JSONInstVisitor json_visitor;
-    generateUserInterface(&json_visitor);
-    
-    map <string, string>::iterator it;
-    std::map<std::string, int> path_index_table;
-    map <string, MemoryDesc>& fieldTable = visitor.getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-        // Get field index
-        MemoryDesc tmp = fieldTable[(*it).first];
-        path_index_table[(*it).second] = tmp.fOffset;
-    }
-    
-    // Full JSON generation
-    fJSONVisitor.init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&fJSONVisitor);
-    generateMetaData(&fJSONVisitor);
-    
-    fJSON = fJSONVisitor.JSON(true);
+    visitor->init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), "", std::map<std::string, int>());
+    generateUserInterface(visitor);
+    generateMetaData(visitor);
 }
 
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)

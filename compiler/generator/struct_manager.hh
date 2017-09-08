@@ -72,6 +72,7 @@ struct StructMemoryInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
+        //dump2FIR(inst);
         bool is_struct = (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         

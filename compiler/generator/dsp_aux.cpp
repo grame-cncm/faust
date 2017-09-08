@@ -29,7 +29,6 @@
 #include "compatibility.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "TMutex.h"
 #include "Text.hh"
 #include "libfaust.h"
 #include "libfaust-c.h"

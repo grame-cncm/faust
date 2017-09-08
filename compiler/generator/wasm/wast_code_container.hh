@@ -34,6 +34,7 @@ class WASTCodeContainer : public virtual CodeContainer {
     protected:
 
         std::ostream* fOut;
+        std::stringstream fOutAux;
         std::stringstream fHelper;
         int fInternalMemory;
     
@@ -46,7 +47,7 @@ class WASTCodeContainer : public virtual CodeContainer {
         }
     
         DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
-  
+    
     public:
 
         WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
