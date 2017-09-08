@@ -74,7 +74,7 @@ lipsTension = kb0k0x : si.smoo;
 // default mute value
 mute = 0.5;
 
-// ASSEMBLING MODELS
+// ASSEMBLING MODEL
 model =
 	pm.blower(pressure,breathGain,breathCutoff,vibratoFreq,vibratoGain) :
   pm.brassModel(tubeLength,lipsTension,mute);
