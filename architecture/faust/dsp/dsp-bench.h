@@ -276,11 +276,13 @@ class measure_dsp : public decorator_dsp {
         FAUSTFLOAT** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
-        int fIDX;
+        int fInputIndex;
+        int fOutputIndex;
     
         void init()
         {
-            fIDX = 0;
+            fInputIndex = 0;
+            fOutputIndex = 0;
             
             fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
             fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
@@ -291,7 +293,7 @@ class measure_dsp : public decorator_dsp {
             }
             
             fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
                 fOutputs[i] = fAllOutputs[i];
@@ -375,13 +377,13 @@ class measure_dsp : public decorator_dsp {
             do {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
                     FAUSTFLOAT* allinputs = fAllInputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fInputs[i] = &allinputs[fIDX * fBufferSize];
+                    fInputs[i] = &allinputs[fInputIndex * fBufferSize];
+                    fInputIndex = (1 + fInputIndex) % NV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                     FAUSTFLOAT* alloutputs = fAllOutputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fOutputs[i] = &alloutputs[fIDX * fBufferSize];
+                    fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
+                    fOutputIndex = (1 + fOutputIndex) % NV;
                 }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());

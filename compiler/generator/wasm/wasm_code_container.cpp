@@ -41,6 +41,9 @@ using namespace std;
  - LocalVariableCounter visitor allows to count and create local variables of each types
  - FunAndTypeCounter visitor allows to count and create function types and global variable offset
  - memory can be allocated internally in the module and exported, or externally in JS and imported
+ - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before* using the DSP instance
+ - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveform.
+ The memory size is finally generated after module code generation.
 
 */
 
@@ -350,11 +353,11 @@ void WASMCodeContainer::produceClass()
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    JSONInstVisitor res_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&res_visitor);
-    generateMetaData(&res_visitor);
+    JSONInstVisitor visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&visitor);
+    generateMetaData(&visitor);
     
-    string json = res_visitor.JSON(true);
+    string json = visitor.JSON(true);
     
     // Memory size can now be written
     if (fInternalMemory) {

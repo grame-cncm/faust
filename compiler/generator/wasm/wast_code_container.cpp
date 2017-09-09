@@ -40,6 +40,8 @@ using namespace std;
  - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)
  - memory can be allocated internally in the module and exported, or externally in JS and imported
  - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before* using the DSP instance
+ - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveform. 
+   The memory size is finally generated after module code generation.
 
 */
 
@@ -161,7 +163,6 @@ void WASTCodeContainer::produceClass()
 {
     int n = 0;
   
-    tab(n, fOutAux);
     gGlobal->gWASTVisitor->Tab(n);
     
     tab(n, fOutAux); fOutAux << "(module";
@@ -304,11 +305,11 @@ void WASTCodeContainer::produceClass()
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    JSONInstVisitor res_visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&res_visitor);
-    generateMetaData(&res_visitor);
+    JSONInstVisitor visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&visitor);
+    generateMetaData(&visitor);
     
-    string json = res_visitor.JSON(true);
+    string json = visitor.JSON(true);
     
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();
