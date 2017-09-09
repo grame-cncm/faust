@@ -162,7 +162,8 @@ class CInstVisitor : public TextInstVisitor {
                 *fOut << "inline ";
             }
             
-            if (inst->fType->fAttribute & FunTyped::kLocal) {
+            if (inst->fType->fAttribute & FunTyped::kLocal
+                || inst->fType->fAttribute & FunTyped::kStatic) {
                 *fOut << "static ";
             }
 

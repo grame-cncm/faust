@@ -320,12 +320,14 @@ void WASTCodeContainer::produceClass()
     *fOut << begin;
     
     // Insert memory generation
+    tab(n+1, *fOut);
     if (fInternalMemory) {
         *fOut << "(memory (export \"memory\") ";
-        // Since json is written in data segment at offset 0, the memory size must be computed taking account json size and DSP + audio buffer size
+        // Since JSON is written in data segment at offset 0, the memory size must be computed taking account JSON size and DSP + audio buffer size
         *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size()) << ")"; // memory initial pages
     } else {
-        *fOut << "(import \"memory\" \"memory\" (memory $0 0))"; // memory size set by JS code, so use a minimum value of 0
+        // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any JSON)
+        *fOut << "(import \"memory\" \"memory\" (memory $0 1))";
     }
     
     // Generate one data segment containing the JSON string starting at offset 0

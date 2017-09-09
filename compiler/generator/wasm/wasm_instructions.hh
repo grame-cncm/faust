@@ -801,8 +801,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             *out << "memory";
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
-            *out << U32LEB(0); // memory flags
-            *out << U32LEB(0); // memory size set by JS code, so use a minimum value of 0
+            *out << U32LEB(0); // Memory flags
+            *out << U32LEB(1); // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any JSON)
         }
         
         for (auto& import : fFunImports) {

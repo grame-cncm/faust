@@ -1354,7 +1354,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
                 // Creates function
                 FunctionType* fun_type = FunctionType::get(return_type, MAKE_VECTOR_OF_TYPES(fun_args_type), false);
-                function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, inst->fName, fModule);
+                function = Function::Create(fun_type, (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic)
+                                                    ? GlobalValue::InternalLinkage
+                                                    : GlobalValue::ExternalLinkage,
+                                                    inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
                 
             #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)

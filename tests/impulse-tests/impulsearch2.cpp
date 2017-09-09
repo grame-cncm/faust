@@ -20,7 +20,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/DecoratorUI.h"
-#include "faust/gui/UIGlue.h"
+#include "faust/gui/CGlue.h"
 #include "faust/audio/channels.h"
 
 using std::max;
