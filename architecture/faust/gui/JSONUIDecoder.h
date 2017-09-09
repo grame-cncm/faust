@@ -140,7 +140,7 @@ struct JSONUIDecoder {
         int counterIn = 0;
         int counterOut = 0;
         
-        // Prepare the fPathTable
+        // Prepare the fPathTable and init zone
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             string type = (*it)->type;
             // Meta data declaration for input items
@@ -148,6 +148,7 @@ struct JSONUIDecoder {
                 if ((*it)->address != "") {
                     fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
+                fInControl[counterIn] = STR2REAL((*it)->init);
                 counterIn++;
             }
             // Meta data declaration for output items
@@ -155,6 +156,7 @@ struct JSONUIDecoder {
                 if ((*it)->address != "") {
                     fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
+                fOutControl[counterOut] = FAUSTFLOAT(0);
                 counterOut++;
             }
         }

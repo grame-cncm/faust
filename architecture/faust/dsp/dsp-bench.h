@@ -52,6 +52,8 @@
 #include <mach/mach_time.h>
 #endif
 
+#define SAMPLE_RATE 44100.0
+
 /*
     A class to do do timing measurements
 */
@@ -250,6 +252,11 @@ class time_bench {
         }
     
         bool isRunning() { return (fMeasure <= (fMeasureCount + fSkip)); }
+    
+        int getCount()
+        {
+            return fMeasure;
+        }
 
 };
 
@@ -269,11 +276,13 @@ class measure_dsp : public decorator_dsp {
         FAUSTFLOAT** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
-        int fIDX;
+        int fInputIndex;
+        int fOutputIndex;
     
         void init()
         {
-            fIDX = 0;
+            fInputIndex = 0;
+            fOutputIndex = 0;
             
             fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
             fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
@@ -284,7 +293,7 @@ class measure_dsp : public decorator_dsp {
             }
             
             fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
                 fOutputs[i] = fAllOutputs[i];
@@ -368,13 +377,13 @@ class measure_dsp : public decorator_dsp {
             do {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
                     FAUSTFLOAT* allinputs = fAllInputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fInputs[i] = &allinputs[fIDX * fBufferSize];
+                    fInputs[i] = &allinputs[fInputIndex * fBufferSize];
+                    fInputIndex = (1 + fInputIndex) % NV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                     FAUSTFLOAT* alloutputs = fAllOutputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fOutputs[i] = &alloutputs[fIDX * fBufferSize];
+                    fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
+                    fOutputIndex = (1 + fOutputIndex) % NV;
                 }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());
@@ -420,6 +429,11 @@ class measure_dsp : public decorator_dsp {
         }
     
         bool isRunning() { return fBench->isRunning(); }
+    
+        float getCPULoad()
+        {
+            return (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
+        }
     
 };
 
