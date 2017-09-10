@@ -45,7 +45,13 @@ function Heap2Str(buf)
 faust.mydsp = function (dsp_instance, context, buffer_size) {
 
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_object = null;
+    try {
+        json_object = JSON.parse(getJSONmydsp());
+    } catch (e) {
+        faust.error_msg = "Error in JSON.parse: " + e;
+        return null;
+    }
     
     var sp;
     try {

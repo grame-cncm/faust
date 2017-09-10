@@ -38,7 +38,13 @@ faust.getErrorMessage = function() { return faust.error_msg; };
 faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buffer_size, polyphony) {
 
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_object = null;
+    try {
+        json_object = JSON.parse(getJSONmydsp());
+    } catch (e) {
+        faust.error_msg = "Error in JSON.parse: " + e;
+        return null;
+    }
     
     var sp;
     try {
@@ -642,7 +648,14 @@ faust.createMemory = function (buffer_size, polyphony) {
     }
     
     // Keep JSON parsed object
-    var json_object = JSON.parse(getJSONmydsp());
+    var json_object = null;
+    try {
+        json_object = JSON.parse(getJSONmydsp());
+    } catch (e) {
+        faust.error_msg = "Error in JSON.parse: " + e;
+        return null;
+    }
+    
     var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});

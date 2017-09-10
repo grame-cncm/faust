@@ -332,7 +332,7 @@ void WASTCodeContainer::produceClass()
     
     // Generate one data segment containing the JSON string starting at offset 0
     tab(n+1, *fOut);
-    *fOut << "(data (i32.const 0) \"" << json << "\\00\")";
+    *fOut << "(data (i32.const 0) \"" << json << "\")";
     
     // And write end of code stream on *fOut
     *fOut << end;

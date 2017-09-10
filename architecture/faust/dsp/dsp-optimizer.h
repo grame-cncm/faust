@@ -60,12 +60,14 @@ class dsp_optimizer {
         int fOptLevel;      
         llvm_dsp_factory* fFactory;
         llvm_dsp* fDSP;
-        
+    
+        int fRun;
+    
         std::string fFilename;
         std::string fInput;
         std::string fTarget;
         std::string fError;
-        
+    
         std::vector<std::vector <std::string> > fOptionsTable;
     
         bool setRealtimePriority()
@@ -334,7 +336,9 @@ class dsp_optimizer {
                 return false;
             }
             
-            res = bench();
+            for (int i = 0; i < fRun; i++) {
+                res = bench();
+            }
             
             delete fDSP;
             deleteDSPFactory(fFactory);
@@ -393,13 +397,18 @@ class dsp_optimizer {
             std::cout << "setStackSize size = " << size << std::endl;
         }
     
-        void init(const std::string& filename, const std::string input, int argc, const char* argv[], const std::string& target, int size, int opt_level_max)
+        void init(const std::string& filename, const std::string input,
+                  int argc, const char* argv[],
+                  const std::string& target,
+                  int size, int run,
+                  int opt_level_max)
         {
             fBuffer = 0;
             fFilename = filename;
             fInput = input;
             fTarget = target;
             fOptLevel = opt_level_max;
+            fRun = run;
             
             fNV = 4096;     // number of vectors in BIG buffer (should exceed cache)
             fITER = 10;     // number of iterations per measure
@@ -435,7 +444,8 @@ class dsp_optimizer {
          * @param argc - the number of parameters in argv array 
          * @param argv - the array of parameters
          * @param target - the LLVM machine target (using empty string will take current machine settings)
-         * @param buffer_size - the buffer size in sampels
+         * @param buffer_size - the buffer size in samples
+         * @param run - the number of time each test must be run
          * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
          * since the maximum value may change with new LLVM versions)
          */
@@ -444,9 +454,10 @@ class dsp_optimizer {
                       const char* argv[],
                       const std::string& target,
                       int buffer_size,
+                      int run = 1,
                       int opt_level = -1)
         {
-            init(filename, "", argc, argv, target, buffer_size, opt_level);
+            init(filename, "", argc, argv, target, buffer_size, run, opt_level);
         }
     
         /**

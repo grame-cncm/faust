@@ -730,7 +730,13 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             }
           
             // bargraph
-            sp.parse_ui(JSON.parse(factory.getJSON()).ui);
+            try {
+                sp.parse_ui(JSON.parse(factory.getJSON()).ui);
+            } catch (e) {
+                faust.error_msg = "Error in JSON.parse: " + e;
+                callback(null);
+                throw true;
+            }
         
             // Init DSP
             sp.factory.init(sp.dsp, context.sampleRate);
@@ -956,7 +962,13 @@ faust.createMemory = function (factory, buffer_size, polyphony) {
     }
     
     // Keep JSON parsed object
-    var json_object = JSON.parse(factory.getJSON());
+    var json_object = null;
+    try {
+        json_object = JSON.parse(factory.getJSON());
+    } catch (e) {
+        faust.error_msg = "Error in JSON.parse: " + e;
+        return null;
+    }
     
     function getNumInputsAux ()
     {
@@ -1010,7 +1022,14 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
         console.log("Instantiation duration : " + (time2 - time1));
 
         // Keep JSON parsed object
-        var json_object = JSON.parse(factory.getJSON());
+        var json_object = null;
+        try {
+            json_object = JSON.parse(factory.getJSON());
+        } catch (e) {
+            faust.error_msg = "Error in JSON.parse: " + e;
+            callback(null);
+            return;
+        }
           
         function getNumInputsAux ()
         {
