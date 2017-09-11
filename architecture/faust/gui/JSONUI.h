@@ -100,6 +100,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                     case '"':
                         dst << "\\" << '"';
                         break;
+                    case '\\':
+                        dst << '\\' << '\\';
+                        break;
                     default:
                         dst << src[i];
                         break;
