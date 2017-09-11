@@ -44,15 +44,8 @@ template <typename SAMPLE_TYPE>
 class dsp_optimizer {
 
     private:
-        
-        time_bench* fBench;
-
-        SAMPLE_TYPE* fBuffer;    // a buffer of fNV * fVSize samples
-
-        unsigned int fNV;        // number of vectors in BIG buffer (should exceed cache)
-        unsigned int fITER;      // number of iterations per measure
-        unsigned int fVSIZE;     // size of a vector in samples
-        unsigned int fIDX;       // current vector number (0 <= VIdx < fNV)
+    
+        int fBufferSize;     // size of a vector in samples
     
         int fArgc;
         const char** fArgv;
@@ -62,6 +55,7 @@ class dsp_optimizer {
         llvm_dsp* fDSP;
     
         int fRun;
+        int fCount;
     
         std::string fFilename;
         std::string fInput;
@@ -70,101 +64,25 @@ class dsp_optimizer {
     
         std::vector<std::vector <std::string> > fOptionsTable;
     
-        bool setRealtimePriority()
-        {
-            struct passwd* pw;
-            int err;
-            uid_t uid;
-            int policy;
-            struct sched_param param;
-
-            uid = getuid();
-            pw = getpwnam("root");
-            setuid(pw->pw_uid);
-
-            pthread_getschedparam(pthread_self(), &policy, &param);
-            policy = SCHED_RR;
-            param.sched_priority = 80;
-            err = pthread_setschedparam(pthread_self(), policy, &param);
-
-            setuid(uid);
-            return (err != -1);
-        }
-
-        void allocBuffers(int numOutChan, SAMPLE_TYPE** outChannel)
-        {
-            unsigned int BSIZE = fNV * fVSIZE;
-            fBuffer = (SAMPLE_TYPE*)calloc(BSIZE, sizeof(SAMPLE_TYPE));
-            
-            int R0_0 = 0;
-            for (int j = 0; j < BSIZE; j++) {
-                int R0temp0 = (12345 + (1103515245 * R0_0));
-                fBuffer[j] = 4.656613e-10f * R0temp0;
-                R0_0 = R0temp0;
-            }
-            
-            // Allocate output channels (not initialized)
-            for (int i = 0; i < numOutChan; i++) {
-                outChannel[i] = (SAMPLE_TYPE*)calloc(fVSIZE, sizeof(SAMPLE_TYPE));
-            }
-        }
-
-        void freeBuffers(int numOutChan, SAMPLE_TYPE** outChannel)
-        {
-            for (int i = 0; i < numOutChan; i++) {
-                free(outChannel[i]);
-            }
-            
-            free(fBuffer);
-        }
-
-        SAMPLE_TYPE* nextVect()
-        {
-            fIDX = (1 + fIDX) % fNV;
-            return &fBuffer[fIDX * fVSIZE];
-        }
-        
         double bench()
         {
-            int numInChan = fDSP->getNumInputs();
-            int numOutChan = fDSP->getNumOutputs();
-            
-            SAMPLE_TYPE* inChannel[numInChan];
-            SAMPLE_TYPE* outChannel[numOutChan];
-            
-            fBench->openMeasure();
-            
-            // Allocate input buffers (initialized with white noise)
-            allocBuffers(numOutChan, outChannel);
-            
-            // Init the dsp with a reasonable sampling rate
-            fDSP->init(48000);
-            
-            AVOIDDENORMALS;
-            
-            while (fBench->isRunning()) {
-                // Allocate new input buffers to avoid L2 cache
-                for (int c = 0; c < numInChan; c++) { inChannel[c] = nextVect(); }
-                fBench->startMeasure();
-                // Force FAUSTFLOAT type even if dynamic one is different...
-                fDSP->compute(fVSIZE, (FAUSTFLOAT**)inChannel, (FAUSTFLOAT**)outChannel);
-                fBench->stopMeasure();
+            // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
+            if (fCount == -1) {
+                measure_dsp mes(fDSP, fBufferSize, 5.);
+                mes.measure();
+                // fCount is kept from the first duration measure
+                fCount = mes.getCount();
+                return mes.getStats();
+            } else {
+                measure_dsp mes(fDSP, fBufferSize, fCount);
+                mes.measure();
+                std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                return mes.getStats();
             }
-            
-            fBench->closeMeasure();
-            double res = fBench->getStats(fVSIZE, fDSP->getNumInputs(), fDSP->getNumOutputs());
-            double cpu_load = (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fVSIZE * 1000.0);
-            
-            std::cout << res << " (DSP CPU % : " << (cpu_load * 100) << ")" << std::endl;
-            
-            freeBuffers(numOutChan, outChannel);
-            return res;
         }
     
         void init()
         {
-            setRealtimePriority();
-         
             // Scalar mode
             std::vector <std::string> t0;
             if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t0.push_back("-double"); }
@@ -174,7 +92,7 @@ class dsp_optimizer {
             SAMPLE_TYPE var;
             
             // vec -lv 0
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -188,7 +106,7 @@ class dsp_optimizer {
             }
             
             // vec -lv 0
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -203,7 +121,7 @@ class dsp_optimizer {
             }
             
             // vec -lv 0 -g
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -218,7 +136,7 @@ class dsp_optimizer {
             }
             
             // vec -lv 0 -dfs
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -233,7 +151,7 @@ class dsp_optimizer {
             }
       
             // vec -lv 1
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -247,7 +165,7 @@ class dsp_optimizer {
             }
             
             // vec -lv 1 -g
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -262,7 +180,7 @@ class dsp_optimizer {
             }
          
             // vec -lv 1 -dfs
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                 std::stringstream num;
                 num << size;
                 std::vector <std::string> t1;
@@ -278,7 +196,7 @@ class dsp_optimizer {
             
             /*
             // sch
-            for (int size = 4; size <= fVSIZE; size *= 2) {
+            for (int size = 4; size <= fBufferSize; size *= 2) {
                  std::stringstream num;
                  num << size;
                  std::vector <std::string> t1;
@@ -307,7 +225,7 @@ class dsp_optimizer {
             return res_item;
         }
         
-        bool computeOne(const std::vector<std::string>& item, double& res)
+        bool computeOne(const std::vector<std::string>& item, int run, double& res)
         {
             printItem(item);
             
@@ -329,18 +247,16 @@ class dsp_optimizer {
                 return false;
             }
             
-            fDSP = fFactory->createDSPInstance();
-            
-            if (!fDSP) {
-                std::cerr << "Cannot create instance..." << std::endl;
-                return false;
-            }
-            
-            for (int i = 0; i < fRun; i++) {
+            for (int i = 0; i < run; i++) {
+                fDSP = fFactory->createDSPInstance();
+                if (!fDSP) {
+                    std::cerr << "Cannot create instance..." << std::endl;
+                    return false;
+                }
                 res = bench();
+                // fDSP is deallocated by bench calling measure_dsp
             }
             
-            delete fDSP;
             deleteDSPFactory(fFactory);
             fFactory = 0;
             fDSP = 0;
@@ -354,7 +270,7 @@ class dsp_optimizer {
             double res = 0.;
             
             for (int i = 0; i < options.size(); i++) {
-                if (computeOne(addArgvItems(options[i], fArgc, fArgv), res)) {
+                if (computeOne(addArgvItems(options[i], fArgc, fArgv), fRun, res)) {
                     table_res.push_back(std::make_pair(i, res));
                 } else {
                     std::cerr << "computeOne error..." << std::endl;
@@ -368,71 +284,27 @@ class dsp_optimizer {
 
         static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
     
-        static int getStackSize()
-        {
-            pthread_attr_t attributes;
-            pthread_attr_init(&attributes);
-            size_t size;
-            int res;
-            
-            if ((res = pthread_attr_getstacksize(&attributes, &size))) {
-                std::cerr << "pthread_attr_getstacksize error " << res << std::endl;
-                return 0;
-            } else {
-                std::cerr << "getStackSize size = " << size << std::endl;
-                return size;
-            }
-        }
-        
-        static void setStackSize(size_t size)
-        {
-            pthread_attr_t attributes;
-            pthread_attr_init(&attributes);
-            int res;
-            
-            if ((res = pthread_attr_setstacksize(&attributes, size))) {
-                std::cerr << "pthread_attr_setstacksize error " << res << std::endl;
-            }
-            
-            std::cout << "setStackSize size = " << size << std::endl;
-        }
-    
         void init(const std::string& filename, const std::string input,
                   int argc, const char* argv[],
                   const std::string& target,
-                  int size, int run,
+                  int buffer_size, int run,
                   int opt_level_max)
         {
-            fBuffer = 0;
             fFilename = filename;
             fInput = input;
             fTarget = target;
             fOptLevel = opt_level_max;
             fRun = run;
-            
-            fNV = 4096;     // number of vectors in BIG buffer (should exceed cache)
-            fITER = 10;     // number of iterations per measure
-            fVSIZE = size;  // size of a vector in samples
-            fIDX = 0;       // current vector number (0 <= VIdx < NV)
-            
+            fBufferSize = buffer_size;  // size of a vector in samples
             fArgc = argc;
             fArgv = argv;
+            fCount = -1;
             
             init();
             
             std::cout << "Estimate timing parameters" << std::endl;
             double res;
-            fBench = new time_bench(500, 10);
-            if (computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), res)) {
-                double duration = fBench->measureDurationUsec();
-                int cout = int (500 * (5 * 1e6 / duration));
-                std::cout << "duration = " << duration/1e6 << " count = " << cout << std::endl;
-                delete fBench;
-                fBench = new time_bench(cout, 10);
-            } else {
-                std::cerr << "Error in dsp_optimizer constructor" << std::endl;
-                throw std::bad_alloc();
-            }
+            computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res);
         }
     
     public:

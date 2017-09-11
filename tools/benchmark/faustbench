@@ -9,6 +9,7 @@ DOUBLE="0"
 OPTIONS=""
 LIBS=""
 ALL_TESTS="1"
+RUN=1
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
@@ -33,6 +34,7 @@ do
         echo "faustbench [-ios] [-fast] [-double] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-fast' to execute only some tests"
+        echo "Use '-run <num>' to execute each test <num> times"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"
         echo "Use 'export CXXFLAGS=options' before running faustbench to change the C++ compiler options"
@@ -43,6 +45,9 @@ do
         IOS="1"
     elif [ "$p" = "-fast" ]; then
         ALL_TESTS="0"
+    elif [ "$p" = "-run" ]; then
+        shift
+        RUN=$1
     elif [ "$p" = "-double" ]; then
         DOUBLE="1"
         OPTIONS="$OPTIONS $p"
@@ -153,7 +158,7 @@ for p in $FILES; do
     fi
 
     # run bench
-   ./$dspName
+    ./$dspName -run $RUN
 
     # cleanup
     cd ../../

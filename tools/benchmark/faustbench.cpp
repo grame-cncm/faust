@@ -86,16 +86,17 @@ using namespace std;
 
 #define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
 
-static double bench(dsp* dsp, const string& name)
+static double bench(dsp* dsp, const string& name, int run)
 {
-    dsp->init(48000);
-    measure_dsp mes(dsp, 1024, 5);
-    mes.measure();
-    cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+    measure_dsp mes(dsp, 1024, 5.);  // Buffer_size and duration in sec of  measure
+    for (int i = 0; i < run; i++) {
+        mes.measure();
+        cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+    }
     return mes.getStats();
 }
 
-extern "C" int bench_all(const char* name)
+extern "C" int bench_all(const char* name, int run)
 {
     vector<double> measures;
     vector<string> options;
@@ -157,53 +158,53 @@ extern "C" int bench_all(const char* name)
 #ifdef ALL_TESTS
     
     // Scalar
-    measures.push_back(bench(new dsp_scal(), options[ind++]));
+    measures.push_back(bench(new dsp_scal(), options[ind++], run));
     
     // Vector -lv 0
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_8(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_16(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_64(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_128(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_256(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_512(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_8(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_16(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_64(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_128(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_256(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_512(), options[ind++], run));
     
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_8(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_16(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_64(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_128(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_256(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_512(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_8(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_16(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_64(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_128(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_256(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_512(), options[ind++], run));
     
     // Vector -lv 1
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_8(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_16(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_64(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_128(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_256(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_512(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_8(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_16(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_64(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_128(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_256(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_512(), options[ind++], run));
     
-    measures.push_back(bench(new dsp_vec1g_4(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_8(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_16(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_64(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_128(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_256(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_512(), options[ind++]));
+    measures.push_back(bench(new dsp_vec1g_4(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_8(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_16(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_64(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_128(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_256(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_512(), options[ind++], run));
     
 #else
     
-    measures.push_back(bench(new dsp_scal(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec0g_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1_32(), options[ind++]));
-    measures.push_back(bench(new dsp_vec1g_32(), options[ind++]));
+    measures.push_back(bench(new dsp_scal(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run));
     
 #endif
     
@@ -221,7 +222,12 @@ extern "C" int bench_all(const char* name)
 
 int main(int argc, char* argv[])
 {
-    return bench_all(argv[0]);
+    if (argc < 2) {
+        cout << "faustbench [-run num] <foo.dsp>" << endl;
+        return 0;
+    }
+    int run = lopt(argv, "-run", 1);
+    return bench_all(argv[0], run);
 }
 
 #endif
