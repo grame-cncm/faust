@@ -66,8 +66,8 @@ struct JSONUIDecoder {
     
     int fDSPSize;
     
-    controlMap fPathInputTable;     // [path, <zone, index>]
-    controlMap fPathOutputTable;    // [path, <zone, index>]
+    controlMap fPathInputTable;     // [path, <index, zone>]
+    controlMap fPathOutputTable;    // [path, <index, zone>]
     
     bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
     bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
@@ -144,7 +144,7 @@ struct JSONUIDecoder {
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             string type = (*it)->type;
             // Meta data declaration for input items
-            if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
+            if (isInput(type)) {
                 if ((*it)->address != "") {
                     fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
@@ -152,7 +152,7 @@ struct JSONUIDecoder {
                 counterIn++;
             }
             // Meta data declaration for output items
-            else if ((*it)->type.find("bargraph") != string::npos) {
+            else if (isOutput(type)) {
                 if ((*it)->address != "") {
                     fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
@@ -219,14 +219,14 @@ struct JSONUIDecoder {
             }
             
             // Meta data declaration for input items
-            if ((*it)->type.find("group") == string::npos && (*it)->type.find("bargraph") == string::npos && (*it)->type != "close") {
+            if (isInput(type)) {
                 fInControl[counterIn] = init;
                 for (int i = 0; i < (*it)->meta.size(); i++) {
                     ui->declare(&fInControl[counterIn], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
                 }
             }
             // Meta data declaration for output items
-            else if ((*it)->type.find("bargraph") != string::npos) {
+            else if (isOutput(type)) {
                 fOutControl[counterOut] = init;
                 for (int i = 0; i < (*it)->meta.size(); i++) {
                     ui->declare(&fOutControl[counterOut], (*it)->meta[i].first.c_str(), (*it)->meta[i].second.c_str());
@@ -276,5 +276,6 @@ struct JSONUIDecoder {
     }
     
 };
+
 
 #endif
