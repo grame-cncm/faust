@@ -85,12 +85,7 @@ kb6kstatus(5) = hslider("kb6k5status",0,0,1,1) <: ==(1) | ==(4) : int;
 
 // MODEL PARAMETERS
 // strings length
-sl(0) = kbfreq(0)*kbbend(0) : pm.f2l : si.smoo;
-sl(1) = kbfreq(1)*kbbend(1) : pm.f2l : si.smoo;
-sl(2) = kbfreq(2)*kbbend(2) : pm.f2l : si.smoo;
-sl(3) = kbfreq(3)*kbbend(3) : pm.f2l : si.smoo;
-sl(4) = kbfreq(4)*kbbend(4) : pm.f2l : si.smoo;
-sl(5) = kbfreq(5)*kbbend(5) : pm.f2l : si.smoo;
+sl(i) = kbfreq(i)*kbbend(i) : pm.f2l : si.smoo;
 // pluck position is controlled by the x axis of the accel
 pluckPosition =
 	hslider("pluckPosition[acc: 1 0 -10 0 10]",0.5,0,1,0.01) : si.smoo;

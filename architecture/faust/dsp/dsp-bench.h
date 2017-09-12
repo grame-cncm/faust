@@ -32,6 +32,8 @@
 #include <algorithm>
 #include <assert.h>
 #include <string.h>
+#include <pwd.h>
+#include <unistd.h>
 
 #include "faust/dsp/dsp.h"
 
@@ -52,6 +54,9 @@
 #include <mach/mach_time.h>
 #endif
 
+#define SAMPLE_RATE 44100.0
+#define NV 4096     // number of vectors in BIG buffer (should exceed cache)
+
 /*
     A class to do do timing measurements
 */
@@ -65,14 +70,14 @@ class time_bench {
     #endif
     
         int fMeasure;
-        int fMeasureCount;
+        int fCount;
         int fSkip;
     
         // These values are used to determine the number of clocks in a second
         uint64 fFirstRDTSC;
         uint64 fLastRDTSC;
     
-        // These tables contains the last fMeasureCount in clocks
+        // These tables contains the last fCount in clocks
         uint64* fStarts;
         uint64* fStops;
     
@@ -156,12 +161,12 @@ class time_bench {
         time_bench(int count, int skip)
         {
             fSkip = skip;
-            fMeasureCount = count;
+            fCount = count;
             fMeasure = 0;
             fFirstRDTSC = 0;
             fLastRDTSC = 0;
-            fStarts = new uint64[fMeasureCount];
-            fStops = new uint64[fMeasureCount];
+            fStarts = new uint64[fCount];
+            fStops = new uint64[fCount];
         #ifdef TARGET_OS_IPHONE
             mach_timebase_info(&fTimeInfo);
         #endif
@@ -173,9 +178,9 @@ class time_bench {
             delete [] fStops;
         }
     
-        void startMeasure() { fStarts[fMeasure % fMeasureCount] = rdtsc(); }
+        void startMeasure() { fStarts[fMeasure % fCount] = rdtsc(); }
     
-        void stopMeasure() { fStops[fMeasure % fMeasureCount] = rdtsc(); fMeasure++; }
+        void stopMeasure() { fStops[fMeasure % fCount] = rdtsc(); fMeasure++; }
         
         void openMeasure()
         {
@@ -202,12 +207,10 @@ class time_bench {
          */
         double getStats(int bsize, int ichans, int ochans)
         {
-            //std::cout << "getStats fMeasure = " << fMeasure << " fMeasureCount = " << fMeasureCount << std::endl;
+            assert(fMeasure > fCount);
+            std::vector<uint64> V(fCount);
             
-            assert(fMeasure > fMeasureCount);
-            std::vector<uint64> V(fMeasureCount);
-            
-            for (int i = 0; i < fMeasureCount; i++) {
+            for (int i = 0; i < fCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
             }
             
@@ -219,14 +222,14 @@ class time_bench {
         }
 
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements.
+         * Print the median value (in Megabytes/second) of fCount throughputs measurements.
          */
         void printStats(const char* applname, int bsize, int ichans, int ochans)
         {
-            assert(fMeasure > fMeasureCount);
-            std::vector<uint64> V(fMeasureCount);
+            assert(fMeasure > fCount);
+            std::vector<uint64> V(fCount);
             
-            for (int i = 0; i < fMeasureCount; i++) {
+            for (int i = 0; i < fCount; i++) {
                 V[i] = fStops[i] - fStarts[i];
             }
             
@@ -234,9 +237,9 @@ class time_bench {
             
             // Mean of 10 best values (gives relatively stable results)
             uint64 meaval00 = meanValue(V.begin(), V.begin()+ 5);
-            uint64 meaval25 = meanValue(V.begin() + fMeasureCount / 4 - 2, V.begin()+fMeasureCount / 4 + 3);
-            uint64 meaval50 = meanValue(V.begin() + fMeasureCount / 2 - 2, V.begin()+fMeasureCount / 2 + 3);
-            uint64 meaval75 = meanValue(V.begin() + 3 * fMeasureCount / 4 - 2, V.begin() + 3 * fMeasureCount / 4 + 3);
+            uint64 meaval25 = meanValue(V.begin() + fCount / 4 - 2, V.begin()+fCount / 4 + 3);
+            uint64 meaval50 = meanValue(V.begin() + fCount / 2 - 2, V.begin()+fCount / 2 + 3);
+            uint64 meaval75 = meanValue(V.begin() + 3 * fCount / 4 - 2, V.begin() + 3 * fCount / 4 + 3);
             uint64 meaval100 = meanValue(V.end() - 5, V.end());
             
             // Printing
@@ -249,15 +252,18 @@ class time_bench {
             << std::endl;
         }
     
-        bool isRunning() { return (fMeasure <= (fMeasureCount + fSkip)); }
+        bool isRunning() { return (fMeasure <= (fCount + fSkip)); }
+    
+        int getCount()
+        {
+            return fMeasure;
+        }
 
 };
 
 /*
     A class to measure DSP CPU use.
 */
-
-#define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 class measure_dsp : public decorator_dsp {
     
@@ -269,11 +275,16 @@ class measure_dsp : public decorator_dsp {
         FAUSTFLOAT** fAllOutputs;
         time_bench* fBench;
         int fBufferSize;
-        int fIDX;
+        int fInputIndex;
+        int fOutputIndex;
+        int fCount;
     
         void init()
         {
-            fIDX = 0;
+            fDSP->init(SAMPLE_RATE);
+            
+            fInputIndex = 0;
+            fOutputIndex = 0;
             
             fInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
             fAllInputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
@@ -284,12 +295,33 @@ class measure_dsp : public decorator_dsp {
             }
             
             fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
-            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fAllOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
                 fOutputs[i] = fAllOutputs[i];
                 memset(fAllOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
             }
+        }
+    
+        bool setRealtimePriority()
+        {
+            struct passwd* pw;
+            int err;
+            uid_t uid;
+            int policy;
+            struct sched_param param;
+            
+            uid = getuid();
+            pw = getpwnam("root");
+            setuid(pw->pw_uid);
+            
+            pthread_getschedparam(pthread_self(), &policy, &param);
+            policy = SCHED_RR;
+            param.sched_priority = 80;
+            err = pthread_setschedparam(pthread_self(), policy, &param);
+            
+            setuid(uid);
+            return (err != -1);
         }
     
     public:
@@ -300,30 +332,38 @@ class measure_dsp : public decorator_dsp {
          * @param dsp - the dsp to be measured.
          * @param buffer_size - the buffer size used when calling 'computeAll'
          * @param count - the number of cycles using in 'computeAll'
-         * @param skip - ??
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, int count, int skip)
-            :decorator_dsp(dsp), fBufferSize(buffer_size)
+        measure_dsp(dsp* dsp, int buffer_size, int count)
+            :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
         {
             init();
-            fBench = new time_bench(count, 10);
+            fBench = new time_bench(fCount, 10);
         }
     
+        /**
+         * Constructor.
+         *
+         * @param dsp - the dsp to be measured.
+         * @param buffer_size - the buffer size used when calling 'computeAll'
+         * @param duration_in_sec - the wanted durection used in 'computeAll'
+         *
+         */
         measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec)
             :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
             init();
             
             // Creates a first time_bench object to estimate the proper 'count' number of measure to do later
-            fBench = new time_bench(500, 10);
+            fBench = new time_bench(1000, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            int cout = int(500 * (duration_in_sec * 1e6 / duration));
+            std::cout << "duration " << (duration / 1e6) << std::endl;
+            fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             
             // Then allocate final time_bench object with proper 'count' parameter
-            fBench = new time_bench(cout, 10);
+            fBench = new time_bench(fCount, 10);
         }
     
         virtual ~measure_dsp()
@@ -368,13 +408,13 @@ class measure_dsp : public decorator_dsp {
             do {
                 for (int i = 0; i < fDSP->getNumInputs(); i++) {
                     FAUSTFLOAT* allinputs = fAllInputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fInputs[i] = &allinputs[fIDX * fBufferSize];
+                    fInputs[i] = &allinputs[fInputIndex * fBufferSize];
+                    fInputIndex = (1 + fInputIndex) % NV;
                 }
                 for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                     FAUSTFLOAT* alloutputs = fAllOutputs[i];
-                    fIDX = (1 + fIDX) % NV;
-                    fOutputs[i] = &alloutputs[fIDX * fBufferSize];
+                    fOutputs[i] = &alloutputs[fOutputIndex * fBufferSize];
+                    fOutputIndex = (1 + fOutputIndex) % NV;
                 }
                 compute(0, fBufferSize, fInputs, fOutputs);
             } while (fBench->isRunning());
@@ -398,6 +438,8 @@ class measure_dsp : public decorator_dsp {
     
         void measure()
         {
+            setRealtimePriority();
+            
             openMeasure();
             computeAll();
             closeMeasure();
@@ -412,7 +454,7 @@ class measure_dsp : public decorator_dsp {
         }
     
         /**
-         * Print the median value (in Megabytes/second) of fMeasureCount throughputs measurements
+         * Print the median value (in Megabytes/second) of fCount throughputs measurements
          */
         void printStats(const char* applname)
         {
@@ -420,6 +462,13 @@ class measure_dsp : public decorator_dsp {
         }
     
         bool isRunning() { return fBench->isRunning(); }
+    
+        float getCPULoad()
+        {
+            return (fBench->measureDurationUsec() / 1000.0 * SAMPLE_RATE) / (fBench->getCount() * fBufferSize * 1000.0);
+        }
+    
+        int getCount() { return fCount; }
     
 };
 
