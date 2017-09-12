@@ -64,7 +64,7 @@ class dsp_optimizer {
     
         std::vector<std::vector <std::string> > fOptionsTable;
     
-        double bench()
+        double bench(int run)
         {
             // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
             if (fCount == -1) {
@@ -75,8 +75,10 @@ class dsp_optimizer {
                 return mes.getStats();
             } else {
                 measure_dsp mes(fDSP, fBufferSize, fCount);
-                mes.measure();
-                std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                for (int i = 0; i < run; i++) {
+                    mes.measure();
+                    std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                }
                 return mes.getStats();
             }
         }
@@ -247,15 +249,13 @@ class dsp_optimizer {
                 return false;
             }
             
-            for (int i = 0; i < run; i++) {
-                fDSP = fFactory->createDSPInstance();
-                if (!fDSP) {
-                    std::cerr << "Cannot create instance..." << std::endl;
-                    return false;
-                }
-                res = bench();
-                // fDSP is deallocated by bench calling measure_dsp
+            fDSP = fFactory->createDSPInstance();
+            if (!fDSP) {
+                std::cerr << "Cannot create instance..." << std::endl;
+                return false;
             }
+            res = bench(run);
+            // fDSP is deallocated by bench calling measure_dsp
             
             deleteDSPFactory(fFactory);
             fFactory = 0;
