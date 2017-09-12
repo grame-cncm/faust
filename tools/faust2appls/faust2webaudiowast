@@ -79,6 +79,8 @@ for p in $@; do
 	fi
 done
 
+echo "Compiling with :" $OPTIONS
+
 #-------------------------------------------------------------------
 # Set the compilation wrapping files depending of the compilation options
 #

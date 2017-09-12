@@ -119,9 +119,9 @@ class FIRInterpreter  {
         {
             if (fIntrumentMode == 0) {
                 // Nothing
-            } else if ((fIntrumentMode == 1) && !std::isnormal(val) && (val != T(0))) {
+            } else if ((fIntrumentMode >= 1) && !std::isnormal(val) && (val != T(0))) {
                 fRealStats[FP_SUBNORMAL]++;
-            } else if (fIntrumentMode == 2) {
+            } else if (fIntrumentMode >= 2) {
                 if (std::isinf(val)) {
                     fRealStats[FP_INFINITE]++;
                 } else if (std::isnan(val)) {

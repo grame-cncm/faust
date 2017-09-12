@@ -75,6 +75,8 @@ for p in $@; do
 	fi
 done
 
+echo "Compiling with :" $OPTIONS
+
 #-------------------------------------------------------------------
 # Set the compilation wrapping files depending of the compilation options
 #
@@ -179,7 +181,7 @@ for f in $FILES; do
     if [ $EMCC = emcc ] ; then
         faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
-        faust -ftz 2 -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
+        faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
        # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
             echo "Optimize $name wasm module"
