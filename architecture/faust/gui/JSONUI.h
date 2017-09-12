@@ -95,10 +95,13 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 switch (src[i]) {
                     case '\n':
                     case '\t':
-                        dst << ' ';
+                    case ' ':
                         break;
                     case '"':
                         dst << "\\" << '"';
+                        break;
+                    case '\\':
+                        dst << '\\' << '\\';
                         break;
                     default:
                         dst << src[i];

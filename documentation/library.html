@@ -543,7 +543,7 @@
 <li><a href="#violinbridge"><code>violinBridge</code></a></li>
 <li><a href="#violinbody"><code>violinBody</code></a></li>
 <li><a href="#violinmodel"><code>violinModel</code></a></li>
-<li><a href="#violinmodel_ui"><code>violinModel_ui</code></a></li>
+<li><a href="#violin_ui"><code>violin_ui</code></a></li>
 <li><a href="#violin_ui_midi"><code>violin_ui_MIDI</code></a></li>
 </ul></li>
 <li><a href="#wind-instruments">Wind Instruments</a><ul>
@@ -2657,7 +2657,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <ul>
 <li><code>RN</code>: rates in seconds</li>
 <li><code>LN</code>: levels (0-1)</li>
-<li><code>t</code>: trigger signa</li>
+<li><code>t</code>: trigger signal</li>
 </ul>
 <hr />
 <h3 id="adsre"><code>adsre</code></h3>
@@ -4732,12 +4732,12 @@ triangle : _ // = triangleN(2)</code></pre>
 <p>Speed of sound in meters per second (340m/s).</p>
 <hr />
 <h3 id="maxlength"><code>maxLength</code></h3>
-<p>The default maximum length (3) in meters of strings and tubes used in this library. This variable should be overriden allow longer strings or tubes.</p>
+<p>The default maximum length (3) in meters of strings and tubes used in this library. This variable should be overriden to allow longer strings or tubes.</p>
 <hr />
 <h2 id="conversion-tools-1">Conversion Tools</h2>
 <p>Useful conversion tools for physical modeling.</p>
 <h3 id="f2l"><code>f2l</code></h3>
-<p>Frequency to lentgh in meters.</p>
+<p>Frequency to length in meters.</p>
 <h4 id="usage-276">Usage</h4>
 <pre><code>f2l(freq) : distanceInMeters</code></pre>
 <p>Where:</p>
@@ -4746,7 +4746,7 @@ triangle : _ // = triangleN(2)</code></pre>
 </ul>
 <hr />
 <h3 id="l2f"><code>l2f</code></h3>
-<p>Lentgh in meters to frequency.</p>
+<p>Length in meters to frequency.</p>
 <h4 id="usage-277">Usage</h4>
 <pre><code>l2f(length) : freq</code></pre>
 <p>Where:</p>
@@ -5222,7 +5222,7 @@ bridgeAbsorption,bowPosition) : _</code></pre>
 <li><code>bowPosition</code>: the position of the bow on the string (0-1)</li>
 </ul>
 <hr />
-<h3 id="violinmodel_ui"><code>violinModel_ui</code></h3>
+<h3 id="violin_ui"><code>violin_ui</code></h3>
 <p>Ready-to-use violin physical model with built-in UI.</p>
 <h4 id="usage-333">Usage</h4>
 <pre><code>violinModel_ui : _</code></pre>
