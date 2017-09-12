@@ -42,8 +42,8 @@ static void bench(dsp_optimizer<T> optimizer, const string& name)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
-        cout << "faustbench-llvm [-run num] [additional Faust options (-vec -vs 8...)] <foo.dsp>" << endl;
+    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << "faustbench-llvm [-run <num>] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         return 0;
     }
     

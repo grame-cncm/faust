@@ -26,12 +26,13 @@ Additional Faust compiler options can be given. Note that the Interpreter backen
 
 **faustbench** uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
 
-`faustbench [-ios] [-fast] [-double] [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faustbench [-ios] [-fast] [-run <num] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
  - `-ios to generate an iOS project`
  - `-fast to execute only some tests`
+ - `-run <num> to execute each test <num> times`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
 
 Use `export CXX=/path/to/compiler` before running faustbench to change the C++ compiler, and `export CXXFLAGS=options` to change the C++ compiler options. Additional Faust compiler options can be given.
@@ -40,6 +41,9 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust comptiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [additional Faust options (-vec -vs 8...)] <file.dsp>` 
+`faustbench-llvm [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
+Here are the available options:
+
+- `-run <num> to execute each test <num> times`
 

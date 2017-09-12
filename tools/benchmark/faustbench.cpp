@@ -222,8 +222,8 @@ extern "C" int bench_all(const char* name, int run)
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
-        cout << "faustbench [-run num] <foo.dsp>" << endl;
+    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << "faustbench [-run <num>] foo.dsp" << endl;
         return 0;
     }
     int run = lopt(argv, "-run", 1);
