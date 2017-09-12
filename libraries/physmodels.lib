@@ -1271,7 +1271,7 @@ with{
 	);
 };
 
-//-------`violinModel_ui`----------
+//-------`violin_ui`----------
 // Ready-to-use violin physical model with built-in UI.
 //
 // #### Usage
