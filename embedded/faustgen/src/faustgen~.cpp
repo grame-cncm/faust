@@ -175,7 +175,7 @@ faustgen_factory::faustgen_factory(const string& name)
     
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
-    CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen"));
+    CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.faustgen-"));  // - character added since SDK 7.3.3
     CFURLRef faustgen_ref = CFBundleCopyBundleURL(faustgen_bundle);
     UInt8 bundle_path[512];
     Boolean res = CFURLGetFileSystemRepresentation(faustgen_ref, true, bundle_path, 512);
@@ -271,12 +271,10 @@ void faustgen_factory::free_dsp_factory()
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
-    return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
+    //return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
     
-    /*
     // Alternate model using machine code
-    return readDSPFactoryFromMachine(decoded_bitcode);
-    */
+    return readDSPFactoryFromMachine(*fBitCode, getTarget());
     
     /*
     // Alternate model using LLVM IR
@@ -540,7 +538,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // Read bitcode size key
-    err = dictionary_getlong(d, gensym("bitcode_size"), (t_atom_long*)&fBitCodeSize); 
+    err = dictionary_getlong(d, gensym("machinecode_size"), (t_atom_long*)&fBitCodeSize);
     if (err != MAX_ERR_NONE) {
         fBitCodeSize = 0;
         goto read_sourcecode;
@@ -552,7 +550,7 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     
     fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
     const char* bitcode;
-    err = dictionary_getstring(d, gensym("bitcode"), &bitcode);     // The retrieved pointer references the string in the dictionary, it is not a copy.
+    err = dictionary_getstring(d, gensym("machinecode"), &bitcode);     // The retrieved pointer references the string in the dictionary, it is not a copy.
     sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
     if (err != MAX_ERR_NONE) {
         fBitCodeSize = 0;
@@ -605,16 +603,19 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
       
     // Save bitcode
     if (fDSPfactory) {
-        string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
+        //string bitcode = writeDSPFactoryToBitcode(fDSPfactory);
         
         // Alternate model using LLVM IR
         // string ircode = writeDSPFactoryToIR(fDSPfactory);
     
         // Alternate model using machine code
-        //string machinecode = writeDSPFactoryToMachine(fDSPfactory);
+        string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
         
-        dictionary_appendlong(d, gensym("bitcode_size"), bitcode.size());
-        dictionary_appendstring(d, gensym("bitcode"), bitcode.c_str()); 
+        //dictionary_appendlong(d, gensym("bitcode_size"), bitcode.size());
+        //dictionary_appendstring(d, gensym("bitcode"), bitcode.c_str());
+        
+        dictionary_appendlong(d, gensym("machinecode_size"), machinecode.size());
+        dictionary_appendstring(d, gensym("machinecode"), machinecode.c_str());
     }
 }
 
