@@ -290,7 +290,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
         
         if (inst->fValue) {
             if (dynamic_cast<NumValueInst*>(inst->fValue)) {
-                // Declaration rewriten a simple DeclareVarInst (without value) and a store
+                // Declaration rewriten as simple DeclareVarInst (without value) and a store
                 fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
                 fVarTableStore.push_back(InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
                 return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
@@ -328,7 +328,7 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                     return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
                 }
             } else {
-                // Declaration rewriten a simple DeclareVarInst (without value) and a store
+                // Declaration rewriten as simple DeclareVarInst (without value) and a store
                 fVarTableDeclaration.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner), inst->fType->clone(&cloner)));
                 fVarTableStore.push_back(InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner)));
                 return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));

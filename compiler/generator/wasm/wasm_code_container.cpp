@@ -111,10 +111,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    DspRenamer renamer;
-    BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
-    BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+    BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
     
     MoveVariablesInFront3 mover;
     BlockInst* block = mover.getCode(inlined);
@@ -151,10 +148,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
-    // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-    DspRenamer renamer;
-    BlockInst* renamed = renamer.getCode(fInitInstructions);
-    BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+    BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
     
     MoveVariablesInFront3 mover;
     BlockInst* block = mover.getCode(inlined);

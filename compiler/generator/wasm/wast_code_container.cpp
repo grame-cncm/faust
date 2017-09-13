@@ -212,10 +212,7 @@ void WASTCodeContainer::produceClass()
         tab(n+1, fOutAux); fOutAux << "(func $classInit (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
-                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-                DspRenamer renamer;
-                BlockInst* renamed = renamer.getCode(fStaticInitInstructions);
-                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+                BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
                 generateWASTBlock(inlined);
             }
         tab(n+1, fOutAux); fOutAux << ")";
@@ -223,10 +220,7 @@ void WASTCodeContainer::produceClass()
         tab(n+1, fOutAux); fOutAux << "(func $instanceConstants (param $dsp i32) (param $samplingFreq i32)";
             tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
-                // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
-                DspRenamer renamer;
-                BlockInst* renamed = renamer.getCode(fInitInstructions);
-                BlockInst* inlined = inlineSubcontainersFunCalls(renamed);
+                BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
                 generateWASTBlock(inlined);
             }
         tab(n+1, fOutAux); fOutAux << ")";
