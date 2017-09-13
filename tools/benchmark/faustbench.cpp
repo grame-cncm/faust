@@ -32,7 +32,7 @@
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
 
-#ifdef ALL_TESTS
+#if defined(ALL_TESTS)
 
 #include "dsp_scal.h"
 
@@ -72,7 +72,7 @@
 #include "dsp_vec1g_256.h"
 #include "dsp_vec1g_512.h"
 
-#else 
+#elif defined(FAST_TESTS)
 
 #include "dsp_scal.h"
 #include "dsp_vec0_32.h"
@@ -80,11 +80,17 @@
 #include "dsp_vec0g_32.h"
 #include "dsp_vec1g_32.h"
 
+#elif defined(SINGLE_TESTS)
+
+#include "dsp_scal.h"
+
 #endif
 
 using namespace std;
 
 #define ADD_DOUBLE string((sizeof(FAUSTFLOAT) == 8) ? "-double " : "")
+
+ofstream* gFaustbenchLog = nullptr;
 
 static double bench(dsp* dsp, const string& name, int run)
 {
@@ -92,6 +98,7 @@ static double bench(dsp* dsp, const string& name, int run)
     for (int i = 0; i < run; i++) {
         mes.measure();
         cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+        FAUSTBENCH_LOG<double>(mes.getStats());
     }
     return mes.getStats();
 }
@@ -103,7 +110,7 @@ extern "C" int bench_all(const char* name, int run)
     
     cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
     
-#ifdef ALL_TESTS
+#if defined(ALL_TESTS)
     
     options.push_back(ADD_DOUBLE + "-scal");
     
@@ -143,7 +150,7 @@ extern "C" int bench_all(const char* name, int run)
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 256 -g");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 512 -g");
     
-#else
+#elif defined(FAST_TESTS)
     
     options.push_back(ADD_DOUBLE + "-scal");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
@@ -151,11 +158,15 @@ extern "C" int bench_all(const char* name, int run)
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32 -g");
     
+#elif defined(SINGLE_TESTS)
+    
+    options.push_back(ADD_DOUBLE + "-scal");
+    
 #endif
     
     int ind = 0;
     
-#ifdef ALL_TESTS
+#if defined(ALL_TESTS)
     
     // Scalar
     measures.push_back(bench(new dsp_scal(), options[ind++], run));
@@ -198,13 +209,17 @@ extern "C" int bench_all(const char* name, int run)
     measures.push_back(bench(new dsp_vec1g_256(), options[ind++], run));
     measures.push_back(bench(new dsp_vec1g_512(), options[ind++], run));
     
-#else
+#elif defined(FAST_TESTS)
     
     measures.push_back(bench(new dsp_scal(), options[ind++], run));
     measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
     measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
     measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));
     measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run));
+    
+#elif defined(SINGLE_TESTS)
+    
+    measures.push_back(bench(new dsp_scal(), options[ind++], run));
     
 #endif
     
@@ -226,6 +241,9 @@ int main(int argc, char* argv[])
         cout << "faustbench [-run <num>] foo.dsp" << endl;
         return 0;
     }
+    
+    //FAUSTBENCH_LOG<string>("faustbench C++");
+    
     int run = lopt(argv, "-run", 1);
     return bench_all(argv[0], run);
 }

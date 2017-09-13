@@ -57,6 +57,17 @@
 #define SAMPLE_RATE 44100.0
 #define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
+template <typename VAL_TYPE>
+inline void FAUSTBENCH_LOG(VAL_TYPE val)
+{
+    const char* log = getenv("FAUSTBENCH_LOG");
+    if (log && (strcasecmp(log, "on") == 0)) {
+        std::ofstream gFaustbenchLog;
+        gFaustbenchLog.open("Faustbench.csv", std::ofstream::app);
+        gFaustbenchLog << val << std::endl;
+    }
+}
+
 /*
     A class to do do timing measurements
 */

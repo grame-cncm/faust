@@ -36,7 +36,6 @@
 #include "faust/dsp/dsp-bench.h"
 
 #define SAMPLE_RATE 44100.0
-
 /*
     A class to find optimal Faust compiler parameters for a given DSP.
 */
@@ -78,6 +77,7 @@ class dsp_optimizer {
                 for (int i = 0; i < run; i++) {
                     mes.measure();
                     std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                    FAUSTBENCH_LOG<double>(mes.getStats());
                 }
                 return mes.getStats();
             }

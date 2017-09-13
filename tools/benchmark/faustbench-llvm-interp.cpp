@@ -24,7 +24,6 @@
 
 #include "faust/dsp/dsp-bench.h"
 #include "faust/misc.h"
-
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/interpreter-dsp.h"
 
@@ -32,20 +31,17 @@ using namespace std;
 
 int main(int argc, char* argv[])
 {
-    if (argc < 2) {
-        cout << "faustbench-llvm-interp <foo.dsp>" << endl;
+    if (isopt(argv, "-h") || isopt(argv, "-help")) {
+        cout << "faustbench-llvm-interp foo.dsp" << endl;
         return 0;
     }
     
     std::cout << "Libfaust version : " << getCLibFaustVersion () << std::endl;
     
-    dsp_factory* factory1 = nullptr;
-    dsp_factory* factory2 = nullptr;
-  
     std::string error_msg1;
     std::string error_msg2;
-    factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, -1);
-    factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
+    dsp_factory* factory1 = createDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], "", error_msg1, -1);
+    dsp_factory* factory2 = createInterpreterDSPFactoryFromFile(argv[argc-1], argc-2, (const char**)&argv[1], error_msg2);
     
     if (!factory1) {
         std::cout << "Cannot create factory : " << error_msg1 << std::endl;
@@ -65,11 +61,8 @@ int main(int argc, char* argv[])
         exit(1);
     }
     
-    DSP1->init(44100);
-    DSP2->init(44100);
-    
-    measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 5);
-    measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 5);
+    measure_dsp* measure1 = new measure_dsp(DSP1, 1024, 5.0);
+    measure_dsp* measure2 = new measure_dsp(DSP2, 1024, 5.0);
     
     measure1->measure();
     measure2->measure();

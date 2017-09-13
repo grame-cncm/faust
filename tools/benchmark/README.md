@@ -10,7 +10,7 @@ Several programs and tools are available to test the dynamic compilation chain a
 
 Here are the available options:
 
-- `-llvm/interp to chosse eithe LLVM or Interpreter backend`
+- `-llvm/interp to choose either LLVM or Interpreter backend`
 - `-nvoices N to start the DSP in polyphonic mode with N voices`
 - `-midi to activate MIDI control`
 - `-osc to activate OSC control`

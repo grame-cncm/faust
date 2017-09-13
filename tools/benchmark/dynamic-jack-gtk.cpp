@@ -170,12 +170,15 @@ int main(int argc, char* argv[])
     }
 #endif
     
-    if (factory) {
-        factory->setMemoryManager(&manager);
-        DSP = factory->createDSPInstance();
-        assert(DSP);
-    } else {
-        cout << "Cannot create factory : " << error_msg << endl;
+    if (!factory) {
+        cerr << "Cannot create factory : " << error_msg << endl;
+        exit(EXIT_FAILURE);
+    }
+    
+    factory->setMemoryManager(&manager);
+    DSP = factory->createDSPInstance();
+    if (!DSP) {
+        cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
     }
     
