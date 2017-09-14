@@ -24,7 +24,7 @@ for f in $FILES; do
 
 	# run the binary to generate the impulse response
     faust -lang wasm $OPTIONS $f -o $f.wasm
-	impulsewavm $f.wasm
+    impulsewavm $f.wasm
 
 done
 

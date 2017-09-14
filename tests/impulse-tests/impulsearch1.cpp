@@ -67,7 +67,7 @@ struct CheckControlUI : public GenericUI {
     
     bool checkDefaults()
     {
-        for (int i= 0; i < fControlDefault.size(); i++) {
+        for (int i = 0; i < fControlDefault.size(); i++) {
             if (fControlDefault[i] != *fControlZone[i]) return false;
         }
         return true;
@@ -75,7 +75,7 @@ struct CheckControlUI : public GenericUI {
     
     void initRandom()
     {
-        for (int i= 0; i < fControlZone.size(); i++) {
+        for (int i = 0; i < fControlZone.size(); i++) {
             *fControlZone[i] = 0.123456789;
         }
     }

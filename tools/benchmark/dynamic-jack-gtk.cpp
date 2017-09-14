@@ -196,13 +196,15 @@ int main(int argc, char* argv[])
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
-    FUI* finterface	= new FUI();
+    FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
-    finterface->recallState(rcfilename);
    
     if (!audio.init(filename, DSP, true)) {
         return 0;
     }
+
+    // After audio.init that calls 'init'
+    finterface->recallState(rcfilename);
     
     if (is_httpd) {
         httpdinterface = new httpdUI(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);

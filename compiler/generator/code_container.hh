@@ -160,9 +160,8 @@ class CodeContainer : public virtual Garbageable {
                 << " -ftz " << gGlobal->gFTZMode
                 << ((gGlobal->gMemoryManager) ? " -mem" : "");
             } else {
-                dst << "-scal"
-                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " <<  gGlobal->gFTZMode
+                dst << ((gGlobal->gFloatSize == 1) ? "-scal" : ((gGlobal->gFloatSize == 2) ? "-double" : (gGlobal->gFloatSize == 3) ? "-quad" : ""))
+                << " -ftz " << gGlobal->gFTZMode
                 << ((gGlobal->gMemoryManager) ? " -mem" : "");
             }
         }
