@@ -32,7 +32,7 @@ if [ "$1" = "osx" ]; then
     echo "Test -midi $OSXMIDI"
     echo "Test -nvoices 8 $OSXPOLY"
     echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
-    echo "Test -nvoices 8 -effect <foo.dsp> -midi  $OSXPOLY2MIDI"
+    echo "Test -nvoices 8 -effect <foo.dsp> -midi $OSXPOLY2MIDI"
     echo "Test -osc -httpd $OSXOSCHTTPD"
 
     faust2dummy good.dsp > /dev/null
@@ -72,7 +72,7 @@ if [ "$1" = "osx" ]; then
     done
 
     for scriptname in $OSXPOLY2MIDI; do
-        ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
+        ($scriptname -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect effect.dsp -midi failed")
     done
 
     for scriptname in $OSXOSCHTTPD; do
@@ -85,7 +85,7 @@ if [ "$1" = "osx" ]; then
 
     (faust2api -ios -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -ios -midi -nvoices 8 failed")
 
-    (faust2api -ios -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect good.dsp -midi failed")
+    (faust2api -ios -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect effect.dsp -midi failed")
 
     (faust2smartkeyb -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
 
@@ -95,7 +95,7 @@ if [ "$1" = "osx" ]; then
 
     (faust2smartkeyb -ios -osc -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc -midi -nvoices 8 failed")
 
-    (faust2smartkeyb -ios -effect good.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect good.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect good.dsp -nvoices 8 failed")
+    (faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 failed")
 
 elif [ "$1" = "linux" ]; then
     echo
@@ -151,7 +151,7 @@ elif [ "$1" = "linux" ]; then
 
     (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
-    (faust2api -android -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect good.dsp -midi failed")
+    (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
 
 else
 	echo

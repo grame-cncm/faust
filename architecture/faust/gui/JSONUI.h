@@ -50,9 +50,13 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         std::stringstream fUI;
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
+        std::string fVersion;
+        std::string fOptions;
         std::string fName;
         std::string fExpandedCode;
         std::string fSHAKey;
+        std::string fDSPSize;
+        std::map<std::string, int> fPathTable;
     
         char fCloseUIPar;
         char fCloseMetaPar;
@@ -82,16 +86,96 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                 fMetaAux.clear();
             }
         }
+    
+        // Add escape (that is  '\') for internal strings
+        inline std::string flatten(const std::string& src)
+        {
+            std::stringstream dst;
+            for (size_t i = 0; i < src.size(); i++) {
+                switch (src[i]) {
+                    case '\n':
+                    case '\t':
+                    case ' ':
+                        break;
+                    case '"':
+                        dst << "\\" << '"';
+                        break;
+                    case '\\':
+                        dst << '\\' << '\\';
+                        break;
+                    default:
+                        dst << src[i];
+                        break;
+                }
+            }
+            return dst.str();
+        }
+    
+        inline std::string getAddressIndex(const std::string& path)
+        {
+            if (fPathTable.find(path) != fPathTable.end()) {
+                std::stringstream num; num << fPathTable[path];
+                return num.str();
+            } else {
+                return "-1";
+            }
+        }
+      
+     public:
+     
+        JSONUIAux(const std::string& name,
+                  int inputs,
+                  int outputs,
+                  const std::string& sha_key,
+                  const std::string& dsp_code,
+                  const std::string& version,
+                  const std::string& options,
+                  const std::string& size,
+                  const std::map<std::string, int>& path_table)
+        {
+            init(name, inputs, outputs, sha_key, dsp_code,  version, options, size, path_table);
+        }
+
+        JSONUIAux(const std::string& name, int inputs, int outputs)
+        {
+            init(name, inputs, outputs, "", "", "", "", "", std::map<std::string, int>());
+        }
+
+        JSONUIAux(int inputs, int outputs)
+        {
+            init("", inputs, outputs, "", "","", "", "", std::map<std::string, int>());
+        }
         
-        void init(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
+        JSONUIAux()
+        {
+            init("", -1, -1, "", "", "", "", "", std::map<std::string, int>());
+        }
+ 
+        virtual ~JSONUIAux() {}
+        
+        void setInputs(int inputs) { fInputs = inputs; }
+        void setOutputs(int outputs) { fOutputs = outputs; }
+    
+        // Init may be called multiple times so fMeta and fUI are reinitialized
+        void init(const std::string& name,
+                  int inputs,
+                  int outputs,
+                  const std::string& sha_key,
+                  const std::string& dsp_code,
+                  const std::string& version,
+                  const std::string& options,
+                  const std::string& size,
+                  const std::map<std::string, int>& path_table)
         {
             fTab = 1;
             
             // Start Meta generation
+            fMeta.str("");
             tab(fTab, fMeta); fMeta << "\"meta\": [";
             fCloseMetaPar = ' ';
             
             // Start UI generation
+            fUI.str("");
             tab(fTab, fUI); fUI << "\"ui\": [";
             fCloseUIPar = ' ';
             fTab += 1;
@@ -101,55 +185,12 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fOutputs = outputs;
             fExpandedCode = dsp_code;
             fSHAKey = sha_key;
+            fDSPSize = size;
+            fPathTable = path_table;
+            fVersion = version;
+            fOptions = options;
         }
-        
-        inline std::string flatten(const std::string& src)
-        {
-            std::stringstream dst;
-            for (size_t i = 0; i < src.size(); i++) {
-                switch (src[i]) {
-                    case '\n':
-                    case '\t':
-                        dst << ' ';
-                        break;
-                    case '"':
-                        dst << "\\" << '"';
-                        break;
-                    default:
-                        dst << src[i];
-                        break;
-                }
-            }
-            return dst.str();
-        }
-      
-     public:
-     
-        JSONUIAux(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code)
-        {
-            init(name, inputs, outputs, sha_key, dsp_code);
-        }
-
-        JSONUIAux(const std::string& name, int inputs, int outputs)
-        {
-            init(name, inputs, outputs, "", "");
-        }
-
-        JSONUIAux(int inputs, int outputs)
-        {
-            init("", inputs, outputs, "", "");
-        }
-        
-        JSONUIAux()
-        {
-            init("", -1, -1, "", "");
-        }
- 
-        virtual ~JSONUIAux() {}
-        
-        void setInputs(int inputs) { fInputs = inputs; }
-        void setOutputs(int outputs) { fOutputs = outputs; }
-
+   
         // -- widget's layouts
     
         virtual void openGenericGroup(const char* label, const char* name)
@@ -192,14 +233,22 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         }
     
         // -- active widgets
-    
+  
         virtual void addGenericButton(const char* label, const char* name)
         {
+            std::string path = buildPath(label);
+            std::string index = getAddressIndex(path);
+            
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            if (fPathTable.size() > 0) {
+                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            } else {
+                tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            }
             addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
@@ -217,11 +266,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
 
         virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
+            std::string path = buildPath(label);
+            std::string index = getAddressIndex(path);
+            
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
+            if (fPathTable.size() > 0) {
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
+            }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
@@ -250,11 +305,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
     
         virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
         {
+            std::string path = buildPath(label);
+            std::string index = getAddressIndex(path);
+            
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << name << "\",";
-            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
+            if (fPathTable.size() > 0) {
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
+            }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
             tab(fTab + 1, fUI); fUI << "\"max\": \"" << max << "\"";
@@ -294,6 +355,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            if (fVersion != "") { tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\","; }
+            if (fOptions != "") { tab(fTab, fJSON); fJSON << "\"options\": \"" << fOptions << "\","; }
+            if (fDSPSize != "") { tab(fTab, fJSON); fJSON << "\"size\": \"" << fDSPSize << "\","; }
             if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
             if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
             tab(fTab, fJSON); fJSON << "\"inputs\": \"" << fInputs << "\","; 
@@ -306,7 +370,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             } else {
                 fJSON << fUI.str();
             }
-            tab(fTab, fJSON); fJSON << "}" << std::endl;
+            tab(fTab, fJSON); fJSON << "}";
             return (flat) ? flatten(fJSON.str()) : fJSON.str();
         }
     
@@ -318,8 +382,16 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
 {
     public :
     
-        JSONUI(const std::string& name, int inputs, int outputs, const std::string& sha_key, const std::string& dsp_code):
-        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs, sha_key, dsp_code)
+        JSONUI(const std::string& name,
+               int inputs,
+               int outputs,
+               const std::string& sha_key,
+               const std::string& dsp_code,
+               const std::string& version,
+               const std::string& options,
+               const std::string& size,
+               const std::map<std::string, int>& path_table):
+        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs, sha_key, dsp_code, version, options, size, path_table)
         {}
         
         JSONUI(const std::string& name, int inputs, int outputs):

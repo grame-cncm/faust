@@ -205,7 +205,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         setParamValue(fFreqPath, midiToFreq(pitch));
         setParamValue(fGainPath, float(velocity)/127.f);
         fNote = pitch;
-        fTrigger = true; // so that envelop is always re-initialized
     }
 
     // Normalized MIDI velocity [0..1]
@@ -214,13 +213,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         setParamValue(fFreqPath, midiToFreq(pitch));
         setParamValue(fGainPath, velocity);
         fNote = pitch;
-        fTrigger = true; // so that envelop is always re-initialized
     }
 
     void keyOff(bool hard = false)
     {
         // No use of velocity for now...
         setParamValue(fGatePath, FAUSTFLOAT(0));
+        
         if (hard) {
             // Stop immediately
             fNote = kFreeVoice;
@@ -381,21 +380,43 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                 memset(mixBuffer[i], 0, count * sizeof(FAUSTFLOAT));
             }
         }
-
-        inline int getVoice(int note, bool steal = false)
+    
+        inline int getPlayingVoice(int pitch)
         {
+            int voice_playing = kNoVoice;
+            int oldest_date_playing = INT_MAX;
+            
             for (int i = 0; i < fVoiceTable.size(); i++) {
-                if (fVoiceTable[i]->fNote == note) {
-                    if (steal) {
-                        fVoiceTable[i]->fDate = fDate++;
+                if (fVoiceTable[i]->fNote == pitch) {
+                    // Keeps oldest playing voice
+                    if (fVoiceTable[i]->fDate < oldest_date_playing) {
+                        oldest_date_playing = fVoiceTable[i]->fDate;
+                        voice_playing = i;
                     }
-                    return i;
+                }
+            }
+            
+            return voice_playing;
+        }
+    
+        // Always returns a voice
+        inline int getFreeVoice()
+        {
+            int voice = kNoVoice;
+            
+            // Looks for the first available voice
+            for (int i = 0; i < fVoiceTable.size(); i++) {
+                if (fVoiceTable[i]->fNote == kFreeVoice) {
+                    voice = i;
+                    goto result;
                 }
             }
 
-            if (steal) {
+            {
+                // Otherwise steal one
                 int voice_release = kNoVoice;
                 int voice_playing = kNoVoice;
+                
                 int oldest_date_release = INT_MAX;
                 int oldest_date_playing = INT_MAX;
 
@@ -415,26 +436,27 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                         }
                     }
                 }
-
+            
                 // Then decide which one to steal
                 if (oldest_date_release != INT_MAX) {
                     std::cout << "Steal release voice : voice_date " << fVoiceTable[voice_release]->fDate << " cur_date = " << fDate << " voice = " << voice_release << std::endl;
-                    fVoiceTable[voice_release]->fDate = fDate++;
-                    fVoiceTable[voice_release]->fTrigger = true;
-                    return voice_release;
+                    voice = voice_release;
+                    goto result;
                 } else if (oldest_date_playing != INT_MAX) {
                     std::cout << "Steal playing voice : voice_date " << fVoiceTable[voice_playing]->fDate << " cur_date = " << fDate << " voice = " << voice_playing << std::endl;
-                    fVoiceTable[voice_playing]->fDate = fDate++;
-                    fVoiceTable[voice_playing]->fTrigger = true;
-                    return voice_playing;
+                    voice = voice_playing;
+                    goto result;
                 } else {
                     assert(false);
                     return kNoVoice;
                 }
-
-            } else {
-                return kNoVoice;
             }
+            
+        result:
+            fVoiceTable[voice]->fDate = fDate++;
+            fVoiceTable[voice]->fTrigger = true;    // so that envelop is always re-initialized
+            fVoiceTable[voice]->fNote = kActiveVoice;
+            return voice;
         }
 
         static void panic(FAUSTFLOAT val, void* arg)
@@ -452,15 +474,6 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                 std::cout << "DSP is not polyphonic...\n";
                 return false;
             }
-        }
-
-        // Always returns a voice
-        int newVoiceAux()
-        {
-            int voice = getVoice(kFreeVoice, true);
-            assert(voice != kNoVoice);
-            fVoiceTable[voice]->fNote = kActiveVoice;
-            return voice;
         }
 
     public:
@@ -607,7 +620,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         // Additional polyphonic API
         MapUI* newVoice()
         {
-            return fVoiceTable[newVoiceAux()];
+            return fVoiceTable[getFreeVoice()];
         }
 
         void deleteVoice(MapUI* voice)
@@ -624,7 +637,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             if (checkPolyphony()) {
-                int voice = newVoiceAux();
+                int voice = getFreeVoice();
                 fVoiceTable[voice]->keyOn(pitch, velocity);
                 return fVoiceTable[voice];
             } else {
@@ -635,7 +648,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         void keyOff(int channel, int pitch, int velocity = 127)
         {
             if (checkPolyphony()) {
-                int voice = getVoice(pitch);
+                int voice = getPlayingVoice(pitch);
                 if (voice != kNoVoice) {
                     fVoiceTable[voice]->keyOff();
                 } else {

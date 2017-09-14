@@ -87,6 +87,7 @@ public class MultiKeyboard extends ViewGroup {
             keyboardParameters.put("Inter-Keyboard Slide", 1);
             keyboardParameters.put("Send Current Key", 1);
             keyboardParameters.put("Send Current Keyboard", 1);
+            keyboardParameters.put("Send Fingers Count", 0);
             keyboardParameters.put("Send Sensors", 1);
             keyboardParameters.put("Rounding Update Speed", (float) 0.06);
             keyboardParameters.put("Rounding Smooth", (float) 0.9);
@@ -191,16 +192,31 @@ public class MultiKeyboard extends ViewGroup {
                 keyboardParameters.put(String.format("Keyboard %d - Orientation", i), 0);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Send X",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Send X", i), 1);
+                keyboardParameters.put(String.format("Keyboard %d - Send X", i), 0);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Send Y",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Send Y", i), 1);
+                keyboardParameters.put(String.format("Keyboard %d - Send Y", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Numbered X",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Numbered X", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Numbered Y",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Numbered Y", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Key X",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Key X", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Key Y",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Key Y", i), 0);
+            }
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Key Status",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Key Status", i), 0);
             }
             if(keyboardParameters.get(String.format("Keyboard %d - Send Freq",i)) == null) {
                 keyboardParameters.put(String.format("Keyboard %d - Send Freq", i), 1);
             }
-            if(keyboardParameters.get(String.format("Keyboard %d - Count Fingers",i)) == null) {
-                keyboardParameters.put(String.format("Keyboard %d - Count Fingers", i), 0);
+            if(keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",i)) == null) {
+                keyboardParameters.put(String.format("Keyboard %d - Send Keyboard Freq", i), 0);
             }
         }
 
@@ -251,10 +267,10 @@ public class MultiKeyboard extends ViewGroup {
                     } else {
                         zones.get(i).get(j).setNote((int) applyScale(j + (int)
                                 keyboardParameters.get
-                                (String.format("Keyboard %d - Lowest Key", i)), i));
+                                        (String.format("Keyboard %d - Lowest Key", i)), i));
                     }
                 }
-                    if (keyboardParameters.get(String.format("Keyboard %d - Key %d - Label",i,j)) != null){
+                if (keyboardParameters.get(String.format("Keyboard %d - Key %d - Label",i,j)) != null){
                     zones.get(i).get(j).setText((String) keyboardParameters.get(String.format("Keyboard %d - Key %d - Label",i,j)));
                 }
                 zones.get(i).get(j).drawBackground();
@@ -355,150 +371,147 @@ public class MultiKeyboard extends ViewGroup {
                 fingersOnKeyboardsCount[currentKeyboard]++;
             }
 
-            // no poly mode
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Freq",currentKeyboard)) == 0){
-                sendSynthControlAction(currentKeyboard, currentKeyIdInRow, fingerId);
+            // default mode if poly keyboards
+            if((int)keyboardParameters.get("Mono Mode") == 0 ||
+                    (int)keyboardParameters.get("Max Keyboard Polyphony")>1 ||
+                    (int)keyboardParameters.get("Max Keyboard Polyphony")==0){
+                // if touch up
+                if(eventType == 0){
+                    sendKeyboardAction(0,currentKeyboard,currentKeyIdInRow,fingerId);
+                }
+                // if touch down
+                else if(eventType == 1 && (fingersOnKeyboardsCount[currentKeyboard] <= (int)keyboardParameters.get("Max Keyboard Polyphony") ||
+                        (int)keyboardParameters.get("Max Keyboard Polyphony") == 0)){
+                    sendKeyboardAction(1,currentKeyboard,currentKeyIdInRow,fingerId);
+                }
+                // if move
+                else if(eventType == 2){
+                    // moved to another keyboard
+                    if(currentKeyboard != previousTouchedKeyboards[fingerId]){
+                        // cancel key in previous keyboard
+                        sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
+                        // initiate new event only if there are keys available
+                        if((fingersOnKeyboardsCount[currentKeyboard] <= (int)keyboardParameters.get("Max Keyboard Polyphony") ||
+                                (int)keyboardParameters.get("Max Keyboard Polyphony") == 0) &&
+                                (int)keyboardParameters.get("Inter-Keyboard Slide") == 1){
+                            sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
+                        }
+                    }
+                    // moved to another key within the same keyboard
+                    else if(currentKeyIdInRow != previousTouchedKeys[fingerId] &&
+                            zones.get(previousTouchedKeyboards[fingerId]).get(previousTouchedKeys[fingerId]).getStatus() == 1){
+                        // cancel previous key
+                        sendKeyboardAction(3, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
+                        // inititate new event
+                        sendKeyboardAction(4, currentKeyboard,currentKeyIdInRow, fingerId);
+                    }
+                    // move within the same key
+                    else{
+                        sendKeyboardAction(2, currentKeyboard, currentKeyIdInRow, fingerId);
+                    }
+                }
             }
-            // poly mode
-            else{
-                // default mode if poly keyboards
-                if((int)keyboardParameters.get("Mono Mode") == 0 || (int)keyboardParameters.get("Max Keyboard Polyphony")>1){
-                    // if touch up
-                    if(eventType == 0){
-                        sendKeyboardAction(0,currentKeyboard,currentKeyIdInRow,fingerId);
-                    }
-                    // if touch down
-                    else if(eventType == 1 && fingersOnKeyboardsCount[currentKeyboard] <= (int)keyboardParameters.get("Max Keyboard Polyphony")){
-                        sendKeyboardAction(1,currentKeyboard,currentKeyIdInRow,fingerId);
-                    }
-                    // if move
-                    else if(eventType == 2){
-                        // moved to another keyboard
-                        if(currentKeyboard != previousTouchedKeyboards[fingerId]){
-                            // cancel key in previous keyboard
-                            sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
-                            // initiate new event only if there are keys available
-                            if(fingersOnKeyboardsCount[currentKeyboard] <= (int)keyboardParameters.get("Max Keyboard Polyphony") &&
-                                    (int)keyboardParameters.get("Inter-Keyboard Slide") == 1){
-                                sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
-                            }
-                        }
-                        // moved to another key within the same keyboard
-                        else if(currentKeyIdInRow != previousTouchedKeys[fingerId] &&
-                        zones.get(previousTouchedKeyboards[fingerId]).get(previousTouchedKeys[fingerId]).getStatus() == 1){
-                            // cancel previous key
-                            sendKeyboardAction(3, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
-                            // inititate new event
-                            sendKeyboardAction(4, currentKeyboard,currentKeyIdInRow, fingerId);
-                        }
-                        // move within the same key
-                        else{
-                            sendKeyboardAction(2, currentKeyboard, currentKeyIdInRow, fingerId);
-                        }
+
+            else if((int)keyboardParameters.get("Mono Mode") == 1){
+                int currentKeyDown = -1;
+                for(int i=0; i<(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",currentKeyboard)); i++){
+                    if(zones.get(currentKeyboard).get(i).getStatus() == 1){
+                        currentKeyDown = i;
                     }
                 }
 
-                else if((int)keyboardParameters.get("Mono Mode") == 1){
-                    int currentKeyDown = -1;
-                    for(int i=0; i<(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",currentKeyboard)); i++){
-                        if(zones.get(currentKeyboard).get(i).getStatus() == 1){
-                            currentKeyDown = i;
-                        }
+                // if touch up
+                if(eventType == 0){
+                    // cancel corresponding previous key (in case of fast move event)
+                    if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
+                        sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
                     }
-
-                    // if touch up
-                    if(eventType == 0){
-                        // cancel corresponding previous key (in case of fast move event)
-                        if(previousTouchedKeyboards[fingerId] != currentKeyboard || previousTouchedKeys[fingerId] != currentKeyIdInRow){
-                            sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
-                        }
-                        // cancel corresponding key
-                        sendKeyboardAction(0, currentKeyboard, currentKeyIdInRow, fingerId);
-                        if(fingersOnKeyboardsCount[currentKeyboard]>0 && monoMode_previousActiveFinger[currentKeyboard] == fingerId){
-                            float kb = currentKeyboard*zoneHeight;
-                            for(int i=0; i<event.getPointerCount(); i++){
-                                if(event.getY(i) >= kb &&
-                                        event.getY(i) < zoneHeight+kb &&
-                                        event.getY(i) != touchPoint.y &&
-                                        i != monoMode_previousActiveFinger[currentKeyboard]){
-                                    currentContinuousKey = event.getX(i)/zoneWidths[currentKeyboard];
-                                    currentKeyIdInRow = Math.min((int)currentContinuousKey,(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",currentKeyboard))-1);
-                                    currentKeyboardY = (Math.min(Math.max(0f,event.getY(i)),(float)viewHeight)/(float)zoneHeight)%1f; // TODO: added on android only
-                                    sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, i);
-                                    monoMode_previousActiveFinger[currentKeyboard] = i;
-                                    break;
-                                }
+                    // cancel corresponding key
+                    sendKeyboardAction(0, currentKeyboard, currentKeyIdInRow, fingerId);
+                    if(fingersOnKeyboardsCount[currentKeyboard]>0 && monoMode_previousActiveFinger[currentKeyboard] == fingerId){
+                        float kb = currentKeyboard*zoneHeight;
+                        for(int i=0; i<event.getPointerCount(); i++){
+                            if(event.getY(i) >= kb &&
+                                    event.getY(i) < zoneHeight+kb &&
+                                    event.getY(i) != touchPoint.y &&
+                                    i != monoMode_previousActiveFinger[currentKeyboard]){
+                                currentContinuousKey = event.getX(i)/zoneWidths[currentKeyboard];
+                                currentKeyIdInRow = Math.min((int)currentContinuousKey,(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",currentKeyboard))-1);
+                                currentKeyboardY = (Math.min(Math.max(0f,event.getY(i)),(float)viewHeight)/(float)zoneHeight)%1f; // TODO: added on android only
+                                sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, i);
+                                monoMode_previousActiveFinger[currentKeyboard] = i;
+                                break;
                             }
                         }
-                        else{
-                            currentKeyboard = -1;
-                            currentKeyIdInRow = -1;
-                        }
                     }
-                    // if touch down
-                    else if(eventType == 1){
-                        if(currentKeyDown>=0){
-                            sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
-                        }
-                        sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
-                        monoMode_previousActiveFinger[currentKeyboard] = fingerId;
+                    else{
+                        currentKeyboard = -1;
+                        currentKeyIdInRow = -1;
                     }
-                    // if move
-                    else if(eventType == 2){
-                        // moved to another keyboard
-                        if(currentKeyboard != previousTouchedKeyboards[fingerId]){
-                            // cancel key in previous keyboard
-                            sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
+                }
+                // if touch down
+                else if(eventType == 1){
+                    if(currentKeyDown>=0){
+                        sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
+                    }
+                    sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
+                    monoMode_previousActiveFinger[currentKeyboard] = fingerId;
+                }
+                // if move
+                else if(eventType == 2){
+                    // moved to another keyboard
+                    if(currentKeyboard != previousTouchedKeyboards[fingerId]){
+                        // cancel key in previous keyboard
+                        sendKeyboardAction(0, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
 
-                            if((int)keyboardParameters.get("Inter-Keyboard Slide") == 1){
-                                // new note if remaining finger in previous keyboard
-                                if(previousTouchedKeyboards[fingerId] != -1 &&
-                                        fingersOnKeyboardsCount[previousTouchedKeyboards[fingerId]]>0 &&
-                                        previousTouchedKeys[fingerId] == previousTouchedKeys[monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]]){
-                                    float kb = previousTouchedKeyboards[fingerId]*zoneHeight;
-                                    for(int i=0; i<event.getPointerCount(); i++){
-                                        if(event.getY(i) >= kb &&
-                                                event.getY(i) < zoneHeight+kb &&
-                                                event.getY(i) != touchPoint.y &&
-                                                i != monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]){
-                                            currentContinuousKey = event.getX(i)/zoneWidths[previousTouchedKeyboards[fingerId]];
-                                            int localKeyIdInRow = Math.min((int)currentContinuousKey,(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",previousTouchedKeyboards[fingerId]))-1);
-                                            currentKeyboardY = (Math.min(Math.max(0f,event.getY(i)),(float)viewHeight)/(float)zoneHeight)%1f; // TODO: added on android only
-                                            sendKeyboardAction(1, previousTouchedKeyboards[fingerId], localKeyIdInRow, i);
-                                            monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]] = i;
-                                            break;
-                                        }
+                        if((int)keyboardParameters.get("Inter-Keyboard Slide") == 1){
+                            // new note if remaining finger in previous keyboard
+                            if(previousTouchedKeyboards[fingerId] != -1 &&
+                                    fingersOnKeyboardsCount[previousTouchedKeyboards[fingerId]]>0 &&
+                                    previousTouchedKeys[fingerId] == previousTouchedKeys[monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]]){
+                                float kb = previousTouchedKeyboards[fingerId]*zoneHeight;
+                                for(int i=0; i<event.getPointerCount(); i++){
+                                    if(event.getY(i) >= kb &&
+                                            event.getY(i) < zoneHeight+kb &&
+                                            event.getY(i) != touchPoint.y &&
+                                            i != monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]]){
+                                        currentContinuousKey = event.getX(i)/zoneWidths[previousTouchedKeyboards[fingerId]];
+                                        int localKeyIdInRow = Math.min((int)currentContinuousKey,(int)keyboardParameters.get(String.format("Keyboard %d - Number of Keys",previousTouchedKeyboards[fingerId]))-1);
+                                        currentKeyboardY = (Math.min(Math.max(0f,event.getY(i)),(float)viewHeight)/(float)zoneHeight)%1f; // TODO: added on android only
+                                        sendKeyboardAction(1, previousTouchedKeyboards[fingerId], localKeyIdInRow, i);
+                                        monoMode_previousActiveFinger[previousTouchedKeyboards[fingerId]] = i;
+                                        break;
                                     }
                                 }
-                                if(currentKeyDown>=0){
-                                    sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
-                                }
-                                sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
-                                fingersOnKeyboardsCount[currentKeyboard]++; // TODO: added on android only...
-                                monoMode_previousActiveFinger[currentKeyboard] = fingerId;
                             }
+                            if(currentKeyDown>=0){
+                                sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
+                            }
+                            sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
+                            fingersOnKeyboardsCount[currentKeyboard]++; // TODO: added on android only...
+                            monoMode_previousActiveFinger[currentKeyboard] = fingerId;
                         }
-                        // moved to another key within the same keyboard
-                        else if(currentKeyIdInRow != previousTouchedKeys[fingerId] &&
-                                zones.get(previousTouchedKeyboards[fingerId]).get(previousTouchedKeys[fingerId]).getStatus() == 1){
-                            if(fingersOnKeyboardsCount[currentKeyboard]>1 && monoMode_previousActiveFinger[currentKeyboard] != fingerId){
-                                if(currentKeyDown>=0){
-                                    sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
-                                }
-                                sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
-                                monoMode_previousActiveFinger[currentKeyboard] = fingerId;
+                    }
+                    // moved to another key within the same keyboard
+                    else if(currentKeyIdInRow != previousTouchedKeys[fingerId] &&
+                            zones.get(previousTouchedKeyboards[fingerId]).get(previousTouchedKeys[fingerId]).getStatus() == 1){
+                        if(fingersOnKeyboardsCount[currentKeyboard]>1 && monoMode_previousActiveFinger[currentKeyboard] != fingerId){
+                            if(currentKeyDown>=0){
+                                sendKeyboardAction(0, currentKeyboard, currentKeyDown, monoMode_previousActiveFinger[currentKeyboard]);
                             }
-                            else{
-                                // cancel previous key
-                                sendKeyboardAction(3, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
-                                // inititate new event
-                                sendKeyboardAction(4, currentKeyboard, currentKeyIdInRow, fingerId);
-                            }
+                            sendKeyboardAction(1, currentKeyboard, currentKeyIdInRow, fingerId);
+                            monoMode_previousActiveFinger[currentKeyboard] = fingerId;
                         }
-                        // move within the same key
                         else{
-                            sendKeyboardAction(2, currentKeyboard, currentKeyIdInRow, fingerId);
+                            // cancel previous key
+                            sendKeyboardAction(3, previousTouchedKeyboards[fingerId], previousTouchedKeys[fingerId], fingerId);
+                            // inititate new event
+                            sendKeyboardAction(4, currentKeyboard, currentKeyIdInRow, fingerId);
                         }
+                    }
+                    // move within the same key
+                    else{
+                        sendKeyboardAction(2, currentKeyboard, currentKeyIdInRow, fingerId);
                     }
                 }
             }
@@ -533,40 +546,61 @@ public class MultiKeyboard extends ViewGroup {
                 if(!otherFingerInKey){
                     zones.get(keyboardId).get(keyId).setStatus(0);
                 }
-                sendPolySynthControlAction(eventType, keyboardId, keyId, fingerId);
+                if((int)keyboardParameters.get(String.format("Keyboard %d - Send Freq",keyboardId)) == 0){
+                    sendSynthControlAction(keyboardId, keyId, fingerId, eventType, fingersOnKeyboardsCount[keyboardId]);
+                }
+                else {
+                    sendPolySynthControlAction(eventType, keyboardId, keyId, fingerId, fingersOnKeyboardsCount[keyboardId]);
+                }
             }
         }
         // key down
         else if(eventType == 1 || eventType == 4){
             zones.get(keyboardId).get(keyId).setStatus(1);
-            sendPolySynthControlAction(eventType, keyboardId, keyId, fingerId);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Freq",keyboardId)) == 0){
+                sendSynthControlAction(keyboardId, keyId, fingerId, eventType, fingersOnKeyboardsCount[keyboardId]);
+            }
+            else {
+                sendPolySynthControlAction(eventType, keyboardId, keyId, fingerId, fingersOnKeyboardsCount[keyboardId]);
+            }
         }
         // move within the same key
         else if(eventType == 2){
-            sendPolySynthControlAction(2, keyboardId, keyId, fingerId);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Freq",keyboardId)) == 0){
+                sendSynthControlAction(keyboardId, keyId, fingerId, eventType, fingersOnKeyboardsCount[keyboardId]);
+            }
+            else {
+                sendPolySynthControlAction(eventType, keyboardId, keyId, fingerId, fingersOnKeyboardsCount[keyboardId]);
+            }
         }
         if(eventType == 0 && fingersOnScreenCount == 1) resetKeyboard(); // TODO: this is kind of a terrible fix but it does the job for now
     }
 
     // This method is only used if keyboard mode is deactivated
-    private void sendSynthControlAction(int keyboardId, int keyId, int fingerId){
-        if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setParamValue("keyboard", keyboardId);
-        if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setParamValue("key", keyId);
-        if((int)keyboardParameters.get(String.format("Keyboard %d - Count Fingers", keyboardId)) == 0){
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
-                dspFaust.setParamValue("x", (currentContinuousKey % 1f));
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
-                dspFaust.setParamValue("y", currentKeyboardY);
-        }
-        else {
-            if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("x%d", fingerId), (currentContinuousKey % 1f));
-            if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
-                dspFaust.setParamValue(String.format("y%d", fingerId), currentKeyboardY);
-        }
+    private void sendSynthControlAction(int keyboardId, int keyId, int fingerId, int eventType, int fingersOnKeyb){
+        if((int)keyboardParameters.get("Send Current Keyboard") == 1)
+            dspFaust.setParamValue("keyboard", keyboardId);
+        if((int)keyboardParameters.get("Send Current Key") == 1)
+            dspFaust.setParamValue("key", keyId);
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+            dspFaust.setParamValue("x", (currentContinuousKey % 1f));
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+            dspFaust.setParamValue("y", currentKeyboardY);
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered X", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("x%d", fingerId), (currentContinuousKey % 1f));
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered Y", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("y%d", fingerId), currentKeyboardY);
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key X", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("kb%dk%dx", keyboardId, keyId), (currentContinuousKey % 1f));
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Y", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("kb%dk%dy", keyboardId, keyId), currentKeyboardY);
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Status", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("kb%dk%dstatus", keyboardId, keyId), eventType);
+        if((int)keyboardParameters.get("Send Fingers Count") == 1)
+            dspFaust.setParamValue(String.format("kb%dfingers", keyboardId), fingersOnKeyb);
     }
 
-    private void sendPolySynthControlAction(int eventType, int keyboardId, int keyId, int fingerId){
+    private void sendPolySynthControlAction(int eventType, int keyboardId, int keyId, int fingerId, int fingersOnKeyb){
         float pitch = 0; // the MIDI pitch of the note
         // delete (note off)
         if((eventType == 0 || (eventType == 3 &&
@@ -641,6 +675,9 @@ public class MultiKeyboard extends ViewGroup {
                     refPitch[fingerId] = (float)Math.floor(pitch);
                 }
                 dspFaust.setVoiceParamValue("freq", voices[fingerId], mtof(refPitch[fingerId]));
+                if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
+                    dspFaust.setVoiceParamValue(String.format("kb%dfreq", keyboardId), voices[fingerId], mtof(refPitch[fingerId]));
+                }
             }
         }
         // update
@@ -680,33 +717,50 @@ public class MultiKeyboard extends ViewGroup {
             if(voices[fingerId] != -1 && pitch != -1){
                 if((int)keyboardParameters.get("Rounding Mode") == 1){
                     dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
+                    if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
+                        dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(pitch-refPitch[fingerId])/12));
+                    }
                 }
                 else if((int)keyboardParameters.get("Rounding Mode") == 2){
                     if(rounding[fingerId]){ // if rounding is activated, pitch is quantized to the nearest integer
                         dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
+                        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
+                            dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(Math.floor(pitch)-refPitch[fingerId])/12));
+                        }
                     }
                     else{
                         dspFaust.setVoiceParamValue("bend", voices[fingerId], (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
+                        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Keyboard Freq",keyboardId)) == 1){
+                            dspFaust.setVoiceParamValue(String.format("kb%dbend", keyboardId), voices[fingerId], (float)Math.pow(2,(pitch-0.5-refPitch[fingerId])/12));
+                        }
                     }
                 }
             }
         }
 
         if(voices[fingerId] != -1){
-            if((int)keyboardParameters.get("Send Current Keyboard") == 1) dspFaust.setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
-            if((int)keyboardParameters.get("Send Current Key") == 1) dspFaust.setVoiceParamValue("key", voices[fingerId], keyId);
-            if((int)keyboardParameters.get(String.format("Keyboard %d - Count Fingers", keyboardId)) == 0) {
-                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
-                    dspFaust.setVoiceParamValue("x", voices[fingerId], currentContinuousKey % 1f);
-                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
-                    dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
-            }
-            else {
-                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
-                    dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], currentContinuousKey % 1f);
-                if ((int) keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
-                    dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], currentKeyboardY);
-            }
+            if((int)keyboardParameters.get("Send Current Keyboard") == 1)
+                dspFaust.setVoiceParamValue("keyboard", voices[fingerId], keyboardId);
+            if((int)keyboardParameters.get("Send Current Key") == 1)
+                dspFaust.setVoiceParamValue("key",voices[fingerId], keyId);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send X", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue("x", voices[fingerId], (currentContinuousKey % 1f));
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Y", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue("y", voices[fingerId], currentKeyboardY);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered X", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue(String.format("x%d", fingerId), voices[fingerId], (currentContinuousKey % 1f));
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Numbered Y", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue(String.format("y%d", fingerId), voices[fingerId], currentKeyboardY);
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key X", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue(String.format("kb%dk%dx", keyboardId, keyId), voices[fingerId], (currentContinuousKey % 1f));
+            if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Y", keyboardId)) == 1)
+                dspFaust.setVoiceParamValue(String.format("kb%dk%dy", keyboardId, keyId), voices[fingerId], currentKeyboardY);
+        }
+        // TODO: there should be a better option that putting these guys outside of the previou condition
+        if((int)keyboardParameters.get(String.format("Keyboard %d - Send Key Status", keyboardId)) == 1)
+            dspFaust.setParamValue(String.format("kb%dk%dstatus", keyboardId, keyId), eventType);
+        if((int)keyboardParameters.get("Send Fingers Count") == 1) {
+            dspFaust.setParamValue(String.format("kb%dfingers", keyboardId), fingersOnKeyb);
         }
     }
 
@@ -717,9 +771,9 @@ public class MultiKeyboard extends ViewGroup {
         float scaledPitch = 0; // the final scaled pitch
 
         int scalesCoeff[][] = {
-            {1,1,1,1,1,1,1}, // chromatic
-            {2,2,1,2,2,2,1}, // major
-            {2,1,2,2,1,3,1} // harm minor
+                {1,1,1,1,1,1,1}, // chromatic
+                {2,2,1,2,2,2,1}, // major
+                {2,1,2,2,1,3,1} // harm minor
         };
 
         if(currentScale+1 > 0 && currentScale<4){

@@ -56,9 +56,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::vector<FAUSTFLOAT> fMin;
         std::vector<FAUSTFLOAT> fMax;
         std::vector<FAUSTFLOAT> fStep;
-        std::vector<std::string> fUnit;
         std::vector<ItemType> fItemType;
-        std::vector<std::string> fTooltip;
+        std::vector<std::map<std::string, std::string> > fMetaData;
         std::vector<ZoneControl*> fAcc[3];
         std::vector<ZoneControl*> fGyr[3];
 
@@ -76,7 +75,8 @@ class APIUI : public PathBuilder, public Meta, public UI
         std::string fCurrentGyr;
         std::string fCurrentColor;
         std::string fCurrentTooltip;
-
+        std::map<std::string, std::string> fCurrentMetadata;
+    
         // Add a generic parameter
         virtual void addParameter(const char* label,
                                 FAUSTFLOAT* zone,
@@ -96,20 +96,17 @@ class APIUI : public PathBuilder, public Meta, public UI
             fMax.push_back(max);
             fStep.push_back(step);
             fItemType.push_back(type);
-
-            //handle unit metadata
-            fUnit.push_back(fCurrentUnit);
-            fCurrentUnit = "";
             
-            //handle tooltip metadata
-            fTooltip.push_back(fCurrentTooltip);
-            fCurrentTooltip = "";
-
             //handle scale metadata
             switch (fCurrentScale) {
-                case kLin : fConversion.push_back(new LinearValueConverter(0, 1, min, max)); break;
-                case kLog : fConversion.push_back(new LogValueConverter(0, 1, min, max)); break;
-                case kExp : fConversion.push_back(new ExpValueConverter(0, 1, min, max)); break;
+                case kLin:
+                    fConversion.push_back(new LinearValueConverter(0, 1, min, max));
+                    break;
+                case kLog:
+                    fConversion.push_back(new LogValueConverter(0, 1, min, max));
+                    break;
+                case kExp: fConversion.push_back(new ExpValueConverter(0, 1, min, max));
+                    break;
             }
             fCurrentScale = kLin;
             
@@ -153,7 +150,7 @@ class APIUI : public PathBuilder, public Meta, public UI
                 fCurrentGyr = "";
             }
         
-            // handle screencolor metadata "...[screencolor:red|green|blue]..."
+            // handle screencolor metadata "...[screencolor:red|green|blue|white]..."
             if (fCurrentColor.size() > 0) {
                 if ((fCurrentColor == "red") && (fRedReader == 0)) {
                     fRedReader = new ZoneReader(zone, min, max);
@@ -174,6 +171,9 @@ class APIUI : public PathBuilder, public Meta, public UI
                 }
             }
             fCurrentColor = "";
+            
+            fMetaData.push_back(fCurrentMetadata);
+            fCurrentMetadata.clear();
         }
 
         int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
@@ -318,7 +318,10 @@ class APIUI : public PathBuilder, public Meta, public UI
 
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
         {
-			if (strcmp(key, "scale") == 0) {
+            // Keep matadata
+            fCurrentMetadata[key] = val;
+            
+            if (strcmp(key, "scale") == 0) {
                 if (strcmp(val, "log") == 0) {
                     fCurrentScale = kLog;
                 } else if (strcmp(val, "exp") == 0) {
@@ -326,14 +329,14 @@ class APIUI : public PathBuilder, public Meta, public UI
                 } else {
                     fCurrentScale = kLin;
                 }
-			} else if (strcmp(key, "unit") == 0) {
-				fCurrentUnit = val;
-			} else if (strcmp(key, "acc") == 0) {
-				fCurrentAcc = val;
-			} else if (strcmp(key, "gyr") == 0) {
-				fCurrentGyr = val;
-			} else if (strcmp(key, "screencolor") == 0) {
-                fCurrentColor = val; // val = "red", "green" or "blue"
+            } else if (strcmp(key, "unit") == 0) {
+                fCurrentUnit = val;
+            } else if (strcmp(key, "acc") == 0) {
+                fCurrentAcc = val;
+            } else if (strcmp(key, "gyr") == 0) {
+                fCurrentGyr = val;
+            } else if (strcmp(key, "screencolor") == 0) {
+                fCurrentColor = val; // val = "red", "green", "blue" or "white"
             } else if (strcmp(key, "tooltip") == 0) {
                 fCurrentTooltip = val;
             }
@@ -358,8 +361,21 @@ class APIUI : public PathBuilder, public Meta, public UI
         }
         const char* getParamAddress(int p)	{ return fPaths[p].c_str(); }
         const char* getParamLabel(int p)	{ return fLabels[p].c_str(); }
-        const char* getParamUnit(int p)		{ return fUnit[p].c_str(); }
-        const char* getParamTooltip(int p)	{ return fTooltip[p].c_str(); }
+        std::map<const char*, const char*> getMetadata(int p)
+        {
+            std::map<const char*, const char*> res;
+            std::map<std::string, std::string> metadata = fMetaData[p];
+            std::map<std::string, std::string>::iterator it;
+            for (it = metadata.begin(); it != metadata.end(); ++it) {
+                res[(*it).first.c_str()] = (*it).second.c_str();
+            }
+            return res;
+        }
+
+        const char* getMetadata(int p, const char* key)
+        {
+            return (fMetaData[p].find(key) != fMetaData[p].end()) ? fMetaData[p][key].c_str() : "";
+        }
         FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
         FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
         FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }

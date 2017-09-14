@@ -60,7 +60,7 @@ using namespace std;
 #include "faust/gui/MidiUI.h"
 #include "faust/midi/bela-midi.h"
 
-const char * const pinNamesStrings[] =
+const char* const pinNamesStrings[] =
 {
   "ANALOG_0",
   "ANALOG_1",
@@ -122,8 +122,8 @@ enum EInputPin
 
 /**************************************************************************************
 
-  BelaWidget : object used by BelaUI to ensures the connection between an Bela parameter
-  and a faust widget
+  BelaWidget : object used by BelaUI to ensures the connection between a Bela parameter
+  and a Faust widget
 
 ***************************************************************************************/
 
@@ -133,8 +133,8 @@ protected:
   EInputPin fBelaPin;
   FAUSTFLOAT* fZone;  // Faust widget zone
   const char* fLabel; // Faust widget label
-  float fMin;         // Faust widget minimal value
-  float fRange;       // Faust widget value range (max-min)
+  FAUSTFLOAT fMin;         // Faust widget minimal value
+  FAUSTFLOAT fRange;       // Faust widget value range (max-min)
 
   public:
   BelaWidget()
@@ -153,7 +153,7 @@ protected:
   , fRange(w.fRange)
   {}
 
-  BelaWidget(EInputPin pin, FAUSTFLOAT* z, const char* l, float lo, float hi)
+  BelaWidget(EInputPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
   : fBelaPin(pin)
   , fZone(z)
   , fLabel(l)
@@ -203,21 +203,21 @@ protected:
 /**************************************************************************************
 
   BelaUI : Faust User Interface builder. Passed to buildUserInterface BelaUI allows
-  the mapping between BELA pins and faust widgets. It relies on specific
+  the mapping between BELA pins and Faust widgets. It relies on specific
   metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any
-  faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0
+  Faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0
   (the second knob).
 
 ***************************************************************************************/
 
-// The maximun number of mappings between Bela parameters and faust widgets
+// The maximum number of mappings between Bela parameters and Faust widgets
 #define MAXBELAWIDGETS 8
 
 class BelaUI : public UI
 {
-  int fIndex; // number of BelaWidgets collected so far
-  EInputPin fBelaPin; // current pin id
-  BelaWidget fTable[MAXBELAWIDGETS]; // kind of static list of BelaWidgets
+  int fIndex;                           // number of BelaWidgets collected so far
+  EInputPin fBelaPin;                   // current pin id
+  BelaWidget fTable[MAXBELAWIDGETS];    // kind of static list of BelaWidgets
 
   // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
   void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
@@ -268,14 +268,14 @@ class BelaUI : public UI
 
   // -- passive widgets
   virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
-  virtual void addVerticalBargraph  (const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
 
 // -- metadata declarations
   virtual void declare(FAUSTFLOAT* z, const char* k, const char* id) {
     if (strcasecmp(k,"BELA") == 0) {
       for(int i=0;i<kNumInputPins;i++) {
         if (strcasecmp(id, pinNamesStrings[i]) == 0) {
-          fBelaPin = (EInputPin) i;
+          fBelaPin = (EInputPin)i;
         }
       }
     }
@@ -303,16 +303,16 @@ ztimedmap GUI::gTimedZoneMap;
 
 ***************************************************************************************/
 
-unsigned int gNumBuffers = 0; // the number of de-interleaved buffers for audio and analog i/o
-float *gInputBuffers = NULL, *gOutputBuffers = NULL; //de-interleaved input/output buffers for the audio and analog inputs
-float* gFaustIns[10]; // array of pointers to gInputBuffer data
-float* gFaustOuts[10]; // array of pointers to gOutputBuffers data
+unsigned int gNumBuffers = 0;   // the number of de-interleaved buffers for audio and analog i/o
+FAUSTFLOAT *gInputBuffers = NULL, *gOutputBuffers = NULL; //de-interleaved input/output buffers for the audio and analog inputs
+FAUSTFLOAT* gFaustIns[10];      // array of pointers to gInputBuffer data
+FAUSTFLOAT* gFaustOuts[10];     // array of pointers to gOutputBuffers data
 mydsp fDSP;
 BelaUI fUI;
 bela_midi fMIDI;
 MidiUI* fMidiUI;
 
-bool setup(BelaContext *context, void *userData)
+bool setup(BelaContext* context, void* userData)
 {
   gNumBuffers = context->audioInChannels
                 + context->audioOutChannels
@@ -326,8 +326,8 @@ bool setup(BelaContext *context, void *userData)
   fDSP.init(context->audioSampleRate);
   fDSP.buildUserInterface(&fUI); // Maps Bela Analog/Digital IO and faust widgets
 
-  gInputBuffers = (float *) malloc(gNumBuffers * context->audioFrames * sizeof(float));
-  gOutputBuffers = (float *) malloc(gNumBuffers * context->audioFrames * sizeof(float));
+  gInputBuffers = (FAUSTFLOAT *) malloc(gNumBuffers * context->audioFrames * sizeof(FAUSTFLOAT));
+  gOutputBuffers = (FAUSTFLOAT *) malloc(gNumBuffers * context->audioFrames * sizeof(FAUSTFLOAT));
 
   if(gInputBuffers == NULL || gOutputBuffers == NULL)
   {
@@ -355,7 +355,7 @@ bool setup(BelaContext *context, void *userData)
   return true;
 }
 
-void render(BelaContext *context, void *userData)
+void render(BelaContext* context, void* userData)
 {
   // De-interleave the input data
   for(unsigned int frame = 0; frame < context->audioFrames; frame++)
@@ -367,7 +367,7 @@ void render(BelaContext *context, void *userData)
       if(ch >= context->audioInChannels) // handle analogChannels
       {
         unsigned int m = frame/2;
-        float mIn = (float) context->analogIn[m * context->analogInChannels + (ch-context->audioInChannels)];
+        FAUSTFLOAT mIn = (FAUSTFLOAT) context->analogIn[m * context->analogInChannels + (ch-context->audioInChannels)];
         gInputBuffers[ch * context->audioFrames + frame] = mIn;
       }
       else // handle audioInChannels
@@ -405,7 +405,7 @@ void render(BelaContext *context, void *userData)
   }
 }
 
-void cleanup(BelaContext *context, void *userData)
+void cleanup(BelaContext* context, void* userData)
 {
   if(gInputBuffers != NULL)
     free(gInputBuffers);

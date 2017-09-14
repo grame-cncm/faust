@@ -271,7 +271,7 @@ unsigned long DspFaust::newVoice()
 	return (unsigned long)fPolyEngine->newVoice();
 }
 
-int DspFaust::deleteVoice(long voice)
+int DspFaust::deleteVoice(unsigned long voice)
 {
 	return fPolyEngine->deleteVoice(voice);
 }
@@ -321,22 +321,22 @@ float DspFaust::getParamValue(int id)
 	return fPolyEngine->getParamValue(id);
 }
 
-void DspFaust::setVoiceParamValue(const char* address, long voice, float value)
+void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
-void DspFaust::setVoiceParamValue(int id, long voice, float value)
+void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value)
 {
 	fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
-float DspFaust::getVoiceParamValue(const char* address, long voice)
+float DspFaust::getVoiceParamValue(const char* address, unsigned long voice)
 {
 	return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
-float DspFaust::getVoiceParamValue(int id, long voice)
+float DspFaust::getVoiceParamValue(int id, unsigned long voice)
 {
 	return fPolyEngine->getVoiceParamValue(id, voice);
 }
@@ -346,7 +346,7 @@ const char* DspFaust::getParamAddress(int id)
 	return fPolyEngine->getParamAddress(id);
 }
 
-const char* DspFaust::getVoiceParamAddress(int id, long voice)
+const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice)
 {
 	return fPolyEngine->getVoiceParamAddress(id, voice);
 }
@@ -381,14 +381,14 @@ float DspFaust::getParamInit(int id)
     return fPolyEngine->getParamInit(id);
 }
       
-const char* DspFaust::getParamTooltip(const char* address)
+const char* DspFaust::getMetadata(const char* address, const char* key)
 {
-    return fPolyEngine->getParamTooltip(address);
+    return fPolyEngine->getMetadata(address, key);
 }
       
-const char* DspFaust::getParamTooltip(int id)
+const char* DspFaust::getMetadata(int id, const char* key)
 {
-    return fPolyEngine->getParamTooltip(id);
+    return fPolyEngine->getMetadata(id, key);
 }
 
 void DspFaust::propagateAcc(int acc, float v)

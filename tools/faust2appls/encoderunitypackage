@@ -1,8 +1,32 @@
 #! /bin/bash -e
 
+#####################################################
+#                                                   #
+#   Encode an unitypackage archive                  #
+#                                                   #
+#   (c) Grame, 2017                                 #
+#                                                   #
+#####################################################
+#
+#
+# Structure of an unitypackage archive
+#----------------------------------------------------------------------------------
+#   FaustPlugin_<dspname>.unitypackage/
+#        <md5 key of file1>/
+#           asset (file1 renamed)
+#           pathname (file containing the address of file1 in the Unity hierarchy
+#        <md5 key of file2>/
+#           asset (file2 renamed)
+#           pathnama (file containing the address of file2 in the Unity hierarchy
+#        <md5 key of file3>/
+#           ...
+
+# The Unity hierarchy will be the same as the original folder hierarchy.
+# However, the first folder needs to be called "Assets", if not the script creates it before packing.
+# When the package is imported, Unity retrieves the hierarchy from the pathname files
+
 #-------------------------------------------------------------------
 #Dispatch command arguments
-
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
@@ -25,12 +49,14 @@ done
 
 for p in $FOLDER; do
 
+    # Checks if the parent folder is called "Assets", if not creates it (to respect the Unity hierarchy)
     if [ ! $p = "Assets" ]; then
         mkdir Assets
         mv $p Assets
         p=Assets
     fi
 
+    # Retrieves the name of the dsp file stored in ".VAR"
     if [ -f .VAR ]; then
         FNAME=FaustPlugin_$(cat .VAR)
     else
@@ -39,26 +65,43 @@ for p in $FOLDER; do
 
     rm -rf .VAR
     TMP=$(mktemp -d unity.XXXX)
+
+    # Finds all files in $p to encode them
     FILES=$(find $p -type f)
 
     for f in $FILES; do
         FILE=$(basename $f)
-        DIR=$(md5 -q $f)
+
+        # Computes the md5 key of each file, for Darwin system the command is md5, if not the command is md5sum
+        if [[ $(uname) == Darwin ]]; then
+            DIR=$(md5 -q $f)
+        else
+            DIR=$(md5sum $f | cut -f1 -d" ")
+        fi
+
+        # Creates the folder namaed with the md5 key of the file
         if [ -d "$DIR" ]; then
             rm -rf "$DIR"
         fi
         mkdir -p "$DIR"
         mv $DIR $TMP/$DIR
+
+        # Retrieves the file address and creates the pathname file
         echo "$f" >> $TMP/$DIR/pathname
+
+        # Moves and renames the file in the $DIR (md5 key folder)
         mv "$f" "$TMP/$DIR/asset"
+
     done
 
+    # Make sure all .* files have been deleted
     FILES=$(find $p -name "\.*")
-
     for f in $FILES; do
         rm -rf $f
     done
 
+    # Compresses the folder and renames it FaustPlugin_<dspname>.unityackage
+    # The archive needs to be a tar gz archive to be correctly read by Unity
     cd unity.*
     tar zcvf $FNAME.unitypackage * &> /dev/null
     mv "$FNAME.unitypackage" ../
