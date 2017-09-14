@@ -31,6 +31,8 @@ cp faust2impulse5ter /usr/local/bin/
 cp faust2impulse6 /usr/local/bin/
 cp faust2impulse7 /usr/local/bin/
 cp faust2impulse8 /usr/local/bin/
+cp faust2impulse9 /usr/local/bin/
+
 cp impulseinterp /usr/local/bin/
 cp impulsellvm /usr/local/bin/
 

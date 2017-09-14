@@ -13,7 +13,7 @@ BACKEND="all"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "test.sh [-all] [-float] [-cpp] [-c] [-rust] [-llvm] [-interp] [-ajs] [-ajs-e] [-lf-ajs] [-wast] [-wasm] [-valgrind] "
+        echo "test.sh [-all] [-float] [-cpp] [-c] [-rust] [-llvm] [-interp] [-ajs] [-ajs-e] [-lf-ajs] [-wast] [-wasm] [-wavm] [-valgrind] "
         echo "Use '-all' to activate all control test (float compilation and 8 backends)"
         echo "Use '-float' to activate float compilation"
         echo "Use '-cpp' to check 'cpp' backend"
@@ -26,6 +26,7 @@ for p in $@; do
         echo "Use '-lf-ajs' to check 'libfaust.js + asm.js' backend on expanded code"
         echo "Use '-wast' to check 'wasm' backend"
         echo "Use '-wasm' to check 'wasm' backend"
+        echo "Use '-wavm' to check 'wasm' backend running in WAVM runtime"
         echo "Use '-valgrind' to activate valgrind tests"
         exit
     elif [ $p = "-cpp" ]; then
@@ -48,6 +49,8 @@ for p in $@; do
         BACKEND="wast"
     elif [ $p = "-wasm" ]; then
         BACKEND="wasm"
+    elif [ $p = "-wavm" ]; then
+        BACKEND="wavm"
     elif [ $p = "-float" ]; then
         BACKEND="float"
     elif [ $p = "-valgrind" ]; then
@@ -488,6 +491,23 @@ if [ $BACKEND = "rust" ] || [ $BACKEND = "all" ]; then
             filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
         else
             echo "ERROR $f scalar mode in node.js"
+        fi
+    done
+
+fi
+
+if [ $BACKEND = "wavm" ] || [ $BACKEND = "all" ]; then
+
+    echo "================================================================================================"
+    echo "Impulse response tests in various compilation modes and double : wasm backend with WAVM runtime "
+    echo "================================================================================================"
+
+    for f in *.dsp; do
+        faust2impulse9 -double $f > $D/$f.scal.ir && RES=1 || RES=0
+        if [ $RES = "1" ]; then
+        filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f scalar mode"
+        else
+        echo "ERROR $f scalar mode in WAVM"
         fi
     done
 
