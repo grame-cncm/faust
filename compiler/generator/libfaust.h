@@ -90,4 +90,15 @@ bool generateAuxFilesFromString(const std::string& name_app, const std::string& 
  */
 std::string generateSHA1(const std::string& dsp_content);
 
+/**
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
+ * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode,
+ * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
+ *
+ * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
+ *
+ * @param ptr - the pointer to be deleted.
+ */
+extern "C" void freeCMemory(void* ptr);
+
 #endif

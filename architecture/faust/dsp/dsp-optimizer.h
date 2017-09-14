@@ -31,6 +31,7 @@
 #include <sys/types.h>
 #include <pwd.h>
 #include <unistd.h>
+#include <typeinfo>
 
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-bench.h"

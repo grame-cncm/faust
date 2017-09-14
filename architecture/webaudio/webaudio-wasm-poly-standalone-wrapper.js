@@ -362,7 +362,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
             }
         }
         
-        // bargraph
+        // Parse JSON UI part
         sp.parse_ui(sp.json_object.ui);
         
         // keep 'keyOn/keyOff' labels

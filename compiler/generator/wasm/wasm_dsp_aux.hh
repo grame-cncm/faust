@@ -147,13 +147,6 @@ extern "C" {
     EXPORT void freeWasmCModule(WasmModule* module);
     
     /**
-     * Get the library version.
-     *
-     * @return the library version as a static string.
-     */
-    EXPORT const char* getCLibFaustVersion();
-    
-    /**
      * Get the error message after an exception occured.
      *
      * @return the error as a static string.

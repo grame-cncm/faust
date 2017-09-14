@@ -339,8 +339,6 @@ extern "C" {
 
 // Public C interface
 
-EXPORT const char* getCLibFaustVersion();
-
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
@@ -430,8 +428,6 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void generateCSHA1(const char* data, char* key);
-
-EXPORT void freeCMemory(const char* ptr);
 
 #ifdef __cplusplus
 }

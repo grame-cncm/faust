@@ -729,7 +729,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
                 }
             }
           
-            // bargraph
+            // Parse JSON UI part
             try {
                 sp.parse_ui(JSON.parse(factory.getJSON()).ui);
             } catch (e) {
@@ -1345,7 +1345,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
               }
             }
        
-            // bargraph
+            // Parse JSON UI part
             sp.parse_ui(sp.json_object.ui);
             
             // keep 'keyOn/keyOff' labels

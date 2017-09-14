@@ -246,7 +246,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
             }
         }
                                 
-        // bargraph
+        // Parse JSON UI part
         sp.parse_ui(sp.json_object.ui);
         
         // Init DSP

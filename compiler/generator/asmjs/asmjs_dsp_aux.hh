@@ -101,14 +101,7 @@ extern "C" {
      * @return a valid asm.js module and additional helper functions as a string on success (to be deleted by the caller), otherwise a null pointer.
      */ 
     EXPORT const char* createAsmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
-    
-    /**
-     * Get the library version.
-     * 
-     * @return the library version as a static string.
-     */
-    EXPORT const char* getCLibFaustVersion();
-    
+        
 #ifdef __cplusplus
 }
 #endif

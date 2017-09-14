@@ -158,11 +158,11 @@ for p in $FILES; do
     fi
 
     if [ $TESTS == "all" ] ; then
-        $CXX $CXXFLAGS -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
     elif [ $TESTS == "fast" ] ; then
-        $CXX $CXXFLAGS -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
     elif [ $TESTS == "single" ] ; then
-        $CXX $CXXFLAGS -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
     fi
 
     # run bench

@@ -8,16 +8,16 @@ prefix := $(DESTDIR)$(PREFIX)
 all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk
 
 faustbench-llvm: faustbench-llvm.cpp
-	$(CXX) -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm
+	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm
 
 faustbench-llvm-interp: faustbench-llvm-interp.cpp
-	$(CXX) -O3 faustbench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm-interp
+	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm-interp
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp
-	$(CXX) -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
 
 dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
-	$(CXX) -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -o dynamic-jack-gtk-plugin
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -o dynamic-jack-gtk-plugin
 
 
 install:
