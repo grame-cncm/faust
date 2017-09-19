@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
     #ifdef INTERP_PLUGIN
-        cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.dsp" << endl;
+        cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
     #else
         cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
     #endif
@@ -161,12 +161,10 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-        //factory = createDSPFactoryFromString("FaustLLVM", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], "", error_msg, -1);
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
-        //factory = createInterpreterDSPFactoryFromString("FaustInterp", pathToContent(argv[argc-1]), argc-id-1, (const char**)&argv[id], error_msg);
     }
 #endif
     

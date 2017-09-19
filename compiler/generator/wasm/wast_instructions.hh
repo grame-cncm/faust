@@ -429,10 +429,10 @@ class WASTInstVisitor : public TextInstVisitor,  public WASInst {
         {
             switch (inst->fType->getType()) {
                 case Typed::kInt32:
-                    *fOut << "(i32.reinterpret/" << realStr << " ";  inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "(i32.reinterpret/" << realStr << " "; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kInt64:
-                    *fOut << "(i64.reinterpret/" << realStr << " ";  inst->fInst->accept(this); *fOut << ")";
+                    *fOut << "(i64.reinterpret/" << realStr << " "; inst->fInst->accept(this); *fOut << ")";
                     break;
                 case Typed::kFloat:
                     *fOut << "(" << realStr << ".reinterpret/i32 "; inst->fInst->accept(this); *fOut << ")";

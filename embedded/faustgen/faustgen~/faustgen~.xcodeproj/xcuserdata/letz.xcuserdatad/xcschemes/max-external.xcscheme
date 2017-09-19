@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "2FBBEAD608F335360078DB84"
-               BuildableName = "faustgen~.bundle"
+               BuildableName = "faustgen~.mxo"
                BlueprintName = "max-external"
                ReferencedContainer = "container:faustgen~.xcodeproj">
             </BuildableReference>
@@ -33,7 +33,7 @@
       </AdditionalOptions>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Development"
+      buildConfiguration = "Deployment"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       launchStyle = "0"
@@ -46,7 +46,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "2FBBEAD608F335360078DB84"
-            BuildableName = "faustgen~.bundle"
+            BuildableName = "faustgen~.mxo"
             BlueprintName = "max-external"
             ReferencedContainer = "container:faustgen~.xcodeproj">
          </BuildableReference>
