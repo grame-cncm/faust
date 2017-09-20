@@ -4,7 +4,7 @@ Several programs and tools are available to test the dynamic compilation chain a
 
 ## dynamic-jack-gtk
 
-**dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend.
+The **dynamic-jack-gtk** tool uses the dynamic compilation chain, compiles a Faust DSP source, and runs it with the LLVM or Interpreter backend.
 
 `dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp`
 
@@ -24,7 +24,7 @@ Additional Faust compiler options can be given. Note that the Interpreter backen
 
 ## faustbench
 
-**faustbench** uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
+The **faustbench** uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
 
 `faustbench [-ios] [-fast] [-run <num] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
@@ -39,11 +39,27 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 ## faustbench-llvm
 
-**faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust comptiler options can be given beside the ones that will be automatically explored by the tool.
+The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust comptiler options can be given beside the ones that will be automatically explored by the tool.
 
 `faustbench-llvm [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
 - `-run <num> to execute each test <num> times`
+
+## faustbench-wasm
+
+The **faustbench-wasm** tool tests a given DSP program in [node.js](https://nodejs.org/en/), comparing with a [Binaryen](https://github.com/WebAssembly/binaryen) optimized version of the wasm module.
+
+`faustbench-wasm foo.wasm` 
+
+## faust2benchwasm
+
+The **faust2benchwasm** tool generates an HTML page embedding benchmarch code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
+
+`faust2benchwasm [-opt] foo.dsp` 
+
+Here is the available option:
+
+- `-opt to optimize the wasm module using Binaryen tools`
 

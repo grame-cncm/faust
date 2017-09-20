@@ -51,7 +51,7 @@ for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2wasm [-poly] [-comb] [-opt] [-worklet] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
-        echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"

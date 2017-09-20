@@ -27,8 +27,8 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2benchwasm [-opt] <file.dsp>"
-        echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        echo "faust2benchwasm [-opt] foo.dsp"
+        echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         exit
     elif [ $p = "-opt" ]; then
         OPT="true"

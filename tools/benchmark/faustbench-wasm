@@ -25,7 +25,7 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bench-wasm <file.wasm>"
+        echo "faustbench-wasm foo.wasm"
         exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
