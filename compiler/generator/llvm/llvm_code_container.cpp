@@ -211,8 +211,10 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     llvm_compute->setCallingConv(CallingConv::C);
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if !defined(LLVM_50)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
+#endif
 #elif defined(LLVM_32) 
     AttrBuilder attr_builder;
     attr_builder.addAttribute(Attributes::NoAlias);

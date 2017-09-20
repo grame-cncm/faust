@@ -195,7 +195,15 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-// ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work 
+static void DUMP(Module* module)
+{
+    string res;
+    raw_string_ostream out_str(res);
+    out_str << *module;
+    std::cout << out_str.str();
+}
+
+// ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
 class FaustObjectCache : public ObjectCache {
 
@@ -734,8 +742,10 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         
         // -fastmath is activated at IR level, and needs to be setup at JIT level also
         
-     #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+    #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+    #if !defined(LLVM_50)
         targetOptions.LessPreciseFPMADOption = true;
+    #endif
         targetOptions.AllowFPOpFusion = FPOpFusion::Fast;
         targetOptions.UnsafeFPMath = true;
         targetOptions.NoInfsFPMath = true;
@@ -806,7 +816,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
                 TargetRegistry::printRegisteredTargetsForVersion();
-                fModule->dump();
+                DUMP(fModule);
             }
            
             fpm.doInitialization();
@@ -829,7 +839,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
             pm.run(*fModule);
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-                fModule->dump();
+                DUMP(fModule);
             }
         }
         
@@ -953,14 +963,14 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-            fModule->dump();
+            DUMP(fModule);
         }
         
         // Now that we have all of the passes ready, run them.
         pm.run(*fModule);
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-            fModule->dump();
+            DUMP(fModule);
         }
     }
      
