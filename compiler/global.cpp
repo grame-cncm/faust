@@ -454,7 +454,7 @@ global::~global()
 #if CPP_BUILD
     CPPInstVisitor::cleanup();
 #endif
-#if FIJ_BUILD
+#if FIR_BUILD
     FIRInstVisitor::cleanup();
 #endif
 #if JAVA_BUILD
@@ -476,7 +476,7 @@ void global::allocate()
 
 void global::destroy()
 {
- #ifdef EMCC
+#ifdef EMCC
     if (faustexception::gJSExceptionMsg) {
         free((void*)faustexception::gJSExceptionMsg);
         faustexception::gJSExceptionMsg = NULL;
@@ -542,6 +542,7 @@ void Garbageable::cleanup()
 		delete(*it);
   	#endif
     }
+    
     global::gObjectTable.clear();
 }
 

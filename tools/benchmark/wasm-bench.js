@@ -332,40 +332,16 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
 };
 
 // Bench code
-var fs = require('fs');
 var buffer_size = 1024;
 var sample_rate = 44100;
 var inputs = [];
 var outputs = [];
 var run = -1;
-var measures = [];
-var instance1 = null;
-var instance2 = null;
+var bench_num = 1;
 
 var NV = 4096;
 var input_index = 0;
 var output_index = 0;
-
-var asm2wasm = { // special asm2wasm imports
-    "fmod": function(x, y) {
-        return x % y;
-    },
-    "log10": function(x) {
-        return global.Math.log(x) / global.Math.log(10);
-    },
-    "remainder": function(x, y) {
-        return x - global.Math.round(x/y) * y;
-    }
-};
-var importObject = { imports: { print: arg => console.log(arg) } }
-importObject["global.Math"] = global.Math;
-importObject["asm2wasm"] = asm2wasm;
-
-var response1 = toUint8Array(fs.readFileSync('DSP.wasm'));
-var bytes1 = response1.buffer;
-
-var response2 = toUint8Array(fs.readFileSync('DSP-opt.wasm'));
-var bytes2 = response2.buffer;
 
 var createBuffers = function(ins, outs)
 {
@@ -381,12 +357,6 @@ var createBuffers = function(ins, outs)
 	for (var i = 0; i < outs; i++) {
 		outputs.push(new Float64Array(buffer_size * NV));
 	}
-}
-
-function megapersec(frames, chans, dur)
-{
-	// Use 4 bytes for samples
-	return (frames * chans * 4) / (1024 * 1024 * dur);
 }
 
 function benchOne(dsp, run)
@@ -412,7 +382,13 @@ function benchOne(dsp, run)
     return (time2 - time1);
 }
 
-function bench(instance)
+function megapersec(frames, chans, dur)
+{
+	// Use 4 bytes for samples
+	return (frames * chans * 4) / (1024 * 1024 * dur);
+}
+
+function bench(instance, display_handler)
 {
     // Creates DSP 
     var DSP = faust.mydsp(instance, null, buffer_size, sample_rate);
@@ -427,58 +403,48 @@ function bench(instance)
         run = (1000 / delta) * 5000;
     }
 
-    // Do the bench and keep result
-    var duration = benchOne(DSP, run);
-    measures.push(duration);
+	for (var i = 0; i < bench_num; i++) {
+ 		// Do the bench and keep result
+		var duration = benchOne(DSP, run);
+		var cpu = (duration * sample_rate) / (run * buffer_size * 10);
+		var mega = megapersec(buffer_size, (DSP.getNumInputs() + DSP.getNumOutputs()), duration/run/1000);
+    	if (display_handler) {
+    		display_handler(mega, cpu);
+    	}
+		console.log("MBytes/sec : " + mega);
+		console.log("DSP CPU % : " + cpu);
+    }
+}
+
+faust.createmydsp = function(display_handler)
+{
+    var asm2wasm = { // special asm2wasm imports
+        "fmod": function(x, y) {
+            return x % y;
+        },
+        "log10": function(x) {
+            return window.Math.log(x) / window.Math.log(10);
+        },
+        "remainder": function(x, y) {
+            return x - window.Math.round(x/y) * y;
+        }
+    };
     
-	var cpu = (duration * sample_rate) / (run * buffer_size * 10);
-	var mega = megapersec(buffer_size, (DSP.getNumInputs() + DSP.getNumOutputs()), duration/run/1000);
-	console.log("MBytes/sec : " + mega);
-	console.log("DSP CPU % : " + cpu);
-
-    // Compare every two tests (normal/optimized)
-    if (measures.length % 2 === 0) {
-        var v1 = measures[measures.length - 1];
-        var v2 = measures[measures.length - 2];
-		console.log("Normal : " + v1 + " optimized : " + v2);
-        console.log("Gain : " + (v1 - v2)/v1*100);
-    }
+    var importObject = { imports: { print: arg => console.log(arg) } }
+    
+    importObject["global.Math"] = window.Math;
+    importObject["asm2wasm"] = asm2wasm;
+    
+    fetch('mydsp.wasm')
+    .then(dsp_file => dsp_file.arrayBuffer())
+    .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
+    .then(dsp_module => bench(dsp_module.instance, display_handler))
+    .catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
 }
 
-function toUint8Array(buf)
-{
-    var res = new Uint8Array(buf.length);
-    for (var i = 0; i < buf.length; ++i) {
-        res[i] = buf[i];
-    }
-    return res;
-}
+// Startup
+var cpu_id = document.getElementById("cpu");
+var megapersec_id = document.getElementById("megapersec");
 
-function compileTwoDSP(bytes1, bytes2, callback)
-{
-    console.log("compileTwoDSP");
-    WebAssembly.compile(bytes1)
-        .then(m => { WebAssembly.instantiate(m, importObject)
-        .then(instance => {
-              instance1 = instance;
-              WebAssembly.compile(bytes2)
-                .then(m => { WebAssembly.instantiate(m, importObject)
-                .then(instance => {
-                      instance2 = instance;
-                      callback();
-                })});
-             })});
-}
-
-function benchTwoDSP()
-{
-    console.log("benchTwoDSP");
-    for (var i = 0; i < 5; i++) {
-        bench(instance1);
-        bench(instance2);
-    }
-}
-
-// Main
-compileTwoDSP(bytes1, bytes2, benchTwoDSP);
+faust.createmydsp(function(v1, v2) { megapersec_id.value = v1.toFixed(2); cpu_id.value = v2.toFixed(2); });
 

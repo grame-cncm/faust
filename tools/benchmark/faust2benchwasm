@@ -1,0 +1,94 @@
+#!/bin/bash
+
+OPT="false"
+
+#####################################################################
+#                                                                   #
+#               WASM bench in browsers                              #
+#               (c) Grame, 2017                                     #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+    then
+    FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/all.lib ]
+    then
+    FAUSTLIB=/usr/local/share/faust/
+elif [ -f /usr/share/faust/all.lib ]
+    then
+FAUSTLIB=/usr/share/faust/
+    else
+echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
+
+for p in $@; do
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2benchwasm [-opt] <file.dsp>"
+        echo "Use '-opt' to optimize wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        exit
+    elif [ $p = "-opt" ]; then
+        OPT="true"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+
+for f in $FILES; do
+
+    echo $OPTIONS
+
+    name=$(basename "$f" .dsp)
+    dirname=$(dirname "$f");
+
+    # compile Faust to wasm
+    faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
+    if [ $OPT = "true" ]; then
+        echo "Optimize wasm module"
+        wasm-opt $name.wasm -O3 -o $name.wasm
+    fi
+
+    # create the nodejs ready file
+    cd $dirname
+    cp $name.js $name-tmp1.js
+    sed -e "s/mydsp/"$name"/g" $name-tmp1.js >> $name-tmp2.js
+    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench.js >> $name-tmp2.js
+    sed -e "s/DSP/"$name"/g" $name-tmp2.js >> $name-tmp3.js
+
+    echo "<html>" > $name.html
+    echo "<body>" >> $name.html
+    echo "<H1>" >> $name.html
+    echo "$name <br></H1>" >> $name.html
+
+    echo "<H4>" >> $name.html
+    echo "MBytes/sec :" >> $name.html
+    echo "<input id=\"megapersec\" \"type=\"text\" \"value=\"\">" >> $name.html
+    echo "<br>" >> $name.html
+    echo "CPU load (in % of a 1024 frames audio buffer) :" >> $name.html
+    echo "<input id=\"cpu\" \"type=\"text\" \"value=\"\">" >> $name.html
+
+    echo "<script>" >> $name.html
+    cat $name-tmp3.js >> $name.html
+    echo "</script>" >> $name.html
+    echo "</body>" >> $name.html
+    echo "</html>" >> $name.html
+
+    # cleanup
+    rm $name-tmp1.js $name-tmp2.js $name-tmp3.js $name.js
+
+    # collect binary file name
+    BINARIES="$BINARIES$name.html;"
+
+done
+
+echo $BINARIES

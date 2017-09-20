@@ -24,7 +24,10 @@ echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 for p in $@; do
-    if [ ${p:0:1} = "-" ]; then
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2bench-wasm <file.wasm>"
+        exit
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -38,21 +41,23 @@ done
 
 for f in $FILES; do
 
+    echo $OPTIONS
+
     name=$(basename "$f" .dsp)
     dirname=$(dirname "$f");
 
     # compile Faust to wasm
-    faust $OPTIONS -lang wasm-i "$f" -o $name.wasm || exit
+    faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
     # -iit : optimize under the helpful assumption that no surprising traps occur (from load, div/mod, etc.)
     wasm-opt -O3 $name.wasm -o $name-opt.wasm
 
     # create the nodejs ready file
     cd $dirname
-    sed -e "s/mydsp/"$name"/g" "$name.js"  >> "$name-tmp1.js"
-    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-node-bench.js >> "$name-tmp1.js"
-    sed -e "s/DSP/"$name"/g" "$name-tmp1.js"  >> "$name-tmp2.js"
+    sed -e "s/mydsp/"$name"/g" $name.js  >> $name-tmp1.js
+    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-node-bench.js >> $name-tmp1.js
+    sed -e "s/DSP/"$name"/g" $name-tmp1.js  >> $name-tmp2.js
 
-	# run the binary to bench the normal and optimized versions
+    # run the binary to bench the normal and optimized versions
     node --expose-wasm $name-tmp2.js || exit
 
     # cleanup
