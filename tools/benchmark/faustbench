@@ -1,14 +1,13 @@
 #!/bin/bash
 
 . faustpath
-. faustoptflags
 
 FILES=""
 IOS="0"
 DOUBLE="0"
 OPTIONS=""
 LIBS=""
-ALL_TESTS="1"
+TESTS="all"
 RUN=1
 
 # Set default value for CXX
@@ -31,8 +30,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] [-fast] [-double] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "faustbench [-ios] [-single] [-fast] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-ios' to generate an iOS project"
+        echo "Use '-single' to execute only scalar test"
         echo "Use '-fast' to execute only some tests"
         echo "Use '-run <num>' to execute each test <num> times"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
@@ -44,7 +44,9 @@ do
     if [ "$p" = "-ios" ]; then
         IOS="1"
     elif [ "$p" = "-fast" ]; then
-        ALL_TESTS="0"
+        TESTS="fast"
+    elif [ "$p" = "-single" ]; then
+        TESTS="single"
     elif [ "$p" = "-run" ]; then
         shift
         RUN=$1
@@ -82,7 +84,7 @@ for p in $FILES; do
         echo "Compiled with additional options :$OPTIONS"
     fi
 
-    if [ $ALL_TESTS == "1" ] ; then
+    if [ $TESTS == "all" ] ; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
 
@@ -122,7 +124,7 @@ for p in $FILES; do
         faust -cn dsp_vec1g_256 $OPTIONS -vec -lv 1 -vs 256 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_256.h"
         faust -cn dsp_vec1g_512 $OPTIONS -vec -lv 1 -vs 512 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_512.h"
 
-    else
+    elif [ $TESTS == "fast" ] ; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
         faust -cn dsp_vec0_32 $OPTIONS -vec -lv 0 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec0_32.h"
@@ -130,6 +132,9 @@ for p in $FILES; do
         faust -cn dsp_vec1_32 $OPTIONS -vec -lv 1 -vs 32 "$SRCDIR/$f" -o "$TMP/dsp_vec1_32.h"
         faust -cn dsp_vec1g_32 $OPTIONS -vec -lv 1 -vs 32 -g "$SRCDIR/$f" -o "$TMP/dsp_vec1g_32.h"
 
+    elif [ $TESTS == "single" ] ; then
+
+        faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
     fi
 
     if [ $IOS == "1" ] ; then
@@ -151,17 +156,19 @@ for p in $FILES; do
         echo " #define FAUSTFLOAT float" | cat - "$FAUSTLIB/faustbench.cpp" > temp && mv temp "faustbench.cpp"
     fi
 
-    if [ $ALL_TESTS == "1" ] ; then
-        $CXX $CXXFLAGS -I . -I ../../ -ffast-math -DALL_TESTS faustbench.cpp $LIBS -o $dspName
-    else
-        $CXX $CXXFLAGS -I . -I ../../ -ffast-math faustbench.cpp $LIBS -o $dspName
+    if [ $TESTS == "all" ] ; then
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DALL_TESTS faustbench.cpp $LIBS -o $dspName
+    elif [ $TESTS == "fast" ] ; then
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DFAST_TESTS faustbench.cpp $LIBS -o $dspName
+    elif [ $TESTS == "single" ] ; then
+        $CXX $CXXFLAGS -std=c++11 -I . -I ../../ -DSINGLE_TESTS faustbench.cpp $LIBS -o $dspName
     fi
 
     # run bench
-    ./$dspName -run $RUN
+    cd ../../
+    ./$TDR/$dspName/$dspName -run $RUN
 
     # cleanup
-    cd ../../
     rm -rf "$TDR"
 
 done

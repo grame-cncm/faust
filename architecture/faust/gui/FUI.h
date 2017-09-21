@@ -33,6 +33,7 @@
 #include <fstream>
 
 #include "faust/gui/UI.h"
+#include "faust/gui/PathBuilder.h"
 
 /*******************************************************************************
  * FUI : used to save and recall the state of the user interface
@@ -41,56 +42,25 @@
  * The file is human readable and editable
  ******************************************************************************/
 
-class FUI : public UI
+class FUI : public UI, public PathBuilder
 {
 
     protected:
 
-        std::stack<std::string> fGroupStack;
-        std::vector<std::string> fNameList;
         std::map<std::string, FAUSTFLOAT*> fName2Zone;
         std::vector<FAUSTFLOAT*> fButtons;
-
-        // labels are normalized by replacing white spaces by underscores and by removing parenthesis
-        std::string normalizeLabel(const char* label)
-        {
-            std::string s;
-            char c;
-
-            while ((c = *label++)) {
-                if (isspace(c)) { s += '_'; }
-                //else if ((c == '(') | (c == ')') ) 	{ }
-                else { s += c; }
-            }
-            return s;
-        }
 
         // add an element by relating its full name and memory zone
         virtual void addElement(const char* label, FAUSTFLOAT* zone, bool button = false)
         {
-            std::string fullname (fGroupStack.top() + '/' + normalizeLabel(label));
-            fNameList.push_back(fullname);
-            fName2Zone[fullname] = zone;
+            std::string path = buildPath(label);
+            fName2Zone[path] = zone;
             if (button) {
                 fButtons.push_back(zone);
             }
         }
 
-        // keep track of full group names in a stack
-        virtual void pushGroupLabel(const char* label)
-        {
-            if (fGroupStack.empty()) {
-                fGroupStack.push(normalizeLabel(label));
-            } else {
-                fGroupStack.push(fGroupStack.top() + '/' + normalizeLabel(label));
-            }
-        }
-
-        virtual void popGroupLabel()
-        {
-            fGroupStack.pop();
-        }
-
+    
     public:
 
         FUI() {}
@@ -101,34 +71,35 @@ class FUI : public UI
         // save the zones values and full names
         virtual void saveState(const char* filename)
         {
-            std::ofstream f(filename);
-
-            for (unsigned int i = 0; i < fNameList.size(); i++) {
-                std::string	n = fNameList[i];
-                FAUSTFLOAT*	z = fName2Zone[n];
-                f << *z << ' ' << n << std::endl;
+            std::ofstream file(filename);
+            std::map<std::string, FAUSTFLOAT*>::iterator it;
+            
+            for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
+                file << *(*it).second << ' ' << (*it).first << std::endl;
             }
 
-            f << std::endl;
-            f.close();
+            file << std::endl;
+            file.close();
         }
 
         // recall the zones values and full names
         virtual void recallState(const char* filename)
         {
-            std::ifstream f(filename);
-            FAUSTFLOAT v;
-            std::string n;
-
-            while (f.good()) {
-                f >> v >> n;
-                if (fName2Zone.count(n) > 0) {
-                    *(fName2Zone[n]) = v;
-                } else if (n.size() > 0) {
-                    std::cerr << "recallState : parameter not found : " << n << " with value : " << v << std::endl;
+            std::ifstream file(filename);
+            FAUSTFLOAT value;
+            std::string path1, path2;
+            while (file.good()) {
+                file >> value >> path1;
+                path2 = "/" + path1;
+                if (fName2Zone.count(path1) > 0) {          // Old path system
+                    *(fName2Zone[path1]) = value;
+                } else if (fName2Zone.count(path2) > 0) {   // New path system with the starting '/'
+                    *(fName2Zone[path2]) = value;
+                } else if (path1.size() > 0) {
+                    std::cerr << "recallState : parameter not found : " << path1 << " with value : " << value << std::endl;
                 }
             }
-            f.close();
+            file.close();
         }
 
         void setButtons(bool state)
@@ -140,10 +111,10 @@ class FUI : public UI
 
         // -- widget's layouts (just keep track of group labels)
 
-        virtual void openTabBox(const char* label) { pushGroupLabel(label); }
-        virtual void openHorizontalBox(const char* label) { pushGroupLabel(label); }
-        virtual void openVerticalBox(const char* label) { pushGroupLabel(label); }
-        virtual void closeBox() { popGroupLabel(); };
+        virtual void openTabBox(const char* label) { fControlsLevel.push_back(label); }
+        virtual void openHorizontalBox(const char* label) { fControlsLevel.push_back(label); }
+        virtual void openVerticalBox(const char* label) { fControlsLevel.push_back(label); }
+        virtual void closeBox() { fControlsLevel.pop_back(); };
 
         // -- active widgets (just add an element)
 

@@ -57,6 +57,17 @@
 #define SAMPLE_RATE 44100.0
 #define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
+template <typename VAL_TYPE>
+inline void FAUSTBENCH_LOG(VAL_TYPE val)
+{
+    const char* log = getenv("FAUSTBENCH_LOG");
+    if (log && (strcasecmp(log, "on") == 0)) {
+        std::ofstream gFaustbenchLog;
+        gFaustbenchLog.open("Faustbench.csv", std::ofstream::app);
+        gFaustbenchLog << val << std::endl;
+    }
+}
+
 /*
     A class to do do timing measurements
 */
@@ -291,7 +302,13 @@ class measure_dsp : public decorator_dsp {
             for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 fAllInputs[i] = new FAUSTFLOAT[fBufferSize * NV];
                 fInputs[i] = fAllInputs[i];
-                memset(fAllInputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
+                // Write noise in inputs (to avoid 'speedup' effect due to null values)
+                int R0_0 = 0;
+                for (int j = 0; j < fBufferSize * NV; j++) {
+                    int R0temp0 = (12345 + (1103515245 * R0_0));
+                    fAllInputs[i][j] = FAUSTFLOAT(4.656613e-10f * R0temp0);
+                    R0_0 = R0temp0;
+                }
             }
             
             fOutputs = new FAUSTFLOAT*[fDSP->getNumOutputs()];
@@ -299,6 +316,7 @@ class measure_dsp : public decorator_dsp {
             for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fAllOutputs[i] = new FAUSTFLOAT[fBufferSize * NV];
                 fOutputs[i] = fAllOutputs[i];
+                // Write zero in outputs
                 memset(fAllOutputs[i], 0, sizeof(FAUSTFLOAT) * fBufferSize * NV);
             }
         }
