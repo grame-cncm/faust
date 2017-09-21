@@ -28,6 +28,7 @@
 #include <string>
 #include <iostream>
 
+#include "faust/dsp/dsp.h"
 
 #ifdef FAUSTFLOAT
     #if (FAUSTFLOAT == float)
@@ -44,30 +45,28 @@
 */
 
 class sound_player : public dsp {
-
+    
     private:
-
+    
         SF_INFO fInfo;
         SNDFILE* fFile;
         std::string fFileName;
         int fSamplingFreq;
         int fFrames;            // File current frame while playing (starts at fInfo.frames, ends at 0)
         FAUSTFLOAT** fBuffer;   // Buffer of non-interleased frames
-
+    
         // Zones for UI management
         FAUSTFLOAT fPlayButton;
         FAUSTFLOAT fLoopButton;
-        FAUSTFLOAT fPauseButton;
-        //FAUSTFLOAT fSpeedSlider;
-
-
+        FAUSTFLOAT fSpeedSlider;
+    
         void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fInfo.channels; i++) {
                 memcpy(&(outputs[i])[dst], &(fBuffer[i])[src], sizeof(FAUSTFLOAT) * count);
             }
         }
-
+    
         void clearSlice(int count, int dst, FAUSTFLOAT** outputs)
         {
             for (int i = 0; i < fInfo.channels; i++) {
@@ -81,23 +80,18 @@ class sound_player : public dsp {
         {
             fFileName = filename;
             fSamplingFreq = -1;
-
+            
             fFile = sf_open(fFileName.c_str(), SFM_READ, &fInfo);
-<<<<<<< HEAD
-            if (!fFile) throw std::bad_alloc();
-
-=======
             if (!fFile) {
                 std::cerr << sf_strerror(fFile) << std::endl;
                 throw std::bad_alloc();
             }
             
->>>>>>> grame-cncm/master-dev
             fBuffer = new FAUSTFLOAT*[fInfo.channels];
             for (int chan = 0; chan < fInfo.channels; chan++) {
                 fBuffer[chan] = new FAUSTFLOAT[fInfo.frames];
             }
-
+            
             FAUSTFLOAT buffer[BUFFER_SIZE * fInfo.channels];
             sf_count_t nbf;
             int dst = 0;
@@ -115,7 +109,7 @@ class sound_player : public dsp {
                 dst += nbf;
             } while (nbf == BUFFER_SIZE);
         }
-
+    
         virtual ~sound_player()
         {
             for (int i = 0; i < fInfo.channels; i++) {
@@ -127,93 +121,82 @@ class sound_player : public dsp {
 
         int getNumInputs() { return 0; }
         int getNumOutputs() { return fInfo.channels; }
-
+    
         void buildUserInterface(UI* ui_interface)
         {
-            ui_interface->openVerticalBox("Player");
+            ui_interface->openVerticalBox("Transport");
             ui_interface->addCheckButton("Play", &fPlayButton);
-            ui_interface->addCheckButton("Pause", &fPauseButton);
             ui_interface->addCheckButton("Loop", &fLoopButton);
-            //ui_interface->addVerticalSlider("Speed", &fSpeedSlider, FAUSTFLOAT(1), FAUSTFLOAT(0.5), FAUSTFLOAT(2), FAUSTFLOAT(0.1));
+            ui_interface->addHorizontalSlider("Speed", &fSpeedSlider, FAUSTFLOAT(1), FAUSTFLOAT(0.5), FAUSTFLOAT(2), FAUSTFLOAT(0.1));
             ui_interface->closeBox();
         }
-
+    
         int getSampleRate() { return fSamplingFreq; }
-
+    
         static void classInit(int samplingFreq) {}
-
+    
         void init(int samplingFreq)
         {
             classInit(samplingFreq);
             instanceInit(samplingFreq);
         }
-
+    
         void instanceInit(int samplingFreq)
         {
             instanceConstants(samplingFreq);
             instanceResetUserInterface();
             instanceClear();
         }
-
+    
         void instanceConstants(int samplingFreq)
         {
             fSamplingFreq = samplingFreq;
         }
-
+    
         void instanceResetUserInterface()
         {
             fPlayButton = FAUSTFLOAT(0);
-            fPauseButton = FAUSTFLOAT(0);
             fLoopButton = FAUSTFLOAT(0);
-            //fSpeedSlider = FAUSTFLOAT(1);
+            fSpeedSlider = FAUSTFLOAT(1);
         }
-
+    
         void instanceClear()
         {
             fFrames = fInfo.frames;
         }
-
+    
         sound_player* clone() { return new sound_player(fFileName); }
-
+      
         void metadata(Meta* m)
         {
             m->declare("name", fFileName.c_str());
         }
-
+    
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fPlayButton == FAUSTFLOAT(1)) {
-            	if (fPauseButton == FAUSTFLOAT(0)) {
                 int rcount = std::min(count, fFrames);
                 playSlice(rcount, fInfo.frames - fFrames, 0, outputs);
-                	if (rcount < count) {
-                    	if (fLoopButton == FAUSTFLOAT(1)) {
+                if (rcount < count) {
+                    if (fLoopButton == FAUSTFLOAT(1)) {
                         // Loop buffer
                         playSlice(count - rcount, 0, rcount, outputs);
                         fFrames = fInfo.frames - (count - rcount);
-                   		 } else {
+                    } else {
                         // Otherwise clear end of buffer and stops
                         clearSlice(count - rcount, rcount, outputs);
                         fFrames = fInfo.frames;
                         fPlayButton = 0;
-                    	}
-                	} else {
+                    }
+                } else {
                     fFrames -= count;
-                	}
-               } else {
-               	    // Pause
-               	    clearSlice(count, 0, outputs);
-               	    }
-
-             } else {
-                // Clear output and back to start
+                }
+            } else {
+                // Clear output
                 clearSlice(count, 0, outputs);
-                fFrames = fInfo.frames;
-                fPauseButton = 0;
             }
         }
-
+    
 };
-
 
 #endif
