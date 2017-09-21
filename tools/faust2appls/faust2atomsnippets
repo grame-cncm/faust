@@ -4,7 +4,7 @@
 # Usage: `faust2atomsnippets *.lib > faust-library.cson`
 #
 # Creates an atom snippets for each function in a library
-# Assumes the same format than faust2md. 
+# Assumes the same format than faust2md.
 #
 # The generated snippets file as the following structure:
 #
@@ -40,6 +40,7 @@
 
 
 import sys, re, datetime, string, getopt
+
 
 # Outdent a comment line by n characters in
 # order to remove the prefix "//   "
@@ -125,24 +126,32 @@ def indentation(line):
 tabsize 	= 4		# tabsize used for expanding tabs
 mode 		= 0		# 0: in code; 1: in md-comment
 idt 		= 0		# indentation retained to outdent comment lines
-libprefix	= "xx"	# 
+simplified  = 0		# 0: full mode; 1: body only
+libprefix	= "xx"	#
 
 # Analyze command line arguments
 try:
-	opts, args = getopt.getopt(sys.argv[1:], "t:cf")
+	opts, args = getopt.getopt(sys.argv[1:], "st:cf")
 	if not args:
 		raise getopt.error, "At least one file argument required"
 except getopt.error, msg:
 	print(msg)
-	print("usage: %s [-t tabsize] file ..." % (sys.argv[0],))
+	print("usage: %s [-s][-t tabsize] file ..." % (sys.argv[0],))
 	sys.exit(1)
 
 for optname, optvalue in opts:
 	if optname == '-t':
 		tabsize = int(optvalue)
+	if optname == '-s':
+		simplified = 1
 
 # Process all the files and print the documentation on the standard output
-print("'.source.faust':")
+if simplified:
+	sys.stdout.write("let gFaustLibSnippets = ")
+	sep = '['
+else:
+	print("'.source.faust':")
+
 for file in args:
 	with open(file) as f:
 		for text in f:
@@ -161,9 +170,13 @@ for file in args:
 					matchTitle = matchBeginTitle(line)
 					if matchComment:
 						foo = matchComment.group(1)
-						print("\t'%s':" % (foo,))
-						print("\t\t'prefix': '%s'" % (foo,))
-						print("\t\t'body': '%s.%s'" % (libprefix, foo))
+						if simplified:
+							sys.stdout.write("%s '%s.%s'" % (sep, libprefix, foo))
+							sep = ','
+						else:
+							print("\t'%s':" % (foo,))
+							print("\t\t'prefix': '%s'" % (foo,))
+							print("\t\t'body': '%s.%s'" % (libprefix, foo))
 					if matchComment or matchSection or matchTitle:
 						mode=1	# we just started a md-comment
 						idt = 0	# we have to measure the indentation
@@ -179,4 +192,7 @@ for file in args:
 					if matchComment or matchSection or matchTitle:
 						# end of md-comment switch back to mode O
 						mode = 0
+
+if simplified:
+	print(" ];")
 
