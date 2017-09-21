@@ -59,6 +59,9 @@
 #define READ_SAMPLE sf_readf_float
 //#define READ_SAMPLE sf_readf_double
 
+#define WRITE_SAMPLE sf_writef_float
+//#define WRITE_SAMPLE sf_writef_float
+
 /******************************************************************************
 *******************************************************************************
 
@@ -83,12 +86,12 @@ mydsp DSP;
 
 class Separator
 {
-  int		fNumFrames;
-  int		fNumInputs;
-  int		fNumOutputs;
+  int fNumFrames;
+  int fNumInputs;
+  int fNumOutputs;
 
-  FAUSTFLOAT*	fInput;
-  FAUSTFLOAT*	fOutputs[256];
+  FAUSTFLOAT* fInput;
+  FAUSTFLOAT* fOutputs[256];
 
 public:
 
@@ -118,11 +121,11 @@ public:
     }
   }
 
-  FAUSTFLOAT*	input()		{ return fInput; }
+  FAUSTFLOAT* input()		{ return fInput; }
 
   FAUSTFLOAT** outputs()	{ return fOutputs; }
 
-  void 	separate()
+  void separate()
   {
     for (int s = 0; s < fNumFrames; s++) {
       for (int c = 0; c < fNumInputs; c++) {
@@ -145,7 +148,7 @@ public:
   Interleaver(int numFrames, int numChans)
   {
     fNumFrames = numFrames;
-    fNumChans  = numChans;
+    fNumChans = numChans;
 
     // allocate separate input channels
     for (int i = 0; i < fNumChans; i++) {
@@ -168,18 +171,19 @@ public:
     free(fOutput);
   }
 
-  FAUSTFLOAT**	inputs()		{ return fInputs; }
+  FAUSTFLOAT** inputs()		{ return fInputs; }
 
-  FAUSTFLOAT* 	output()		{ return fOutput; }
+  FAUSTFLOAT* output()		{ return fOutput; }
 
   void interleave()
   {
     for (int s = 0; s < fNumFrames; s++) {
       for (int c = 0; c < fNumChans; c++) {
-        fOutput[c + s*fNumChans] = fInputs[c][s];
+        fOutput[c + s*fNumChans] = max(min(fInputs[c][s], FAUSTFLOAT(1.0)),FAUSTFLOAT(-1.0));
       }
     }
   }
+    
 };
 
 #define kFrames 512
@@ -201,16 +205,16 @@ long loptrm(int *argcP, char *argv[], const char* longname, const char* shortnam
   return def;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-  SNDFILE*	in_sf;
-  SNDFILE*	out_sf;
-  SF_INFO	in_info;
-  SF_INFO	out_info;
+  SNDFILE* in_sf;
+  SNDFILE* out_sf;
+  SF_INFO in_info;
+  SF_INFO out_info;
   unsigned int nAppend = 0; // number of frames to append beyond input file
 
   if (argc < 3) {
-    fprintf(stderr,"*** USAGE: %s input_soundfile output_soundfile\n",argv[0]);
+    fprintf(stderr,"*** USAGE: %s input_soundfile output_soundfile\n", argv[0]);
     exit(1);
   }
 
@@ -224,7 +228,7 @@ int main(int argc, char *argv[])
   in_info.format = 0;
   in_sf = sf_open(interface->input_file(), SFM_READ, &in_info);
   if (in_sf == NULL) {
-    fprintf(stderr,"*** Input file not found.\n");
+    fprintf(stderr, "*** Input file not found.\n");
     sf_perror(in_sf); 
     exit(1); 
   }
@@ -235,18 +239,17 @@ int main(int argc, char *argv[])
   out_info.channels = DSP.getNumOutputs();
   out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
   if (out_sf == NULL) { 
-    fprintf(stderr,"*** Cannot write output file.\n");
+    fprintf(stderr, "*** Cannot write output file.\n");
     sf_perror(out_sf); 
     exit(1); 
   }
 
   // create separator and interleaver
-  Separator   sep(kFrames, in_info.channels, DSP.getNumInputs());
+  Separator sep(kFrames, in_info.channels, DSP.getNumInputs());
   Interleaver ilv(kFrames, DSP.getNumOutputs());
 
   // init signal processor
   DSP.init(in_info.samplerate);
-  //DSP.buildUserInterface(interface);
   interface->process_init();
 
   // process all samples
@@ -256,8 +259,7 @@ int main(int argc, char *argv[])
     sep.separate();
     DSP.compute(nbf, sep.outputs(), ilv.inputs());
     ilv.interleave();
-    sf_writef_float(out_sf, ilv.output(), nbf);
-    //sf_write_raw(out_sf, ilv.output(), nbf);
+    WRITE_SAMPLE(out_sf, ilv.output(), nbf);
   } while (nbf == kFrames);
 
   sf_close(in_sf);
@@ -269,7 +271,7 @@ int main(int argc, char *argv[])
     Interleaver ailv(nAppend, DSP.getNumOutputs());
     DSP.compute(nAppend, inputs, ailv.inputs());
     ailv.interleave();
-    sf_writef_float(out_sf, ailv.output(), nAppend);
+    WRITE_SAMPLE(out_sf, ailv.output(), nAppend);
   }
 
   sf_close(out_sf);
