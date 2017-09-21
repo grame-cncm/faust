@@ -1193,12 +1193,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
             // Force flush since the stream is not closed...
             helpers->flush();
-            
-            if (helpers != &cout) delete helpers;
         }
     }
    
     endTiming("generateCode");
+        
+    // Delete streams if they were allocated
+    if (dst != &cout) delete dst;
+    if (helpers != &cout) delete helpers;
 
     return make_pair(comp, container);
 }

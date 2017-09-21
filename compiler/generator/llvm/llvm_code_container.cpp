@@ -108,7 +108,10 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
-{}
+{
+    delete fBuilder;
+    delete fAllocaBuilder;
+}
 
 LLVMContext& LLVMCodeContainer::getContext() { return *fContext; }
 

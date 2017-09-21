@@ -233,7 +233,7 @@ int main(int argc, char* argv[])
         oscinterface->run();
     }
     
-    if (is_osc) {
+    if (is_midi) {
         midiinterface->run();
     }
     

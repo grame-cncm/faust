@@ -60,7 +60,7 @@ static Tree 	iterateProd (Tree id, int num, Tree body, Tree visited, Tree localV
 static Tree 	larg2par (Tree larg);
 static int 		eval2int (Tree exp, Tree visited, Tree localValEnv);
 static double   eval2double (Tree exp, Tree visited, Tree localValEnv);
-static const char * evalLabel (const char* l, Tree visited, Tree localValEnv);
+static string evalLabel (const char* l, Tree visited, Tree localValEnv);
 
 static Tree		evalIdDef(Tree id, Tree visited, Tree env);
 
@@ -379,20 +379,20 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	
 	} else if (isBoxButton(exp, label)) {
 		const char* l1 = tree2str(label);
-     	const char* l2 = evalLabel(l1, visited, localValEnv);
+        string l2 = evalLabel(l1, visited, localValEnv);
 		//cout << "button label : " << l1 << " become " << l2 << endl;
-		return ((l1 == l2) ? exp : boxButton(tree(l2)));
+        return boxButton(tree(l2.c_str()));
 
 	} else if (isBoxCheckbox(exp, label)) {
 		const char* l1 = tree2str(label);
-    	const char* l2 = evalLabel(l1, visited, localValEnv);
+        string l2 = evalLabel(l1, visited, localValEnv);
 		//cout << "check box label : " << l1 << " become " << l2 << endl;
-		return ((l1 == l2) ? exp : boxCheckbox(tree(l2)));
+        return boxCheckbox(tree(l2.c_str()));
 
 	} else if (isBoxVSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-        const char* l2 = evalLabel(l1, visited, localValEnv);
-		return ( boxVSlider(tree(l2),
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return (boxVSlider(tree(l2.c_str()),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)),
@@ -400,8 +400,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxHSlider(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-     	const char* l2 = evalLabel(l1, visited, localValEnv);
-		return ( boxHSlider(tree(l2),
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return (boxHSlider(tree(l2.c_str()),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)),
@@ -409,8 +409,8 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxNumEntry(exp, label, cur, lo, hi, step)) {
 		const char* l1 = tree2str(label);
-      	const char* l2 = evalLabel(l1, visited, localValEnv);
-		return (boxNumEntry(tree(l2),
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return (boxNumEntry(tree(l2.c_str()),
 					tree(eval2double(cur, visited, localValEnv)),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)),
@@ -418,30 +418,30 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxVGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
-        const char* l2 = evalLabel(l1, visited, localValEnv);
-		return boxVGroup(tree(l2),	eval(arg, visited, localValEnv) );
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return boxVGroup(tree(l2.c_str()), eval(arg, visited, localValEnv) );
 
 	} else if (isBoxHGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
- 		const char* l2 = evalLabel(l1, visited, localValEnv);
-		return boxHGroup(tree(l2),	eval(arg, visited, localValEnv) );
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return boxHGroup(tree(l2.c_str()), eval(arg, visited, localValEnv) );
 
 	} else if (isBoxTGroup(exp, label, arg)) {
 		const char* l1 = tree2str(label);
-    	const char* l2 = evalLabel(l1, visited, localValEnv);
-		return boxTGroup(tree(l2),	eval(arg, visited, localValEnv) );
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return boxTGroup(tree(l2.c_str()), eval(arg, visited, localValEnv) );
 
 	} else if (isBoxHBargraph(exp, label, lo, hi)) {
 		const char* l1 = tree2str(label);
-    	const char* l2 = evalLabel(l1, visited, localValEnv);
-		return boxHBargraph(tree(l2),
+        string l2 = evalLabel(l1, visited, localValEnv);
+		return boxHBargraph(tree(l2.c_str()),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)));
 
 	} else if (isBoxVBargraph(exp, label, lo, hi)) {
-		const char* l1 = tree2str(label);
-  		const char* l2 = evalLabel(l1, visited, localValEnv);
-		return boxVBargraph(tree(l2),
+        const char* l1 = tree2str(label);
+        string l2 = evalLabel(l1, visited, localValEnv);
+        return boxVBargraph(tree(l2.c_str()),
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)));
 
@@ -630,7 +630,6 @@ static bool isBoxNumeric (Tree in, Tree& out)
 
 static Tree patternSimplification (Tree pattern)
 {	
-	
 	Node 	n(0);
 	Tree 	v, t1, t2;
 	
@@ -711,7 +710,7 @@ static bool isIdentChar(char c)
 
 static const char* Formats [] = {"%d", "%1d", "%2d", "%3d", "%4d"};
 
-static void writeIdentValue(std::string& dst, const std::string& format, const std::string& ident, Tree visited, Tree localValEnv)
+static void writeIdentValue(string& dst, const string& format, const string& ident, Tree visited, Tree localValEnv)
 {
     int     f = atoi(format.c_str());
     int     n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
@@ -725,14 +724,13 @@ static void writeIdentValue(std::string& dst, const std::string& format, const s
 /**
  * evallabel replace "...%2i..." occurences in label with value of i
  */
-static const char* evalLabel (const char* src, Tree visited, Tree localValEnv)
+static string evalLabel (const char* src, Tree visited, Tree localValEnv)
 {
     //std::cerr << "Eval Label : " << src;
-
-    int             state = 0;  // current state
-    std::string     dst;        // label once evaluated
-    std::string     ident;      // current identifier
-    std::string     format;     // current format
+    int        state = 0;  // current state
+    string     dst;        // label once evaluated
+    string     ident;      // current identifier
+    string     format;     // current format
 
     while (state != -1) {
 
@@ -790,9 +788,7 @@ static const char* evalLabel (const char* src, Tree visited, Tree localValEnv)
         }
     }
 
-    const char* val = strdup(dst.c_str());
-    //std::cerr << "  ===> " << val << std::endl;
-    return val;
+    return dst;
 }
 
 /**

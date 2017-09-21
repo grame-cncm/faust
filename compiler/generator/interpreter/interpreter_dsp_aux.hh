@@ -112,6 +112,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     virtual ~interpreter_dsp_factory_aux()
     {
         // No more DSP instances, so delete
+        delete fMetaBlock;
         delete fUserInterfaceBlock;
         delete fStaticInitBlock;
         delete fInitBlock;
