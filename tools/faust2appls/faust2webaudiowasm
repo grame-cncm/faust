@@ -167,7 +167,7 @@ for f in $FILES; do
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
-    if [ $EMCC != emcc ] ; then
+    if [ $EMCC != emcc ]; then
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js

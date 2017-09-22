@@ -62,7 +62,7 @@ faust.DSP = function (ptr, context, buffer_size) {
     sp.numOut = DSP_getNumOutputs(sp.ptr);
     
     // Path string
-     sp.path_ptr = Module._malloc(512);
+    sp.path_ptr = Module._malloc(512);
     
     // bargraph
     sp.ouputs_timer = 5;

@@ -90,7 +90,7 @@ if [ $POLY = "true" ]; then
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
-        JS_WRAPPER=webaudio-asm-poly-emcc.js
+        JS_WRAPPER=webaudio-wasm-poly-emcc.js
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
@@ -105,7 +105,7 @@ else
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER1=webaudio-asm.cpp
-        JS_WRAPPER=webaudio-asm-emcc.js
+        JS_WRAPPER=webaudio-wasm-emcc.js
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in AudioWorklet mode"

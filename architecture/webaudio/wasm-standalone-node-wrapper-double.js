@@ -3,34 +3,6 @@
 
 var faust = faust || {};
 
-// Build global context
-var window = {};
-window.Math = {};
-
-window.Int32Array = Int32Array;
-window.Float64Array = Float64Array;
-
-window.Math.imul = Math.imul;
-window.Math.log = Math.log;
-window.Math.abs = global.Math.abs;
-window.Math.fabs = global.Math.abs;
-window.Math.acos = global.Math.acos;
-window.Math.asin = global.Math.asin;
-window.Math.atan = global.Math.atan;
-window.Math.atan2 = global.Math.atan2;
-window.Math.ceil = global.Math.ceil;
-window.Math.cos = global.Math.cos;
-window.Math.exp = global.Math.exp;
-window.Math.floor = global.Math.floor;
-window.Math.log = global.Math.log;
-window.Math.max = global.Math.max;
-window.Math.min = global.Math.min;
-window.Math.pow = global.Math.pow;
-window.Math.round = global.Math.round;
-window.Math.sin = global.Math.sin;
-window.Math.sqrt = global.Math.sqrt;
-window.Math.tan = global.Math.tan;
-
 // Standard Faust DSP
 faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 
@@ -522,10 +494,10 @@ var asm2wasm = { // special asm2wasm imports
         return x % y;
     },
     "log10": function(x) {
-        return window.Math.log(x) / window.Math.log(10);
+        return global.Math.log(x) / global.Math.log(10);
     },
     "remainder": function(x, y) {
-        return x - window.Math.round(x/y) * y;
+        return x - global.Math.round(x/y) * y;
     }
 };
 
@@ -539,7 +511,7 @@ function toUint8Array(buf)
 }
 
 var importObject = { imports: { print: arg => console.log(arg) } }
-importObject["global.Math"] = window.Math;
+importObject["global.Math"] = global.Math;
 importObject["asm2wasm"] = asm2wasm;
 var response = toUint8Array(fs.readFileSync('DSP.wasm'));
 var bytes = response.buffer;
