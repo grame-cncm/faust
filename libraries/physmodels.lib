@@ -57,12 +57,12 @@ TODO:
 // Useful pre-defined variables for physical modeling.
 //========================================================================================
 
-//--------------`speedOfSound`----------
+//--------------`(pm.)speedOfSound`----------
 // Speed of sound in meters per second (340m/s).
 //--------------------------------------
 speedOfSound = 340;
 
-//--------------`maxLength`----------
+//--------------`(pm.)maxLength`----------
 // The default maximum length (3) in meters of strings and tubes used in this
 // library. This variable should be overriden to allow longer strings or tubes.
 //--------------------------------------
@@ -72,7 +72,7 @@ maxLength = 3;
 // Useful conversion tools for physical modeling.
 //========================================================================================
 
-//--------------`f2l`----------
+//--------------`(pm.)f2l`----------
 // Frequency to length in meters.
 //
 // #### Usage
@@ -87,7 +87,7 @@ maxLength = 3;
 //-------------------------------
 f2l(freq) = speedOfSound/freq;
 
-//--------------`l2f`----------
+//--------------`(pm.)l2f`----------
 // Length in meters to frequency.
 //
 // #### Usage
@@ -102,7 +102,7 @@ f2l(freq) = speedOfSound/freq;
 //-------------------------------
 l2f(length) = speedOfSound/length;
 
-//--------------`l2s`----------
+//--------------`(pm.)l2s`----------
 // Length in meters to number of samples.
 //
 // #### Usage
@@ -127,7 +127,7 @@ l2s(l) = l*ma.SR/speedOfSound;
 // algorithm.
 //========================================================================================
 
-//--------------`basicBlock`----------
+//--------------`(pm.)basicBlock`----------
 // Empty bidirectional block to be used with [`chain`](#chain): 3 signals ins
 // and 3 signals out.
 //
@@ -139,7 +139,7 @@ l2s(l) = l*ma.SR/speedOfSound;
 //-------------------------------
 basicBlock = _,_,_;
 
-//-------`chain`----------
+//-------`(pm.)chain`----------
 // Creates a chain of bidirectional blocks.
 // Blocks must have 3 inputs and outputs. The first input/output carry left
 // going waves, the second input/output carry right going waves, and the third
@@ -161,7 +161,7 @@ basicBlock = _,_,_;
 chain(A:As) = ((ro.crossnn(1),_',_ : _,A : ro.crossnn(1),_,_ : _,chain(As) : ro.crossnn(1),_,_)) ~ _ : !,_,_,_;
 chain(A) = A;
 
-//-------`inLeftWave`--------------
+//-------`(pm.)inLeftWave`--------------
 // Adds a signal to left going waves anywhere in a [`chain`](#chain) of blocks.
 //
 // #### Usage
@@ -175,7 +175,7 @@ chain(A) = A;
 //--------------------------------
 inLeftWave(x) = +(x),_,_;
 
-//-------`inRightWave`--------------
+//-------`(pm.)inRightWave`--------------
 // Adds a signal to right going waves anywhere in a [`chain`](#chain) of blocks.
 //
 // #### Usage
@@ -189,7 +189,7 @@ inLeftWave(x) = +(x),_,_;
 //--------------------------------
 inRightWave(x) = _,+(x),_;
 
-//-------`in`--------------
+//-------`(pm.)in`--------------
 // Adds a signal to left and right going waves anywhere in a [`chain`](#chain)
 // of blocks.
 //
@@ -204,7 +204,7 @@ inRightWave(x) = _,+(x),_;
 //--------------------------------
 in(x) = +(x),+(x),_;
 
-//-------`outLeftWave`--------------
+//-------`(pm.)outLeftWave`--------------
 // Sends the signal of left going waves to the output channel of the [`chain`](#chain).
 //
 // #### Usage
@@ -217,7 +217,7 @@ in(x) = +(x),+(x),_;
 //--------------------------------
 outLeftWave(x,y,s) = x,y,x+s;
 
-//-------`outRightWave`--------------
+//-------`(pm.)outRightWave`--------------
 // Sends the signal of right going waves to the output channel of the [`chain`](#chain).
 //
 // #### Usage
@@ -230,7 +230,7 @@ outLeftWave(x,y,s) = x,y,x+s;
 //--------------------------------
 outRightWave(x,y,s) = x,y,y+s;
 
-//-------`out`--------------
+//-------`(pm.)out`--------------
 // Sends the signal of right and left going waves to the output channel of the
 // [`chain`](#chain).
 //
@@ -244,7 +244,7 @@ outRightWave(x,y,s) = x,y,y+s;
 //--------------------------------
 out(x,y,s) = x,y,x+y+s;
 
-//-------`terminations`--------------
+//-------`(pm.)terminations`--------------
 // Creates terminations on both sides of a [`chain`](#chain) without closing
 // the inputs and outputs of the bidirectional signals chain. As for
 // [`chain`](#chain), this function adds a 1 sample delay to the bidirectional
@@ -264,7 +264,7 @@ out(x,y,s) = x,y,x+y+s;
 //----------------------------------------
 terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (a,c : ro.crossnn(1));
 
-//-------`lTermination`----------
+//-------`(pm.)lTermination`----------
 // Creates a termination on the left side of a [`chain`](#chain) without
 // closing the inputs and outputs of the bidirectional signals chain. This
 // function adds a 1 sample delay near the termination and can be nested
@@ -282,7 +282,7 @@ terminations(a,b,c) = (_,ro.crossnn(1),_,_ : +,+,_ : b) ~ (a,c : ro.crossnn(1));
 //----------------------------------------
 lTermination(a,b) = (ro.crossnn(1),_,_ : _,+,_ : b) ~ a;
 
-//-------`rTermination`----------
+//-------`(pm.)rTermination`----------
 // Creates a termination on the right side of a [`chain`](#chain) without
 // closing the inputs and outputs of the bidirectional signals chain. This
 // function adds a 1 sample delay near the termination and can be nested
@@ -300,7 +300,7 @@ lTermination(a,b) = (ro.crossnn(1),_,_ : _,+,_ : b) ~ a;
 //----------------------------------------
 rTermination(b,c) = (_,_,_,_ : +,_,_ : b) ~ (!,c);
 
-//-------`closeIns`----------
+//-------`(pm.)closeIns`----------
 // Closes the inputs of a bidirectional chain in all directions.
 //
 // #### Usage
@@ -311,7 +311,7 @@ rTermination(b,c) = (_,_,_,_ : +,_,_ : b) ~ (!,c);
 //----------------------------------------
 closeIns = 0,0,0;
 
-//-------`closeOuts`----------
+//-------`(pm.)closeOuts`----------
 // Closes the outputs of a bidirectional chain in all directions except for the
 // main signal output (3d output).
 //
@@ -323,7 +323,7 @@ closeIns = 0,0,0;
 //----------------------------------------
 closeOuts = !,!,_;
 
-//-------`endChain`----------
+//-------`(pm.)endChain`----------
 // Closes the inputs and outputs of a bidirectional chain in all directions
 // except for the main signal output (3d output).
 //
@@ -341,7 +341,7 @@ endChain(b) = closeIns : b : closeOuts;
 // etc.).
 //========================================================================================
 
-//-------`waveguideN`----------
+//-------`(pm.)waveguideN`----------
 // A series of waveguide functions based on various types of delays (see
 // [`fdelay[n]`](#fdelayn)).
 //
@@ -368,7 +368,7 @@ waveguideFd(nMax,n) = par(i,2,de.fdelay(nMax,n)),_;
 waveguideFd2(nMax,n) = par(i,2,de.fdelay2(nMax,n)),_;
 waveguideFd4(nMax,n) = par(i,2,de.fdelay4(nMax,n)),_;
 
-//-------`waveguide`----------
+//-------`(pm.)waveguide`----------
 // Standard `pm.lib` waveguide (based on [`waveguideFd4`](#waveguiden)).
 //
 // #### Usage
@@ -384,7 +384,7 @@ waveguideFd4(nMax,n) = par(i,2,de.fdelay4(nMax,n)),_;
 //----------------------------------
 waveguide(nMax,n) = waveguideFd4(nMax,n);
 
-//-------`bridgeFilter`----------
+//-------`(pm.)bridgeFilter`----------
 // Generic two zeros bridge FIR filter (as implemented in the
 // [STK](https://ccrma.stanford.edu/software/stk/)) that can be used to
 // implement the reflectance violin, guitar, etc. bridges.
@@ -411,7 +411,7 @@ with{
 	rho = pow(0.001,1.0/(freq*t60));
 };
 
-//-------`modeFilter`----------
+//-------`(pm.)modeFilter`----------
 // Resonant bandpass filter that can be used to implement a single resonance
 // (mode).
 //
@@ -443,7 +443,7 @@ with{
 // this section can be used in a bidirectional chain.
 //========================================================================================
 
-//-------`stringSegment`----------
+//-------`(pm.)stringSegment`----------
 // A string segment without terminations (just a simple waveguide).
 //
 // #### Usage
@@ -463,7 +463,7 @@ with{
 	n = length : l2s/2;
 };
 
-//-------`openString`----------
+//-------`(pm.)openString`----------
 // A bidirectional block implementing a basic "generic" string with a
 // selectable excitation position. Lowpass filters are built-in and
 // allow to simulate the effect of dispersion on the sound and thus
@@ -490,7 +490,7 @@ with{
 	btbd = length*(1-pluckPosition); // length of the lower portion of the string
 };
 
-//-------`nylonString`----------
+//-------`(pm.)nylonString`----------
 // A bidirectional block implementing a basic nylon string with selectable
 // excitation position. This element is based on [`openString`](#openstring)
 // and has a fix stiffness corresponding to that of a nylon string.
@@ -513,7 +513,7 @@ with{
 	stiffness = 0.4; // empirically set but it sounds good ;)
 };
 
-//-------`steelString`----------
+//-------`(pm.)steelString`----------
 // A bidirectional block implementing a basic steel string with selectable
 // excitation position. This element is based on [`openString`](#openstring)
 // and has a fix stiffness corresponding to that of a steel string.
@@ -538,7 +538,7 @@ with{
 	// but I think it's good to keep them for consistency
 };
 
-//-------`openStringPick`----------
+//-------`(pm.)openStringPick`----------
 // A bidirectional block implementing a "generic" string with selectable
 // excitation position. It also has a built-in pickup whose position is the
 // same as the excitation position. Thus, moving the excitation position
@@ -567,7 +567,7 @@ with{
 	dispersionFilters : stringSegment(maxStringLength,itb));
 };
 
-//-------`openStringPickUp`----------
+//-------`(pm.)openStringPickUp`----------
 // A bidirectional block implementing a "generic" string with selectable
 // excitation position and stiffness. It also has a built-in pickup whose
 // position can be independenly selected. The only constraint is that the
@@ -601,7 +601,7 @@ with{
 	stringSegment(maxStringLength,itb));
 };
 
-//-------`openStringPickDown`----------
+//-------`(pm.)openStringPickDown`----------
 // A bidirectional block implementing a "generic" string with selectable
 // excitation position and stiffness. It also has a built-in pickup whose
 // position can be independenly selected. The only constraint is that the
@@ -642,7 +642,7 @@ with{
 // possible, it will pose optimization issues (we'd want the new mute
 // feature of Faust to be generalized in order to do that)
 
-//-------`ksReflexionFilter`----------
+//-------`(pm.)ksReflexionFilter`----------
 // The "typical" one-zero Karplus-strong feedforward reflexion filter. This
 // filter will be typically used in a termination (see below).
 //
@@ -654,7 +654,7 @@ with{
 //----------------------------------
 ksReflexionFilter = _ <: (_+_')/2;
 
-//-------`rStringRigidTermination`----------
+//-------`(pm.)rStringRigidTermination`----------
 // Bidirectional block implementing a right rigid string termination (no damping,
 // just phase inversion).
 //
@@ -666,7 +666,7 @@ ksReflexionFilter = _ <: (_+_')/2;
 //----------------------------------
 rStringRigidTermination = rTermination(basicBlock,*(-1));
 
-//-------`lStringRigidTermination`----------
+//-------`(pm.)lStringRigidTermination`----------
 // Bidirectional block implementing a left rigid string termination (no damping,
 // just phase inversion).
 //
@@ -678,7 +678,7 @@ rStringRigidTermination = rTermination(basicBlock,*(-1));
 //----------------------------------
 lStringRigidTermination = lTermination(*(-1),basicBlock);
 
-//-------`elecGuitarBridge`----------
+//-------`(pm.)elecGuitarBridge`----------
 // Bidirectional block implementing a simple electric guitar bridge. This
 // block is based on [`bridgeFilter`](#bridgeFilter). The bridge doesn't
 // implement transmittance since it is not meant to be connected to a
@@ -693,7 +693,7 @@ lStringRigidTermination = lTermination(*(-1),basicBlock);
 //----------------------------------
 elecGuitarBridge = rTermination(basicBlock,-bridgeFilter(0.8,0.6));
 
-//-------`elecGuitarNuts`----------
+//-------`(pm.)elecGuitarNuts`----------
 // Bidirectional block implementing a simple electric guitar nuts. This
 // block is based on [`bridgeFilter`](#bridgeFilter) and does essentially
 // the same thing as [`elecGuitarBridge`](#elecguitarbridge), but on the
@@ -708,7 +708,7 @@ elecGuitarBridge = rTermination(basicBlock,-bridgeFilter(0.8,0.6));
 //----------------------------------
 elecGuitarNuts = lTermination(-bridgeFilter(0.8,0.6),basicBlock);
 
-//-------`guitarBridge`----------
+//-------`(pm.)guitarBridge`----------
 // Bidirectional block implementing a simple acoustic guitar bridge. This
 // bridge damps more hight frequencies than
 // [`elecGuitarBridge`](#elecguitarbridge) and implements a transmittance
@@ -727,7 +727,7 @@ with{
 	transmittance = _; // TODO
 };
 
-//-------`guitarNuts`----------
+//-------`(pm.)guitarNuts`----------
 // Bidirectional block implementing a simple acoustic guitar nuts. This
 // nuts damps more hight frequencies than
 // [`elecGuitarNuts`](#elecguitarnuts) and implements a transmittance
@@ -742,7 +742,7 @@ with{
 //----------------------------------
 guitarNuts = lTermination(-bridgeFilter(0.4,0.5),basicBlock);
 
-//-------`idealString`----------
+//-------`(pm.)idealString`----------
 // An "ideal" string with rigid terminations and where the plucking position
 // and the pick-up position are the same. Since terminations are rigid, this
 // string will ring forever.
@@ -770,7 +770,7 @@ with{
 	rStringRigidTermination); // waveguide chain
 };
 
-//-------`ks`----------
+//-------`(pm.)ks`----------
 // A Karplus-Strong string (in that case, the string is implemented as a
 // one dimension waveguide).
 //
@@ -797,7 +797,7 @@ with{
 	stringSegment(maxStringLength,tunedLength) : out),refFilter);
 };
 
-//-------`ks_ui_MIDI`----------
+//-------`(pm.)ks_ui_MIDI`----------
 // Ready-to-use, MIDI-enabled Karplus-Strong string with buil-in UI.
 //
 // #### Usage
@@ -822,7 +822,7 @@ with{
 	freq = f*bend;
 };
 
-//-------`elecGuitarModel`----------
+//-------`(pm.)elecGuitarModel`----------
 // A simple electric guitar model (without audio effects, of course) with
 // selectable pluck position.
 // This model implements a single string. Additional strings should be created
@@ -855,7 +855,7 @@ with{
 		elecGuitarBridge);
 };
 
-//-------`elecGuitar`----------
+//-------`(pm.)elecGuitar`----------
 // A simple electric guitar model with steel strings (based on
 // [`elecGuitarModel`](#elecguitarmodel)) implementing an excitation
 // model.
@@ -880,7 +880,7 @@ elecGuitar(stringLength,pluckPosition,mute,gain,trigger) =
 pluckString(stringLength,1,1,1,gain,trigger) :
 elecGuitarModel(stringLength,pluckPosition,mute);
 
-//-------`elecGuitar_ui_MIDI`----------
+//-------`(pm.)elecGuitar_ui_MIDI`----------
 // Ready-to-use MIDI-enabled electric guitar physical model with built-in UI.
 //
 // #### Usage
@@ -905,7 +905,7 @@ with{
   stringLength = freq : f2l;
 };
 
-//-------`guitarBody`----------
+//-------`(pm.)guitarBody`----------
 // WARNING: not implemented yet!
 // Bidirectional block implementing a simple acoustic guitar body.
 //
@@ -922,7 +922,7 @@ with{
 	reflectance = _;
 };
 
-//-------`guitarModel`----------
+//-------`(pm.)guitarModel`----------
 // A simple acoustic guitar model with steel strings and selectable excitation
 // position. This model implements a single string. Additional strings should be created
 // by making a polyphonic applications out of this function. Pitch is changed by
@@ -951,7 +951,7 @@ with{
 	guitarBridge : guitarBody : out);
 };
 
-//-------`guitar`----------
+//-------`(pm.)guitar`----------
 // A simple acoustic guitar model with steel strings (based on
 // [`guitarModel`](#guitarmodel)) implementing an excitation model.
 // This model implements a single string. Additional strings should be created
@@ -973,7 +973,7 @@ with{
 guitar(stringLength,pluckPosition,gain,trigger) =
 pluckString(stringLength,1,1.5,1,gain,trigger) : guitarModel(stringLength, pluckPosition);
 
-//-------`guitar_ui_MIDI`----------
+//-------`(pm.)guitar_ui_MIDI`----------
 // Ready-to-use MIDI-enabled steel strings acoustic guitar physical model with
 // built-in UI.
 //
@@ -1000,7 +1000,7 @@ with{
   stringLength = freq : f2l;
 };
 
-//-------`nylonGuitarModel`----------
+//-------`(pm.)nylonGuitarModel`----------
 // A simple acoustic guitar model with nylon strings and selectable excitation
 // position. This model implements a single string. Additional strings should be created
 // by making a polyphonic applications out of this function. Pitch is changed by
@@ -1029,7 +1029,7 @@ with{
 	guitarBridge : guitarBody : out);
 };
 
-//-------`nylonGuitar`----------
+//-------`(pm.)nylonGuitar`----------
 // A simple acoustic guitar model with steel strings (based on
 // [`nylonGuitarModel`](#nylonguitarmodel)) implementing an excitation model.
 // This model implements a single string. Additional strings should be created
@@ -1051,7 +1051,7 @@ with{
 nylonGuitar(stringLength,pluckPosition,gain,trigger) =
 pluckString(stringLength,1,1.5,1,gain,trigger) : nylonGuitarModel(stringLength, pluckPosition);
 
-//-------`nylonGuitar_ui_MIDI`----------
+//-------`(pm.)nylonGuitar_ui_MIDI`----------
 // Ready-to-use MIDI-enabled nylon strings acoustic guitar physical model with
 // built-in UI.
 //
@@ -1083,7 +1083,7 @@ with{
 // this section can be used in a bidirectional chain.
 //========================================================================================
 
-//-------`bowTable`----------
+//-------`(pm.)bowTable`----------
 // Extremely basic bow table that can be used to implement a wide range of
 // bow types for many different bowed string instruments (violin, cello, etc.)
 //
@@ -1105,7 +1105,7 @@ with{
 };
 
 
-//-------`violinBowTable`----------
+//-------`(pm.)violinBowTable`----------
 // Violin bow table based on [`bowTable`](#bowtable).
 //
 // #### Usage
@@ -1124,7 +1124,7 @@ with{
 	tableSlope = 5 - (4*bowPressure);
 };
 
-//-------`bowInteraction`----------
+//-------`(pm.)bowInteraction`----------
 // Bidirectional block implementing the interaction of a bow in a
 // [`chain`](#chain).
 //
@@ -1140,7 +1140,7 @@ with{
 //----------------------------------
 bowInteraction(b) = (_,_ <: b,_,_ :> _,_),_;
 
-//-------`violinBow`----------
+//-------`(pm.)violinBow`----------
 // Bidirectional block implementing a violin bow and its interaction with
 // a string.
 //
@@ -1160,7 +1160,7 @@ with{
 	bowSystem = + : bowVelocity-_ <: *(violinBowTable(bowPressure)) <: _,_;
 };
 
-//-------`violinBowedString`----------
+//-------`(pm.)violinBowedString`----------
 // Violin bowed string bidirectional block with controllable bow position.
 // Terminations are not implemented in this model.
 //
@@ -1189,7 +1189,7 @@ with{
 	btbd = stringLength*(1-bowPosition); // lower portion of the string length
 };
 
-//-------`violinNuts`----------
+//-------`(pm.)violinNuts`----------
 // Bidirectional block implementing simple violin nuts. This function is
 // based on [`bridgeFilter`](#bridgefilter).
 //
@@ -1201,7 +1201,7 @@ with{
 //----------------------------------
 violinNuts = lTermination(-bridgeFilter(0.6,0.1),basicBlock);
 
-//-------`violinBridge`----------
+//-------`(pm.)violinBridge`----------
 // Bidirectional block implementing a simple violin bridge. This function is
 // based on [`bridgeFilter`](#bridgefilter).
 //
@@ -1219,7 +1219,7 @@ with{
 	transmittance = _;
 };
 
-//-------`violinBody`----------
+//-------`(pm.)violinBody`----------
 // Bidirectional block implementing a simple violin body (just a simple
 // resonant lowpass filter).
 //
@@ -1237,7 +1237,7 @@ with{
 	reflectance = _;
 };
 
-//-------`violinModel`----------
+//-------`(pm.)violinModel`----------
 // Ready-to-use simple violin physical model. This model implements a single
 // string. Additional strings should be created
 // by making a polyphonic applications out of this function. Pitch is changed
@@ -1271,7 +1271,7 @@ with{
 	);
 };
 
-//-------`violin_ui`----------
+//-------`(pm.)violin_ui`----------
 // Ready-to-use violin physical model with built-in UI.
 //
 // #### Usage
@@ -1289,7 +1289,7 @@ with{
 	outGain = hslider("v:violin/outGain",0.5,0,1,0.01);
 };
 
-//-------`violin_ui_MIDI`----------
+//-------`(pm.)violin_ui_MIDI`----------
 // Ready-to-use MIDI-enabled violin physical model with built-in UI.
 //
 // #### Usage
@@ -1335,7 +1335,7 @@ with{
 // this section can be used in a bidirectional chain.
 //========================================================================================
 
-//-------`openTube`----------
+//-------`(pm.)openTube`----------
 // A tube segment without terminations (same as [`stringSegment`](#stringsegment)).
 //
 // #### Usage
@@ -1351,7 +1351,7 @@ with{
 //----------------------------------
 openTube = stringSegment;
 
-//-------`reedTable`----------
+//-------`(pm.)reedTable`----------
 // Extremely basic reed table that can be used to implement a wide range of
 // single reed types for many different instruments (saxophone, clarinet, etc.).
 //
@@ -1372,7 +1372,7 @@ with {
 	reedTable = *(slope) + offset;
 };
 
-//-------`fluteJetTable`----------
+//-------`(pm.)fluteJetTable`----------
 // Extremely basic flute jet table.
 //
 // #### Usage
@@ -1390,7 +1390,7 @@ with{
   clipping = min(1) : max(-1);
 };
 
-//-------`brassLipsTable`----------
+//-------`(pm.)brassLipsTable`----------
 // Simple brass lips/mouthpiece table. Since this implementation is very basic
 // and that the lips and tube of the instrument are coupled to each other, the
 // length of that tube must be provided here.
@@ -1416,7 +1416,7 @@ with{
   lipFilter = fi.tf2(1,0,0,a1,pow(filterR,2)); // resonance with same freq as tube
 };
 
-//-------`clarinetReed`----------
+//-------`(pm.)clarinetReed`----------
 // Clarinet reed based on [`reedTable`](#reedtable) with controllable
 // stiffness.
 //
@@ -1436,7 +1436,7 @@ with{
 	tableSlope = -0.44 + 0.26*stiffness;
 };
 
-//-------`clarinetMouthPiece`----------
+//-------`(pm.)clarinetMouthPiece`----------
 // Bidirectional block implementing a clarinet mouthpiece as well as the various
 // interactions happening with traveling waves. This element is ready to be
 // plugged to a tube...
@@ -1459,7 +1459,7 @@ with{
 	reedInteraction = *(-1) <: *(clarinetReed(reedStiffness));
 };
 
-//-------`brassLips`----------
+//-------`(pm.)brassLips`----------
 // Bidirectional block implementing a brass mouthpiece as well as the various
 // interactions happening with traveling waves. This element is ready to be
 // plugged to a tube...
@@ -1486,7 +1486,7 @@ with{
   (p-_ : brassLipsTable(tubeLength,lipsTension) <: *(p),1-_),_ : _,* : + : fi.dcblocker;
 };
 
-//-------`fluteEmbouchure`----------
+//-------`(pm.)fluteEmbouchure`----------
 // Bidirectional block implementing a flute embouchure as well as the various
 // interactions happening with traveling waves. This element is ready to be
 // plugged between tubes segments...
@@ -1507,7 +1507,7 @@ with{
 fluteEmbouchure(pressure) =
 (_ <: _,_),_,_ : _,*(0.5)+(pressure-_*0.5 : fluteJetTable),_;
 
-//-------`wBell`----------
+//-------`(pm.)wBell`----------
 // Generic wind instrument bell bidirectional block that should be placed at
 // the end of a [`chain`](#chain).
 //
@@ -1523,7 +1523,7 @@ fluteEmbouchure(pressure) =
 //----------------------------------
 wBell(opening) = rTermination(basicBlock,si.smooth(opening));
 
-//-------`fluteHead`----------
+//-------`(pm.)fluteHead`----------
 // Simple flute head implementing waves reflexion.
 //
 // #### Usage
@@ -1537,7 +1537,7 @@ with{
   absorption = 0.95; // same as for foot
 };
 
-//-------`fluteFoot`----------
+//-------`(pm.)fluteFoot`----------
 // Simple flute foot implementing waves reflexion and dispersion.
 //
 // #### Usage
@@ -1552,7 +1552,7 @@ with{
   absorption = 0.95; // same as for head
 };
 
-//-------`clarinetModel`----------
+//-------`(pm.)clarinetModel`----------
 // A simple clarinet physical model without tone holes (pitch is changed by
 // changing the length of the tube of the instrument).
 //
@@ -1584,7 +1584,7 @@ with{
 		);
 };
 
-//-------`clarinetModel_ui`----------
+//-------`(pm.)clarinetModel_ui`----------
 // Same as [`clarinetModel`](#clarinetModel) but with a built-in UI. This function
 // doesn't implement a virtual "blower", thus `pressure` remains an argument here.
 //
@@ -1608,7 +1608,7 @@ with{
 	outGain = hslider("v:clarinetModel/[3]outGain",0.5,0,1,0.01);
 };
 
-//-------`clarinet_ui`----------
+//-------`(pm.)clarinet_ui`----------
 // Ready-to-use clarinet physical model with built-in UI based on
 // [`clarinetModel`](#clarinetmodel).
 //
@@ -1620,7 +1620,7 @@ with{
 //----------------------------------
 clarinet_ui = hgroup("clarinet",blower_ui : clarinetModel_ui);
 
-//-------`clarinet_ui_MIDI`----------
+//-------`(pm.)clarinet_ui_MIDI`----------
 // Ready-to-use MIDI compliant clarinet physical model with built-in UI.
 //
 // #### Usage
@@ -1663,7 +1663,7 @@ with{
 	blow = blower(pressure,0.05,2000,vibratoFreq,vibratoGain);
 };
 
-//-------`brassModel`----------
+//-------`(pm.)brassModel`----------
 // A simple generic brass instrument physical model without pistons
 // (pitch is changed by changing the length of the tube of the instrument).
 // This model is kind of hard to control and might not sound very good if
@@ -1692,7 +1692,7 @@ with{
   brassChain = chain(brassLips(tunedLength,lipsTension,pressure) : openTube(maxTubeLength,tunedLength) : wBell(mute) : out);
 };
 
-//-------`brassModel_ui`----------
+//-------`(pm.)brassModel_ui`----------
 // Same as [`brassModel`](#brassModel) but with a built-in UI. This function
 // doesn't implement a virtual "blower", thus `pressure` remains an argument here.
 //
@@ -1715,7 +1715,7 @@ with{
   mute = hslider("v:brassModel/[3]mute",0.5,0,1,0.01) : si.smoo;
 };
 
-//-------`brass_ui`----------
+//-------`(pm.)brass_ui`----------
 // Ready-to-use brass instrument physical model with built-in UI based on
 // [`brassModel`](#brassmodel).
 //
@@ -1727,7 +1727,7 @@ with{
 //----------------------------------
 brass_ui = hgroup("brass",blower_ui : brassModel_ui);
 
-//-------`brass_ui_MIDI`----------
+//-------`(pm.)brass_ui_MIDI`----------
 // Ready-to-use MIDI-controllable brass instrument physical model with built-in UI.
 //
 // #### Usage
@@ -1768,7 +1768,7 @@ with{
 	pressure = envelope*vibrato;
 };
 
-//-------`fluteModel`----------
+//-------`(pm.)fluteModel`----------
 // A simple generic brass instrument physical model without tone holes
 // (pitch is changed by changing the length of the tube of the instrument).
 //
@@ -1798,7 +1798,7 @@ with{
   fluteChain = chain(fluteHead : openTube(maxTubeLength,tted) : fluteEmbouchure(pressure) : openTube(maxTubeLength,eted) : fluteFoot : out);
 };
 
-//-------`fluteModel_ui`----------
+//-------`(pm.)fluteModel_ui`----------
 // Same as [`fluteModel`](#fluteModel) but with a built-in UI. This function
 // doesn't implement a virtual "blower", thus `pressure` remains an argument here.
 //
@@ -1822,7 +1822,7 @@ with{
   outGain = hslider("v:fluteModel/[2]outGain",0.5,0,1,0.01);
 };
 
-//-------`flute_ui`----------
+//-------`(pm.)flute_ui`----------
 // Ready-to-use flute physical model with built-in UI based on
 // [`fluteModel`](#flutemodel).
 //
@@ -1834,7 +1834,7 @@ with{
 //----------------------------------
 flute_ui = hgroup("flute",blower_ui : fluteModel_ui);
 
-//-------`flute_ui_MIDI`----------
+//-------`(pm.)flute_ui_MIDI`----------
 // Ready-to-use MIDI-controllable flute physical model with built-in UI.
 //
 // #### Usage
@@ -1879,7 +1879,7 @@ with{
 // Various kind of excitation signal generators.
 //========================================================================================
 
-//-------`impulseExcitation`--------------
+//-------`(pm.)impulseExcitation`--------------
 // Creates an impulse excitation of one sample.
 //
 // #### Usage
@@ -1895,7 +1895,7 @@ with{
 //--------------------------------------
 impulseExcitation(trigger) = trigger : ba.impulsify;
 
-//-------`strikeModel`--------------
+//-------`(pm.)strikeModel`--------------
 // Creates a filtered noise excitation.
 //
 // #### Usage
@@ -1921,7 +1921,7 @@ with{
   rel = att;
 };
 
-//-------`strike`--------------
+//-------`(pm.)strike`--------------
 // Strikes generator with controllable excitation position.
 //
 // #### Usage
@@ -1945,7 +1945,7 @@ with{
 	LPcutoff = 500+exPos*15000;
 };
 
-//-------`pluckString`--------------
+//-------`(pm.)pluckString`--------------
 // Creates a plucking excitation signal.
 //
 // #### Usage
@@ -1974,7 +1974,7 @@ with{
   cutoffreq = freq*5*cutoff;
 };
 
-//-------`blower`--------------
+//-------`(pm.)blower`--------------
 // A virtual blower creating a DC signal with some breath noise in it.
 //
 // #### Usage
@@ -1995,7 +1995,7 @@ with{
 	breathNoise = no.noise : fi.lowpass(2,breathCutoff) : *(pressure*breathGain);
 };
 
-//-------`blower_ui`--------------
+//-------`(pm.)blower_ui`--------------
 // Same as [`blower`](#blower) but with a built-in UI.
 //
 // #### Usage
@@ -2018,7 +2018,7 @@ with{
 // High and low level functions for modal synthesis of percussion instruments.
 //========================================================================================
 
-//-------`djembeModel`----------
+//-------`(pm.)djembeModel`----------
 // Dirt-simple djembe modal physical model. Mode parameters are empirically
 // calculated and don't correspond to any measurements or 3D model. They
 // kind of sound good though :).
@@ -2043,7 +2043,7 @@ with{
 	modeGains(i) = cos((i+1)*theta)/float(i+1)*(1/(i+1));
 };
 
-//-------`djembe`----------
+//-------`(pm.)djembe`----------
 // Dirt-simple djembe modal physical model. Mode parameters are empirically
 // calculated and don't correspond to any measurements or 3D model. They
 // kind of sound good though :).
@@ -2068,7 +2068,7 @@ with{
 djembe(freq,strikePosition,strikeSharpness,gain,trigger) =
 strike(strikePosition,strikeSharpness,gain,trigger) : djembeModel(freq);
 
-//-------`djembe_ui_MIDI`----------
+//-------`(pm.)djembe_ui_MIDI`----------
 // Simple MIDI controllable djembe physical model with built-in UI.
 //
 // #### Usage
@@ -2090,7 +2090,7 @@ with{
 	gate = button("v:djembe/[3]gate");
 };
 
-//-------`marimbaBarModel`----------
+//-------`(pm.)marimbaBarModel`----------
 // Generic marimba tone bar modal model.
 //
 // This model was generated using
@@ -2132,7 +2132,7 @@ modesGains(p,n) = waveform{1,0.776725,0.625723,0.855223,0.760159,0.698373,0.7680
 modesT60s(i) = t60*pow(1-(modesFreqRatios(i)/195.955)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`marimbaResTube`----------
+//-------`(pm.)marimbaResTube`----------
 // Simple marimba resonance tube.
 //
 // #### Usage
@@ -2162,7 +2162,7 @@ with{
 		);
 };
 
-//-------`marimbaModel`----------
+//-------`(pm.)marimbaModel`----------
 // Simple marimba physical model implementing a single tone bar connected to
 // tube. This model is scalable and can be adapted to any size of bar/tube
 // (see [`marimbaBarModel`](#marimbabarmodel) to know more about the
@@ -2188,7 +2188,7 @@ with{
 	T60Slope = 5;
 };
 
-//-------`marimba`----------
+//-------`(pm.)marimba`----------
 // Simple marimba physical model implementing a single tone bar connected to
 // tube. This model is scalable and can be adapted to any size of bar/tube
 // (see [`marimbaBarModel`](#marimbabarmodel) to know more about the
@@ -2216,7 +2216,7 @@ marimba(freq,strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 marimbaModel(freq,strikePosition);
 
-//-------`marimba_ui_MIDI`----------
+//-------`(pm.)marimba_ui_MIDI`----------
 // Simple MIDI controllable marimba physical model with built-in UI
 // implementing a single tone bar connected to
 // tube. This model is scalable and can be adapted to any size of bar/tube
@@ -2245,7 +2245,7 @@ with{
 	gate = button("v:marimba/[3]gate");
 };
 
-//-------`churchBellModel`----------
+//-------`(pm.)churchBellModel`----------
 // Generic church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/churchBell`.
 //
@@ -2281,7 +2281,7 @@ modesGains(p,n) = waveform{0.525285,0.814174,0.483261,0.296745,0.975056,0.472244
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/4035.44)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`churchBell`----------
+//-------`(pm.)churchBell`----------
 // Generic church bell modal model.
 //
 // Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied
@@ -2314,7 +2314,7 @@ churchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 churchBellModel(50,strikePosition,30,1,2.5);
 
-//-------`churchBell_ui`----------
+//-------`(pm.)churchBell_ui`----------
 // Church bell physical model based on [`churchBell`](#churchbell) with
 // built-in UI.
 //
@@ -2337,7 +2337,7 @@ with{
 	gate = button("v:churchBell/[4]gate");
 };
 
-//-------`englishBellModel`----------
+//-------`(pm.)englishBellModel`----------
 // English church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/englishBell`.
 //
@@ -2374,7 +2374,7 @@ modesGains(p,n) = waveform{0.694274,0.471698,0.17239,0.585446,0.397986,0.919579,
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/2137.04)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`englishBell`----------
+//-------`(pm.)englishBell`----------
 // English church bell modal model.
 //
 // Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and
@@ -2408,7 +2408,7 @@ englishBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 englishBellModel(50,strikePosition,30,1,3);
 
-//-------`englishBell_ui`----------
+//-------`(pm.)englishBell_ui`----------
 // English church bell physical model based on [`englishBell`](#englishbell) with
 // built-in UI.
 //
@@ -2431,7 +2431,7 @@ with{
 	gate = button("v:englishBell/[4]gate");
 };
 
-//-------`frenchBellModel`----------
+//-------`(pm.)frenchBellModel`----------
 // French church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/frenchBell`.
 //
@@ -2468,7 +2468,7 @@ modesGains(p,n) = waveform{0.97289,0.542393,0.495832,0.897966,0.552367,0.557895,
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/2555.3)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`frenchBell`----------
+//-------`(pm.)frenchBell`----------
 // French church bell modal model.
 //
 // Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and
@@ -2502,7 +2502,7 @@ frenchBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 frenchBellModel(50,strikePosition,30,1,3);
 
-//-------`frenchBell_ui`----------
+//-------`(pm.)frenchBell_ui`----------
 // French church bell physical model based on [`frenchBell`](#frenchbell) with
 // built-in UI.
 //
@@ -2525,7 +2525,7 @@ with{
 	gate = button("v:frenchBell/[4]gate");
 };
 
-//-------`germanBellModel`----------
+//-------`(pm.)germanBellModel`----------
 // German church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/germanBell`.
 //
@@ -2562,7 +2562,7 @@ modesGains(p,n) = waveform{0.761411,0.797803,0.586057,0.225039,0.926354,0.813875
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/2016.94)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`germanBell`----------
+//-------`(pm.)germanBell`----------
 // German church bell modal model.
 //
 // Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and
@@ -2596,7 +2596,7 @@ germanBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 germanBellModel(50,strikePosition,30,1,2.5);
 
-//-------`germanBell_ui`----------
+//-------`(pm.)germanBell_ui`----------
 // German church bell physical model based on [`germanBell`](#germanbell) with
 // built-in UI.
 //
@@ -2619,7 +2619,7 @@ with{
 	gate = button("v:germanBell/[4]gate");
 };
 
-//-------`russianBellModel`----------
+//-------`(pm.)russianBellModel`----------
 // Russian church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/russianBell`.
 //
@@ -2656,7 +2656,7 @@ modesGains(p,n) = waveform{0.925507,0.59752,0.0965671,0.45412,0.989773,0.593498,
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/1201.01)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`russianBell`----------
+//-------`(pm.)russianBell`----------
 // Russian church bell modal model.
 //
 // Modeled after D. Bartocha and . Baron, Influence of Tin Bronze Melting and
@@ -2690,7 +2690,7 @@ russianBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 russianBellModel(50,strikePosition,30,1,3);
 
-//-------`russianBell_ui`----------
+//-------`(pm.)russianBell_ui`----------
 // Russian church bell physical model based on [`russianBell`](#russianbell) with
 // built-in UI.
 //
@@ -2713,7 +2713,7 @@ with{
 	gate = button("v:russianBell/[4]gate");
 };
 
-//-------`standardBellModel`----------
+//-------`(pm.)standardBellModel`----------
 // Standard church bell modal model generated by `mesh2faust` from
 // `libraries/modalmodels/standardBell`.
 //
@@ -2749,7 +2749,7 @@ modesGains(p,n) = waveform{0.691911,0.622333,0.548651,0.463306,0.826946,0.749513
 modesT60s(i) = t60*pow(1-(modesFreqs(i)/4191.95)*t60DecayRatio,t60DecaySlope);
 };
 
-//-------`standardBell`----------
+//-------`(pm.)standardBell`----------
 // Standard church bell modal model.
 //
 // Modeled after T. Rossing and R. Perrin, Vibrations of Bells, Applied
@@ -2782,7 +2782,7 @@ standardBell(strikePosition,strikeCutoff,strikeSharpness,gain,trigger) =
 strikeModel(10,strikeCutoff,strikeSharpness,gain,trigger) :
 standardBellModel(50,strikePosition,30,1,2.5);
 
-//-------`standardBell_ui`----------
+//-------`(pm.)standardBell_ui`----------
 // Standard church bell physical model based on [`standardBell`](#standardbell) with
 // built-in UI.
 //
@@ -2810,7 +2810,7 @@ with{
 // Vocal synthesizer functions (source/filter, fof, etc.).
 //========================================================================================
 
-//-------`formantValues`----------
+//-------`(pm.)formantValues`----------
 // Formant data values.
 //
 // The formant data used here come from the CSOUND manual
@@ -2886,7 +2886,7 @@ bwMultMaxes = (10.0, 2.5, 2.5, 10.0, 4.0, 15.0, 12.0, 12.0, 12.0, 12.0);
 minGenderFreq = (82.41,174.61);
 maxGenderFreq = (523.25,1046.5);
 
-//--------------`voiceGender`-----------------
+//--------------`(pm.)voiceGender`-----------------
 // Calculate the gender for the provided `voiceType` value. (0: male, 1: female)
 //
 // #### Usage
@@ -2904,7 +2904,7 @@ maxGenderFreq = (523.25,1046.5);
 voiceGender(voiceType) = ba.if(voiceType == 0,1,ba.if(voiceType == 3,1,0));
 
 
-//-----------`skirtWidthMultiplier`------------
+//-----------`(pm.)skirtWidthMultiplier`------------
 // Calculates value to multiply bandwidth to obtain `skirtwidth`
 // for a Fof filter.
 //
@@ -2934,7 +2934,7 @@ with {
 };
 
 
-//--------------`autobendFreq`-----------------
+//--------------`(pm.)autobendFreq`-----------------
 // Autobends the center frequencies of formants 1 and 2 based on
 // the fundamental frequency of the excitation signal and leaves
 // all other formant frequencies unchanged. Ported from `chant-lib`.
@@ -2966,7 +2966,7 @@ with {
 };
 
 
-//--------------`vocalEffort`-----------------
+//--------------`(pm.)vocalEffort`-----------------
 // Changes the gains of the formants based on the fundamental
 // frequency of the excitation signal. Higher formants are
 // reinforced for higher fundamental frequencies.
@@ -2990,7 +2990,7 @@ vocalEffort(freq,gender) = _ <: ba.if(gender == 0,*(3+1.1*(400-freq)/300),
 *(0.8+1.05*(1000-freq)/1250));
 
 
-//-------------------------`fof`--------------------------
+//-------------------------`(pm.)fof`--------------------------
 // Function to generate a single Formant-Wave-Function.
 // Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
 //
@@ -3024,7 +3024,7 @@ with {
 };
 
 
-//-------------------------`fofSH`-------------------------
+//-------------------------`(pm.)fofSH`-------------------------
 // FOF with sample and hold used on `bw` and a parameter
 // used in the filter-cycling FOF function `fofCycle`.
 // Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
@@ -3041,7 +3041,7 @@ with {
 fofSH(fc,bw,a,g) = _ <: (((_,bw):ba.sAndH),((_,a):ba.sAndH),_) : (fc,_,_,g,_') : fof;
 
 
-//----------------------`fofCycle`-------------------------
+//----------------------`(pm.)fofCycle`-------------------------
 // FOF implementation where time-varying filter parameter noise is
 // mitigated by using a cycle of `n` sample and hold FOF filters.
 // Reference: <https://ccrma.stanford.edu/~mjolsen/pdfs/smc2016_MOlsenFOF.pdf>
@@ -3060,7 +3060,7 @@ fofSH(fc,bw,a,g) = _ <: (((_,bw):ba.sAndH),((_,a):ba.sAndH),_) : (fc,_,_,g,_') :
 // Author: Mike Olsen
 fofCycle(fc,bw,a,g,n) = _ : ba.cycle(n) : par(i,n,fofSH(fc,bw,a,g)) :> _;
 
-//----------------------`fofSmooth`-------------------------
+//----------------------`(pm.)fofSmooth`-------------------------
 // FOF implementation where time-varying filter parameter
 // noise is mitigated by lowpass filtering the filter
 // parameters `bw` and `a` with [smooth](#smooth).
@@ -3084,7 +3084,7 @@ with{
 };
 
 
-//-------`formantFilterFofCycle`--------------
+//-------`(pm.)formantFilterFofCycle`--------------
 // Formant filter based on a single FOF filter.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. A cycle of `n` fof filters with sample-and-hold is
@@ -3127,7 +3127,7 @@ with{
 };
 
 
-//-------`formantFilterFofSmooth`--------------
+//-------`(pm.)formantFilterFofSmooth`--------------
 // Formant filter based on a single FOF filter.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Fof filter parameters are lowpass filtered
@@ -3168,7 +3168,7 @@ with{
 };
 
 
-//-------`formantFilterBP`--------------
+//-------`(pm.)formantFilterBP`--------------
 // Formant filter based on a single resonant bandpass filter.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
@@ -3203,7 +3203,7 @@ with{
 };
 
 
-//-------`formantFilterbank`--------------
+//-------`(pm.)formantFilterbank`--------------
 // Formant filterbank which can use different types of filterbank
 // functions and different excitation signals. Formant parameters are
 // linearly interpolated allowing to go smoothly from one vowel to another.
@@ -3234,7 +3234,7 @@ with{
 };
 
 
-//-----`formantFilterbankFofCycle`-----
+//-----`(pm.)formantFilterbankFofCycle`-----
 // Formant filterbank based on a bank of fof filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
@@ -3260,7 +3260,7 @@ formantFilterbankFofCycle(voiceType,vowel,freq) =
 formantFilterbank(voiceType,vowel,formantFilterFofCycle,freq);
 
 
-//-----`formantFilterbankFofSmooth`----
+//-----`(pm.)formantFilterbankFofSmooth`----
 // Formant filterbank based on a bank of fof filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
@@ -3286,7 +3286,7 @@ formantFilterbankFofSmooth(voiceType,vowel,freq) =
 formantFilterbank(voiceType,vowel,formantFilterFofSmooth,freq);
 
 
-//-------`formantFilterbankBP`--------------
+//-------`(pm.)formantFilterbankBP`--------------
 // Formant filterbank based on a bank of resonant bandpass filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
 // one vowel to another. Voice type can be selected but must correspond to
@@ -3310,7 +3310,7 @@ formantFilterbankBP(voiceType,vowel,freq) =
 formantFilterbank(voiceType,vowel,formantFilterBP,freq);
 
 
-//-------`SFFormantModel`--------------
+//-------`(pm.)SFFormantModel`--------------
 // Simple formant/vocal synthesizer based on a source/filter model. The `source`
 // and `filterbank` must be specified by the user. `filterbank` must take the same
 // input parameters as [`formantFilterbank`](#formantFilterbank) (`BP`/`FofCycle`
@@ -3346,7 +3346,7 @@ with{
 };
 
 
-//-------`SFFormantModelFofCycle`-------
+//-------`(pm.)SFFormantModelFofCycle`-------
 // Simple formant/vocal synthesizer based on a source/filter model. The source
 // is just a periodic impulse and the "filter" is a bank of FOF filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
@@ -3375,7 +3375,7 @@ SFFormantModel(voiceType,vowel,0,freq,gain,os.lf_imptrain(freq),
 formantFilterbankFofCycle,1);
 
 
-//-------`SFFormantModelFofSmooth`-------
+//-------`(pm.)SFFormantModelFofSmooth`-------
 // Simple formant/vocal synthesizer based on a source/filter model. The source
 // is just a periodic impulse and the "filter" is a bank of FOF filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
@@ -3402,7 +3402,7 @@ SFFormantModel(voiceType,vowel,0,freq,gain,os.lf_imptrain(freq),
 formantFilterbankFofSmooth,1);
 
 
-//-------`SFFormantModelBP`--------------
+//-------`(pm.)SFFormantModelBP`--------------
 // Simple formant/vocal synthesizer based on a source/filter model. The source
 // is just a sawtooth wave and the "filter" is a bank of resonant bandpass filters.
 // Formant parameters are linearly interpolated allowing to go smoothly from
@@ -3431,7 +3431,7 @@ SFFormantModelBP(voiceType,vowel,exType,freq,gain) =
 SFFormantModel(voiceType,vowel,exType,freq,gain,os.sawtooth(freq),
 formantFilterbankBP,0);
 
-//-------`SFFormantModelFofCycle_ui`----------
+//-------`(pm.)SFFormantModelFofCycle_ui`----------
 // Ready-to-use source-filter vocal synthesizer with built-in user interface.
 //
 // #### Usage
@@ -3454,7 +3454,7 @@ with{
 };
 
 
-//-------`SFFormantModelFofSmooth_ui`----------
+//-------`(pm.)SFFormantModelFofSmooth_ui`----------
 // Ready-to-use source-filter vocal synthesizer with built-in user interface.
 //
 // #### Usage
@@ -3477,7 +3477,7 @@ with{
 };
 
 
-//-------`SFFormantModelBP_ui`----------
+//-------`(pm.)SFFormantModelBP_ui`----------
 // Ready-to-use source-filter vocal synthesizer with built-in user interface.
 //
 // #### Usage
@@ -3499,7 +3499,7 @@ with{
 };
 
 
-//-------`SFFormantModelFofCycle_ui_MIDI`----------
+//-------`(pm.)SFFormantModelFofCycle_ui_MIDI`----------
 // Ready-to-use MIDI-controllable source-filter vocal synthesizer.
 //
 // #### Usage
@@ -3538,7 +3538,7 @@ with{
 };
 
 
-//-------`SFFormantModelFofSmooth_ui_MIDI`----------
+//-------`(pm.)SFFormantModelFofSmooth_ui_MIDI`----------
 // Ready-to-use MIDI-controllable source-filter vocal synthesizer.
 //
 // #### Usage
@@ -3577,7 +3577,7 @@ with{
 };
 
 
-//-------`SFFormantModelBP_ui_MIDI`----------
+//-------`(pm.)SFFormantModelBP_ui_MIDI`----------
 // Ready-to-use MIDI-controllable source-filter vocal synthesizer.
 //
 // #### Usage
@@ -3620,7 +3620,7 @@ with{
 // Various miscellaneous functions.
 //========================================================================================
 
-//-------`allpassNL`--------------
+//-------`(pm.)allpassNL`--------------
 // Bidirectional block adding nonlinearities in both directions in a chain.
 // Nonlinearities are created by modulating the coefficients of a passive
 // allpass filter by the signal it is processing.

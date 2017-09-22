@@ -48,7 +48,7 @@ declare version "2.0"; // TODO to check
 //======================================Dynamic===========================================
 //========================================================================================
 
-//---------------------`cubicnl`-----------------------
+//---------------------`(ef.)cubicnl`-----------------------
 // Cubic nonlinearity distortion.
 // `cubicnl` is a standard Faust library.
 //
@@ -62,7 +62,7 @@ declare version "2.0"; // TODO to check
 // Where:
 //
 // * `drive`: distortion amount, between 0 and 1
-// * `offset`: constant added before nonlinearity to give even harmonics. Note: offset 
+// * `offset`: constant added before nonlinearity to give even harmonics. Note: offset
 // 	can introduce a nonzero mean - feed cubicnl output to dcblocker to remove this.
 //
 // #### References:
@@ -82,7 +82,7 @@ with {
 cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 
 
-//-----------------`gate_mono`-------------------
+//-----------------`(ef.)gate_mono`-------------------
 // Mono signal gate.
 // `gate_mono` is a standard Faust function.
 //
@@ -109,7 +109,7 @@ cubicnl_nodc(drive,offset) = cubicnl(drive,offset) : fi.dcblocker;
 gate_mono(thresh,att,hold,rel,x) = x * gate_gain_mono(thresh,att,hold,rel,x);
 
 
-//-----------------`gate_stereo`-------------------
+//-----------------`(ef.)gate_stereo`-------------------
 // Stereo signal gates.
 // `gate_stereo` is a standard Faust function.
 //
@@ -152,7 +152,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 //=====================================Filtering==========================================
 //========================================================================================
 
-//-------------------------`speakerbp`-------------------------------
+//-------------------------`(ef.)speakerbp`-------------------------------
 // Dirt-simple speaker simulator (overall bandpass eq with observed
 // roll-offs above and below the passband).
 //
@@ -167,7 +167,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 // `speakerbp` is a standard Faust function
 //
 // #### Usage
-// 
+//
 // ```
 // speakerbp(f1,f2)
 // _ : speakerbp(130,5000) : _
@@ -178,7 +178,7 @@ gate_gain_mono(thresh,att,hold,rel,x) = x : extendedrawgate : an.amp_follower_ar
 speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 
 
-//------------`piano_dispersion_filter`---------------
+//------------`(ef.)piano_dispersion_filter`---------------
 // Piano dispersion allpass filter in closed form.
 //
 // #### Usage
@@ -204,9 +204,9 @@ speakerbp(f1,f2) = fi.dcblockerat(f1) : fi.dcblockerat(f1) : fi.lowpass(4,f2);
 
 // #### Reference
 //
-// * "Dispersion Modeling in Waveguide Piano Synthesis Using Tunable 
+// * "Dispersion Modeling in Waveguide Piano Synthesis Using Tunable
 // Allpass Filters", by Jukka Rauhala and Vesa Valimaki, DAFX-2006, pp. 71-76
-// * <http://www.dafx.ca/proceedings/papers/p_071.pdf> (An erratum in Eq. (7) 
+// * <http://www.dafx.ca/proceedings/papers/p_071.pdf> (An erratum in Eq. (7)
 // 		is corrected in Dr. Rauhala's encompassing dissertation (and below).)
 // * <http://www.acoustics.hut.fi/research/asp/piano/>
 //------------------------------------------------------------
@@ -235,7 +235,7 @@ with {
 };
 
 
-//-------------------------`stereo_width`---------------------------
+//-------------------------`(ef.)stereo_width`---------------------------
 // Stereo Width effect using the Blumlein Shuffler technique.
 // `stereo_width` is a standard Faust function.
 //
@@ -270,7 +270,7 @@ with {
 //========================================Time Based======================================
 //========================================================================================
 
-//----------`echo`----------
+//----------`(ef.)echo`----------
 // A simple echo effect.
 //
 // `echo` is a standard Faust function
@@ -300,10 +300,10 @@ with{
 //=======================================Pitch Shifting===================================
 //========================================================================================
 
-//--------------`transpose`----------------
+//--------------`(ef.)transpose`----------------
 // A simple pitch shifter based on 2 delay lines.
 // `transpose` is a standard Faust function.
-// 
+//
 // #### Usage
 //
 // ```
@@ -316,7 +316,7 @@ with{
 // * `x`: crossfade duration duration (samples)
 // * `s`: shift (semitones)
 //-----------------------------------------
-transpose(w, x, s, sig) = de.fdelay(maxDelay,d,sig)*ma.fmin(d/x,1) + 
+transpose(w, x, s, sig) = de.fdelay(maxDelay,d,sig)*ma.fmin(d/x,1) +
 	de.fdelay(maxDelay,d+w,sig)*(1-ma.fmin(d/x,1))
 with {
 	maxDelay = 65536;
@@ -330,7 +330,7 @@ with {
 
 
 // TODO: the following should be in physmodels.lib when it will be operational
-//----------------------------------`mesh_square`------------------------------
+//----------------------------------`(ef.)mesh_square`------------------------------
 // Square Rectangular Digital Waveguide Mesh.
 //
 // #### Usage
@@ -459,6 +459,3 @@ echo5s  = vgroup("echo  5000", +~(de.delay(262144,  int(hslider("millisecond", 0
 echo10s = vgroup("echo 10000", +~(de.delay(524288,  int(hslider("millisecond", 0, 0,  10000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
 echo21s = vgroup("echo 21000", +~(de.delay(1048576, int(hslider("millisecond", 0, 0,  21000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
 echo43s = vgroup("echo 43000", +~(de.delay(2097152, int(hslider("millisecond", 0, 0,  43000, 1.00)*ba.millisec)-1) * (hslider("feedback", 0, 0,  100, 0.1)/100.0)));
-
-
-

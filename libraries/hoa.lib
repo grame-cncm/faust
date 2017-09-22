@@ -45,10 +45,10 @@ ma = library("maths.lib");
 si = library("signals.lib");
 
 
-//----------------------`encoder`---------------------------------
-// Ambisonic encoder. Encodes a signal in the circular harmonics domain 
+//----------------------`(ho.)encoder`---------------------------------
+// Ambisonic encoder. Encodes a signal in the circular harmonics domain
 // depending on an order of decomposition and an angle.
-// 
+//
 // #### Usage
 //
 // ```
@@ -66,9 +66,9 @@ encoder(n, x, a) = encoder(n-1, x, a), x*sin(n*a), x*cos(n*a);
 
 
 
-//--------------------------`decoder`--------------------------------
+//--------------------------`(ho.)decoder`--------------------------------
 // Decodes an ambisonics sound field for a circular array of loudspeakers.
-// 
+//
 // #### Usage
 //
 // ```
@@ -82,21 +82,21 @@ encoder(n, x, a) = encoder(n-1, x, a), x*sin(n*a), x*cos(n*a);
 //
 // #### Note
 //
-// Number of loudspeakers must be greater or equal to 2n+1. It's preferable 
+// Number of loudspeakers must be greater or equal to 2n+1. It's preferable
 // to use 2n+2 loudspeakers.
 //-------------------------------------------------------------------
 decoder(n, p)	= par(i, 2*n+1, _) <: par(i, p, speaker(n, 2*ma.PI*i/p))
-with 
+with
 {
    speaker(n,a)	= /(2), par(i, 2*n, _), encoder(n,2/(2*n+1),a) : si.dot(2*n+1);
 };
 
 
 
-//-----------------------`decoderStereo`------------------------
-// Decodes an ambisonic sound field for stereophonic configuration. 
-// An "home made" ambisonic decoder for stereophonic restitution 
-// (30° - 330°) : Sound field lose energy around 180°. You should 
+//-----------------------`(ho.)decoderStereo`------------------------
+// Decodes an ambisonic sound field for stereophonic configuration.
+// An "home made" ambisonic decoder for stereophonic restitution
+// (30° - 330°) : Sound field lose energy around 180°. You should
 // use `inPhase` optimization with ponctual sources.
 // #### Usage
 //
@@ -108,21 +108,21 @@ with
 //
 // * `n`: the order
 //--------------------------------------------------------------
-decoderStereo(n) = decoder(n, p) <: (par(i, 2*n+2, gainLeft(360 * i / p)) :> _), 
+decoderStereo(n) = decoder(n, p) <: (par(i, 2*n+2, gainLeft(360 * i / p)) :> _),
 	(par(i, 2*n+2, gainRight(360 * i / p)) :> _)
-with 
+with
 {
 	p = 2*n+2;
-	
+
    	gainLeft(a) =  _ * sin(ratio_minus + ratio_cortex)
-	with 
+	with
 	{
 		ratio_minus = ma.PI*.5 * abs( (30 + a) / 60 * ((a <= 30)) + (a - 330) / 60 * (a >= 330) );
 		ratio_cortex= ma.PI*.5 * abs( (120 + a) / 150 * (a > 30) * (a <= 180));
 	};
 
 	gainRight(a) =  _ * sin(ratio_minus + ratio_cortex)
-	with 
+	with
 	{
 		ratio_minus = ma.PI*.5 * abs( (390 - a) / 60 * (a >= 330) + (30 - a) / 60 * (a <= 30) );
 		ratio_cortex= ma.PI*.5 * abs( (180 - a) / 150 * (a < 330) * (a >= 180));
@@ -131,21 +131,21 @@ with
 
 
 //============================Optimization Functions======================================
-// Functions to weight the circular harmonics signals depending to the 
-// ambisonics optimization. 
+// Functions to weight the circular harmonics signals depending to the
+// ambisonics optimization.
 // It can be `basic` for no optimization, `maxRe` or `inPhase`.
 //========================================================================================
 
 
-//----------------`optimBasic`-------------------------
-// The basic optimization has no effect and should be used for a perfect 
-// circle of loudspeakers with one listener at the perfect center loudspeakers 
+//----------------`(ho.)optimBasic`-------------------------
+// The basic optimization has no effect and should be used for a perfect
+// circle of loudspeakers with one listener at the perfect center loudspeakers
 // array.
 //
 // #### Usage
 //
 // ```
-// _ : optimBasic(n) : _ 
+// _ : optimBasic(n) : _
 // ```
 //
 // Where:
@@ -155,14 +155,14 @@ with
 optimBasic(n)	= par(i, 2*n+1, _);
 
 
-//----------------`optimMaxRe`-------------------------
-// The maxRe optimization optimize energy vector. It should be used for an 
+//----------------`(ho.)optimMaxRe`-------------------------
+// The maxRe optimization optimize energy vector. It should be used for an
 // auditory confined in the center of the loudspeakers array.
 //
 // #### Usage
 //
 // ```
-// _ : optimMaxRe(n) : _ 
+// _ : optimMaxRe(n) : _
 // ```
 //
 // Where:
@@ -179,14 +179,14 @@ optimMaxRe(n)	= par(i, 2*n+1, optim(i, n, _))
  };
 
 
-//----------------`optimInPhase`-------------------------
-//  The inPhase Optimization optimize energy vector and put all loudspeakers signals 
+//----------------`(ho.)optimInPhase`-------------------------
+//  The inPhase Optimization optimize energy vector and put all loudspeakers signals
 // in phase. It should be used for an auditory.
 //
 // #### Usage
 //
 // ```
-// _ : optimInPhase(n) : _ 
+// _ : optimInPhase(n) : _
 // ```
 //
 // Where:
@@ -194,10 +194,10 @@ optimMaxRe(n)	= par(i, 2*n+1, optim(i, n, _))
 // * `n`: the order
 //-----------------------------------------------------
 optimInPhase(n)	= par(i, 2*n+1, optim(i, n, _))
-with 
+with
 {
    	optim(i, n, _)= _ * (fact(n)^2.) / (fact(n+indexabs) * fact(n-indexabs))
-	with 
+	with
 	{
 		indexabs = (int)((i - 1) / 2 + 1);
 		fact(0) = 1;
@@ -206,15 +206,15 @@ with
  };
 
 
-//----------------`wider`-------------------------
-// Can be used to wide the diffusion of a localized sound. The order 
-// depending signals are weighted and appear in a logarithmic way to 
+//----------------`(ho.)wider`-------------------------
+// Can be used to wide the diffusion of a localized sound. The order
+// depending signals are weighted and appear in a logarithmic way to
 // have linear changes.
 //
 // #### Usage
 //
 // ```
-// _ : wider(n,w) : _ 
+// _ : wider(n,w) : _
 // ```
 //
 // Where:
@@ -223,8 +223,8 @@ with
 // * `w`: the width value between 0 - 1
 //-----------------------------------------------------
 wider(n, w)	= par(i, 2*n+1, perform(n, w, i, _))
-with 
-{	
+with
+{
 	perform(n, w, i, _) = _ * (log(n+1) * (1 - w) + 1) * clipweight
 	with
 	{
@@ -233,7 +233,7 @@ with
 		{
 			weighter(n, w, 0) = 1.;
 			weighter(n, w, i) = (((w * log(n+1)) - log(indexabs)) / (log(indexabs+1) - log(indexabs)))
-			with 
+			with
 				{
 					indexabs = (int)((i - 1) / 2 + 1);
 				};
@@ -243,8 +243,8 @@ with
 
 
 
-//----------------`map`-------------------------
-// It simulate the distance of the source by applying a gain 
+//----------------`(ho.)map`-------------------------
+// It simulate the distance of the source by applying a gain
 // on the signal and a wider processing on the soundfield.
 //
 // #### Usage
@@ -270,13 +270,13 @@ with
 
 
 
-//----------------`rotate`-------------------------
+//----------------`(ho.)rotate`-------------------------
 // Rotates the sound field.
 //
 // #### Usage
 //
 // ```
-// _ : rotate(n, a) : _ 
+// _ : rotate(n, a) : _
 // ```
 //
 // Where:
@@ -289,7 +289,7 @@ with
 {
 	rotation(i, a) = (par(j, 2*n+1, gain1(i, j, a)), par(j, 2*n+1, gain2(i, j, a)), par(j, 2*n+1, gain3(i, j, a)) :> _)
 	with
-	{	
+	{
 		indexabs = (int)((i - 1) / 2 + 1);
 		gain1(i, j, a) = _ * cos(a * indexabs) * (j == i);
 		gain2(i, j, a) = _ * sin(a * indexabs) * (j-1 == i) * (j != 0) * (i%2 == 1);

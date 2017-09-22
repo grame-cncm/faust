@@ -29,7 +29,7 @@ Michon and Julius O. Smith III, and are released under the
 //=============================Functions Reference========================================
 //========================================================================================
 
-//---------------`flanger_mono`-------------
+//---------------`(pf.)flanger_mono`-------------
 // Mono flanging effect.
 //
 // #### Usage:
@@ -55,7 +55,7 @@ flanger_mono(dmax,curdel,depth,fb,invert)
   *(select2(invert,depth,0-depth))
   : + : *(0.5);
 
-//---------------`flanger_stereo`-------------
+//---------------`(pf.)flanger_stereo`-------------
 // Stereo flanging effect.
 // `flanger_stereo` is a standard Faust function.
 //
@@ -104,7 +104,7 @@ with {
 };
 
 
-//-------`phaser2_mono`-----------------
+//-------`(pf.)phaser2_mono`-----------------
 // Mono phasing effect.
 //
 // #### Phaser
@@ -144,7 +144,7 @@ with {               // depth=0 => direct-signal only
 };
 
 
-//-------`phaser2_stereo`-------
+//-------`(pf.)phaser2_stereo`-------
 // Stereo phasing effect.
 // `phaser2_stereo` is a standard Faust function.
 //

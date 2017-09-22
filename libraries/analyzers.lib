@@ -29,7 +29,7 @@ Michon and Julius O. Smith III, and are released under the
 //==============================Amplitude Tracking========================================
 //========================================================================================
 
-//---------------------------`amp_follower`---------------------------
+//---------------------------`(an.)amp_follower`---------------------------
 // Classic analog audio envelope follower with infinitely fast rise and
 // exponential decay.  The amplitude envelope instantaneously follows
 // the absolute value going up, but then floats down exponentially.
@@ -56,7 +56,7 @@ amp_follower(rel) = abs : env with {
 };
 
 
-//---------------------------`amp_follower_ud`---------------------------
+//---------------------------`(an.)amp_follower_ud`---------------------------
 // Envelope follower with different up and down time-constants
 // (also called a "peak detector").
 //
@@ -126,7 +126,7 @@ amp_follower_ud(att,rel) = amp_follower(rel) : si.smooth(ba.tau2pole(att));
 //========================================================================================
 
 
-//-------------------------`mth_octave_analyzer`----------------------------
+//-------------------------`(an.)mth_octave_analyzer`----------------------------
 // Octave analyzer.
 // `mth_octave_analyzer[N]` are standard Faust functions.
 //
@@ -180,7 +180,7 @@ mth_octave_analyzer_default = mth_octave_analyzer6e; // default analyzer
 //========================================================================================
 
 
-//------------------------`mth_octave_spectral_level6e`-------------------------
+//------------------------`(an.)mth_octave_spectral_level6e`-------------------------
 // Spectral level display.
 //
 // #### Usage:
@@ -222,7 +222,7 @@ mth_octave_spectral_level_default = mth_octave_spectral_level6e;
 spectral_level = mth_octave_spectral_level(2,10000,20);  // simple default
 
 
-//---------------`[third|half]_octave_[analyzer|filterbank]`----------------
+//---------------`(an.)[third|half]_octave_[analyzer|filterbank]`----------------
 // A bunch of special cases based on the different analyzer functions described above:
 //
 // ```
@@ -264,7 +264,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);
 // Technique for processing a variable number of signal arguments due
 // to Yann Orlarey (as is the entire Faust framework!)
 
-//---------------`analyzer`--------------------------
+//---------------`(an.)analyzer`--------------------------
 // Analyzer.
 //
 // #### Usage
@@ -326,7 +326,7 @@ c_bit_reverse_shuffle(N) = si.cbus(N) <: par(i,N,c_bit_reverse_permuter(N,i)) wi
 };
 
 
-//---------------`fft` --------------------------
+//---------------`(an.)fft` --------------------------
 // Fast Fourier Transform (FFT)
 //
 // #### Usage
@@ -382,7 +382,7 @@ with {
 // Order of magnitude faster to compile but takes a scalar input, so too different from fft:
 // rfft(N) = an.rtocv(N) : an.fft(N);
 
-//---------------`ifft`--------------------------
+//---------------`(an.)ifft`--------------------------
 // Inverse Fast Fourier Transform (IFFT)
 //
 // #### Usage
@@ -422,7 +422,7 @@ rfft_spectral_level(N,tau,dB_offset) = _<: _, an.rfft_analyzer_db(N) : _,(displa
   dbmeter(i) = si.smooth(ba.tau2pole(tau)) : +(dB_offset) : meter(i);
     meter(i) = speclevel_group(vbargraph("[%2i] [unit:dB]
 	       [tooltip: FFT Spectral Band Level in dB]", -50, 10));
-  speclevel_group(x)  = hgroup("[0] FFT SPECTRUM ANALYZER, %N bands 
+  speclevel_group(x)  = hgroup("[0] FFT SPECTRUM ANALYZER, %N bands
 			[tooltip: fft_spectral_level in Faust's analyzers.lib]", x);
 };
 
@@ -477,7 +477,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
-//---------------`amp_follower_ar`----------------
+//---------------`(an.)amp_follower_ar`----------------
 // Envelope follower with independent attack and release times. The
 // release can be shorter than the attack (unlike in `amp_follower_ud`
 // above).

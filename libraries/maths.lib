@@ -57,7 +57,7 @@ declare license "LGPL with exception";
 //========================================================================================
 
 
-//---------------------------------`SR`---------------------------------------
+//---------------------------------`(ma.)SR`---------------------------------------
 // Current sampling rate (between 1000Hz and 192000Hz). Constant during
 // program execution.
 //
@@ -70,7 +70,7 @@ declare license "LGPL with exception";
 SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
 
 
-//---------------------------------`BS`---------------------------------------
+//---------------------------------`(ma.)BS`---------------------------------------
 // Current block-size. Can change during the execution.
 //
 // #### Usage
@@ -82,7 +82,7 @@ SR 			= min(192000.0, max(1.0, fconstant(int fSamplingFreq, <math.h>)));
 BS          = fvariable(int count, <math.h>);
 
 
-//---------------------------------`PI`---------------------------------------
+//---------------------------------`(ma.)PI`---------------------------------------
 // Constant PI in double precisio.n
 //
 // #### Usage
@@ -94,7 +94,7 @@ BS          = fvariable(int count, <math.h>);
 PI          = 3.1415926535897932385;
 
 
-//---------------------------------`FTZ`---------------------------------------
+//---------------------------------`(ma.)FTZ`---------------------------------------
 // Flush to zero: force samples under the "maximum subnormal number"
 // to be zero. Usually not needed in C++ because the architecture
 // file take care of this, but can be useful in javascript for instance.
@@ -110,7 +110,7 @@ PI          = 3.1415926535897932385;
 FTZ(x)      = x * (abs(x) > 1.17549435e-38);
 
 
-//---------------------------------`neg`---------------------------------------
+//---------------------------------`(ma.)neg`---------------------------------------
 // Invert the sign (-x) of a signal.
 //
 // #### Usage
@@ -122,13 +122,13 @@ FTZ(x)      = x * (abs(x) > 1.17549435e-38);
 neg(x)      = -x;
 
 
-//-------`sub(x,y)`------------------
+//-------`(ma.)sub(x,y)`------------------
 // Subtract `x` and `y`.
 //------------------------------
 sub(x,y) = y-x;
 
 
-//---------------------------------`inv`---------------------------------------
+//---------------------------------`(ma.)inv`---------------------------------------
 // Compute the inverse (1/x) of the input signal.
 //
 // #### Usage
@@ -140,7 +140,7 @@ sub(x,y) = y-x;
 inv(x)      = 1/x;
 
 
-//---------------------------------`cbrt`--------------------------------------
+//---------------------------------`(ma.)cbrt`--------------------------------------
 // Computes the cube root of of the input signal.
 //
 // #### Usage
@@ -152,7 +152,7 @@ inv(x)      = 1/x;
 cbrt 		= ffunction(float cbrtf|cbrt|cbrtl (float), <math.h>,"");
 
 
-//---------------------------------`hypot`-------------------------------------
+//---------------------------------`(ma.)hypot`-------------------------------------
 // Computes the euclidian distance of the two input signals
 // sqrt(x*x+y*y) without undue overflow or underflow.
 //
@@ -165,7 +165,7 @@ cbrt 		= ffunction(float cbrtf|cbrt|cbrtl (float), <math.h>,"");
 hypot 		= ffunction(float hypotf|hypot|hypotl (float, float), <math.h>,"");
 
 
-//---------------------------------`ldexp`-------------------------------------
+//---------------------------------`(ma.)ldexp`-------------------------------------
 // Takes two input signals: x and n, and multiplies x by 2 to the power n.
 //
 // #### Usage
@@ -177,7 +177,7 @@ hypot 		= ffunction(float hypotf|hypot|hypotl (float, float), <math.h>,"");
 ldexp 		= ffunction(float ldexpf|ldexp|ldexpl (float, int), <math.h>,"");
 
 
-//---------------------------------`scalb`-------------------------------------
+//---------------------------------`(ma.)scalb`-------------------------------------
 // Takes two input signals: x and n, and multiplies x by 2 to the power n.
 //
 // #### Usage
@@ -189,7 +189,7 @@ ldexp 		= ffunction(float ldexpf|ldexp|ldexpl (float, int), <math.h>,"");
 scalb 		= ffunction(float scalbnf|scalbn|scalbnl (float, int), <math.h>,"");
 
 
-//---------------------------------`log1p`----------------------------------
+//---------------------------------`(ma.)log1p`----------------------------------
 // Computes log(1 + x) without undue loss of accuracy when x is nearly zero.
 //
 // #### Usage
@@ -201,7 +201,7 @@ scalb 		= ffunction(float scalbnf|scalbn|scalbnl (float, int), <math.h>,"");
 log1p 		= ffunction(float log1pf|log1p|log1pl (float), <math.h>,"");
 
 
-//---------------------------------`logb`---------------------------------------
+//---------------------------------`(ma.)logb`---------------------------------------
 // Return exponent of the input signal as a floating-point number.
 //
 // #### Usage
@@ -213,7 +213,7 @@ log1p 		= ffunction(float log1pf|log1p|log1pl (float), <math.h>,"");
 logb 		= ffunction(float logbf|logb|logbl (float), <math.h>,"");
 
 
-//---------------------------------`ilogb`-------------------------------------
+//---------------------------------`(ma.)ilogb`-------------------------------------
 // Return exponent of the input signal as an integer number.
 //
 // #### Usage
@@ -225,7 +225,7 @@ logb 		= ffunction(float logbf|logb|logbl (float), <math.h>,"");
 ilogb 		= ffunction(int ilogbf|ilogb|ilogbl (float), <math.h>,"");
 
 
-//---------------------------------`log2`-------------------------------------
+//---------------------------------`(ma.)log2`-------------------------------------
 // Returns the base 2 logarithm of x.
 //
 // #### Usage
@@ -237,7 +237,7 @@ ilogb 		= ffunction(int ilogbf|ilogb|ilogbl (float), <math.h>,"");
 log2(x) = log(x)/log(2.0);
 
 
-//---------------------------------`expm1`-------------------------------------
+//---------------------------------`(ma.)expm1`-------------------------------------
 // Return exponent of the input signal minus 1 with better precision.
 //
 // #### Usage
@@ -249,7 +249,7 @@ log2(x) = log(x)/log(2.0);
 expm1 		= ffunction(float expm1f|expm1|expm1l (float), <math.h>,"");
 
 
-//---------------------------------`acosh`-------------------------------------
+//---------------------------------`(ma.)acosh`-------------------------------------
 // Computes the principle value of the inverse hyperbolic cosine
 // of the input signal.
 //
@@ -262,7 +262,7 @@ expm1 		= ffunction(float expm1f|expm1|expm1l (float), <math.h>,"");
 acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 
 
-//--------------------------------`asinh`-----------------------------------
+//--------------------------------`(ma.)asinh`-----------------------------------
 // Computes the inverse hyperbolic sine of the input signal.
 //
 // #### Usage
@@ -274,7 +274,7 @@ acosh		= ffunction(float acoshf|acosh|acoshl (float), <math.h>, "");
 asinh		= ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
 
 
-//--------------------------------`atanh`-----------------------------------
+//--------------------------------`(ma.)atanh`-----------------------------------
 // Computes the inverse hyperbolic tangent of the input signal.
 //
 // #### Usage
@@ -286,7 +286,7 @@ asinh		= ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
 atanh		= ffunction(float atanhf|atanh|atanhl (float), <math.h>, "");
 
 
-//---------------------------------`sinh`---------------------------------------
+//---------------------------------`(ma.)sinh`---------------------------------------
 // Computes the hyperbolic sine of the input signal.
 //
 // #### Usage
@@ -298,7 +298,7 @@ atanh		= ffunction(float atanhf|atanh|atanhl (float), <math.h>, "");
 sinh		= ffunction(float sinhf|sinh|sinhl (float), <math.h>, "");
 
 
-//---------------------------------`cosh`--------------------------------------
+//---------------------------------`(ma.)cosh`--------------------------------------
 // Computes the hyperbolic cosine of the input signal.
 //
 // #### Usage
@@ -310,7 +310,7 @@ sinh		= ffunction(float sinhf|sinh|sinhl (float), <math.h>, "");
 cosh		= ffunction(float coshf|cosh|coshl (float), <math.h>, "");
 
 
-//---------------------------------`tanh`--------------------------------------
+//---------------------------------`(ma.)tanh`--------------------------------------
 // Computes the hyperbolic tangent of the input signal.
 //
 // #### Usage
@@ -322,7 +322,7 @@ cosh		= ffunction(float coshf|cosh|coshl (float), <math.h>, "");
 tanh		= ffunction(float tanhf|tanh|tanhl (float), <math.h>,"");
 
 
-//---------------------------------`erf`---------------------------------------
+//---------------------------------`(ma.)erf`---------------------------------------
 // Computes the error function of the input signal.
 //
 // #### Usage
@@ -334,7 +334,7 @@ tanh		= ffunction(float tanhf|tanh|tanhl (float), <math.h>,"");
 erf			= ffunction(float erff|erf|erfl(float), <math.h>,"");
 
 
-//---------------------------------`erfc`---------------------------------------
+//---------------------------------`(ma.)erfc`---------------------------------------
 // Computes the complementary error function of the input signal.
 //
 // #### Usage
@@ -346,7 +346,7 @@ erf			= ffunction(float erff|erf|erfl(float), <math.h>,"");
 erfc		= ffunction(float erfcf|erfc|erfcl(float), <math.h>,"");
 
 
-//---------------------------------`gamma`-------------------------------------
+//---------------------------------`(ma.)gamma`-------------------------------------
 // Computes the gamma function of the input signal.
 //
 // #### Usage
@@ -358,7 +358,7 @@ erfc		= ffunction(float erfcf|erfc|erfcl(float), <math.h>,"");
 gamma		= ffunction(float tgammaf|tgamma|tgammal(float), <math.h>,"");
 
 
-//---------------------------------`lgamma`------------------------------------
+//---------------------------------`(ma.)lgamma`------------------------------------
 // Calculates the natural logorithm of the absolute value of
 // the gamma function of the input signal.
 //
@@ -371,7 +371,7 @@ gamma		= ffunction(float tgammaf|tgamma|tgammal(float), <math.h>,"");
 lgamma		= ffunction(float lgammaf|lgamma|lgammal(float), <math.h>,"");
 
 
-//----------------------------------`J0`---------------------------------------
+//----------------------------------`(ma.)J0`---------------------------------------
 // Computes the Bessel function of the first kind of order 0
 // of the input signal.
 //
@@ -384,7 +384,7 @@ lgamma		= ffunction(float lgammaf|lgamma|lgammal(float), <math.h>,"");
 J0			= ffunction(float j0(float), <math.h>,"");
 
 
-//----------------------------------`J1`---------------------------------------
+//----------------------------------`(ma.)J1`---------------------------------------
 // Computes the Bessel function of the first kind of order 1
 // of the input signal.
 //
@@ -397,7 +397,7 @@ J0			= ffunction(float j0(float), <math.h>,"");
 J1			= ffunction(float j1(float), <math.h>,"");
 
 
-//----------------------------------`Jn`---------------------------------------
+//----------------------------------`(ma.)Jn`---------------------------------------
 // Computes the Bessel function of the first kind of order n
 // (first input signal) of the second input signal.
 //
@@ -410,7 +410,7 @@ J1			= ffunction(float j1(float), <math.h>,"");
 Jn			= ffunction(float jn(int, float), <math.h>,"");
 
 
-//----------------------------------`Y0`---------------------------------------
+//----------------------------------`(ma.)Y0`---------------------------------------
 // Computes the linearly independent Bessel function of the second kind
 // of order 0 of the input signal.
 //
@@ -423,7 +423,7 @@ Jn			= ffunction(float jn(int, float), <math.h>,"");
 Y0			= ffunction(float y0(float), <math.h>,"");
 
 
-//----------------------------------`Y1`---------------------------------------
+//----------------------------------`(ma.)Y1`---------------------------------------
 // Computes the linearly independent Bessel function of the second kind
 // of order 1 of the input signal.
 //
@@ -436,7 +436,7 @@ Y0			= ffunction(float y0(float), <math.h>,"");
 Y1			= ffunction(float y1(float), <math.h>,"");
 
 
-//----------------------------------`Yn`---------------------------------------
+//----------------------------------`(ma.)Yn`---------------------------------------
 // Computes the linearly independent Bessel function of the second kind
 // of order n (first input signal) of the second input signal.
 //
@@ -449,7 +449,7 @@ Y1			= ffunction(float y1(float), <math.h>,"");
 Yn			= ffunction(float yn(int, float), <math.h>,"");
 
 
-//----------------------------`fabs`, `fmax`, `fmin`---------------------------
+//----------------------------`(ma.)fabs`, `(ma.)fmax`, `(ma.)fmin`---------------------------
 // Just for compatibility...
 //
 // ```
@@ -462,7 +462,7 @@ fabs = abs;
 fmax = max;
 fmin = min;
 
-//-------------------------------`np2`--------------------------------------
+//-------------------------------`(ma.)np2`--------------------------------------
 // Gives the next power of 2 of x.
 //
 // #### Usage
@@ -478,7 +478,7 @@ fmin = min;
 np2 = -(1) <: >>(1)|_ <: >>(2)|_ <: >>(4)|_ <: >>(8)|_ <: >>(16)|_ : +(1);
 
 
-//-----------------------------`frac`---------------------------------------
+//-----------------------------`(ma.)frac`---------------------------------------
 // Gives the fractional part of n.
 //
 // #### Usage
@@ -498,7 +498,7 @@ decimal = frac;
 // backward compatibility.
 // decimal(n)	= n - floor(n);
 
-//-------------------------------`modulo`---------------------------------------
+//-------------------------------`(ma.)modulo`---------------------------------------
 // Modulus operation.
 //
 // #### Usage
@@ -515,7 +515,7 @@ decimal = frac;
 modulo(x,N) = (x % N + N) % N;
 
 
-//---------------`isnan`----------------
+//---------------`(ma.)isnan`----------------
 // Return non-zero if and only if x is a NaN.
 //
 // #### Usage
@@ -533,7 +533,7 @@ isnan 		= ffunction(int isnan (float),<math.h>,"");
 nextafter	= ffunction(float nextafter(float, float),<math.h>,"");
 
 
-//---------------------------`chebychev`-------------------------------
+//---------------------------`(ma.)chebychev`-------------------------------
 // Chebychev transformation of order n.
 //
 // #### Usage
@@ -564,7 +564,7 @@ chebychev(n) = _ <: *(2)*chebychev(n-1)-chebychev(n-2);
 
 
 
-//------------------------`chebychevpoly`-------------------------------
+//------------------------`(ma.)chebychevpoly`-------------------------------
 // Linear combination of the first Chebyshev polynomials.
 //
 // #### Usage
@@ -589,7 +589,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 	};
 
 
-//------------------`diffn`----------------------------
+//------------------`(ma.)diffn`----------------------------
 // Negated first-order difference.
 //
 // #### Usage
@@ -600,7 +600,7 @@ chebychevpoly(lcoef) = _ <: L(0,lcoef) :> _
 //--------------------------------------------------------
 diffn(x) = x' - x; // negated first-order difference
 
-//------------------`signum`----------------------------
+//------------------`(ma.)signum`----------------------------
 // The signum function signum(x) is defined as
 // -1 for x<0, 0 for x==0, and 1 for x>0;
 //

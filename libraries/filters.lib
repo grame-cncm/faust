@@ -52,7 +52,7 @@ Michon and Julius O. Smith III, and are released under the
 //===============================Basic Filters============================================
 //========================================================================================
 
-//----------------------`zero`--------------------------
+//----------------------`(fi.)zero`--------------------------
 // One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).
 //
 // #### Usage
@@ -70,7 +70,7 @@ Michon and Julius O. Smith III, and are released under the
 //----------------------------------------------------------
 zero(z) =  _ <: _,mem : _,*(z) : -;
 
-//------------------------`pole`---------------------------
+//------------------------`(fi.)pole`---------------------------
 // One pole filter. Could also be called a "leaky integrator".
 // Difference equation: y(n) = x(n) + p * y(n-1).
 //
@@ -89,12 +89,12 @@ zero(z) =  _ <: _,mem : _,*(z) : -;
 //------------------------------------------------------------
 pole(p) = + ~ *(p);
 
-//----------------------`integrator`--------------------------
+//----------------------`(fi.)integrator`--------------------------
 // Same as `pole(1)` [implemented separately for block-diagram clarity].
 //------------------------------------------------------------
 integrator = + ~ _ ;
 
-//-------------------`dcblockerat`-----------------------
+//-------------------`(fi.)dcblockerat`-----------------------
 // DC blocker with configurable break frequency.
 // The amplitude response is substantially flat above fb,
 // and sloped at about +6 dB/octave below fb.
@@ -123,7 +123,7 @@ with {
   p = (1 - wn) * b0;
 };
 
-//----------------------`dcblocker`--------------------------
+//----------------------`(fi.)dcblocker`--------------------------
 // DC blocker. Default dc blocker has -3dB point near 35 Hz (at 44.1 kHz)
 // and high-frequency gain near 1.0025 (due to no scaling).
 // `dcblocker` is as standard Faust function.
@@ -139,7 +139,7 @@ dcblocker = zero(1) : pole(0.995);
 //=======================================Comb Filters=====================================
 //========================================================================================
 
-//------`ff_comb`--------
+//------`(fi.)ff_comb`--------
 // Feed-Forward Comb Filter. Note that `ff_comb` requires integer delays
 // (uses `delay`  internally).
 // `ff_comb` is a standard Faust function.
@@ -163,7 +163,7 @@ dcblocker = zero(1) : pole(0.995);
 //------------------------------------------------------------
 ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
 
-//------`ff_fcomb`--------
+//------`(fi.)ff_fcomb`--------
 // Feed-Forward Comb Filter. Note that `ff_fcomb` takes floating-point delays
 // (uses `fdelay` internally).
 // `ff_fcomb` is a standard Faust function.
@@ -187,13 +187,13 @@ ff_comb (maxdel,M,b0,bM) = _ <: *(b0), bM *  de.delay(maxdel,M) : + ;
 //------------------------------------------------------------
 ff_fcomb(maxdel,M,b0,bM) = _ <: *(b0), bM * de.fdelay(maxdel,M) : + ;
 
-//-----------`ffcombfilter`-------------------
+//-----------`(fi.)ffcombfilter`-------------------
 // Typical special case of `ff_comb()` where: `b0 = 1`.
 //------------------------------------------------------------
 ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 
 
-//-----------------------`fb_comb`-----------------------
+//-----------------------`(fi.)fb_comb`-----------------------
 // Feed-Back Comb Filter (integer delay).
 //
 // #### Usage
@@ -217,7 +217,7 @@ ffcombfilter(maxdel,del,g) = ff_comb(maxdel,del,1,g);
 fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem;
 
 
-//-----------------------`fb_fcomb`-----------------------
+//-----------------------`(fi.)fb_fcomb`-----------------------
 // Feed-Back Comb Filter (floating point delay).
 //
 // #### Usage
@@ -240,14 +240,14 @@ fb_comb (maxdel,N,b0,aN) = (+ <:  de.delay(maxdel,N-1),_) ~ *(-aN) : !,*(b0):mem
 //------------------------------------------------------------
 fb_fcomb(maxdel,N,b0,aN) = (+ <: de.fdelay(maxdel,float(N)-1.0),_) ~ *(-aN) : !,*(b0):mem;
 
-//-----------------------`rev1`-----------------------
+//-----------------------`(fi.)rev1`-----------------------
 // Special case of `fb_comb` (`rev1(maxdel,N,g)`).
 // The "rev1 section" dates back to the 1960s in computer-music reverberation.
 // See the `jcrev` and `brassrev` in `reverbs.lib` for usage examples.
 //------------------------------------------------------------
 rev1(maxdel,N,g) = fb_comb (maxdel,N,1,-g);
 
-//-----`fbcombfilter` and `ffbcombfilter`------------
+//-----`(fi.)fbcombfilter` and `(fi.)ffbcombfilter`------------
 // Other special cases of Feed-Back Comb Filter.
 //
 // #### Usage
@@ -271,7 +271,7 @@ fbcombfilter(maxdel,intdel,g) = (+ : de.delay(maxdel,intdel)) ~ *(g);
 ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 
 
-//-------------------`allpass_comb`-----------------
+//-------------------`(fi.)allpass_comb`-----------------
 // Schroeder Allpass Comb Filter. Note that
 //
 // ```
@@ -302,7 +302,7 @@ ffbcombfilter(maxdel,del,g) = (+ : de.fdelay(maxdel,del)) ~ *(g);
 allpass_comb(maxdel,N,aN) = (+ <: de.delay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
 
 
-//-------------------`allpass_fcomb`-----------------
+//-------------------`(fi.)allpass_fcomb`-----------------
 // Schroeder Allpass Comb Filter. Note that
 //
 // ```
@@ -336,14 +336,14 @@ allpass_comb(maxdel,N,aN) = (+ <: de.delay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ :
 allpass_fcomb(maxdel,N,aN) = (+ <: de.fdelay(maxdel,N-1),*(aN)) ~ *(-aN) : mem,_ : + ;
 
 
-//-----------------------`rev2`-----------------------
+//-----------------------`(fi.)rev2`-----------------------
 // Special case of `allpass_comb` (`rev2(maxlen,len,g)`).
 // The "rev2 section" dates back to the 1960s in computer-music reverberation.
 // See the `jcrev` and `brassrev` in `reverbs.lib` for usage examples.
 //------------------------------------------------------------
 rev2(maxlen,len,g) = allpass_comb(maxlen,len,-g);
 
-//-------------------`allpass_fcomb5` and `allpass_fcomb1a`-----------------
+//-------------------`(fi.)allpass_fcomb5` and `(fi.)allpass_fcomb1a`-----------------
 // Same as `allpass_fcomb` but use `fdelay5` and `fdelay1a` internally
 // (Interpolation helps - look at an fft of faust2octave on
 //
@@ -359,7 +359,7 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 
 // Specified by transfer-function polynomials B(z)/A(z) as in matlab
 
-//----------------------------`iir`-------------------------------
+//----------------------------`(fi.)iir`-------------------------------
 // Nth-order Infinite-Impulse-Response (IIR) digital filter,
 // implemented in terms of the Transfer-Function (TF) coefficients.
 // Such filter structures are termed "direct form".
@@ -383,7 +383,7 @@ allpass_fcomb1a(maxdel,N,aN) = (+ <: de.fdelay1a(maxdel,N-1),*(aN)) ~ *(-aN) : m
 //------------------------------------------------------------
 iir(bv,av) = ma.sub ~ fir(av) : fir(bv);
 
-//----------------------------- `fir` ---------------------------------
+//-----------------------------`(fi.)fir`---------------------------------
 // FIR filter (convolution of FIR filter coefficients with a signal)
 //
 // #### Usage
@@ -424,7 +424,7 @@ fir((b0,bv)) = _ <: *(b0), R(1,bv) :> _ with {
 	R(n, bn)     = (@(n):*(bn));              };
 fir(b0) = *(b0);
 
-//---------------`conv` and `convN`-------------------------------
+//---------------`(fi.)conv` and `(fi.)convN`-------------------------------
 // Convolution of input signal with given coefficients.
 //
 // #### Usage
@@ -439,7 +439,7 @@ convN(N,kv)     = sum(i,N, @(i)*take(i+1,kv)); // take() defined in math.lib
 //conv(kv,x) = sum(i,count(kv),take(i+1,kv) * x@i); // count() from math.lib
 conv(kv) = fir(kv);
 
-//----------------`tf1`, `tf2` and `tf3`----------------------
+//----------------`(fi.)tf1`, `(fi.)tf2` and `(fi.)tf3`----------------------
 // tfN = N'th-order direct-form digital filter.
 //
 // #### Usage
@@ -472,7 +472,7 @@ with {
 	sub(x,y)			= y-x;
 };
 
-//------------`notchw`--------------
+//------------`(fi.)notchw`--------------
 // Simple notch filter based on a biquad (`tf2`).
 // `notchw` is a standard Faust function.
 //
@@ -513,7 +513,7 @@ with {
 // <https://ccrma.stanford.edu/~jos/filters/Four_Direct_Forms.html>
 //========================================================================================
 
-//----------------`tf21`, `tf22`, `tf22t` and `tf21t`----------------------
+//----------------`(fi.)tf21`, `(fi.)tf22`, `(fi.)tf22t` and `(fi.)tf21t`----------------------
 // tfN = N'th-order direct-form digital filter where:
 //
 // * `tf21` is tf2, direct-form 1
@@ -562,7 +562,7 @@ tf21t(b0,b1,b2,a1,a2) = // tf2, direct-form 1 transposed:
 // * <https://ccrma.stanford.edu/~jos/pasp/Conventional_Ladder_Filters.html>
 //========================================================================================
 
-//-------------------------------`av2sv`-----------------------------------
+//-------------------------------`(fi.)av2sv`-----------------------------------
 // Compute reflection coefficients sv from transfer-function denominator av.
 //
 // #### Usage
@@ -594,7 +594,7 @@ av2sv(av) = par(i,M,s(i+1)) with {
   Ar(m) = 1,par(i,M-m, (Ari(m,i+1) - sr(m)*Ari(m,M-m-i))/(1-sr(m)*sr(m)));
 };
 
-//----------------------------`bvav2nuv`--------------------------------
+//----------------------------`(fi.)bvav2nuv`--------------------------------
 // Compute lattice tap coefficients from transfer-function coefficients.
 //
 // #### Usage
@@ -627,7 +627,7 @@ bvav2nuv(bv,av) = par(m,M+1,nu(m)) with {
   sr(m) = Ari(m,M-m+1); // s_{M-1-m}
 };
 
-//--------------------`iir_lat2`-----------------------
+//--------------------`(fi.)iir_lat2`-----------------------
 // Two-multiply latice IIR filter of arbitrary order.
 //
 // #### Usage
@@ -648,7 +648,7 @@ with {
   tg = bvav2nuv(bv,av); // tg = vector of tap gains
 };
 
-//-----------------------`allpassnt`--------------------------
+//-----------------------`(fi.)allpassnt`--------------------------
 // Two-multiply lattice allpass (nested order-1 direct-form-ii allpasses).
 //
 // #### Usage
@@ -673,7 +673,7 @@ with {
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
 
-//--------------------`iir_kl`-----------------------
+//--------------------`(fi.)iir_kl`-----------------------
 // Kelly-Lochbaum ladder IIR filter of arbitrary order.
 //
 // #### Usage
@@ -698,7 +698,7 @@ with {
   pi(n) = pi(n-1)*(1+ba.take(M-n+1,sv)); // all sign parameters '+'
 };
 
-//-----------------------`allpassnklt`--------------------------
+//-----------------------`(fi.)allpassnklt`--------------------------
 // Kelly-Lochbaum ladder allpass.
 //
 // #### Usage:
@@ -722,7 +722,7 @@ with {
   sumandtaps(n) = +,par(i,n,_);
 };
 
-//--------------------`iir_lat1`-----------------------
+//--------------------`(fi.)iir_lat1`-----------------------
 // One-multiply latice IIR filter of arbitrary order.
 //
 // #### Usage
@@ -747,7 +747,7 @@ with {
   pi(n) = pi(n-1)*(1+ba.take(M-n+2,sv)); // all sign parameters '+'
 };
 
-//-----------------------`allpassn1mt`--------------------------
+//-----------------------`(fi.)allpassn1mt`--------------------------
 // One-multiply lattice allpass with tap lines.
 //
 // #### Usage
@@ -772,7 +772,7 @@ with {
   s = ba.take(n,sv); // reflection coefficient s = sin(theta)
 };
 
-//-------------------------------`iir_nl`-------------------------
+//-------------------------------`(fi.)iir_nl`-------------------------
 // Normalized ladder filter of arbitrary order.
 //
 // #### Usage
@@ -803,7 +803,7 @@ with {
   pi(n) = pi(n-1)*c(n);
 };
 
-//-------------------------------`allpassnnlt`-------------------------
+//-------------------------------`(fi.)allpassnnlt`-------------------------
 // Normalized ladder allpass filter of arbitrary order.
 //
 // #### Usage:
@@ -836,7 +836,7 @@ with {
 //=============================Useful Special Cases=======================================
 //========================================================================================
 
-//--------------------------------`tf2np`------------------------------------
+//--------------------------------`(fi.)tf2np`------------------------------------
 // Biquad based on a stable second-order Normalized Ladder Filter
 // (more robust to modulation than `tf2` and protected against instability).
 //
@@ -870,7 +870,7 @@ with {
   pi(n) = pi(n-1)*c(n);
 };
 
-//-----------------------------`wgr`---------------------------------
+//-----------------------------`(fi.)wgr`---------------------------------
 // Second-order transformer-normalized digital waveguide resonator.
 //
 // #### Usage
@@ -896,7 +896,7 @@ with {
   cross = _,_ <: !,_,_,!;
 };
 
-//-----------------------------`nlf2`--------------------------------
+//-----------------------------`(fi.)nlf2`--------------------------------
 // Second order normalized digital waveguide resonator.
 //
 // #### Usage
@@ -923,7 +923,7 @@ with {
 };
 
 
-//------------`apnl`---------------
+//------------`(fi.)apnl`---------------
 // Passive Nonlinear Allpass based on Pierce switching springs idea.
 // Switch between allpass coefficient `a1` and `a2` at signal zero crossings.
 //
@@ -959,7 +959,7 @@ with{
 // * Linear Prediction of Speech, Markel and Gray, Springer Verlag, 1976
 //========================================================================================
 
-//---------------`allpassn`-----------------
+//---------------`(fi.)allpassn`-----------------
 // Two-multiply lattice - each section is two multiply-adds.
 //
 // #### Usage:
@@ -981,7 +981,7 @@ allpassn(0,sv) = _;
 allpassn(n,sv) = _ <: ((+ <: (allpassn(n-1,sv)),*(s))~(*(-s))) : _',_ :+
 with { s = ba.take(n,sv); };
 
-//---------------`allpassnn`-----------------
+//---------------`(fi.)allpassnn`-----------------
 // Normalized form - four multiplies and two adds per section,
 // but coefficients can be time varying and nonlinear without
 // "parametric amplification" (modulation of signal energy).
@@ -1003,7 +1003,7 @@ allpassnn(n,tv) = _ <: *(s), (*(c) : (+
         : allpassnn(n-1,tv))~(*(-s))) : _, mem*c : +
 with { c=cos(ba.take(n,tv));  s=sin(ba.take(n,tv)); };
 
-//---------------`allpasskl`-----------------
+//---------------`(fi.)allpasskl`-----------------
 // Kelly-Lochbaum form - four multiplies and two adds per
 // section, but all signals have an immediate physical
 // interpretation as traveling pressure waves, etc.
@@ -1025,7 +1025,7 @@ allpassnkl(n,sv) = _ <: *(s),(*(1+s) : (+
                    : allpassnkl(n-1,sv))~(*(-s))) : _, mem*(1-s) : +
 with { s = ba.take(n,sv); };
 
-//---------------`allpass1m`-----------------
+//---------------`(fi.)allpass1m`-----------------
 // One-multiply form - one multiply and three adds per section.
 // Normally the most efficient in special-purpose hardware.
 //
@@ -1049,7 +1049,7 @@ with {s = ba.take(n,sv); cross = _,_ <: !,_,_,!; };
 //===========Digital Filter Sections Specified as Analog Filter Sections==================
 //========================================================================================
 
-//-------------------------`tf2s` and `tf2snp`--------------------------------
+//-------------------------`(fi.)tf2s` and `(fi.)tf2snp`--------------------------------
 // Second-order direct-form digital filter,
 // specified by ANALOG transfer-function polynomials B(s)/A(s),
 // and a frequency-scaling parameter.  Digitization via the
@@ -1118,7 +1118,7 @@ with {
   a2d = (a0 - a1*c + csq)/d;
 };
 
-//-----------------------------`tf3slf`-------------------------------
+//-----------------------------`(fi.)tf3slf`-------------------------------
 // Analogous to tf2s above, but third order, and using the typical
 // low-frequency-matching bilinear-transform constant 2/T ("lf" series)
 // instead of the specific-frequency-matching value used in tf2s and tf1s.
@@ -1145,7 +1145,7 @@ tf3slf(b3,b2,b1,b0,a3,a2,a1,a0) = tf3(b0d,b1d,b2d,b3d,a1d,a2d,a3d) with {
   d = (-a3*c^3-a2*c^2-a1*c-a0);
 };
 
-//-----------------------------`tf1s`--------------------------------
+//-----------------------------`(fi.)tf1s`--------------------------------
 // First-order direct-form digital filter,
 // specified by ANALOG transfer-function polynomials B(s)/A(s),
 // and a frequency-scaling parameter.
@@ -1196,7 +1196,7 @@ with {
   a1d = (a0 - c) / d;
 };
 
-//-----------------------------`tf2sb`--------------------------------
+//-----------------------------`(fi.)tf2sb`--------------------------------
 // Bandpass mapping of `tf2s`: In addition to a frequency-scaling parameter
 // `w1` (set to HALF the desired passband width in rad/sec),
 // there is a desired center-frequency parameter wc (also in rad/s).
@@ -1229,7 +1229,7 @@ tf2sb(b2,b1,b0,a1,a0,w1,wc) =
   a4d = wc^4*T^4-2*a1*wc^2*w1*T^3+(4*a0*w1^2+8*wc^2)*T^2-8*a1*w1*T+16;
 };
 
-//-----------------------------`tf1sb`--------------------------------
+//-----------------------------`(fi.)tf1sb`--------------------------------
 // First-to-second-order lowpass-to-bandpass section mapping,
 // analogous to tf2sb above.
 //
@@ -1252,7 +1252,7 @@ tf1sb(b1,b0,a0,w1,wc) = tf2(b0d/a0d,b1d/a0d,b2d/a0d,a1d/a0d,a2d/a0d) with {
 //==============================Simple Resonator Filters==================================
 //========================================================================================
 
-//------------------`resonlp`-----------------
+//------------------`(fi.)resonlp`-----------------
 // Simple resonant lowpass filter based on `tf2s` (virtual analog).
 // `resonlp` is a standard Faust function.
 //
@@ -1283,7 +1283,7 @@ with {
 };
 
 
-//------------------`resonhp`-----------------
+//------------------`(fi.)resonhp`-----------------
 // Simple resonant highpass filters based on `tf2s` (virtual analog).
 // `resonhp` is a standard Faust function.
 //
@@ -1306,7 +1306,7 @@ with {
 resonhp(fc,Q,gain,x) = gain*x-resonlp(fc,Q,gain,x);
 
 
-//------------------`resonbp`-----------------
+//------------------`(fi.)resonbp`-----------------
 // Simple resonant bandpass filters based on `tf2s` (virtual analog).
 // `resonbp` is a standard Faust function.
 //
@@ -1339,7 +1339,7 @@ with {
 //======================Butterworth Lowpass/Highpass Filters==============================
 //========================================================================================
 
-//----------------`lowpass`--------------------
+//----------------`(fi.)lowpass`--------------------
 // Nth-order Butterworth lowpass filter.
 // `lowpass` is a standard Faust function.
 //
@@ -1361,7 +1361,7 @@ with {
 lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 
 
-//----------------`highpass`--------------------
+//----------------`(fi.)highpass`--------------------
 // Nth-order Butterworth highpass filters.
 // `highpass` is a standard Faust function.
 //
@@ -1383,7 +1383,7 @@ lowpass(N,fc) = lowpass0_highpass1(0,N,fc);
 highpass(N,fc) = lowpass0_highpass1(1,N,fc);
 
 
-//-------------`lowpass0_highpass1`--------------
+//-------------`(fi.)lowpass0_highpass1`--------------
 lowpass0_highpass1(s,N,fc) = lphpr(s,N,N,fc)
 with {
   lphpr(s,0,N,fc) = _;
@@ -1402,7 +1402,7 @@ with {
 // canceling pole-zero pairs removed (which occurs for odd N).
 //========================================================================================
 
-//--------------------`lowpass_plus`|`minus_highpass`----------------
+//--------------------`(fi.)lowpass_plus`|`minus_highpass`----------------
 highpass_plus_lowpass(1,fc) = _;
 highpass_plus_lowpass(3,fc) = tf2s(1,-1,1,1,1,w1) with { w1 = 2*ma.PI*fc; };
 highpass_minus_lowpass(3,fc) = tf1s(-1,1,1,w1) with { w1 = 2*ma.PI*fc; };
@@ -1445,7 +1445,7 @@ highpass_minus_lowpass_odd(N,fc) = highpass(N,fc) - lowpass(N,fc);
 // * functions `ncauer` and `ellip` in Octave
 //========================================================================================
 
-//-----------------------------`lowpass3e`-----------------------------
+//-----------------------------`(fi.)lowpass3e`-----------------------------
 // Third-order Elliptic (Cauer) lowpass filter.
 //
 // #### Usage
@@ -1479,7 +1479,7 @@ with {
   w1 = 2*ma.PI*fc;
 };
 
-//-----------------------------`lowpass6e`-----------------------------
+//-----------------------------`(fi.)lowpass6e`-----------------------------
 // Sixth-order Elliptic/Cauer lowpass filter.
 //
 // #### Usage
@@ -1531,7 +1531,7 @@ with {
 //=========================Elliptic Highpass Filters======================================
 //========================================================================================
 
-//-----------------------------`highpass3e`-----------------------------
+//-----------------------------`(fi.)highpass3e`-----------------------------
 // Third-order Elliptic (Cauer) highpass filter. Inversion of `lowpass3e` wrt unit
 // circle in s plane (s <- 1/s)
 //
@@ -1557,7 +1557,7 @@ with {
   w1 = 2*ma.PI*fc;
 };
 
-//-----------------------------`highpass6e`-----------------------------
+//-----------------------------`(fi.)highpass6e`-----------------------------
 // Sixth-order Elliptic/Cauer highpass filter. Inversion of lowpass3e wrt unit
 // circle in s plane (s <- 1/s)
 //
@@ -1600,7 +1600,7 @@ with {
 //========================Butterworth Bandpass/Bandstop Filters===========================
 //========================================================================================
 
-//--------------------`bandpass`----------------
+//--------------------`(fi.)bandpass`----------------
 // Order 2*Nh Butterworth bandpass filter made using the transformation
 // `s <- s + wc^2/s` on `lowpass(Nh)`, where `wc` is the desired bandpass center
 // frequency.  The `lowpass(Nh)` cutoff `w1` is half the desired bandpass width.
@@ -1626,7 +1626,7 @@ with {
 bandpass(Nh,fl,fu) = bandpass0_bandstop1(0,Nh,fl,fu);
 
 
-//--------------------`bandstop`----------------
+//--------------------`(fi.)bandstop`----------------
 // Order 2*Nh Butterworth bandstop filter made using the transformation
 // `s <- s + wc^2/s` on `highpass(Nh)`, where `wc` is the desired bandpass center
 // frequency.  The `highpass(Nh)` cutoff `w1` is half the desired bandpass width.
@@ -1674,7 +1674,7 @@ with {
 //===========================Elliptic Bandpass Filters====================================
 //========================================================================================
 
-//---------------------`bandpass6e`-----------------------------
+//---------------------`(fi.)bandpass6e`-----------------------------
 // Order 12 elliptic bandpass filter analogous to `bandpass(6)`.
 //--------------------------------------------------------------
 bandpass6e(fl,fu) = tf2sb(b21,b11,b01,a11,a01,w1,wc) : tf1sb(0,1,a02,w1,wc)
@@ -1697,7 +1697,7 @@ with {
   w1 = wua - wc^2/wua; // s-plane lowpass cutoff
 };
 
-//----------------------`bandpass12e`---------------------------
+//----------------------`(fi.)bandpass12e`---------------------------
 // Order 24 elliptic bandpass filter analogous to `bandpass(6)`.
 //--------------------------------------------------------------
 bandpass12e(fl,fu) =
@@ -1748,7 +1748,7 @@ with { // octave script output:
 // * bandfilter.dsp in the faust2pd distribution
 //========================================================================================
 
-//----------------------`low_shelf`----------------------
+//----------------------`(fi.)low_shelf`----------------------
 // First-order "low shelf" filter (gain boost|cut between dc and some frequency)
 // `low_shelf` is a standard Faust function.
 //
@@ -1796,7 +1796,7 @@ low_shelf1(L0,fx,x) = x + (ba.db2linear(L0)-1)*lowpass(1,fx,x); // optimized
 low_shelf1_l(G0,fx,x) = x + (G0-1)*lowpass(1,fx,x); // optimized
 lowshelf_other_freq(N, L0, fx) = ba.db2linear(ba.linear2db(fx) + L0/N); // convenience
 
-//-------------`high_shelf`--------------
+//-------------`(fi.)high_shelf`--------------
 // First-order "high shelf" filter (gain boost|cut above some frequency).
 // `high_shelf` is a standard Faust function.
 //
@@ -1828,7 +1828,7 @@ high_shelf1_l(Gpi,fx,x) = x + (Gpi-1)*highpass(1,fx,x); //optimized
 highshelf_other_freq(N, Lpi, fx) = ba.db2linear(ba.linear2db(fx) - Lpi/N);
 
 
-//-------------------`peak_eq`------------------------------
+//-------------------`(fi.)peak_eq`------------------------------
 // Second order "peaking equalizer" section (gain boost or cut near some frequency)
 // Also called a "parametric equalizer" section.
 // `peak_eq` is a standard Faust function.
@@ -1856,7 +1856,7 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
   wx = 2*ma.PI*fx;
 };
 
-//--------------------`peak_eq_cq`----------------------------
+//--------------------`(fi.)peak_eq_cq`----------------------------
 // Constant-Q second order peaking equalizer section.
 //
 // #### Usage
@@ -1873,7 +1873,7 @@ peak_eq(Lfx,fx,B) = tf2s(1,b1s,1,a1s,1,wx) with {
 //------------------------------------------------------------
 peak_eq_cq(Lfx,fx,Q) = peak_eq(Lfx,fx,fx/Q);
 
-//-------------------`peak_eq_rm`--------------------------
+//-------------------`(fi.)peak_eq_rm`--------------------------
 // Regalia-Mitra second order peaking equalizer section
 //
 // #### Usage
@@ -1902,7 +1902,7 @@ peak_eq_rm(Lfx,fx,tanPiBT) = _ <: _,A,_ : +,- : *(0.5),*(K/2.0) : + with {
 };
 
 
-//---------------------`spectral_tilt`-------------------------
+//---------------------`(fi.)spectral_tilt`-------------------------
 // Spectral tilt filter, providing an arbitrary spectral rolloff factor
 // alpha in (-1,1), where
 //  -1 corresponds to one pole (-6 dB per octave), and
@@ -1951,7 +1951,7 @@ spectral_tilt(N,f0,bw,alpha) = seq(i,N,sec(i)) with {
 };
 
 
-//----------------------`levelfilter`----------------------
+//----------------------`(fi.)levelfilter`----------------------
 // Dynamic level lowpass filter.
 // `levelfilter` is a standard Faust function.
 //
@@ -1980,7 +1980,7 @@ with {
 };
 
 
-//----------------------`levelfilterN`----------------------
+//----------------------`(fi.)levelfilterN`----------------------
 // Dynamic level lowpass filter.
 //
 // #### Usage
@@ -2047,7 +2047,7 @@ levelfilterN(N,freq,L) = seq(i,N,levelfilter((L/N),freq));
 // * Elementary filter theory: https://ccrma.stanford.edu/~jos/filters/
 //========================================================================================
 
-//------------------------`mth_octave_filterbank[n]`-------------------------
+//------------------------`(fi.)mth_octave_filterbank[n]`-------------------------
 // Allpass-complementary filter banks based on Butterworth band-splitting.
 // For Butterworth band-splits, the needed delay equalizer is easily found.
 //
@@ -2110,7 +2110,7 @@ mth_octave_filterbank_default = mth_octave_filterbank5;
 // Technique for processing a variable number of signal arguments due
 // to Yann Orlarey (as is the entire Faust framework!)
 
-//---------------`filterbank`--------------------------
+//---------------`(fi.)filterbank`--------------------------
 // Filter bank.
 // `filterbank` is a standard Faust function.
 //
@@ -2143,7 +2143,7 @@ filterbank(O,lfreqs) = an.analyzer(O,lfreqs) : delayeq(nb) with
    apchain(i) =  ap(i) : apchain(i-1);
 };
 
-//-----------------`filterbanki`----------------------
+//-----------------`(fi.)filterbanki`----------------------
 // Inverted-dc filter bank.
 //
 // #### Usage
