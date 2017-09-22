@@ -53,7 +53,7 @@ Michon and Julius O. Smith III, and are released under the
 //========================================================================================
 
 //----------------------`(fi.)zero`--------------------------
-// One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).
+// One zero filter. Difference equation: $y(n) = x(x) - zx(n-1)$.
 //
 // #### Usage
 //
@@ -72,12 +72,12 @@ zero(z) =  _ <: _,mem : _,*(z) : -;
 
 //------------------------`(fi.)pole`---------------------------
 // One pole filter. Could also be called a "leaky integrator".
-// Difference equation: y(n) = x(n) + p * y(n-1).
+// Difference equation: $y(n) = x(n) + py(n-1)$.
 //
 // #### Usage
 //
 // ```
-// _ : pole(z) : _
+// _ : pole(p) : _
 // ```
 //
 // Where:
@@ -96,12 +96,12 @@ integrator = + ~ _ ;
 
 //-------------------`(fi.)dcblockerat`-----------------------
 // DC blocker with configurable break frequency.
-// The amplitude response is substantially flat above fb,
-// and sloped at about +6 dB/octave below fb.
+// The amplitude response is substantially flat above $fb$,
+// and sloped at about +6 dB/octave below $fb$.
 // Derived from the analog transfer function
-// H(s) = s / (s + 2*PI*fb)
+// $H(s) = \frac{s}{(s + 2 \pi fb)}$
 // by the low-frequency-matching bilinear transform method
-// (i.e., the standard frequency-scaling constant 2*SR).
+// (i.e., the standard frequency-scaling constant 2SR).
 //
 // #### Usage
 //

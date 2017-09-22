@@ -7,6 +7,7 @@
   <title>Faust Libraries Documentation</title>
   </style><link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"><script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js">
 </script><script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML" type="text/javascript"></script>
 </head>
 <div class="container"><div class="row" style="height: 100vh;">
 <div class="col-sm-4" id="TOC" style="height: 100%;overflow: scroll;">
@@ -2696,7 +2697,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <p>For more information, see ../documentation/library.pdf</p>
 <h2 id="basic-filters">Basic Filters</h2>
 <h3 id="fi.zero"><code>(fi.)zero</code></h3>
-<p>One zero filter. Difference equation: y(n) = x(n) - z * x(n-1).</p>
+<p>One zero filter. Difference equation: <span class="math inline">\(y(n) = x(x) - zx(n-1)\)</span>.</p>
 <h4 id="usage-109">Usage</h4>
 <pre><code>_ : zero(z) : _</code></pre>
 <p>Where:</p>
@@ -2707,9 +2708,9 @@ Octave:1&gt; plot(faustout);</code></pre>
 <p><a href="https://ccrma.stanford.edu/~jos/filters/One_Zero.html" class="uri">https://ccrma.stanford.edu/~jos/filters/One_Zero.html</a></p>
 <hr />
 <h3 id="fi.pole"><code>(fi.)pole</code></h3>
-<p>One pole filter. Could also be called a &quot;leaky integrator&quot;. Difference equation: y(n) = x(n) + p * y(n-1).</p>
+<p>One pole filter. Could also be called a &quot;leaky integrator&quot;. Difference equation: <span class="math inline">\(y(n) = x(n) + py(n-1)\)</span>.</p>
 <h4 id="usage-110">Usage</h4>
-<pre><code>_ : pole(z) : _</code></pre>
+<pre><code>_ : pole(p) : _</code></pre>
 <p>Where:</p>
 <ul>
 <li><code>p</code>: pole location = feedback coefficient</li>
@@ -2721,7 +2722,7 @@ Octave:1&gt; plot(faustout);</code></pre>
 <p>Same as <code>pole(1)</code> [implemented separately for block-diagram clarity].</p>
 <hr />
 <h3 id="fi.dcblockerat"><code>(fi.)dcblockerat</code></h3>
-<p>DC blocker with configurable break frequency. The amplitude response is substantially flat above fb, and sloped at about +6 dB/octave below fb. Derived from the analog transfer function H(s) = s / (s + 2<em>PI</em>fb) by the low-frequency-matching bilinear transform method (i.e., the standard frequency-scaling constant 2*SR).</p>
+<p>DC blocker with configurable break frequency. The amplitude response is substantially flat above <span class="math inline">\(fb\)</span>, and sloped at about +6 dB/octave below <span class="math inline">\(fb\)</span>. Derived from the analog transfer function <span class="math inline">\(H(s) = \frac{s}{(s + 2 \pi fb)}\)</span> by the low-frequency-matching bilinear transform method (i.e., the standard frequency-scaling constant 2SR).</p>
 <h4 id="usage-111">Usage</h4>
 <pre><code>_ : dcblockerat(fb) : _</code></pre>
 <p>Where:</p>
