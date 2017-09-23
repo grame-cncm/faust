@@ -41,12 +41,12 @@
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
-#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/faustqt.h"
-#include "faust/misc.h"
 #include "faust/audio/audio.h"
+#include "faust/misc.h"
+#include "faust/gui/SoundUI.h"
 
 #ifdef IOS
 #include "faust/gui/APIUI.h"
@@ -314,8 +314,11 @@ int main(int argc, char *argv[])
     
     QTGUI interface;
     FUI finterface;
+    SoundUI soundinterface;
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
+    DSP->buildUserInterface(&soundinterface);
+    
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif

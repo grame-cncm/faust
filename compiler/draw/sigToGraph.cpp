@@ -246,7 +246,7 @@ static string sigLabel(Tree sig)
     else if ( isSigSoundfile(sig, label) )	        { fout << "soundfile(...)"; }
     else if ( isSigSoundfileRate(sig, sf) )	        { fout << "rate"; }
     else if ( isSigSoundfileLength(sig, sf) )	    { fout << "length"; }
-    else if ( isSigSoundfileChannel(sig, sf, y, z) ){ fout << "channel"; }
+    else if ( isSigSoundfileChannel(sig, sf, y, z) ){ fout << "channels"; }
 
 #endif
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}

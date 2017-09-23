@@ -329,7 +329,7 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile (sig, label); }
 	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode (sig, subst("$0cache->length", CS(sf))); }
 	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode (sig, subst("$0cache->rate", CS(sf))); }
-	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return generateCacheCode (sig, subst("$0cache->channel[$1][$2]", CS(sf), CS(x), CS(y))); }
+	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return generateCacheCode (sig, subst("$0cache->channels[$1][$2]", CS(sf), CS(x), CS(y))); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
@@ -715,13 +715,26 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
     string v = getFreshID("SF");
-    fClass->addIncludeFile("<atomic>");
-    fClass->addDeclCode(subst("std::atomic<Soundfile*> \t$0;", v));
+    
+    // SL
+    //fClass->addIncludeFile("<atomic>");
+    fClass->addIncludeFile("\"faust/audio/soundfile.h\"");
+    
+    // SL
+    //fClass->addDeclCode(subst("std::atomic<Soundfile*> \t$0;", v));
+    fClass->addDeclCode(subst("Soundfile* \t$0;", v));
+    
     //fClass->addDeclCode(subst("Soundfile* \t$0cache;", v));
 	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(v), sig));
-    fClass->addInitUICode(subst("$0 = &defaultsound;", v));
+    
+    // SL
+    fClass->addInitUICode(subst("if (!$0) $0 = defaultsound;", v));
+    
     fClass->addFirstPrivateDecl(subst("$0cache", v));
-    fClass->addZone2(subst("Soundfile* $0cache = $0.exchange(nullptr);", v));
+    
+    // SL
+    //fClass->addZone2(subst("Soundfile* $0cache = $0.exchange(nullptr);", v));
+    fClass->addZone2(subst("Soundfile* $0cache = $0;", v));
     fClass->addZone4(subst("$0 = $0cache;", v));
     return v;
 }

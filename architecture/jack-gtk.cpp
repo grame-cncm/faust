@@ -43,6 +43,7 @@
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/gui/SoundUI.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -84,17 +85,20 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-	char appname[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
-	
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    char appname[256];
+    char rcfilename[256];
+    char* home = getenv("HOME");
 
-	GUI* interface 	= new GTKUI (appname, &argc, &argv);
-	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+    snprintf(appname, 255, "%s", basename(argv[0]));
+    snprintf(rcfilename, 255, "%s/.%src", home, appname);
+
+    GUI* interface = new GTKUI (appname, &argc, &argv);
+    FUI* finterface = new FUI();
+    SoundUI soundinterface;
+
+    DSP.buildUserInterface(interface);
+    DSP.buildUserInterface(finterface);
+    DSP.buildUserInterface(&soundinterface);
  
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
@@ -113,7 +117,7 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(ocvinterface);
 #endif
 
-	jackaudio audio;
+	jackaudio audio(0, 0, false);
 	audio.init(appname, &DSP);
 	finterface->recallState(rcfilename);	
 	audio.start();

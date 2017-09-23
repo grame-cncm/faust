@@ -13,7 +13,7 @@
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="jack-qt.cpp"
-ARCHLIB="-L/usr/local/lib -ljack"
+ARCHLIB="-L/usr/local/lib -ljack `pkg-config --cflags --static --libs sndfile`"
 PATH=$PATH:/usr/local/bin
 
 #-------------------------------------------------------------------------------
