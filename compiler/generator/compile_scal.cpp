@@ -141,7 +141,7 @@ endTiming("ScalarCompiler::prepare");
         ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
         sigToGraph(L3, dotfile);
     }
-    
+
   	return L3;
 }
 
@@ -180,18 +180,18 @@ void ScalarCompiler::compileMultiSignal (Tree L)
 		Tree sig = hd(L);
 		fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
 	}
-    
+
     generateMetaData();
 	generateUserInterfaceTree(prepareUserInterfaceTree(fUIRoot), true);
 	generateMacroInterfaceTree("", prepareUserInterfaceTree(fUIRoot));
 	if (fDescription) {
 		fDescription->ui(prepareUserInterfaceTree(fUIRoot));
 	}
-    
+
     if (gPrintJSONSwitch) {
         ofstream xout(subst("$0.json", makeDrawPath()).c_str());
         xout << fJSON.JSON();
-    } 
+    }
 }
 
 
@@ -327,9 +327,9 @@ string	ScalarCompiler::generateCode (Tree sig)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 
 	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile (sig, label); }
-	else if ( isSigSoundfileLength(sig, sf) )	    { return subst("$0cache->length", CS(sf)); }
-	else if ( isSigSoundfileRate(sig, sf) )	        { return subst("$0cache->rate", CS(sf)); }
-	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return subst("$0cache->channel[$1][$2]", CS(sf), CS(x), CS(y)); }
+	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode (sig, subst("$0cache->length", CS(sf))); }
+	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode (sig, subst("$0cache->rate", CS(sf))); }
+	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return generateCacheCode (sig, subst("$0cache->channel[$1][$2]", CS(sf), CS(x), CS(y))); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
 
@@ -847,7 +847,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 			 << endl;
         exit(1);
 	}
-    
+
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
 	Type t = getCertifiedSigType(content);//, tEnv);
@@ -869,7 +869,7 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
         fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
         fClass->addStaticFields(subst("$0 \t$1::$2[$3];", ctype, fClass->getClassName(), vname, T(size)));
     }
-    
+
     // initialisation du generateur de contenu
     fClass->addStaticInitCode(subst("$0.init(samplingFreq);", cexp));
     // remplissage de la table
@@ -1405,7 +1405,7 @@ void ScalarCompiler::declareWaveform(Tree sig, string& vname, int& size)
         sep = ',';
     }
     content << '}';
-  
+
     // Declares the Waveform
     fClass->addDeclCode(subst("static $0 \t$1[$2];", ctype, vname, T(size)));
     fClass->addDeclCode(subst("int \tidx$0;", vname));
