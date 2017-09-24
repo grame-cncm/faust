@@ -1,39 +1,58 @@
 #!/bin/bash
 
-OSCDEFS=""
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to jack-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               Compiles Faust programs to JACK-GTK                 #
+#               (c) Grame, 2009-2017                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
-
 #-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
+# Set Faust include path
 
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+    FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/music.lib ]
+then
+    FAUSTLIB=/usr/local/share/faust/
+elif [ -f /usr/share/faust/music.lib ]
+then
+    FAUSTLIB=/usr/share/faust/
+else
+  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
+
 CXX=g++
 CXXFLAGS=$MYGCCFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		CXX=icpc
-		CXXFLAGS=$MYICCFLAGS
-    fi
-done
-	
+
+OSCDEFS=""
+NVOICES=-1
+
+#-------------------------------------------------------------------
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation"
+fi
 
 #PHASE 2 : dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2jack [-httpd]  [-nvoices <num>] [-midi] [-osc] <file.dsp>"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        exit
+    fi
+
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -44,17 +63,26 @@ for p in $@; do
   
     if [ "$p" = -icc ]; then
     	ignore=" "
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="DEFINES += POLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
 	elif [ $p = "-ocv" ]; then
-	 OCVDEFS="-DOCVCTRL -lpthread"
-	 OCVLIBS="opencv"
+        OCVDEFS="-DOCVCTRL -lpthread"
+        OCVLIBS="opencv"
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -62,8 +90,10 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
-done
 
+shift
+
+done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files using JACK-GTK on linux
@@ -75,14 +105,13 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

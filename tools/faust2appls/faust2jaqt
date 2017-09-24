@@ -2,8 +2,8 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to jack-qt                  #
-#               (c) Grame, 2009                                     #
+#               Compiles Faust programs to JACK-QT                  #
+#               (c) Grame, 2009-2017                                #
 #                                                                   #
 #####################################################################
 
@@ -12,32 +12,30 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
+#-------------------------------------------------------------------
+# Set Faust include path
+
 ARCHFILE="jack-qt.cpp"
 ARCHLIB="-L/usr/local/lib -ljack `pkg-config --cflags --static --libs sndfile`"
 PATH=$PATH:/usr/local/bin
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+then
+    FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/music.lib ]
+then
+    FAUSTLIB=/usr/local/share/faust/
+elif [ -f /usr/share/faust/music.lib ]
+then
+    FAUSTLIB=/usr/share/faust/
+else
+    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
 
 QMAKE=$(which qmake-qt4 || echo qmake) 
-
-#-------------------------------------------------------------------
-# Analyze command arguments :
-# faust options                 -> OPTIONS
-# if -omp : -openmp or -fopenmp -> OPENMP
-# existing *.dsp files          -> FILES
-#
-
-# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
-# without having to configure CXX and CXXFLAGS
-for p in $@; do
-	if [ "$p" = -icc ]; then
-		# we ignore -icc when compiling for QT
-		TOTO=""
-		#CXX=icpc
-		#CXXFLAGS='-Wfatal-errors -O3 -xT -ftz -fno-alias -fp-model fast=2'
-    fi
-done
 
 #PHASE 2 : dispatch command arguments
 
@@ -58,6 +56,7 @@ do
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        exit
     fi
     
     if [ "$p" = -omp ]; then
@@ -147,7 +146,7 @@ for p in $FILES; do
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc"  "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" 
+	    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS"
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit

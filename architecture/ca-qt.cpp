@@ -373,6 +373,7 @@ int main(int argc, char *argv[])
 
     myApp.setStyleSheet(interface.styleSheet());
     myApp.exec();
+    
 #ifdef MIDICTRL
     midiinterface.stop();
 #endif
@@ -380,7 +381,7 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface.saveState(rcfilename);
-
+    
     return 0;
 }
 

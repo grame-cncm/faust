@@ -1,6 +1,5 @@
 #!/bin/bash
 
-OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
@@ -10,6 +9,8 @@ OSCDEFS=""
 
 . faustpath
 . faustoptflags
+
+OSCDEFS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -22,6 +23,7 @@ OSCDEFS=""
 # without having to configure CXX and CXXFLAGS
 CXX=g++
 CXXFLAGS=$MYGCCFLAGS
+
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -57,9 +59,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
-
 	
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
@@ -78,7 +77,6 @@ for f in $FILES; do
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 
