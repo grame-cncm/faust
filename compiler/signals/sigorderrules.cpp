@@ -140,11 +140,18 @@ static int infereSigOrder(Tree sig)
 		
 	else if (isSigHBargraph(sig, l, x, y, s1)) 	return max(2,O(s1)); 	// at least a user interface
 		
-	else if (isSigVBargraph(sig, l, x, y, s1))	return max(2, O(s1)); 	// at least a user interface
+	else if (isSigVBargraph(sig, l, x, y, s1)) 	return max(2,O(s1)); 	// at least a user interface
+	
+    else if (isSigEnable(sig, s1, s2)) 			return O(s1);
+
+    else if (isSigControl(sig, s1, s2)) 		return O(s1);
 
 	else if (isSigSoundfile(sig, l) )			exit(1);				// not supposed to happen.;
+    
 	else if (isSigSoundfileLength(sig, sf) )	return 2;
+    
 	else if (isSigSoundfileRate(sig, sf) )	    return 2;
+    
 	else if (isSigSoundfileChannel(sig,sf,x,y)) return 3;
 
 	else if (isSigAttach(sig, s1, s2)) 			return max(1,O(s1));	// at least a constant

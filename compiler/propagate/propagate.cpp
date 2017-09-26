@@ -31,6 +31,8 @@
 #include "ppsig.hh"
 #include "names.hh"
 
+extern bool gEnableFlag;
+
 //extern bool gPrintDocSwitch;
 //static siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig);
 
@@ -40,8 +42,8 @@ extern int gFTZMode;
 /**
  * propagate : box listOfSignal-> listOfSignal'
  *
- * Propage une liste de signaux de l'entrée vers la sortie d'une boite
- * La boite a été annotée aec son type 
+ * Propage a list of signals into a box expression representing a
+ * signal processor
  */
 ///////////////////////////////////////////////////////////////////////
 
@@ -355,7 +357,26 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	else if (isBoxPrim2(box, &p2)) 				{ 
 //		printf("prim2 recoit : "); print(lsig); printf("\n");
 		assert(lsig.size()==2); 
-		return makeList( p2(lsig[0],lsig[1]) );  
+        if (p2 == &sigEnable) {
+            if (gEnableFlag) {
+                // special case for sigEnable that requires a transformation
+                // enable(X,Y) -> sigEnable(X*Y, Y>0)
+                return makeList( sigEnable( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0)) ) );
+            } else {
+                // We gEnableFlag is false we replace enable by a simple multiplication
+                return makeList( sigMul(lsig[0],lsig[1]) );
+            }
+        } else if (p2 == &sigControl) {
+            if (gEnableFlag) {
+                // special case for sigEnable that requires a transformation
+                // enable(X,Y) -> sigEnable(X*Y, Y>0)
+                return makeList( sigEnable( lsig[0], lsig[1] ) );
+            } else {
+                // We gEnableFlag is false we replace control by identity function
+                return makeList( lsig[0] );
+            }
+        }
+        return makeList( p2(lsig[0],lsig[1]) );
 	}
 	
 	else if (isBoxPrim3(box, &p3)) 				{ 

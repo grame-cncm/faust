@@ -42,6 +42,9 @@ using namespace std;
 #include <set>
 #include <map>
 #include "tlib.hh"
+#include "statement.hh"
+
+
 
 #define kMaxCategory 32
 
@@ -58,9 +61,9 @@ struct Loop
     // fields concerned by absorbsion
     set<Loop*>          fBackwardLoopDependencies;  ///< Loops that must be computed before this one
     set<Loop*>          fForwardLoopDependencies;   ///< Loops that will be computed after this one
-    list<string>        fPreCode;           ///< code to execute at the begin of the loop
-    list<string>        fExecCode;          ///< code to execute in the loop
-    list<string>        fPostCode;          ///< code to execute at the end of the loop
+    list<Statement>     fPreCode;           ///< code to execute at the begin of the loop
+    list<Statement>     fExecCode;          ///< code to execute in the loop
+    list<Statement>     fPostCode;          ///< code to execute at the end of the loop
     // for topological sort
     int                 fOrder;             ///< used during topological sort
     int                 fIndex;             ///< used during scheduler mode code generation
@@ -77,9 +80,9 @@ public:
     bool isEmpty();                         ///< true when the loop doesn't contain any line of code
     bool hasRecDependencyIn(Tree S);        ///< returns true is this loop or its ancestors define a symbol in S
 
-    void addPreCode (const string& str);        ///< add a line of C++ code pre code
-    void addExecCode (const string& str);       ///< add a line of C++ code
-    void addPostCode (const string& str);       ///< add a line of C++ post code
+    void addPreCode (const Statement& str);        ///< add a line of C++ code pre code
+    void addExecCode (const Statement& str);       ///< add a line of C++ code
+    void addPostCode (const Statement& str);       ///< add a line of C++ post code
     void println (int n, ostream& fout);        ///< print the loop
     void printParLoopln(int n, ostream& fout);  ///< print the loop with a #pragma omp loop
 

@@ -245,6 +245,14 @@ Tree sigAttach   (Tree x, Tree y);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
+Tree sigEnable   (Tree x, Tree y);
+bool isSigEnable (Tree s);
+bool isSigEnable (Tree s, Tree& x, Tree& y);
+
+Tree sigControl   (Tree x, Tree y);
+bool isSigControl (Tree s);
+bool isSigControl (Tree s, Tree& x, Tree& y);
+
 
 /*****************************************************************************
 							 Sounfiles (also UI elements)
