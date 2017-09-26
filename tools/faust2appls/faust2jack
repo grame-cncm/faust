@@ -23,7 +23,7 @@ elif [ -f /usr/share/faust/music.lib ]
 then
     FAUSTLIB=/usr/share/faust/
 else
-  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 CXX=g++

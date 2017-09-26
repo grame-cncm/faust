@@ -44,6 +44,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/gui/SoundUI.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
