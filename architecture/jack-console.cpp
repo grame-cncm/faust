@@ -80,57 +80,50 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[] )
 {
-	char appname[256];
+    char appname[256];
     char rcfilename[256];
     char* home = getenv("HOME");
-    
-	snprintf(appname, 255, "%s", basename(argv[0]));
+
+    snprintf(appname, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	CMDUI* interface = new CMDUI(argc, argv);
-    FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+    CMDUI interface(argc, argv);
+    FUI finterface;
+    SoundUI soundinterface;
+
+    DSP.buildUserInterface(&interface);
+    DSP.buildUserInterface(&finterface);
+    DSP.buildUserInterface(&soundinterface);
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+    OSCUI oscinterface(appname, argc, argv);
+    DSP.buildUserInterface(&oscinterface);
 #endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
-	DSP.buildUserInterface(httpdinterface);
- #endif
+    httpdUI httpdinterface(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
+    DSP.buildUserInterface(&httpdinterface);
+#endif
 
-	jackaudio audio;
-	audio.init(appname, &DSP);
-	interface->process_command();
-	audio.start();
+    jackaudio audio;
+    audio.init(appname, &DSP);
+    interface.process_command();
+    audio.start();
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
-#endif	
-	
-#ifdef OSCCTRL
-	oscinterface->run();
-#endif
-	interface->run();
-	
-	audio.stop();
-    finterface->saveState(rcfilename);
-    
-    // desallocation
-    delete interface;
-    delete finterface;
-#ifdef HTTPCTRL
-	 delete httpdinterface;
-#endif
-#ifdef OSCCTRL
-	 delete oscinterface;
+    httpdinterface.run();
 #endif
 
-	return 0;
-} 
+#ifdef OSCCTRL
+    oscinterface.run();
+#endif
+    interface.run();
+
+    audio.stop();
+    finterface.saveState(rcfilename);
+
+    return 0;
+}
 
 
 		

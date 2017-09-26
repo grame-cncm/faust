@@ -45,7 +45,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd]  [-nvoices <num>] [-midi] [-osc] <file.dsp>"
+        echo "faust2jack [-httpd] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
