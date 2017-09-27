@@ -313,6 +313,10 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             addParameter(label, zone, min, min, max, (max-min)/1000.0, kVBargraph);
         }
+    
+        // -- soundfiles
+    
+        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
 
         // -- metadata declarations
 

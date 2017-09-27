@@ -134,6 +134,9 @@ class OCVUI : public UI
 	// -- PASSIVE WIDGETS
 	void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){}
 	void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max){}
+    
+    // -- soundfiles
+    virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
 
 	// -- METADATA DECLARATION
 	

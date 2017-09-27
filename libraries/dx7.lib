@@ -57,7 +57,7 @@ en = library("envelopes.lib");
 ma = library("maths.lib");
 os = library("oscillators.lib");
 
-//----------------------`dx7_ampf`--------------------------
+//----------------------`(dx.)dx7_ampf`--------------------------
 // DX7 amplitude conversion function. 3 versions of this function
 // are available:
 //
@@ -86,7 +86,7 @@ with{
 dx7_amp_func = min(98)/98 : pow(_,8);
 dx7_ampf = dx7_amp_func;
 
-//----------------------`dx7_egraterisef`--------------------------
+//----------------------`(dx.)dx7_egraterisef`--------------------------
 // DX7 envelope generator rise conversion function. 3 versions of this function
 // are available:
 //
@@ -118,7 +118,7 @@ with{
 dx7_egraterise_func = 38*pow((127-_)/127,12) : max(0.003);
 dx7_egraterisef = dx7_egraterise_func;
 
-//----------------------`dx7_egraterisepercf`--------------------------
+//----------------------`(dx.)dx7_egraterisepercf`--------------------------
 // DX7 envelope generator percussive rise conversion function. 3 versions of
 // this function are available:
 //
@@ -147,7 +147,7 @@ with{
 dx7_egrateriseperc_func = >=(30)*min(_-30,68)/68 : pow(_,1.8);
 dx7_egraterisepercf = dx7_egrateriseperc_func;
 
-//----------------------`dx7_egratedecayf`--------------------------
+//----------------------`(dx.)dx7_egratedecayf`--------------------------
 // DX7 envelope generator decay conversion function. 3 versions of
 // this function are available:
 //
@@ -178,7 +178,7 @@ with{
 dx7_egratedecay_func = 318*pow((127-_)/127,12.6) : max(0.008);
 dx7_egratedecayf = dx7_egratedecay_func;
 
-//----------------------`dx7_egratedecaypercf`--------------------------
+//----------------------`(dx.)dx7_egratedecaypercf`--------------------------
 // DX7 envelope generator percussive decay conversion function. 3 versions of
 // this function are available:
 //
@@ -207,7 +207,7 @@ with{
 dx7_egratedecayperc_func = min(99)/99 : pow(_,0.7);
 dx7_egratedecaypercf = dx7_egratedecayperc_func;
 
-//----------------------`dx7_eglv2peakf`--------------------------
+//----------------------`(dx.)dx7_eglv2peakf`--------------------------
 // DX7 envelope level to peak conversion function. 3 versions of
 // this function are available:
 //
@@ -236,7 +236,7 @@ with{
 dx7_eglv2peak_func = min(98)/98 : pow(_,8) : *(2.08795);
 dx7_eglv2peakf = dx7_eglv2peak_func;
 
-//----------------------`dx7_velsensf`--------------------------
+//----------------------`(dx.)dx7_velsensf`--------------------------
 // DX7 velocity sensitivity conversion function.
 //
 // #### Usage:
@@ -252,7 +252,7 @@ dx7_eglv2peakf = dx7_eglv2peak_func;
 // Corresponds to F10 in the CSOUND implementation
 dx7_velsensf = /(8);
 
-//----------------------`dx7_fdbkscalef`--------------------------
+//----------------------`(dx.)dx7_fdbkscalef`--------------------------
 // DX7 feedback scaling conversion function.
 //
 // #### Usage:
@@ -268,7 +268,7 @@ dx7_velsensf = /(8);
 // Corresponds to F11 in the CSOUND implementation
 dx7_fdbkscalef = *(0.875);
 
-//------------------------------`dx7_op`---------------------------
+//------------------------------`(dx.)dx7_op`---------------------------
 // DX7 Operator. Implements a phase-modulable sine wave oscillator connected
 // to a DX7 envelope generator.
 //
@@ -335,7 +335,7 @@ with{
   envTable = _ <: select2(type,dx7_eglv2peakf,dx7_ampf);
 };
 
-//------------------------------`dx7_algo`---------------------------
+//------------------------------`(dx.)dx7_algo`---------------------------
 // DX7 algorithms. Implements the 32 DX7 algorithms (a quick Google search
 // should give your more details on this). Each algorithm uses 6 operators
 //
@@ -976,7 +976,7 @@ with{
   op1 = dx7_op(op1Freq,0,outLevel(0),egR1(0),egR2(0),egR3(0),egR4(0),egL1(0),egL2(0),egL3(0),egL4(0),keyVelSens(0),opRateScale(0),0,gain,gate);
 };
 
-//------------------------------`dx7_ui`---------------------------
+//------------------------------`(dx.)dx7_ui`---------------------------
 // Generic DX7 function where all parameters are controllable using UI elements.
 // The `master-with-mute` branch must be used for this function to work...
 // This function is MIDI-compatible.

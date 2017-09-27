@@ -473,6 +473,23 @@ Tree boxVBargraph(Tree lbl, Tree min, Tree max)					{ return tree(gGlobal->BOXVB
 bool isBoxVBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max);	}
 bool isBoxVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, gGlobal->BOXVBARGRAPH, lbl, min, max); }
 
+Tree boxSoundfile(Tree lbl, Tree chan)
+{
+    return tree(gGlobal->BOXSOUNDFILE, lbl, chan);
+}
+
+bool isBoxSoundfile(Tree s)
+{
+    Tree label;
+    Tree chan;
+    return isTree(s, gGlobal->BOXSOUNDFILE, label, chan);
+}
+
+bool isBoxSoundfile(Tree s, Tree &label, Tree &chan)
+{
+    return isTree(s, gGlobal->BOXSOUNDFILE, label, chan);
+}
+
 /*****************************************************************************
 							 pattern lmatching case
 *****************************************************************************/
@@ -650,5 +667,3 @@ bool isBoxPatternMatcher	(Tree s, Automaton*& a, int& state, Tree& env, Tree& or
 		return false;
 	}
 }
-
-

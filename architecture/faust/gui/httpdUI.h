@@ -135,6 +135,10 @@ class httpdServerUI : public UI, public httpdUIAux
                                         { fCtrl->addnode("hbargraph", tr(label), zone, min, max); }
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)
                                         { fCtrl->addnode("vbargraph", tr(label), zone, min, max); }
+    
+        // -- soundfiles
+    
+        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
 
         virtual void declare(FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
 

@@ -17,7 +17,6 @@
 # add line << . faustpath >> to your script
 # and use -L$FAUSTLIB and -I$FAUSTINC where needed
 
-
 FAUSTLIB=""; FAUSTINC=""; 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 for f in $FPATH; do

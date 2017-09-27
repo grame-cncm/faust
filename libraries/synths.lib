@@ -45,7 +45,7 @@ fi = library("filters.lib");
 os = library("oscillators.lib");
 no = library("noises.lib");
 
-//-----------------------------------`popFilterPerc`--------------------------------------
+//-----------------------------------`(sy.)popFilterPerc`--------------------------------------
 // A simple percussion instrument based on a "popped" resonant bandpass filter.
 // `popFilterPerc` is a standard Faust function.
 //
@@ -57,7 +57,7 @@ no = library("noises.lib");
 //
 // Where:
 //
-// * `freq`: the resonance frequency of the instrument 
+// * `freq`: the resonance frequency of the instrument
 // * `q`: the q of the res filter (typically, 5 is a good value)
 // * `gate`: the trigger signal (0 or 1)
 //----------------------------------------------------------------------------------------
@@ -65,12 +65,12 @@ no = library("noises.lib");
 popFilterDrum(freq,q,gate) = en.ar(0.001,0.001,gate)*no.noise : fi.resonbp(freq,q,1);
 
 
-//---------------------------------------`dubDub`-----------------------------------------
+//---------------------------------------`(sy.)dubDub`-----------------------------------------
 // A simple synth based on a sawtooth wave filtered by a resonant lowpass.
 // `dubDub` is a standard Faust function.
-// 
+//
 // #### Usage
-// 
+//
 // ```
 // dubDub(freq,ctFreq,q,gate) : _;
 // ```
@@ -90,7 +90,7 @@ with{
 };
 
 
-//-----------------------------------`sawTrombone`----------------------------------------
+//-----------------------------------`(sy.)sawTrombone`----------------------------------------
 // A simple trombone based on a lowpassed sawtooth wave.
 // `sawTrombone` is a standard Faust function.
 //
@@ -116,7 +116,7 @@ with{
 };
 
 
-//-----------------------------------`combString`-----------------------------------------
+//-----------------------------------`(sy.)combString`-----------------------------------------
 // Simplest string physical model ever based on a comb filter.
 // `combString` is a standard Faust function.
 //
@@ -127,7 +127,7 @@ with{
 // ```
 //
 // Where:
-// 
+//
 // * `freq`: the frequency of the string
 // * `res`: string T60 (resonance time) in second
 // * `gate`: trigger signal (0 or 1)
@@ -143,7 +143,7 @@ with{
 };
 
 
-//-----------------------------------`additiveDrum`---------------------------------------
+//-----------------------------------`(sy.)additiveDrum`---------------------------------------
 // A simple drum using additive synthesis.
 // `additiveDrum` is a standard Faust function.
 //
@@ -156,12 +156,12 @@ with{
 // Where:
 //
 // * `freq`: the resonance frequency of the drum
-// * `freqRatio`: a list of ratio to choose the frequency of the mode in 
-// 		function of `freq` e.g.(1 1.2 1.5 ...). The first element should always 
+// * `freqRatio`: a list of ratio to choose the frequency of the mode in
+// 		function of `freq` e.g.(1 1.2 1.5 ...). The first element should always
 //		be one (fundamental).
-// * `gain`: the gain of each mode as a list (1 0.9 0.8 ...). The first element 
+// * `gain`: the gain of each mode as a list (1 0.9 0.8 ...). The first element
 //		is the gain of the fundamental.
-// * `harmDec`: harmonic decay ratio (0-1): configure the speed at which 
+// * `harmDec`: harmonic decay ratio (0-1): configure the speed at which
 //		higher modes decay compare to lower modes.
 // * `att`: attack duration in second
 // * `rel`: release duration in second
@@ -177,7 +177,7 @@ with{
 };
 
 
-//-----------------------------------`fm`---------------------------------------
+//-----------------------------------`(sy.)fm`---------------------------------------
 // An FM synthesizer with an arbitrary number of modulators connected as a sequence.
 // `fm` is a standard Faust function.
 //
@@ -188,9 +188,9 @@ with{
 // indices = (20,...);
 // fm(freqs,indices) : _
 // ```
-// 
+//
 // Where:
-// 
+//
 // * `freqs`: a list of frequencies where the first one is the frequency of the carrier
 //		and the others, the frequency of the modulator(s)
 // * `indices`: the indices of modulation (Nfreqs-1)
@@ -204,8 +204,3 @@ with{
 	fmBlock(0) = freq(0) : os.osc;
 	fmBlock(i) = *(gain(i))+freq(i) : os.osc;
 };
-
-
-
-
-

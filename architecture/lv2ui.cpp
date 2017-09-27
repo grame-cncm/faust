@@ -1017,6 +1017,7 @@ MTSTunings *LV2PluginUI::mts = 0;
 #line 1018 "lv2ui.cpp"
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 LV2QtGUI::LV2QtGUI(LV2PluginUI* plugui) :
   widget(NULL), uidsp(NULL), qtinterface(NULL),

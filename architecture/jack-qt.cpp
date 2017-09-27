@@ -39,12 +39,12 @@
 #include <list>
 
 #include "faust/dsp/timed-dsp.h"
-#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/gui/SoundUI.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -165,7 +165,6 @@ int main(int argc, char *argv[])
         DSP = new mydsp();
 #endif
     }
-    
 #endif
     
     if (DSP == 0) {
@@ -177,8 +176,11 @@ int main(int argc, char *argv[])
 
     QTGUI interface;
     FUI finterface;
+    SoundUI soundinterface;
+    
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
+    DSP->buildUserInterface(&soundinterface);
 
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -200,7 +202,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-    int rtmidi = lopt(argv, "--rtmidi", 0);
+    bool rtmidi = isopt(argv, "--rtmidi");
 
     MidiUI* midiinterface;
     if (rtmidi) {
@@ -218,8 +220,7 @@ int main(int argc, char *argv[])
     std::cout << "MIDI is on" << std::endl;
 #endif
 
-    finterface.recallState(rcfilename);	
-     
+    finterface.recallState(rcfilename);
     audio.start();
 
     printf("ins %d\n", audio.getNumInputs());
@@ -252,7 +253,7 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface.saveState(rcfilename);
-     
+    
     return 0;
 }
 

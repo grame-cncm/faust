@@ -232,6 +232,34 @@ Tree sigAttach   (Tree x, Tree y);
 bool isSigAttach (Tree s);
 bool isSigAttach (Tree s, Tree& x, Tree& y);
 
+Tree sigEnable   (Tree x, Tree y);
+bool isSigEnable (Tree s);
+bool isSigEnable (Tree s, Tree& x, Tree& y);
+
+Tree sigControl   (Tree x, Tree y);
+bool isSigControl (Tree s);
+bool isSigControl (Tree s, Tree& x, Tree& y);
+
+/*****************************************************************************
+							 Sounfiles (also UI elements)
+*****************************************************************************/
+/*
+A boxSounfile(label,c) has 1 input channel and c+2 output channels:
+    0   sigSoundfileLength(label):  the number of frames of the soundfile (NK)
+    1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
+    2.. sigSoundfileChannel(label, c, ridx): the cth channel content (RK ou RS)
+*/
+
+Tree sigSoundfile(Tree label);
+Tree sigSoundfileLength(Tree sf);
+Tree sigSoundfileRate(Tree sf);
+Tree sigSoundfileChannel(Tree sf, Tree chan, Tree ridx);
+
+bool isSigSoundfile(Tree s, Tree& label);
+bool isSigSoundfileLength(Tree s, Tree& sf);
+bool isSigSoundfileRate(Tree s, Tree& sf);
+bool isSigSoundfileChannel(Tree s, Tree& sf, Tree& chan, Tree& ridx);
+
 /*****************************************************************************
 							 matrix extension
 *****************************************************************************/
@@ -255,7 +283,6 @@ Tree sigCartesianProd (Tree s1, Tree s2);
 *****************************************************************************/
 
 Tree sigFTZ (Tree s);
-
 
 /*****************************************************************************
 							 access to sub signals of a signal

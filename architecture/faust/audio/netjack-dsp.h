@@ -200,6 +200,11 @@ class netjackaudio : public audio
             }
         }
         
+        virtual bool isConnexionActive()
+        {
+            return jack_net_slave_is_active(fNet);
+        }
+
         void setDsp(dsp* DSP)
         {
             fDSP = DSP;
@@ -255,7 +260,7 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         
         virtual ~netjackaudio_control() 
         {}
-        
+    
         bool isConnexionActive()
         {
             return jack_net_slave_is_active(fNet);
@@ -321,7 +326,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
         
         virtual ~netjackaudio_midicontrol() 
         {}
-        
+    
         bool isConnexionActive()
         {
             return jack_net_slave_is_active(fNet);

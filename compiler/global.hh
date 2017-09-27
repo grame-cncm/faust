@@ -285,6 +285,7 @@ struct global {
     Sym BOXPATVAR;
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
+    Sym BOXSOUNDFILE;
     Sym DOCEQN;
     Sym DOCDGM;
     Sym DOCNTC;
@@ -344,6 +345,12 @@ struct global {
     Sym SIGHBARGRAPH;
     Sym SIGVBARGRAPH;
     Sym SIGATTACH;
+    Sym SIGENABLE;
+    Sym SIGCONTROL;
+    Sym SIGSOUNDFILE;
+    Sym SIGSOUNDFILELENGTH;
+    Sym SIGSOUNDFILERATE;
+    Sym SIGSOUNDFILECHANNEL;
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
     
@@ -436,6 +443,8 @@ struct global {
     char* gCurrentLocal;
     
     int gAllocationCount;
+    
+    bool gEnableFlag;
     
     string gOutputLang;
     

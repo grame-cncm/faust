@@ -31,19 +31,21 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+struct Soundfile;
 
 /*******************************************************************************
  * UI and Meta classes for C or LLVM generated code.
  ******************************************************************************/
 
-/* -- layout groups */
+// -- widget's layouts
 
 typedef void (* openTabBoxFun) (void* ui_interface, const char* label);
 typedef void (* openHorizontalBoxFun) (void* ui_interface, const char* label);
 typedef void (* openVerticalBoxFun) (void* ui_interface, const char* label);
 typedef void (*closeBoxFun) (void* ui_interface);
 
-/* -- active widgets */
+// -- active widgets
 
 typedef void (* addButtonFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone);
 typedef void (* addCheckButtonFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone);
@@ -51,10 +53,14 @@ typedef void (* addVerticalSliderFun) (void* ui_interface, const char* label, FA
 typedef void (* addHorizontalSliderFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 typedef void (* addNumEntryFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
 
-/* -- passive display widgets */
+// -- passive widgets
 
 typedef void (* addHorizontalBargraphFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
 typedef void (* addVerticalBargraphFun) (void* ui_interface, const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+
+// -- soundfiles
+    
+typedef void (* addSoundFileFun) (void* ui_interface, const char* label, Soundfile** sf_zone);
 
 typedef void (* declareFun) (void* ui_interface, FAUSTFLOAT* zone, const char* key, const char* value);
 
@@ -73,6 +79,7 @@ typedef struct {
     addNumEntryFun addNumEntry;
     addHorizontalBargraphFun addHorizontalBargraph;
     addVerticalBargraphFun addVerticalBargraph;
+    addSoundFileFun addSoundFile;
     declareFun declare;
 
 } UIGlue;

@@ -120,6 +120,8 @@ Tree unquote(char* str)
 
 %token HBARGRAPH
 %token VBARGRAPH
+%token SOUNDFILE
+
 %token ATTACH
 
 
@@ -182,6 +184,8 @@ Tree unquote(char* str)
 %token LIBRARY
 %token ENVIRONMENT
 %token WAVEFORM
+%token ENABLE
+%token CONTROL
 
 %token IPAR
 %token ISEQ
@@ -282,6 +286,8 @@ Tree unquote(char* str)
 
 %type <exp> vbargraph
 %type <exp> hbargraph
+
+%type <exp> soundfile
 
 %type <exp> rule
 %type <exp> rulelist
@@ -486,6 +492,9 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| NE							{ $$ = boxPrim2(sigNE); }
 
 				| ATTACH						{ $$ = boxPrim2(sigAttach); }
+                | ENABLE                        { $$ = boxPrim2(sigEnable); }
+                | CONTROL                       { $$ = boxPrim2(sigControl); }
+
 
 				| ACOS							{ $$ = gGlobal->gAcosPrim->box(); }
 				| ASIN							{ $$ = gGlobal->gAsinPrim->box(); }
@@ -546,6 +555,7 @@ primitive		: INT   						{ $$ = boxInt(atoi(yytext)); }
 				| tgroup						{ $$ = $1; }
 				| vbargraph						{ $$ = $1; }
 				| hbargraph						{ $$ = $1; }
+				| soundfile						{ $$ = $1; }
 
 				| fpar							{ $$ = $1; }
 				| fseq							{ $$ = $1; }
@@ -658,6 +668,9 @@ vbargraph		: VBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 				;
 hbargraph		: HBARGRAPH LPAR uqstring PAR argument PAR argument RPAR
 												{ $$ = boxHBargraph($3,$5,$7); }
+				;
+soundfile		: SOUNDFILE LPAR uqstring PAR argument RPAR
+												{ $$ = boxSoundfile($3,$5); }
 				;
 
 /* Description of foreign functions */

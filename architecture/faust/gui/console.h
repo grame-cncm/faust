@@ -173,6 +173,10 @@ public:
 
 	virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 		{}
 	virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) 			{}
+    
+    // -- soundfiles
+    
+    virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
 
 	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
 	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }

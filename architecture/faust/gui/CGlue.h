@@ -63,6 +63,10 @@ class UIFloat
 
         virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
         virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
+    
+        // -- soundfiles
+    
+        virtual void addSoundFile(const char* label, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -134,6 +138,12 @@ static void addVerticalBargraphGlueFloat(void* cpp_interface, const char* label,
     UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
+    
+static void addSoundFileGlueFloat(void* cpp_interface, const char* label, Soundfile** sf_zone)
+{
+    UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
+    ui_interface->addSoundFile(label, sf_zone);
+}
 
 static void declareGlueFloat(void* cpp_interface, float* zone, const char* key, const char* value)
 {
@@ -169,6 +179,10 @@ class UIDouble
 
         virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max) = 0;
         virtual void addVerticalBargraph(const char* label, double* zone, double min, double max) = 0;
+    
+        // -- soundfiles
+    
+        virtual void addSoundFile(const char* label, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -240,6 +254,12 @@ static void addVerticalBargraphGlueDouble(void* cpp_interface, const char* label
     UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
+    
+static void addSoundFileGlueDouble(void* cpp_interface, const char* label, Soundfile** sf_zone)
+{
+    UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
+    ui_interface->addSoundFile(label, sf_zone);
+}
 
 static void declareGlueDouble(void* cpp_interface, double* zone, const char* key, const char* value)
 {
@@ -263,6 +283,7 @@ inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
         glue->addNumEntry = (addNumEntryFun)addNumEntryGlueDouble;
         glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueDouble;
         glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueDouble;
+        glue->addSoundFile = (addSoundFileFun)addSoundFileGlueDouble;
         glue->declare = (declareFun)declareGlueDouble;
     } else {
         glue->openTabBox = (openTabBoxFun)openTabBoxGlueFloat;
@@ -276,6 +297,7 @@ inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
         glue->addNumEntry = (addNumEntryFun)addNumEntryGlueFloat;
         glue->addHorizontalBargraph = (addHorizontalBargraphFun)addHorizontalBargraphGlueFloat;
         glue->addVerticalBargraph = (addVerticalBargraphFun)addVerticalBargraphGlueFloat;
+        glue->addSoundFile = (addSoundFileFun)addSoundFileGlueFloat;
         glue->declare = (declareFun)declareGlueFloat;
     }
 }
@@ -352,7 +374,7 @@ class UITemplate
         {
             addVerticalBargraphGlueFloat(fCPPInterface, label, zone, min, max);
         }
-        
+    
         // -- metadata declarations
         
         virtual void declare(float* zone, const char* key, const char* val)
@@ -397,12 +419,19 @@ class UITemplate
         {
             addVerticalBargraphGlueDouble(fCPPInterface, label, zone, min, max);
         }
-        
+    
         // -- metadata declarations
         
         virtual void declare(double* zone, const char* key, const char* val)
         {
             declareGlueDouble(fCPPInterface, zone, key, val);
+        }
+    
+        // -- soundfiles
+    
+        virtual void addSoundFile(const char* label, Soundfile** sf_zone)
+        {
+            addSoundFileGlueFloat(fCPPInterface, label, sf_zone);
         }
     
 };

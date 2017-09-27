@@ -108,6 +108,9 @@ class MapUI : public UI, public PathBuilder
             fPathZoneMap[buildPath(label)] = zone;
             fLabelZoneMap[label] = zone;
         }
+    
+        // -- soundfiles
+        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
         
         // -- metadata declarations
         void declare(FAUSTFLOAT* zone, const char* key, const char* val)

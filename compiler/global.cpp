@@ -250,6 +250,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXPATVAR = symbol ("BoxPatVar");
     BOXINPUTS = symbol ("BoxInputs");
     BOXOUTPUTS = symbol ("BoxOutputs");
+    BOXSOUNDFILE = symbol ("boxSoundfile");
  
     DOCEQN = symbol ("DocEqn");
     DOCDGM = symbol ("DocDgm");
@@ -296,6 +297,12 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SIGHBARGRAPH = symbol ("SigHBargraph");
     SIGVBARGRAPH = symbol ("SigVBargraph");
     SIGATTACH = symbol ("sigAttach");
+    SIGENABLE = symbol ("sigEnable");
+    SIGCONTROL = symbol ("sigControl");
+    SIGSOUNDFILE = symbol ("sigSoundfile");
+    SIGSOUNDFILELENGTH = symbol ("sigSoundfileLength");
+    SIGSOUNDFILERATE = symbol ("sigSoundfileRate");
+    SIGSOUNDFILECHANNEL = symbol ("sigSoundfileChannel");
     SIGTUPLE = symbol ("SigTuple");
     SIGTUPLEACCESS = symbol ("SigTupleAccess");
     SIMPLETYPE = symbol ("SimpleType");
@@ -366,6 +373,7 @@ void global::init()
     
     gMemoizedTypes = new property<AudioType*>();
     gAllocationCount = 0;
+    gEnableFlag = false;
   
     TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());

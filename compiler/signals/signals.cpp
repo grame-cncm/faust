@@ -253,6 +253,12 @@ bool isSigVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max, Tree& x)	{ return 
 Tree  sigAttach(Tree t0, Tree t1)					{ return tree(gGlobal->SIGATTACH, t0, t1); 		}
 bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGATTACH, t0, t1); 	}
 
+Tree  sigEnable(Tree t0, Tree t1)					{ return tree(gGlobal->SIGENABLE, t0, t1); 		}
+bool  isSigEnable(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGENABLE, t0, t1); 	}
+
+Tree  sigControl(Tree t0, Tree t1)					{ return tree(gGlobal->SIGCONTROL, t0, t1); 		}
+bool  isSigControl(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, gGlobal->SIGCONTROL, t0, t1); 	}
+
 bool sameMagnitude(Tree a, Tree b)
 {
     return sameMagnitude(a->node(), b->node());
@@ -332,6 +338,25 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 	return isSigBinOp(a, &op, x, y) && (op == kDiv);
 }
 
+/*****************************************************************************
+							 Sounfiles
+*****************************************************************************/
+/*
+A boxSounfile(label,c) has 1 input channel and c+2 output channels:
+    0   sigSoundfileLength(sigSoundfile(label)):  the number of frames of the soundfile (NK)
+    1   sigSoundfileSamplingRate(sigSoundfile(label)): the sampling rate encoded in the file (NK)
+    2.. sigSoundfileChannel(sigSoundfile(label), c, ridx): the cth channel content (RK ou RS)
+*/
+Tree sigSoundfile(Tree label)							{ return tree(gGlobal->SIGSOUNDFILE, label); }
+Tree sigSoundfileLength(Tree sf)						{ return tree(gGlobal->SIGSOUNDFILELENGTH, sf); }
+Tree sigSoundfileRate(Tree sf)							{ return tree(gGlobal->SIGSOUNDFILERATE, sf); }
+Tree sigSoundfileChannel(Tree sf, Tree chan, Tree ridx)	{ return tree(gGlobal->SIGSOUNDFILECHANNEL, sf, chan, ridx); }
+
+bool isSigSoundfile(Tree s, Tree& label)				{ return isTree(s, gGlobal->SIGSOUNDFILE, label); }
+bool isSigSoundfileLength(Tree s, Tree& sf)				{ return isTree(s, gGlobal->SIGSOUNDFILELENGTH, sf); }
+bool isSigSoundfileRate(Tree s, Tree& sf)				{ return isTree(s, gGlobal->SIGSOUNDFILERATE, sf); }
+bool isSigSoundfileChannel(Tree s, Tree& sf, Tree& chan, Tree& ridx)
+															{ return isTree(s, gGlobal->SIGSOUNDFILECHANNEL, sf, chan, ridx); }
 /*****************************************************************************
 							 matrix extension
 *****************************************************************************/

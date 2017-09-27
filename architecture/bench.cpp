@@ -117,7 +117,7 @@ double mysecond()
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 					
-mydsp	DSP;
+mydsp DSP;
 
 #if 0
 

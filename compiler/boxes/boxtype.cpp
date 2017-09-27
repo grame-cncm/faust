@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,7 +92,7 @@ bool getBoxType (Tree box, int* inum, int* onum)
 
 static bool infereBoxType (Tree t, int* inum, int* onum)
 {
-	Tree a, b, ff, l, s;
+	Tree a, b, ff, l, s, c;
 	//Tree abstr, genv, vis, lenv;
 	
 	xtended* p = (xtended*) getUserData(t);
@@ -132,10 +132,12 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
     else if (isBoxTGroup(t,l,a)){ return getBoxType(a, inum, onum); }
 	
 	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; } 
-	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; } 
-
+	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; }
+    else if (isBoxSoundfile(t, l, c)) {
+        *inum = 1;
+        *onum = 2+tree2int(c);
+    }
 	else if (isBoxSeq(t, a, b)) {
-		
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
@@ -147,7 +149,8 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
                     << "must be equal to the number of inputs (" << x << ") of B : " << boxpp(b) << endl;
             throw faustexception(error.str());
 		} else {
-			*inum = u; *onum = y;
+            *inum = u;
+            *onum = y;
 		}
 
 	} else if (isBoxPar(t, a, b)) {

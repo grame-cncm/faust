@@ -562,17 +562,18 @@ Automaton *make_pattern_matcher(Tree R)
                be shadowed. */
             Tree lhs1, rhs1, lhs2, rhs2;
             if (isCons(rules[ru->r], lhs1, rhs1) &&  isCons(rules[r], lhs2, rhs2)) {
-                cerr 	<< "WARNING : shadowed pattern-matching rule: "
+                cerr << "WARNING : shadowed pattern-matching rule: "
                     << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
                     << " previous rule was: " 
                     << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
                     << endl;
             } else {
-                cerr << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
-                exit(1);
+                stringstream error;
+                error << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
+                throw faustexception(error.str());
             }
           } else if (ru->r >= r) {
-            break;
+              break;
           }
        }
     }

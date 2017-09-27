@@ -30,7 +30,6 @@
 	that work under terms of your choice, so long as this FAUST
 	architecture section is not modified.
 
-
  ************************************************************************
  ************************************************************************/
 
@@ -73,7 +72,6 @@ mydsp DSP;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
-
 
 //-------------------------------------------------------------------------
 // 									MAIN

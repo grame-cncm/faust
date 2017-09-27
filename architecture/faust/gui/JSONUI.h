@@ -40,6 +40,8 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
+struct Soundfile;
+
 template <typename REAL>
 class JSONUIAux : public PathBuilder, public Meta, public UI
 {
@@ -335,6 +337,18 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         virtual void addVerticalBargraph(const char* label, REAL* zone, REAL min, REAL max)
         {
             addGenericBargraph(label, "vbargraph", min, max);
+        }
+    
+        virtual void addSoundfile(const char* label, Soundfile** zone)
+        {
+            fUI << fCloseUIPar;
+            tab(fTab, fUI); fUI << "{";
+            tab(fTab + 1, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
+            tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            addMeta(fTab + 1, false);
+            tab(fTab, fUI); fUI << "}";
+            fCloseUIPar = ',';
         }
 
         // -- metadata declarations

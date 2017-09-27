@@ -21,8 +21,8 @@
  architecture section is not modified.
  ************************************************************************/
  
-#ifndef FAUST_GUI_H
-#define FAUST_GUI_H
+#ifndef __GUI_H__
+#define __GUI_H__
 
 #include <list>
 #include <map>
@@ -31,6 +31,7 @@
 
 #include "faust/gui/UI.h"
 #include "faust/gui/ring-buffer.h"
+#include "faust/audio/soundfile.h"
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
@@ -59,23 +60,23 @@ class GUI : public UI
 		
     private:
      
-        static std::list<GUI*>  fGuiList;
-        zmap                    fZoneMap;
-        bool                    fStopped;
+        static std::list<GUI*> fGuiList;
+        zmap fZoneMap;
+        bool fStopped;
         
      public:
             
-        GUI() : fStopped(false) 
+        GUI():fStopped(false)
         {	
             fGuiList.push_back(this);
         }
         
         virtual ~GUI() 
         {   
-            // delete all 
-            zmap::iterator g;
-            for (g = fZoneMap.begin(); g != fZoneMap.end(); g++) {
-                delete (*g).second;
+            // delete all items
+            zmap::iterator it;
+            for (it = fZoneMap.begin(); it != fZoneMap.end(); it++) {
+                delete (*it).second;
             }
             // suppress 'this' in static fGuiList
             fGuiList.remove(this);
@@ -127,6 +128,10 @@ class GUI : public UI
         virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
     
+        // -- soundfiles
+    
+        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    
         // -- metadata declarations
 
         virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
@@ -144,9 +149,9 @@ class uiItem
 {
     protected:
           
-        GUI*            fGUI;
-        FAUSTFLOAT*     fZone;
-        FAUSTFLOAT      fCache;
+        GUI* fGUI;
+        FAUSTFLOAT* fZone;
+        FAUSTFLOAT fCache;
 
         uiItem(GUI* ui, FAUSTFLOAT* zone):fGUI(ui), fZone(zone), fCache(FAUSTFLOAT(-123456.654321))
         { 
@@ -167,8 +172,8 @@ class uiItem
             }
         }
                 
-        FAUSTFLOAT		cache()	{ return fCache; }
-        virtual void 	reflectZone() = 0;	
+        FAUSTFLOAT cache() { return fCache; }
+        virtual void reflectZone() = 0;
 };
 
 /**
@@ -196,8 +201,8 @@ class uiOwnedItem : public uiItem {
 
 struct uiCallbackItem : public uiItem {
     
-	uiCallback	fCallback;
-	void*		fData;
+	uiCallback fCallback;
+	void* fData;
 	
 	uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
 			: uiItem(ui, zone), fCallback(foo), fData(data) {}

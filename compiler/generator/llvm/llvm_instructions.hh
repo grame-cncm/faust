@@ -448,6 +448,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             VECTOR_OF_TYPES StructTy_struct_UIGlue_fields;
             PointerType* PointerTy_0 = PointerType::get(IntegerType::get(fModule->getContext(), 8), 0);
 
+            // uiInterface;
             StructTy_struct_UIGlue_fields.push_back(PointerTy_0);
             
             // Declare fun
@@ -461,9 +462,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_1 = PointerType::get(FuncTy_2, 0);
 
+            // openTabBoxFun/openHorizontalBoxFun/openVerticalBoxFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_1);
+            
             VECTOR_OF_TYPES FuncTy_4_args;
             FuncTy_4_args.push_back(PointerTy_0);
             FunctionType* FuncTy_4 = FunctionType::get(
@@ -473,11 +476,13 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_3 = PointerType::get(FuncTy_4, 0);
 
+            // closeBoxFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_3);
+            
             VECTOR_OF_TYPES FuncTy_6_args;
             FuncTy_6_args.push_back(PointerTy_0);
             FuncTy_6_args.push_back(PointerTy_0);
-            LLVM_TYPE PointerTy_7 = fTypeMap[itfloatptr()];  // For LLVM internal float is same as external
+            LLVM_TYPE PointerTy_7 = fTypeMap[itfloatptr()];  // LLVM internal float is same as external
 
             FuncTy_6_args.push_back(PointerTy_7);
             FunctionType* FuncTy_6 = FunctionType::get(
@@ -487,13 +492,15 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_5 = PointerType::get(FuncTy_6, 0);
 
+            // addButtonFun/addCheckButtonFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_5);
+            
             VECTOR_OF_TYPES FuncTy_9_args;
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_0);
             FuncTy_9_args.push_back(PointerTy_7);
-            FuncTy_9_args.push_back(fTypeMap[itfloat()]);  // For LLVM internal float is same as external
+            FuncTy_9_args.push_back(fTypeMap[itfloat()]);  // For internal float is same as external
             FuncTy_9_args.push_back(fTypeMap[itfloat()]);
             FuncTy_9_args.push_back(fTypeMap[itfloat()]);
             FuncTy_9_args.push_back(fTypeMap[itfloat()]);
@@ -504,6 +511,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_8 = PointerType::get(FuncTy_9, 0);
 
+            // addVerticalSliderFun/addHorizontalSliderFun/addNumEntryFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_8);
@@ -512,7 +520,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_0);
             FuncTy_16_args.push_back(PointerTy_7);
-            FuncTy_16_args.push_back(fTypeMap[itfloat()]);  // For LLVM internal float is same as external
+            FuncTy_16_args.push_back(fTypeMap[itfloat()]);  // LLVM internal float is same as external
             FuncTy_16_args.push_back(fTypeMap[itfloat()]);
             FunctionType* FuncTy_16 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
@@ -521,8 +529,24 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             PointerType* PointerTy_15 = PointerType::get(FuncTy_16, 0);
 
+            // addHorizontalBargraphFun/addVerticalBargraphFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_15);
             StructTy_struct_UIGlue_fields.push_back(PointerTy_15);
+            
+            VECTOR_OF_TYPES FuncTy_19_args;
+            FuncTy_19_args.push_back(PointerTy_0);
+            FuncTy_19_args.push_back(PointerTy_0);
+            FuncTy_19_args.push_back(PointerTy_0);
+            FunctionType* FuncTy_19 = FunctionType::get(
+            /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
+            /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_19_args),
+            /*isVarArg=*/false);
+            
+            PointerType* PointerTy_20 = PointerType::get(FuncTy_19, 0);
+            
+            // addSoundFileFun
+            StructTy_struct_UIGlue_fields.push_back(PointerTy_20);
+            
             VECTOR_OF_TYPES FuncTy_18_args;
             FuncTy_18_args.push_back(PointerTy_0);
             FuncTy_18_args.push_back(PointerTy_7);
@@ -534,6 +558,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             /*isVarArg=*/false);
 
             PointerType* PointerTy_17 = PointerType::get(FuncTy_18, 0);
+            
+            // declareFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
 
             llvm::StructType* fStruct_UI = createType("struct.UIGlue", StructTy_struct_UIGlue_fields);
@@ -673,7 +699,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
                 generateBuildUserInterface(dsp_type_ptr);
             }
             
-            fSize =  genInt32(fModule, fDataLayout->getTypeSizeInBits(dsp_type));
+            fSize = genInt32(fModule, fDataLayout->getTypeSizeInBits(dsp_type));
 
             return dsp_type_ptr;
         }
@@ -828,8 +854,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             fUICallTable["addHorizontalBargraph"] = genInt32(fModule, 10);
             fUICallTable["addVerticalBargraph"] = genInt32(fModule, 11);
+            
+            fUICallTable["addSoundfile"] = genInt32(fModule, 12);
 
-            fUICallTable["declare"] = genInt32(fModule, 12);
+            fUICallTable["declare"] = genInt32(fModule, 13);
 
             fTypeMap[Typed::kObj_ptr] = fStructDSP;
             

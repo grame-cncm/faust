@@ -134,6 +134,7 @@ static schema* 	generateOutputSlotSchema(Tree a);
 static schema* 	generateInputSlotSchema(Tree a);
 static schema* 	generateBargraphSchema(Tree t);
 static schema* 	generateUserInterfaceSchema(Tree t);
+static schema* 	generateSoundfileSchema(Tree t);
 static char* 	legalFileName(Tree t, int n, char* dst);
 
 static schema*  addSchemaInputs(int ins, schema* x);
@@ -420,6 +421,7 @@ static schema* generateInsideSchema(Tree t)
 	else if (isBoxNumEntry(t)) 		{ return generateUserInterfaceSchema(t); }
 	else if (isBoxVBargraph(t))		{ return generateBargraphSchema(t); }
 	else if (isBoxHBargraph(t))		{ return generateBargraphSchema(t); }
+	else if (isBoxSoundfile(t))		{ return generateSoundfileSchema(t); }
 
 	// don't draw group rectangle when labels are empty (ie "")
     else if (isBoxVGroup(t,l,a))	{ 	stringstream s; s << "vgroup(" << extractName(l) << ")";
@@ -464,7 +466,7 @@ static schema* generateInsideSchema(Tree t)
  */
 static void UserInterfaceDescription(Tree box, string& d)
 {
-    Tree    t1, label, cur, min, max, step;
+    Tree    t1, label, cur, min, max, step, chan;
     stringstream 	fout;
     // user interface
          if (isBoxButton(box, label))	fout << "button(" << extractName(label) << ')';
@@ -514,6 +516,11 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(max) << ", "
              << boxpp(step)<< ')';
     }
+    else if (isBoxSoundfile(box, label, chan)) 	{
+        fout << "soundfile("
+             << extractName(label) << ", "
+             << boxpp(chan) << ')';
+    }
     else {
         throw faustexception("INTERNAL ERROR : unknown user interface element\n");
     }
@@ -538,6 +545,21 @@ static schema* generateBargraphSchema(Tree t)
 {
     string s; UserInterfaceDescription(t,s);
     return makeBlockSchema(1, 1, s, uicolor, "");
+}
+
+/**
+ * Generate a 1->c+2 block schema for soundfile("toto",c) 
+ */
+static schema* generateSoundfileSchema(Tree t)
+{
+    Tree    label, chan;
+    if (isBoxSoundfile(t, label, chan)) {
+        int n = tree2int(chan);
+        string s; UserInterfaceDescription(t,s);
+        return makeBlockSchema(1, 2+n, s, uicolor, "");
+    } else {
+        throw faustexception("Internal error\n");
+    }
 }
 
 

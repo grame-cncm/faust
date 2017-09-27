@@ -402,6 +402,8 @@ class mspUI : public UI
             fDeclareTable.clear();
         }
     
+        void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    
         void openTabBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
         void openHorizontalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
         void openVerticalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}

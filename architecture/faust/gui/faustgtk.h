@@ -528,7 +528,7 @@ public:
     static const gboolean fill = true;
     static const gboolean homogene = false;
          
-    GTKUI(char * name, int* pargc, char*** pargv);
+    GTKUI(char* name, int* pargc, char*** pargv);
 
     // -- Labels and metadata
 

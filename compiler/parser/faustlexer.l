@@ -159,6 +159,8 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "tgroup"	return TGROUP;
 "vbargraph"	return VBARGRAPH;
 "hbargraph"	return HBARGRAPH;
+"soundfile" return SOUNDFILE;
+
 "attach"	return ATTACH;
 
 "acos"		return ACOS;
@@ -201,7 +203,9 @@ TMACRO   \\{ID}(\[(\ *({ID}|{NUMBER}),?\ *)\])?(\{(\ *({ID}|{NUMBER}),?\ *)*\})*
 "library"   return LIBRARY;
 "environment"   return ENVIRONMENT;
 
-"waveform"   return WAVEFORM;
+"waveform"  return WAVEFORM;
+"enable"   	return ENABLE;
+"control"   return CONTROL;
 
 "declare"	return DECLARE;
 

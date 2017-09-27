@@ -228,7 +228,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int 		i;
 	double 		r;
-    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file;
+    Tree		sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file, sf;
 	Tree		label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
@@ -327,7 +327,18 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigVBargraph(sig, l, x, y, s1))  return T(s1, env)->promoteVariability(kBlock);
 
+
+	else if ( isSigSoundfile(sig,l) )		        { return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0,0x7FFFFFFF));	}
+	else if ( isSigSoundfileLength(sig,sf) )		{ T(sf,env); return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0,0x7FFFFFFF));	}
+	else if ( isSigSoundfileRate(sig,sf) )		    { T(sf,env); return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0,0x7FFFFFFF));	}
+	else if ( isSigSoundfileChannel(sig,sf,x,s1))   { T(sf,env); T(x,env); T(s1,env); return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());	}
+
+
     else if (isSigAttach(sig, s1, s2))          { T(s2,env); return T(s1,env); }
+
+    else if (isSigEnable(sig, s1, s2))          { T(s2,env); return T(s1,env); }
+
+    else if (isSigControl(sig, s1, s2))         { T(s2,env); return T(s1,env); }
 
     else if (isRec(sig, var, body))             return infereRecType(sig, body, env);
 
