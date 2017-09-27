@@ -1,6 +1,5 @@
 #!/bin/bash
 
-OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to alsa-gtk                 #
@@ -10,6 +9,8 @@ OSCDEFS=""
 
 . faustpath
 . faustoptflags
+
+OSCDEFS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -22,6 +23,7 @@ OSCDEFS=""
 # without having to configure CXX and CXXFLAGS
 CXX=g++
 CXXFLAGS=$MYGCCFLAGS
+
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -31,6 +33,13 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2jackconsole [-httpd] [-osc] <file.dsp>"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-osc' to activate OSC control"
+    exit
+    fi
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -42,13 +51,13 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust -lpthread"
+        OSCDEFS="-DOSCCTRL -lOSCFaust -lpthread"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+        HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -57,9 +66,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
-
 	
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
@@ -71,14 +77,13 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib -ljack $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
-
 
 echo $BINARIES
 

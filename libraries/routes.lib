@@ -45,7 +45,7 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//--------------------------------`cross`-----------------------------------
+//--------------------------------`(ro.)cross`-----------------------------------
 // Cross n signals: `(x1,x2,..,xn) -> (xn,..,x2,x1)`.
 // `cross` is a standard Faust function.
 //
@@ -73,7 +73,7 @@ cross(n) = si.bus(n) <: par(i,n,ba.selector(n-i-1,n));
 cross2 = _,cross(2),_; // for compatibility with some old misceffects.lib functions
 
 
-//--------------`crossnn`--------------
+//--------------`(ro.)crossnn`--------------
 // Cross two `bus(n)`s.
 //
 // #### Usage
@@ -89,7 +89,7 @@ cross2 = _,cross(2),_; // for compatibility with some old misceffects.lib functi
 crossnn(n) = si.bus(n),si.bus(n) <: si.block(n),si.bus(n),si.bus(n),si.block(n);
 
 
-//--------------`crossn1`--------------
+//--------------`(ro.)crossn1`--------------
 // Cross bus(n) and bus(1).
 //
 // #### Usage
@@ -106,7 +106,7 @@ crossn1(n) = si.bus(n),(si.bus(1)<:si.bus(n)) <: si.block(n),si.bus(n),si.bus(n)
 	si.block(n):si.bus(1),si.block(n-1),si.bus(n);
 
 
-//--------------------------`interleave`------------------------------
+//--------------------------`(ro.)interleave`------------------------------
 // Interleave row*col cables from column order to row order.
 // input : x(0), x(1), x(2) ..., x(row*col-1)
 // output: x(0+0*row), x(0+1*row), x(0+2*row), ..., x(1+0*row), x(1+1*row), x(1+2*row), ...
@@ -125,7 +125,7 @@ crossn1(n) = si.bus(n),(si.bus(1)<:si.bus(n)) <: si.block(n),si.bus(n),si.bus(n)
 interleave(row,col) = si.bus(row*col) <: par(r, row, par(c, col, ba.selector(r+c*row,row*col)));
 
 
-//-------------------------------`butterfly`--------------------------------
+//-------------------------------`(ro.)butterfly`--------------------------------
 // Addition (first half) then substraction (second half) of interleaved signals.
 //
 // #### Usage
@@ -141,7 +141,7 @@ interleave(row,col) = si.bus(row*col) <: par(r, row, par(c, col, ba.selector(r+c
 butterfly(n) = si.bus(n) <: interleave(n/2,2), interleave(n/2,2) : par(i, n/2, +), par(i, n/2, -);
 
 
-//------------------------------`hadamard`----------------------------------
+//------------------------------`(ro.)hadamard`----------------------------------
 // Hadamard matrix function of size `n = 2^k`.
 //
 // #### Usage
@@ -163,7 +163,7 @@ hadamard(2) = butterfly(2);
 hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
 
 
-//---------------`recursivize`-------------
+//---------------`(ro.)recursivize`-------------
 // Create a recursion from two arbitrary processors p and q.
 //
 // #### Usage
@@ -179,4 +179,3 @@ hadamard(n) = butterfly(n) : (hadamard(n/2) , hadamard(n/2));
 // * `q`: the feedback arbitrary processor
 //----------------------------------------
 recursivize(p,q) = (_,_,_,_ :> sp.stereoize(p)) ~ sp.stereoize(q);
-

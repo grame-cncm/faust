@@ -30,7 +30,7 @@ Michon and Julius O. Smith III, and are released under the
 //=============================Schroeder Reverberators======================================
 //==========================================================================================
 
-//------------------------------`jcrev`------------------------------
+//------------------------------`(re.)jcrev`------------------------------
 // This artificial reverberator take a mono signal and output stereo
 // (`satrev`) and quad (`jcrev`). They were implemented by John Chowning
 // in the MUS10 computer-music language (descended from Music V by Max
@@ -71,7 +71,7 @@ jcrev = *(0.06) : allpass_chain <: comb_bank : mix_mtx with {
 };
 
 
-//------------------------------`satrev`------------------------------
+//------------------------------`(re.)satrev`------------------------------
 // This artificial reverberator take a mono signal and output stereo
 // (`satrev`) and quad (`jcrev`).  They were implemented by John Chowning
 // in the MUS10 computer-music language (descended from Music V by Max
@@ -110,7 +110,7 @@ satrev = *(0.2) <: comb_bank :> allpass_chain <: _,*(-1) with {
 //======================Feedback Delay Network (FDN) Reverberators========================
 //========================================================================================
 
-//--------------------------------`fdnrev0`---------------------------------
+//--------------------------------`(re.)fdnrev0`---------------------------------
 // Pure Feedback Delay Network Reverberator (generalized for easy scaling).
 // `fdnrev0` is a standard Faust function.
 //
@@ -174,7 +174,7 @@ with {
 };
 
 
-//-------------------------------`zita_rev_fdn`-------------------------------
+//-------------------------------`(re.)zita_rev_fdn`-------------------------------
 // Internal 8x8 late-reverberation FDN used in the FOSS Linux reverb zita-rev1
 // by Fons Adriaensen <fons@linuxaudio.org>.  This is an FDN reverb with
 // allpass comb filters in each feedback delay in addition to the
@@ -265,7 +265,7 @@ zita_distrib2(N) = _,_ <: fanflip(N) with {
 };
 
 
-//----------------------------`zita_rev1_stereo`---------------------------
+//----------------------------`(re.)zita_rev1_stereo`---------------------------
 // Extend `zita_rev_fdn` to include `zita_rev1` input/output mapping in stereo mode.
 // `zita_rev1_stereo` is a standard Faust function.
 //
@@ -294,7 +294,7 @@ with {
 };
 
 
-//-----------------------------`zita_rev1_ambi`---------------------------
+//-----------------------------`(re.)zita_rev1_ambi`---------------------------
 // Extend zita_rev_fdn to include zita_rev1 input/output mapping in
 // "ambisonics mode", as provided in the Linux C++ version.
 //
@@ -362,7 +362,7 @@ closed source license or any other license if you decide so.
 //===============================Freeverb===================================
 //==========================================================================
 
-//----------------------------`mono_freeverb`-------------------------
+//----------------------------`(re.)mono_freeverb`-------------------------
 // A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that
 // is extensively used in the free-software world. It uses four Schroeder allpasses in
 // series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each
@@ -415,7 +415,7 @@ with{
 };
 
 
-//----------------------------`stereo_freeverb`-------------------------
+//----------------------------`(re.)stereo_freeverb`-------------------------
 // A simple Schroeder reverberator primarily developed by "Jezar at Dreampoint" that
 // is extensively used in the free-software world. It uses four Schroeder allpasses in
 // series and eight parallel Schroeder-Moorer filtered-feedback comb-filters for each

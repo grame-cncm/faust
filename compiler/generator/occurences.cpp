@@ -24,14 +24,15 @@ static int xVariability (int v, int r)
 //	Occurences methods
 //-------------------------------------------------
 
-Occurences::Occurences(int v, int r) : fXVariability(xVariability(v,r)) {
+Occurences::Occurences(int v, int r, Tree xc) : fXVariability(xVariability(v,r)) {
 	for (int i=0; i<4; i++) fOccurences[i]=0;
 	fMultiOcc = false;
-	fMaxDelay = 0;
-	fOutDelayOcc = false;
+    fMaxDelay = 0;
+    fOutDelayOcc = false;
+    fExecCondition = xc;
 }
 
-Occurences* Occurences::incOccurences(int v, int r, int d) {
+Occurences* Occurences::incOccurences(int v, int r, int d, Tree xc) {
 	int ctxt = xVariability(v,r);
 	//assert (ctxt >= fXVariability);
 	fOccurences[ctxt] += 1;
@@ -44,6 +45,11 @@ Occurences* Occurences::incOccurences(int v, int r, int d) {
 		//cerr << "Max delay : " << fMaxDelay << " <- " << d << endl;
 		fMaxDelay = d;
 	}
+
+    // check if used in different execution conditions
+    if (fExecCondition != xc) {
+        fMultiOcc = true;
+    }
 	return this;
 }
 
@@ -53,7 +59,12 @@ bool Occurences::hasOutDelayOccurences() const	{ return fOutDelayOcc; }
 
 int Occurences::getMaxDelay() const
 {
-	return fMaxDelay;
+    return fMaxDelay;
+}
+
+Tree Occurences::getExecCondition() const
+{
+    return fExecCondition;
 }
 
 //--------------------------------------------------
@@ -68,13 +79,13 @@ void OccMarkup::mark(Tree root)
 	if (isList(root)) {
 		while (isList(root)) {
 			//incOcc(kSamp, 1, hd(root));
-			incOcc(nil, kSamp, 0, 0, hd(root));
+            incOcc(nil, kSamp, 0, 0, nil, hd(root));
 			root = tl(root);
 		}
 		//cerr << "END OF LIST IS " << *root << endl;
 	} else {
 		//incOcc(kSamp, 1, root);
-		incOcc(nil, kSamp, 0, 0, root);
+        incOcc(nil, kSamp, 0, 0, nil, root);
 	}
 }
 
@@ -89,10 +100,11 @@ Occurences* OccMarkup::retrieve(Tree t)
 }
 
 //------------------------------------------------------------------------------
-// Increment the occurences of t within context v,r,d and proceed recursively
+// Increment the occurences of t within context v,r,d,xc and proceed recursively
+// xc : exec condition expression
 //------------------------------------------------------------------------------
 
-void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
+void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 {
 	// Check if we have already visited this tree
 	Occurences* occ = getOcc(t);
@@ -100,10 +112,10 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 	if (occ==0) {
 		// 1) We build initial occurence information
 		Type	ty = getCertifiedSigType(t);
-		int v0 = ty->variability();
-		int r0 = getRecursivness(t);
-
-		occ = new Occurences(v0,r0);
+        int     v0 = ty->variability();
+        int     r0 = getRecursivness(t);
+        Tree    c0 = fConditions[t];
+        occ = new Occurences(v0, r0, c0);
 		setOcc(t, occ);
 
 		// We mark the subtrees of t
@@ -112,30 +124,30 @@ void OccMarkup::incOcc(Tree env, int v, int r, int d, Tree t)
 			Type g2 = getCertifiedSigType(y);
 			int d2 = checkDelayInterval(g2);
 			assert(d2>=0);
-			incOcc(env, v0, r0, d2, x);
-			incOcc(env, v0, r0, 0, y);
+            incOcc(env, v0, r0, d2, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
         } else if (isSigPrefix(t,y,x)) {
-            incOcc(env, v0, r0, 1, x);
-            incOcc(env, v0, r0, 0, y);
+            incOcc(env, v0, r0, 1, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
         } else if (isSigSelect3(t,c,y,x,z)) {
             // make a special case for select3 implemented with real if
             // because the c expression will be used twice in the C++
             // translation
-			incOcc(env, v0, r0, 0, c);
-			incOcc(env, v0, r0, 0, c);
-            incOcc(env, v0, r0, 0, x);
-            incOcc(env, v0, r0, 0, y);
-            incOcc(env, v0, r0, 0, z);
+            incOcc(env, v0, r0, 0, c0, c);
+            incOcc(env, v0, r0, 0, c0, c);
+            incOcc(env, v0, r0, 0, c0, x);
+            incOcc(env, v0, r0, 0, c0, y);
+            incOcc(env, v0, r0, 0, c0, z);
         } else {
 			vector<Tree> br;
 			int n = getSubSignals(t, br);
 			if (n>0 && ! isSigGen(t)) {
-				for (int i=0; i<n; i++) incOcc(env, v0, r0, 0, br[i]);
+                for (int i=0; i<n; i++) incOcc(env, v0, r0, 0, c0, br[i]);
 			}
 		}
 	}
 
-	occ->incOccurences(v,r,d);
+    occ->incOccurences(v,r,d,xc);
 
 }
 

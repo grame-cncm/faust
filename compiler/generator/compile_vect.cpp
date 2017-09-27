@@ -51,7 +51,7 @@ void VectorCompiler::compileMultiSignal (Tree L)
     for (int i = 0; isList(L); L = tl(L), i++) {
         Tree sig = hd(L);
         fClass->openLoop("count");
-        fClass->addExecCode(subst("output$0[i] = $2$1;", T(i), CS(sig), xcast()));
+        fClass->addExecCode(Statement("", subst("output$0[i] = $2$1;", T(i), CS(sig), xcast())));
         fClass->closeLoop(sig);
     }
 
@@ -216,7 +216,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
     string      vname, ctype;
     int         sharing = getSharingCount(sig);
     Type        t = getCertifiedSigType(sig);
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup->retrieve(sig);
     int         d = o->getMaxDelay();
 
     if (t->variability() < kSamp) {
@@ -232,13 +232,13 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
                 // first cache this expression because it
                 // it is shared and complex
                 string cachedexp =  generateVariableStore(sig, exp);
-                generateDelayLine(ctype, vname, d, cachedexp);
+                generateDelayLine(ctype, vname, d, cachedexp, getConditionCode(sig));
                 setVectorNameProperty(sig, vname);
                 return cachedexp;
             } else {
                 // no need to cache this expression because
                 // it is either not shared or very simple
-                generateDelayLine(ctype, vname, d, exp);
+                generateDelayLine(ctype, vname, d, exp, getConditionCode(sig));
                 setVectorNameProperty(sig, vname);
                 return exp;
             }
@@ -248,7 +248,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
         if (d > 0) {
             // used delayed : we need a delay line
             getTypedNames(getCertifiedSigType(sig), "Yec", ctype, vname);
-            generateDelayLine(ctype, vname, d, exp);
+            generateDelayLine(ctype, vname, d, exp, getConditionCode(sig));
             setVectorNameProperty(sig, vname);
 
             if (verySimple(sig)) {
@@ -268,7 +268,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
                 // shared and not simple : we need a vector
                 // cerr << "ZEC : " << ppsig(sig) << endl;
                 getTypedNames(getCertifiedSigType(sig), "Zec", ctype, vname);
-                generateDelayLine(ctype, vname, d, exp);
+                generateDelayLine(ctype, vname, d, exp, getConditionCode(sig));
                 setVectorNameProperty(sig, vname);
                 return subst("$0[i]", vname);
            } else {
@@ -286,7 +286,7 @@ string VectorCompiler::generateCacheCode(Tree sig, const string& exp)
  */
 bool VectorCompiler::needSeparateLoop(Tree sig)
 {
-    Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup->retrieve(sig);
     Type        t = getCertifiedSigType(sig);
     int         c = getSharingCount(sig);
     bool        b;
@@ -321,12 +321,12 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
-void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp)
+void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string& ccs)
 {
     if (mxd == 0) {
-        vectorLoop(ctype, vname, exp);
+        vectorLoop(ctype, vname, exp, ccs);
     } else {
-        dlineLoop(ctype, vname, mxd, exp);
+        dlineLoop(ctype, vname, mxd, exp, ccs);
     }
 }
 
@@ -337,7 +337,7 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
     if (getCertifiedSigType(sig)->variability() == kSamp) {
         string      vname, ctype;
         getTypedNames(t, "Vector", ctype, vname);
-        vectorLoop(ctype, vname, exp);
+        vectorLoop(ctype, vname, exp, getConditionCode(sig));
         return subst("$0[i]", vname);
     } else {
         return ScalarCompiler::generateVariableStore(sig, exp);
@@ -359,7 +359,7 @@ string VectorCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay)
 
     string code = CS(exp); // ensure exp is compiled to have a vector name
 
-    mxd = fOccMarkup.retrieve(exp)->getMaxDelay();
+    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
 
     if (! getVectorNameProperty(exp, vecname)) {
         if (mxd == 0) {
@@ -413,7 +413,7 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
 {
     // it is a non-sample but used delayed
     // we need a delay line
-    generateDelayLine(ctype, vname, mxd, exp);
+    generateDelayLine(ctype, vname, mxd, exp, getConditionCode(sig));
     setVectorNameProperty(sig, vname);
     if (verySimple(sig)) {
         return exp;
@@ -440,7 +440,7 @@ static int pow2limit(int x)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, const string& cexp)
+void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, const string& cexp, const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -449,7 +449,7 @@ void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, co
     fClass->addZone1(subst("$0 \t$1[$2];", tname, vecname, T(gVecSize)));
 
     // -- compute the new samples
-    fClass->addExecCode(subst("$0[i] = $1;", vecname, cexp));
+    fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", vecname, cexp)));
 }
 
 
@@ -462,7 +462,7 @@ void  VectorCompiler::vectorLoop (const string& tname, const string& vecname, co
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int delay, const string& cexp)
+void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs)
 {
     if (delay < gMaxCopyDelay) {
 
@@ -494,13 +494,13 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addZone2(subst("$0* \t$1 = &$2[$3];", tname, dlname, buf, dsize));
 
         // -- copy the stored samples to the delay line
-        fClass->addPreCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize));
+        fClass->addPreCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[i];", buf, pmem, dsize)));
 
         // -- compute the new samples
-        fClass->addExecCode(subst("$0[i] = $1;", dlname, cexp));
+        fClass->addExecCode(Statement(ccs, subst("$0[i] = $1;", dlname, cexp)));
 
         // -- copy back to stored samples
-        fClass->addPostCode(subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize));
+        fClass->addPostCode(Statement(ccs, subst("for (int i=0; i<$2; i++) $0[i]=$1[count+i];", pmem, buf, dsize)));
 
     } else {
 
@@ -526,13 +526,13 @@ void  VectorCompiler::dlineLoop (const string& tname, const string& dlname, int 
         fClass->addClearCode(subst("$0 = 0;", idx_save));
 
         // -- update index
-        fClass->addPreCode(subst("$0 = ($0+$1)&$2;", idx, idx_save, mask));
+        fClass->addPreCode(Statement(ccs, subst("$0 = ($0+$1)&$2;", idx, idx_save, mask)));
 
         // -- compute the new samples
-        fClass->addExecCode(subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask));
+        fClass->addExecCode(Statement(ccs, subst("$0[($2+i)&$3] = $1;", dlname, cexp, idx, mask)));
 
         // -- save index
-        fClass->addPostCode(subst("$0 = count;", idx_save));
+        fClass->addPostCode(Statement(ccs, subst("$0 = count;", idx_save)));
     }
 }
 
@@ -543,6 +543,6 @@ string VectorCompiler::generateWaveform(Tree sig)
     int     size;
 
     declareWaveform(sig, vname, size);
-    fClass->addPostCode(subst("idx$0 = (idx$0 + count) % $1;", vname, T(size)) );
+    fClass->addPostCode(Statement(getConditionCode(sig), subst("idx$0 = (idx$0 + count) % $1;", vname, T(size))));
     return generateCacheCode(sig, subst("$0[(idx$0+i)%$1]", vname, T(size)));
 }

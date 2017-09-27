@@ -33,12 +33,12 @@
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
-
+#include"compile_scal.hh"
 #include "sigToGraph.hh"
 
 using namespace std;
 
-static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout );
+//static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout );
 static string   nodeattr(Type t);
 static string   edgeattr(Type t);
 static string   sigLabel(Tree sig);
@@ -47,7 +47,7 @@ static string   sigLabel(Tree sig);
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
-void sigToGraph (Tree L, ofstream& fout)
+void ScalarCompiler::sigToGraph (Tree L, ofstream& fout)
 {
     set<Tree>   alreadyDrawn;
 
@@ -73,7 +73,7 @@ void sigToGraph (Tree L, ofstream& fout)
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
+void ScalarCompiler::recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
 {
     //cerr << ++TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
     vector<Tree>    subsig;
@@ -112,10 +112,21 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout )
                     } while (isList(L));
                 }
 
+
                 for (int i=0; i<n; i++) {
                     recdraw(subsig[i], drawn, fout);
+                    string optional = " ";
+                    auto p = fConditionProperty.find(subsig[i]);
+                    if (p != fConditionProperty.end()) {
+                        if (p->second == nil) {
+                            //optional = "[label=\"T\"]";
+                        } else {
+                            optional = "[label=\"c\"]";
+                        }
+                    }
+
                     fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                            << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "];"
+                            << "[" << edgeattr(getCertifiedSigType(subsig[i])) << "]" << optional << ";"
                             << endl;
                 }
             }
@@ -185,7 +196,7 @@ static string sigLabel(Tree sig)
 {
     int         i;
     double      r;
-    Tree        x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label;
+    Tree        x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label, sf;
 
     xtended*    p = (xtended*) getUserData(sig);
 
@@ -242,8 +253,16 @@ static string sigLabel(Tree sig)
 
     else if ( isSigVBargraph(sig, label,x,y,z) )	{ fout << "vbargraph"; 	}
     else if ( isSigHBargraph(sig, label,x,y,z) )	{ fout << "hbargraph"; 	}
+
+    else if ( isSigSoundfile(sig, label) )	        { fout << "soundfile(...)"; }
+    else if ( isSigSoundfileRate(sig, sf) )	        { fout << "rate"; }
+    else if ( isSigSoundfileLength(sig, sf) )	    { fout << "length"; }
+    else if ( isSigSoundfileChannel(sig, sf, y, z) ){ fout << "channels"; }
+
 #endif
     else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
+    else if ( isSigEnable(sig, x, y) )              { fout << "enable";		}
+    else if ( isSigControl(sig, x, y) )             { fout << "control";	}
 
     else {
         cerr << "ERROR, unrecognized signal : " << *sig << endl;

@@ -49,7 +49,7 @@ declare version "0.0";
 //=============================Functions Reference========================================
 //========================================================================================
 
-//--------------------------------`bus`-------------------------------------
+//--------------------------------`(si.)bus`-------------------------------------
 // n parallel cables.
 // `bus` is a standard Faust function.
 //
@@ -68,7 +68,7 @@ bus(2) = _,_; // avoids a lot of "bus(1)" labels in block diagrams
 bus(n) = par(i, n, _);
 
 
-//--------------`block`--------------
+//--------------`(si.)block`--------------
 // Block - terminate n signals.
 // `block` is a standard Faust function.
 //
@@ -85,7 +85,7 @@ bus(n) = par(i, n, _);
 block(n) = par(i,n,!);
 
 
-//-----------------------------`interpolate`-------------------------------
+//-----------------------------`(si.)interpolate`-------------------------------
 // Linear interpolation between two signals.
 //
 // #### Usage
@@ -100,7 +100,7 @@ block(n) = par(i,n,!);
 //-----------------------------------------------------------------------------
 interpolate(i) = *(1.0-i),*(i) : +;
 
-//------------------------`smoo`---------------------------------------
+//------------------------`(si.)smoo`---------------------------------------
 // Smoothing function based on `smooth` ideal to smooth UI signals
 // (sliders, etc.) down.
 // `smoo` is a standard Faust function.
@@ -114,7 +114,7 @@ interpolate(i) = *(1.0-i),*(i) : +;
 smoo = si.smooth(0.999);
 
 
-//-----------------------`polySmooth`--------------------------------
+//-----------------------`(si.)polySmooth`--------------------------------
 // A smoothing function based on `smooth` that doesn't smooth when a
 // trigger signal is given. This is very useful when making
 // polyphonic synthesizer to make sure that the value of the parameter
@@ -135,7 +135,7 @@ smoo = si.smooth(0.999);
 //-------------------------------------------------------------------
 polySmooth(g,s,d) = smooth(s*((g==(g@d)) | (g == 0)));
 
-//-----------------------`smoothAndH`--------------------------------
+//-----------------------`(si.)smoothAndH`--------------------------------
 // A smoothing function based on `smooth` that holds its output
 // signal when a trigger is sent to it. This feature is convenient
 // when implementing polyphonic instruments to prevent some
@@ -154,7 +154,7 @@ polySmooth(g,s,d) = smooth(s*((g==(g@d)) | (g == 0)));
 //-------------------------------------------------------------------
 smoothAndH(t,s) = smooth(s*t) : ba.sAndH(t);
 
-//-----------------------------`bsmooth`------------------------------
+//-----------------------------`(si.)bsmooth`------------------------------
 // Block smooth linear interpolation during a block of samples.
 //
 // #### Usage
@@ -169,7 +169,7 @@ with {
 	n = min(4096, max(1, fvariable(int count, <math.h>)));
 };
 
-//-------------------------------`dot`--------------------------------------
+//-------------------------------`(si.)dot`--------------------------------------
 // Dot product for two vectors of size n.
 //
 // #### Usage
@@ -199,7 +199,7 @@ Michon and Julius O. Smith III, and are released under the
 [CCA4I](https://creativecommons.org/licenses/by/4.0/) license (TODO: if/when Romain agrees!)
 
 ************************************************************************/
-//-------------------`smooth`-----------------------------------
+//-------------------`(si.)smooth`-----------------------------------
 // Exponential smoothing by a unity-dc-gain one-pole lowpass.
 // `smooth` is a standard Faust function.
 //
@@ -230,7 +230,7 @@ Michon and Julius O. Smith III, and are released under the
 //-------------------------------------------------------------
 smooth(s) = *(1.0 - s) : + ~ *(s);
 
-//--------------------------------`cbus`-------------------------------------
+//--------------------------------`(si.)cbus`-------------------------------------
 // n parallel cables for complex signals.
 // `cbus` is a standard Faust function.
 //
@@ -249,7 +249,7 @@ smooth(s) = *(1.0 - s) : + ~ *(s);
 cbus(1) = (_,_);
 cbus(n) = par(i, n, (_,_));
 
-//--------------------------------`cmul`-------------------------------------
+//--------------------------------`(si.)cmul`-------------------------------------
 // multiply two complex signals pointwise.
 // `cmul` is a standard Faust function.
 //
@@ -278,7 +278,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
-//-------------`lag_ud`---------------
+//-------------`(si.)lag_ud`---------------
 // Lag filter with separate times for up and down.
 //
 // #### Usage

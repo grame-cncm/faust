@@ -47,7 +47,7 @@ declare version "0.0";
 //==================================Basic Delay Functions=================================
 //========================================================================================
 
-//-------`delay`----------
+//-------`(de.)delay`----------
 // Simple `d` samples delay where `n` is the maximum delay length as a number of
 // samples. Unlike the `@` delay operator, here the delay signal `d` is explicitely
 // bounded to the interval [0..n]. The consequence is that delay will compile even
@@ -69,7 +69,7 @@ declare version "0.0";
 delay(n,d,x) = x @ min(n, max(0,d));
 
 
-//-------`fdelay`----------
+//-------`(de.)fdelay`----------
 // Simple `d` samples fractional delay based on 2 interpolated delay lines where `n` is
 // the maximum delay length as a number of samples.
 
@@ -89,7 +89,7 @@ delay(n,d,x) = x @ min(n, max(0,d));
 fdelay(n,d,x) = delay(n+1,int(d),x)*(1 - ma.frac(d)) + delay(n+1,int(d)+1,x)*ma.frac(d);
 
 
-//--------------------------`sdelay`----------------------------
+//--------------------------`(de.)sdelay`----------------------------
 // s(mooth)delay: a mono delay that doesn't click and doesn't
 // transpose when the delay time is changed.
 //
@@ -165,7 +165,7 @@ with {
 };
 
 
-// ----------`prime_power_delays`-----------
+// ----------`(de.)prime_power_delays`-----------
 // Prime Power Delay Line Lengths.
 //
 // #### Usage
@@ -208,7 +208,7 @@ prime_power_delays(N,pathmin,pathmax) = par(i,N,delayvals(i)) with {
 //===============================Lagrange Interpolation===================================
 //========================================================================================
 
-//----------------------`fdelaylti` and `fdelayltv`-------------------------
+//----------------------`(de.)fdelaylti` and `(de.)fdelayltv`-------------------------
 // Fractional delay line using Lagrange interpolation.
 //
 // #### Usage
@@ -260,7 +260,7 @@ with {
   // h_d(n) = \prod_{\stackrel{k=0}{k\neq n}}^N \frac{d-k}{n-k}, n=0:N
 };
 
-//------------------`fdelay[n]`----------------------------
+//------------------`(de.)fdelay[n]`----------------------------
 // For convenience, `fdelay1`, `fdelay2`, `fdelay3`, `fdelay4`, `fdelay5`
 // are also available where n is the order of the interpolation.
 //------------------------------------------------------------
@@ -279,7 +279,7 @@ fdelay5 = fdelayltv(5);
 // <https://ccrma.stanford.edu/~jos/pasp/Thiran_Allpass_Interpolators.html>
 //========================================================================================
 
-//----------------`fdelay[n]a`-------------
+//----------------`(de.)fdelay[n]a`-------------
 // Delay lines interpolated using Thiran allpass interpolation.
 //
 // #### Usage

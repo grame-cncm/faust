@@ -50,7 +50,7 @@ fi = library("filters.lib");
 //========================================================================================
 
 
-//-----------------------`sinwaveform`------------------------
+//-----------------------`(os.)sinwaveform`------------------------
 // Sine waveform ready to use with a `rdtable`.
 //
 // #### Usage
@@ -65,7 +65,7 @@ fi = library("filters.lib");
 //------------------------------------------------------------
 sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
 
-//-----------------------`coswaveform`------------------------
+//-----------------------`(os.)coswaveform`------------------------
 // Cosine waveform ready to use with a `rdtable`.
 //
 // #### Usage
@@ -80,7 +80,7 @@ sinwaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
 //------------------------------------------------------------
 coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 
-//-----------------------`phasor`------------------------
+//-----------------------`(os.)phasor`------------------------
 // A simple phasor to be used with a `rdtable`.
 // `phasor` is a standard Faust function.
 //
@@ -97,7 +97,7 @@ coswaveform(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : cos;
 //------------------------------------------------------------
 phasor(tablesize,freq) = freq/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tablesize));
 
-//-----------------------`hs_phasor`------------------------
+//-----------------------`(os.)hs_phasor`------------------------
 // Hardsyncing phasor to be used with an `rdtable`.
 //
 // #### Usage
@@ -120,7 +120,7 @@ with {
 	inc = freq/float(ma.SR);
 };
 
-//-----------------------`oscsin`------------------------
+//-----------------------`(os.)oscsin`------------------------
 // Sine wave oscillator.
 // `oscsin` is a standard Faust function.
 //
@@ -139,7 +139,7 @@ with{
 	tablesize = 1 << 16;
 };
 
-//-----------------------`hs_oscsin`------------------------
+//-----------------------`(os.)hs_oscsin`------------------------
 // Sin lookup table with hardsyncing phase.
 //
 // #### Usage
@@ -159,7 +159,7 @@ with {
         ts = 1 << 16;
 };
 
-//-----------------------`osccos`------------------------
+//-----------------------`(os.)osccos`------------------------
 // Cosine wave oscillator.
 //
 // #### Usage
@@ -177,7 +177,7 @@ with{
 	tablesize = 1 << 16;
 };
 
-//-----------------------`oscp`------------------------
+//-----------------------`(os.)oscp`------------------------
 // A sine wave generator with controllable phase.
 //
 // #### Usage
@@ -193,7 +193,7 @@ with{
 //------------------------------------------------------------
 oscp(freq,p) = oscsin(freq) * cos(p) + osccos(freq) * sin(p);
 
-//-----------------------`osci`------------------------
+//-----------------------`(os.)osci`------------------------
 // Interpolated phase sine wave oscillator.
 //
 // #### Usage
@@ -236,7 +236,7 @@ Michon and Julius O. Smith III, and are released under the
 // (no aliasing suppression, which is not audible at LF).
 //==================================================================
 
-//--------`lf_imptrain`----------
+//--------`(os.)lf_imptrain`----------
 // Unit-amplitude low-frequency impulse train.
 // `lf_imptrain` is a standard Faust function.
 //
@@ -252,7 +252,7 @@ Michon and Julius O. Smith III, and are released under the
 //------------------------------------------------------------
 lf_imptrain(freq) = lf_sawpos(freq)<:-(mem)<0; // definition below
 
-//--------`lf_pulsetrainpos`----------
+//--------`(os.)lf_pulsetrainpos`----------
 // Unit-amplitude nonnegative LF pulse train, duty cycle between 0 and 1
 //
 //
@@ -271,7 +271,7 @@ lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 
 //pulsetrainpos = lf_pulsetrainpos; // for backward compatibility
 
-//--------`lf_pulsetrain`----------
+//--------`(os.)lf_pulsetrain`----------
 // Unit-amplitude zero-mean LF pulse train, duty cycle between 0 and 1
 //
 // #### Usage
@@ -287,7 +287,7 @@ lf_pulsetrainpos(freq,duty) = float(lf_sawpos(freq) <= duty);
 //------------------------------------------------------------
 lf_pulsetrain(freq,duty) = 2.0*lf_pulsetrainpos(freq,duty) - 1.0;
 
-//--------`lf_squarewavepos`----------
+//--------`(os.)lf_squarewavepos`----------
 // Positive LF square wave in [0,1]
 //
 // #### Usage
@@ -304,7 +304,7 @@ lf_squarewavepos(freq) = lf_pulsetrainpos(freq,0.5);
 // squarewavepos = lf_squarewavepos; // for backward compatibility
 
 
-//--------`lf_squarewave`----------
+//--------`(os.)lf_squarewave`----------
 // Zero-mean unit-amplitude LF square wave.
 // `lf_squarewave` is a standard Faust function.
 //
@@ -322,7 +322,7 @@ lf_squarewave(freq) = 2*lf_squarewavepos(freq) - 1;
 // squarewave = lf_squarewave; // for backward compatibility
 
 
-//--------`lf_trianglepos`----------
+//--------`(os.)lf_trianglepos`----------
 // Positive unit-amplitude LF positive triangle wave
 //
 // #### Usage
@@ -351,7 +351,7 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 // suppression (i.e., `saw1` is ok).
 //=====================================================================
 
-//-----------------`lf_rawsaw`--------------------
+//-----------------`(os.)lf_rawsaw`--------------------
 // Simple sawtooth waveform oscillator between 0 and period in samples.
 //
 // #### Usage
@@ -366,7 +366,7 @@ lf_trianglepos(freq) = 1-abs(saw1(freq)); // saw1 defined below
 //---------------------------------------------------------
 lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 
-//-----------------`lf_sawpos_phase`--------------------
+//-----------------`(os.)lf_sawpos_phase`--------------------
 // Simple sawtooth waveform oscillator between 0 and 1
 // with phase control.
 //
@@ -384,7 +384,7 @@ lf_rawsaw(periodsamps) = (_,periodsamps : fmod) ~ +(1.0);
 lf_sawpos_phase(phase,freq) = (+(phase-phase') : ma.frac ) ~ +(freq/ma.SR);
 
 //================== Bandlimited Sawtooth ====================
-//------------------`sawN`--------------------------------
+//------------------`(os.)sawN`--------------------------------
 // Bandlimited Sawtooth
 //
 // `sawN(N,freq)`, `sawNp`, `saw2dpw(freq)`, `saw2(freq)`, `saw3(freq)`,
@@ -467,7 +467,7 @@ with {
   gate(N) = *(1@(N)); // delayed step for blanking startup glitch
 };
 
-//------------------`sawNp`--------------------------------
+//------------------`(os.)sawNp`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- sawNp for N = 1 to 6 ---
@@ -476,19 +476,19 @@ sawNp(N,freq,phase) = sawN(N,freq) : @(max(0,min(8191,int(phase*ma.SR/freq))));
 
 // Special named cases:
 
-//------------------`saw2dpw`--------------------------------
+//------------------`(os.)saw2dpw`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- sawN ---
 saw2dpw(freq) = saw1(freq) <: * <: -(mem) : *(0.25'*ma.SR/freq); // inferior to saw2 below
 
-//------------------`saw3`--------------------------------
+//------------------`(os.)saw3`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 saw3 = sawN(3); saw4 = sawN(4); saw5 = sawN(5); saw6 = sawN(6);
 
 
-//------------------`sawtooth`--------------------------------
+//------------------`(os.)sawtooth`--------------------------------
 // Alias-free sawtooth wave. 2nd order interpolation (based
 // on `saw2`).
 // `sawtooth` is a standard Faust function.
@@ -514,7 +514,7 @@ saw2(freq) = y with { // newer PTR version (stateless - freq can vary at any spe
 // --- sawtooth ---
 sawtooth = saw2; // default choice for sawtooth signal - see also sawN
 
-//------------------`saw2f2`--------------------------------
+//------------------`(os.)saw2f2`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 // --- Correction-filtered versions of saw2: saw2f2, saw2f4 ----
@@ -526,7 +526,7 @@ saw2f2 = saw2 : cf2 with {
 };
 
 
-//------------------`saw2f4`--------------------------------
+//------------------`(os.)saw2f4`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 saw2f4 = saw2 : cf4 with {
@@ -565,7 +565,7 @@ saw2f4 = saw2 : cf4 with {
 // * `freq`: frequency in Hz
 //====================================================================
 
-//------------------`pulsetrainN`--------------------------------
+//------------------`(os.)pulsetrainN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
@@ -585,7 +585,7 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
 };
 
 
-//------------------`pulsetrain`--------------------------------
+//------------------`(os.)pulsetrain`--------------------------------
 // Bandlimited pulse train oscillator. Based on `pulsetrainN(2)`.
 // `pulsetrain` is a standard Faust function.
 //
@@ -603,13 +603,13 @@ pulsetrainN(N,freq,duty) = diffdel(sawN(N,freqC),del) with {
 pulsetrain = pulsetrainN(2);
 
 
-//------------------`squareN`--------------------------------
+//------------------`(os.)squareN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 squareN(N,freq) = pulsetrainN(N,freq,0.5);
 
 
-//------------------`square`--------------------------------
+//------------------`(os.)square`--------------------------------
 // Bandlimited square wave oscillator. Based on `squareN(2)`.
 // `square` is a standard Faust function.
 //
@@ -626,7 +626,7 @@ squareN(N,freq) = pulsetrainN(N,freq,0.5);
 square = squareN(2);
 
 
-//------------------`impulse`--------------------------------
+//------------------`(os.)impulse`--------------------------------
 // One-time impulse generated when the Faust process is started.
 // `impulse` is a standard Faust function.
 //
@@ -639,13 +639,13 @@ square = squareN(2);
 impulse = 1-1';
 
 
-//------------------`imptrainN`--------------------------------
+//------------------`(os.)imptrainN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 
 
-//------------------`imptrain`--------------------------------
+//------------------`(os.)imptrain`--------------------------------
 // Bandlimited impulse train generator. Based on `imptrainN(2)`.
 // `imptrain` is a standard Faust function.
 //
@@ -662,7 +662,7 @@ imptrainN(N,freq) = impulse + 0.5*ma.diffn(sawN(N,freq));
 imptrain = imptrainN(2); // default based on saw2
 
 
-//------------------`triangleN`--------------------------------
+//------------------`(os.)triangleN`--------------------------------
 // TODO: MarkDown doc in comments
 //--------------------------------------------------------
 triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
@@ -671,7 +671,7 @@ triangleN(N,freq) = squareN(N,freq) : fi.pole(p) : *(gain) with {
 };
 
 
-//------------------`triangle`--------------------------------
+//------------------`(os.)triangle`--------------------------------
 // Bandlimited triangle wave oscillator. Based on `triangleN(2)`.
 // `triangle` is a standard Faust function.
 //
@@ -703,7 +703,7 @@ triangle = triangleN(2); // default based on saw2
 // * <https://ccrma.stanford.edu/~jos/pdf/lac12-paper-jos.pdf>
 //========================================================================================
 
-//--------------------------`oscb`--------------------------------
+//--------------------------`(os.)oscb`--------------------------------
 // Sinusoidal oscillator based on the biquad.
 //
 // #### Usage
@@ -722,7 +722,7 @@ with {
 };
 
 
-//--------------------------`oscrq`---------------------------
+//--------------------------`(os.)oscrq`---------------------------
 // Sinusoidal (sine and cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
@@ -744,7 +744,7 @@ with {
 oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 
 
-//--------------------------`oscrs`---------------------------
+//--------------------------`(os.)oscrs`---------------------------
 // Sinusoidal (sine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
@@ -766,7 +766,7 @@ oscrq(f) = impulse : fi.nlf2(f,1); // sine and cosine outputs
 oscrs(f) = impulse : fi.nlf2(f,1) : _,!; // sine
 
 
-//--------------------------`oscrc`---------------------------
+//--------------------------`(os.)oscrc`---------------------------
 // Sinusoidal (cosine) oscillator based on 2D vector rotation,
 //  = undamped "coupled-form" resonator
 //  = lossless 2nd-order normalized ladder filter.
@@ -791,7 +791,7 @@ oscrp(f,p) = oscrq(f) : *(cos(p)), *(sin(p)) : + ; // p=0 for sine, p=PI/2 for c
 oscr = oscrs; // default = sine (starts without a pop)
 
 
-//-----------------------`osc`------------------------
+//-----------------------`(os.)osc`------------------------
 // Default sine wave oscillator (same as oscrs).
 // `osc` is a standard Faust function.
 //
@@ -809,7 +809,7 @@ oscr = oscrs; // default = sine (starts without a pop)
 osc	= oscrs;
 
 
-//--------------------------`oscs`--------------------------------
+//--------------------------`(os.)oscs`--------------------------------
 // Sinusoidal oscillator based on the state variable filter
 // = undamped "modified-coupled-form" resonator
 // = "magic circle" algorithm used in graphics
@@ -828,7 +828,7 @@ with {
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
 //=======================================================================
 
-//-----------------`oscw`--------------------
+//-----------------`(os.)oscw`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
 // cosine oscillator.
 //
@@ -849,7 +849,7 @@ with {
 oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 
 
-//-----------------`oscws`--------------------
+//-----------------`(os.)oscws`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`. Unit-amplitude
 // sine oscillator
 //
@@ -870,7 +870,7 @@ oscwc(fr) = impulse : fi.wgr(fr,1) : _,!; // cosine (cheapest at 1 mpy/sample)
 oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 
 
-//-----------------`oscwq`--------------------
+//-----------------`(os.)oscwq`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
 // Unit-amplitude cosine and sine (quadrature) oscillator.
 //
@@ -891,7 +891,7 @@ oscws(fr) = impulse : fi.wgr(fr,1) : !,_; // sine (needs a 2nd scaling mpy)
 oscq(fr)  = impulse : fi.wgr(fr,1);       // phase quadrature outputs
 
 
-//-----------------`oscw`--------------------
+//-----------------`(os.)oscw`--------------------
 // Sinusoidal oscillator based on the waveguide resonator `wgr`.
 // Unit-amplitude cosine oscillator (default)
 //
@@ -924,7 +924,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
-//-----------------`lf_sawpos`--------------------
+//-----------------`(os.)lf_sawpos`--------------------
 // Simple sawtooth waveform oscillator between 0 and 1.
 //
 // #### Usage
@@ -943,7 +943,7 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 // MarkDown: Romain Michon
 lf_sawpos(freq) = ma.frac ~ +(freq'/ma.SR);
 
-//-----------------`lf_saw`--------------------
+//-----------------`(os.)lf_saw`--------------------
 // Simple sawtooth waveform.
 // `lf_saw` is a standard Faust function.
 //
@@ -963,7 +963,7 @@ lf_sawpos(freq) = ma.frac ~ +(freq'/ma.SR);
 saw1(freq) = 2.0 * lf_sawpos(freq) - 1.0;
 lf_saw(freq) = saw1(freq);
 
-//----------`lf_triangle`----------
+//----------`(os.)lf_triangle`----------
 // Positive unit-amplitude LF triangle wave
 // `lf_triangle` is a standard Faust function.
 //

@@ -72,7 +72,7 @@ Michon and Julius O. Smith III, and are released under the
 //====================================Analyzers===========================================
 //========================================================================================
 
-//----------------------`mth_octave_spectral_level_demo`----------------------
+//----------------------`(dm.)mth_octave_spectral_level_demo`----------------------
 // Demonstrate mth_octave_spectral_level in a standalone GUI.
 //
 // #### Usage
@@ -104,7 +104,7 @@ spectral_level_demo = mth_octave_spectral_level_demo(1.5); // 2/3 octave
 //======================================Filters===========================================
 //========================================================================================
 
-//--------------------------`parametric_eq_demo`------------------------------
+//--------------------------`(dm.)parametric_eq_demo`------------------------------
 // A parametric equalizer application.
 //
 // #### Usage:
@@ -145,7 +145,7 @@ with{
 };
 
 
-//-------------------`spectral_tilt_demo`-----------------------
+//-------------------`(dm.)spectral_tilt_demo`-----------------------
 // A spectral tilt application.
 //
 // #### Usage
@@ -169,7 +169,7 @@ with{
 };
 
 
-//---------`mth_octave_filterbank_demo` and `filterbank_demo`-------------
+//---------`(dm.)mth_octave_filterbank_demo` and `(dm.)filterbank_demo`-------------
 // Graphic Equalizer: Each filter-bank output signal routes through a fader.
 //
 // #### Usage
@@ -208,7 +208,7 @@ filterbank_demo = mth_octave_filterbank_demo(1); // octave-bands = default
 //======================================Effects===========================================
 //========================================================================================
 
-//---------------------------`cubicnl_demo`--------------------------
+//---------------------------`(dm.)cubicnl_demo`--------------------------
 // Distortion demo application.
 //
 // #### Usage:
@@ -230,7 +230,7 @@ with{
 };
 
 
-//----------------------------`gate_demo`-------------------------
+//----------------------------`(dm.)gate_demo`-------------------------
 // Gate demo application.
 //
 // #### Usage
@@ -277,7 +277,7 @@ with{
 };
 
 
-//----------------------------`compressor_demo`-------------------------
+//----------------------------`(dm.)compressor_demo`-------------------------
 // Compressor demo application.
 //
 // #### Usage
@@ -337,7 +337,7 @@ with{
 };
 
 
-//-------------------------`moog_vcf_demo`---------------------------
+//-------------------------`(dm.)moog_vcf_demo`---------------------------
 // Illustrate and compare all three Moog VCF implementations above.
 //
 // #### Usage
@@ -377,7 +377,7 @@ with{
 };
 
 
-//-------------------------`wah4_demo`---------------------------
+//-------------------------`(dm.)wah4_demo`---------------------------
 // Wah pedal application.
 //
 // #### Usage
@@ -398,7 +398,7 @@ with{
 };
 
 
-//-------------------------`crybaby_demo`---------------------------
+//-------------------------`(dm.)crybaby_demo`---------------------------
 // Crybaby effect application.
 //
 // #### Usage
@@ -418,7 +418,7 @@ with{
 };
 
 
-//-------------------------`flanger_demo`---------------------------
+//-------------------------`(dm.)flanger_demo`---------------------------
 // Flanger effect application.
 //
 // #### Usage
@@ -465,7 +465,7 @@ with{
 };
 
 
-//-------------------------`phaser2_demo`---------------------------
+//-------------------------`(dm.)phaser2_demo`---------------------------
 // Phaser effect demo application.
 //
 // #### Usage
@@ -518,7 +518,7 @@ with{
 };
 
 
-//---------------------`stereo_reverb_tester`--------------------
+//---------------------`(dm.)stereo_reverb_tester`--------------------
 // Handy test inputs for reverberator demos below.
 //
 // #### Usage
@@ -553,7 +553,7 @@ with{
 };
 
 
-//-------------------------`fdnrev0_demo`---------------------------
+//-------------------------`(dm.)fdnrev0_demo`---------------------------
 // A reverb application using `fdnrev0`.
 //
 // #### Usage
@@ -626,7 +626,7 @@ with{
 
 
 
-//---------------------------`zita_rev_fdn_demo`------------------------------
+//---------------------------`(dm.)zita_rev_fdn_demo`------------------------------
 // Reverb demo application based on `zita_rev_fdn`.
 //
 // #### Usage
@@ -655,7 +655,7 @@ with{
 	6000, 1500, 0.49*fsmax, 1));
 };
 
-//----------------------------------`zita_rev1`------------------------------
+//----------------------------------`(dm.)zita_rev1`------------------------------
 // Example GUI for `zita_rev1_stereo` (mostly following the Linux `zita-rev1` GUI).
 //
 // Only the dry/wet and output level parameters are "dezippered" here.	If
@@ -758,7 +758,7 @@ with{
 //====================================Generators==========================================
 //========================================================================================
 
-//--------------------------`sawtooth_demo`---------------------------
+//--------------------------`(dm.)sawtooth_demo`---------------------------
 // An application demonstrating the different sawtooth oscillators of Faust.
 //
 // #### Usage
@@ -803,7 +803,7 @@ with{
 };
 
 
-//----------------------`virtual_analog_oscillator_demo`----------------------
+//----------------------`(dm.)virtual_analog_oscillator_demo`----------------------
 // Virtual analog oscillator demo application.
 //
 // #### Usage
@@ -889,7 +889,7 @@ with{
 };
 
 
-//-------------------------- `oscrs_demo` ---------------------------
+//--------------------------`(dm.)oscrs_demo` ---------------------------
 // Simple application demoing filter based oscillators.
 //
 // #### Usage
@@ -920,7 +920,7 @@ with{
 oscr_demo = oscrs_demo; // synonym
 
 
-//-------------------------- `velvet_noise_demo` ---------------------------
+//--------------------------`(dm.)velvet_noise_demo`---------------------------
 // Listen to velvet_noise!
 //
 // #### Usage
@@ -938,7 +938,7 @@ with{
 };
 
 
-//-------------------------- `latch_demo` ---------------------------
+//--------------------------`(dm.)latch_demo`---------------------------
 // Illustrate latch operation
 //
 // #### Usage
@@ -958,7 +958,7 @@ with{
 };
 
 
-//-------------------------- `envelopes_demo` ---------------------------
+//--------------------------`(dm.)envelopes_demo`---------------------------
 // Illustrate various envelopes overlaid, including their gate * 1.1
 //
 // #### Usage
@@ -1048,7 +1048,7 @@ elsewhere among the libraries.	It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
-//-------------------------------`exciter`-------------------------------
+//-------------------------------`(dm.)exciter`-------------------------------
 // Psychoacoustic harmonic exciter, with GUI.
 //
 // #### Usage
@@ -1142,7 +1142,7 @@ with{
 };
 
 
-//----------------------------`vocoder_demo`-------------------------
+//----------------------------`(dm.)vocoder_demo`-------------------------
 // Use example of the vocoder function where an impulse train is used
 // as excitation.
 //
@@ -1170,7 +1170,7 @@ with{
 	gain = excitGroup(vslider("[1] Gain",0.5,0,1,0.01) : si.smoo);
 };
 
-//----------------------------`freeverb_demo`-------------------------
+//----------------------------`(dm.)freeverb_demo`-------------------------
 // Freeverb demo application.
 //
 // #### Usage

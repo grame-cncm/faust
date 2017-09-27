@@ -46,7 +46,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/MetaDataUI.h"
 
-#define stackSize 256
+#define kStackSize 256
 
 // Insertion modes
 
@@ -515,8 +515,8 @@ protected:
     
     GtkWidget*  fWindow;
     int         fTop;
-    GtkWidget*  fBox[stackSize];
-    int         fMode[stackSize];
+    GtkWidget*  fBox[kStackSize];
+    int         fMode[kStackSize];
     bool        fStopped;
 
     GtkWidget* addWidget(const char* label, GtkWidget* w);
@@ -528,7 +528,7 @@ public:
     static const gboolean fill = true;
     static const gboolean homogene = false;
          
-    GTKUI(char * name, int* pargc, char*** pargv);
+    GTKUI(char* name, int* pargc, char*** pargv);
 
     // -- Labels and metadata
 
@@ -630,7 +630,7 @@ GTKUI::GTKUI(char * name, int* pargc, char*** pargv)
 void GTKUI::pushBox(int mode, GtkWidget* w)
 {
     ++fTop;
-    assert(fTop < stackSize);
+    assert(fTop < kStackSize);
     fMode[fTop] = mode;
     fBox[fTop] = w;
 }

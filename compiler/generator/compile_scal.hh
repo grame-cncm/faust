@@ -24,12 +24,16 @@
 #ifndef _COMPILE_SCAL_
 #define _COMPILE_SCAL_
 
+#define _DNF_ 1
+
 #include <utility>
+#include <map>
 #include "compile.hh"
 #include "sigtyperules.hh"
 #include "sigtyperules.hh"
 #include "occurences.hh"
 #include "property.hh"
+#include "dcond.hh"
 
 ////////////////////////////////////////////////////////////////////////
 /**
@@ -42,24 +46,30 @@ class ScalarCompiler : public Compiler
   protected:
     
     property<string>            fCompileProperty;
+    property<string>            fSoundfileVariableProperty;     // variable associated to a soundfile
+   // property<bool>              fSoundfileVisitedProperty;     // variable associated to a soundfile
     property<string>            fVectorProperty;
     property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
     property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
 
+    map<Tree, Tree>    fConditionProperty;             // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+
 	static map<string, int>		fIDCounters;
 	Tree                      	fSharingKey;
-	OccMarkup					fOccMarkup;
+    OccMarkup*					fOccMarkup;
     bool						fHasIota;
 
   public:
 
 	ScalarCompiler(const string& name, const string& super, int numInputs, int numOutputs) :
 		Compiler(name,super,numInputs,numOutputs,false),
+        fOccMarkup(0),
         fHasIota(false)
 	{}
 	
 	ScalarCompiler(Klass* k) :
 		Compiler(k),
+        fOccMarkup(0),
         fHasIota(false)
 	{}
 	
@@ -72,7 +82,6 @@ class ScalarCompiler : public Compiler
     virtual string      generateCode (Tree sig);
     virtual string      generateCacheCode(Tree sig, const string& exp) ;
     virtual string      forceCacheCode(Tree sig, const string& exp) ;
-
     virtual string      generateVariableStore(Tree sig, const string& exp);
 
 	string 		getFreshID (const string& prefix);
@@ -91,17 +100,26 @@ class ScalarCompiler : public Compiler
 	void 		setSharingCount(Tree t, int count);
 	void 		sharingAnalysis(Tree t);
 	void 		sharingAnnotation(int vctxt, Tree t);
-	
+
+    void        conditionAnnotation(Tree l);
+    void        conditionAnnotation(Tree t, Tree nc);
+    void        conditionStatistics(Tree l);
+    string      getConditionCode(Tree t);
+
+    // signal drawing
+    void        sigToGraph (Tree sig, ofstream& fout);
+    void        recdraw(Tree sig, set<Tree>& drawn, ofstream& fout );
+
 	// generation du code
 	
     string          generateXtended		(Tree sig);
-	virtual string 		generateFixDelay	(Tree sig, Tree arg, Tree size);
+    virtual string 	generateFixDelay	(Tree sig, Tree arg, Tree size);
     string          generatePrefix 		(Tree sig, Tree x, Tree e);
     string          generateIota		(Tree sig, Tree arg);
     string          generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
 	
     string          generateFFun  		(Tree sig, Tree ff, Tree largs);
-    virtual string      generateWaveform    (Tree sig);
+    virtual string  generateWaveform    (Tree sig);
 
     string          generateInput 		(Tree sig, const string& idx);
     string          generateOutput		(Tree sig, const string& idx, const string& arg1);
@@ -130,6 +148,7 @@ class ScalarCompiler : public Compiler
 	
     string          generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
     string          generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string          generateSoundfile   (Tree sig, Tree path);
 
     string          generateNumber(Tree sig, const string& exp);
     string          generateFConst (Tree sig, const string& file, const string& name);
@@ -138,13 +157,21 @@ class ScalarCompiler : public Compiler
     virtual string  generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
     string          generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
 	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void    generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp);
+    virtual void    generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp, const string &ccs);
 
     void            getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
     void            ensureIotaCode();
     int             pow2limit(int x);
 
     void            declareWaveform(Tree sig, string& vname, int& size);
+
+    virtual string  generateEnable (Tree sig, Tree x, Tree y);
+
+    string          cnf2code(Tree cc);
+    string          or2code(Tree oc);
+
+    string          dnf2code(Tree cc);
+    string          and2code(Tree oc);
 
 };
 

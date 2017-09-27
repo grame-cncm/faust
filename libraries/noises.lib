@@ -50,7 +50,7 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-//-------`noise`----------
+//-------`(no.)noise`----------
 // White noise generator (outputs random number between -1 and 1).
 // `Noise` is a standard Faust function.
 //
@@ -67,7 +67,7 @@ with{
 	RANDMAX	= 2147483647.0; // = 2^31-1 = MAX_SIGNED_INT in 32 bits
 };
 
-//---------------------`multirandom`--------------------------
+//---------------------`(no.)multirandom`--------------------------
 // Generates multiple decorrelated random numbers
 // in parallel.
 //
@@ -86,7 +86,7 @@ with {
 	randomize (n) 	= randomize(1) <: randomize(n-1),_;
 };
 
-//-----------------------`multinoise`------------------------
+//-----------------------`(no.)multinoise`------------------------
 // Generates multiple decorrelated noises
 // in parallel.
 //
@@ -105,7 +105,7 @@ with {
 	RANDMAX = 2147483647.0;
 };
 
-//-----------------------`noises`------------------------
+//-----------------------`(no.)noises`------------------------
 // TODO.
 //----------------------------------------------------------
 noises(N,i) = multinoise(N) : ba.selector(i,N);
@@ -125,7 +125,7 @@ Michon and/or Julius O. Smith III, and are released under the
 
 ************************************************************************/
 
-//---------------------------`pink_noise`--------------------------
+//---------------------------`(no.)pink_noise`--------------------------
 // Pink noise (1/f noise) generator (third-order approximation)
 // `pink_noise` is a standard Faust function.
 //
@@ -144,7 +144,7 @@ pink_filter = fi.iir((0.049922035, -0.095993537, 0.050612699, -0.004408786),
 
 pink_noise = noise : pink_filter;
 
-//-------------------------`pink_noise_vm`-------------------
+//-------------------------`(no.)pink_noise_vm`-------------------
 // Multi pink noise generator.
 //
 // #### Usage
@@ -168,7 +168,7 @@ with {
   clock(i) = (ba.time>>i)&1; // i'th latch clock signal
 };
 
-//-----------------------`lfnoise`, `lfnoise0` and `lfnoiseN`---------------------
+//--------------------`(no.)lfnoise`, `(no.)lfnoise0` and `(no.)lfnoiseN`-----------------
 // Low-frequency noise generators (Butterworth-filtered downsampled white noise)
 //
 // #### Usage
@@ -194,7 +194,7 @@ lfnoise0(freq) = noise : ba.latch(os.oscrs(freq));
 lfnoiseN(N,freq) = lfnoise0(freq) : fi.lowpass(N,freq); // Nth-order Butterworth lowpass
 lfnoise(freq) = lfnoise0(freq) : seq(i,5,fi.lowpass(1,freq)); // non-overshooting lowpass
 
-//-------------------------`sparse_noise_vm`-------------------
+//-------------------------`(no.)sparse_noise_vm`-------------------
 // sparse noise generator.
 //
 // #### Usage
@@ -225,7 +225,7 @@ with {
   sn = e' * float(crossed);
 };
 
-//-------------------------`velvet_noise_vm`-------------------
+//-------------------------`(no.)velvet_noise_vm`-------------------
 // velvet noise generator.
 //
 // #### Usage
@@ -253,7 +253,7 @@ with {
   vn = amp * ma.signum(sn);
 };
 
-//----------------------------`gnoise`------------------------
+//----------------------------`(no.)gnoise`------------------------
 // approximate zero-mean, unit-variance Gaussian white noise generator
 //
 // #### Usage

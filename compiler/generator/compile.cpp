@@ -236,6 +236,8 @@ void Compiler::generateUserInterfaceElements(Tree elements)
 	}
 }
 
+/////////////////////////////////////////////////
+
 /**
  * Generate buildUserInterface C++ lines of code corresponding 
  * to user interface widget t
@@ -254,7 +256,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         const set<string>& values = i->second;
         for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
             fClass->addUICode(subst("ui_interface->declare(&$0, \"$1\", \"$2\");", tree2str(varname), wdel(key), wdel(*j)));
-             fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
+            fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
         }
     }
 
@@ -318,9 +320,15 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
                                 T(tree2float(x)),
                                 T(tree2float(y))));
         fJSON.addHorizontalBargraph(checkNullLabel(varname, label).c_str(), NULL, tree2float(x), tree2float(y));
-        
+
+	} else if ( isSigSoundfile(sig, path) ) {
+        fClass->incUIActiveCount();
+		fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", &$1);",
+                                checkNullLabel(varname, label),
+                                tree2str(varname)));
+        fJSON.addSoundfile(checkNullLabel(varname, label).c_str(), NULL);
 	} else {
-		fprintf(stderr, "Error in generating widget code\n");
+		fprintf(stderr, "Error in generating widget code 362\n");
 		exit(1);
 	}
 }
@@ -428,8 +436,13 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
 				T(tree2float(x)),
 				T(tree2float(y))));
 
+	} else if ( isSigSoundfile(sig, path)  )	{
+		fClass->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);",
+				pathlabel,
+				tree2str(varname) ));
+
 	} else {
-		fprintf(stderr, "Error in generating widget code\n");
+		fprintf(stderr, "Error in generating widget macro\n");
 		exit(1);
 	}
 }

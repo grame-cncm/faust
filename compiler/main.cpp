@@ -19,7 +19,7 @@
  ************************************************************************
  ************************************************************************/
 
-#define FAUSTVERSION "0.10.8"
+#define FAUSTVERSION "0.12.0"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,6 +70,9 @@
 #include "schema.h"
 #include "drawschema.hh"
 #include "timing.hh"
+
+#include "dcond.hh"
+#include "ppsig.hh"
 
 using namespace std ;
 
@@ -152,7 +155,7 @@ bool			gGroupTaskSwitch = false;
 bool            gUIMacroSwitch  = false;
 bool            gDumpNorm       = false;
 
-int             gTimeout        = 120;          // time out to abort compiler (in seconds)
+int             gTimeout        = 0;          // time out to abort compiler (in seconds)
 
 int             gFloatSize      = 1;
 
@@ -171,6 +174,8 @@ bool            gInPlace        = false;        // add cache to input for correc
 bool            gInjectFlag     = false;        // inject an external source file into the architecture file
 string          gInjectFile     = "";           // instead of a compiled dsp file
 
+// Enable
+bool            gEnableFlag     = true;         // when true uses real enable/disable semantics otherwise multiplication semantics
 // FTZ
 int             gFTZMode       = 0;             // 0: no ftz; 1: FTZ by abscmp; 2: FTZ by bitmask
 
@@ -453,10 +458,14 @@ bool process_cmdline(int argc, char* argv[])
                 gOutputDir = path;
                 i += 2;
             }
-             
-         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
-             gInPlace = true;
-             i += 1;
+
+        } else if (isCmd(argv[i], "-inpl", "--in-place")) {
+            gInPlace = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
+            gEnableFlag = atoi(argv[i+1]) == 1;
+            i += 2;
 
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];
@@ -549,6 +558,7 @@ void printhelp()
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
+    cout << "-es 1|0 \tuse --enable-semantics 1|Ø when 1 and simple multiplication otherwise\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
@@ -677,6 +687,39 @@ static void initFaustDirectories()
 }
 
 
+void testDnfCond()
+{
+    Tree c[10]; for (int i=0; i<10; i++) c[i] = dnfCond(sigInt(i));
+    Tree x1 = dnfAnd(dnfOr(c[0],c[1]), dnfOr(c[2],c[3]));
+    Tree x2 = dnfAnd(c[3],dnfOr(x1,c[3]));
+    Tree x3 = dnfAnd(dnfOr(x1,c[3]), c[3]);
+    cout << "TEST1 : " << ppsig(x1) << endl;
+    cout << "TEST2 : " << ppsig(dnfAnd(c[0],c[1])) << endl;
+    cout << "TEST3 : " << ppsig(dnfOr(c[0],c[1])) << endl;
+    cout << "TEST4 : " << ppsig(dnfOr(c[2],c[3])) << endl;
+    cout << "TEST5 : " << ppsig(x1) << endl;
+    cout << "TEST6 : " << ppsig(dnfOr(x1,c[3])) << endl;
+    cout << "TEST7 : " << ppsig(x2) << endl;
+    cout << "TEST8 : " << ppsig(x3) << endl;
+    cout << "TEST9 : " << ppsig(dnfAnd(dnfOr(x1,c[3]), dnfOr(c[4],c[3]))) << endl;
+}
+
+
+void testCnfCond()
+{
+    Tree c[10]; for (int i=0; i<10; i++) c[i] = cnfCond(sigInt(i));
+    Tree x0 = cnfAnd(cnfOr(c[0],c[1]), cnfOr(c[2],c[3]));
+    cout << "TEST0 : " << ppsig(x0) << endl;
+
+    Tree x1 = cnfOr(x0, c[3]);
+    cout << "TEST1 : " << ppsig(x1) << endl;
+
+    Tree x2 = cnfOr(x0, c[4]);
+    cout << "TEST2 : " << ppsig(x2) << endl;
+
+    Tree x3 = cnfAnd(x0, x2);
+    cout << "TEST3 : " << ppsig(x3) << endl;
+}
 
 int main (int argc, char* argv[])
 {
@@ -726,6 +769,8 @@ int main (int argc, char* argv[])
         }
     }
 
+    //testDnfCond(); // TEMPORAIRE
+    //testCnfCond(); // TEMPORAIRE
 
     /****************************************************************
      1.7 - Inject code instead of compile

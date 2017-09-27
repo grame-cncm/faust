@@ -42,7 +42,7 @@ declare name "Faust Spatialization Library";
 declare version "0.0";
 
 
-//-----------------------`panner`------------------------
+//-----------------------`(sp.)panner`------------------------
 // A simple linear stereo panner.
 // `panner` is a standard Faust function.
 //
@@ -54,16 +54,16 @@ declare version "0.0";
 //
 // Where:
 //
-// * `g`: the panning (0-1) 
+// * `g`: the panning (0-1)
 //------------------------------------------------------------
 panner(g) = _ <: *(1-g), *(g);
 
 // TODO: need demo function for panner here
 
 
-//-----------------------`spat`------------------------
+//-----------------------`(sp.)spat`------------------------
 // GMEM SPAT: n-outputs spatializer.
-// `spat` is a standard Faust function. 
+// `spat` is a standard Faust function.
 //
 // #### Usage
 //
@@ -75,17 +75,17 @@ panner(g) = _ <: *(1-g), *(g);
 //
 // * `n`: number of outputs
 // * `r`: rotation (between 0 et 1)
-// * `d`: distance of the source (between 0 et 1) 
+// * `d`: distance of the source (between 0 et 1)
 //------------------------------------------------------
 // TODO: author Laurent Pottier, revised by RM
 spat(n,a,d)	= _ <: par(i, n, *( scaler(i, n, a, d) : si.smooth(0.9999) ))
 with {
-	scaler(i,n,a,d) = (d/2.0+0.5) 
+	scaler(i,n,a,d) = (d/2.0+0.5)
 		* sqrt( max(0.0, 1.0 - abs(fmod(a+0.5+float(n-i)/n, 1.0) - 0.5) * n * d) );
 };
 
 
-//---------------`stereoize`-------------
+//---------------`(sp.)stereoize`-------------
 // Transform an arbitrary processor `p` into a stereo processor with 2 inputs
 // and 2 outputs.
 //
@@ -121,12 +121,12 @@ with {
 // TODO: need demo function of spat here
 
 //////////////////////////////////////////////////////////////////////////////////////////
-// UNDOCUMENTED/DISMISSED ELEMENTS 
+// UNDOCUMENTED/DISMISSED ELEMENTS
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // music.lib:
-	// The following functions could remain available but they would have to be 
-	// factorized and reimplemented using the `par` function... 
+	// The following functions could remain available but they would have to be
+	// factorized and reimplemented using the `par` function...
 	// bus2 = _,_;
 	// bus3 = _,_,_;
 	// bus4 = _,_,_,_;

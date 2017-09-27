@@ -557,6 +557,25 @@ bool isBoxVBargraph (Tree s)									{ Tree lbl, min, max; return isTree(s, BOXV
 bool isBoxVBargraph (Tree s, Tree& lbl, Tree& min, Tree& max)	{ return isTree(s, BOXVBARGRAPH, lbl, min, max); }
 
 
+Sym BOXSOUNDFILE = symbol("boxSoundfile");
+
+Tree boxSoundfile(Tree lbl, Tree chan)
+{
+    return tree(BOXSOUNDFILE, lbl, chan);
+}
+
+bool isBoxSoundfile(Tree s)
+{
+    Tree label;
+    Tree chan;
+    return isTree(s, BOXSOUNDFILE, label, chan);
+}
+
+bool isBoxSoundfile(Tree s, Tree &label, Tree &chan)
+{
+    return isTree(s, BOXSOUNDFILE, label, chan);
+}
+
 /*****************************************************************************
 							 pattern lmatching case
 *****************************************************************************/
@@ -739,5 +758,3 @@ bool isBoxPatternMatcher	(Tree s, Automaton*& a, int& state, Tree& env, Tree& or
 		return false;
 	}
 }
-
-

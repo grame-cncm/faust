@@ -2447,6 +2447,7 @@ const char *VSTWrapper::getHostName()
 #line 2438 "faustvst.cpp"
 
 std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /* Define this to get debugging output from the Qt-related code, or add the
    corresponding option to the qmake project options in the faust2faustvstqt

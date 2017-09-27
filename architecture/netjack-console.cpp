@@ -38,7 +38,6 @@
 #include <iostream>
 #include <cmath>
 
-
 #include "faust/misc.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/console.h"

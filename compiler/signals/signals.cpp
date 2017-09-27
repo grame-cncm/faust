@@ -292,6 +292,14 @@ Sym SIGATTACH = symbol ("sigAttach");
 Tree  sigAttach(Tree t0, Tree t1)					{ return tree(SIGATTACH, t0, t1); 		}
 bool  isSigAttach(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGATTACH, t0, t1); 	}
 
+Sym SIGENABLE = symbol ("sigEnable");
+Tree  sigEnable(Tree t0, Tree t1)					{ return tree(SIGENABLE, t0, t1); 		}
+bool  isSigEnable(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGENABLE, t0, t1); 	}
+
+Sym SIGCONTROL = symbol ("sigControl");
+Tree  sigControl(Tree t0, Tree t1)					{ return tree(SIGCONTROL, t0, t1); 		}
+bool  isSigControl(Tree t, Tree& t0, Tree& t1)		{ return isTree(t, SIGCONTROL, t0, t1); 	}
+
 
 bool sameMagnitude(Tree a, Tree b)
 {
@@ -371,6 +379,32 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
 	int	op;
 	return isSigBinOp(a, &op, x, y) && (op == kDiv);
 }
+
+
+/*****************************************************************************
+							 Sounfiles
+*****************************************************************************/
+/*
+A boxSounfile(label,c) has 1 input channel and c+2 output channels:
+    0   sigSoundfileLength(sigSoundfile(label)):  the number of frames of the soundfile (NK)
+    1   sigSoundfileSamplingRate(sigSoundfile(label)): the sampling rate encoded in the file (NK)
+    2.. sigSoundfileChannel(sigSoundfile(label), c, ridx): the cth channel content (RK ou RS)
+*/
+Sym SIGSOUNDFILE 			= symbol ("sigSoundfile");
+Sym SIGSOUNDFILELENGTH 		= symbol ("sigSoundfileLength");
+Sym SIGSOUNDFILERATE		= symbol ("sigSoundfileRate");
+Sym SIGSOUNDFILECHANNEL		= symbol ("sigSoundfileChannel");
+
+Tree sigSoundfile(Tree label)								{ return tree(SIGSOUNDFILE, label); }
+Tree sigSoundfileLength(Tree sf)							{ return tree(SIGSOUNDFILELENGTH, sf); }
+Tree sigSoundfileRate(Tree sf)							{ return tree(SIGSOUNDFILERATE, sf); }
+Tree sigSoundfileChannel(Tree sf, Tree chan, Tree ridx)	{ return tree(SIGSOUNDFILECHANNEL, sf, chan, ridx); }
+
+bool isSigSoundfile(Tree s, Tree& label)				{ return isTree(s, SIGSOUNDFILE, label); }
+bool isSigSoundfileLength(Tree s, Tree& sf)				{ return isTree(s, SIGSOUNDFILELENGTH, sf); }
+bool isSigSoundfileRate(Tree s, Tree& sf)				{ return isTree(s, SIGSOUNDFILERATE, sf); }
+bool isSigSoundfileChannel(Tree s, Tree& sf, Tree& chan, Tree& ridx)
+															{ return isTree(s, SIGSOUNDFILECHANNEL, sf, chan, ridx); }
 
 
 

@@ -28,10 +28,10 @@ Michon and Julius O. Smith III, and are released under the
 //=============================Functions Reference========================================
 //========================================================================================
 
-//-------------------------`moog_vcf`---------------------------
-// Moog "Voltage Controlled Filter" (VCF) in "analog" form. Moog VCF 
-// implemented using the same logical block diagram as the classic 
-// analog circuit.  As such, it neglects the one-sample delay associated 
+//-------------------------`(ve.)moog_vcf`---------------------------
+// Moog "Voltage Controlled Filter" (VCF) in "analog" form. Moog VCF
+// implemented using the same logical block diagram as the classic
+// analog circuit.  As such, it neglects the one-sample delay associated
 // with the feedback path around the four one-poles.
 // This extra delay alters the response, especially at high frequencies
 // (see reference [1] for details).
@@ -45,7 +45,7 @@ Michon and Julius O. Smith III, and are released under the
 // Where:
 //
 // * `fr`: corner-resonance frequency in Hz ( less than SR/6.3 or so )
-// * `res`: Normalized amount of corner-resonance between 0 and 1 (0 is no 
+// * `res`: Normalized amount of corner-resonance between 0 and 1 (0 is no
 // 	resonance, 1 is maximum)
 //
 // #### References
@@ -59,12 +59,12 @@ with {
      mk = -4.0*max(0,min(res,0.999999)); // need mk > -4 for stability
 };
 
-//-----------------------`moog_vcf_2b[n]`---------------------------
-// Moog "Voltage Controlled Filter" (VCF) as two biquads. Implementation 
-// of the ideal Moog VCF transfer function factored into second-order 
-// sections. As a result, it is more accurate than `moog_vcf` above, but 
-// its coefficient formulas are more complex when one or both parameters 
-// are varied.  Here, res is the fourth root of that in `moog_vcf`, so, as 
+//-----------------------`(ve.)moog_vcf_2b[n]`---------------------------
+// Moog "Voltage Controlled Filter" (VCF) as two biquads. Implementation
+// of the ideal Moog VCF transfer function factored into second-order
+// sections. As a result, it is more accurate than `moog_vcf` above, but
+// its coefficient formulas are more complex when one or both parameters
+// are varied.  Here, res is the fourth root of that in `moog_vcf`, so, as
 // the sampling rate approaches infinity, `moog_vcf(res,fr)` becomes equivalent
 // to `moog_vcf_2b[n](res^4,fr)` (when res and fr are constant).
 // `moog_vcf_2b` uses two direct-form biquads (`tf2`).
@@ -112,7 +112,7 @@ with {
  a02 = b0 * (1 - s2k + k^2);
 };
 
-//--------------------------`wah4`-------------------------------
+//--------------------------`(ve.)wah4`-------------------------------
 // Wah effect, 4th order.
 // `wah4` is a standard Faust function.
 //
@@ -122,7 +122,7 @@ with {
 // _ : wah4(fr) : _
 // ```
 //
-// Where: 
+// Where:
 //
 // * `fr`: resonance frequency in Hz
 //
@@ -132,7 +132,7 @@ with {
 //------------------------------------------------------------
 wah4(fr) = 4*moog_vcf((3.2/4),fr:si.smooth(0.999));
 
-//------------------------`autowah`-----------------------------
+//------------------------`(ve.)autowah`-----------------------------
 // Auto-wah effect.
 // `autowah` is a standard Faust function.
 //
@@ -142,13 +142,13 @@ wah4(fr) = 4*moog_vcf((3.2/4),fr:si.smooth(0.999));
 // _ : autowah(level) : _;
 // ```
 //
-// Where: 
+// Where:
 //
 // * `level`: amount of effect desired (0 to 1).
 //------------------------------------------------------------
 autowah(level,x) = level * crybaby(an.amp_follower(0.1,x),x) + (1.0-level)*x;
 
-//--------------------------`crybaby`-----------------------------
+//--------------------------`(ve.)crybaby`-----------------------------
 // Digitized CryBaby wah pedal.
 // `crybaby` is a standard Faust function.
 //
@@ -158,7 +158,7 @@ autowah(level,x) = level * crybaby(an.amp_follower(0.1,x),x) + (1.0-level)*x;
 // _ : crybaby(wah) : _
 // ```
 //
-// Where: 
+// Where:
 //
 // * `wah`: "pedal angle" from 0 to 1
 //
@@ -225,7 +225,7 @@ closed source license or any other license if you decide so.
 ************************************************************************
 ************************************************************************/
 
-//----------------------------`vocoder`-------------------------
+//----------------------------`(ve.)vocoder`-------------------------
 // A very simple vocoder where the spectrum of the modulation signal
 // is analyzed using a filter bank.
 // `vocoder` is a standard Faust function.
@@ -252,7 +252,7 @@ oneVocoderBand(band,bandsNumb,bwRatio,bandGain,x) = x : fi.resonbp(bandFreq,band
         bandQ = bandFreq/BW;
 };
 
-vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) : 
+vocoder(nBands,att,rel,BWRatio,source,excitation) = source <: par(i,nBands,oneVocoderBand(i,nBands,BWRatio,1) :
 	an.amp_follower_ar(att,rel) : _,excitation : oneVocoderBand(i,nBands,BWRatio)) :> _ ;
 
 //########################################################################################
@@ -268,4 +268,3 @@ released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
 // end further further contributions section
-

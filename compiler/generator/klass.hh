@@ -100,7 +100,8 @@ protected:
     list<string>        fZone2Code;              ///< first private
     list<string>        fZone2bCode;             ///< single once per block
     list<string>        fZone2cCode;             ///< single once per block
-    list<string>        fZone3Code;             ///< private every sub block
+    list<string>        fZone3Code;              ///< private every sub block
+    list<string>        fZone4Code;              ///< code after all loops
   
     Loop*               fTopLoop;               ///< active loops currently open
     property<Loop*>     fLoopProperty;          ///< loops used to compute some signals
@@ -170,15 +171,16 @@ protected:
     void addSharedDecl (const string& str)          { fSharedDecl.push_back(str); }
     void addFirstPrivateDecl (const string& str)    { fFirstPrivateDecl.push_back(str); }
 
-    void addZone1 (const string& str)  { fZone1Code.push_back(str); }
-    void addZone2 (const string& str)  { fZone2Code.push_back(str); }
+    void addZone1 (const string& str)   { fZone1Code.push_back(str); }
+    void addZone2 (const string& str)   { fZone2Code.push_back(str); }
     void addZone2b (const string& str)  { fZone2bCode.push_back(str); }
     void addZone2c (const string& str)  { fZone2cCode.push_back(str); }
-    void addZone3 (const string& str)  { fZone3Code.push_back(str); }
+    void addZone3 (const string& str)   { fZone3Code.push_back(str); }
+    void addZone4 (const string& str)   { fZone4Code.push_back(str); }
  
-    void addPreCode ( const string& str)   { fTopLoop->addPreCode(str); }
-    void addExecCode ( const string& str)   { fTopLoop->addExecCode(str); }
-	void addPostCode (const string& str)	{ fTopLoop->addPostCode(str); }
+    void addPreCode ( const Statement& stmt)    { fTopLoop->addPreCode(stmt); }
+    void addExecCode ( const Statement& stmt)   { fTopLoop->addExecCode(stmt); }
+    void addPostCode (const Statement& stmt)	{ fTopLoop->addPostCode(stmt); }
 
 	virtual void println(int n, ostream& fout);
     

@@ -51,7 +51,7 @@ si = library("signals.lib");
 //=============================Functions Reference========================================
 //========================================================================================
 
-//------------------------`smoothEnvelope`------------------------
+//------------------------`(en.)smoothEnvelope`------------------------
 // An envelope with an exponential attack and release.
 // `smoothEnvelope` is a standard Faust function.
 //
@@ -66,7 +66,7 @@ si = library("signals.lib");
 //----------------------------------------------------------------
 smoothEnvelope(ar,t) = t : si.smooth(ba.tau2pole(ar));
 
-//-----------------------`ar`--------------------------
+//-----------------------`(en.)ar`--------------------------
 // AR (Attack, Release) envelope generator (useful to create percussion envelopes).
 // `ar` is a standard Faust function.
 //
@@ -92,7 +92,7 @@ with{
 	totalTime = attTime+relTime;
 };
 
-//------------------------`arfe`----------------------
+//------------------------`(en.)arfe`----------------------
 // ARFE (Attack and Release-to-Final-value Exponentially) envelope generator.
 // Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
 // `arfe` is a standard Faust function.
@@ -121,7 +121,7 @@ arfe(attT60,relT60,fv,gate) = envelope with {
   envelope = target : si.smooth(pole);
 };
 
-//------------------------`are`----------------------
+//------------------------`(en.)are`----------------------
 // ARE (Attack, Release) envelope generator with Exponential segments.
 // Approximately equal to smoothEnvelope(Attack/6.91) when Attack == Release.
 // `are` is a standard Faust function.
@@ -141,7 +141,7 @@ arfe(attT60,relT60,fv,gate) = envelope with {
 // License: STK-4.3
 are(attT60,relT60,gate) = arfe(attT60,relT60,0,gate);
 
-//------------------------`asr`----------------------
+//------------------------`(en.)asr`----------------------
 // ASR (Attack, Sustain, Release) envelope generator.
 // `asr` is a standard Faust function.
 //
@@ -169,7 +169,7 @@ with{
 	rel = _,ba.countup(relTime,on) : ba.bpf.start(0) : ba.bpf.end(relTime,0);
 };
 
-//------------------------`adsr`----------------------
+//------------------------`(en.)adsr`----------------------
 // ADSR (Attack, Decay, Sustain, Release) envelope generator.
 // `adsr` is a standard Faust function.
 //
@@ -222,7 +222,7 @@ with {
 };
 */
 
-//----------------------`dx7envelope`----------------------
+//----------------------`(en.)dx7envelope`----------------------
 // DX7 operator envelope generator with 4 independent rates and levels. It is
 // essentially a 4 points BPF.
 //
@@ -268,7 +268,7 @@ elsewhere among the libraries.  It is expected that all software will be
 released under LGPL, STK-4.3, MIT, BSD, or a similar FOSS license.
 ************************************************************************/
 
-//------------------------`adsre`----------------------
+//------------------------`(en.)adsre`----------------------
 // ADSRE (Attack, Decay, Sustain, Release) envelope generator with Exponential segments.
 // `adsre` is a standard Faust function.
 //

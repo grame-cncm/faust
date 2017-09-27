@@ -3,14 +3,14 @@
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole faust2sndfile"
-OSXMIDI="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios"
-OSXPOLY="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
-OSXPOLYMIDI="faust2caqt faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
+OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
+OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios"
+OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
+OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce"
-OSXOSCHTTPD="faust2caqt faust2jaqt"
+OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt"
 
-LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer  faust2jack faust2jackconsole faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole faust2sndfile"
+LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackconsole faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole"
 LINUXMIDI="faust2jaqt"
 LINUXPOLY="faust2jaqt faust2juce"
 LINUXPOLYMIDI="faust2jaqt faust2juce"
@@ -57,7 +57,7 @@ if [ "$1" = "osx" ]; then
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
-	done
+ 	done
 
     for scriptname in $OSXMIDI; do
         ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
@@ -65,14 +65,17 @@ if [ "$1" = "osx" ]; then
 
     for scriptname in $OSXPOLY; do
         ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+        rm -rf good
     done
 
     for scriptname in $OSXPOLYMIDI; do
         ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+        rm -rf good
     done
 
     for scriptname in $OSXPOLY2MIDI; do
-        ($scriptname -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect effect.dsp -midi failed")
+        ($scriptname -nvoices 8 -effect good.dsp -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -effect good.dsp -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -effect good.dsp -midi failed")
+        rm -rf good
     done
 
     for scriptname in $OSXOSCHTTPD; do
@@ -135,10 +138,12 @@ elif [ "$1" = "linux" ]; then
 
     for scriptname in $LINUXPOLY; do
         ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+        rm -rf good
     done
 
     for scriptname in $LINUXPOLYMIDI; do
         ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+        rm -rf good
     done
 
     for scriptname in $LINUXOSCHTTPD; do
