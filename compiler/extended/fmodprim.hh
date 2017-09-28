@@ -52,14 +52,15 @@ class FmodPrim : public xtended
 
 	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual int infereSigOrder (const vector<int>& args)
+	virtual int infereSigOrder(const vector<int>& args)
     {
 		faustassert(args.size() == arity());
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree computeSigOutput(const vector<Tree>& args) {
-		num n,m;
+	virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
+		num n, m;
 		faustassert(args.size() == arity());
 		if (isNum(args[0],n) & isNum(args[1],m)) {
 			return tree(fmod(double(n), double(m)));
@@ -79,6 +80,14 @@ class FmodPrim : public xtended
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
      
         return container->pushFunction(subst("fmod$0", isuffix()), result_type, arg_types, casted_args);
+    }
+    
+    virtual string old_generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        
+        return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
     }
 
 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)

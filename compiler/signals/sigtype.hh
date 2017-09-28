@@ -423,7 +423,10 @@ int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate 
 //--------------------------------------------------
 // conversion de type
 
-Typed::VarType ctType (Type t);
+// SL : 28/09/17
+string old_cType(Type t);
+
+Typed::VarType ctType(Type t);
 
 Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
 

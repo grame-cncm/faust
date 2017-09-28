@@ -75,7 +75,7 @@ private:
 	void bendPitch(float bend);
 
   dsp* m_dsp;
-  vstUI*	m_dspUI;
+  vstUI* m_dspUI;
 
   // For synths:
   bool noteIsOn;

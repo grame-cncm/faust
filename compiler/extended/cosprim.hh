@@ -49,7 +49,8 @@ class CosPrim : public xtended
 		return args[0];
 	}
 
-	virtual Tree computeSigOutput(const vector<Tree>& args) {
+	virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
 		num n;
 		if (isNum(args[0],n)) {
             // Symbolic computation of cos(n)
@@ -83,6 +84,14 @@ class CosPrim : public xtended
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
         
         return container->pushFunction(subst("cos$0", isuffix()), result_type, arg_types, casted_args);
+    }
+    
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        
+        return subst("cos$1($0)", args[0], isuffix());
     }
 
 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)

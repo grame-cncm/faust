@@ -450,6 +450,9 @@ public:
                                float max){}
     void addVerticalBargraph(const char* label, float* zone, float min, 
                              float max){}
+    
+    void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    
 }; // end of vstUI class
 
 #endif

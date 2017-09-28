@@ -107,6 +107,19 @@ class PowPrim : public xtended
             return cast2int(result->nature(), container->pushFunction(subst("pow$0", isuffix()), itfloat(), arg_types, casted_args));
         }
     }
+    
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        
+        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) && (types[1]->computability() == kComp)) {
+            klass->rememberNeedPowerDef();
+            return subst("faustpower<$1>($0)", args[0], args[1]);
+        } else {
+            return subst("pow$2($0,$1)", args[0], args[1], isuffix());
+        }
+    }
 
  	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{

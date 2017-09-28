@@ -23,6 +23,8 @@
 #define __XTENDED__
 
 #include <vector>
+
+#include "klass.hh"
 #include "tlib.hh"
 #include "sigtype.hh"
 #include "sigvisitor.hh"
@@ -35,45 +37,51 @@ class CodeContainer;
 
 class xtended : public virtual Garbageable {
 
-	Symbol*	fSymbol;	///< the symbol the xtended is attached to
-    
- public:
+    private:
 
- 	xtended (const char* name) :
-		fSymbol(::symbol(name)) 
-    {
-		setUserData(fSymbol, (void*)this);
-	}
-	virtual ~xtended() {}
+        Symbol*	fSymbol;	///< the symbol the xtended is attached to
 
-	Sym				symbol() 	{ return fSymbol; }
-	const char* 	name() 	{ return ::name(fSymbol); }
+    public:
 
-	Tree			box() {
-						Tree b = tree(fSymbol);
-						faustassert(getUserData(b) != 0);
-						return b;
-					}
+        xtended(const char* name):fSymbol(::symbol(name))
+        {
+            setUserData(fSymbol, (void*)this);
+        }
+        virtual ~xtended() {}
 
-	// virtual method to be implemented by subclasses
-	virtual unsigned int 	arity () = 0;
+        Sym	symbol() { return fSymbol; }
+        const char* name(){ return ::name(fSymbol); }
 
-    virtual ValueInst* 	generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type > const & types) = 0;
+        Tree box()
+        {
+            Tree b = tree(fSymbol);
+            faustassert(getUserData(b) != 0);
+            return b;
+        }
 
-	virtual string 	generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
-	virtual int 	infereSigOrder(const vector<int>& args) = 0;
-	virtual ::Type 	infereSigType(const vector< ::Type>& args) = 0;
-	virtual Tree	computeSigOutput(const vector<Tree>& args) = 0;
-	virtual bool	needCache() = 0;
+        // virtual method to be implemented by subclasses
+        virtual unsigned int arity() = 0;
 
-    virtual bool    isSpecialInfix()    { return false; }   ///< generaly false, but true for binary op # such that #(x) == _#x
-    
-    void prepareTypeArgsResult(::Type result, 
-                                const list<ValueInst*>& args, 
-                                vector< ::Type> const& types,
-                                Typed::VarType& result_type, 
-                                vector<Typed::VarType>& arg_types, 
-                                list<ValueInst*>& casted_args);
+        virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result_type, vector< ::Type> const& types) = 0;
+
+        // SL : 28/09/17
+        // Old CPP backend
+        virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types) = 0;
+
+        virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types) = 0;
+        virtual int infereSigOrder(const vector<int>& args) = 0;
+        virtual ::Type infereSigType(const vector< ::Type>& args) = 0;
+        virtual Tree computeSigOutput(const vector<Tree>& args) = 0;
+        virtual bool needCache() = 0;
+
+        virtual bool isSpecialInfix() { return false; }   ///< generaly false, but true for binary op # such that #(x) == _#x
+
+        void prepareTypeArgsResult(::Type result, 
+                                    const list<ValueInst*>& args, 
+                                    vector< ::Type> const& types,
+                                    Typed::VarType& result_type, 
+                                    vector<Typed::VarType>& arg_types, 
+                                    list<ValueInst*>& casted_args);
     
 };
 

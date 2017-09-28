@@ -373,7 +373,7 @@ void global::init()
     
     gMemoizedTypes = new property<AudioType*>();
     gAllocationCount = 0;
-    gEnableFlag = false;
+    gEnableFlag = true;
   
     TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());

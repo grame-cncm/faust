@@ -92,13 +92,19 @@
 #include "clang_code_container.hh"
 #endif
 
-#if WASM_BUILD
-#include "wasm_code_container.hh"
-#include "wast_code_container.hh"
+#if OCPP_BUILD
+#include "compile_scal.hh"
+#include "compile_vect.hh"
+#include "compile_sched.hh"
 #endif
 
 #if RUST_BUILD
 #include "rust_code_container.hh"
+#endif
+
+#if WASM_BUILD
+#include "wasm_code_container.hh"
+#include "wast_code_container.hh"
 #endif
 
 using namespace std;
@@ -109,9 +115,18 @@ extern const char* floatname[4];
 extern const char* castname[4];
 extern double floatmin[4];
 
-static ifstream* injcode = 0;
-static ifstream* enrobage = 0;
-       
+static ifstream* injcode = NULL;
+static ifstream* enrobage = NULL;
+
+#if OCPP_BUILD
+// Old CPP compiler
+Compiler* old_comp = NULL;
+#endif
+
+// FIR container
+InstructionsCompiler* new_comp = NULL;
+CodeContainer* container = NULL;
+
 typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
@@ -607,7 +622,7 @@ static void printhelp()
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
     cout << "-fun  \t\t--funTasks separate tasks code as separated functions (in -vec, -sch, or -omp mode)\n";
-    cout << "-lang <lang> \t--language generate various output formats : c, cpp, rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp (default cpp)\n";
+    cout << "-lang <lang> \t--language generate various output formats : c, ocpp, cpp, rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp (default cpp)\n";
     cout << "-uim    \t--user-interface-macros add user interface macro definitions in the output code\n";
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
@@ -651,6 +666,56 @@ static void printDeclareHeader(ostream& dst)
 /****************************************************************
  					 			MAIN
 *****************************************************************/
+
+#if OCPP_BUILD
+
+static void printheader(ostream& dst)
+{
+    // defines the metadata we want to print as comments at the begin of in the C++ file
+    set<Tree> selectedKeys;
+    selectedKeys.insert(tree("name"));
+    selectedKeys.insert(tree("author"));
+    selectedKeys.insert(tree("copyright"));
+    selectedKeys.insert(tree("license"));
+    selectedKeys.insert(tree("version"));
+    
+    dst << "//----------------------------------------------------------" << endl;
+    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
+        if (selectedKeys.count(i->first)) {
+            dst << "// " << *(i->first);
+            const char* sep = ": ";
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {
+                dst << sep << **j;
+                sep = ", ";
+            }
+            dst << endl;
+        }
+    }
+    
+    dst << "//" << endl;
+    dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+    dst << "//----------------------------------------------------------" << endl << endl;
+}
+
+static void printfloatdef(std::ostream& fout)
+{
+    fout << "#ifndef " << FLOATMACRO << std::endl;
+    fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
+    fout << "#endif  " << std::endl;
+    fout << std::endl;
+    if (gGlobal->gFloatSize == 3) fout << "typedef long double quad;" << std::endl;
+}
+
+string makeDrawPath()
+{
+    if (gGlobal->gOutputDir != "") {
+        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
+    } else {
+        return gGlobal->gMasterDocument;
+    }
+}
+
+#endif
 
 /**
  * transform a filename "faust/example/noise.dsp" into
@@ -856,15 +921,36 @@ static void includeFile(const string& file, ostream* dst)
     delete(file_include);
 }
 
-static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
+static void injectCode(ifstream* enrobage, ostream* dst)
+{
+    /****************************************************************
+     1.7 - Inject code instead of compile
+     *****************************************************************/
+
+    // Check if this is a code injection
+    if (gGlobal->gInjectFlag) {
+        if (gGlobal->gArchFile == "") {
+            stringstream error;
+            error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
+            throw faustexception(error.str());
+        } else {
+            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+            streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+            streamCopy(*injcode, *dst);
+            streamCopyUntilEnd(*enrobage, *dst);
+        }
+        delete injcode;
+        throw faustexception("");
+    }
+}
+
+static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
     // By default use "cpp" output
     if (gGlobal->gOutputLang == "") {
-        gGlobal->gOutputLang = "cpp";
+        gGlobal->gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
     }
 
-    InstructionsCompiler* comp = NULL;
-    CodeContainer* container = NULL;
     ostream* dst = NULL;
     ostream* helpers = NULL;
     string outpath = "";
@@ -906,11 +992,11 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         } else {
             // To trigger 'sig.dot' generation
             if (gGlobal->gVectorSwitch) {
-                comp = new DAGInstructionsCompiler(container);
+                new_comp = new DAGInstructionsCompiler(container);
             } else {
-                comp = new InstructionsCompiler(container);
+                new_comp = new InstructionsCompiler(container);
             }
-            comp->prepare(signals);
+            new_comp->prepare(signals);
         }
     #endif
 
@@ -922,18 +1008,18 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
 
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            new_comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container);
+            new_comp = new InstructionsCompiler(container);
         }
 
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
          
         if (generate) {
-            comp->compileMultiSignal(signals);
+            new_comp->compileMultiSignal(signals);
         } else {
             // To trigger 'sig.dot' generation
-            comp->prepare(signals);
+            new_comp->prepare(signals);
         }
     
 #else
@@ -957,14 +1043,14 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
        
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            new_comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InterpreterInstructionsCompiler(container);
+            new_comp = new InterpreterInstructionsCompiler(container);
         }
 
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
+        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
      
-        comp->compileMultiSignal(signals);
+        new_comp->compileMultiSignal(signals);
     #else
         throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
     #endif
@@ -975,12 +1061,12 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
         container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
         
         if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
+            new_comp = new DAGInstructionsCompiler(container);
         } else {
-            comp = new InstructionsCompiler(container);
+            new_comp = new InstructionsCompiler(container);
         }
         
-        comp->compileMultiSignal(signals);
+        new_comp->compileMultiSignal(signals);
     #else
         throw faustexception("ERROR : -lang fir not supported since FIR backend is not built\n");
     #endif
@@ -998,12 +1084,26 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
 
         } else if (gGlobal->gOutputLang == "cpp") {
 
-        #if C_BUILD
+        #if CPP_BUILD
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
         #endif
             
+        } else if (gGlobal->gOutputLang == "ocpp") {
+            
+        #if OCPP_BUILD
+            if (gGlobal->gSchedulerSwitch) old_comp = new SchedulerCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+            else if (gGlobal->gVectorSwitch) old_comp = new VectorCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+            else old_comp = new ScalarCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+            
+            if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
+            
+            old_comp->compileMultiSignal(signals);
+        #else
+            throw faustexception("ERROR : -lang ocpp not supported since old CPP backend is not built\n");
+        #endif
+        
         } else if (gGlobal->gOutputLang == "rust") {
             
         #if RUST_BUILD
@@ -1097,135 +1197,224 @@ static pair<InstructionsCompiler*, CodeContainer*> generateCode(Tree signals, in
             throw faustexception(error.str());
         }
         
-        if (gGlobal->gVectorSwitch) {
-            comp = new DAGInstructionsCompiler(container);
-        } else {
-            comp = new InstructionsCompiler(container);
+        // New compiler
+        if (container) {
+            if (gGlobal->gVectorSwitch) {
+                new_comp = new DAGInstructionsCompiler(container);
+            } else {
+                new_comp = new InstructionsCompiler(container);
+            }
+
+            if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) new_comp->setDescription(new Description());
+
+            new_comp->compileMultiSignal(signals);
         }
-
-        if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) comp->setDescription(new Description());
-
-        comp->compileMultiSignal(signals);
     }
 
     /****************************************************************
      * generate output file
      ****************************************************************/
-     
-    if (gGlobal->gArchFile != "") {
-    
-        // Keep current directory
-        char current_directory[FAUST_PATH_MAX];
-        getcwd(current_directory, FAUST_PATH_MAX);
         
-        if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+    if (new_comp) {
         
-            /****************************************************************
-             1.7 - Inject code instead of compile
-            *****************************************************************/
-
-            // Check if this is a code injection
-            if (gGlobal->gInjectFlag) {
-                if (gGlobal->gArchFile == "") {
-                    stringstream error;
-                    error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
-                    throw faustexception(error.str());
-                } else {
-                    streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-                    streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-                    streamCopy(*injcode, *dst);
-                    streamCopyUntilEnd(*enrobage, *dst);
+        if (gGlobal->gArchFile != "") {
+        
+            // Keep current directory
+            char current_directory[FAUST_PATH_MAX];
+            getcwd(current_directory, FAUST_PATH_MAX);
+            
+            if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+            
+                // Possibly inject code
+                injectCode(enrobage, dst);
+                
+                /****************************************************************
+                 1.7 - Inject code instead of compile
+                *****************************************************************/
+                /*
+                // Check if this is a code injection
+                if (gGlobal->gInjectFlag) {
+                    if (gGlobal->gArchFile == "") {
+                        stringstream error;
+                        error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
+                        throw faustexception(error.str());
+                    } else {
+                        streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+                        streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                        streamCopy(*injcode, *dst);
+                        streamCopyUntilEnd(*enrobage, *dst);
+                    }
+                    delete injcode;
+                    throw faustexception("");
                 }
-                delete injcode;
-                throw faustexception("");
-            }
-   
-            container->printHeader();
-            
-            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-            streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+                */
+       
+                container->printHeader();
+                
+                streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+                streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
 
-            if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
-                includeFile("thread.h", dst);
+                if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {
+                    includeFile("thread.h", dst);
+                }
+                
+                container->printFloatDef();
+                container->produceClass();
+                
+                streamCopyUntilEnd(*enrobage, *dst);
+                
+                if (gGlobal->gSchedulerSwitch) {
+                    includeFile("scheduler.cpp", dst);
+                }
+
+                container->printFooter();
+                
+                // Force flush since the stream is not closed...
+                dst->flush();
+                
+                // Restore current_directory
+                chdir(current_directory);
+                delete enrobage;
+                 
+            } else {
+                stringstream error;
+                error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
+                throw faustexception(error.str());
             }
             
+        } else {
+            container->printHeader();
             container->printFloatDef();
             container->produceClass();
-            
-            streamCopyUntilEnd(*enrobage, *dst);
-            
-            if (gGlobal->gSchedulerSwitch) {
-                includeFile("scheduler.cpp", dst);
-            }
-
             container->printFooter();
+            
+            // Generate factory
+            gGlobal->gDSPFactory = container->produceFactory();
+            
+            // Binary mode for LLVM backend if output different of 'cout'
+            gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
             
             // Force flush since the stream is not closed...
             dst->flush();
             
-            // Restore current_directory
-            chdir(current_directory);
-            delete enrobage;
-             
+            if (helpers) {
+                // Possibly helper code
+                gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
+                // Force flush since the stream is not closed...
+                helpers->flush();
+            }
+        }
+       
+        endTiming("generateCode");
+            
+        // Delete streams if they were allocated
+        if (dst != &cout) delete dst;
+        if (helpers != &cout) delete helpers;
+    
+#if OCPP_BUILD
+    } else if (old_comp) {
+        
+        // Check for architecture file
+        if (gGlobal->gArchFile != "") {
+            if (!(enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+                stringstream error;
+                error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
+                throw faustexception(error.str());
+            }
+        }
+        
+        // Possibly inject code
+        injectCode(enrobage, dst);
+        
+        printheader(*dst);
+        old_comp->getClass()->printLibrary(*dst);
+        old_comp->getClass()->printIncludeFile(*dst);
+        old_comp->getClass()->printAdditionalCode(*dst);
+        
+        if (gGlobal->gArchFile != "") {
+            
+            streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
+            
+            if (gGlobal->gSchedulerSwitch) {
+                istream* scheduler_include = open_arch_stream("old-scheduler.cpp");
+                if (scheduler_include) {
+                    streamCopy(*scheduler_include, *dst);
+                } else {
+                    throw("ERROR : can't include \"old-scheduler.cpp\", file not found>\n");
+                }
+            }
+            
+            streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
+            printfloatdef(*dst);
+            old_comp->getClass()->println(0,*dst);
+            streamCopyUntilEnd(*enrobage, *dst);
+            
         } else {
-            stringstream error;
-            error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
-            throw faustexception(error.str());
+            printfloatdef(*dst);
+            old_comp->getClass()->println(0,*dst);
         }
         
+        /****************************************************************
+         9 - generate the task graph file in dot format
+         *****************************************************************/
+        
+        if (gGlobal->gGraphSwitch) {
+            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            old_comp->getClass()->printGraphDotFormat(dotfile);
+        }
+        
+        delete old_comp;
+#endif
     } else {
-        container->printHeader();
-        container->printFloatDef();
-        container->produceClass();
-        container->printFooter();
-        
-        // Generate factory
-        gGlobal->gDSPFactory = container->produceFactory();
-        
-        // Binary mode for LLVM backend if output different of 'cout'
-        gGlobal->gDSPFactory->write(dst, (dst != &cout), false);
-        
-        // Force flush since the stream is not closed...
-        dst->flush();
-        
-        if (helpers) {
-            // Possibly helper code
-            gGlobal->gDSPFactory->writeAux(helpers, (helpers != &cout), false);
-            // Force flush since the stream is not closed...
-            helpers->flush();
-        }
+        faustassert(false);
     }
-   
-    endTiming("generateCode");
-        
-    // Delete streams if they were allocated
-    if (dst != &cout) delete dst;
-    if (helpers != &cout) delete helpers;
-
-    return make_pair(comp, container);
 }
 
-static void generateOutputFiles(InstructionsCompiler* comp, CodeContainer* container)
+static void generateOutputFiles()
 {
     /****************************************************************
      1 - generate XML description (if required)
     *****************************************************************/
-  
+    
     if (gGlobal->gPrintXMLSwitch) {
-        Description* D = comp->getDescription(); faustassert(D);
-        ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
+        
+        if (new_comp) {
       
-        if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
-        if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
-        if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
-        if (gGlobal->gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
-        if (gGlobal->gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            Description* D = new_comp->getDescription(); faustassert(D);
+            ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
+          
+            if (gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
+            if (gGlobal->gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
 
-        D->className(gGlobal->gClassName);
-		D->inputs(container->inputs());
-		D->outputs(container->outputs());
+            D->className(gGlobal->gClassName);
+            D->inputs(container->inputs());
+            D->outputs(container->outputs());
 
-        D->print(0, xout);
+            D->print(0, xout);
+    #if OCPP_BUILD
+        } else if (old_comp) {
+            
+            Description* D = old_comp->getDescription(); assert(D);
+            ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
+            
+            if(gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
+            if(gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
+            if(gGlobal->gMetaDataSet.count(tree("copyright")) > 0)     D->copyright(tree2str(*(gGlobal->gMetaDataSet[tree("copyright")].begin())));
+            if(gGlobal->gMetaDataSet.count(tree("license")) > 0)       D->license(tree2str(*(gGlobal->gMetaDataSet[tree("license")].begin())));
+            if(gGlobal->gMetaDataSet.count(tree("version")) > 0)       D->version(tree2str(*(gGlobal->gMetaDataSet[tree("version")].begin())));
+            
+            D->className(gGlobal->gClassName);
+            D->inputs(old_comp->getClass()->inputs());
+            D->outputs(old_comp->getClass()->outputs());
+            
+            D->print(0, xout);
+    #endif
+        } else {
+            faustassert(false);
+        }
     }
 
     /****************************************************************
@@ -1243,8 +1432,17 @@ static void generateOutputFiles(InstructionsCompiler* comp, CodeContainer* conta
     *****************************************************************/
 
     if (gGlobal->gGraphSwitch) {
-        ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
-        container->printGraphDotFormat(dotfile);
+        if (new_comp) {
+            ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
+            container->printGraphDotFormat(dotfile);
+    #if OCPP_BUILD
+        } else if (old_comp) {
+            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            old_comp->getClass()->printGraphDotFormat(dotfile);
+    #endif
+        } else {
+            faustassert(false);
+        }
     }
 }
 
@@ -1390,12 +1588,12 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     /*************************************************************************
     5 - preparation of the signal tree and translate output signals
     **************************************************************************/
-    pair<InstructionsCompiler*, CodeContainer*> comp_container = generateCode(lsignals, numInputs, numOutputs, generate);
+    generateCode(lsignals, numInputs, numOutputs, generate);
  
     /****************************************************************
      6 - generate xml description, documentation or dot files
     *****************************************************************/
-    generateOutputFiles(comp_container.first, comp_container.second);
+    generateOutputFiles();
 }
     
 // Backend API

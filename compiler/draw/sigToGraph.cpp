@@ -148,11 +148,11 @@ static string nodeattr(Type t)
     string s = edgeattr(t);
     
     // variability
-    if (t->variability()==kKonst) {
+    if (t->variability() == kKonst) {
         s += " shape=\"box\"";
-    } else if (t->variability()==kBlock) {
+    } else if (t->variability() == kBlock) {
         s += " shape=\"hexagon\"";
-    } else if (t->variability()==kSamp) {
+    } else if (t->variability() == kSamp) {
         s += " shape=\"ellipse\"";
     }
     

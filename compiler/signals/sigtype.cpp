@@ -297,7 +297,13 @@ int checkDelayInterval(Type t)
 }
 
 // Donne le nom du type C correspondant a la nature d'un signal
-Typed::VarType ctType (Type t)
+string old_cType(Type t)
+{
+    return (t->nature() == kInt) ? "int" : "float";
+}
+
+// Donne le nom du type C correspondant a la nature d'un signal
+Typed::VarType ctType(Type t)
 {
 	return (t->nature() == kInt) ? Typed::kInt32 : Typed::kFloat;
 }

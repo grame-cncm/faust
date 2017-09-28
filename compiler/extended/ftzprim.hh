@@ -34,9 +34,20 @@ when it is not available on the CPU.
 
 *********************************************************************************************/
 
+const char* FTZPattern[4][3] = {
+    {"???", "???", "???" },				// not a float
+    {"$0", "((fabsf($0)> FLT_MIN) ? $0 : 0.0f)", "((*(int*)&$0) & 0x7F800000) ? $0 : 0.0f" },				// float  (1)
+    {"$0", "((fabs ($0)> DBL_MIN) ? $0 : 0.0 )", "((*(long int*)&$0) & 0x7FF0000000000000) ? $0 : 0.0" },	// double (2)
+    {"$0", "((fabsl($0)>LDBL_MIN) ? $0 : 0.0L)", "((fabsl($0)>LDBL_MIN) ? $0 : 0.0L)" }						// quad   (3)
+};
+
 class FtzPrim : public xtended
 {
+    
+ private:
 
+    static int freshnum;		// counter for fTempFTZxxx fresh variables
+    
  public:
 
  	FtzPrim() : xtended("ftz") {}
@@ -135,6 +146,25 @@ class FtzPrim : public xtended
 			return *args.begin();
 		}
 	}
+    
+    virtual string 	old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        
+        Type t = infereSigType(types);
+        if ((t->nature() == kReal) && (gGlobal->gFTZMode > 0)) {
+            // we need to create a temporary variable to store the expression
+            string ctype = ifloat();
+            string vname = subst("fTempFTZ$0", T(++freshnum));
+            klass->addIncludeFile("<float.h>");
+            klass->addExecCode(Statement("", subst("$0 $1 = $2;", ctype, vname, args[0])));
+            return subst(FTZPattern[gGlobal->gFloatSize][gGlobal->gFTZMode], vname);
+        } else {
+            // No ftz code for integer signals
+            return args[0];
+        }
+    }
 	
 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector<Type>& types)
 	{
@@ -145,5 +175,5 @@ class FtzPrim : public xtended
     
 };
 
-
+int FtzPrim::freshnum = 0;
 

@@ -91,6 +91,19 @@ class AbsPrim : public xtended
             return container->pushFunction("abs", result_type, arg_types, args);
         }
     }
+    
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+        
+        Type t = infereSigType(types);
+        if (t->nature() == kReal) {
+            return subst("fabs$1($0)", args[0], isuffix());
+        } else {
+            return subst("abs($0)", args[0]);
+        }
+    }
 
 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
 	{
@@ -100,6 +113,7 @@ class AbsPrim : public xtended
 		::Type t = infereSigType(types);
 		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
 	}
+    
 };
 
 

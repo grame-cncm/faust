@@ -442,19 +442,19 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     HACK : 09/12/11
     else if (isSigVectorize(sig, x, y)) {
         printf("vectorize not implemented\n");
-        exit (0);
+        exit(0);
     }
     else if (isSigSerialize(sig, x)) {
         printf("serialize not implemented\n");
-        exit (0);
+        exit(0);
     }
     else if (isSigConcat(sig, x, y)) {
         printf("concatenation not implemented\n");
-        exit (0);
+        exit(0);
     }
     else if (isSigVectorAt(sig, x, y)) {
         printf("vector at not implemented\n");
-        exit (0);
+        exit(0);
     }
     */
 	else {
