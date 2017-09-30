@@ -119,29 +119,30 @@ void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
 class myparser : public virtual Garbageable
 {
     
-private:
-    string  str;
-    size_t  N;
-    size_t  p;
-    
-public:
-    myparser(const string& s) : str(s), N(s.length()), p(0) {}
-    bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
-    bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
-    bool filename(string& fname) {
-        size_t saved = p;
-        if (p<N) {
-            char c = str[p++];
-            if (c == '<' | c == '"') {
-                fname = "";
-                while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
-                p++;
-                return true;
+    private:
+        string  str;
+        size_t  N;
+        size_t  p;
+        
+    public:
+        myparser(const string& s) : str(s), N(s.length()), p(0) {}
+        bool skip()                 { while (p < N && isspace(str[p])) p++; return true; }
+        bool parse(const string& s) { bool f; if ((f = (p == str.find(s, p)))) p += s.length(); return f; }
+        bool filename(string& fname)
+        {
+            size_t saved = p;
+            if (p<N) {
+                char c = str[p++];
+                if (c == '<' | c == '"') {
+                    fname = "";
+                    while (p<N && (str[p] != '>') && (str[p] != '"')) fname += str[p++];
+                    p++;
+                    return true;
+                }
             }
+            p = saved;
+            return false;
         }
-        p = saved;
-        return false;
-    }
 };
 
 /**
@@ -165,7 +166,7 @@ static void inject(ostream& dst, const string& fname)
 {
     if (gGlobal->gAlreadyIncluded.find(fname) == gGlobal->gAlreadyIncluded.end()) {
         gGlobal->gAlreadyIncluded.insert(fname);
-        istream* src = open_arch_stream(fname.c_str());
+        istream* src = openArchStream(fname.c_str());
         if (src) {
             streamCopy(*src, dst);
             delete src;
@@ -210,15 +211,15 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
 }
 
 #define TRY_OPEN(filename)                      \
-ifstream* f = new ifstream();               \
-f->open(filename, ifstream::in);            \
-err = chdir(old);                           \
-if (f->is_open()) return f; else delete f;  \
+    ifstream* f = new ifstream();               \
+    f->open(filename, ifstream::in);            \
+    err = chdir(old);                           \
+    if (f->is_open()) return f; else delete f;  \
 
 /**
  * Try to open an architecture file searching in various directories
  */
-ifstream* open_arch_stream(const char* filename)
+ifstream* openArchStream(const char* filename)
 {
     char	buffer[FAUST_PATH_MAX];
     char*	old = getcwd(buffer, FAUST_PATH_MAX);
@@ -234,9 +235,7 @@ ifstream* open_arch_stream(const char* filename)
     return 0;
 }
 
-/*---------------------------------------------*/
-
-const char* strip_start(const char* filename)
+const char* stripStart(const char* filename)
 {
     const char* start;
 #ifdef _WIN32
@@ -256,42 +255,40 @@ const char* strip_start(const char* filename)
  * @return true if the URL exist, throw on exception otherwise
  */
 
-bool check_url(const char* filename)
+static bool checkFile(const char* filename)
+{
+    // Otherwise tries to open as a regular file
+    FILE* f = fopen(filename, "r");
+    if (f) {
+        fclose(f);
+        return true;
+    } else {
+        stringstream error;
+        error << "ERROR : cannot open file '" << filename << "' : " << strerror(errno) << endl;
+        throw faustexception(error.str());
+    }
+}
+
+bool checkURL(const char* filename)
 {
     char* fileBuf = 0;
     
     // Tries to open as an URL for a local file
     if (strstr(filename, "file://") != 0) {
         // Tries to open as a regular file after removing 'file://'
-        FILE* f = fopen(&filename[7], "r");
-        if (f) {
-            fclose(f);
-            return true;
-        } else {
-            stringstream error;
-            error << "ERROR : cannot open file '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
-            throw faustexception(error.str());
-        }
-        // Tries to open as a http URL
-    } else if (strstr(filename, "http://") != 0) {
+        return checkFile(&filename[7]);
+    // Tries to open as a http URL
+    } else if ((strstr(filename, "http://") != 0) || (strstr(filename, "https://") != 0)) {
         if (http_fetch(filename, &fileBuf) != -1) {
             return true;
         } else {
             stringstream error;
-            error << "ERROR : unable to access URL '" << filename << "' : " << http_strerror() << "; for help type \"faust --help\"" << endl;
+            error << "ERROR : unable to access URL '" << filename << "' : " << http_strerror() << endl;
             throw faustexception(error.str());
         }
     } else {
         // Otherwise tries to open as a regular file
-        FILE* f = fopen(filename, "r");
-        if (f) {
-            fclose(f);
-            return true;
-        } else {
-            stringstream error;
-            error << "ERROR : cannot open file '" << filename << "' : " <<  strerror(errno) << "; for help type \"faust --help\"" << endl;
-            throw faustexception(error.str());
-        }
+        return checkFile(filename);
     }
 }
 
@@ -299,7 +296,7 @@ bool check_url(const char* filename)
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>
  */
-static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
+static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
 {
     int err;
     char olddirbuffer[FAUST_PATH_MAX];
@@ -339,9 +336,9 @@ static FILE* fopenat(string& fullpath, const char* dir, const char* filename)
  * Try to open the file '<dir>/<filename>'. If it succeed, it stores the full pathname
  * of the file into <fullpath>
  */
-static FILE* fopenat(string& fullpath, const string& dir, const char* filename)
+static FILE* fopenAt(string& fullpath, const string& dir, const char* filename)
 {
-    return fopenat(fullpath, dir.c_str(), filename);
+    return fopenAt(fullpath, dir.c_str(), filename);
 }
 
 /**
@@ -385,7 +382,7 @@ static void buildFullPathname(string& fullpath, const char* filename)
  * Try to open the file <filename> searching in various directories. If succesful
  *  place its full pathname in the string <fullpath>
  */
-FILE* fopensearch(const char* filename, string& fullpath)
+FILE* fopenSearch(const char* filename, string& fullpath)
 {
     FILE* f;
     
@@ -396,7 +393,7 @@ FILE* fopensearch(const char* filename, string& fullpath)
     
     // search file in user supplied directory path
     for (string dirname : gGlobal->gImportDirList) {
-        if ((f = fopenat(fullpath, dirname, filename))) {
+        if ((f = fopenAt(fullpath, dirname, filename))) {
             return f;
         }
     }
@@ -423,16 +420,16 @@ FILE* fopensearch(const char* filename, string& fullpath)
 
 /* Define IS_DIR_SEPARATOR.  */
 #ifndef DIR_SEPARATOR_2
-# define IS_DIR_SEPARATOR(ch) ((ch) == DIR_SEPARATOR)
+    #define IS_DIR_SEPARATOR(ch) ((ch) == DIR_SEPARATOR)
 #else /* DIR_SEPARATOR_2 */
-# define IS_DIR_SEPARATOR(ch) \
-(((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
+    #define IS_DIR_SEPARATOR(ch) \
+    (((ch) == DIR_SEPARATOR) || ((ch) == DIR_SEPARATOR_2))
 #endif /* DIR_SEPARATOR_2 */
 
 /**
  * returns a pointer on the basename part of name
  */
-const char* filebasename(const char* name)
+const char* fileBasename(const char* name)
 {
 #if defined (HAVE_DOS_BASED_FILE_SYSTEM)
     /* Skip over the disk name in MSDOS pathnames. */
@@ -452,9 +449,9 @@ const char* filebasename(const char* name)
  * returns a string containing the dirname of name
  * If no dirname, returns "."
  */
-string filedirname(const string& name)
+string fileDirname(const string& name)
 {
-    const char*         base = filebasename(name.c_str());
+    const char*         base = fileBasename(name.c_str());
     const unsigned int  size = (const unsigned int)(base-name.c_str());
     string              dirname;
     
@@ -470,7 +467,7 @@ string filedirname(const string& name)
     return dirname;
 }
 
-string strip_end(const string& name, const string& ext)
+string stripEnd(const string& name, const string& ext)
 {
     if (name.length() >= 4 && name.substr(name.length() - ext.length()) == ext) {
         return name.substr(0, name.length() - ext.length());

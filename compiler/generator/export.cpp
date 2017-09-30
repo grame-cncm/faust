@@ -37,7 +37,7 @@ extern "C" EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
  - C++ 'throw' is actually catched by the Emscripten runtime 'catch_throw' and the exception
  error message is kept in the global faustexception::gJSExceptionMsg variable
  - a regular JS exception is triggered and catched on JS side
- - the actual exception message it retrieved on JS side using 'getErrorAfterException'
+ - the actual exception message is retrieved on JS side using 'getErrorAfterException'
  - and finally global context cleanup is done from JS side using 'cleanupAfterException'
  
  */

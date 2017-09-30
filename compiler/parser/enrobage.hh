@@ -37,15 +37,15 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until);
 void streamCopyUntilEnd(istream& src, ostream& dst);
 void streamCopy(istream& src, ostream& dst);
 
-ifstream* open_arch_stream (const char* filename);
+ifstream* openArchStream (const char* filename);
 
-FILE* fopensearch(const char* filename, string& fullpath);
+FILE* fopenSearch(const char* filename, string& fullpath);
 
-const char* strip_start(const char* filename);
-bool check_url(const char* filename);
+const char* stripStart(const char* filename);
+bool checkURL(const char* filename);
 		
-const char* filebasename(const char* name); // returns a pointer on the basename part of name
+const char* fileBasename(const char* name); // returns a pointer on the basename part of name
 
-string filedirname(const string& name);        // allocate a string containing the dirname of name
+string fileDirname(const string& name);        // allocate a string containing the dirname of name
 
-string strip_end(const string& name, const string& ext);
+string stripEnd(const string& name, const string& ext);

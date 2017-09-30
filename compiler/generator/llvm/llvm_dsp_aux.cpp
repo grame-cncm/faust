@@ -1223,7 +1223,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             sfactory->addReference();
             return sfactory;
         } else {
-            llvm_dsp_factory_aux* factory_aux = static_cast<llvm_dsp_factory_aux*>(compile_faust_factory(argc1, argv1,
+            llvm_dsp_factory_aux* factory_aux = static_cast<llvm_dsp_factory_aux*>(compileFaustFactory(argc1, argv1,
                                                                                                         name_app.c_str(),
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg,

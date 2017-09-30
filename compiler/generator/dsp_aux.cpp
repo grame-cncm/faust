@@ -278,8 +278,8 @@ EXPORT string expandDSPFromString(const string& name_app,
         }
         argv1[argc1] = 0;  // NULL terminated argv
         
-        // 'expand_dsp' adds the normalized compilation options in the DSP code before computing the SHA key
-        return expand_dsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
+        // 'expandDsp' adds the normalized compilation options in the DSP code before computing the SHA key
+        return expandDsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
     }
 }
 
@@ -308,13 +308,12 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
         }
         argv1[argc1] = 0;  // NULL terminated argv
         
-        dsp_factory_base* factory = compile_faust_factory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
+        dsp_factory_base* factory = compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, false);
         // Factory is no more needed
         delete factory;
         return (factory != NULL);
     }
 }
-
 
 EXPORT string generateSHA1(const string& dsp_content)
 {

@@ -134,12 +134,12 @@ string reorganizeCompilationOptions(int argc, const char* argv[]);
 std::string generateSHA1(const std::string& dsp_content);
 
 #ifdef _WIN32
-static void call_fun(compile_fun fun)
+static void callFun(compile_fun fun)
 {
     fun(NULL);
 }
 #else
-static void call_fun(compile_fun fun)
+static void callFun(compile_fun fun)
 {
     if (gGlobal->gOutputLang == "ajs"
         || startWith(gGlobal->gOutputLang, "wast")
@@ -162,7 +162,7 @@ static void call_fun(compile_fun fun)
 
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs);
 
-static void* thread_evaluateBlockDiagram(void* arg) 
+static void* threadEvaluateBlockDiagram(void* arg) 
 {   
     try {
         gGlobal->gProcessTree = evaluateBlockDiagram(gGlobal->gExpandedDefList, gGlobal->gNumInputs, gGlobal->gNumOutputs);
@@ -172,7 +172,7 @@ static void* thread_evaluateBlockDiagram(void* arg)
     return 0;
 }
 
-static void* thread_boxPropagateSig(void* arg)
+static void* threadBoxPropagateSig(void* arg)
 {
     try {
         gGlobal->gLsignalsTree = boxPropagateSig(gGlobal->nil, gGlobal->gProcessTree, makeSigInputList(gGlobal->gNumInputs));
@@ -194,6 +194,7 @@ extern bool gTimingSwitch;
 /****************************************************************
  						Parser variables
 *****************************************************************/
+
 int yyerr;
 
 /****************************************************************
@@ -212,7 +213,7 @@ static bool isCmd(const char* cmd, const char* kw1, const char* kw2)
 	return (strcmp(cmd, kw1) == 0) || (strcmp(cmd, kw2) == 0);
 }
 
-static bool process_cmdline(int argc, const char* argv[])
+static bool processCmdline(int argc, const char* argv[])
 {
 	int	i = 1; 
     int err = 0;
@@ -220,7 +221,7 @@ static bool process_cmdline(int argc, const char* argv[])
     
     /*
     for (int i = 0; i < argc; i++) {
-        printf("process_cmdline i = %d cmd = %s\n", i, argv[i]);
+        printf("processCmdline i = %d cmd = %s\n", i, argv[i]);
     }
     */
 
@@ -447,7 +448,7 @@ static bool process_cmdline(int argc, const char* argv[])
             i += 2;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
-            if (strstr(argv[i+1], "http://") != 0) {
+            if ((strstr(argv[i+1], "http://") != 0) || (strstr(argv[i+1], "https://") != 0)) {
                 gGlobal->gImportDirList.push_back(argv[i+1]);
                 i += 2;
             } else {
@@ -455,7 +456,7 @@ static bool process_cmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i+1], temp);
                 if (path == 0) {
                     stringstream error;
-                    error << "ERROR : invalid directory path " << argv[i+1] << endl;
+                    error << "ERROR : invalid library directory path " << argv[i+1] << endl;
                     throw faustexception(error.str());
                 } else {
                     gGlobal->gImportDirList.push_back(path);
@@ -464,7 +465,7 @@ static bool process_cmdline(int argc, const char* argv[])
             }
             
         } else if (isCmd(argv[i], "-A", "--architecture-dir") && (i+1 < argc)) {
-            if (strstr(argv[i+1], "http://") != 0) {
+            if ((strstr(argv[i+1], "http://") != 0) || (strstr(argv[i+1], "https://") != 0)) {
                 gGlobal->gArchitectureDirList.push_back(argv[i+1]);
                 i += 2;
             } else {
@@ -472,7 +473,7 @@ static bool process_cmdline(int argc, const char* argv[])
                 char* path = realpath(argv[i+1], temp);
                 if (path == 0) {
                     stringstream error;
-                    error << "ERROR : invalid directory path " << argv[i+1] << endl;
+                    error << "ERROR : invalid architecture directory path " << argv[i+1] << endl;
                     throw faustexception(error.str());
                 } else {
                     gGlobal->gArchitectureDirList.push_back(path);
@@ -510,7 +511,7 @@ static bool process_cmdline(int argc, const char* argv[])
 
         } else if (argv[i][0] != '-') {
             const char* url = argv[i];
-            if (check_url(url)) {
+            if (checkURL(url)) {
 				gGlobal->gInputFiles.push_back(url);
 			}
 			i++;
@@ -565,15 +566,15 @@ static bool process_cmdline(int argc, const char* argv[])
  					 Help and Version information
 *****************************************************************/
 
-static void printversion()
+static void printVersion()
 {
 	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, asm.js, WebAssembly (wast/wasm), Interpreter compiler, Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
-static void printhelp()
+static void printHelp()
 {
-    printversion();
+    printVersion();
     cout << "usage : faust [options] file1 [file2 ...]\n";
     cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension).\n";
 
@@ -669,7 +670,7 @@ static void printDeclareHeader(ostream& dst)
 
 #if OCPP_BUILD
 
-static void printheader(ostream& dst)
+static void printHeader(ostream& dst)
 {
     // defines the metadata we want to print as comments at the begin of in the C++ file
     set<Tree> selectedKeys;
@@ -697,7 +698,7 @@ static void printheader(ostream& dst)
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
-static void printfloatdef(std::ostream& fout)
+static void printFloatDef(std::ostream& fout)
 {
     fout << "#ifndef " << FLOATMACRO << std::endl;
     fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
@@ -721,7 +722,7 @@ string makeDrawPath()
  * transform a filename "faust/example/noise.dsp" into
  * the corresponding fx name "noise"
  */
-static string fxname(const string& filename)
+static string fxName(const string& filename)
 {
 	// determine position right after the last '/' or 0
 	unsigned int p1 = 0;
@@ -799,9 +800,9 @@ static void initFaustDirectories()
     char s[1024];
     getFaustPathname(s, 1024);
 
-    gGlobal->gFaustDirectory = filedirname(s);
-    gGlobal->gFaustSuperDirectory = filedirname(gGlobal->gFaustDirectory);
-    gGlobal->gFaustSuperSuperDirectory = filedirname(gGlobal->gFaustSuperDirectory);
+    gGlobal->gFaustDirectory = fileDirname(s);
+    gGlobal->gFaustSuperDirectory = fileDirname(gGlobal->gFaustDirectory);
+    gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
     if (gGlobal->gInputFiles.empty()) {
         gGlobal->gMasterDocument = "Unknown";
         gGlobal->gMasterDirectory = ".";
@@ -809,9 +810,9 @@ static void initFaustDirectories()
 		gGlobal->gDocName = "faustdoc";
     } else {
         gGlobal->gMasterDocument = *gGlobal->gInputFiles.begin();
-        gGlobal->gMasterDirectory = filedirname(gGlobal->gMasterDocument);
-		gGlobal->gMasterName = fxname(gGlobal->gMasterDocument);
-		gGlobal->gDocName = fxname(gGlobal->gMasterDocument);
+        gGlobal->gMasterDirectory = fileDirname(gGlobal->gMasterDocument);
+		gGlobal->gMasterName = fxName(gGlobal->gMasterDocument);
+		gGlobal->gDocName = fxName(gGlobal->gMasterDocument);
     }
     
     //-------------------------------------------------------------------------------------
@@ -914,11 +915,11 @@ static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numO
 
 static void includeFile(const string& file, ostream* dst)
 {
-    istream* file_include = open_arch_stream(file.c_str());
+    istream* file_include = openArchStream(file.c_str());
     if (file_include) {
         streamCopy(*file_include, *dst);
     }
-    delete(file_include);
+    delete file_include;
 }
 
 static void injectCode(ifstream* enrobage, ostream* dst)
@@ -1223,32 +1224,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             char current_directory[FAUST_PATH_MAX];
             getcwd(current_directory, FAUST_PATH_MAX);
             
-            if ((enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+            if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
             
                 // Possibly inject code
                 injectCode(enrobage, dst);
-                
-                /****************************************************************
-                 1.7 - Inject code instead of compile
-                *****************************************************************/
-                /*
-                // Check if this is a code injection
-                if (gGlobal->gInjectFlag) {
-                    if (gGlobal->gArchFile == "") {
-                        stringstream error;
-                        error << "ERROR : no architecture file specified to inject \"" << gGlobal->gInjectFile << "\"" << endl;
-                        throw faustexception(error.str());
-                    } else {
-                        streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
-                        streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-                        streamCopy(*injcode, *dst);
-                        streamCopyUntilEnd(*enrobage, *dst);
-                    }
-                    delete injcode;
-                    throw faustexception("");
-                }
-                */
-       
+             
                 container->printHeader();
                 
                 streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
@@ -1316,7 +1296,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         
         // Check for architecture file
         if (gGlobal->gArchFile != "") {
-            if (!(enrobage = open_arch_stream(gGlobal->gArchFile.c_str()))) {
+            if (!(enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
                 stringstream error;
                 error << "ERROR : can't open architecture file " << gGlobal->gArchFile << endl;
                 throw faustexception(error.str());
@@ -1326,7 +1306,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // Possibly inject code
         injectCode(enrobage, dst);
         
-        printheader(*dst);
+        printHeader(*dst);
         old_comp->getClass()->printLibrary(*dst);
         old_comp->getClass()->printIncludeFile(*dst);
         old_comp->getClass()->printAdditionalCode(*dst);
@@ -1336,7 +1316,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
             
             if (gGlobal->gSchedulerSwitch) {
-                istream* scheduler_include = open_arch_stream("old-scheduler.cpp");
+                istream* scheduler_include = openArchStream("old-scheduler.cpp");
                 if (scheduler_include) {
                     streamCopy(*scheduler_include, *dst);
                 } else {
@@ -1345,12 +1325,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             }
             
             streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            printfloatdef(*dst);
+            printFloatDef(*dst);
             old_comp->getClass()->println(0,*dst);
             streamCopyUntilEnd(*enrobage, *dst);
             
         } else {
-            printfloatdef(*dst);
+            printFloatDef(*dst);
             old_comp->getClass()->println(0,*dst);
         }
         
@@ -1446,12 +1426,12 @@ static void generateOutputFiles()
     }
 }
 
-static string expand_dsp_internal(int argc, const char* argv[], const char* name, const char* dsp_content)
+static string expandDspInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
     /****************************************************************
      1 - process command line
     *****************************************************************/
-    process_cmdline(argc, argv);
+    processCmdline(argc, argv);
    
     /****************************************************************
      2 - parse source files
@@ -1471,7 +1451,7 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
      3 - evaluate 'process' definition
     *****************************************************************/
     
-    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    callFun(threadEvaluateBlockDiagram); // In a thread with more stack size...
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
@@ -1491,21 +1471,21 @@ static string expand_dsp_internal(int argc, const char* argv[], const char* name
     return out.str();
 }
 
-static void compile_faust_internal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
+static void compileFaustInternal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
   
     /****************************************************************
      1 - process command line
     *****************************************************************/
-    process_cmdline(argc, argv);
+    processCmdline(argc, argv);
     
     if (gGlobal->gHelpSwitch) { 
-        printhelp(); 
+        printHelp(); 
         throw faustexception("");
     }
     if (gGlobal->gVersionSwitch) { 
-        printversion(); 
+        printVersion(); 
         throw faustexception("");
     }
 
@@ -1544,7 +1524,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
      3 - evaluate 'process' definition
     *****************************************************************/
     
-    call_fun(thread_evaluateBlockDiagram); // In a thread with more stack size...
+    callFun(threadEvaluateBlockDiagram); // In a thread with more stack size...
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
@@ -1575,7 +1555,7 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     *****************************************************************/
     startTiming("propagation");
    
-    call_fun(thread_boxPropagateSig); // In a thread with more stack size...
+    callFun(threadBoxPropagateSig); // In a thread with more stack size...
     if (!gGlobal->gLsignalsTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
@@ -1598,14 +1578,14 @@ static void compile_faust_internal(int argc, const char* argv[], const char* nam
     
 // Backend API
     
-dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* dsp_content, string& error_msg, bool generate)
+dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* dsp_content, string& error_msg, bool generate)
 {
     gGlobal = NULL;
     dsp_factory_base* factory = NULL;
     
     try {
         global::allocate();
-        compile_faust_internal(argc, argv, name, dsp_content, generate);
+        compileFaustInternal(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         factory = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
@@ -1616,14 +1596,14 @@ dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char
     return factory;
 }
 
-string expand_dsp(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
+string expandDsp(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
 {
     gGlobal = NULL;
     string res = "";
     
     try {
         global::allocate();       
-        res = expand_dsp_internal(argc, argv, name, dsp_content);
+        res = expandDspInternal(argc, argv, name, dsp_content);
         sha_key = generateSHA1(res);
         error_msg = gGlobal->gErrorMsg;
     } catch (faustexception& e) {

@@ -57,7 +57,7 @@ void yyrestart(FILE *new_file);
  *****************************************************************/
 
 int yyparse();
-struct yy_buffer_state* yy_scan_string (const char *yy_str); // In principle YY_BUFFER_STATE
+struct yy_buffer_state* yy_scan_string(const char *yy_str); // In principle YY_BUFFER_STATE
 
 extern int      yyerr;
 extern int      yydebug;
@@ -107,7 +107,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
     return error.str();
 }
 
-Tree checkRulelist (Tree lr)
+Tree checkRulelist(Tree lr)
 {
 	Tree lrules = lr;
 	if (isNil(lrules)) {
@@ -120,7 +120,7 @@ Tree checkRulelist (Tree lr)
 	Tree rhs1 = tl(hd(lrules));
 	int npat = len(lhs1); 
 	lrules = tl(lrules);
-	while (! isNil(lrules)) {
+	while (!isNil(lrules)) {
 		Tree lhs2 = hd(hd(lrules));
 		Tree rhs2 = tl(hd(lrules));
 		if (npat != len(lhs2)) {
@@ -237,7 +237,7 @@ void SourceReader::checkName()
     if (gGlobal->gMasterDocument == yyfilename) {
         Tree name = tree("name");
         if (gGlobal->gMetaDataSet.find(name) == gGlobal->gMetaDataSet.end()) {
-            gGlobal->gMetaDataSet[name].insert(tree(quote(strip_end(basename((char*)yyfilename), ".dsp"))));
+            gGlobal->gMetaDataSet[name].insert(tree(quote(stripEnd(basename((char*)yyfilename), ".dsp"))));
         }
     }
 }
@@ -318,7 +318,7 @@ Tree SourceReader::parsefile(const char* fname)
         throw faustexception(error.str());
     #else
         string fullpath;
-        FILE* tmp_file = yyin = fopensearch(yyfilename, fullpath); // Keep file to properly close it
+        FILE* tmp_file = yyin = fopenSearch(yyfilename, fullpath); // Keep file to properly close it
         if (yyin == NULL) {
             stringstream error;
             error << "ERROR : unable to open file " << yyfilename << endl;

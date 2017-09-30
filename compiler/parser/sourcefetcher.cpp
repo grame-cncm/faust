@@ -89,12 +89,12 @@ char convertedError[128];
  * necessary space is allocated for fileBuf. Returns size of download on
  * success, -1 on error is set.
  */
-int http_fetch(const char *url_tmp, char **fileBuf)
+int http_fetch(const char* url_tmp, char** fileBuf)
 {
 	fd_set rfds;
 	struct timeval tv;
 	char headerBuf [HEADER_BUF_SIZE];
-	char *tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
+	char* tmp, *url, *pageBuf, *requestBuf = NULL, *host, *charIndex;
 	int sock, bytesRead = 0, contentLength = -1, bufsize = REQUEST_BUF_SIZE;
 	int i, ret = -1, tempSize, selectRet, found = 0,	/* For redirects */
         redirectsFollowed = 0;
@@ -108,7 +108,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	 * Copy the url passed in into a buffer we can work with, change,
 	 * etc.
 	 */
-	url = (char *)malloc(strlen(url_tmp) + 1);
+	url = (char*)malloc(strlen(url_tmp) + 1);
 	if (url == NULL) {
 		errorSource = ERRNO;
 		return -1;
@@ -122,7 +122,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	 */
 	/*
 	 * while(!found && (followRedirects < 0 || redirectsFollowed <
-	 * followRedirects) )
+	 * followRedirects))
 	 */
 	do {
 		/* Seek to the file path portion of the url */
@@ -133,12 +133,12 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			host = charIndex;
 			charIndex = strchr(charIndex, '/');
 		} else {
-			host = (char *)url;
+			host = (char* )url;
 			charIndex = strchr(url, '/');
 		}
 
 		/* Compose a request string */
-		requestBuf = (char *)malloc(bufsize);
+		requestBuf = (char*)malloc(bufsize);
 		if (requestBuf == NULL) {
 			free(url);
 			errorSource = ERRNO;
@@ -246,7 +246,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 		strcat(requestBuf, "Connection: Close\r\n\r\n");
 
 		/* Now free any excess memory allocated to the buffer */
-		tmp = (char *)realloc(requestBuf, strlen(requestBuf) + 1);
+		tmp = (char*)realloc(requestBuf, strlen(requestBuf) + 1);
 		if (tmp == NULL) {
 			free(url);
 			free(requestBuf);
@@ -346,7 +346,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			}
 			i = (int)strcspn(charIndex, " \r\n");
 			if (i > 0) {
-				url = (char *)malloc(i + 1);
+				url = (char*)malloc(i + 1);
 				strncpy(url, charIndex, i);
 				url[i] = '\0';
 			} else
@@ -401,7 +401,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	if (contentLength == -1)
 		contentLength = DEFAULT_PAGE_BUF_SIZE;
 
-	pageBuf = (char *)malloc(contentLength);
+	pageBuf = (char*)malloc(contentLength);
 	if (pageBuf == NULL) {
 		close(sock);
 		errorSource = ERRNO;
@@ -447,7 +447,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 			 * fields, we'll allocate another read-sized chunk to
 			 * make sure we have enough room.
 			 */
-			tmp = (char *)realloc(pageBuf, bytesRead + contentLength);
+			tmp = (char*)realloc(pageBuf, bytesRead + contentLength);
 			if (tmp == NULL) {
 				close(sock);
 				free(pageBuf);
@@ -464,7 +464,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 	 * not already be NULL terminated and we can't be sure what type of
 	 * data it is or what the caller will do with it.
 	 */
-	tmp = (char *)realloc(pageBuf, bytesRead + 1);
+	tmp = (char*)realloc(pageBuf, bytesRead + 1);
 	/*
 	 * tmp shouldn't be null, since we're _shrinking_ the buffer, and if
 	 * it DID fail, we could go on with the too-large buffer, but
@@ -492,7 +492,7 @@ int http_fetch(const char *url_tmp, char **fileBuf)
 /*
  * Changes the User Agent.  Returns 0 on success, -1 on error.
  */
-int http_setUserAgent(const char *newAgent)
+int http_setUserAgent(const char* newAgent)
 {
 	static int freeOldAgent = 0;	/* Indicates previous
                                      * malloc's */
@@ -504,7 +504,7 @@ int http_setUserAgent(const char *newAgent)
 		userAgent = NULL;
 		hideUserAgent = 1;
 	} else {
-		tmp = (char *)malloc(strlen(newAgent));
+		tmp = (char*)malloc(strlen(newAgent));
 		if (tmp == NULL) {
 			errorSource = ERRNO;
 			return -1;
@@ -523,7 +523,7 @@ int http_setUserAgent(const char *newAgent)
 /*
  * Changes the Referer.  Returns 0 on success, -1 on error
  */
-int http_setReferer(const char *newReferer)
+int http_setReferer(const char* newReferer)
 {
 	static int freeOldReferer = 0;	/* Indicated previous
                                     * malloc's */
@@ -535,7 +535,7 @@ int http_setReferer(const char *newReferer)
 		referer = NULL;
 		hideReferer = 1;
 	} else {
-		tmp = (char *)malloc(strlen(newReferer));
+		tmp = (char*)malloc(strlen(newReferer));
 		if (tmp == NULL) {
 			errorSource = ERRNO;
 			return -1;
@@ -580,7 +580,7 @@ void http_setRedirects(int redirects)
  * success 1 when url contains no end filename (i.e., 'www.foo.com/'), and
  * **filename should not be assumed to be valid -1 on error
  */
-int http_parseFilename(const char *url, char **filename)
+int http_parseFilename(const char* url, char** filename)
 {
 	char* ptr;
 
@@ -589,7 +589,7 @@ int http_parseFilename(const char *url, char **filename)
 		http_errno = HF_NULLURL;
 		return -1;
 	}
-	ptr = (char *)rindex(url, '/');
+	ptr = (char*)rindex(url, '/');
 	if (ptr == NULL)
 		/* Root level request, apparently */
 		return 1;
@@ -598,7 +598,7 @@ int http_parseFilename(const char *url, char **filename)
 	if (*ptr == '\0')
 		return 1;
 
-	*filename = (char *)malloc(strlen(ptr));
+	*filename = (char*)malloc(strlen(ptr));
 	if (*filename == NULL) {
 		errorSource = ERRNO;
 		return -1;
@@ -612,14 +612,14 @@ int http_parseFilename(const char *url, char **filename)
  * Depending on the source of error, calls either perror() or prints an HTTP
  * Fetcher error message to stdout
  */
-void http_perror(const char *string)
+void http_perror(const char* string)
 {
 	if (errorSource == ERRNO)
 		perror(string);
 	else if (errorSource == H_ERRNO)
 		herror(string);
 	else if (errorSource == FETCHER_ERROR) {
-		const char     *stringIndex;
+		const char* stringIndex;
 
 		if (strstr(http_errlist[http_errno], "%d") == NULL) {
 			fputs(string, stderr);
@@ -674,9 +674,9 @@ const char* http_strerror()
 			 * errorInt. convertedError[128] has been declared
 			 * for that purpose
 			 */
-			char *stringIndex, *originalError;
+			char* stringIndex, *originalError;
 
-			originalError = (char *)http_errlist[http_errno];
+			originalError = (char*)http_errlist[http_errno];
 			convertedError[0] = 0;	/* Start off with NULL */
 			stringIndex = strstr(originalError, "%d");
 			strncat(convertedError, originalError,	/* Copy up to %d */
@@ -697,7 +697,7 @@ const char* http_strerror()
  * (most headers aren't HUGE). Returns: # of bytes read on success, or -1 on
  * error
  */
-int _http_read_header(int sock, char *headerPtr)
+int _http_read_header(int sock, char* headerPtr)
 {
 	fd_set rfds;
 	struct timeval tv;
@@ -754,7 +754,7 @@ int _http_read_header(int sock, char *headerPtr)
  * Opens a TCP socket and returns the descriptor Returns: socket descriptor,
  * or -1 on error
  */
-int makeSocket(char *host)
+int makeSocket(char* host)
 {
 	int	sock;               /* Socket descriptor */
 	struct sockaddr_in sa;	/* Socket address */
@@ -762,7 +762,7 @@ int makeSocket(char *host)
 	int	ret;
 	int	port;
 	char* p;
-
+ 
 	/* Check for port number specified in URL */
 	p = strchr(host, ':');
 	if (p) {
@@ -777,7 +777,7 @@ int makeSocket(char *host)
 		return -1;
 	}
 	/* Copy host address from hostent to (server) socket address */
-	memcpy((char *)&sa.sin_addr, (char *)hp->h_addr, hp->h_length);
+	memcpy((char*)&sa.sin_addr, (char*)hp->h_addr, hp->h_length);
 	sa.sin_family = hp->h_addrtype;	/* Set service sin_family to PF_INET */
 	sa.sin_port = htons(port);	/* Put portnum into sockaddr */
 
@@ -786,7 +786,7 @@ int makeSocket(char *host)
 		errorSource = ERRNO;
 		return -1;
 	}
-	ret = connect(sock, (struct sockaddr *)&sa, sizeof(sa));
+	ret = connect(sock, (struct sockaddr*)&sa, sizeof(sa));
 	if (ret == -1) {
 		errorSource = ERRNO;
 		return -1;
@@ -800,13 +800,13 @@ int makeSocket(char *host)
  * the buffer to fit. Returns: 0 on success, or -1 on error (original buffer
  * is unchanged).
  */
-int _checkBufSize(char **buf, int *bufsize, int more)
+int _checkBufSize(char** buf, int* bufsize, int more)
 {
 	char* tmp;
 	int	roomLeft = (int)*bufsize - (int)(strlen(*buf) + 1);
 	if (roomLeft > more)
 		return 0;
-	tmp = (char *)realloc(*buf, *bufsize + more + 1);
+	tmp = (char*)realloc(*buf, *bufsize + more + 1);
 	if (tmp == NULL)
 		return -1;
 	*buf = tmp;

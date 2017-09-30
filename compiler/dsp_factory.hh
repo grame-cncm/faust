@@ -189,8 +189,8 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
 // Backend API
 
-dsp_factory_base* compile_faust_factory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);
+dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);
 
-std::string expand_dsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
+std::string expandDsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 
 #endif

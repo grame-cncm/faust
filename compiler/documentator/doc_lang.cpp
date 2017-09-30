@@ -193,7 +193,7 @@ static istream* openArchFile (const string& filename)
 {
 	istream* file;
 	getCurrentDir();	// Save the current directory.
-	if ( (file = open_arch_stream(filename.c_str())) ) {
+	if ( (file = openArchStream(filename.c_str())) ) {
 		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
         stringstream error;

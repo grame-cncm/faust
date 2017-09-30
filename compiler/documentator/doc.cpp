@@ -92,15 +92,15 @@ using namespace std ;
 enum { langEN, langFR, langIT };
 
 /* Printing functions */
-static void		printlatexheader(istream& latexheader, const string& faustversion, ostream& docout);
-static void		printfaustlistings(ostream& docout);
-static void		printfaustlisting(string& path, ostream& docout);
-static void		printlatexfooter(ostream& docout);
-static void		printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout);
-static void		printfaustdocstamp(const string& faustversion, ostream& docout);
-static void		printDocEqn(Lateq* ltq, ostream& docout);
-static void		printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout, int i);
-static void		printDocMetadata(const Tree expr, ostream& docout);
+static void	printLatexHeader(istream& latexheader, const string& faustversion, ostream& docout);
+static void	printFaustListings(ostream& docout);
+static void	printFaustListing(string& path, ostream& docout);
+static void	printLatexFooter(ostream& docout);
+static void	printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout);
+static void	printFaustdocStamp(const string& faustversion, ostream& docout);
+static void	printDocEqn(Lateq* ltq, ostream& docout);
+static void	printDocDgm(const Tree expr, const char* svgTopDir, ostream& docout, int i);
+static void	printDocMetadata(const Tree expr, ostream& docout);
 
 /* Primary sub-functions for <equation> handling */
 static void	prepareDocEqns( const vector<Tree>& docBoxes, vector<Lateq*>& docCompiledEqnsVector );		///< Caller function.
@@ -150,10 +150,10 @@ bool isDocTxt(Tree t0, const char** str)
 }
 
 Tree docEqn(Tree x) 				{ return tree(gGlobal->DOCEQN, x); 		}
-bool isDocEqn(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCEQN, x); 	}
+bool isDocEqn(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCEQN, x); }
 
 Tree docDgm(Tree x) 				{ return tree(gGlobal->DOCDGM, x); 		}
-bool isDocDgm(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCDGM, x); 	}
+bool isDocDgm(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCDGM, x); }
 
 Tree docNtc()						{ return tree(gGlobal->DOCNTC);			}
 bool isDocNtc(Tree t)				{ return isTree(t, gGlobal->DOCNTC); 	}
@@ -162,7 +162,7 @@ Tree docLst()						{ return tree(gGlobal->DOCLST);			}
 bool isDocLst(Tree t)				{ return isTree(t, gGlobal->DOCLST); 	}
 
 Tree docMtd(Tree x) 				{ return tree(gGlobal->DOCMTD, x); 		}
-bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCMTD, x); 	}
+bool isDocMtd(Tree t, Tree& x) 		{ return isTree(t, gGlobal->DOCMTD, x); }
 
 /*****************************************************************************
 				Main Printing Function for the Documentation
@@ -218,11 +218,11 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
 	if (gGlobal->gDocVector.empty()) { declareAutoDoc(); } 	
 	
 	/** Printing stuff : in the '.tex' ouptut file, eventually including SVG files. */
-	printfaustdocstamp(faustversion, docout);						///< Faust version and compilation date (comment).
+	printFaustdocStamp(faustversion, docout);						///< Faust version and compilation date (comment).
 	istream* latexheader = openArchFile(gGlobal->gLatexheaderfilename);
-	printlatexheader(*latexheader, faustversion, docout);                               ///< Static LaTeX header (packages and setup).
-	printdoccontent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion, docout);		///< Generate math contents (main stuff!).
-	printlatexfooter(docout);                                                           ///< Static LaTeX footer.
+	printLatexHeader(*latexheader, faustversion, docout);                               ///< Static LaTeX header (packages and setup).
+	printDocContent(svgTopDir.c_str(), gGlobal->gDocVector, faustversion, docout);		///< Generate math contents (main stuff!).
+	printLatexFooter(docout);                                                           ///< Static LaTeX footer.
     delete(latexheader);
 }
 
@@ -237,7 +237,7 @@ void printDoc(const char* projname, const char* docdev, const char* faustversion
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The LaTeX output file to print into.
  */
-static void printlatexheader(istream& latexheader, const string& faustversion, ostream& docout)
+static void printLatexHeader(istream& latexheader, const string& faustversion, ostream& docout)
 {	
 	string	s;
 	while(getline(latexheader, s)) docout << s << endl;
@@ -279,19 +279,19 @@ static void printDocMetadata(const Tree expr, ostream& docout)
 
 /** 
  * Print listings of each Faust code ".dsp" files,
- * calling the 'printfaustlisting' function.
+ * calling the 'printFaustListing' function.
  *
  * @param[out]	docout		The LaTeX output file to print into.
  */
-static void printfaustlistings(ostream& docout)
+static void printFaustListings(ostream& docout)
 {	
 	if (gGlobal->gLstDependenciesSwitch) {
 		vector<string> pathnames = gGlobal->gReader.listSrcFiles();
 		for (unsigned int i=0; i< pathnames.size(); i++) {
-			printfaustlisting(pathnames[i], docout);
+			printFaustListing(pathnames[i], docout);
 		}
 	} else {
-		printfaustlisting(gGlobal->gMasterDocument, docout);
+		printFaustListing(gGlobal->gMasterDocument, docout);
 	}
 }
 
@@ -302,16 +302,16 @@ static void printfaustlistings(ostream& docout)
  * @param[in]	faustfile	The source file containing the Faust code.
  * @param[out]	docout		The LaTeX output file to print into.
  */
-static void printfaustlisting(string& faustfile, ostream& docout)
+static void printFaustListing(string& faustfile, ostream& docout)
 {	
 	string	s;
 	ifstream src;
 	
-	//cerr << "Documentator : printfaustlisting : Opening file '" << faustfile << "'" << endl;
+	//cerr << "Documentator : printFaustListing : Opening file '" << faustfile << "'" << endl;
 	src.open(faustfile.c_str(), ifstream::in);
 	
 	docout << endl << "\\bigskip\\bigskip" << endl;
-	docout << "\\begin{lstlisting}[caption=\\texttt{" << filebasename(faustfile.c_str()) << "}]" << endl;
+	docout << "\\begin{lstlisting}[caption=\\texttt{" << fileBasename(faustfile.c_str()) << "}]" << endl;
 
 	bool isInsideDoc = false;
 	
@@ -340,7 +340,7 @@ static void printfaustlisting(string& faustfile, ostream& docout)
  *
  * @param[out]	docout		The LaTeX output file to print into.
  */
-static void printlatexfooter(ostream& docout)
+static void printLatexFooter(ostream& docout)
 {
 	docout << endl << "\\end{document}" << endl << endl;
 }
@@ -354,7 +354,7 @@ static void printlatexfooter(ostream& docout)
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The LaTeX output file to print into.
  */
-static void printfaustdocstamp(const string& faustversion, ostream& docout)
+static void printFaustdocStamp(const string& faustversion, ostream& docout)
 {
 	char datebuf [150];
 	strftime (datebuf, 150, "%c", getCompilationDate());
@@ -384,7 +384,7 @@ static void printfaustdocstamp(const string& faustversion, ostream& docout)
  * @param[in]	faustversion	The current version of this Faust compiler.
  * @param[out]	docout			The output file to print into.
  **/
-static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
+static void printDocContent(const char* svgTopDir, const vector<Tree>& docVector, const string& faustversion, ostream& docout)
 {
 	//cerr << endl << "Documentator : printdoccontent : " << docVector.size() << " <mdoc> tags read." << endl;
 	
@@ -416,23 +416,23 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 		/** Second level printing loop, on each <mdoc>. */
 		while (isList(L)) {
 			Tree expr;
-			if ( isDocEqn(hd(L), expr) ) { ///< After equations are well prepared and named.
+			if (isDocEqn(hd(L), expr)) { ///< After equations are well prepared and named.
 				printDocEqn(*eqn_it++, docout);
 			}
-			else if ( isDocDgm(hd(L), expr) ) { 
+			else if (isDocDgm(hd(L), expr)) {
 				printDocDgm(expr, svgTopDir, docout, dgmIndex++);
 			}
-			else if ( isDocMtd(hd(L), expr) ) { 
+			else if (isDocMtd(hd(L), expr)) {
 				printDocMetadata(expr, docout);
 			}
-			else if ( isDocTxt(hd(L)) ) { 
+			else if (isDocTxt(hd(L))) {
 				docout << *hd(L)->branch(0); // Directly print registered doc text.
 			}
-			else if ( isDocNtc(hd(L)) ) { 
+			else if (isDocNtc(hd(L))) {
 				printDocNotice(faustversion, docout);
 			}
-			else if ( isDocLst(hd(L)) ) { 
-				printfaustlistings(docout);
+			else if (isDocLst(hd(L))) {
+				printFaustListings(docout);
 			}
 			else { 
 				cerr << "ERROR : " << *hd(L) << " is not a valid documentation type." << endl; 
@@ -441,7 +441,7 @@ static void printdoccontent(const char* svgTopDir, const vector<Tree>& docVector
 		}
 		//cerr << " ...end of <mdoc> parsing." << endl; 
 		
-		if ( code != docMasterCodeMap.end() && gGlobal->gLstDistributedSwitch ) {
+		if (code != docMasterCodeMap.end() && gGlobal->gLstDistributedSwitch) {
 			printdocCodeSlices(*code, docout);
 		}
 	}
@@ -465,7 +465,7 @@ static void prepareDocEqns(const vector<Tree>& docBoxes, vector<Lateq*>& docComp
 {	
 	vector<Tree>	eqBoxes;		collectDocEqns( docBoxes, eqBoxes );		///< step 0. Feed a vector.
 	
-	if(! eqBoxes.empty() ) {
+	if(!eqBoxes.empty()) {
 		vector<Tree>	evalEqBoxes;	mapEvalDocEqn( eqBoxes, gGlobal->gExpandedDefList, evalEqBoxes );	///< step 1. Evaluate boxes.
 		vector<string>	eqNames;		mapGetEqName( evalEqBoxes, eqNames );		///< step 2. Get boxes name.
 		vector<string>	eqNicknames;	calcEqnsNicknames( eqNames, eqNicknames );	///< step 3. Calculate nicknames.
@@ -518,8 +518,7 @@ static void mapEvalDocEqn(const vector<Tree>& eqBoxes, const Tree& env, vector<T
 {
 	//cerr << "###\n# Documentator : mapEvalDocEqn" << endl;
 	
-	for ( vector<Tree>::const_iterator eq=eqBoxes.begin(); eq < eqBoxes.end(); eq++)
-	{
+	for (vector<Tree>::const_iterator eq=eqBoxes.begin(); eq < eqBoxes.end(); eq++) {
 		evalEqBoxes.push_back(evaldocexpr( *eq, env ));
 	}
 	//cerr << "Documentator : end of mapEvalDocEqn\n---" << endl;
@@ -536,14 +535,13 @@ static void mapGetEqName(const vector<Tree>& evalEqBoxes, vector<string>& eqName
 	//cerr << "###\n# Documentator : mapGetEqName" << endl;
 	
 	int i = 1;
-	for( vector<Tree>::const_iterator eq = evalEqBoxes.begin(); eq < evalEqBoxes.end(); eq++, i++ ) {
+	for(vector<Tree>::const_iterator eq = evalEqBoxes.begin(); eq < evalEqBoxes.end(); eq++, i++) {
 		Tree id;
 		string s;
 		int n,m; getBoxType(*eq, &n, &m); // eq name only for bd without inputs
-		if ( n==0 && getDefNameProperty(*eq, id) ) {
+		if (n == 0 && getDefNameProperty(*eq, id)) {
 			s = tree2str(id);
-		}
-		else {
+		} else {
 			s = calcNumberedName("doceqn-", i);
 		}		
 		eqNames.push_back( s ) ;
@@ -619,8 +617,7 @@ static void mapPrepareEqSig(const vector<Tree>& evalEqBoxes, vector<int>& eqInpu
         //Tree lsig4 = privatise(lsig3);		///< Un-share tables with multiple writers
         Tree lsig4 = docTableConvertion(lsig3);		///< convert regular tables into special doctables
                                                     ///< (regular tables are difficult to translate to equations)
-
-		eqSigs.push_back(lsig4);
+        eqSigs.push_back(lsig4);
 	}
 	//cerr << "Documentator : end of mapPrepareEqSig\n---" << endl;
 }
@@ -696,8 +693,7 @@ static void mapCompileDocEqnSigs(const vector<Tree>& eqSigs, const vector<int>& 
 	//cerr << "###\n# Documentator : mapCompileDocEqnSigs" << endl;
 	
 	for (unsigned int i=0; i < eqSigs.size(); i++) {
-		
-		//		docCompiledEqnsVector.push_back( DC->compileMultiSignal(*it, 0) );
+		// docCompiledEqnsVector.push_back( DC->compileMultiSignal(*it, 0) );
 		docCompiledEqnsVector.push_back(DC->compileLateq(eqSigs[i], new Lateq(eqInputs[i], eqOutputs[i])));
 	}
 	
@@ -835,8 +831,9 @@ vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlice
 			
 			if (foundopendoc != string::npos) { 
 				if (isInsideDoc == false) { /** A change has come. ;) */
-					if (! tmp.empty() ) {
-						codeSlices.push_back(tmp); }
+					if (!tmp.empty()) {
+						codeSlices.push_back(tmp);
+                    }
 					tmp = "";
 				}
 				isInsideDoc = true;  
@@ -865,7 +862,7 @@ vector<string>& docCodeSlicer(const string& faustfile, vector<string>& codeSlice
  */
 static void printdocCodeSlices(const string& code, ostream& docout)
 {
-	if ( ! code.empty() ) {
+	if (!code.empty()) {
 		docout << endl << "\\begin{lstlisting}[numbers=none, frame=none, basicstyle=\\small\\ttfamily, backgroundcolor=\\color{yobg}]" << endl;
 		docout << code << endl;
 		docout << "\\end{lstlisting}" << endl << endl;
@@ -901,12 +898,12 @@ static bool doesFileBeginWithCode(const string& faustfile)
 /*
  * Open architecture file.
  */
-static istream* openArchFile (const string& filename)
+static istream* openArchFile(const string& filename)
 {
 	istream* file;
 	getCurrentDir();	// Save the current directory.
 	//cerr << "Documentator : openArchFile : Opening input file  '" << filename << "'" << endl;
-	if ((file = open_arch_stream(filename.c_str()))) {
+	if ((file = openArchStream(filename.c_str()))) {
 		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
 	} else {
         stringstream error;
@@ -926,10 +923,10 @@ static istream* openArchFile (const string& filename)
 static char* legalFileName(const Tree t, int n, char* dst)
 {
 	Tree	id;
-	int 	i=0;
+	int 	i = 0;
 	if (getDefNameProperty(t, id)) {
 		const char* 	src = tree2str(id);
-		for (i=0; isalnum(src[i]) && i<16; i++) {
+		for (i = 0; isalnum(src[i]) && i < 16; i++) {
 			dst[i] = src[i];
 		}
 	}
@@ -964,11 +961,11 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 	//cerr << "Documentator : copyFaustSources : Creating directory '" << srcdir << "'" << endl;
 	makedir(srcdir.c_str());	// create a directory.
 		
-	for (unsigned int i=0; i< pathnames.size(); i++) {
+	for (unsigned int i = 0; i < pathnames.size(); i++) {
 		ifstream src;
 		ofstream dst;
 		string faustfile = pathnames[i];
-		string copy = subst("$0/$1", srcdir, filebasename(faustfile.c_str()));
+		string copy = subst("$0/$1", srcdir, fileBasename(faustfile.c_str()));
 		//cerr << "Documentator : copyFaustSources : Opening input file  '" << faustfile << "'" << endl;
 		//cerr << "Documentator : copyFaustSources : Opening output file '" << copy << "'" << endl;
 		src.open(faustfile.c_str(), ifstream::in);
@@ -983,7 +980,6 @@ static void copyFaustSources(const char* projname, const vector<string>& pathnam
 static void initCompilationDate()
 {
 	time_t now;
-	
 	time(&now);
 	gGlobal->gCompilationDate = *localtime(&now);
 }

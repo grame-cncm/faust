@@ -69,7 +69,7 @@ EXPORT asmjs_dsp_factory* createAsmDSPFactoryFromString(const string& name_app, 
     }
     argv1[argc1] = 0;  // NULL terminated argv
     
-    dsp_factory_base* dsp_factory_aux = compile_faust_factory(argc1, argv1,
+    dsp_factory_base* dsp_factory_aux = compileFaustFactory(argc1, argv1,
                                                              name_app.c_str(),
                                                              dsp_content.c_str(),
                                                              error_msg,

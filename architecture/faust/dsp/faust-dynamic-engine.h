@@ -96,7 +96,6 @@ extern "C"
     void setGyrConverterDsp(dsp* dsp, int p, int acc, int curve, FAUSTFLOAT amin, FAUSTFLOAT amid, FAUSTFLOAT amax);
     ///<Used to edit gyroscope curves and mapping. Set curve and related mapping for a given UI parameter.
     void getGyrConverterDsp(dsp* dsp, int p, int* acc, int* curve, FAUSTFLOAT* amin, FAUSTFLOAT* amid, FAUSTFLOAT* amax);
-    
 
 /************************************************************************
 ************************************************************************/
