@@ -1,14 +1,4 @@
 /************************************************************************
-
-    IMPORTANT NOTE : this file contains two clearly delimited sections :
-    the ARCHITECTURE section (in two parts) and the USER section. Each section
-    is governed by its own copyright and license. Please check individually
-    each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2014 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
@@ -30,7 +20,6 @@
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
 
-************************************************************************
 ************************************************************************/
 
 #include <math.h>
@@ -428,7 +417,7 @@ extern "C"
 
     int getParamIndexDsp(dsp* dsp_ext, const char* name)	{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamIndex(name); }
     const char* getParamAddressDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamAddress(p); }
-    const char* getParamUnitDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamUnit(p); }		// [unit: Hz] metadata -> "Hz"
+    const char* getParamUnitDsp(dsp* dsp_ext, int p)		{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getMetadata(p, "unit"); }		// [unit: Hz] metadata -> "Hz"
     FAUSTFLOAT getParamMinDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMin(p); }
     FAUSTFLOAT getParamMaxDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamMax(p); }
     FAUSTFLOAT getParamStepDsp(dsp* dsp_ext, int p)			{ return reinterpret_cast<dsp_aux*>(dsp_ext)->fParams.getParamStep(p); }

@@ -251,17 +251,6 @@ class RustInstVisitor : public TextInstVisitor {
             } else {
                 gFunctionSymbolTable[inst->fName] = 1;
             }
-        
-            // TO CHECK
-            // Prototype
-            if (inst->fType->fAttribute & FunTyped::kInline) {
-                *fOut << "inline ";
-            }
-            
-            // TO CHECK
-            if (inst->fType->fAttribute & FunTyped::kLocal) {
-                *fOut << "static ";
-            }
             
             // Only generates additional functions
             if (fMathLibTable.find(inst->fName) == fMathLibTable.end()) {

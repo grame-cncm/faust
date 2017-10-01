@@ -62,7 +62,7 @@ class SoundUI : public GenericUI
   
 };
 
-// To be used in no SoundUI is used
+// To be used by dsp code if no SoundUI is used
 static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
 
 #endif

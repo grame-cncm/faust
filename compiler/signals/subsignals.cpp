@@ -26,7 +26,7 @@
 
 /**
  * Extract the sub signals of a signal expression, that is not
- * necesseraly all the subtrees.
+ * necessarily all the subtrees.
  * @param sig the signals
  * @param vsigs a reference to the vector where the subsignals will be placed
  * @return the number of subsignals
