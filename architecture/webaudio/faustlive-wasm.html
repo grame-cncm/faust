@@ -506,14 +506,14 @@
 
             function pitchWheel(channel, bend)
             {
-                if (DSP && isPoly) {
+                if (DSP) {
                     DSP.pitchWheel(channel, bend);
                 }
             }
 
             function ctrlChange(channel, ctrl, value)
             {
-                if (DSP && isPoly) {
+                if (DSP) {
                     DSP.ctrlChange(channel, ctrl, value);
                 }
             }

@@ -1,6 +1,6 @@
 
 <script>
-    
+
 'use strict';
 
 // Faust part
@@ -9,6 +9,7 @@ var isWebKitAudio = (typeof(webkitAudioContext) !== "undefined");
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_input = null;
+var midi_input = [];
 var DSP = null;
 var faustsvg = null;
 var output_handler = null;
@@ -20,6 +21,77 @@ function changeBufferSize(buffer_size)
     startNewDSP(new_buffer_size);
 }
 
+
+// MIDI input handling
+
+function pitchWheel(channel, wheel)
+{
+    if (DSP) {
+        DSP.pitchWheel(channel, wheel);
+    }
+}
+
+function ctrlChange(channel, ctrl, value)
+{
+    if (DSP) {
+        DSP.ctrlChange(channel, ctrl, value);
+    }
+}
+
+function midiMessageReceived(ev)
+{
+    var cmd = ev.data[0] >> 4;
+    var channel = ev.data[0] & 0xf;
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
+
+    if (channel === 9) {
+        return;
+    } else if (cmd === 11) {
+        ctrlChange(channel, data1, data2);
+    } else if (cmd === 14) {
+        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+    }
+}
+
+function onerrorcallback(error)
+{
+    console.log(error);
+}
+
+function onsuccesscallbackJazz(access)
+{
+    var inputs = access.getInputs();
+    for (var i = 0; i < inputs.length; i++) {
+        var input = access.getInput(inputs[i]);
+        midi_input.push(input);
+        input.onmessage = midiMessageReceived;
+    }
+}
+
+function onsuccesscallbackStandard(access)
+{
+    for (var input of access.inputs.values()) {
+        midi_input.push(input);
+        input.onmidimessage = midiMessageReceived;
+        console.log(input.name);
+    }
+}
+
+function activateMIDIInput()
+{
+    console.log("activateMIDIInput");
+    if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+        if (navigator.requestMIDIAccess() !== undefined) {
+            navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+        } else{
+            navigator.requestMIDIAccess(onsuccesscallbackJazz, onerrorcallback);
+        }
+    } else {
+        alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+    }
+}
+
 // Audio input handling
 
 function activateAudioInput()
@@ -27,7 +99,7 @@ function activateAudioInput()
     if (!navigator.getUserMedia) {
         navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
     }
-    
+
     if (navigator.getUserMedia) {
         navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
                                alert('Error getting audio input');
@@ -42,7 +114,7 @@ function getDevice(device)
 {
     // Create an AudioNode from the stream.
     audio_input = audio_context.createMediaStreamSource(device);
-    
+
     // Connect it to the destination.
     audio_input.connect(DSP);
 }
@@ -82,33 +154,35 @@ function startDSPAux(dsp)
         DSP.disconnect(audio_context.destination);
         _f4u$t.hard_delete(faustsvg);
     }
-    
+
     if (!dsp) {
         alert(faust.getErrorMessage());
         return;
     }
-    
+
+    activateMIDIInput();
+
     DSP = dsp;
-    
+
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
     DSP.connect(audio_context.destination);
-    
+
     console.log(DSP.getJSON());
-    
+
     // TODO: emcc
     //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(DSP.getParams());
-    
+
     // No polling from the server needed, so use an empty loop
     _f4u$t.main_loop = function() {}
-    
+
     faustsvg = $('<div />');
     $('body').append(faustsvg);
     output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
     DSP.setOutputParamHandler(output_handler);
-    
+
     // Load DSP state from local storage
     loadDSP();
 }
@@ -129,20 +203,20 @@ function startNewDSP(buffer_size)
 
 // To activate audio on iOS
 window.addEventListener('touchstart', function() {
-                        
+
                         // create empty buffer
                         var buffer = audio_context.createBuffer(1, 1, 22050);
                         var source = audio_context.createBufferSource();
                         source.buffer = buffer;
-                        
+
                         // connect to output (your speakers)
                         source.connect(audio_context.destination);
-                        
+
                         // play the file
                         source.noteOn(0);
-                        
+
                         }, false);
-                        
+
 // Start monophonic instrument
 if (typeof (Module) !== "undefined") {
     console.log("Compiled with EMCC");
@@ -154,13 +228,13 @@ if (typeof (Module) !== "undefined") {
 
 // Save DSP state to local storage
 setInterval(function() { if (DSP) saveDSP(); }, 1000);
- 
+
 </script>
 
 <P>
 <center>
     <form method="POST" name="menu" >
-        <select name="selectedBuffer" 
+        <select name="selectedBuffer"
             onChange="changeBufferSize(this.form.selectedBuffer)">
             <option value = 256> 256 </option>
             <option value = 512> 512 </option>
@@ -171,4 +245,3 @@ setInterval(function() { if (DSP) saveDSP(); }, 1000);
         </select>
     </form>
 </center>
-
