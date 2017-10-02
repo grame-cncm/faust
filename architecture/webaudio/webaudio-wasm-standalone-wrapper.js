@@ -231,7 +231,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
                             sp.fPitchwheelLabel.push(item.address);
                         } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
                             sp.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
-                              .push({ path:item.address,
+                                .push({ path:item.address,
                                       min:parseFloat(item.min),
                                       max:parseFloat(item.max) });
                         }
