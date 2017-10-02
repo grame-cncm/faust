@@ -374,50 +374,12 @@ void WASMCodeContainer::produceClass()
     printCompilationOptions(fHelper);
     fHelper << "\n*/\n";
     
-    // GetSize
-    tab(n, fHelper); fHelper << "function getSize" << fKlassName << "() {";
-        tab(n+1, fHelper);
-        fHelper << "return " << gGlobal->gWASMVisitor->getStructSize() << ";";
-        printlines(n+1, fUICode, fHelper);
-    tab(n, fHelper); fHelper << "}";
-    tab(n, fHelper);
-    
-    // Fields to path
-    tab(n, fHelper); fHelper << "function getPathTable" << fKlassName << "() {";
-        tab(n+1, fHelper); fHelper << "var pathTable = [];";
-        map <string, MemoryDesc>& fieldTable = gGlobal->gWASMVisitor->getFieldTable();
-        for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
-            MemoryDesc tmp = fieldTable[(*it).first];
-            tab(n+1, fHelper); fHelper << "pathTable[\"" << (*it).second << "\"] = " << tmp.fOffset << ";";
-        }
-        tab(n+1, fHelper); fHelper << "return pathTable;";
-    tab(n, fHelper); fHelper << "}";
-    
     // Generate JSON
-    tab(n, fHelper);
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
         tab(n+1, fHelper);
         fHelper << "return \""; fHelper << json; fHelper << "\";";
         printlines(n+1, fUICode, fHelper);
-    tab(n, fHelper); fHelper << "}";
-    
-    // Metadata declaration
-    tab(n, fHelper);
-    tab(n, fHelper); fHelper << "function metadata" << fKlassName << "(m) {";
-    for (map<Tree, set<Tree> >::iterator i = gGlobal->gMetaDataSet.begin(); i != gGlobal->gMetaDataSet.end(); i++) {
-        if (i->first != tree("author")) {
-            tab(n+1, fHelper); fHelper << "m.declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
-        } else {
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
-                if (j == i->second.begin()) {
-                    tab(n+1, fHelper); fHelper << "m.declare(\"" << *(i->first) << "\", " << **j << ");" ;
-                } else {
-                    tab(n+1, fHelper); fHelper << "m.declare(\"" << "contributor" << "\", " << **j << ");";
-                }
-            }
-        }
-    }
-    tab(n, fHelper); fHelper << "}" << endl << endl;
+    tab(n, fHelper); fHelper << "}\n";
 }
 
 void WASMScalarCodeContainer::generateCompute()

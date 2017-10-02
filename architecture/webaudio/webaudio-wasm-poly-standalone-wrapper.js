@@ -328,20 +328,20 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         	|| item.type === "button"
         	|| item.type === "checkbox"
         	|| item.type === "nentry") {
-
             // Keep inputs adresses
             sp.inputs_items.push(item.address);
             sp.pathTable[item.address] = parseInt(item.index);
-
-            for (var i = 0; i < item.meta.length; i++) {
-                if (item.meta[i].midi !== undefined) {
-                    if (item.meta[i].midi.trim() === "pitchwheel") {
-                        sp.fPitchwheelLabel.push(item.address);
-                    } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
-                        sp.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
-                            .push({ path:item.address,
-                                    min:parseFloat(item.min),
-                                    max:parseFloat(item.max) });
+            if (item.meta !== undefined) {
+                for (var i = 0; i < item.meta.length; i++) {
+                    if (item.meta[i].midi !== undefined) {
+                        if (item.meta[i].midi.trim() === "pitchwheel") {
+                            sp.fPitchwheelLabel.push(item.address);
+                        } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
+                            sp.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
+                                .push({ path:item.address,
+                                        min:parseFloat(item.min),
+                                        max:parseFloat(item.max) });
+                        }
                     }
                 }
             }
@@ -495,7 +495,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     		json_object.meta.forEach(function(meta) {
     			handler.declare(Object.keys(meta)[0], Object.values(meta)[0]);
     		});
-       	}
+       }
     }
 
     /**
