@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include <assert.h>
 #include <stdlib.h>
 #include <iostream>
 
@@ -148,7 +147,7 @@ void old_OccMarkup::incOcc(Tree env, int v, int r, int d, Tree xc, Tree t)
 		if (isSigFixDelay(t,x,y)) {
 			Type g2 = getCertifiedSigType(y);
 			int d2 = checkDelayInterval(g2);
-			assert(d2>=0);
+			faustassert(d2>=0);
             incOcc(env, v0, r0, d2, c0, x);
             incOcc(env, v0, r0, 0, c0, y);
         } else if (isSigPrefix(t,y,x)) {

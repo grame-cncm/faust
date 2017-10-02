@@ -863,7 +863,7 @@ static void parseSourceFiles()
         gGlobal->gResult2 = cons(importFile(tree(s->c_str())), gGlobal->gResult2);
     }
    
-    gGlobal->gExpandedDefList = gGlobal->gReader.expandlist(gGlobal->gResult2);
+    gGlobal->gExpandedDefList = gGlobal->gReader.expandList(gGlobal->gResult2);
 
     endTiming("parser");
 }

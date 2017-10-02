@@ -360,7 +360,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxComponent(exp, label)) {
         const char* fname = tree2str(label);
-        Tree eqlst = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
+        Tree eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
         Tree res = closure(boxIdent("process"), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
@@ -368,7 +368,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else if (isBoxLibrary(exp, label)) {
         const char* fname = tree2str(label);
-        Tree eqlst = gGlobal->gReader.expandlist(gGlobal->gReader.getlist(fname));
+        Tree eqlst = gGlobal->gReader.expandList(gGlobal->gReader.getList(fname));
         Tree res = closure(boxEnvironment(), gGlobal->nil, gGlobal->nil, pushMultiClosureDefs(eqlst, gGlobal->nil, gGlobal->nil));
         setDefNameProperty(res, label);
         //cerr << "component is " << boxpp(res) << endl;
@@ -457,7 +457,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 		return evalIdDef(exp, visited, localValEnv);
 
 	} else if (isBoxWithLocalDef(exp, body, ldef)) {
-        Tree expandedldef = gGlobal->gReader.expandlist(ldef);
+        Tree expandedldef = gGlobal->gReader.expandList(ldef);
         return eval(body, visited, pushMultiClosureDefs(expandedldef, visited, localValEnv));
 	
 	} else if (isBoxAppl(exp, fun, arg)) {

@@ -127,9 +127,6 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 
     sp.pathTable = [];
 
-    // Allocate table for 'setParamValue'
-    sp.value_table = [];
-
     sp.update_outputs = function ()
     {
         if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
@@ -148,22 +145,12 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
         for (i = 0; i < sp.numIn; i++) {
             var input = e.inputBuffer.getChannelData(i);
             var dspInput = sp.dspInChannnels[i];
-            for (j = 0; j < input.length; j++) {
-                dspInput[j] = input[j];
-            }
+            dspInput.set(input);
         }
 
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (sp.compute_handler) {
             sp.compute_handler(buffer_size);
-        }
-
-        // Update control state
-        for (i = 0; i < sp.inputs_items.length; i++) {
-            var path = sp.inputs_items[i];
-            var values = sp.value_table[path];
-            sp.factory.setParamValue(sp.dsp, sp.pathTable[path], values[0]);
-            values[0] = values[1];
         }
 
         // Compute
@@ -176,9 +163,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
         for (i = 0; i < sp.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
             var dspOutput = sp.dspOutChannnels[i];
-            for (j = 0; j < output.length; j++) {
-                output[j] = dspOutput[j];
-            }
+            output.set(dspOutput);
         }
     };
 
@@ -280,14 +265,6 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 
         // Init DSP
         sp.factory.init(sp.dsp, context.sampleRate);
-
-        // Init 'value' table
-        for (i = 0; i < sp.inputs_items.length; i++) {
-            var path = sp.inputs_items[i];
-            var values = new Float32Array(2);
-            values[0] = values[1] = sp.factory.getParamValue(sp.dsp, sp.pathTable[path]);
-            sp.value_table[path] = values;
-        }
     }
 
     /*
@@ -400,9 +377,10 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     sp.ctrlChange = function (channel, ctrl, value)
     {
         if (sp.fCtrlLabel[ctrl] !== []) {
-            for (var j = 0; j < sp.fCtrlLabel[ctrl].length; j++) {
-                sp.setParamValue(sp.fCtrlLabel[ctrl][j].path,
-                                 faust.remap(value, 0, 127, sp.fCtrlLabel[ctrl][j].min, sp.fCtrlLabel[ctrl][j].max));
+            for (var i = 0; i < sp.fCtrlLabel[ctrl].length; i++) {
+            	var path = sp.fCtrlLabel[ctrl][i].path;
+            	sp.setParamValue(path, faust.remap(value, 0, 127, sp.fCtrlLabel[ctrl][i].min, sp.fCtrlLabel[ctrl][i].max));
+            	sp.output_handler(path, sp.getParamValue(path));
             }
         }
     }
@@ -415,8 +393,10 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     */
     sp.pitchWheel = function (channel, wheel)
     {
-        for (var j = 0; j < sp.fPitchwheelLabel.length; j++) {
-            sp.setParamValue(sp.fPitchwheelLabel[j], Math.pow(2.0, wheel/12.0));
+        for (var i = 0; i < sp.fPitchwheelLabel.length; i++) {
+    		var path = sp.fPitchwheelLabel[i];
+    		sp.setParamValue(path, Math.pow(2.0, wheel/12.0));
+    		sp.output_handler(path, sp.getParamValue(path));
         }
     }
 
@@ -428,13 +408,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     */
     sp.setParamValue = function (path, val)
     {
-        var values = sp.value_table[path];
-        if (values) {
-            if (sp.factory.getParamValue(sp.dsp, sp.pathTable[path]) === values[0]) {
-                values[0] = val;
-            }
-            values[1] = val;
-        }
+    	sp.factory.setParamValue(sp.dsp, sp.pathTable[path], val);
     }
 
     /**

@@ -39,21 +39,21 @@ class SourceReader
     
     private:
     
-        map<string, Tree>	fFileCache;
-        vector<string>		fFilePathnames;
+        map<string, Tree> fFileCache;
+        vector<string> fFilePathnames;
     
-        Tree parse(const char* fname);
-        Tree expandrec(Tree ldef, set<string>& visited, Tree lresult);
+        Tree parseLocal(const char* fname);
+        Tree expandRec(Tree ldef, set<string>& visited, Tree lresult);
         bool cached(string fname);
-        Tree parsefile(const char* fname);
-        Tree parsestring(const char* fname);
+        Tree parseFile(const char* fname);
+        Tree parseString(const char* fname);
         void checkName();
         
     public:
     
-        Tree getlist(const char* fname);
-        Tree expandlist(Tree ldef);
-        vector<string>	listSrcFiles();
+        Tree getList(const char* fname);
+        Tree expandList(Tree ldef);
+        vector<string> listSrcFiles();
 
 };
 

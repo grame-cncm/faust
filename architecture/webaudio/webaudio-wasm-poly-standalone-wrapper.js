@@ -236,9 +236,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         for (i = 0; i < sp.numIn; i++) {
             var input = e.inputBuffer.getChannelData(i);
             var dspInput = sp.dspInChannnels[i];
-            for (j = 0; j < input.length; j++) {
-                dspInput[j] = input[j];
-            }
+            dspInput.set(input);
         }
 
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
@@ -279,9 +277,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         for (i = 0; i < sp.numOut; i++) {
             var output = e.outputBuffer.getChannelData(i);
             var dspOutput = sp.dspOutChannnels[i];
-            for (j = 0; j < output.length; j++) {
-                output[j] = dspOutput[j];
-            }
+            output.set(dspOutput);
         }
     }
 
@@ -577,10 +573,12 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     {
         if (ctrl === 123 || ctrl === 120) {
             sp.allNotesOff();
-        } else if (sp.fCtrlLabel[ctrl] !== []) {
+        }
+        if (sp.fCtrlLabel[ctrl] !== []) {
             for (var i = 0; i < sp.fCtrlLabel[ctrl].length; i++) {
-                sp.setParamValue(sp.fCtrlLabel[ctrl][i].path,
-                    faust.remap(value, 0, 127, sp.fCtrlLabel[ctrl][i].min, sp.fCtrlLabel[ctrl][i].max));
+            	var path = sp.fCtrlLabel[ctrl][i].path;
+            	sp.setParamValue(path, faust.remap(value, 0, 127, sp.fCtrlLabel[ctrl][i].min, sp.fCtrlLabel[ctrl][i].max));
+            	sp.output_handler(path, sp.getParamValue(path));
             }
         }
     }
@@ -594,7 +592,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.pitchWheel = function (channel, wheel)
     {
         for (var i = 0; i < sp.fPitchwheelLabel.length; i++) {
-              sp.setParamValue(sp.fPitchwheelLabel[i], Math.pow(2.0, wheel/12.0));
+        	var path = sp.fPitchwheelLabel[i];
+        	sp.setParamValue(path, Math.pow(2.0, wheel/12.0));
+        	sp.output_handler(path, sp.getParamValue(path));
         }
     }
 
