@@ -32,7 +32,7 @@ In the following subsections, details about the differences between these 2 vers
 
 ### `faust2` (Faust2)
 
-`faust2` is the home of Faust2. As mentioned previously, most of the differences between Faust0 and Faust2 lie in the Faust compiler. Unlike Faust0, Faust2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and to `lib-llvm`, Faust2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust2 is slightly more complex than Faust0 since it relies on LLVM and OpenSSL. Finally, Faust2 is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
+`faust2` is the home of Faust2. As mentioned previously, most of the differences between Faust0 and Faust2 lie in the Faust compiler. Unlike Faust0, Faust2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust2 is slightly more complex than Faust0 since it relies on LLVM and OpenSSL. Finally, Faust2 is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
 
 More experimental branches are also available but are not documented here.
 
@@ -57,8 +57,8 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 The build steps are the same for all the versions of Faust (Faust0 and Faust2). While Faust0 has no dependencies, the following elements are required to build Faust2:
 
-* `llvm/clang` (> 3.4 / <= 4.0) (has to be installed in universal mode [32/64 bits] on OSX), so using : `sudo port install llvm-3.xx +universal`)
-* `openssl` (has to be installed in universal mode [32/64 bits] on OSX)
+* `llvm/clang` (>= 3.4 / <= 5.0. Note that a 'universal' makefile target can be used to create 32/64 bits binaries. In this case LLVM has to be installed in universal mode [32/64 bits], so  for instance on OSX using MacPorts, using : `sudo port install llvm-3.xx +universal`)
+* `openssl` (has to be installed in universal mode [32/64 bits] if *make universal* is to be used).
 
 ### Linux and MacOSX 
 
