@@ -19,19 +19,6 @@ CROSS=i586-mingw32msvc-
 
 MAKEFILE := Makefile.unix
 
-system	?= $(shell uname -s)
-
-ifeq ($(system), Darwin)
-LIB_EXT = dylib
-else
-ifneq ($(findstring MINGW32, $(system)),)
-LIB_EXT = dll
-EXE = .exe
-else
-LIB_EXT = so
-endif
-endif
-
 prefix := $(DESTDIR)$(PREFIX)
 arch   := $(wildcard architecture/*.*)
 mfiles := $(wildcard examples/Makefile.*)
@@ -42,6 +29,10 @@ zname := faust-$(version)
 
 all :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C architecture/osclib
+
+universal :
+	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) universal
 	$(MAKE) -C architecture/osclib
 
 # make world: This builds all the common targets for a fairly complete Faust

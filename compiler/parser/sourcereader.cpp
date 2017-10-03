@@ -223,7 +223,7 @@ Tree formatDefinitions(Tree rldef)
 	
 	// Produces the definitions
 	for (p = dic.begin(); p != dic.end(); p++) {
-		ldef2 = cons (cons(p->first, makeDefinition(p->first, p->second)), ldef2);
+		ldef2 = cons(cons(p->first, makeDefinition(p->first, p->second)), ldef2);
 	}
 	
 	return ldef2;
@@ -279,7 +279,7 @@ Tree SourceReader::parseFile(const char* fname)
             throw faustexception(error.str());
         } else {
             yy_scan_string(buffer);
-            res = parse(yyfilename);
+            res = parseLocal(yyfilename);
         }
     #else
         // Otherwise use http URL fetch code
