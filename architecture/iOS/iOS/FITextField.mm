@@ -82,7 +82,12 @@
 // to setup handle size
 - (void)setFrame:(CGRect)frame
 {
-	[super setFrame:frame];
+    // Edition is deactivated if medata 'menu' is used
+    if (self.fMenuItemValues.size() > 0) {
+        _messageTextView.editable = NO;
+    }
+
+    [super setFrame:frame];
 }
 
 - (void)dealloc
@@ -222,13 +227,12 @@
     [_inputAccView addSubview:_doneButton];
 }
 
-
 #pragma mark -
 #pragma mark Touch Handling
 
 - (BOOL)gestureRecognizerShouldBegin:(UIGestureRecognizer *)gestureRecognizer
 {
-    UIScrollView*     scrollView = (UIScrollView*)self.superview.superview;
+    UIScrollView* scrollView = (UIScrollView*)self.superview.superview;
     
     scrollView.scrollEnabled = NO;
     
@@ -237,7 +241,7 @@
 
 - (void)pan:(UIPanGestureRecognizer *)gesture
 {
-    UIScrollView*     scrollView = (UIScrollView*)self.superview.superview;
+    UIScrollView* scrollView = (UIScrollView*)self.superview.superview;
     float value = 0.f - [gesture velocityInView:scrollView].y;
     value = value / 200.;
         
