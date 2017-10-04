@@ -500,7 +500,11 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-inpl", "--in-place")) {
              gGlobal->gInPlace = true;
              i += 1;
-             
+            
+        } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
+            gGlobal->gEnableFlag = atoi(argv[i+1]) == 1;
+            i += 2;
+        
         } else if (isCmd(argv[i], "-lm", "--local-machine") 
                 || isCmd(argv[i], "-rm", "--remote-machine")
                 || isCmd(argv[i], "-poly", "--polyphonic-mode")
@@ -628,6 +632,7 @@ static void printHelp()
     cout << "-single \tuse --single-precision-floats for internal computations (default)\n";
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
+    cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
