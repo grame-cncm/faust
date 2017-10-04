@@ -38,8 +38,8 @@
  ************************************************************************
  ************************************************************************/
 
-
 //---> Pick up required headers <-----------------------------------------
+
 #import <UIKit/UIKit.h>
 #import "FIResponder.h"
 
@@ -90,7 +90,5 @@
 @property (readwrite, retain)     UIColor   *ledMaxColor;
 
 -(void) resetPeak;
-
-
 
 @end

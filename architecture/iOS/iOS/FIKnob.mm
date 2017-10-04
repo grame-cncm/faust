@@ -39,7 +39,6 @@
 @synthesize biDirectional, arcStartAngle, cutoutSize, valueArcWidth;
 @synthesize doubleTapValue, tripleTapValue;
 
-
 #pragma mark -
 #pragma mark Init
 
@@ -84,7 +83,6 @@
 	[super setFrame:frame];
 }
 
-
 #pragma mark -
 #pragma mark Gestures
 
@@ -114,7 +112,6 @@
 {
 	self.value = [newValue floatValue];
 }
-
 
 #pragma mark -
 #pragma mark Touch Handling
@@ -290,7 +287,6 @@
 	newValue = self.min + (newValue * (self.max - self.min));
 	return newValue;
 }
-
 
 #pragma mark -
 #pragma mark Drawing

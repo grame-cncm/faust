@@ -36,11 +36,8 @@
  ************************************************************************
  ************************************************************************/
 
-
 // Pick up required headers
 #import "FIBargraph.h"
-
-
 
 //------------------------------------------------------------------------
 //------------------------------------------------------------------------
@@ -67,8 +64,6 @@
             lit:(BOOL)a_lit;
 @end
 
-
-
 @implementation FIBargraph
 //===[ Public Methods ]===================================================
 
@@ -86,7 +81,6 @@
     return self;
 }
 
-
 //------------------------------------------------------------------------
 // Method:  initWithCoder:
 //  Initializes the instance when brought from nib, etc.
@@ -100,7 +94,6 @@
     }
     return self;
 }
-
 
 //------------------------------------------------------------------------
 //  Method: dealloc
@@ -120,7 +113,6 @@
     [super dealloc];
 }
 
-
 //------------------------------------------------------------------------
 //  Method: resetPeak
 //    Resets peak value.  
@@ -133,7 +125,6 @@
     [self setNeedsDisplay];
 }
 
-
 //------------------------------------------------------------------------
 //  Method: value accessor
 //
@@ -141,7 +132,6 @@
 {
     return m_flValue;
 }
-
 
 //------------------------------------------------------------------------
 //  Method: value setter
@@ -183,7 +173,6 @@
     }
 }
 
-
 //------------------------------------------------------------------------
 //  Method: setNumBars:
 //    This method sets the number of bars in the display
@@ -200,7 +189,6 @@
     [self setDangerThreshold:m_flDangerThreshold];
 }
 
-
 //------------------------------------------------------------------------
 //  Method: setWarnThreshold:
 //    Sets the level for which bars should be of the warning color
@@ -215,7 +203,6 @@
     -1;
 }
 
-
 //------------------------------------------------------------------------
 //  Method: setDangerThreshold:
 //    Sets the level for which bars should be of the warning color
@@ -229,7 +216,6 @@
     (int)( m_flDangerThreshold * (float)m_iNumBars ) :
     -1;
 }
-
 
 //------------------------------------------------------------------------
 //  Synthesized properties
@@ -252,8 +238,6 @@
 @synthesize led;
 @synthesize ledMinColor;
 @synthesize ledMaxColor;
-
-
 
 //===[ Private Methods ]==================================================
 
@@ -297,7 +281,6 @@
     self.ledMinColor = [[UIColor blackColor] retain];
     self.ledMaxColor = [[UIColor redColor] retain];
 }
-
 
 //------------------------------------------------------------------------
 //  Method: drawRect:
@@ -425,7 +408,6 @@
         CGContextStrokePath(ctx);
     }
 }
-
 
 //------------------------------------------------------------------------
 //  Method: drawBar::::

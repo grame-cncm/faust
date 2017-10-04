@@ -31,7 +31,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #import <UIKit/UIKit.h>
 
 #define FIDegreesToRadians(x) (M_PI * (x) / 180.0)
@@ -44,7 +43,6 @@
 - (void)responderValueDidChange:(float)value sender:(id)sender;
 
 @end
-
 
 @interface FIResponder : UIControl
 
