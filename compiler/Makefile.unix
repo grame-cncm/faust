@@ -39,10 +39,10 @@ object_ba_interp = $(ba_interp:.cpp=.o)
 object_ba_interp_plugin = $(ba_interp_plugin:.cpp=.o)
 
 os := $(shell uname)
-
 VPATH = $(subprojects)
-
 system ?= $(shell uname -s)
+AR ?= ar
+RANLIB ?= ranlib
 
 # These paths are searched for llvm-config* in reverse order (/opt/local/bin
 # is included for compatibility with MacPorts).
@@ -61,12 +61,8 @@ LLVM_CONFIG ?= $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-c
 
 ## On Darwin build both 32 and 64-bits intel versions
 ifeq ($(system), Darwin)
-    ARCHFLAGS 	:=
-    LIBFLAGS	:=
     LIB_EXT     = dylib
-    ## --analyze   -Wall -pedantic
 else
-    ARCHFLAGS 	:=
     LIBFLAGS	:= --mode=link --tag=CXX
     ifneq ($(findstring MINGW32, $(system)),)
         LIB_EXT = dll
@@ -94,11 +90,6 @@ ifneq ($(findstring MINGW32, $(system)),)
     EXE = .exe
 endif
 
-AR ?= ar
-RANLIB ?= ranlib
-
-CXXFLAGS ?= -std=c++11 -Wall -Wuninitialized
-CXXFLAGS += -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 
 ifeq ($(system), Darwin)
     LLVM_CLANG = $(shell $(LLVM_CONFIG) --prefix)/bin/clang++
@@ -177,6 +168,13 @@ else
     endif
 endif
 
+## Compile flags
+CXXFLAGS ?= -std=c++11
+CXXFLAGS += -Wall -Wuninitialized -Wno-parentheses -Wno-overloaded-virtual -fvisibility=hidden
+CXXFLAGS += $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
+CXXFLAGS += $(ARCHFLAGS)
+
 # Add all backends flags
 CXXFLAGS += $(ba_flags)
 
@@ -189,7 +187,7 @@ endif
 LLVMLIBS += $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS) -lpthread
 
 ## Standard target
-all : OPT= -O3
+all : OPT = -O3
 all : CXXFLAGS += $(OPT)
 all : faust libfaust.a
 
@@ -199,15 +197,16 @@ universal : CXXFLAGS += $(OPT)
 universal : faust libfaust.a
 universal : ARCHFLAGS := -arch i386 -arch x86_64
 
+## Dynamic library
 dynamic : faust libfaust.$(LIB_EXT)
 
 ## Debug mode
-debug : OPT= -g
+debug : OPT = -g
 debug : CXXFLAGS += $(OPT)
 debug : faust libfaust.a
 
 ## Interpreter plugin
-plugin : OPT= -O3
+plugin : OPT = -O3
 plugin : CXXFLAGS += $(OPT) -DINTERP_BUILD -DINTERP_PLUGIN
 plugin : libfaustplugin.a
 
@@ -230,7 +229,7 @@ ios-llvm : CXXFLAGS += -I/Users/letz/llvm-ios/include
 ios-llvm : libfaust.a libfaustmachine.a
 
 ## For the Web/ASMJS, only compile the ASMJS backend
-asmjs : OPT= -O3
+asmjs : OPT = -O3
 asmjs : CC = emcc
 asmjs : CXX = emcc
 asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
@@ -238,17 +237,12 @@ asmjs : libfaust.js libfaustworker.js
 asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']"
 
 ## For the Web/WASM, only compile the WASM backend
-wasm : OPT= -O3
+wasm : OPT = -O3
 wasm : CC = emcc
 wasm : CXX = emcc
 wasm : CXXFLAGS = -DEMCC -DWASM_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 wasm : libfaust.wasm
 wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
-
-## Update flags
-CXXFLAGS += -Wall -Wuninitialized -fvisibility=hidden -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
-CXXFLAGS += -I`$(LLVM_CONFIG) --includedir` -I../architecture -D$(LLVM_VERSION) -D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS
-CXXFLAGS += $(ARCHFLAGS)
 
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	$(CXX) $(OPT) --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
