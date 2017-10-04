@@ -883,7 +883,6 @@ public :
     }
 };
 
-
 // --------------------------- Press button ---------------------------
 
 class uiButton : public uiCocoaItem
@@ -922,15 +921,13 @@ public:
     }
 
     void resetInitialValue()
-    {
-    }
+    {}
     
     void setOn()
     {
         [fButton setOn];
     }
 
-    
     BOOL isHExpandable()
     {
         return TRUE;
@@ -1000,7 +997,6 @@ public:
         [fButton setNeedsDisplay];
     }
     
-    
     void modifyZone(float value)
     {
         // Radio button mode 
@@ -1044,7 +1040,7 @@ public:
     
     FITextField* fTextField;
     
-    uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step)
+    uiNumEntry(GUI* ui, FIMainViewController* controller, const char* label, float* zone, float init, float min, float max, float step,const char* menu = NULL)
     : uiCocoaItem(ui, zone, controller, label)
     {
         fLabel = [[[UILabel alloc] init] autorelease];
@@ -1067,6 +1063,16 @@ public:
         fTextField.value = init;
         fTextField.step = step;
         [controller.dspView addSubview:fTextField];
+        
+        // Menu
+        if (menu) {
+            const char* p = menu;
+            vector<string> names;
+            vector<double> values;
+            parseMenuList(p, names, values);
+            fTextField.fMenuItemNames = names;
+            fTextField.fMenuItemValues = values;
+        }
     }
     
     ~uiNumEntry()
@@ -1100,15 +1106,15 @@ public:
         
         uiCocoaItem::setFrame(x, y, w, h);
                 
-        fTextField.frame = CGRectMake(  pt.x + (w - kStdNumEntryWidth) / 2.f,
-                                        pt.y + (h - kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f,
-                                        kStdNumEntryWidth,
-                                        kStdNumEntryHeight);
+        fTextField.frame = CGRectMake(pt.x + (w - kStdNumEntryWidth) / 2.f,
+                                    pt.y + (h - kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f,
+                                    kStdNumEntryWidth,
+                                    kStdNumEntryHeight);
         
-        fLabel.frame = CGRectMake(      pt.x + (w - kStdNumEntryLabelWidth) / 2.f,
-                                        pt.y + (h + kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f + kSpaceSize,
-                                        kStdNumEntryLabelWidth,
-                                        kStdNumEntryLabelHeight);
+        fLabel.frame = CGRectMake(pt.x + (w - kStdNumEntryLabelWidth) / 2.f,
+                                pt.y + (h + kStdNumEntryHeight - kSpaceSize - kStdNumEntryLabelHeight) / 2.f + kSpaceSize,
+                                kStdNumEntryLabelWidth,
+                                kStdNumEntryLabelHeight);
     }
     
     void setHidden(BOOL hidden)
@@ -1292,7 +1298,6 @@ public:
     }
 };
 
-
 // ------------------------------ CocoaUI -----------------------------------
 
 class CocoaUI : public GUI
@@ -1335,7 +1340,6 @@ private:
     uiBox*                          fMonoView;
     
     // Layout management
-    
     uiBox* getActiveBox()
     {
         list<uiCocoaItem*>::reverse_iterator i;
@@ -1617,7 +1621,6 @@ private:
         // Refresh whole layout
         refreshLayout(widget);        
     }
-    
     
 public:
     
@@ -2126,8 +2129,14 @@ public:
         return fRadioDescription.count(zone) > 0;
     }
     
+    bool isMenu(float* zone)
+    {
+        return fMenuDescription.count(zone) > 0;
+    }
+    
     virtual void openFrameBox(const char* label)
     {}
+    
     virtual void openTabBox(const char* label = "")
     {
         if (!fBuildUI) {
@@ -2138,6 +2147,7 @@ public:
         insert(label, item);
         fCurrentLayoutType = kTabLayout;
     }
+    
     virtual void openHorizontalBox(const char* label = "")
     {
         if (!fBuildUI) {
@@ -2153,6 +2163,7 @@ public:
         insert(label, item);
         fCurrentLayoutType = kHorizontalLayout;
     }
+    
     virtual void openVerticalBox(const char* label = "")
     {
         if (!fBuildUI) {
@@ -2473,7 +2484,7 @@ public:
         }
         else
         {
-            uiCocoaItem* item = new uiNumEntry(this, fViewController, label, zone, init, min, max, step);
+            uiCocoaItem* item = new uiNumEntry(this, fViewController, label, zone, init, min, max, step, ((fMenuDescription.count(zone) ? fMenuDescription[zone].c_str() : NULL)));
             if (dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe) [dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe release];
             dynamic_cast<uiNumEntry*>(item)->fTextField.suffixe = [[NSString alloc] initWithCString:fUnit[zone].c_str() encoding:NSUTF8StringEncoding];
             
@@ -2577,6 +2588,7 @@ public:
     
     virtual void show()
     {}
+    
     virtual bool run()
     {
         return false;
@@ -2606,19 +2618,19 @@ public:
 		}
         else
         {
-            if (strcmp(key,"size") == 0)
+            if (strcmp(key, "size") == 0)
             {
 				//fGuiSize[zone]=atof(value);
 			}
-			else if (strcmp(key,"tooltip") == 0)
+			else if (strcmp(key, "tooltip") == 0)
             {
 				//fTooltip[zone] = formatTooltip(30, value) ;
 			}
-			else if (strcmp(key,"unit") == 0)
+			else if (strcmp(key, "unit") == 0)
             {
 				fUnit[zone] = value;
 			}
-            else if (strcmp(key,"hidden") == 0)
+            else if (strcmp(key, "hidden") == 0)
             {
 				NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
@@ -2628,7 +2640,7 @@ public:
                     fHideOnGUI[zone] = true;
                 }
             }
-			else if (strcmp(key,"style") == 0)
+			else if (strcmp(key, "style") == 0)
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];
@@ -2669,7 +2681,7 @@ public:
                     fMenuDescription[zone] = string(p);
                 }
             }
-            else if (strcmp(key,"color") == 0)
+            else if (strcmp(key, "color") == 0)
             {
                 NSString* str = [NSString stringWithCString:value encoding:NSUTF8StringEncoding];
                 NSArray* arr = [str componentsSeparatedByString:@" "];

@@ -24,7 +24,6 @@
 @synthesize title;
 @synthesize type = _type;
 
-
 #pragma mark -
 #pragma mark Init
 

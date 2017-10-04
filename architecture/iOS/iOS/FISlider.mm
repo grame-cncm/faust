@@ -33,11 +33,10 @@
 
 #import "FISlider.h"
 
-#define kStdSliderHintSpace         10
+#define kStdSliderHintSpace 10
 
 @implementation FISlider
 @synthesize handleSize, cornerRadius, isHorizontalSlider, biDirectional, fMenuItemNames, fMenuItemValues;
-
 
 #pragma mark -
 #pragma mark Init
@@ -72,7 +71,6 @@
 	if (self.handleSize < 35.0)
 		self.handleSize = 35.0;
 }
-
 
 #pragma mark -
 #pragma mark Touch Handling
@@ -253,7 +251,6 @@
     }
 }
 
-
 #pragma mark -
 #pragma mark Drawing
 
@@ -275,7 +272,6 @@
 	[lighterBackgroundColor set];
 	[self context:context addRoundedRect:boundsRect cornerRadius:self.cornerRadius];
 	CGContextFillPath(context);
-    
     
     // Gradient
     context = UIGraphicsGetCurrentContext();
@@ -303,7 +299,6 @@
     CGGradientRelease(gradient);
     CGContextSetBlendMode(context, kCGBlendModeNormal);
     // End gradient
-    
     
 	// draw the 'filled' section to the left of the handle (or from the handle if in bidirectional mode)
 	CGRect valueRect;
@@ -440,6 +435,5 @@
     
 	return valueRect;
 }
-
 
 @end

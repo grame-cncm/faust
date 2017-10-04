@@ -19,8 +19,11 @@
 #import "FIResponder.h"
 #import "FIMainViewController.h"
 
-@interface FITextField : FIResponder <  UITextViewDelegate,
-                                        UIGestureRecognizerDelegate>
+#include <vector>
+#include <string>
+
+@interface FITextField : FIResponder <UITextViewDelegate,
+                                      UIGestureRecognizerDelegate>
 {
     UITextView*             _messageTextView;
     UIView*                 _inputAccView;
@@ -37,6 +40,9 @@
 @property CGFloat cornerRadius;				// default: 3.0
 @property (assign, nonatomic) UIColor* backgroundColor;
 @property (assign, nonatomic) UIColor* textColor;
+
+@property std::vector<std::string>    fMenuItemNames;
+@property std::vector<double>         fMenuItemValues;
 
 - (id)initWithDelegate:(id)aDelegate;
 

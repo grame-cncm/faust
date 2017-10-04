@@ -20,7 +20,6 @@
 
 @implementation FIBox
 
-
 #pragma mark -
 #pragma mark Init
 
@@ -39,7 +38,6 @@
 {
     [super dealloc];
 }
-
 
 #pragma mark -
 #pragma mark Drawing

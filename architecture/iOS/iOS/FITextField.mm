@@ -25,6 +25,8 @@
 @synthesize cornerRadius;
 @synthesize backgroundColor = _backgroundColor;
 @synthesize textColor = _textColor;
+@synthesize fMenuItemNames;
+@synthesize fMenuItemValues;
 
 #pragma mark -
 #pragma mark Init
@@ -93,7 +95,6 @@
     [super dealloc];
 }
 
-
 #pragma mark -
 #pragma mark Drawing
 
@@ -105,11 +106,24 @@
                                         rect.origin.y,
                                         rect.size.width,
                                         rect.size.height);
-    if (self.step < 0.01) _messageTextView.text = [NSString stringWithFormat:@"%2.3f%@", self.value, self.suffixe];
-    else if (self.step < 0.1) _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
-    else _messageTextView.text = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+    
+    // In menu items, displays them instead of the value
+    if (self.fMenuItemValues.size() > 0) {
+        
+        for (int i = 0; i < self.fMenuItemValues.size(); i++) {
+            if (floor(self.value) == self.fMenuItemValues[i]) {
+                _messageTextView.text = [NSString stringWithCString:self.fMenuItemNames[i].c_str() encoding:NSUTF8StringEncoding];
+            }
+        }
+        
+    } else {
+    
+        if (self.step < 0.01) _messageTextView.text = [NSString stringWithFormat:@"%2.3f%@", self.value, self.suffixe];
+        else if (self.step < 0.1) _messageTextView.text = [NSString stringWithFormat:@"%2.2f%@", self.value, self.suffixe];
+        else _messageTextView.text = [NSString stringWithFormat:@"%2.1f%@", self.value, self.suffixe];
+            
+    }
 }
-
 
 #pragma mark - UITextView Delegate Methods
 
