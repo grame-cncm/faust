@@ -17,6 +17,7 @@ ALL="1"
 EFFECT=""
 NVOICES=-1
 XCODE="0"
+ARCHIVE="0"
 
 #PHASE 1 : collects files and options from the command line
 
@@ -25,9 +26,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-xcodeproj] [-32bits] [-noagc] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
         echo "Use '-xcode' to compile and keep the intermediate Xcode project"
         echo "Use '-xcodeproj' to produce the intermediate Xcode project"
+        echo "Use '-archive' to generate the archive for Apple Store"
         echo "Use '-32bits' to compile 32 bits only binary"
         echo "Use '-noagc' to deactivate audio automatic gain control"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -59,7 +61,9 @@ do
         ALL="0"
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
-    elif [ ${p:0:1} = "-" ]; then
+    elif [ "$p" = "-archive" ]; then
+        ARCHIVE="1"
+   elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
@@ -122,13 +126,21 @@ for p in $FILES; do
         if [ "$POLY2" = "1" ]; then
             faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
+
         if [ "$XCODE" == "2" ]; then
             mv $T $XCODEPROJ
             exit
         fi
+
         (
+            # Build the binary
             xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
-            cd "$T" && xcodebuild -scheme Template_CoreAudio archive PRODUCT_NAME=$P
+            # Build the archive
+            if [ "$ARCHIVE" = "1" ]; then
+                cd "$T" && xcodebuild -scheme Template_CoreAudio archive -archivePath $P.xcarchive PRODUCT_NAME=$P
+                # Correct archive generated Info.plist to properly use '$P' name
+                cd $P.xcarchive && cp Info.plist Info-tmp.plist && sed -e "s/Template_CoreAudio/"$P"/g" Info-tmp.plist > Info.plist && rm Info-tmp.plist
+            fi
         ) > /dev/null || exit
     else
         echo "Compile with CoreAudio support in 32 bits"
@@ -150,6 +162,9 @@ for p in $FILES; do
     # move generated app to source directory
     rm -rf "$S/$P.app"
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
+    if [ "$ARCHIVE" = "1" ]; then
+        mv "$T/$P.xcarchive" "$S/"
+    fi
     if [ "$XCODE" != "1" ]; then
         rm -rf "$T"
     else
@@ -157,7 +172,11 @@ for p in $FILES; do
     fi
         
 	# collect binary file name for FaustGIDE
-    BINARIES="$BINARIES$S/$P.app;"
+    if [ "$ARCHIVE" = "1" ]; then
+        BINARIES="$BINARIES$S/$P.app; $BINARIES$S/$P.xcarchive;"
+    else
+        BINARIES="$BINARIES$S/$P.app;"
+    fi
 done
 
 echo $BINARIES
