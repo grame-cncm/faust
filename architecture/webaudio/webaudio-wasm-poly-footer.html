@@ -165,22 +165,14 @@ function loadDSP()
 
 function startDSPAux(dsp)
 {
-    if (DSP_poly) {
-        if (audio_input) {
-            audio_input.disconnect(DSP_poly);
-        }
-        DSP_poly.disconnect(audio_context.destination);
-        _f4u$t.hard_delete(faustsvg);
-    }
-    
     if (!dsp) {
         alert(faust.getErrorMessage());
         return;
     }
     
     activateMIDIInput();
-    
     DSP_poly = dsp;
+    
     DSP_poly.connect(audio_context.destination);
     
     console.log(DSP_poly.getJSON());
@@ -225,7 +217,7 @@ window.addEventListener('touchstart', function() {
                         source.connect(audio_context.destination);
                         
                         // play the file
-                        source.noteOn(0);
+                        source.start();
                         
                         }, false);
                         

@@ -147,28 +147,19 @@ function loadDSP()
 
 function startDSPAux(dsp)
 {
-    if (DSP) {
-        if (audio_input) {
-            audio_input.disconnect(DSP);
-        }
-        DSP.disconnect(audio_context.destination);
-        _f4u$t.hard_delete(faustsvg);
-    }
-
     if (!dsp) {
         alert(faust.getErrorMessage());
         return;
     }
 
     activateMIDIInput();
-
     DSP = dsp;
 
     if (DSP.getNumInputs() > 0) {
         activateAudioInput();
     }
+    
     DSP.connect(audio_context.destination);
-
     console.log(DSP.getJSON());
 
     // TODO: emcc
@@ -213,7 +204,7 @@ window.addEventListener('touchstart', function() {
                         source.connect(audio_context.destination);
 
                         // play the file
-                        source.noteOn(0);
+                        source.start();
 
                         }, false);
 

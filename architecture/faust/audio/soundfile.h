@@ -119,11 +119,5 @@ struct Soundfile {
     }
     
 };
-    
-#ifdef TARGET_OS_IPHONE
-    SNDFILE* sf_open(const char* path, int mode, SF_INFO* sfinfo) { return 0; }
-    sf_count_t sf_readf_double(SNDFILE* sndfile, double* ptr, sf_count_t frames) { return 0; }
-    int sf_close(SNDFILE* sndfile) { return 0; }
-#endif
 
 #endif

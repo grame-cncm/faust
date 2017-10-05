@@ -782,6 +782,7 @@
 
             function compileDSP()
             {
+                // If needed, deactivate running DSP
                 if (DSP) {
                     if (audio_input) {
                         audio_input.disconnect(DSP);
@@ -950,6 +951,22 @@
             // (see https://kripken.github.io/emscripten-site/docs/getting_started/FAQ.html)
             
             faust_module['onRuntimeInitialized'] = init;
+            
+            // To activate audio on iOS
+			window.addEventListener('touchstart', function() {
+                        
+                        // create empty buffer
+                        var buffer = audio_context.createBuffer(1, 1, 22050);
+                        var source = audio_context.createBufferSource();
+                        source.buffer = buffer;
+                        
+                        // connect to output (your speakers)
+                        source.connect(audio_context.destination);
+                        
+                        // play the file
+                        source.start();
+                        
+                        }, false);
 
             </script>
 

@@ -45,7 +45,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
     private:
 
         dsp* fDsp;
-        float ** fInBuffers, **fOutBuffers;
+        float **fInBuffers, **fOutBuffers;
 
     public:
     

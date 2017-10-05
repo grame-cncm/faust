@@ -43,7 +43,7 @@ using namespace std;
  - memory can be allocated internally in the module and exported, or externally in JS and imported
  - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before* using the DSP instance
  - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveforms.
- The memory size is finally generated after module code generation.
+ The final memory size is finally written after module code generation.
 
 */
 
@@ -359,7 +359,7 @@ void WASMCodeContainer::produceClass()
         fBinaryOut.writeAt(begin_memory, U32LEB(genMemSize(gGlobal->gWASMVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size())));
     }
     
-    // Data segment contains the json string starting at offset 0,
+    // Data segment contains the JSON string starting at offset 0,
     gGlobal->gWASMVisitor->generateJSON(removeChar(json, '\\'));
     
     // Finally produce output stream

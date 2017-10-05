@@ -67,9 +67,9 @@ struct WASInst {
     struct MathFunDesc {
         
         enum Gen { kWAS,    // Implemented in wasm definition
-            kExtMath,       // Implemented in JS Math context
-            kInt32WAS,      // Manually implemented in wast/wasm backends
-            kExtWAS };      // Manually implemented in JS
+                kExtMath,   // Implemented in JS Math context
+                kInt32WAS,  // Manually implemented in wast/wasm backends
+                kExtWAS };  // Manually implemented in JS
         
         MathFunDesc()
         {}
