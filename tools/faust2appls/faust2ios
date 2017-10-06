@@ -18,6 +18,7 @@ EFFECT=""
 NVOICES=-1
 XCODE="0"
 ARCHIVE="0"
+SOUNDFILE="0"
 
 #PHASE 1 : collects files and options from the command line
 
@@ -26,7 +27,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] <file.dsp>"
         echo "Use '-xcode' to compile and keep the intermediate Xcode project"
         echo "Use '-xcodeproj' to produce the intermediate Xcode project"
         echo "Use '-archive' to generate the archive for Apple Store"
@@ -36,12 +37,15 @@ do
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
     fi
 
     if [ "$p" = -icc ]; then
         ignore=" "
     elif [ $p = "-osc" ]; then
         OSCCTRL="1"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
     elif [ "$p" = "-jack" ]; then
         JACK="1"
     elif [ "$p" = "-xcode" ]; then
@@ -79,6 +83,9 @@ addOptions ()
 {
     # OSC source always copied in the project
     cp -r $FAUSTLIB/osclib "$T"
+    if [ "$SOUNDFILE" = "1" ]; then
+        echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+    fi
     if [ "$OSCCTRL" = "1" ]; then
        echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
@@ -105,7 +112,7 @@ for p in $FILES; do
     XCODEPROJ="${F%.dsp}"
 
 	T=$(mktemp -d faust.XXX)
-	cp -r /usr/local/share/faust/iOS/* $T
+	cp -r $FAUSTLIB/iOS/* $T
 
 	if [ "$JACK" = "1" ]; then
         echo "Compile with JACK/CoreAudio support"
@@ -121,7 +128,7 @@ for p in $FILES; do
         ) > /dev/null || exit
     elif [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
-        faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
+        faust -i $OPTIONS -json -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
         addOptions
         if [ "$POLY2" = "1" ]; then
             faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
@@ -170,7 +177,12 @@ for p in $FILES; do
     else
         echo "Keep Xcode project"
     fi
-        
+
+    # Copy soundfiles in binary (to improve)
+    if [ "$SOUNDFILE" = "1" ]; then
+        cp *.wav $P.app;
+    fi
+
 	# collect binary file name for FaustGIDE
     if [ "$ARCHIVE" = "1" ]; then
         BINARIES="$BINARIES$S/$P.app; $BINARIES$S/$P.xcarchive;"

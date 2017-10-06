@@ -83,6 +83,14 @@ audio* audio_device = NULL;
 CocoaUI* uiinterface = NULL;
 FUI* finterface = NULL;
 
+#if SOUNDFILE
+SoundUI* soundinterface = NULL;
+// Temporary
+SNDFILE* sf_open(const char* path, int mode, SF_INFO* sfinfo) { return 0; }
+sf_count_t sf_readf_double(SNDFILE* sndfile, double* ptr, sf_count_t frames) { return 0; }
+int sf_close(SNDFILE* sndfile) { return 0; }
+#endif
+
 #if OSCCTRL
 GUI* oscinterface = NULL;
 #endif
@@ -233,6 +241,12 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP->init(int(sample_rate));
     DSP->buildUserInterface(uiinterface);
     DSP->buildUserInterface(finterface);
+    
+#if SOUNDFILE
+    SoundUI* soundinterface = new SoundUI();
+    DSP->buildUserInterface(soundinterface);
+#endif
+    
 #if MIDICTRL
     DSP->buildUserInterface(midiinterface);
 #endif
@@ -517,6 +531,10 @@ error:
     
     delete uiinterface;
     delete finterface;
+    
+#if SOUNDFILE
+    delete soundinterface;
+#endif
     
 #if OSCCTRL
     delete oscinterface;

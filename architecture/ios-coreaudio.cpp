@@ -40,6 +40,10 @@
 #include "faust/gui/SimpleParser.h"
 #include "faust/misc.h"
 
+#if SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 #import "FICocoaUI.h"
 
 /******************************************************************************

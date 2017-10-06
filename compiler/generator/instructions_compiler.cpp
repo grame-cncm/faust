@@ -458,7 +458,9 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
     */
 	else {
-        throw faustexception("Error in compiling signal, unrecognized signal\n");
+        stringstream error;
+        error << "Error when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        throw faustexception(error.str());
 	}
 	return InstBuilder::genNullInst();
 }

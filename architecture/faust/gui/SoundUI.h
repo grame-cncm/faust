@@ -53,9 +53,16 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, Soundfile** sf_zone)
         {
+        #ifdef TARGET_OS_IPHONE
+            const char* label_path = (string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding])
+                                      + "/"
+                                      + string(label)).c_str();
+        #else
+            const char* label_path = label;
+        #endif
             // check if 'label' is already loaded
             if (fSFMap.find(label) == fSFMap.end()) {
-                fSFMap[label] = new Soundfile(label, 64);
+                fSFMap[label] = new Soundfile(label_path, 64);
             }
             *sf_zone = fSFMap[label];
         }
