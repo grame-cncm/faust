@@ -87,7 +87,7 @@ addOptions ()
         echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
     if [ "$OSCCTRL" = "1" ]; then
-       echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+        echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
     if [ "$MIDICTRL" = "1" ]; then
         echo "#define MIDICTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
@@ -103,6 +103,13 @@ addOptions ()
     fi
 }
 
+warnSoundfile()
+{
+    if [ "$SOUNDFILE" = "1" ]; then
+        echo "Warning : -soundfile is used, you'll have to manually add the needed soundfiles in the project"
+    fi
+}
+
 #PHASE 2 : compile all files
 
 for p in $FILES; do
@@ -114,31 +121,19 @@ for p in $FILES; do
 	T=$(mktemp -d faust.XXX)
 	cp -r $FAUSTLIB/iOS/* $T
 
-	if [ "$JACK" = "1" ]; then
-        echo "Compile with JACK/CoreAudio support"
-        faust -i $OPTIONS -a ios-coreaudio-jack.cpp "$p" -o "$T/ios-faust.h" || exit
-        addOptions
-        if [ "$XCODE" == "2" ]; then
-            mv $T $XCODEPROJ
-            exit
-        fi
-        (
-            xcodebuild -project "$T/iOS.xcodeproj" -target Template_Jack PRODUCT_NAME=$P
-            cd "$T" && xcodebuild -scheme Template_Jack archive PRODUCT_NAME=$P
-        ) > /dev/null || exit
-    elif [ "$ALL" = "1" ]; then
+	if [ "$ALL" = "1" ]; then
         echo "Compile with CoreAudio support in 64/32 bits"
         faust -i $OPTIONS -json -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
         addOptions
         if [ "$POLY2" = "1" ]; then
-            faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
+            faust -i $OPTIONS -json -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
 
         if [ "$XCODE" == "2" ]; then
+            warnSoundfile
             mv $T $XCODEPROJ
             exit
         fi
-
         (
             # Build the binary
             xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
@@ -151,12 +146,14 @@ for p in $FILES; do
         ) > /dev/null || exit
     else
         echo "Compile with CoreAudio support in 32 bits"
-        faust -i $OPTIONS -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
+        faust -i $OPTIONS -json -a ios-coreaudio.cpp "$p" -o "$T/ios-faust.h" || exit
         addOptions
         if [ "$POLY2" = "1" ]; then
-            faust -i -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
+            faust -i $OPTIONS -json -cn effect -a minimal-effect.cpp $EFFECT -o "$T/effect.cpp" || exit
         fi
+
         if [ "$XCODE" == "2" ]; then
+            warnSoundfile
             mv $T $XCODEPROJ
             exit
         fi
@@ -170,6 +167,7 @@ for p in $FILES; do
     rm -rf "$S/$P.app"
     mv "$T/build/Release-iphoneos/$P.app" "$S/"
     if [ "$ARCHIVE" = "1" ]; then
+        rm -rf "$S/$P.xcarchive"
         mv "$T/$P.xcarchive" "$S/"
     fi
     if [ "$XCODE" != "1" ]; then
@@ -178,9 +176,26 @@ for p in $FILES; do
         echo "Keep Xcode project"
     fi
 
-    # Copy soundfiles in binary (to improve)
     if [ "$SOUNDFILE" = "1" ]; then
-        cp *.wav $P.app;
+        # get all soundfiles from the JSON file
+        tr -s '[[:blank:][,]]' '\n' < $p.json | grep -E -i \"[0-9a-z]+.wav > $p-tmp.txt
+        #tr -s '[[:blank:][,]]' '\n' < $p.json | grep -E -i \"[0-9a-z]+.aiff >> $p-tmp.txt
+        # copy found soundfiles in the final binary
+        while read snd; do
+            # remove the first and last quote character (")
+            unquote=${snd:1:${#snd}-2}
+            if [ -f $unquote ]; then
+                echo "Copy $unquote in $P.app"
+                cp $unquote $P.app
+                if [ "$ARCHIVE" = "1" ]; then
+                    echo "Copy $unquote in $P.xcarchive/Products/Applications/$P"
+                    cp $unquote $P.xcarchive/Products/Applications/$P.app
+                fi
+            else
+                echo "Error: file $unquote not found !"
+            fi
+        done < $p-tmp.txt
+        rm $p-tmp.txt
     fi
 
 	# collect binary file name for FaustGIDE
@@ -189,6 +204,9 @@ for p in $FILES; do
     else
         BINARIES="$BINARIES$S/$P.app;"
     fi
+
+    # remove temporary files
+    rm $p.json
 done
 
 echo $BINARIES

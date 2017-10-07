@@ -38,13 +38,13 @@ aterm::aterm ()
  */
 aterm::aterm (Tree t)
 {
-	#ifdef TRACE
+#ifdef TRACE
 	cerr << "aterm::aterm (" << ppsig(t)<< ")" << endl;
-	#endif
+#endif
 	*this += t;
-	#ifdef TRACE
+#ifdef TRACE
     cerr << "aterm::aterm (" << ppsig(t)<< ") : -> " << *this << endl;
-	#endif
+#endif
 }
 	
 
@@ -234,13 +234,13 @@ const aterm& aterm::operator -= (Tree t)
  */
 const aterm& aterm::operator += (const mterm& m)
 {
-	#ifdef TRACE
+#ifdef TRACE
     cerr << *this << " aterm::+= " << m << endl;
-	#endif
+#endif
 	Tree signature = m.signatureTree();
-	#ifdef TRACE
+#ifdef TRACE
     cerr << "signature " << *signature << endl;
-	#endif
+#endif
 	SM::const_iterator p = fSig2MTerms.find(signature);
 	if (p == fSig2MTerms.end()) {
 		// its a new mterm

@@ -28,7 +28,7 @@
 #include <string>
 
 #include "faust/gui/DecoratorUI.h"
-#include "faust/audio/soundfile.h"
+#include "faust/gui/soundfile.h"
 
 class SoundUI : public GenericUI
 {
@@ -53,7 +53,7 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, Soundfile** sf_zone)
         {
-        #ifdef TARGET_OS_IPHONE
+        #if TARGET_OS_IPHONE
             const char* label_path = (string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding])
                                       + "/"
                                       + string(label)).c_str();

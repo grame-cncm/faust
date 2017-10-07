@@ -172,7 +172,7 @@ static void inject(ostream& dst, const string& fname)
             delete src;
         } else {
             stringstream error;
-            error << "NOT FOUND " << fname << endl;
+            error << fname << " not found\n";
             gGlobal->gErrorMsg = error.str();
         }
     }

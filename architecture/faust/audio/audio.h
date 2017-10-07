@@ -30,22 +30,23 @@ typedef void (* shutdown_callback)(const char* message, void* arg);
 
 class audio {
     
- public:
-			 audio() {}
-	virtual ~audio() {}
-	
-	virtual bool init(const char* name, dsp*)               = 0;
-	virtual bool start()                                    = 0;
-	virtual void stop()                                     = 0;
-    virtual void shutdown(shutdown_callback cb, void* arg)  {}
+    public:
     
-    virtual int getBufferSize() = 0;
-    virtual int getSampleRate() = 0;
-    
-    virtual int getNumInputs() = 0;
-    virtual int getNumOutputs() = 0;
-    
-    virtual float getCPULoad() { return 0.f; }
+        audio() {}
+        virtual ~audio() {}
+
+        virtual bool init(const char* name, dsp*) = 0;
+        virtual bool start() = 0;
+        virtual void stop() = 0;
+        virtual void shutdown(shutdown_callback cb, void* arg) {}
+
+        virtual int getBufferSize() = 0;
+        virtual int getSampleRate() = 0;
+
+        virtual int getNumInputs() = 0;
+        virtual int getNumOutputs() = 0;
+
+        virtual float getCPULoad() { return 0.f; }
 };
 					
 #endif

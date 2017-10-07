@@ -234,7 +234,7 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 			if (x > v) error << "The number of outputs " << v 
                             << " of the first expression should be greater or equal \n  to the number of inputs " << x 
 							<< " of the second expression" << endl;
-			if (y > u) error	<< "The number of inputs " << u
+			if (y > u) error << "The number of inputs " << u
 							<< " of the first expression should be greater or equal \n  to the number of outputs " << y
 							<< " of the second expression" << endl;
 			throw faustexception(error.str());

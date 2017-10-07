@@ -762,7 +762,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
     
     // SL
     //fClass->addIncludeFile("<atomic>");
-    fClass->addIncludeFile("\"faust/audio/soundfile.h\"");
+    //fClass->addIncludeFile("\"faust/gui/soundfile.h\"");
     
     // SL
     //fClass->addDeclCode(subst("std::atomic<Soundfile*> \t$0;", v));
