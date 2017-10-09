@@ -54,9 +54,8 @@ class SoundUI : public GenericUI
         virtual void addSoundfile(const char* label, Soundfile** sf_zone)
         {
         #if TARGET_OS_IPHONE
-            const char* label_path = (string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding])
-                                      + "/"
-                                      + string(label)).c_str();
+            string label_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(label);
+            const char* label_path = label_path_str.c_str();
         #else
             const char* label_path = label;
         #endif
