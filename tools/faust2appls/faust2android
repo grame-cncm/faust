@@ -145,7 +145,6 @@ cp $FAUSTLIB/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
 # Compile the Faust code for the NDK
 faust -i -a api/DspFaust.cpp $OPTIONS "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
 
-
 # Run Gradle
 cd $BUILDDIR
 ./gradlew assembleRelease > $LOG

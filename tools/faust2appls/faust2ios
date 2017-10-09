@@ -178,23 +178,30 @@ for p in $FILES; do
 
     if [ "$SOUNDFILE" = "1" ]; then
         # get all soundfiles from the JSON file
-        tr -s '[[:blank:][,]]' '\n' < $p.json | grep -E -i \"[0-9a-z]+.wav > $p-tmp.txt
-        #tr -s '[[:blank:][,]]' '\n' < $p.json | grep -E -i \"[0-9a-z]+.aiff >> $p-tmp.txt
+        cat $p.json | awk '
+                        BEGIN { FS=":"; SOFI=0; }
+                            /"soundfile"/ { SOFI=1; }
+                            /"label"/ {
+                            if (SOFI) {
+                                match($2, /"[^"]*/);
+                                print substr($2, RSTART+1, RLENGTH-1);
+                                SOFI=0;
+                            }
+                        }
+                    ' > $p-tmp.txt
         # copy found soundfiles in the final binary
-        while read snd; do
-            # remove the first and last quote character (")
-            unquote=${snd:1:${#snd}-2}
-            if [ -f $unquote ]; then
-                echo "Copy $unquote in $P.app"
-                cp $unquote $P.app
+        for snd in $(cat $p-tmp.txt); do
+            if [ -f $snd ]; then
+                echo "Copy $snd in $P.app"
+                cp $snd $P.app
                 if [ "$ARCHIVE" = "1" ]; then
-                    echo "Copy $unquote in $P.xcarchive/Products/Applications/$P"
-                    cp $unquote $P.xcarchive/Products/Applications/$P.app
+                    echo "Copy $snd in $P.xcarchive/Products/Applications/$P"
+                    cp $snd $P.xcarchive/Products/Applications/$P.app
                 fi
             else
-                echo "Error: file $unquote not found !"
+                echo "Error: file $snd not found !"
             fi
-        done < $p-tmp.txt
+        done
         rm $p-tmp.txt
     fi
 
