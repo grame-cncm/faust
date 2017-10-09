@@ -54,16 +54,19 @@ class PowPrim : public xtended
 		return max(args[0], args[1]);
 	}
 
-	virtual Tree computeSigOutput(const vector<Tree>& args)
+    virtual Tree computeSigOutput(const vector<Tree>& args)
     {
-		num n,m;
-		faustassert(args.size() == arity());
-		if (isNum(args[0],n) & isNum(args[1],m)) {
-			return tree(pow(double(n), double(m)));
-		} else {
-			return tree(symbol(), args[0], args[1]);
-		}
-	}
+        num n,m;
+        faustassert(args.size() == arity());
+        if (isNum(args[0],n) && isNum(args[1],m)) {
+            return tree(pow(double(n), double(m)));
+        } else if (isNum(args[0],n) && (double(n) == 10.) && gGlobal->gHasExp10) {
+            // pow(10, x) ==> exp10(x)
+            return tree(::symbol("exp10"), args[1]);
+        } else {
+            return tree(symbol(), args[0], args[1]);
+        }
+    }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
     {

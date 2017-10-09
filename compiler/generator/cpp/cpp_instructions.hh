@@ -44,6 +44,8 @@ class CPPInstVisitor : public TextInstVisitor {
         {
             // Mark all math.h functions as generated...
             gFunctionSymbolTable["abs"] = 1;
+            
+            // Float version
             gFunctionSymbolTable["absf"] = 1;
             gFunctionSymbolTable["fabsf"] = 1;
             gFunctionSymbolTable["acosf"] = 1;
@@ -53,6 +55,7 @@ class CPPInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["ceilf"] = 1;
             gFunctionSymbolTable["cosf"] = 1;
             gFunctionSymbolTable["expf"] = 1;
+            gFunctionSymbolTable["exp10f"] = 1;
             gFunctionSymbolTable["floorf"] = 1;
             gFunctionSymbolTable["fmodf"] = 1;
             gFunctionSymbolTable["logf"] = 1;

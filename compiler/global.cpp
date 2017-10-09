@@ -39,6 +39,7 @@
 #include "fmodprim.hh" 
 #include "floorprim.hh"
 #include "expprim.hh"
+#include "exp10prim.hh"
 #include "cosprim.hh"
 #include "ceilprim.hh"
 #include "atanprim.hh"
@@ -155,6 +156,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gComputeIOTA = false;
     gFaustFloatToInternal = false;
     gInPlace = false;
+    gHasExp10 = false;
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
@@ -193,6 +195,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFmodPrim = new FmodPrim();
     gFloorPrim = new FloorPrim();
     gExpPrim = new ExpPrim();
+    gExp10Prim = new Exp10Prim();
     gCosPrim = new CosPrim();
     gCeilPrim = new CeilPrim();
     gAtanPrim = new AtanPrim();

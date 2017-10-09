@@ -866,69 +866,55 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (gMathLibTable.size()) {
                 return;
             }
-
+            
+            // Integer version
             gMathLibTable.push_back("abs");
-            gMathLibTable.push_back("absf");
             
-            gMathLibTable.push_back("fabs");
+            // Float version
             gMathLibTable.push_back("fabsf");
-            
-            gMathLibTable.push_back("acos");
             gMathLibTable.push_back("acosf");
-            
-            gMathLibTable.push_back("asin");
             gMathLibTable.push_back("asinf");
-            
-            gMathLibTable.push_back("atan");
             gMathLibTable.push_back("atanf");
-            
-            gMathLibTable.push_back("atan2");
             gMathLibTable.push_back("atan2f");
-            
-            gMathLibTable.push_back("ceil");
             gMathLibTable.push_back("ceilf");
-            
-            gMathLibTable.push_back("cos");
             gMathLibTable.push_back("cosf");
-            
-            gMathLibTable.push_back("cosh");
             gMathLibTable.push_back("coshf");
-            
-            gMathLibTable.push_back("exp");
             gMathLibTable.push_back("expf");
-            
-            gMathLibTable.push_back("floor");
+            gMathLibTable.push_back("exp10f");
             gMathLibTable.push_back("floorf");
-            
-            gMathLibTable.push_back("fmod");
             gMathLibTable.push_back("fmodf");
-            
-            gMathLibTable.push_back("log");
             gMathLibTable.push_back("logf");
-            
-            gMathLibTable.push_back("log10");
             gMathLibTable.push_back("log10f");
-            
-            gMathLibTable.push_back("pow");
             gMathLibTable.push_back("powf");
-            
-            gMathLibTable.push_back("round");
             gMathLibTable.push_back("roundf");
-             
-            gMathLibTable.push_back("sin");
             gMathLibTable.push_back("sinf");
-            
-            gMathLibTable.push_back("sinh");
             gMathLibTable.push_back("sinhf");
-             
-            gMathLibTable.push_back("sqrt");
             gMathLibTable.push_back("sqrtf");
-            
-            gMathLibTable.push_back("tan");
             gMathLibTable.push_back("tanf");
-            
-            gMathLibTable.push_back("tanh");
             gMathLibTable.push_back("tanhf");
+            
+            // Double version
+            gMathLibTable.push_back("fabs");
+            gMathLibTable.push_back("acos");
+            gMathLibTable.push_back("asin");
+            gMathLibTable.push_back("atan");
+            gMathLibTable.push_back("atan2");
+            gMathLibTable.push_back("ceil");
+            gMathLibTable.push_back("cos");
+            gMathLibTable.push_back("cosh");
+            gMathLibTable.push_back("exp");
+            gMathLibTable.push_back("exp10");
+            gMathLibTable.push_back("floor");
+            gMathLibTable.push_back("fmod");
+            gMathLibTable.push_back("log");
+            gMathLibTable.push_back("log10");
+            gMathLibTable.push_back("pow");
+            gMathLibTable.push_back("round");
+            gMathLibTable.push_back("sin");
+            gMathLibTable.push_back("sinh");
+            gMathLibTable.push_back("sqrt");
+            gMathLibTable.push_back("tan");
+            gMathLibTable.push_back("tanh");
         }
 
         LLVMInstVisitor(const string& prefix = "")

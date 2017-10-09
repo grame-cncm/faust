@@ -86,17 +86,17 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["floorf"] = FIRInstruction::kFloorf;
             gMathLibTable["fmodf"] = FIRInstruction::kFmodf;
             gMathLibTable["logf"] =  FIRInstruction::kLogf;
-            gMathLibTable["log10f"] =  FIRInstruction::kLog10f;
-            gMathLibTable["min_f"] =  FIRInstruction::kMinf;
-            gMathLibTable["max_f"] =  FIRInstruction::kMaxf;
-            gMathLibTable["powf"] =  FIRInstruction::kPowf;
-            gMathLibTable["remainderf"] =  FIRInstruction::kRemReal;
-            gMathLibTable["roundf"] =  FIRInstruction::kRoundf;
+            gMathLibTable["log10f"] = FIRInstruction::kLog10f;
+            gMathLibTable["min_f"] = FIRInstruction::kMinf;
+            gMathLibTable["max_f"] = FIRInstruction::kMaxf;
+            gMathLibTable["powf"] = FIRInstruction::kPowf;
+            gMathLibTable["remainderf"] = FIRInstruction::kRemReal;
+            gMathLibTable["roundf"] = FIRInstruction::kRoundf;
             gMathLibTable["sinf"] = FIRInstruction::kSinf;
             gMathLibTable["sinhf"] = FIRInstruction::kSinhf;
             gMathLibTable["sqrtf"] = FIRInstruction::kSqrtf;
-            gMathLibTable["tanf"] =  FIRInstruction::kTanf;
-            gMathLibTable["tanhf"] =  FIRInstruction::kTanhf;
+            gMathLibTable["tanf"] = FIRInstruction::kTanf;
+            gMathLibTable["tanhf"] = FIRInstruction::kTanhf;
             
             // Double version
             gMathLibTable["fabs"] = FIRInstruction::kAbsf;
@@ -110,18 +110,18 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             gMathLibTable["exp"] = FIRInstruction::kExpf;
             gMathLibTable["floor"] = FIRInstruction::kFloorf;
             gMathLibTable["fmod"] = FIRInstruction::kFmodf;
-            gMathLibTable["log"] =  FIRInstruction::kLogf;
-            gMathLibTable["log10"] =  FIRInstruction::kLog10f;
-            gMathLibTable["min_"] =  FIRInstruction::kMinf;
-            gMathLibTable["max_"] =  FIRInstruction::kMaxf;
-            gMathLibTable["pow"] =  FIRInstruction::kPowf;
-            gMathLibTable["remainder"] =  FIRInstruction::kRemReal;
-            gMathLibTable["round"] =  FIRInstruction::kRoundf;
+            gMathLibTable["log"] = FIRInstruction::kLogf;
+            gMathLibTable["log10"] = FIRInstruction::kLog10f;
+            gMathLibTable["min_"] = FIRInstruction::kMinf;
+            gMathLibTable["max_"] = FIRInstruction::kMaxf;
+            gMathLibTable["pow"] = FIRInstruction::kPowf;
+            gMathLibTable["remainder"] = FIRInstruction::kRemReal;
+            gMathLibTable["round"] = FIRInstruction::kRoundf;
             gMathLibTable["sin"] = FIRInstruction::kSinf;
             gMathLibTable["sinh"] = FIRInstruction::kSinhf;
             gMathLibTable["sqrt"] = FIRInstruction::kSqrtf;
-            gMathLibTable["tan"] =  FIRInstruction::kTanf;
-            gMathLibTable["tanh"] =  FIRInstruction::kTanhf;
+            gMathLibTable["tan"] = FIRInstruction::kTanf;
+            gMathLibTable["tanh"] = FIRInstruction::kTanhf;
             
             // Min/max directly handled in FunCallInst
         }

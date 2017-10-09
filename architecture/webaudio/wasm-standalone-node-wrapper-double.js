@@ -15,18 +15,8 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
     
-    function getNumInputsAux () 
-    {
-        return (json_object.inputs !== undefined) ? parseInt(json_object.inputs) : 0;
-    }
-    
-    function getNumOutputsAux () 
-    {
-        return (json_object.outputs !== undefined) ? parseInt(json_object.outputs) : 0;
-    }
-    
-    var numIn = getNumInputsAux();
-    var numOut = getNumOutputsAux();
+    var numIn = parseInt(json_object.inputs);
+    var numOut = parseInt(json_object.outputs);
      
     // Memory allocator
     var ptr_size = 8;
@@ -39,7 +29,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         return n;
     }
      
-    var memory_size = pow2limit(getSizemydsp() + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
+    var memory_size = pow2limit(parseInt(json_object.size) + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
    
     var factory = instance.exports;
     
@@ -61,7 +51,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     var default_values = [];
     
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    var audio_heap_ptr = getSizemydsp();
+    var audio_heap_ptr = parseInt(json_object.size);
   
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
@@ -74,7 +64,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     // Start of DSP memory : DSP is placed first with index 0
     var dsp = 0;
     
-    var pathTable = getPathTablemydsp();
+    var pathTable = [];
     
     // Allocate table for 'setParamValue'
     var value_table = [];
@@ -159,6 +149,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         	|| item.type === "vbargraph") {
             // Keep bargraph adresses
             ouputs_items.push(item.address);
+            pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider" 
         	|| item.type === "hslider" 
         	|| item.type === "button" 
@@ -166,6 +157,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         	|| item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
+            pathTable[item.address] = parseInt(item.index);
             if (item.type === "button") {
                 buttons_items.push(item.address);
                 default_values.push(0);
@@ -246,12 +238,12 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         
         getNumInputs : function () 
         {
-            return getNumInputsAux();
+            return numIn;
         },
         
         getNumOutputs : function () 
         {
-            return getNumOutputsAux();
+            return numOut;
         },
                
         init : function (sample_rate) 

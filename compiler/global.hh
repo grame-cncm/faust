@@ -144,6 +144,7 @@ struct global {
     bool            gComputeIOTA;
     bool            gFaustFloatToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     bool            gInPlace;               // add cache to input for correct in-place computations
+    bool            gHasExp10;              // If the 'exp10' math function is available
     
     dsp_factory_base* gDSPFactory;
 
@@ -228,6 +229,7 @@ struct global {
     xtended*                gFmodPrim;
     xtended*                gFloorPrim;
     xtended*                gExpPrim;
+    xtended*                gExp10Prim;
     xtended*                gCosPrim;
     xtended*                gCeilPrim;
     xtended*                gAtanPrim;

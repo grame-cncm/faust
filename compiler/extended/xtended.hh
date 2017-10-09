@@ -50,7 +50,7 @@ class xtended : public virtual Garbageable {
         virtual ~xtended() {}
 
         Sym	symbol() { return fSymbol; }
-        const char* name(){ return ::name(fSymbol); }
+        const char* name() { return ::name(fSymbol); }
 
         Tree box()
         {
