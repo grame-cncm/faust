@@ -66,9 +66,6 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     
     var pathTable = [];
     
-    // Allocate table for 'setParamValue'
-    var value_table = [];
-        
     function update_outputs () 
     {
         if (outputs_items.length > 0 && output_handler && outputs_timer-- === 0) {
@@ -90,14 +87,6 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
             for (j = 0; j < buffer_size; j++) {
                 dspInput[j] = input[j];
             }
-        }
-        
-        // Update control state
-        for (i = 0; i < inputs_items.length; i++) {
-            var path = inputs_items[i];
-            var values = value_table[path];
-            factory.setParamValue(dsp, pathTable[path], values[0]);
-            values[0] = values[1];
         }
         
         // Compute
@@ -204,27 +193,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         
         // Init DSP
         factory.init(dsp, sample_rate);
-        
-        // Init 'value' table
-        for (i = 0; i < inputs_items.length; i++) {
-            var path = inputs_items[i];
-            var values = new Float64Array(2);
-            values[0] = values[1] = factory.getParamValue(dsp, pathTable[path]);
-            value_table[path] = values;
-        }
     }
-    
-	function setParamValueAux (path, val) 
-	{
-		var values = value_table[path];
-		if (values) {
-			// relaxing the test
-			//if (factory.getParamValue(dsp, pathTable[path]) === values[0]) {
-				values[0] = val;
-			//} 
-			values[1] = val;
-		}
-	}
     
     init();
     
@@ -281,12 +250,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
             return output_handler;
         },
         
-        setParamValue : function (path, val) 
-        {
-        	setParamValueAux(path, val);
-        },
-        
-        setParamValue1 : function (path, val)
+        setParamValue : function (path, val)
         {
             factory.setParamValue(dsp, pathTable[path], val);
         },

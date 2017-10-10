@@ -20,4 +20,3 @@
 -10 graphic_eq/0x00/CONSTANT-Q_FILTER_BANK_(Butterworth_dyadic_tree)/0x00/0x00
 100 graphic_eq/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time
 50 graphic_eq/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset
-

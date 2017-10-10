@@ -20,4 +20,3 @@
 5 virtual_analog_oscillators/0x00/MOOG_VCF_(Voltage_Controlled_Filter)/VCF_Output_Level
 100 virtual_analog_oscillators/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_Averaging_Time
 50 virtual_analog_oscillators/0x00/SPECTRUM_ANALYZER_CONTROLS/Level_dB_Offset
-
