@@ -580,8 +580,8 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         for (var i = 0; i < sp.fCtrlLabel.length; i++) { sp.fCtrlLabel[i] = []; }
 
         // bargraph
-        sp.ouputs_timer = 5;
-        sp.ouputs_items = [];
+        sp.outputs_timer = 5;
+        sp.outputs_items = [];
 
         // input items
         sp.inputs_items = [];
@@ -618,10 +618,10 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 
         sp.update_outputs = function ()
         {
-            if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
-                sp.ouputs_timer = 5;
-                for (var i = 0; i < sp.ouputs_items.length; i++) {
-                    sp.output_handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.ouputs_items[i]]));
+            if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
+                sp.outputs_timer = 5;
+                for (var i = 0; i < sp.outputs_items.length; i++) {
+                    sp.output_handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp, sp.pathTable[sp.outputs_items[i]]));
                 }
             }
         }
@@ -687,7 +687,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
             } else if (item.type === "hbargraph"
             	|| item.type === "vbargraph") {
                 // Keep bargraph adresses
-                sp.ouputs_items.push(item.address);
+                sp.outputs_items.push(item.address);
                 sp.pathTable[item.address] = parseInt(item.index);
             } else if (item.type === "vslider"
             	|| item.type === "hslider"
@@ -1080,8 +1080,8 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
         sp.HEAPF32 = new Float32Array(sp.HEAP);
 
         // bargraph
-        sp.ouputs_timer = 5;
-        sp.ouputs_items = [];
+        sp.outputs_timer = 5;
+        sp.outputs_items = [];
 
         // input items
         sp.inputs_items = [];
@@ -1198,10 +1198,10 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
 
         sp.update_outputs = function ()
         {
-            if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
-                sp.ouputs_timer = 5;
-                for (var i = 0; i < sp.ouputs_items.length; i++) {
-                    sp.output_handler(sp.ouputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.ouputs_items[i]]));
+            if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
+                sp.outputs_timer = 5;
+                for (var i = 0; i < sp.outputs_items.length; i++) {
+                    sp.output_handler(sp.outputs_items[i], sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[sp.outputs_items[i]]));
                 }
             }
         }
@@ -1295,7 +1295,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
             } else if (item.type === "hbargraph"
             	|| item.type === "vbargraph") {
                 // Keep bargraph adresses
-                sp.ouputs_items.push(item.address);
+                sp.outputs_items.push(item.address);
                 sp.pathTable[item.address] = parseInt(item.index);
             } else if (item.type === "vslider"
             	|| item.type === "hslider"

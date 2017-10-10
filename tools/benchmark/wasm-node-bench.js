@@ -29,7 +29,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         return n;
     }
      
-    var memory_size = pow2limit(getSizemydsp() + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
+    var memory_size = pow2limit(parseInt(json_object.size) + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
    
     var factory = instance.exports;
     
@@ -38,8 +38,8 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     var HEAPF = new Float64Array(HEAP);
   
     // bargraph
-    var ouputs_timer = 5;
-    var ouputs_items = [];
+    var outputs_timer = 5;
+    var outputs_items = [];
      
     // input items
     var inputs_items = [];
@@ -51,7 +51,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     var default_values = [];
     
     // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-    var audio_heap_ptr = getSizemydsp();
+    var audio_heap_ptr = parseInt(json_object.size);
   
     // Setup pointers offset
     var audio_heap_ptr_inputs = audio_heap_ptr; 
@@ -64,17 +64,17 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     // Start of DSP memory : DSP is placed first with index 0
     var dsp = 0;
     
-    var pathTable = getPathTablemydsp();
+    var pathTable = [];
     
     // Allocate table for 'setParamValue'
     var value_table = [];
         
     function update_outputs () 
     {
-        if (ouputs_items.length > 0 && output_handler && ouputs_timer-- === 0) {
-            ouputs_timer = 5;
-            for (var i = 0; i < ouputs_items.length; i++) {
-                output_handler(ouputs_items[i], factory.getParamValue(dsp, pathTable[ouputs_items[i]]));
+        if (outputs_items.length > 0 && output_handler && outputs_timer-- === 0) {
+            outputs_timer = 5;
+            for (var i = 0; i < outputs_items.length; i++) {
+                output_handler(outputs_items[i], factory.getParamValue(dsp, pathTable[outputs_items[i]]));
             }
         }
     }
@@ -148,7 +148,8 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         } else if (item.type === "hbargraph" 
         	|| item.type === "vbargraph") {
             // Keep bargraph adresses
-            ouputs_items.push(item.address);
+            outputs_items.push(item.address);
+            pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider" 
         	|| item.type === "hslider" 
         	|| item.type === "button" 
@@ -156,6 +157,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         	|| item.type === "nentry") {
             // Keep inputs adresses
             inputs_items.push(item.address);
+            pathTable[item.address] = parseInt(item.index);
             if (item.type === "button") {
                 buttons_items.push(item.address);
                 default_values.push(0);

@@ -55,7 +55,7 @@ The **faustbench-wasm** tool tests a given DSP program in [node.js](https://node
 
 ## faust2benchwasm
 
-The **faust2benchwasm** tool generates an HTML page embedding benchmarch code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
+The **faust2benchwasm** tool generates an HTML page embedding benchmark code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
 
 `faust2benchwasm [-opt] foo.dsp` 
 

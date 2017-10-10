@@ -65,19 +65,19 @@ faust.DSP = function (ptr, context, buffer_size) {
     sp.path_ptr = Module._malloc(512);
     
     // bargraph
-    sp.ouputs_timer = 5;
-    sp.ouputs_items = [];
+    sp.outputs_timer = 5;
+    sp.outputs_items = [];
     
     // input items
     sp.inputs_items = [];
     
     sp.update_outputs = function ()
     {
-        if (sp.ouputs_items.length > 0 && sp.output_handler && sp.ouputs_timer-- === 0) {
-            sp.ouputs_timer = 5;
-            for (var i = 0; i < sp.ouputs_items.length; i++) {
-                Module.stringToUTF8(sp.ouputs_items[i], sp.path_ptr, Module.lengthBytesUTF8(sp.ouputs_items[i]) + 1);
-                sp.output_handler(sp.ouputs_items[i], DSP_getParamValue(sp.ptr, sp.path_ptr));
+        if (sp.outputs_items.length > 0 && sp.output_handler && sp.outputs_timer-- === 0) {
+            sp.outputs_timer = 5;
+            for (var i = 0; i < sp.outputs_items.length; i++) {
+                Module.stringToUTF8(sp.outputs_items[i], sp.path_ptr, Module.lengthBytesUTF8(sp.outputs_items[i]) + 1);
+                sp.output_handler(sp.outputs_items[i], DSP_getParamValue(sp.ptr, sp.path_ptr));
             }
         }
     }
@@ -113,7 +113,7 @@ faust.DSP = function (ptr, context, buffer_size) {
         } else if (item.type === "hbargraph"
                    || item.type === "vbargraph") {
             // Keep bargraph adresses
-            sp.ouputs_items.push(item.address);
+            sp.outputs_items.push(item.address);
         } else if (item.type === "vslider"
                    || item.type === "hslider"
                    || item.type === "button"

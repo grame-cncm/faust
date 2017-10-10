@@ -58,7 +58,7 @@ for f in $FILES; do
         wasm-opt $name.wasm -O3 -o $name.wasm
     fi
 
-    # create the nodejs ready file
+    # create the HTML file
     cd $dirname
     cp $name.js $name-tmp1.js
     sed -e "s/mydsp/"$name"/g" $name-tmp1.js >> $name-tmp2.js
