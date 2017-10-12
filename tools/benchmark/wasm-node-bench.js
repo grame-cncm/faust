@@ -35,7 +35,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     
     var HEAP = instance.exports.memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
-    var HEAPF = new Float64Array(HEAP);
+    var HEAPF32 = new Float32Array(HEAP);
   
     // bargraph
     var outputs_timer = 5;
@@ -171,7 +171,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 3, (dspInChans[i] + buffer_size * sample_size) >> 3);
+                dspInChannnels[i] = HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
@@ -184,7 +184,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
             // Prepare Out buffer tables
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 3, (dspOutChans[i] + buffer_size * sample_size) >> 3);
+                dspOutChannnels[i] = HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
                                 
@@ -337,7 +337,7 @@ var createBuffers = function(ins, outs)
 {
     console.log("Allocate ins/outs buffers");
 	for (var i = 0; i < ins; i++) {
-		var input = new Float64Array(buffer_size * NV);
+		var input = new Float32Array(buffer_size * NV);
 		// Init input with noise
 		for (var j = 0; j < buffer_size * NV; j++) {
 			input[j] = (Math.random() * 2) - 1.0;
@@ -345,7 +345,7 @@ var createBuffers = function(ins, outs)
 		inputs.push(input);
 	}
 	for (var i = 0; i < outs; i++) {
-		outputs.push(new Float64Array(buffer_size * NV));
+		outputs.push(new Float32Array(buffer_size * NV));
 	}
 }
 
