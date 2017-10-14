@@ -380,6 +380,22 @@ void WASMCodeContainer::produceClass()
         fHelper << "return \""; fHelper << json; fHelper << "\";";
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}\n";
+    
+    // Write binary as an array
+    fHelper << showbase         // show the 0x prefix
+            << internal         // fill between the prefix and the number
+            << setfill('0');    // fill with 0s
+    fHelper << "function getBinaryCode" << fKlassName << "() {";
+        tab(n+1, fHelper);
+        fHelper << "return new Uint8Array([";
+        char sep = ' ';
+        for (int i = 0; i < fBinaryOut.size(); i++) {
+            fHelper << sep << hex << int(fBinaryOut[i]);
+            sep = ',';
+        }
+        fHelper << "]).buffer;\n";
+   tab(n, fHelper); fHelper << "}\n";
+
 }
 
 void WASMScalarCodeContainer::generateCompute()

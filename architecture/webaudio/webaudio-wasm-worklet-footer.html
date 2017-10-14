@@ -1,0 +1,209 @@
+
+<script>
+
+'use strict';
+
+// Faust part
+
+var isWasm = (typeof(WebAssembly) !== "undefined");
+var audio_context = null;
+var audio_input = null;
+var midi_input = [];
+var DSP = null;
+var faustsvg = null;
+var output_handler = null;
+
+// MIDI input handling
+
+function pitchWheel(channel, wheel)
+{
+    if (DSP) {
+        DSP.pitchWheel(channel, wheel);
+    }
+}
+
+function ctrlChange(channel, ctrl, value)
+{
+    if (DSP) {
+        DSP.ctrlChange(channel, ctrl, value);
+    }
+}
+
+function midiMessageReceived(ev)
+{
+    var cmd = ev.data[0] >> 4;
+    var channel = ev.data[0] & 0xf;
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
+
+    if (channel === 9) {
+        return;
+    } else if (cmd === 11) {
+        ctrlChange(channel, data1, data2);
+    } else if (cmd === 14) {
+        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+    }
+}
+
+function onerrorcallback(error)
+{
+    console.log(error);
+}
+
+function onsuccesscallbackStandard(access)
+{
+    for (var input of access.inputs.values()) {
+        midi_input.push(input);
+        input.onmidimessage = midiMessageReceived;
+        console.log(input.name);
+    }
+}
+
+function activateMIDIInput()
+{
+    console.log("activateMIDIInput");
+    if (typeof (navigator.requestMIDIAccess) !== "undefined") {
+        navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+    } else {
+        alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+    }
+}
+
+// Audio input handling
+
+function activateAudioInput()
+{
+    if (!navigator.getUserMedia) {
+        navigator.getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
+    }
+
+    if (navigator.getUserMedia) {
+        navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
+                               alert('Error getting audio input');
+                               console.log(e);
+                               });
+    } else {
+        alert('Audio input API not available');
+    }
+}
+
+function getDevice(device)
+{
+    // Create an AudioNode from the stream.
+    audio_input = audio_context.createMediaStreamSource(device);
+
+    // Connect it to the destination.
+    audio_input.connect(DSP);
+}
+
+// Save/Load functions using local storage
+function saveDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP.getParams();
+        for (var i = 0; i < params.length; i++) {
+            localStorage.setItem(params[i], DSP.getParamValue(params[i]));
+        }
+    }
+}
+
+function loadDSP()
+{
+    if (typeof(Storage) !== "undefined") {
+        var params = DSP.getParams();
+        for (var i = 0; i < params.length; i++) {
+            if (localStorage.getItem(params[i])) {
+                // Restore DSP state
+                DSP.setParamValue(params[i], Number(localStorage.getItem(params[i])));
+                // Restore GUI state
+                output_handler(params[i], Number(localStorage.getItem(params[i])));
+            }
+        }
+    }
+}
+
+function startDSPAux(dsp)
+{
+    if (!dsp) {
+        alert(faust.getErrorMessage());
+        return;
+    }
+
+    DSP = dsp;
+
+    if (DSP.getNumInputs() > 0) {
+        activateAudioInput();
+    }
+    
+    console.log("startDSPAux");
+    console.log(DSP.parameters);
+    
+    DSP.connect(audio_context.destination);
+    console.log(DSP.getJSON());
+
+    // TODO: emcc
+    //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+    console.log(DSP.getParams());
+
+    // No polling from the server needed, so use an empty loop
+    _f4u$t.main_loop = function() {}
+
+    faustsvg = $('<div />');
+    $('body').append(faustsvg);
+    
+    // TODO : does not work : 'this' is not know inside DSP.setParamValue
+    //output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
+    
+    output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, function(path, val)
+                                 { DSP.parameters.get(path).value = val;});
+   
+    DSP.setOutputParamHandler(output_handler);
+
+    // Load DSP state from local storage
+    loadDSP();
+}
+
+function startDSP()
+{
+    startNewDSP();
+}
+
+function startNewDSP()
+{
+    if (isWasm) {
+        faust.createDSP(startDSPAux);
+    }  else {
+        alert("WebAssembly is not supported in this browser !")
+    }
+}
+
+// To activate audio on iOS
+window.addEventListener('touchstart', function() {
+
+                        // create empty buffer
+                        var buffer = audio_context.createBuffer(1, 1, 22050);
+                        var source = audio_context.createBufferSource();
+                        source.buffer = buffer;
+
+                        // connect to output (your speakers)
+                        source.connect(audio_context.destination);
+
+                        // play the file
+                        source.start();
+
+                        }, false);
+
+// Start monophonic instrument
+if (typeof (Module) !== "undefined") {
+    console.log("Compiled with EMCC");
+    Module['onRuntimeInitialized'] = startDSP;
+} else {
+    console.log("Compiled with WASM backend");
+    activateMIDIInput();
+    startDSP();
+}
+
+// Save DSP state to local storage
+setInterval(function() { if (DSP) saveDSP(); }, 1000);
+
+</script>

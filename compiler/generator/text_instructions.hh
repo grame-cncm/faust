@@ -142,7 +142,7 @@ class TextInstVisitor : public InstVisitor {
             char sep = '{';
             for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
                 *fOut << sep << checkFloat(inst->fNumTable[i]);
-                 sep = ',';
+                sep = ',';
             }
             *fOut << '}';
         }

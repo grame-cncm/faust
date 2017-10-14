@@ -11,6 +11,9 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+// Audio buffer size
+faust.buffer_size = 128;
+
 faust.createMemory = function (inputs, outputs, buffer_size, polyphony) {
     
     // Memory allocator
@@ -40,9 +43,6 @@ faust.asm2wasm = { // special asm2wasm imports
         return x - window.Math.round(x/y) * y;
     }
 }
-
-// Audio buffer size
-faust.buffer_size = 128;
 
 // Polyphony
 faust.polyphony = 16;

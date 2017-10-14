@@ -86,34 +86,39 @@ echo "Compiling with :" $OPTIONS
 #
 
 if [ $POLY = "true" ]; then
-    HTML_FOOTER=webaudio-wasm-poly-footer.html
+
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-wasm-poly-emcc.js
+        HTML_FOOTER=webaudio-wasm-poly-footer.html
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
             CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-poly-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic mode"
             CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
         fi
     fi
 else
-    HTML_FOOTER=webaudio-wasm-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER1=webaudio-asm.cpp
         JS_WRAPPER=webaudio-wasm-emcc.js
+        HTML_FOOTER=webaudio-wasm-footer.html
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in AudioWorklet mode"
             CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-worklet-footer.html
         else
             echo "Compiled with 'wasm' backend"
             CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-footer.html
         fi
     fi
 fi
@@ -132,9 +137,9 @@ for f in $FILES; do
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         if [ $POLY = "true" ]; then
-            faust -lang wasm-e $SVG $OPTIONS $f -o $name.wasm || exit
+            faust -lang wasm-e $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
         else
-            faust -lang wasm $SVG $OPTIONS $f -o $name.wasm || exit
+            faust -lang wasm $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
         fi
         # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
@@ -190,6 +195,10 @@ for f in $FILES; do
     sed -e "s/DSP/"$name"/g" $name-temp2.html > $name.html
     
     rm $name.js $name-temp2.html
+
+    if [ $WORKLET = "true" ]; then
+         rm $name.wasm
+    fi
 
     # collect binary file name
 	BINARIES="$BINARIES$name.html;"

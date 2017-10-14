@@ -1,6 +1,5 @@
 /*
  faust2wasm
- 
  Additional code: GRAME 2017
 */
  
@@ -19,40 +18,86 @@ faust.asm2wasm = { // special asm2wasm imports
         return x % y;
     },
     "log10": function(x) {
-        return window.Math.log(x) / window.Math.log(10);
+        return Math.log(x) / Math.log(10);
     },
     "remainder": function(x, y) {
-        return x - window.Math.round(x/y) * y;
+        return x - Math.round(x/y) * y;
     }
 }
 
 faust.importObject = { imports: { print: arg => console.log(arg) } }
-faust.importObject["global.Math"] = window.Math;
+faust.importObject["global.Math"] = Math;
 faust.importObject["asm2wasm"] = faust.asm2wasm;
 
 // WebAssembly instance
 faust.mydsp_instance = null;
 
 // JSON parsing functions
-faust.parse_ui = function (ui, callback)
+faust.parse_ui = function(ui, obj, callback)
 {
     for (var i = 0; i < ui.length; i++) {
-        faust.parse_group(ui[i], callback);
+        faust.parse_group(ui[i], obj, callback);
     }
 }
 
-faust.parse_group = function (group, callback)
+faust.parse_group = function(group, obj, callback)
 {
     if (group.items) {
-        faust.parse_items(group.items, callback);
+        faust.parse_items(group.items, obj, callback);
     }
 }
 
-faust.parse_items = function (items, callback)
+faust.parse_items = function(items, obj, callback)
 {
     var i;
     for (i = 0; i < items.length; i++) {
-        callback(items[i]);
+        callback(items[i], obj, callback);
+    }
+}
+
+faust.parse_item1 = function(item, obj, callback)
+{
+    if (item.type === "vgroup"
+        || item.type === "hgroup"
+        || item.type === "tgroup") {
+        // TODO
+        faust.parse_items(item.items, obj, callback);
+    } else if (item.type === "hbargraph"
+               || item.type === "vbargraph") {
+        // Keep bargraph adresses
+        //obj.outputs_items.push(item.address);
+    } else if (item.type === "vslider"
+               || item.type === "hslider"
+               || item.type === "button"
+               || item.type === "checkbox"
+               || item.type === "nentry") {
+        obj.push({ name: item.address,
+                    defaultValue: item.init,
+                    minValue: item.min,
+                    maxValue: item.max });
+    }
+}
+
+faust.parse_item2 = function(item, obj, callback)
+{
+    if (item.type === "vgroup"
+        || item.type === "hgroup"
+        || item.type === "tgroup") {
+        // TODO
+        faust.parse_items(item.items, obj, callback);
+    } else if (item.type === "hbargraph"
+               || item.type === "vbargraph") {
+        // Keep bargraph adresses
+        obj.outputs_items.push(item.address);
+        obj.pathTable[item.address] = parseInt(item.index);
+    } else if (item.type === "vslider"
+               || item.type === "hslider"
+               || item.type === "button"
+               || item.type === "checkbox"
+               || item.type === "nentry") {
+        // Keep inputs adresses
+        obj.inputs_items.push(item.address);
+        obj.pathTable[item.address] = parseInt(item.index);
     }
 }
 
@@ -64,32 +109,12 @@ class mydspProcessor extends AudioWorkletProcessor {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
         
-        faust.parse_ui(JSON.parse(getJSONmydsp()).ui,
-                       function (item) {
-                           if (item.type === "vgroup"
-                               || item.type === "hgroup"
-                               || item.type === "tgroup") {
-                                faust.parse_items(item.items);
-                           } else if (item.type === "hbargraph"
-                                      || item.type === "vbargraph") {
-                                // Keep bargraph adresses
-                                ///this.outputs_items.push(item.address);
-                           } else if (item.type === "vslider"
-                                      || item.type === "hslider"
-                                      || item.type === "button"
-                                      || item.type === "checkbox"
-                                      || item.type === "nentry") {
-                                params.push({ name: item.address,
-                                       defaultValue: item.init,
-                                       minValue: item.min,
-                                       maxValue: item.max });
-                           }
-                       });
+        faust.parse_ui(JSON.parse(getJSONmydsp()).ui, params, faust.parse_item1);
         
         return params;
     }
     
-    constructor (options)
+    constructor(options)
     {
         super(options);
         
@@ -128,7 +153,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         // Start of HEAP index
         
         // DSP is placed first with index 0. Audio buffer start at the end of DSP.
-        this.audio_heap_ptr = getSizemydsp();
+        this.audio_heap_ptr = parseInt(this.json_object.size);
         
         // Setup pointers offset
         this.audio_heap_ptr_inputs = this.audio_heap_ptr;
@@ -141,10 +166,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;
         
-        this.pathTable = getPathTablemydsp();
-        
-        // Allocate table for 'setParamValue'
-        this.value_table = [];
+        this.pathTable = [];
         
         this.update_outputs = function ()
         {
@@ -187,36 +209,10 @@ class mydspProcessor extends AudioWorkletProcessor {
             }
             
             // Parse UI
-            faust.parse_ui(this.json_object.ui,
-                           function (item) {
-                               if (item.type === "vgroup"
-                                   || item.type === "hgroup"
-                                   || item.type === "tgroup") {
-                                    faust.parse_items(item.items);
-                               } else if (item.type === "hbargraph"
-                                          || item.type === "vbargraph") {
-                                    // Keep bargraph adresses
-                                    this.outputs_items.push(item.address);
-                               } else if (item.type === "vslider"
-                                          || item.type === "hslider"
-                                          || item.type === "button"
-                                          || item.type === "checkbox"
-                                          || item.type === "nentry") {
-                                    // Keep inputs adresses
-                                    this.inputs_items.push(item.address);
-                               }
-                           });
+            faust.parse_ui(this.json_object.ui, this, faust.parse_item2);
             
             // Init DSP
-            this.factory.init(this.dsp, context.sampleRate);
-            
-            // Init 'value' table
-            for (i = 0; i < this.inputs_items.length; i++) {
-                var path = this.inputs_items[i];
-                var values = new Float32Array(2);
-                values[0] = values[1] = this.factory.getParamValue(this.dsp, this.pathTable[path]);
-                this.value_table[path] = values;
-            }
+            this.factory.init(this.dsp, 44100);
         }
        
         // Init resulting DSP
@@ -225,46 +221,48 @@ class mydspProcessor extends AudioWorkletProcessor {
     
     process(inputs, outputs, parameters) {
         
+        var input = inputs[0];
+        var output = outputs[0];
+        
         // Copy inputs
-        for (var channel = 0; channel < input.length; ++channel) {
-            var dspInput = this.dspInChannnels[i];
-            for (var frame = 0; frame < input[channel].length; ++frame) {
-                dspInput[j] = input[channel][frame];
+        if (input !== undefined) {
+            for (var channel = 0; channel < input.length; ++channel) {
+                var dspInput = this.dspInChannnels[channel];
+                for (var frame = 0; frame < input[channel].length; ++frame) {
+                    dspInput[frame] = input[channel][frame];
+                }
             }
         }
         
-        //var myParam = parameters.myParam;
-       
-        /*
-         // Update control state
-         for (i = 0; i < this.inputs_items.length; i++) {
-         var path = this.inputs_items[i];
-         var values = this.value_table[path];
-         this.factory.setParamValue(this.dsp, this.pathTable[path], values[0]);
-         values[0] = values[1];
-         }
-         */
+        // Update controls
+        var params = Object.entries(parameters);
+        for (var i = 0; i < params.length; i++) {
+            this.factory.setParamValue(this.dsp, this.pathTable[params[i][0]], params[i][1][0]);
+        }
         
-        // TODO : check if inputs, outputs can be directly used 
         // Compute
-        this.factory.compute(this.dsp, faust.buffer_size, this.ins, this.outs);
+        this.factory.compute(this.dsp, 128, this.ins, this.outs);
         
         // Copy outputs
-        for (var channel = 0; channel < input.length; ++channel) {
-            var dspOutput = this.dspOutChannnels[i];
-            for (var frame = 0; frame < output[channel].length; ++frame) {
-                output[channel][frame] = dspOutput[frame];
+        if (output !== undefined) {
+            for (var channel = 0; channel < output.length; ++channel) {
+                var dspOutput = this.dspOutChannnels[channel];
+                for (var frame = 0; frame < output[channel].length; ++frame) {
+                    output[channel][frame] = dspOutput[frame];
+                }
             }
         }
+        
+        return true;
     }
 }
 
-// Compile the WebAssembly file, then register the processor class
-fetch('mydsp.wasm')
-.then(dsp_file => dsp_file.arrayBuffer())
-.then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, faust.importObject))
-.then(dsp_module => { faust.mydsp_instance = dsp_module.instance; registerProcessor('mydsp', mydspProcessor); })
-.catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
-
+// Compile wasm binary module
+WebAssembly.instantiate(getBinaryCodemydsp(), faust.importObject)
+            .then(dsp_module => {
+                  faust.mydsp_instance = dsp_module.instance;
+                  registerProcessor('mydsp', mydspProcessor);
+            })
+            .catch(function() { console.log("Faust mydsp cannot be loaded or compiled"); });
 
 
