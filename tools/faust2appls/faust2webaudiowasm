@@ -23,15 +23,15 @@ OPTIONS="-ftz 2"
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-  FAUSTLIB=$FAUST_LIB_PATH
+    FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/local/share/faust/
+    FAUSTLIB=/usr/local/share/faust/
 elif [ -f /usr/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/share/faust/
+    FAUSTLIB=/usr/share/faust/
 else
-  echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
 #-------------------------------------------------------------------
@@ -202,9 +202,9 @@ for f in $FILES; do
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-        BINARIES="$BINARIES$name.html;$BINARIES$name.js;"
+        BINARIES="$BINARIES$name.html;$name.js;"
     else
-        BINARIES="$BINARIES$name.html;$BINARIES$name.wasm;"
+        BINARIES="$BINARIES$name.html;name.wasm;"
     fi
 
 done
