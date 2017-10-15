@@ -32,85 +32,80 @@ faust.importObject["asm2wasm"] = faust.asm2wasm;
 // WebAssembly instance
 faust.mydsp_instance = null;
 
-// JSON parsing functions
-faust.parse_ui = function(ui, obj, callback)
-{
-    for (var i = 0; i < ui.length; i++) {
-        faust.parse_group(ui[i], obj, callback);
-    }
-}
-
-faust.parse_group = function(group, obj, callback)
-{
-    if (group.items) {
-        faust.parse_items(group.items, obj, callback);
-    }
-}
-
-faust.parse_items = function(items, obj, callback)
-{
-    var i;
-    for (i = 0; i < items.length; i++) {
-        callback(items[i], obj, callback);
-    }
-}
-
-faust.parse_item1 = function(item, obj, callback)
-{
-    if (item.type === "vgroup"
-        || item.type === "hgroup"
-        || item.type === "tgroup") {
-        // TODO
-        faust.parse_items(item.items, obj, callback);
-    } else if (item.type === "hbargraph"
-               || item.type === "vbargraph") {
-        // Keep bargraph adresses
-        //obj.outputs_items.push(item.address);
-    } else if (item.type === "vslider"
-               || item.type === "hslider"
-               || item.type === "button"
-               || item.type === "checkbox"
-               || item.type === "nentry") {
-        obj.push({ name: item.address,
-                    defaultValue: item.init,
-                    minValue: item.min,
-                    maxValue: item.max });
-    }
-}
-
-faust.parse_item2 = function(item, obj, callback)
-{
-    if (item.type === "vgroup"
-        || item.type === "hgroup"
-        || item.type === "tgroup") {
-        // TODO
-        faust.parse_items(item.items, obj, callback);
-    } else if (item.type === "hbargraph"
-               || item.type === "vbargraph") {
-        // Keep bargraph adresses
-        obj.outputs_items.push(item.address);
-        obj.pathTable[item.address] = parseInt(item.index);
-    } else if (item.type === "vslider"
-               || item.type === "hslider"
-               || item.type === "button"
-               || item.type === "checkbox"
-               || item.type === "nentry") {
-        // Keep inputs adresses
-        obj.inputs_items.push(item.address);
-        obj.pathTable[item.address] = parseInt(item.index);
-    }
-}
-
 // Monophonic Faust DSP
 class mydspProcessor extends AudioWorkletProcessor {
+    
+    // JSON parsing functions
+    static parse_ui(ui, obj, callback)
+    {
+        for (var i = 0; i < ui.length; i++) {
+            mydspProcessor.parse_group(ui[i], obj, callback);
+        }
+    }
+    
+    static parse_group(group, obj, callback)
+    {
+        if (group.items) {
+            mydspProcessor.parse_items(group.items, obj, callback);
+        }
+    }
+    
+    static parse_items(items, obj, callback)
+    {
+        for (var i = 0; i < items.length; i++) {
+            callback(items[i], obj, callback);
+        }
+    }
+    
+    static parse_item1(item, obj, callback)
+    {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
+            mydspProcessor.parse_items(item.items, obj, callback);
+        } else if (item.type === "hbargraph"
+                   || item.type === "vbargraph") {
+            // Keep bargraph adresses
+            //obj.outputs_items.push(item.address);
+        } else if (item.type === "vslider"
+                   || item.type === "hslider"
+                   || item.type === "button"
+                   || item.type === "checkbox"
+                   || item.type === "nentry") {
+            obj.push({ name: item.address,
+                     defaultValue: item.init,
+                     minValue: item.min,
+                     maxValue: item.max });
+        }
+    }
+    
+    static parse_item2(item, obj, callback)
+    {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
+            mydspProcessor.parse_items(item.items, obj, callback);
+        } else if (item.type === "hbargraph"
+                   || item.type === "vbargraph") {
+            // Keep bargraph adresses
+            obj.outputs_items.push(item.address);
+            obj.pathTable[item.address] = parseInt(item.index);
+        } else if (item.type === "vslider"
+                   || item.type === "hslider"
+                   || item.type === "button"
+                   || item.type === "checkbox"
+                   || item.type === "nentry") {
+            // Keep inputs adresses
+            obj.inputs_items.push(item.address);
+            obj.pathTable[item.address] = parseInt(item.index);
+        }
+    }
     
     static get parameterDescriptors () {
         
         // Analyse JSON to generate AudioParam parameters
         var params = [];
-        
-        faust.parse_ui(JSON.parse(getJSONmydsp()).ui, params, faust.parse_item1);
-        
+        mydspProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydspProcessor.parse_item1);
         return params;
     }
     
@@ -209,7 +204,7 @@ class mydspProcessor extends AudioWorkletProcessor {
             }
             
             // Parse UI
-            faust.parse_ui(this.json_object.ui, this, faust.parse_item2);
+            mydspProcessor.parse_ui(this.json_object.ui, this, mydspProcessor.parse_item2);
             
             // Init DSP
             this.factory.init(this.dsp, 44100);
@@ -228,9 +223,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         if (input !== undefined) {
             for (var channel = 0; channel < input.length; ++channel) {
                 var dspInput = this.dspInChannnels[channel];
-                for (var frame = 0; frame < input[channel].length; ++frame) {
-                    dspInput[frame] = input[channel][frame];
-                }
+                dspInput.set(input[channel]);
             }
         }
         
@@ -247,9 +240,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         if (output !== undefined) {
             for (var channel = 0; channel < output.length; ++channel) {
                 var dspOutput = this.dspOutChannnels[channel];
-                for (var frame = 0; frame < output[channel].length; ++frame) {
-                    output[channel][frame] = dspOutput[frame];
-                }
+                output[channel].set(dspOutput);
             }
         }
         

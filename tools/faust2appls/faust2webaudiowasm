@@ -201,7 +201,11 @@ for f in $FILES; do
     fi
 
     # collect binary file name
-	BINARIES="$BINARIES$name.html;"
+    if [ $WORKLET = "true" ]; then
+        BINARIES="$BINARIES$name.html;$BINARIES$name.js;"
+    else
+        BINARIES="$BINARIES$name.html;$BINARIES$name.wasm;"
+    fi
 
 done
 

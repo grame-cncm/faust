@@ -75,8 +75,7 @@ faust.parse_group = function (group, callback)
 
 faust.parse_items = function (items, callback)
 {
-    var i;
-    for (i = 0; i < items.length; i++) {
+    for (var i = 0; i < items.length; i++) {
         callback(items[i]);
     }
 }

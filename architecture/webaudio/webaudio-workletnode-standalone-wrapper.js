@@ -37,9 +37,8 @@ class mydspNode extends AudioWorkletNode {
         
         this.parse_items = function(items, obj)
         {
-            var i;
-            for (i = 0; i < items.length; i++) {
-                this.parse_item(items[i], obj);
+            for (var i = 0; i < items.length; i++) {
+            	this.parse_item(items[i], obj);
             }
         }
         

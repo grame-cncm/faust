@@ -184,8 +184,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
 
     sp.parse_items = function (items)
     {
-        var i;
-        for (i = 0; i < items.length; i++) {
+        for (var i = 0; i < items.length; i++) {
             sp.parse_item(items[i]);
         }
     }
