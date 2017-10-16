@@ -78,9 +78,8 @@ install:
 	install faust2w32max6 $(dest)
 	install faust2w32msp $(dest)
 	install faust2w32puredata $(dest)
-	install faust2w32unity $(dest)
 	install faust2w32vst $(dest)
-	install faust2w64unity $(dest)
+	install faust2unitywin $(dest)
 	install faust2webaudioasm $(dest)
 	install faustoptflags $(dest)
 	install faustpath $(dest)
@@ -151,9 +150,8 @@ uninstall:
 	rm -f $(dest)/faust2w32max6
 	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2w32puredata
-	rm -f $(dest)/faust2w32unity
 	rm -f $(dest)/faust2w32vst
-	rm -f $(dest)/faust2w64unity
+	rm -f $(dest)/faust2unitywin
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faustoptflags
 	rm -f $(dest)/faustpath
