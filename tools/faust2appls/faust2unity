@@ -127,12 +127,15 @@ for p in $FILES; do
 
     # w64
     if [ $W64 = "1" ] || [ $ALL = "1" ]; then
-        faust2w64unity $f || exit
+        WINBITS="$WINBITS -64"
     fi
-
     # w32
     if [ $W32 = "1" ] || [ $ALL = "1" ]; then
-        faust2w32unity $f || exit
+        WINBITS="$WINBITS -32"
+    fi
+    # win
+    if [ -n "$WINBITS" ]; then
+        faust2unitywin $WINBITS $f || exit
     fi
 
     # macos
