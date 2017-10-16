@@ -17,9 +17,6 @@ faust.asm2wasm = { // special asm2wasm imports
     "fmod": function(x, y) {
         return x % y;
     },
-    "log10": function(x) {
-        return Math.log(x) / Math.log(10);
-    },
     "remainder": function(x, y) {
         return x - Math.round(x/y) * y;
     }

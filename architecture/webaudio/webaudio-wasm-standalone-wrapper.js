@@ -462,9 +462,6 @@ faust.createmydsp = function(context, buffer_size, callback)
         "fmod": function(x, y) {
             return x % y;
         },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
         "remainder": function(x, y) {
             return x - window.Math.round(x/y) * y;
         }

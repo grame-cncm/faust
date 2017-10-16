@@ -116,7 +116,7 @@ struct WASInst {
         fMathLibTable["floorf"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", WasmOp::F32Floor, Typed::kFloat, 1);
         fMathLibTable["fmodf"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", Typed::kFloat, 2);
         fMathLibTable["logf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", Typed::kFloat, 1);
-        fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", Typed::kFloat, 1);
+        fMathLibTable["log10f"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log10", Typed::kFloat, 1);
         fMathLibTable["max_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", WasmOp::F32Max, Typed::kFloat, 2);
         fMathLibTable["min_f"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F32Min, Typed::kFloat, 2);
         fMathLibTable["powf"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kFloat, 2);
@@ -138,7 +138,7 @@ struct WASInst {
         fMathLibTable["floor"] = MathFunDesc(MathFunDesc::Gen::kWAS, "floor", WasmOp::F64Floor, Typed::kDouble, 1);
         fMathLibTable["fmod"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "fmod", Typed::kDouble, 2);
         fMathLibTable["log"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log", Typed::kDouble, 1);
-        fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtWAS, "log10", Typed::kDouble, 1);
+        fMathLibTable["log10"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "log10", Typed::kDouble, 1);
         fMathLibTable["max_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "max", WasmOp::F64Max, Typed::kDouble, 2);
         fMathLibTable["min_"] = MathFunDesc(MathFunDesc::Gen::kWAS, "min", WasmOp::F64Min, Typed::kDouble, 2);
         fMathLibTable["pow"] = MathFunDesc(MathFunDesc::Gen::kExtMath, "pow", Typed::kDouble, 2);

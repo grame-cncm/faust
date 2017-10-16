@@ -202,11 +202,8 @@ faust.remap = function(v, mn0, mx0, mn1, mx1)
 
 // special asm2wasm imports
 faust.asm2wasm = {
-    "fmod": function(x, y) {
+	"fmod": function(x, y) {
         return x % y;
-    },
-    "log10": function(x) {
-        return window.Math.log(x) / window.Math.log(10);
     },
     "remainder": function(x, y) {
         return x - window.Math.round(x/y) * y;
