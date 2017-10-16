@@ -30,7 +30,6 @@
 #include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
-#include "faust/gui/SoundUI.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/misc.h"
 

@@ -31,7 +31,6 @@
 
 #include "faust/gui/UI.h"
 #include "faust/gui/ring-buffer.h"
-#include "faust/audio/soundfile.h"
 
 /*******************************************************************************
  * GUI : Abstract Graphic User Interface
