@@ -207,7 +207,7 @@ class mydspProcessor extends AudioWorkletProcessor {
             mydspProcessor.parse_ui(this.json_object.ui, this, mydspProcessor.parse_item2);
             
             // Init DSP
-            this.factory.init(this.dsp, 44100);
+            this.factory.init(this.dsp, sampleRate); // 'sampleRate' is defined in AudioWorkletGlobalScope  
         }
        
         // Init resulting DSP
@@ -230,7 +230,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         // Update controls
         var params = Object.entries(parameters);
         for (var i = 0; i < params.length; i++) {
-            this.factory.setParamValue(this.dsp, this.pathTable[params[i][0]], params[i][1][0]);
+            this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
         }
         
         // Compute
