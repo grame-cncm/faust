@@ -369,7 +369,7 @@
                     </select>
                 </form>
                 </div>
-                <p>Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome which implements the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>). <p> Be sure to launch the HTML page <B>after</B> your MIDI application(s)/devices(s) to be sure MIDI ports are properly detected.</p>
+                <p>Assuming your DSP code is <a href="http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html ">polyphonic ready</a>, you can activate the polyphonic mode, adjust the number of available voices, and test it with a MIDI device or application (usable with Chrome which implements the <a href="https://webaudio.github.io/web-midi-api/">Web MIDI API</a>).
             </div>
             
             <div class="config-element">
@@ -414,7 +414,6 @@
 
             <script src="jsscripts.js"></script>
             <script src="libfaust-wasm.js"></script>
-            <script src="WebMIDIAPI.js"></script>
             <!-- <script src="binaryen.js"> </script> -->
             <script src="webaudio-wasm-wrapper.js"></script>
             <script type="text/javascript">
@@ -432,7 +431,6 @@
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var buffer_size = 1024;
             var audio_input = null;
-            var midi_input = [];
             var factory = null;
             var DSP = null;
             var dsp_code = null;
@@ -538,39 +536,34 @@
                 }
             }
 
-            function onerrorcallback(error)
-            {
+            function onerrorcallback(error) {
                 console.log(error);
             }
-
-            function onsuccesscallbackJazz(access)
-            {
-                var inputs = access.getInputs();
-                for (var i = 0; i < inputs.length; i++) {
-                    var input = access.getInput(inputs[i]);
-                    midi_input.push(input);
-                    input.onmessage = midiMessageReceived;
-                }
-            }
-
-            function onsuccesscallbackStandard(access)
-            {
-                for (var input of access.inputs.values()) {
-                    midi_input.push(input);
-                    input.onmidimessage = midiMessageReceived;
-                    console.log(input.name);
-                }
-            }
-
-            function activateMIDIInput()
-            {
-                console.log("activateMIDIInput");
-                if (typeof (navigator.requestMIDIAccess) !== "undefined") {
-                    if (navigator.requestMIDIAccess() !== undefined) {
-                        navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
-                    } else{
-                        navigator.requestMIDIAccess(onsuccesscallbackJazz, onerrorcallback);
+            
+            function onsuccesscallbackStandard(access) {
+                
+                access.onstatechange = function(e) {
+                    if (e.port.type === "input") {
+                        if (e.port.state === "connected") {
+                            console.log(e.port.name + " is connected");
+                            e.port.onmidimessage = midiMessageReceived;
+                        } else if (e.port.state  === "disconnected") {
+                            console.log(e.port.name + " is disconnected");
+                            e.port.onmidimessage = null;
+                        }
                     }
+                }
+                
+                for (var input of access.inputs.values()) {
+                    input.onmidimessage = midiMessageReceived;
+                    console.log(input.name + " is connected");
+                }
+            }
+            
+            function activateMIDIInput() {
+                console.log("activateMIDIInput");
+                if (typeof(navigator.requestMIDIAccess) !== "undefined") {
+                    navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
                 } else {
                     alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
                 }

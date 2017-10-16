@@ -86,34 +86,39 @@ echo "Compiling with :" $OPTIONS
 #
 
 if [ $POLY = "true" ]; then
-    HTML_FOOTER=webaudio-wasm-poly-footer.html
+
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-wasm-poly-emcc.js
+        HTML_FOOTER=webaudio-wasm-poly-footer.html
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
             CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic mode"
             CODE_WRAPPER1=webaudio-wasm-poly-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-poly-footer.html
         fi
     fi
 else
-    HTML_FOOTER=webaudio-wasm-footer.html
     if [ $EMCC = emcc ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER1=webaudio-asm.cpp
         JS_WRAPPER=webaudio-wasm-emcc.js
+        HTML_FOOTER=webaudio-wasm-footer.html
     else
         if [ $WORKLET = "true" ]; then
             echo "Compiled with 'wasm' backend in AudioWorklet mode"
             CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-worklet-footer.html
         else
             echo "Compiled with 'wasm' backend"
             CODE_WRAPPER1=webaudio-wasm-standalone-wrapper.js
+            HTML_FOOTER=webaudio-wasm-footer.html
         fi
     fi
 fi
@@ -154,7 +159,7 @@ for f in $FILES; do
         # compile the C++ code to wasm
         emcc -O3 --memory-init-file 0 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 $name.cpp --post-js $FAUSTLIB/webaudio/$JS_WRAPPER -o $name.js -s EXPORTED_FUNCTIONS=$EXPORTED || exit
  
-        # remove intermediate C++  file
+        # remove intermediate C++ file
         rm $name.cpp
     fi
     
@@ -169,7 +174,6 @@ for f in $FILES; do
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
-    cat $FAUSTLIB/webaudio/WebMIDIAPI.js >> $name-temp2.html
     if [ $EMCC != emcc ] ; then
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
@@ -195,7 +199,11 @@ for f in $FILES; do
     rm -f $name.js $name.wast $name-tmp.wasm $name-temp2.html
  
     # collect binary file name
-	BINARIES="$BINARIES$name.html;"
+    if [ $WORKLET = "true" ]; then
+        BINARIES="$BINARIES$name.html;$name.js;"
+    else
+        BINARIES="$BINARIES$name.html;$name.wasm;"
+    fi
 
 done
 
