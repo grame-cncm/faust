@@ -635,12 +635,13 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     startTiming("initJIT");
     
     //std::cout << "getFeaturesStr : " << getFeaturesStr() << std::endl;
-    
+#ifdef LLVM_BUILD_UNIVERSAL
     // For multiple target support
     InitializeAllTargets();
     InitializeAllTargetMCs();
     InitializeAllAsmPrinters();
     InitializeAllAsmParsers();
+#endif
       
     // For host target support
     InitializeNativeTarget();

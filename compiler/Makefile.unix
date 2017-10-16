@@ -24,6 +24,9 @@ ba_wasm = $(wildcard generator/wasm/*.cpp)
 # Flags to compile all backends
 ba_flags = -DASMJS_BUILD -DC_BUILD -DCPP_BUILD -DFIR_BUILD -DINTERP_BUILD -DJAVA_BUILD -DJS_BUILD -DLLVM_BUILD -DOCPP_BUILD -DRUST_BUILD -DWASM_BUILD
 
+# Flags to compile LLVM backend in 'cross-compiler' mode (that is embedding all architecture specific JIT LLVM backends)
+# ba_flags += -DLLVM_BUILD_UNIVERSAL
+
 # Object files
 common_objects = $(common_sources:.cpp=.o)
 backend_objects = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o) \
