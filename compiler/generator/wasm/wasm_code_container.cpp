@@ -32,9 +32,9 @@ using namespace std;
  WASM backend and module description:
  
  - mathematical functions are either part of WebAssembly (like f32.sqrt, f32.main, f32.max), are imported from JS "global.Math",
-   or are externally implemented (log10 in JS using log, fmod in JS, remainder in JS)
+   or are externally implemented (fmod and remainder in JS)
  - local variables have to be declared first on the block, before being actually initialized or set : this is done using MoveVariablesInFront3
- - 'faustpower' function actually fallback to regular 'pow' (see powprim.h)
+ - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - subcontainers are inlined in 'classInit' and 'instanceConstants' functions
  - waveform generation is 'inlined' using MoveVariablesInFront3, done in a special version of generateInstanceInitFun
  - integer 'min/max' is done in the module in 'min_i/max_i' (using lt/select)
@@ -381,21 +381,22 @@ void WASMCodeContainer::produceClass()
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}\n";
     
-    // Write binary as an array
-    fHelper << showbase         // show the 0x prefix
-            << internal         // fill between the prefix and the number
-            << setfill('0');    // fill with 0s
-    fHelper << "function getBinaryCode" << fKlassName << "() {";
-        tab(n+1, fHelper);
-        fHelper << "return new Uint8Array([";
-        char sep = ' ';
-        for (int i = 0; i < fBinaryOut.size(); i++) {
-            fHelper << sep << hex << int(fBinaryOut[i]);
-            sep = ',';
-        }
-        fHelper << "]).buffer;\n";
-   tab(n, fHelper); fHelper << "}\n";
-
+    if (gGlobal->gOutputLang == "wasm-ib") {
+        // Write binary as an array
+        fHelper << showbase         // show the 0x prefix
+                << internal         // fill between the prefix and the number
+                << setfill('0');    // fill with 0s
+        fHelper << "function getBinaryCode" << fKlassName << "() {";
+            tab(n+1, fHelper);
+            fHelper << "return new Uint8Array([";
+            char sep = ' ';
+            for (int i = 0; i < fBinaryOut.size(); i++) {
+                fHelper << sep << hex << int(fBinaryOut[i]);
+                sep = ',';
+            }
+            fHelper << "]).buffer;\n";
+       tab(n, fHelper); fHelper << "}\n";
+    }
 }
 
 void WASMScalarCodeContainer::generateCompute()

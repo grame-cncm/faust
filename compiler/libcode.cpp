@@ -1157,7 +1157,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wast") || (gGlobal->gOutputLang == "wast-i")));
+            container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
+                                                           ((gGlobal->gOutputLang == "wast")
+                                                            || (gGlobal->gOutputLang == "wast-i")));
             
             // Additional file with JS code
             if (gGlobal->gOutputFile == "binary") {
@@ -1182,7 +1184,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, ((gGlobal->gOutputLang == "wasm") || (gGlobal->gOutputLang == "wasm-i")));
+            container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
+                                                           ((gGlobal->gOutputLang == "wasm")
+                                                            || (gGlobal->gOutputLang == "wasm-i")
+                                                            || (gGlobal->gOutputLang == "wasm-ib")));
             
             // Additional file with JS code
             if (gGlobal->gOutputFile == "binary") {

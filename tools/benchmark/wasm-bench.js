@@ -397,9 +397,9 @@ function bench(instance, display_handler)
     var mega_mean = mega_sum/bench_num;
     var cpu_mean = cpu_sum/bench_num;
     
-    console.log("MBytes/sec mean: " + mega_mean);
+	console.log("MBytes/sec mean: " + mega_mean);
 	console.log("DSP CPU mean % : " + cpu_mean);
-    
+
     if (display_handler) {
     	display_handler(mega_mean, cpu_mean);
     }
@@ -411,29 +411,43 @@ faust.createmydsp = function(display_handler)
         "fmod": function(x, y) {
             return x % y;
         },
-        "log10": function(x) {
-            return window.Math.log(x) / window.Math.log(10);
-        },
         "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
+            return x - Math.round(x/y) * y;
         }
     };
     
     var importObject = { imports: { print: arg => console.log(arg) } }
-    
-    importObject["global.Math"] = window.Math;
+    importObject["global.Math"] = Math;
     importObject["asm2wasm"] = asm2wasm;
     
-    fetch('mydsp.wasm')
-    .then(dsp_file => dsp_file.arrayBuffer())
-    .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-    .then(dsp_module => bench(dsp_module.instance, display_handler))
-    .catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
+    if (typeof window !== "undefined") {
+        fetch('mydsp.wasm')
+        .then(dsp_file => dsp_file.arrayBuffer())
+        .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
+        .then(dsp_module => bench(dsp_module.instance, display_handler))
+        .catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
+    } else {
+        var dsp_bytes = os.file.readFile('mydsp.wasm', 'binary');
+        WebAssembly.instantiate(dsp_bytes, importObject)
+        .then(dsp_module => bench(dsp_module.instance, display_handler))
+        .catch(function() { faust.error_msg = "Faust karplus cannot be loaded or compiled"; });
+    }
 }
 
 // Startup
-var cpu_id = document.getElementById("cpu");
-var megapersec_id = document.getElementById("megapersec");
-
-faust.createmydsp(function(v1, v2) { megapersec_id.value = v1.toFixed(2); cpu_id.value = v2.toFixed(2); });
+if (typeof window !== "undefined") {
+    startBenchmark = function() {
+        faust.createmydsp(function(v1, v2) {
+            document.getElementById("megapersec").value = v1.toFixed(2);
+            document.getElementById("cpu").value = v2.toFixed(2);
+        });
+    }
+} else {
+    startBenchmark = function() {
+        faust.createmydsp(function(v1, v2) {
+            console.log('MBits/s', v1.toFixed(2));
+            console.log('CPU', v2.toFixed(2));
+        });
+    }();
+}
 

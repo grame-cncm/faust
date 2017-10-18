@@ -104,6 +104,7 @@ else
         JS_WRAPPER=webaudio-wasm-emcc.js
     else
         if [ $WORKLET = "true" ]; then
+            WASM="wasm-ib"
             echo "Compiled with 'wasm' backend in AudioWorklet mode"
             CODE_WRAPPER1=webaudio-workletprocessor-standalone-wrapper.js
             CODE_WRAPPER2=webaudio-workletnode-standalone-wrapper.js

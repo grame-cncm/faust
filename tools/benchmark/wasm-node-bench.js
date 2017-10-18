@@ -316,9 +316,6 @@ var asm2wasm = { // special asm2wasm imports
     "fmod": function(x, y) {
         return x % y;
     },
-    "log10": function(x) {
-        return global.Math.log(x) / global.Math.log(10);
-    },
     "remainder": function(x, y) {
         return x - global.Math.round(x/y) * y;
     }

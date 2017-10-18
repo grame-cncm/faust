@@ -1,6 +1,7 @@
 #!/bin/bash
 
 OPT="false"
+HTML="false"
 
 #####################################################################
 #                                                                   #
@@ -27,9 +28,12 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2benchwasm [-opt] foo.dsp"
+        echo "faust2benchwasm [-opt] [-html] foo.dsp"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
+        echo "Use '-html' to generate an HTML page with the benchmark"
         exit
+    elif [ $p = "-html" ]; then
+        HTML="true"
     elif [ $p = "-opt" ]; then
         OPT="true"
     elif [ ${p:0:1} = "-" ]; then
@@ -45,8 +49,6 @@ done
 # compile the *.dsp files 
 
 for f in $FILES; do
-
-    echo $OPTIONS
 
     name=$(basename "$f" .dsp)
     dirname=$(dirname "$f");
@@ -65,29 +67,40 @@ for f in $FILES; do
     sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench.js >> $name-tmp2.js
     sed -e "s/DSP/"$name"/g" $name-tmp2.js >> $name-tmp3.js
 
-    echo "<html>" > $name.html
-    echo "<body>" >> $name.html
-    echo "<H1>" >> $name.html
-    echo "$name <br></H1>" >> $name.html
+    if [ $HTML = "true" ]; then
+        echo "<html>" > $name.html
+        echo "<body>" >> $name.html
+        echo "<H1>" >> $name.html
+        echo "$name <br></H1>" >> $name.html
 
-    echo "<H4>" >> $name.html
-    echo "MBytes/sec :" >> $name.html
-    echo "<input id=\"megapersec\" \"type=\"text\" \"value=\"\">" >> $name.html
-    echo "<br>" >> $name.html
-    echo "CPU load (in % of a 1024 frames audio buffer) :" >> $name.html
-    echo "<input id=\"cpu\" \"type=\"text\" \"value=\"\">" >> $name.html
+        echo "<H4>" >> $name.html
+        echo "<button onclick=\"startBenchmark()\">Start benchmark</button>" >> $name.html
+        echo "<br>" >> $name.html
+        echo "MBytes/sec :" >> $name.html
+        echo "<input id=\"megapersec\" \"type=\"text\" \"value=\"\">" >> $name.html
+        echo "<br>" >> $name.html
+        echo "CPU load (in % of a 1024 frames, 44.1 kHz audio buffer) :" >> $name.html
+        echo "<input id=\"cpu\" \"type=\"text\" \"value=\"\">" >> $name.html
 
-    echo "<script>" >> $name.html
-    cat $name-tmp3.js >> $name.html
-    echo "</script>" >> $name.html
-    echo "</body>" >> $name.html
-    echo "</html>" >> $name.html
+        echo "<script>" >> $name.html
+        cat $name-tmp3.js >> $name.html
+        echo "</script>" >> $name.html
+        echo "</body>" >> $name.html
+        echo "</html>" >> $name.html
+    else
+        mv $name-tmp3.js $name.js
+    fi
 
     # cleanup
-    rm $name-tmp1.js $name-tmp2.js $name-tmp3.js $name.js
-
-    # collect binary file name
-    BINARIES="$BINARIES$name.html;"
+    if [ $HTML = "true" ]; then
+        rm $name-tmp1.js $name-tmp2.js $name-tmp3.js $name.js
+        # collect binary file name
+        BINARIES="$BINARIES$name.html;"
+    else
+        rm $name-tmp1.js $name-tmp2.js
+        # collect binary file name
+        BINARIES="$BINARIES$name.js;"
+    fi
 
 done
 
