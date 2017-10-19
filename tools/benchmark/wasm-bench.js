@@ -4,7 +4,7 @@
 var faust = faust || {};
 
 // Standard Faust DSP
-faust.mydsp = function (instance, context, buffer_size, sample_rate) {
+faust.mydsp = function (instance, buffer_size, sample_rate) {
 
     var output_handler = null;
     var ins, outs;
@@ -356,10 +356,10 @@ function megapersec(frames, chans, dur)
 
 function bench(instance, display_handler)
 {
-    // Creates DSP 
-    var DSP = faust.mydsp(instance, null, buffer_size, sample_rate);
-
-    // First call : create buffers and estimate z proper 'run' value 
+    // Creates DSP
+    var DSP = faust.mydsp(instance, buffer_size, sample_rate);
+ 
+    // First call : create buffers and estimate a proper 'run' value
     if (run === -1) {
         // Setup buffers
         createBuffers(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
@@ -407,6 +407,8 @@ function bench(instance, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
+    console.log("compiled with wasm backend");
+    
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
             return x % y;
@@ -425,12 +427,12 @@ faust.createmydsp = function(display_handler)
         .then(dsp_file => dsp_file.arrayBuffer())
         .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
         .then(dsp_module => bench(dsp_module.instance, display_handler))
-        .catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
+        .catch(function(error) { console.log(error); faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
     } else {
         var dsp_bytes = os.file.readFile('mydsp.wasm', 'binary');
         WebAssembly.instantiate(dsp_bytes, importObject)
         .then(dsp_module => bench(dsp_module.instance, display_handler))
-        .catch(function() { faust.error_msg = "Faust karplus cannot be loaded or compiled"; });
+        .catch(function(error) { console.log(error); faust.error_msg = "Faust karplus cannot be loaded or compiled"; });
     }
 }
 

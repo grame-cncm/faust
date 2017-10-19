@@ -504,7 +504,11 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
             gGlobal->gEnableFlag = atoi(argv[i+1]) == 1;
             i += 2;
-        
+            
+        } else if (isCmd(argv[i], "-light", "--light-mode")) {
+            gGlobal->gLightMode = true;
+            i += 1;
+     
         } else if (isCmd(argv[i], "-lm", "--local-machine") 
                 || isCmd(argv[i], "-rm", "--remote-machine")
                 || isCmd(argv[i], "-poly", "--polyphonic-mode")
@@ -1084,7 +1088,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
      
         if (gGlobal->gOutputLang == "c") {
             
-            gGlobal->gHasExp10 = true;
+            if (!gGlobal->gLightMode) {
+                gGlobal->gHasExp10 = true;
+            }
 
         #if C_BUILD
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
@@ -1157,6 +1163,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            // This speedup (freewerb for instance) ==> to be done at signal level
+            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wast")
                                                             || (gGlobal->gOutputLang == "wast-i")));
@@ -1184,6 +1192,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            // This speedup (freewerb for instance) ==> to be done at signal level
+            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wasm")
                                                             || (gGlobal->gOutputLang == "wasm-i")

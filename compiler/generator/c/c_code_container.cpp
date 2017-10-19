@@ -90,17 +90,19 @@ void CCodeContainer::produceInternal()
 
     tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
 
-    // Memory methods
-    tab(n, *fOut);
-    tab(n, *fOut); *fOut << "static " << fKlassName << "* new" << fKlassName << "() {"
-                        << " return (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << ")); }";
+    if (!gGlobal->gLightMode) {
+        // Memory methods
+        tab(n, *fOut);
+        tab(n, *fOut); *fOut << "static " << fKlassName << "* new" << fKlassName << "() {"
+                            << " return (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << ")); }";
 
-    tab(n, *fOut); *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { free(dsp); }";
+        tab(n, *fOut); *fOut << "static void delete" << fKlassName << "(" << fKlassName << "* dsp) { free(dsp); }";
 
-    tab(n, *fOut);
-    tab(n, *fOut);
+        tab(n, *fOut);
+        tab(n, *fOut);
+    }
     produceInfoFunctions(n, fKlassName, "dsp", false, false, &fCodeProducer);
-    
+        
     // Init
     // TODO
     //generateInstanceInitFun("instanceInit" + fKlassName, false, false)->accept(&fCodeProducer);
@@ -156,6 +158,12 @@ void CCodeContainer::produceClass()
     *fOut << "#ifndef FAUSTCLASS " << endl;
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
     *fOut << "#endif" << endl;
+    
+    if (gGlobal->gLightMode) {
+        tab(n, *fOut);
+        *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
+        *fOut << "#define min(a,b) ((a < b) ? a : b)\n";
+    }
 
     tab(n, *fOut); *fOut << "typedef struct {";
 
@@ -167,46 +175,48 @@ void CCodeContainer::produceClass()
         generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
-
+   
     // Memory methods
     tab(n, *fOut);
-    if (fAllocateInstructions->fCode.size() > 0) {
-        tab(n, *fOut); *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n+1, *fOut);
-            fAllocateInstructions->accept(&fCodeProducer);
-        tab(n, *fOut); *fOut << "}";
-    }
-    
-    tab(n, *fOut);
-    
-    if (fDestroyInstructions->fCode.size() > 0) {
-        tab(n, *fOut); *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
-            tab(n+1, *fOut);
-            fDestroyInstructions->accept(&fCodeProducer);
-        tab(n, *fOut);  *fOut << "}";
-        tab(n, *fOut);
-        tab(n, *fOut);
-    }
-    
-    *fOut << fKlassName << "* new" << fKlassName << "() { ";
-        tab(n+1, *fOut); *fOut << fKlassName << "* dsp = (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
+    if (!gGlobal->gLightMode) {
         if (fAllocateInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+            tab(n, *fOut); *fOut << "static void allocate" << fKlassName << "(" << fKlassName << "* dsp) {";
+                tab(n+1, *fOut);
+                fAllocateInstructions->accept(&fCodeProducer);
+            tab(n, *fOut); *fOut << "}";
         }
-        tab(n+1, *fOut); *fOut << "return dsp;";
-    tab(n, *fOut); *fOut << "}";
-
-    tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
+        
+        tab(n, *fOut);
+        
         if (fDestroyInstructions->fCode.size() > 0) {
-            tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
+            tab(n, *fOut); *fOut << "static void destroy" << fKlassName << "(" << fKlassName << "* dsp) {";
+                tab(n+1, *fOut);
+                fDestroyInstructions->accept(&fCodeProducer);
+            tab(n, *fOut);  *fOut << "}";
+            tab(n, *fOut);
+            tab(n, *fOut);
         }
-        tab(n+1, *fOut); *fOut << "free(dsp);";
-    tab(n, *fOut); *fOut << "}";
+        
+        *fOut << fKlassName << "* new" << fKlassName << "() { ";
+            tab(n+1, *fOut); *fOut << fKlassName << "* dsp = (" << fKlassName  << "*)malloc(sizeof(" << fKlassName << "));";
+            if (fAllocateInstructions->fCode.size() > 0) {
+                tab(n+1, *fOut); *fOut << "allocate" << fKlassName << "(dsp);";
+            }
+            tab(n+1, *fOut); *fOut << "return dsp;";
+        tab(n, *fOut); *fOut << "}";
 
-    // Print metadata declaration
-    tab(n, *fOut);
-    produceMetadata(n);
+        tab(n, *fOut);
+        tab(n, *fOut); *fOut << "void delete" << fKlassName << "(" << fKlassName << "* dsp) { ";
+            if (fDestroyInstructions->fCode.size() > 0) {
+                tab(n+1, *fOut); *fOut << "destroy" << fKlassName << "(dsp);";
+            }
+            tab(n+1, *fOut); *fOut << "free(dsp);";
+        tab(n, *fOut); *fOut << "}";
+
+        // Print metadata declaration
+        tab(n, *fOut);
+        produceMetadata(n);
+    }
 
     // Get sample rate method  (TODO : use generateGetSampleRate)
     tab(n, *fOut); *fOut << "int getSampleRate" << fKlassName << "(" << fKlassName << "* dsp) { return dsp->fSamplingFreq; }";
@@ -282,13 +292,15 @@ void CCodeContainer::produceClass()
         tab(n+1, *fOut); *fOut << "instanceInit" << fKlassName << "(dsp, samplingFreq);";
     tab(n, *fOut); *fOut << "}";
     
-    // User interface
-    tab(n, *fOut);
-    tab(n, *fOut); *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* ui_interface) {";
-        tab(n+1, *fOut);
-        fCodeProducer.Tab(n+1);
-        generateUserInterface(&fCodeProducer);
-    tab(n, *fOut); *fOut << "}";
+    if (!gGlobal->gLightMode) {
+        // User interface
+        tab(n, *fOut);
+        tab(n, *fOut); *fOut << "void buildUserInterface" << fKlassName << "(" << fKlassName << "* dsp, UIGlue* ui_interface) {";
+            tab(n+1, *fOut);
+            fCodeProducer.Tab(n+1);
+            generateUserInterface(&fCodeProducer);
+        tab(n, *fOut); *fOut << "}";
+    }
 
     // Compute
     generateCompute(n);

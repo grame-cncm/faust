@@ -483,11 +483,11 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
         factory.getJSON = eval("getJSON" + factory_name);
 
         try {
-          factory.json_object = JSON.parse(factory.getJSON());
+        	factory.json_object = JSON.parse(factory.getJSON());
         } catch (e) {
-          faust.error_msg = "Error in JSON.parse: " + e;
-          callback(null);
-          throw true;
+          	faust.error_msg = "Error in JSON.parse: " + e;
+          	callback(null);
+          	throw true;
         }
 
         factory.name = factory_name;

@@ -58,7 +58,7 @@ for p in $@; do
     elif [ $p = "-poly" ]; then
         POLY="true"
     elif [ $p = "-emcc" ]; then
-        EMCC=emcc
+        EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -74,7 +74,7 @@ done
 
 if [ $POLY = "true" ]; then
     HTML_FOOTER=webaudio-asm-poly-footer.html
-    if [ $EMCC = emcc ]; then
+    if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-asm-poly-emcc.js
@@ -84,7 +84,7 @@ if [ $POLY = "true" ]; then
     fi
 else
     HTML_FOOTER=webaudio-asm-footer.html
-    if [ $EMCC = emcc ]; then
+    if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER=webaudio-asm.cpp
         JS_WRAPPER=webaudio-asm-emcc.js
@@ -104,13 +104,13 @@ for f in $FILES; do
     name=$(basename "$f" .dsp)
     
     # compile the Faust DSP to C++ or asm.js code
-    if [ $EMCC = emcc ] ; then
+    if [ $EMCC = "true" ]; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang ajs $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER -cn $name $OPTIONS $f -o $name-temp1.js || exit
     fi
      
-    if [ $EMCC = emcc ] ; then
+    if [ $EMCC = "true" ]; then
         # prepare emcc compilation files
         if [ $POLY = "false" ]; then    EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_init','_"$name"_getSampleRate','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
         else        EXPORTED="['_"$name"_poly_constructor','_"$name"_poly_destructor','_"$name"_poly_init','_"$name"_poly_getSampleRate','_"$name"_poly_instanceInit','_"$name"_poly_instanceConstants','_"$name"_poly_instanceClear','_"$name"_poly_compute','_"$name"_poly_getNumInputs','_"$name"_poly_getNumOutputs','_"$name"_poly_setParamValue','_"$name"_poly_getParamValue','_"$name"_poly_getJSON','_"$name"_poly_keyOn','_"$name"_poly_keyOff','_"$name"_poly_allNotesOff','_"$name"_poly_ctrlChange','_"$name"_poly_pitchWheel']"                  

@@ -135,6 +135,7 @@ struct global {
     bool			gInlineArchSwitch;
 
     bool			gDSPStruct;
+    bool            gLightMode;
 
     string			gClassName;
     

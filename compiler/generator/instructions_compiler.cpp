@@ -1152,10 +1152,10 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
     int N = len(le);
 
     ValueInst* res = NULL;
-    vector<bool>    used(N);
-    vector<int>     delay(N);
-    vector<string>  vname(N);
-    vector<Typed::VarType>  ctype(N);
+    vector<bool> used(N);
+    vector<int> delay(N);
+    vector<string> vname(N);
+    vector<Typed::VarType> ctype(N);
 
     // Prepare each element of a recursive definition
     for (int i = 0; i < N; i++) {
@@ -1466,10 +1466,10 @@ ValueInst* InstructionsCompiler::generateDelayLine(ValueInst* exp, Typed::VarTyp
 
     } else {
         
-        // generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
+        // Generate code for a long delay : we use a ring buffer of size N = 2**x > mxd
         int N = pow2limit(mxd + 1);
 
-        // we need a iota index
+        // We need an iota index
         ensureIotaCode();
 
         // Generates table init

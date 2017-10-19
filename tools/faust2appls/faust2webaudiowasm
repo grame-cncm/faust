@@ -70,7 +70,7 @@ for p in $@; do
     elif [ $p = "-worklet" ]; then
         WORKLET="true"
     elif [ $p = "-emcc" ]; then
-        EMCC=emcc
+        EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -88,7 +88,7 @@ echo "Compiling with :" $OPTIONS
 
 if [ $POLY = "true" ]; then
     WASM="wasm-e"
-    if [ $EMCC = emcc ]; then
+    if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
         JS_WRAPPER=webaudio-wasm-poly-emcc.js
@@ -106,7 +106,7 @@ if [ $POLY = "true" ]; then
     fi
 else
     WASM="wasm"
-    if [ $EMCC = emcc ]; then
+    if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc'"
         CODE_WRAPPER1=webaudio-asm.cpp
         JS_WRAPPER=webaudio-wasm-emcc.js
@@ -136,7 +136,7 @@ for f in $FILES; do
     name=$(basename "$f" .dsp)
     
     # compile the Faust DSP to C++ or wasm code
-    if [ $EMCC = emcc ] ; then
+    if [ $EMCC = "true" ]; then
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
@@ -147,7 +147,7 @@ for f in $FILES; do
         fi
     fi
 
-    if [ $EMCC = emcc ] ; then
+    if [ $EMCC = "true" ]; then
 
         # prepare emcc compilation files
         if [ $POLY = "false" ]; then    EXPORTED="['_"$name"_constructor','_"$name"_destructor','_"$name"_init','_"$name"_getSampleRate','_"$name"_instanceInit','_"$name"_instanceConstants','_"$name"_instanceResetUserInterface','_"$name"_instanceClear','_"$name"_compute','_"$name"_getNumInputs','_"$name"_getNumOutputs','_"$name"_setParamValue','_"$name"_getParamValue','_"$name"_getJSON']"
@@ -171,7 +171,7 @@ for f in $FILES; do
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
-    if [ $EMCC != emcc ]; then
+    if [ $EMCC != "true" ]; then
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js

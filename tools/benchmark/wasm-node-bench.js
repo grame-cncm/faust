@@ -429,8 +429,10 @@ function compileTwoDSP(bytes1, bytes2, callback)
                 .then(instance => {
                       instance2 = instance;
                       callback();
-                })});
-             })});
+                })})
+                .catch(function(error) { console.log(error); });
+             })})
+        .catch(function(error) { console.log(error); });
 }
 
 function benchTwoDSP()

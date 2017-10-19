@@ -2,6 +2,7 @@
 
 OPT="false"
 HTML="false"
+EMCC="false"
 
 #####################################################################
 #                                                                   #
@@ -28,14 +29,17 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2benchwasm [-opt] [-html] foo.dsp"
+        echo "faust2benchwasm [-opt] [-html] [-emcc] foo.dsp"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-html' to generate an HTML page with the benchmark"
+        echo "Use '-emcc' to compile C generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     elif [ $p = "-html" ]; then
         HTML="true"
     elif [ $p = "-opt" ]; then
         OPT="true"
+    elif [ $p = "-emcc" ]; then
+        EMCC="true"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -51,20 +55,31 @@ done
 for f in $FILES; do
 
     name=$(basename "$f" .dsp)
-    dirname=$(dirname "$f");
 
     # compile Faust to wasm
-    faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
+    if [ $EMCC = "true" ]; then
+        echo "Compiled with 'emcc'"
+        faust $OPTIONS -lang c -light -cn $name "$f" -o $name.c || exit
+        # generate the $name.js file
+        faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
+        emcc $name.c -O3 -s WASM=1 -s SIDE_MODULE=1 -o $name.wasm || exit
+    else
+        faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
+    fi
+
     if [ $OPT = "true" ]; then
         echo "Optimize wasm module"
         wasm-opt $name.wasm -O3 -o $name.wasm
     fi
 
     # create the HTML file
-    cd $dirname
     cp $name.js $name-tmp1.js
     sed -e "s/mydsp/"$name"/g" $name-tmp1.js >> $name-tmp2.js
-    sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench.js >> $name-tmp2.js
+    if [ $EMCC = "true" ]; then
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench-emcc.js >> $name-tmp2.js
+    else
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench.js >> $name-tmp2.js
+    fi
     sed -e "s/DSP/"$name"/g" $name-tmp2.js >> $name-tmp3.js
 
     if [ $HTML = "true" ]; then
@@ -92,6 +107,10 @@ for f in $FILES; do
     fi
 
     # cleanup
+    if [ $EMCC = "true" ]; then
+        rm $name.c
+    fi
+
     if [ $HTML = "true" ]; then
         rm $name-tmp1.js $name-tmp2.js $name-tmp3.js $name.js
         # collect binary file name
