@@ -42,6 +42,7 @@ using namespace std;
  - the JSON string is written at offset 0 in a data segment. This string *has* to be converted in a JS string *before* using the DSP instance
  - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveform. 
  The final memory size is finally written after module code generation.
+ - in Load/Store, check if address is constant, so that to be used as an 'offset'
 
 */
 

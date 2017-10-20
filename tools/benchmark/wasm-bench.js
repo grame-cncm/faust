@@ -407,7 +407,7 @@ function bench(instance, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
-    console.log("compiled with wasm backend");
+    console.log("Compiled with wasm backend");
     
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {

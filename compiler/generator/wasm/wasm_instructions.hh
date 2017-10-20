@@ -848,11 +848,11 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         BufferWithRandomAccess* fOut;
         FunAndTypeCounter fFunAndTypeCounter;
     
-        void generateMemoryAccess()
+        void generateMemoryAccess(int offset = 0)
         {
             //*fOut << U32LEB(offStrNum);   // Makes V8 return : 'invalid alignment; expected maximum alignment is 2, actual alignment is 3'
             *fOut << U32LEB(2);
-            *fOut << U32LEB(0); // TO CHECK : assuming offset is always 0
+            *fOut << U32LEB(offset);
         }
    
     public:
@@ -1081,6 +1081,27 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fOut->writeAt(size_pos, U32LEB(size));
         }
     
+        // Check if address is constant, so that to be used as an 'offset' in load/store
+        int getConstantOffset(Address* address)
+        {
+            NamedAddress* named;
+            IndexedAddress* indexed;
+            if (!fFastMemory) { return -1; }
+            
+            if ((named = dynamic_cast<NamedAddress*>(address)) && fFieldTable.find(named->getName()) != fFieldTable.end()) {
+                MemoryDesc tmp = fFieldTable[named->getName()];
+                return tmp.fOffset;
+            } else if ((indexed = dynamic_cast<IndexedAddress*>(address)) && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    return tmp.fOffset + (num->fNum << offStrNum);
+                }
+            }
+            
+            return -1;
+        }
+    
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);
@@ -1089,15 +1110,27 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct
                 || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-
-                inst->fAddress->accept(this);
-                if (isRealType(type) || isRealPtrType(type)) {
-                    *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
-                } else {
-                    *fOut << int8_t(BinaryConsts::I32LoadMem);
-                }
-                generateMemoryAccess();
                 
+                int offset;
+                if ((offset = getConstantOffset(inst->fAddress)) > 0) {
+                    // Generate 0
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(0);
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32LoadMem);
+                    }
+                    generateMemoryAccess(offset);
+                } else {
+                    inst->fAddress->accept(this);
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem) : int8_t(BinaryConsts::F64LoadMem));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32LoadMem);
+                    }
+                    generateMemoryAccess();
+                }
+              
             } else {
                 faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
@@ -1113,17 +1146,30 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct
                 || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-
-                inst->fAddress->accept(this);
-                inst->fValue->accept(this);
-                if (isRealType(type) || isRealPtrType(type)) {
-                    *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
+      
+                int offset;
+                if ((offset = getConstantOffset(inst->fAddress)) > 0) {
+                    // Generate 0
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(0);
+                    inst->fValue->accept(this);
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32StoreMem);
+                    }
+                    generateMemoryAccess(offset);
                 } else {
-                    *fOut << int8_t(BinaryConsts::I32StoreMem);
+                    inst->fAddress->accept(this);
+                    inst->fValue->accept(this);
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32StoreMem) : int8_t(BinaryConsts::F64StoreMem));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::I32StoreMem);
+                    }
+                    generateMemoryAccess();
                 }
-                generateMemoryAccess();
-     
-            } else {
+                
+          } else {
                 faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
                 inst->fValue->accept(this);

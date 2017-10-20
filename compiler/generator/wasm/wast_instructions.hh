@@ -201,20 +201,54 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     
+        // Check if address is constant, so that to be used as an 'offset' in load/store
+        int getConstantOffset(Address* address)
+        {
+            NamedAddress* named;
+            IndexedAddress* indexed;
+            if (!fFastMemory) { return -1; }
+            
+            if ((named = dynamic_cast<NamedAddress*>(address)) && fFieldTable.find(named->getName()) != fFieldTable.end()) {
+                MemoryDesc tmp = fFieldTable[named->getName()];
+                return tmp.fOffset;
+            } else if ((indexed = dynamic_cast<IndexedAddress*>(address)) && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    return tmp.fOffset + (num->fNum << offStrNum);
+                }
+            }
+            
+            return -1;
+        }
+    
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);
+            Typed::VarType type = fTypingVisitor.fCurType;
+            
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct
                 || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-
-                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
-                    *fOut << "(" << realStr << ".load ";
+                
+                int offset;
+                if ((offset = getConstantOffset(inst->fAddress)) > 0) {
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << "(" << realStr << ".load offset=";
+                    } else {
+                        *fOut << "(i32.load offset=";
+                    }
+                    *fOut << offset << " (i32.const 0))";
                 } else {
-                    *fOut << "(i32.load ";
+                    if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
+                        *fOut << "(" << realStr << ".load ";
+                    } else {
+                        *fOut << "(i32.load ";
+                    }
+                    inst->fAddress->accept(this);
+                    *fOut << ")";
                 }
-                inst->fAddress->accept(this);
-                *fOut << ")";
+                
             } else {
                 *fOut << "(get_local $" << inst->fAddress->getName() << ")";
             }
@@ -223,21 +257,34 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         virtual void visit(StoreVarInst* inst)
         {
             inst->fValue->accept(&fTypingVisitor);
+            Typed::VarType type = fTypingVisitor.fCurType;
 
             if (inst->fAddress->getAccess() & Address::kStruct
                 || inst->fAddress->getAccess() & Address::kStaticStruct
                 || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-
-                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
-                    *fOut << "(" << realStr << ".store ";
+       
+                int offset;
+                if ((offset = getConstantOffset(inst->fAddress)) > 0) {
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << "(" << realStr << ".store offset=";
+                    } else {
+                        *fOut << "(i32.store offset=";
+                    }
+                    *fOut << offset << " (i32.const 0) ";
+                    inst->fValue->accept(this);
+                    *fOut << ")";
                 } else {
-                    *fOut << "(i32.store ";
+                    if (isRealType(type) || isRealPtrType(type)) {
+                        *fOut << "(" << realStr << ".store ";
+                    } else {
+                        *fOut << "(i32.store ";
+                    }
+                    inst->fAddress->accept(this);
+                    *fOut << " ";
+                    inst->fValue->accept(this);
+                    *fOut << ")";
                 }
-                inst->fAddress->accept(this);
-                *fOut << " ";
-                inst->fValue->accept(this);
-                *fOut << ")";
-
+                
             } else {
                 *fOut << "(set_local $" << inst->fAddress->getName() << " ";
                 inst->fValue->accept(this);

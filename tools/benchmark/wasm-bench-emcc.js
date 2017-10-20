@@ -409,7 +409,7 @@ function bench(instance, memory, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
-    console.log("compiled with C backend and EMCC");
+    console.log("Compiled with C backend and EMCC");
     
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
@@ -423,35 +423,35 @@ faust.createmydsp = function(display_handler)
     var module_memory = new WebAssembly.Memory({ initial: 512 });
     var importObject = {
         env: {
-        memoryBase: 0,
-        tableBase: 0,
-        _memset: function(a,b,c) { return 0; },
-        _abs: Math.abs,
-        _acos: Math.acos,
-        _atan: Math.atan,
-        _atan2: Math.atan2,
-        _cos: Math.cos,
-        _exp: Math.exp,
-        _log: Math.log,
-        _log10: Math.log10,
-        _pow: Math.pow,
-        _round: Math.round,
-        _sin: Math.sin,
-        _tan: Math.tan,
-        _absf: Math.abs,
-        _acosf: Math.acos,
-        _atanf: Math.atan,
-        _atan2f: Math.atan2,
-        _cosf: Math.cos,
-        _expf: Math.exp,
-        _logf: Math.log,
-        _log10f: Math.log10,
-        _powf: Math.pow,
-        _roundf: Math.round,
-        _sinf: Math.sin,
-        _tanf: Math.tan,
-        memory: module_memory,
-        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+            memoryBase: 0,
+            tableBase: 0,
+            _memset: function(a,b,c) { return 0; },
+            _abs: Math.abs,
+            _acos: Math.acos,
+            _atan: Math.atan,
+            _atan2: Math.atan2,
+            _cos: Math.cos,
+            _exp: Math.exp,
+            _log: Math.log,
+            _log10: Math.log10,
+            _pow: Math.pow,
+            _round: Math.round,
+            _sin: Math.sin,
+            _tan: Math.tan,
+            _absf: Math.abs,
+            _acosf: Math.acos,
+            _atanf: Math.atan,
+            _atan2f: Math.atan2,
+            _cosf: Math.cos,
+            _expf: Math.exp,
+            _logf: Math.log,
+            _log10f: Math.log10,
+            _powf: Math.pow,
+            _roundf: Math.round,
+            _sinf: Math.sin,
+            _tanf: Math.tan,
+            memory: module_memory,
+            table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
         }
     };
     
