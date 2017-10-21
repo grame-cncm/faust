@@ -114,11 +114,11 @@ for f in $FILES; do
     if [ $HTML = "true" ]; then
         rm $name-tmp1.js $name-tmp2.js $name-tmp3.js $name.js
         # collect binary file name
-        BINARIES="$BINARIES$name.html;"
+        BINARIES="$BINARIES$name.html;$name.wasm;"
     else
         rm $name-tmp1.js $name-tmp2.js
         # collect binary file name
-        BINARIES="$BINARIES$name.js;"
+        BINARIES="$BINARIES$name.js;$name.wasm;"
     fi
 
 done

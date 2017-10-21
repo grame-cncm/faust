@@ -43,6 +43,7 @@ using namespace std;
  - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveform. 
  The final memory size is finally written after module code generation.
  - in Load/Store, check if address is constant, so that to be used as an 'offset'
+ - possibly move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses (gLoopVarInBytes)
 
 */
 

@@ -171,7 +171,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
             }
             
-            // Math library functions are part of the 'global' module, 'fmod', 'log10s' and 'remainder' will be manually generated
+            // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually generated
             if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
@@ -297,7 +297,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << " (i32.const 2)))";
                 // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                // If 'i' loop variable moves in bytes
+                // If 'i' loop variable moves in bytes, save index code generation of input/output
                 if (gGlobal->gLoopVarInBytes) {
                     *fOut << "(i32.add (get_local $" << indexed->getName() << ") ";
                     indexed->fIndex->accept(this);

@@ -170,7 +170,10 @@ struct WASInst {
     // Check if address is constant, so that to be used as an 'offset' in load/store
     int getConstantOffset(Address* address)
     {
-        if (!fFastMemory) { return 0; }
+        static char* wasm_opt = getenv("FAUST_WASM");
+        static bool no_offset_opt = wasm_opt && (string(wasm_opt) != "offset");
+        
+        if (!fFastMemory || no_offset_opt) { return 0; }
         
         NamedAddress* named;
         IndexedAddress* indexed;

@@ -54,7 +54,7 @@ class InstructionsCompiler : public virtual Garbageable {
         Tree fSharingKey;
         OccMarkup fOccMarkup;
     
-        std::map<int, std::string> fIOTATable;
+        std::map<int, std::string> fIOTATable; // Ensure IOTA base fixed delays are computed once
     
         Tree fUIRoot;
         Description* fDescription;

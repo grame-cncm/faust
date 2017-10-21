@@ -1181,7 +1181,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 LocalVarDesc local = fLocalVarTable[indexed->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
                 indexed->fIndex->accept(this);
-                // If 'i' loop variable moves in bytes
+                // If 'i' loop variable moves in bytes, save index code generation of input/output
                 if (gGlobal->gLoopVarInBytes) {
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {

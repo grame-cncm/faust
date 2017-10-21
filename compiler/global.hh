@@ -140,11 +140,11 @@ struct global {
     string			gClassName;
     
     // Backend configuration
-    bool            gGenerateSelectWithIf;
+    bool            gGenerateSelectWithIf;  // Generates select with an 'if'
     bool            gAllowForeignFunction;  // Can use foreign functions
     bool            gComputeIOTA;           // Cache some computation done with IOTA variable
     bool            gFaustFloatToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
-    bool            gInPlace;               // add cache to input for correct in-place computations
+    bool            gInPlace;               // Add cache to input for correct in-place computations
     bool            gHasExp10;              // If the 'exp10' math function is available
     bool            gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
     
