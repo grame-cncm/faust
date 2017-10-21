@@ -350,10 +350,11 @@ void WASTCodeContainer::produceClass()
 
 void WASTScalarCodeContainer::generateCompute(int n)
 {
-    tab(n+1, fOutAux); fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
+   tab(n+1, fOutAux); fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, fOutAux);
         gGlobal->gWASTVisitor->Tab(n+2);
-        fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
+        // Loop 'i' variable is moved by bytes. Here we assume runtime 'count' will be a multiple of 4 (if float) or 8 (if double)
+        fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
         block->accept(gGlobal->gWASTVisitor);

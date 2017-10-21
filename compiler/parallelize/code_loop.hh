@@ -139,7 +139,7 @@ class CodeLoop : public virtual Garbageable {
             return InstBuilder::genLoadLoopVar(fLoopIndex);
         }
 
-        ForLoopInst* generateScalarLoop(const string& counter);
+        ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
 
         void generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp);
         void generateDAGVectorLoop(BlockInst* block, DeclareVarInst* count, bool omp, int size);

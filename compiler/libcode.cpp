@@ -1165,6 +1165,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
+            //gGlobal->gLoopVarInBytes = true;
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wast")
                                                             || (gGlobal->gOutputLang == "wast-i")));
@@ -1194,6 +1195,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
+            //gGlobal->gLoopVarInBytes = true;
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wasm")
                                                             || (gGlobal->gOutputLang == "wasm-i")

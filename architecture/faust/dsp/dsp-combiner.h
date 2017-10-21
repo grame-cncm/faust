@@ -28,6 +28,7 @@
 #include <assert.h>
 
 #include "faust/dsp/dsp.h"
+#include "faust/gui/UI.h"
 
 // Combine two DSP in sequence
 

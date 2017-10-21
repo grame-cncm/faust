@@ -158,6 +158,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFaustFloatToInternal = false;
     gInPlace = false;
     gHasExp10 = false;
+    gLoopVarInBytes = false;
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.

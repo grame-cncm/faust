@@ -45,11 +45,21 @@ CodeLoop::CodeLoop(CodeLoop* encl, string index_name, int size)
         fPreInst(new BlockInst()), fComputeInst(new BlockInst()), fPostInst(new BlockInst()), fLoopIndex(index_name), fUseCount(0)
     {}
 
-ForLoopInst* CodeLoop::generateScalarLoop(const string& counter)
+ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
-    StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    ValueInst* loop_end;
+    StoreVarInst* loop_increment;
+    
+    if (loop_var_in_bytes) {
+        loop_end = InstBuilder::genLessThan(loop_decl->load(),
+                                            InstBuilder::genMul(InstBuilder::genInt32NumInst(pow(2, gGlobal->gFloatSize + 1)),
+                                                                InstBuilder::genLoadFunArgsVar(counter)));
+        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), pow(2, gGlobal->gFloatSize + 1)));
+    } else {
+        loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+        loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), 1));
+    }
 
     BlockInst* block = InstBuilder::genBlockInst();
     pushBlock(fPreInst, block);

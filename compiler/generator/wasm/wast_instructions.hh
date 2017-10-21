@@ -297,14 +297,20 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << " (i32.const 2)))";
                 // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                // Force "output" access to be coherent with fSubContainerType (integer or real)
-                *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.shl ";
-                indexed->fIndex->accept(this);
-                // Force "output" access to be coherent with fSubContainerType (integer or real)
-                if (fSubContainerType == kInt) {
-                    *fOut << " (i32.const 2)))";
+                // If 'i' loop variable moves in bytes
+                if (gGlobal->gLoopVarInBytes) {
+                    *fOut << "(i32.add (get_local $" << indexed->getName() << ") ";
+                    indexed->fIndex->accept(this);
+                    *fOut << ")";
                 } else {
-                    *fOut << " (i32.const " << offStr << ")))";
+                    *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.shl ";
+                    indexed->fIndex->accept(this);
+                    // Force "output" access to be coherent with fSubContainerType (integer or real)
+                    if (fSubContainerType == kInt) {
+                        *fOut << " (i32.const 2)))";
+                    } else {
+                        *fOut << " (i32.const " << offStr << ")))";
+                    }
                 }
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset

@@ -1155,7 +1155,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 if (fFastMemory) {
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
                 } else {
-                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // TO CHECK: assuming $dsp is at 0 local index
+                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0); // Assuming $dsp is at 0 local variable index
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
                     *fOut << int8_t(WasmOp::I32Add);
                 }
@@ -1175,22 +1175,20 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(2);
                 *fOut << int8_t(WasmOp::I32Shl);
                 *fOut << int8_t(WasmOp::I32Add);
-                 // HACK : completely adhoc code for input/output...
+            // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
-                
                 faustassert(fLocalVarTable.find(indexed->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[indexed->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
-               
-                // Force "output" access to be coherent with fSubContainerType (integer or real)
                 indexed->fIndex->accept(this);
-                if (fSubContainerType == kInt) {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(2);
+                // If 'i' loop variable moves in bytes
+                if (gGlobal->gLoopVarInBytes) {
+                    *fOut << int8_t(WasmOp::I32Add);
                 } else {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((fSubContainerType == kInt) ? 2 : offStrNum);
+                    *fOut << int8_t(WasmOp::I32Shl);
+                    *fOut << int8_t(WasmOp::I32Add);
                 }
-                *fOut << int8_t(WasmOp::I32Shl);
-                *fOut << int8_t(WasmOp::I32Add);
             } else {
                 // Fields in struct are accessed using 'dsp' and an offset
                 faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
@@ -1201,7 +1199,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     if (fFastMemory) {
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
                     } else {
-                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // TO CHECK: assuming $dsp is at 0 local index
+                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0); // Assuming $dsp is at 0 local variable index
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
                         *fOut << int8_t(WasmOp::I32Add);
                     }
@@ -1214,7 +1212,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                         *fOut << int8_t(WasmOp::I32Shl);
                         *fOut << int8_t(WasmOp::I32Add);
                     } else {
-                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // TO CHECK: assuming $dsp is at 0 local index
+                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0); // Assuming $dsp is at 0 local variable index
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
                         indexed->fIndex->accept(this);
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);

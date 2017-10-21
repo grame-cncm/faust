@@ -408,7 +408,8 @@ void WASMScalarCodeContainer::generateCompute()
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     
-    fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
+    // Loop 'i' variable is moved by bytes. Here we assume runtime 'count' will be a multiple of 4 (if float) or 8 (if double)
+    fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
     
