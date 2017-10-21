@@ -166,6 +166,28 @@ struct WASInst {
         return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
     }
     
+    // Check if address is constant, so that to be used as an 'offset' in load/store
+    int getConstantOffset(Address* address)
+    {
+        if (!fFastMemory) { return 0; }
+        
+        NamedAddress* named;
+        IndexedAddress* indexed;
+        
+        if ((named = dynamic_cast<NamedAddress*>(address)) && fFieldTable.find(named->getName()) != fFieldTable.end()) {
+            MemoryDesc tmp = fFieldTable[named->getName()];
+            return tmp.fOffset;
+        } else if ((indexed = dynamic_cast<IndexedAddress*>(address)) && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+            MemoryDesc tmp = fFieldTable[indexed->getName()];
+            Int32NumInst* num;
+            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                return tmp.fOffset + (num->fNum << offStrNum);
+            }
+        }
+        
+        return 0;
+    }
+    
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
     

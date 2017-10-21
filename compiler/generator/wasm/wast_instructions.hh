@@ -201,27 +201,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         }
     
-        // Check if address is constant, so that to be used as an 'offset' in load/store
-        int getConstantOffset(Address* address)
-        {
-            NamedAddress* named;
-            IndexedAddress* indexed;
-            if (!fFastMemory) { return -1; }
-            
-            if ((named = dynamic_cast<NamedAddress*>(address)) && fFieldTable.find(named->getName()) != fFieldTable.end()) {
-                MemoryDesc tmp = fFieldTable[named->getName()];
-                return tmp.fOffset;
-            } else if ((indexed = dynamic_cast<IndexedAddress*>(address)) && fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
-                MemoryDesc tmp = fFieldTable[indexed->getName()];
-                Int32NumInst* num;
-                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                    return tmp.fOffset + (num->fNum << offStrNum);
-                }
-            }
-            
-            return -1;
-        }
-    
         virtual void visit(LoadVarInst* inst)
         {
             fTypingVisitor.visit(inst);

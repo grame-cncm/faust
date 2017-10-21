@@ -29,8 +29,6 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
         return n;
     }
      
-    var memory_size = pow2limit(parseInt(json_object.size) + (numIn + numOut) * (ptr_size + (buffer_size * sample_size)));
-   
     var factory = instance.exports;
     
     var HEAP = instance.exports.memory.buffer;
