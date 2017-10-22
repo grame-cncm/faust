@@ -1168,12 +1168,16 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
         virtual void visit(IndexedAddress* indexed)
         {
+            // TO CHECK : size of memory ptr ?
+            
             // HACK : completely adhoc code for inputs/outputs...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
+                // Since indexed->fIndex is always a known constant value, offset can be directly generated
+                Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex); faustassert(num);
+                // "inputs" is 'compute' method third parameter, so with index 2
+                // "outputs" is 'compute' method fourth parameter, so with index 3
                 *fOut << int8_t(BinaryConsts::GetLocal) << ((startWith(indexed->getName(), "inputs")) ? U32LEB(2) : U32LEB(3));
-                indexed->fIndex->accept(this);
-                *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(2);
-                *fOut << int8_t(WasmOp::I32Shl);
+                *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << 2);
                 *fOut << int8_t(WasmOp::I32Add);
             // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {

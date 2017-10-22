@@ -290,12 +290,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     
         virtual void visit(IndexedAddress* indexed)
         {
+            // TO CHECK : size of memory ptr ?
+            
             // HACK : completely adhoc code for inputs/outputs...
             if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
-                *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.shl ";
-                indexed->fIndex->accept(this);
-                *fOut << " (i32.const 2)))";
-                // HACK : completely adhoc code for input/output...
+                // Since indexed->fIndex is always a known constant value, offset can be directly generated
+                Int32NumInst* num = dynamic_cast<Int32NumInst*>(indexed->fIndex); faustassert(num);
+                *fOut << "(i32.add (get_local $" << indexed->getName() << ") (i32.const " << (num->fNum << 2) << "))";
+            // HACK : completely adhoc code for input/output...
             } else if ((startWith(indexed->getName(), "input") || startWith(indexed->getName(), "output"))) {
                 // If 'i' loop variable moves in bytes, save index code generation of input/output
                 if (gGlobal->gLoopVarInBytes) {

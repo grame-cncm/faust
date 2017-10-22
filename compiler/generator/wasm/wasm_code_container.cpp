@@ -45,7 +45,8 @@ using namespace std;
  - memory module size cannot be written while generating the output stream, since DSP size is computed when inlining subcontainers and waveforms.
  The final memory size is finally written after module code generation.
  - in Load/Store, check if address is constant, so that to be used as an 'offset'
- - possibly move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses (gLoopVarInBytes)
+ - move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses (gLoopVarInBytes)
+ - offset of inputs/outputs are contant can be fully generated
 
 */
 
@@ -409,7 +410,7 @@ void WASMScalarCodeContainer::generateCompute()
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
     
-    // Loop 'i' variable is moved by bytes. Here we assume runtime 'count' will be a multiple of 4 (if float) or 8 (if double)
+    // Loop 'i' variable is moved by bytes.
     fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
     MoveVariablesInFront2 mover;
     BlockInst* block = mover.getCode(fComputeBlockInstructions, true);

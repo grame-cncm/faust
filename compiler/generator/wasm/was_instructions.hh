@@ -171,7 +171,7 @@ struct WASInst {
     int getConstantOffset(Address* address)
     {
         static char* wasm_opt = getenv("FAUST_WASM");
-        static bool no_offset_opt = wasm_opt && (string(wasm_opt) != "offset");
+        static bool no_offset_opt = wasm_opt && (string(wasm_opt) == "no-offset");
         
         if (!fFastMemory || no_offset_opt) { return 0; }
         
