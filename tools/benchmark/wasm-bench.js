@@ -14,6 +14,8 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
    
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
+    
+    console.log("Compiled with wasm backend, libfaust version : %s, options : %s", json_object.version, json_object.options);
       
     var numIn = parseInt(json_object.inputs);
     var numOut = parseInt(json_object.outputs);
@@ -380,8 +382,8 @@ function bench(instance, display_handler)
 		mega_results.push(mega);
 		cpu_results.push(cpu);
     	
-		console.log("MBytes/sec : " + mega);
-		console.log("DSP CPU % : " + cpu);
+		console.log("MBytes/sec : " + mega.toFixed(2));
+		console.log("DSP CPU % : " + cpu.toFixed(2));
     }
     
     // Compute mean 
@@ -395,8 +397,8 @@ function bench(instance, display_handler)
     var mega_mean = mega_sum/bench_num;
     var cpu_mean = cpu_sum/bench_num;
     
-	console.log("MBytes/sec mean: " + mega_mean);
-	console.log("DSP CPU mean % : " + cpu_mean);
+	console.log("MBytes/sec mean: " + mega_mean.toFixed(2));
+	console.log("DSP CPU mean % : " + cpu_mean.toFixed(2));
 
     if (display_handler) {
     	display_handler(mega_mean, cpu_mean);
@@ -405,8 +407,6 @@ function bench(instance, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
-    console.log("Compiled with wasm backend");
-    
     var asm2wasm = { // special asm2wasm imports
         "fmod": function(x, y) {
             return x % y;

@@ -1412,7 +1412,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             inst->fElse->accept(this);
             // Condition is last item
             inst->fCond->accept(this);
-            //Possibly convert i64 to i32
+            // Possibly convert i64 to i32
             inst->fCond->accept(&fTypingVisitor);
             if (isIntType64(fTypingVisitor.fCurType)) {
                 // Compare to 0

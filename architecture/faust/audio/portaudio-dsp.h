@@ -34,8 +34,8 @@
 
 static bool pa_error(int err)
 {
-	if (err != paNoError) {
-		printf("PortAudio error: %s\n", Pa_GetErrorText(err));
+    if (err != paNoError) {
+        printf("PortAudio error: %s\n", Pa_GetErrorText(err));
         return true;
     } else {
         return false;
