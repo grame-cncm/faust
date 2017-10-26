@@ -163,7 +163,6 @@ install :
 	cp architecture/*.cpp $(prefix)/share/faust/
 	cp architecture/*.java $(prefix)/share/faust/
 	cp architecture/*.js $(prefix)/share/faust/
-	cp architecture/*.html $(prefix)/share/faust/
 	cp architecture/*.a $(prefix)/share/faust/
 	cp libraries/old/*.lib $(prefix)/share/faust/
 	cp libraries/*.lib $(prefix)/share/faust/

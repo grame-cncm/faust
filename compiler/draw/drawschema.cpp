@@ -26,7 +26,6 @@
  * ps format. Complex block-diagrams are automatically splitted.
  */
 
-
 #include <stdio.h>
 #include <ctype.h>
 #include <sys/stat.h>
@@ -221,29 +220,34 @@ static void writeSchemaFile(Tree bd)
 	}
 
 	// generate legal file name for the schema
-	stringstream s1; s1 << legalFileName(bd, 1024, temp) << "." << gGlobal->gDevSuffix;
-	gGlobal->gSchemaFileName = s1.str();
+    stringstream s1; s1 << legalFileName(bd, 1024, temp) << "." << gGlobal->gDevSuffix;
+    string res1 = s1.str();
+    gGlobal->gSchemaFileName = res1;
 
 	// generate the label of the schema
 	stringstream s2; s2 << tree2str(id);
 	string link = gGlobal->gBackLink[bd];
     ts = makeTopSchema(addSchemaOutputs(outs, addSchemaInputs(ins, generateInsideSchema(bd))), 20, s2.str(), link);
 	// draw to the device defined by gDevSuffix
-	if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
-		SVGDev dev(s1.str().c_str(), ts->width(), ts->height());
-		ts->place(0,0, kLeftRight);
-		ts->draw(dev);
-        { collector c; ts->collectTraits(c); c.draw(dev); }
-	} else {
-		PSDev dev(s1.str().c_str(), ts->width(), ts->height());
-		ts->place(0,0, kLeftRight);
-		ts->draw(dev);
+    if (strcmp(gGlobal->gDevSuffix, "svg") == 0) {
+        SVGDev dev(res1.c_str(), ts->width(), ts->height());
+        ts->place(0,0, kLeftRight);
+        ts->draw(dev);
         {
             collector c;
             ts->collectTraits(c);
             c.draw(dev);
         }
-	}
+    } else {
+        PSDev dev(res1.c_str(), ts->width(), ts->height());
+        ts->place(0,0, kLeftRight);
+        ts->draw(dev);
+        {
+            collector c;
+            ts->collectTraits(c);
+            c.draw(dev);
+        }
+    }
 }
 
 /**
@@ -448,16 +452,12 @@ static schema* generateInsideSchema(Tree t)
 		} else {
 			return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10, "Abstraction");
 		}
-	}
-
-	else {
-
+	} else {
         stringstream error;
         error << "Internal Error, box expression not recognized : ";
         t->print(error);
         error << endl;
         throw faustexception(error.str());
-
 	}
 }
 

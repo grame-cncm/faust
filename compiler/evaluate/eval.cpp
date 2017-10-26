@@ -156,7 +156,7 @@ static Tree real_a2sb(Tree exp)
 
 			Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 
 			stringstream s; s << boxpp(var);
-			setDefNameProperty(slot, s.str() ); // ajout YO
+			setDefNameProperty(slot, s.str()); // ajout YO
 			
 			// Apply the abstraction to the slot
 			Tree result = boxSymbolic(slot, a2sb(eval(body, visited, pushValueDef(var, slot, localValEnv))));
@@ -180,7 +180,7 @@ static Tree real_a2sb(Tree exp)
 		
 		Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 			
 		stringstream s; s << "PM" << gGlobal->gBoxSlotNumber;
-		setDefNameProperty(slot, s.str() ); 
+		setDefNameProperty(slot, s.str());
 		
 		// apply the PM rules to the slot and transfoms the result in a symbolic box
 		Tree result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot,gGlobal->nil))));
@@ -209,10 +209,11 @@ static Tree real_a2sb(Tree exp)
 	}
 }
 
-static bool autoName(Tree exp , Tree& id)
+static bool autoName(Tree exp, Tree& id)
 {
 	stringstream s; s << boxpp(exp);
-	id = tree(s.str().c_str());
+    string res = s.str();
+	id = tree(res.c_str());
 	return true;
 }
 

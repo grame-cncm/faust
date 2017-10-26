@@ -244,12 +244,13 @@ class mspSlider : public mspUIObject {
 			:mspUIObject(label,zone),fInit(init),fMin(min),fMax(max),fStep(step) {}
 		virtual ~mspSlider() {}
 
-		void toString(char* buffer)
-		{
-            stringstream s; 
-            s << "Slider(double): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
-            strcpy(buffer, s.str().c_str());
-		}
+        void toString(char* buffer)
+        {
+            stringstream str;
+            str << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
+            string res = str.str();
+            snprintf(buffer, 256, res.c_str());
+        }
 
 		void setValue(FAUSTFLOAT f) {*fZone = range(fMin,fMax,f);}
 };
@@ -271,11 +272,12 @@ class mspBargraph : public mspUIObject {
         
         void toString(char* buffer)
         {
-            stringstream s; 
-            s << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
-            strcpy(buffer, s.str().c_str());
+            stringstream str;
+            str << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
+            string res = str.str();
+            snprintf(buffer, 256, res.c_str());
         }
-        
+    
         virtual FAUSTFLOAT getValue() 
         { 
             if (*fZone != fCurrent) {
@@ -564,17 +566,18 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
             
             stringstream num_val;
             num_val << num + i;
+            string str = num_val.str();
             char param_name[256];
             
-            switch (ndigit - count_digit(num_val.str())) {
-                case 0: 
-                    sprintf(param_name, "%s%s", prefix.c_str(), num_val.str().c_str());
+            switch (ndigit - count_digit(str)) {
+                case 0:
+                    sprintf(param_name, "%s%s", prefix.c_str(), str.c_str());
                     break;
-                case 1: 
-                    sprintf(param_name, "%s %s", prefix.c_str(), num_val.str().c_str());
+                case 1:
+                    sprintf(param_name, "%s %s", prefix.c_str(), str.c_str());
                     break;
-                case 2: 
-                    sprintf(param_name, "%s  %s", prefix.c_str(), num_val.str().c_str());
+                case 2:
+                    sprintf(param_name, "%s  %s", prefix.c_str(), str.c_str());
                     break;
             }
             

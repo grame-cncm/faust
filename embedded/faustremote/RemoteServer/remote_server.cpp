@@ -546,7 +546,8 @@ void* DSPServer::registration(void* arg)
         usleep(1000000);
     #endif
         pthread_testcancel();
-        lo_send(adress, "/faustcompiler", "is", getpid(), name_service.str().c_str());
+        string res = name_service.str();
+        lo_send(adress, "/faustcompiler", "is", getpid(), res.c_str());
     }
     
     pthread_exit(NULL);

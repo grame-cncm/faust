@@ -117,9 +117,10 @@ class mspSlider : public mspUIObject {
         
         void toString(char* buffer)
         {
-            stringstream s; 
-            s << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
-            strcpy(buffer, s.str().c_str());
+            stringstream str;
+            str << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
+            string res = str.str();
+            snprintf(buffer, 256, res.c_str());
         }
         
         void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
@@ -142,9 +143,10 @@ class mspBargraph : public mspUIObject {
         
         void toString(char* buffer)
         {
-            stringstream s; 
-            s << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
-            strcpy(buffer, s.str().c_str());
+            stringstream str;
+            str << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
+            string res = str.str();
+            snprintf(buffer, 256, res.c_str());
         }
         
         virtual FAUSTFLOAT getValue() 

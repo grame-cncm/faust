@@ -21,8 +21,8 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
     var numOut = parseInt(json_object.outputs);
      
     // Memory allocator
-    var ptr_size = 8;
-    var sample_size = 8;  // double
+    var ptr_size = 4;
+    var sample_size = 4;  // float
     
     function pow2limit (x)
     {
@@ -166,7 +166,7 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
             ins = audio_heap_ptr_inputs; 
             for (i = 0; i < numIn; i++) { 
                 HEAP32[(ins >> 2) + i] = audio_heap_inputs + ((buffer_size * sample_size) * i);
-           }
+           	}
      
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);

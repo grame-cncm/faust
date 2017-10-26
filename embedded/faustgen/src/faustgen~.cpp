@@ -1197,17 +1197,18 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             
             stringstream num_val;
             num_val << num + i;
+            string str = num_val.str();
             char param_name[256];
             
-            switch (ndigit - count_digit(num_val.str())) {
+            switch (ndigit - count_digit(str)) {
                 case 0: 
-                    sprintf(param_name, "%s%s", prefix.c_str(), num_val.str().c_str());
+                    sprintf(param_name, "%s%s", prefix.c_str(), str.c_str());
                     break;
                 case 1: 
-                    sprintf(param_name, "%s %s", prefix.c_str(), num_val.str().c_str());
+                    sprintf(param_name, "%s %s", prefix.c_str(), str.c_str());
                     break;
                 case 2: 
-                    sprintf(param_name, "%s  %s", prefix.c_str(), num_val.str().c_str());
+                    sprintf(param_name, "%s  %s", prefix.c_str(), str.c_str());
                     break;
             }
        

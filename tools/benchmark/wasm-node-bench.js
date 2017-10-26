@@ -19,8 +19,8 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
     var numOut = parseInt(json_object.outputs);
      
     // Memory allocator
-    var ptr_size = 8;
-    var sample_size = 8;  // double
+    var ptr_size = 4;
+    var sample_size = 4;  // float
     
     function pow2limit (x)
     {

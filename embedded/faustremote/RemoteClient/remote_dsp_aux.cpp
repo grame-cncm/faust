@@ -83,16 +83,18 @@ static bool sendRequest(const string& url, const string& finalRequest, string& r
         
         long respcode; //response code of the http transaction
         curl_easy_getinfo(remote_dsp_factory::gCurl, CURLINFO_RESPONSE_CODE, &respcode);
+        string res = oss.str();
         
         if (respcode == 200) {
-            response = oss.str();
+            response = res;
             res = true;
         } else if (respcode == 400) {
             printf("curl_easy_getinfo error\n");
-            if (isInteger(oss.str())) {
-                errorCode = atoi(oss.str().c_str());
+            
+            if (isInteger(res)) {
+                errorCode = atoi(res.c_str());
             } else {
-                response = oss.str();
+                response = res;
             }
         }
     }
@@ -999,7 +1001,8 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     serverURL << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
    
     ostringstream oss;
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, serverURL.str().c_str());
+    string res = serverURL.str();
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, res.c_str());
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POST, 0L);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);
