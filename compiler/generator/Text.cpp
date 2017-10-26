@@ -197,7 +197,7 @@ string T(double n)
         do { snprintf(c, 32, "%.*g", p++, v); endp=0; } while (strtof(c, &endp) != v);
     } else if (gFloatSize==2) {
         do { snprintf(c, 32, "%.*g", p++, n); endp=0; } while (strtod(c, &endp) != n);
-    } if (gFloatSize==3) {
+    } else if (gFloatSize==3) {
         long double q = n;
         do { snprintf(c, 32, "%.*Lg", p++, q); endp=0; } while (strtold(c, &endp) != q);
     }

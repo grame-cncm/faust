@@ -39,7 +39,7 @@ class FmodPrim : public xtended
 	virtual Tree	computeSigOutput (const vector<Tree>& args) {
 		num n,m;
 		assert (args.size() == arity());
-		if (isNum(args[0],n) & isNum(args[1],m)) {
+		if (isNum(args[0],n) && isNum(args[1],m)) {
 			return tree(fmod(double(n), double(m)));
 		} else {
 			return tree(symbol(), args[0], args[1]);

@@ -54,7 +54,7 @@ static const string			gDocTextsDefaultFile = "mathdoctexts-default.txt";
 
 static void			importDocStrings(const string& filename);
 static void			getKey(string& s, string& key, size_t& pt1);
-static void			getText(string& s, size_t& pt1, string& text);
+static void			getText(const string& s, size_t pt1, string& text);
 static void			storePair(const string& key, const string& text);
 
 static void			printStringMapContent(map<string,string>& map, const string& name);
@@ -161,7 +161,7 @@ static void getKey(string& s, string& key, size_t& pt1)
 }
 
 
-static void getText(string& s, size_t& pt1, string& text)
+static void getText(const string& s, size_t pt1, string& text)
 {
 	/* Capture the text on the current line. */
 	size_t pt2;
