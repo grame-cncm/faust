@@ -248,9 +248,9 @@ vector<list<string> > Lateq::makeUISignamesVector(const multimap<string,string>&
 		} else {
 			++vIndex;
 			uiTypesMap.insert(pair<char,unsigned int>(type, vIndex));
-			list<string>* tmpList = new(list<string>);
-			tmpList->push_back(signame);
-			uiSignamesVector.push_back(*tmpList);
+			list<string> tmpList;
+			tmpList.push_back(signame);
+			uiSignamesVector.push_back(tmpList);
 		}
 	}
 	

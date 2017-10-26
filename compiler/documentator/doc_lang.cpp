@@ -161,7 +161,7 @@ static void getKey(string& s, string& key, size_t& pt1)
 }
 
 
-static void getText(string& s, size_t& pt1, string& text)
+static void getText(const string& s, size_t pt1, string& text)
 {
 	/* Capture the text on the current line. */
 	size_t pt2;
