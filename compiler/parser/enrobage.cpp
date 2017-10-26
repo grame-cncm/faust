@@ -308,6 +308,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
         FILE* f = fopen(filename, "r");
         char* newdir = getcwd(newdirbuffer, FAUST_PATH_MAX);
         if (!newdir) {
+            fclose(f);
             stringstream error;
             error << "ERROR : getcwd '" << strerror(errno) << endl;
             throw faustexception(error.str());
@@ -317,6 +318,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
         fullpath += filename;
         err = chdir(olddir);
         if (err != 0) {
+            fclose(f);
             stringstream error;
             error << "ERROR : cannot change back directory to '" << olddir << "' : " << strerror(errno) << endl;
             throw faustexception(error.str());

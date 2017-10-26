@@ -39,13 +39,13 @@
 #include "global.hh"
 
 static void			importDocStrings(const string& filename);
-static void			getKey(string& s, string& key, size_t& pt1);
-static void			getText(string& s, size_t& pt1, string& text);
+static void			getKey(const string& s, string& key, size_t& pt1);
+static void			getText(const string& s, size_t& pt1, string& text);
 static void			storePair(const string& key, const string& text);
 
 static void			printStringMapContent(map<string,string>& map, const string& name);
 
-static istream*		openArchFile (const string& filename);
+static istream*		openArchFile(const string& filename);
 static void			getCurrentDir();
 static int			cholddir();
 
@@ -118,7 +118,7 @@ static void importDocStrings(const string& filename)
     delete(file);
 }
 
-static void getKey(string& s, string& key, size_t& pt1) 
+static void getKey(const string& s, string& key, size_t& pt1)
 {
 	/* Initialisation. */
 	key = "";
@@ -136,7 +136,7 @@ static void getKey(string& s, string& key, size_t& pt1)
 	pt1 = s.find_first_of("\"", pk2);
 }
 
-static void getText(string& s, size_t& pt1, string& text)
+static void getText(const string& s, size_t& pt1, string& text)
 {
 	/* Capture the text on the current line. */
 	size_t pt2 = s.find_last_not_of("\"");

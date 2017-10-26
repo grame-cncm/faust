@@ -496,7 +496,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 		#endif
 		
 		// we only use a coeficient if it differes from 1 and if we are not in signature mode
-		if (! (signatureMode | isOne(fCoef))) {
+		if (! (signatureMode || isOne(fCoef))) {
 			A[0] = (negativeMode) ? minusNum(fCoef) : fCoef;
 		}
 		
