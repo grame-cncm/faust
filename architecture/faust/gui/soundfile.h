@@ -61,7 +61,7 @@ struct Soundfile {
         if (snd_file) {
             
             chans = MIN_CHAN(max_chan, snd_info.channels);
-            length = snd_info.frames;
+            length = int(snd_info.frames);
             rate = snd_info.samplerate;
             
             for (int chan = 0; chan < chans; chan++) {
@@ -75,7 +75,7 @@ struct Soundfile {
             int nbf, index = 0;
             double buffer[BUFFER_SIZE * snd_info.channels];
             do {
-                nbf = sf_readf_double(snd_file, buffer, BUFFER_SIZE);
+                nbf = int(sf_readf_double(snd_file, buffer, BUFFER_SIZE));
                 for (int sample = 0; sample < nbf; sample++) {
                     for (int chan = 0; chan < chans; chan++) {
                         channels[chan][index + sample] = (FAUSTFLOAT)buffer[sample * snd_info.channels + chan];

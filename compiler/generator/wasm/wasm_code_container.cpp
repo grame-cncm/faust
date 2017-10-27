@@ -46,7 +46,7 @@ using namespace std;
  The final memory size is finally written after module code generation.
  - in Load/Store, check if address is constant, so that to be used as an 'offset'
  - move loop 'i' variable by bytes instead of frames to save index code generation of input/output accesses (gLoopVarInBytes)
- - offset of inputs/outputs are contant can be fully generated
+ - offset of inputs/outputs are constant, so can be directly generated
 
 */
 

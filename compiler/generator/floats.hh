@@ -23,7 +23,9 @@
 #define _FAUSTFLOATS_
 
 #include <iostream>
+
 #include "instructions.hh"
+#include "global.hh"
 
 #define FLOATMACRO "FAUSTFLOAT"
 #define FLOATMACROPTR "FAUSTFLOAT*"
@@ -41,7 +43,7 @@ const char* icast();
 const char* xfloat();
 const char* xcast();
 
-int fsize();
+inline int fsize() { return pow(2, gGlobal->gFloatSize + 1); }
 
 void printfloatdef(std::ostream& fout, bool quad);
 

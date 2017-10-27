@@ -714,7 +714,7 @@ faust.createmydsp_poly = function(context, buffer_size, polyphony, callback)
             return x % y;
         },
         "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
+            return x - Math.round(x/y) * y;
         }
     };
 
@@ -722,7 +722,7 @@ faust.createmydsp_poly = function(context, buffer_size, polyphony, callback)
     mixObject["memory"] = { "memory": memory };
 
     var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = window.Math;
+    importObject["global.Math"] = Math;
     importObject["asm2wasm"] = asm2wasm;
     importObject["memory"] = { "memory": memory };
 

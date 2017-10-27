@@ -284,7 +284,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     *fOut << "(i32.add (get_local $dsp) (i32.const " << tmp.fOffset << "))";
                 }
             } else {
-                *fOut << "(get_local $" << named->fName << ")";
+                *fOut << "(get_local $" << named->getName() << ")";
             }
         }
     
@@ -343,7 +343,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     
         virtual void visit(LoadVarAddressInst* inst)
         {
-           // Not implemented in WASM
+            // Not implemented in WASM
             faustassert(false);
         }
                 

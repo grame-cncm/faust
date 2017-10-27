@@ -206,7 +206,7 @@ faust.asm2wasm = {
         return x % y;
     },
     "remainder": function(x, y) {
-        return x - window.Math.round(x/y) * y;
+        return x - Math.round(x/y) * y;
     }
 };
 
@@ -544,7 +544,7 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
 faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 
     var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = window.Math;
+    importObject["global.Math"] = Math;
     importObject["asm2wasm"] = faust.asm2wasm;
 
   	var time1 = performance.now();
@@ -1021,7 +1021,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
     mixObject["memory"] = { "memory": memory};
 
     var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = window.Math;
+    importObject["global.Math"] = Math;
     importObject["asm2wasm"] = faust.asm2wasm;
     importObject["memory"] = { "memory": memory };
 

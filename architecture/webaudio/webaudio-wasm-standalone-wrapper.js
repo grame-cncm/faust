@@ -463,13 +463,13 @@ faust.createmydsp = function(context, buffer_size, callback)
             return x % y;
         },
         "remainder": function(x, y) {
-            return x - window.Math.round(x/y) * y;
+            return x - Math.round(x/y) * y;
         }
     };
 
     var importObject = { imports: { print: arg => console.log(arg) } }
 
-    importObject["global.Math"] = window.Math;
+    importObject["global.Math"] = Math;
     importObject["asm2wasm"] = asm2wasm;
 
     fetch('mydsp.wasm')

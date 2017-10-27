@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include <iostream>
 #include <fstream>
 #include <set>
@@ -38,16 +37,14 @@
 #include "exception.hh"
 #include "global.hh"
 
-static void			importDocStrings(const string& filename);
-static void			getKey(const string& s, string& key, size_t& pt1);
-static void			getText(const string& s, size_t& pt1, string& text);
-static void			storePair(const string& key, const string& text);
-
-static void			printStringMapContent(map<string,string>& map, const string& name);
-
-static istream*		openArchFile(const string& filename);
-static void			getCurrentDir();
-static int			cholddir();
+static void importDocStrings(const string& filename);
+static void getKey(const string& s, string& key, size_t& pt1);
+static void getText(const string& s, size_t pt1, string& text);
+static void storePair(const string& key, const string& text);
+static void printStringMapContent(map<string,string>& map, const string& name);
+static istream* openArchFile(const string& filename);
+static void getCurrentDir();
+static int cholddir();
 
 /*****************************************************************************
 							Public functions
@@ -55,18 +52,18 @@ static int			cholddir();
 
 void loadTranslationFile(const string& lang)
 {
-	initDocMath();
-	initDocNotice();
-	initDocAutodoc();
-	initDocMetadatas();
-	
-	/** First ensure that the default file is loaded a least. */
-	importDocStrings(gGlobal->gDocTextsDefaultFile);
-	
-	/** Then try and load the target file. */
-	if ( ! lang.empty() ) {
-		importDocStrings( "mathdoctexts-" + lang + ".txt" );
-	}
+    initDocMath();
+    initDocNotice();
+    initDocAutodoc();
+    initDocMetadatas();
+
+    /** First ensure that the default file is loaded a least. */
+    importDocStrings(gGlobal->gDocTextsDefaultFile);
+
+    /** Then try and load the target file. */
+    if (!lang.empty()) {
+        importDocStrings("mathdoctexts-" + lang + ".txt");
+    }
 }
 
 /*****************************************************************************
@@ -92,7 +89,7 @@ static void importDocStrings(const string& filename)
 	string key, text;
 	istream* file = openArchFile(filename);
 	
-	while ( getline(*file, s) ) {
+	while (getline(*file, s)) {
 		size_t pt1; // Text pointer.
 		
 		/* The first character determines whether will follow a key or a text. */
@@ -111,10 +108,12 @@ static void importDocStrings(const string& filename)
 		getText(s, pt1, text);
 		storePair(key, text);
 	}
+    
 	printStringMapContent(gGlobal->gDocNoticeStringMap, "gGlobal->gDocNoticeStringMap");
 	printStringMapContent(gGlobal->gDocAutodocStringMap, "gGlobal->gDocAutodocStringMap");
 	printStringMapContent(gGlobal->gDocMathStringMap, "gGlobal->gDocMathStringMap");
 	printStringMapContent(gGlobal->gDocMetadatasStringMap, "gGlobal->gDocMetadatasStringMap");
+    
     delete(file);
 }
 
@@ -136,7 +135,7 @@ static void getKey(const string& s, string& key, size_t& pt1)
 	pt1 = s.find_first_of("\"", pk2);
 }
 
-static void getText(const string& s, size_t& pt1, string& text)
+static void getText(const string& s, size_t pt1, string& text)
 {
 	/* Capture the text on the current line. */
 	size_t pt2 = s.find_last_not_of("\"");
@@ -149,7 +148,7 @@ static void getText(const string& s, size_t& pt1, string& text)
 static void storePair(const string& key, const string& text)
 {
 	/* Store the current pair. */
-	if(!key.empty() && !text.empty()) {
+	if (!key.empty() && !text.empty()) {
 		
 		if (gGlobal->gDocNoticeKeySet.find(key) != gGlobal->gDocNoticeKeySet.end()) {
 			gGlobal->gDocNoticeStringMap[key] = text;
@@ -175,11 +174,11 @@ static void storePair(const string& key, const string& text)
  */
 static void printStringMapContent(map<string,string>& m, const string& name) {
 	bool trace = false;
-	if(trace) {
+	if (trace) {
 		cout << name << ".size() = " << m.size() << endl;
 		map<string,string>::iterator it;
 		int i = 1;
-		for(it = m.begin(); it!=m.end(); ++it)
+		for (it = m.begin(); it != m.end(); ++it)
 			cout << i++ << ".\t" << name << "[" << it->first << "] \t= '" << it->second << "'" << endl;
 	}
 }
@@ -189,25 +188,25 @@ static void printStringMapContent(map<string,string>& m, const string& name) {
 /**
  * Open architecture file.
  */
-static istream* openArchFile (const string& filename)
+static istream* openArchFile(const string& filename)
 {
-	istream* file;
-	getCurrentDir();	// Save the current directory.
-	if ( (file = openArchStream(filename.c_str())) ) {
-		//cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
-	} else {
+    istream* file;
+    getCurrentDir();	// Save the current directory.
+    if ((file = openArchStream(filename.c_str()))) {
+        //cerr << "Documentator : openArchFile : Opening '" << filename << "'" << endl;
+    } else {
         stringstream error;
         error << "ERROR : can't open architecture file " << filename << endl;
         throw faustexception(error.str());
-	}
-	cholddir();			// Return to current directory.
-	return file;
+    }
+    cholddir();			// Return to current directory.
+    return file;
 }
 
 /**
  * Switch back to the previously stored current directory
  */
-static int cholddir ()
+static int cholddir()
 {
 	if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
 		return 0;
@@ -221,9 +220,9 @@ static int cholddir ()
 /**
  * Get current directory and store it in gCurrentDir.
  */
-static void getCurrentDir ()
+static void getCurrentDir()
 {
-	char	buffer[FAUST_PATH_MAX];
+	char buffer[FAUST_PATH_MAX];
     gGlobal->gCurrentDir = getcwd (buffer, FAUST_PATH_MAX);
 }
 

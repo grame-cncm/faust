@@ -305,7 +305,7 @@ class RustInstVisitor : public TextInstVisitor {
                     *fOut << "&mut ";
                 }
             }
-            *fOut << named->fName;
+            *fOut << named->getName();
         }
     
         virtual void visit(IndexedAddress* indexed)

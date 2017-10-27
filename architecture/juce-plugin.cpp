@@ -300,8 +300,6 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
 {
     bool midi_sync = false;
     int nvoices = 0;
-    bool group = true;
-    mydsp_poly* dsp_poly = nullptr;
     
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
@@ -315,6 +313,9 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     fSynth->init();
     fSynth->addSound(new FaustSound());
 #else
+    
+    bool group = true;
+    mydsp_poly* dsp_poly = nullptr;
     
 #ifdef POLY2
     std::cout << "Started with " << nvoices << " voices\n";

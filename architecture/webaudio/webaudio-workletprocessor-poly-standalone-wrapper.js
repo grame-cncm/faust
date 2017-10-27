@@ -37,7 +37,7 @@ faust.asm2wasm = { // special asm2wasm imports
         return x % y;
     },
     "remainder": function(x, y) {
-        return x - window.Math.round(x/y) * y;
+        return x - Math.round(x/y) * y;
     }
 }
 
@@ -45,7 +45,7 @@ faust.asm2wasm = { // special asm2wasm imports
 faust.polyphony = 16;
 
 faust.importObject = { imports: { print: arg => console.log(arg) } }
-faust.importObject["global.Math"] = window.Math;
+faust.importObject["global.Math"] = Math;
 faust.importObject["asm2wasm"] = faust.asm2wasm;
 
 faust.mixObject = { imports: { print: arg => console.log(arg) } }

@@ -1001,8 +1001,8 @@ EXPORT bool getRemoteDSPFactories(const string& ip_server, int port_server, vect
     serverURL << "http://" << ip_server << ":" << port_server << "/GetAvailableFactories";
    
     ostringstream oss;
-    string res = serverURL.str();
-    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, res.c_str());
+    string str1 = serverURL.str();
+    curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_URL, str1.c_str());
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_POST, 0L);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_WRITEFUNCTION, &storeResponse);
     curl_easy_setopt(remote_dsp_factory::gCurl, CURLOPT_FILE, &oss);

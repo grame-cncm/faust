@@ -62,11 +62,6 @@ static inline double midiToFreq(double note)
     return 440.0 * pow(2.0, (note-69.0)/12.0);
 }
 
-static inline unsigned int isPowerOfTwo(unsigned int n)
-{
-    return !(n & (n - 1));
-}
-
 /**
  * Allows to control zones in a grouped manner.
  */
@@ -454,7 +449,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             
         result:
             fVoiceTable[voice]->fDate = fDate++;
-            fVoiceTable[voice]->fTrigger = true;    // so that envelop is always re-initialized
+            fVoiceTable[voice]->fTrigger = true;    // So that envelop is always re-initialized
             fVoiceTable[voice]->fNote = kActiveVoice;
             return voice;
         }
@@ -579,7 +574,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
         virtual mydsp_poly* clone()
         {
-            return new mydsp_poly(fDSP->clone(), fVoiceTable.size(), fVoiceControl, fGroupControl);
+            return new mydsp_poly(fDSP->clone(), int(fVoiceTable.size()), fVoiceControl, fGroupControl);
         }
 
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)

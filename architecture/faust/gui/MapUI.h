@@ -140,7 +140,7 @@ class MapUI : public UI, public PathBuilder
         // map access 
         std::map<std::string, FAUSTFLOAT*>& getMap() { return fPathZoneMap; }
         
-        int getParamsCount() { return fPathZoneMap.size(); }
+        int getParamsCount() { return int(fPathZoneMap.size()); }
         
         std::string getParamAddress(int index)
         { 

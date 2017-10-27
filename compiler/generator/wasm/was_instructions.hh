@@ -43,8 +43,7 @@ using namespace std;
 
  - in internal memory mode, a memory segment is allocated, otherwise it is given by the external runtime
  - DSP fields start at offset 0, then followed by audio buffers
- - JSON string is written at offset 0, to be copied and converted in a string 
- by the runtime (JS or else) before using the DSP itsef.
+ - the JSON string is written at offset 0, to be copied and converted in a string by the runtime (JS or something else) before using the DSP itsef.
  
 */
 

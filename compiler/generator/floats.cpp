@@ -40,22 +40,14 @@ const char* floatname[4];     // float types
 const char* castname[4];      // float castings
 double floatmin[4];           // minimum float values before denormals
 
-/*
-const char* mathsuffix[] = {"", "f", "", "l"};                              // suffix for math functions
-const char* numsuffix[]  = {"", "f", "", "L"};                              // suffix for numeric constants
-const char* floatname[]  = {FLOATMACRO, "float", "double", "quad"};         // float types
-const char* castname[]   = {FLOATCASTER, "(float)", "(double)", "(quad)"};  // float castings
-const char* floatmin[]   = {"????", "FLT_MIN", "DBL_MIN", "LDBL_MIN"};      // minimum float values before denormals
-*/
-
 const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; }   ///< suffix for math functions
-const char* inumix()  { return numsuffix[gGlobal->gFloatSize]; }    ///< suffix for numeric constants
+const char* inumix() { return numsuffix[gGlobal->gFloatSize]; }     ///< suffix for numeric constants
 const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
-const char* icast()  { return castname[gGlobal->gFloatSize]; }
-double inummin()  { return floatmin[gGlobal->gFloatSize]; }
+const char* icast() { return castname[gGlobal->gFloatSize]; }
+double inummin() { return floatmin[gGlobal->gFloatSize]; }
 
 const char* xfloat() { return floatname[0]; }
-const char* xcast()  { return castname[0]; }
+const char* xcast() { return castname[0]; }
 
 Typed::VarType itfloat()
 {
@@ -87,26 +79,11 @@ Typed::VarType itfloatptr()
     }
 }
 
-int fsize()
-{
-    switch (gGlobal->gFloatSize) {
-        case 1:
-            return 4;
-        case 2:
-            return 8;
-        case 3:
-            return 16;
-        default:
-            faustassert(false);
-            return -1;
-    }
-}
-
 void printfloatdef(std::ostream& fout, bool quad)
 {
     fout << "#ifndef " << FLOATMACRO << std::endl;
-    fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
-    fout << "#endif  " << std::endl;
+    fout << "#define " << FLOATMACRO << " float" << std::endl;
+    fout << "#endif " << std::endl;
     fout << std::endl;
     if (quad) {
         fout << "typedef long double quad;" << std::endl;

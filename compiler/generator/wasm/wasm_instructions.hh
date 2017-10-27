@@ -1160,8 +1160,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     *fOut << int8_t(WasmOp::I32Add);
                 }
             } else {
-                faustassert(fLocalVarTable.find(named->fName) != fLocalVarTable.end());
-                LocalVarDesc local = fLocalVarTable[named->fName];
+                faustassert(fLocalVarTable.find(named->getName()) != fLocalVarTable.end());
+                LocalVarDesc local = fLocalVarTable[named->getName()];
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
         }
