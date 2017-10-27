@@ -82,10 +82,14 @@
 // to setup handle size
 - (void)setFrame:(CGRect)frame
 {
+    /*
+    2017/10/27 : finally values need to be edited, so deactivate this case
+     
     // Edition is deactivated if medata 'menu' is used
     if (self.fMenuItemValues.size() > 0) {
         _messageTextView.editable = NO;
     }
+    */
 
     [super setFrame:frame];
 }
