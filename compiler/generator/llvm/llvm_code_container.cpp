@@ -50,6 +50,50 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 
 list <string> LLVMInstVisitor::gMathLibTable;
 
+#ifdef __APPLE__
+
+static void generateExp10f(LLVMInstVisitor* visitor)
+{
+    string val = gGlobal->getFreshID("val");
+    
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(val, Typed::kFloat));
+    
+    list<ValueInst*> args1;
+    args1.push_back(InstBuilder::genLoadFunArgsVar(val));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst("__exp10f", args1)));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kFloat), FunTyped::kDefault);
+    
+    InstBuilder::genDeclareFunInst("__exp10f", fun_type)->accept(visitor);
+    InstBuilder::genDeclareFunInst("exp10f", fun_type, block)->accept(visitor);
+}
+
+static void generateExp10(LLVMInstVisitor* visitor)
+{
+    string val = gGlobal->getFreshID("val");
+    
+    list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped(val, Typed::kDouble));
+    
+    list<ValueInst*> args1;
+    args1.push_back(InstBuilder::genLoadFunArgsVar(val));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst("__exp10", args1)));
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kDouble), FunTyped::kDefault);
+    
+    InstBuilder::genDeclareFunInst("__exp10", fun_type)->accept(visitor);
+    InstBuilder::genDeclareFunInst("exp10", fun_type, block)->accept(visitor);
+}
+
+#endif
+
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new LLVMScalarCodeContainer(name, 0, 1, fModule, fContext, sub_container_type);
@@ -758,6 +802,12 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
     generateInfoFunctions(fKlassName, true);
+    
+#ifdef __APPLE__
+    // 'exp10f' and 'exp10' are missing. The 2 functions are created to call internal '__exp10f' and '__exp10'.
+    generateExp10f(fCodeProducer);
+    generateExp10(fCodeProducer);
+#endif
   
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);

@@ -71,7 +71,7 @@ class Exp10Prim : public xtended
         list<ValueInst*> casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
-        return container->pushFunction(subst("__exp10$0", isuffix()), result_type, arg_types, casted_args);
+        return container->pushFunction(subst("exp10$0", isuffix()), result_type, arg_types, casted_args);
     }
     
     virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
@@ -79,7 +79,7 @@ class Exp10Prim : public xtended
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
         
-        return subst("__exp10$1($0)", args[0], isuffix());
+        return subst("exp10$1($0)", args[0], isuffix());
     }
 
 	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)

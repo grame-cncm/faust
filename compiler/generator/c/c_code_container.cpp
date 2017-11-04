@@ -159,6 +159,11 @@ void CCodeContainer::produceClass()
     *fOut << "#define FAUSTCLASS "<< fKlassName << endl;
     *fOut << "#endif" << endl;
     
+    *fOut << "#ifdef __APPLE__ " << endl;
+    *fOut << "#define exp10f __exp10f" << endl;
+    *fOut << "#define exp10 __exp10" << endl;
+    *fOut << "#endif" << endl;
+    
     if (gGlobal->gLightMode) {
         tab(n, *fOut);
         *fOut << "#define max(a,b) ((a < b) ? b : a)\n";
