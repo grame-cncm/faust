@@ -736,13 +736,13 @@ static string fxName(const string& filename)
 	// determine position right after the last '/' or 0
 	unsigned int p1 = 0;
     for (unsigned int i = 0; i < filename.size(); i++) {
-        if (filename[i] == '/')  { p1 = i+1; }
+        if (filename[i] == '/') { p1 = i+1; }
     }
 
 	// determine position of the last '.'
 	unsigned int p2 = filename.size();
     for (unsigned int i = p1; i < filename.size(); i++) {
-        if (filename[i] == '.')  { p2 = i; }
+        if (filename[i] == '.') { p2 = i; }
     }
 
     return filename.substr(p1, p2-p1);

@@ -163,7 +163,7 @@ function startDSPAux(dsp)
     //output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
     
     output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, function(path, val)
-                                 { DSP.parameters.get(path).value = val;});
+                                 { DSP.parameters.get(path).setValueAtTime(val, 0); });
    
     DSP.setOutputParamHandler(output_handler);
 
