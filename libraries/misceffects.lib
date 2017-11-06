@@ -288,10 +288,10 @@ with {
 // * `feedback`: the feedback coefficient
 //----------------------------------------------------
 // TODO: author RM
-// TODO: needs to be checked
 echo(maxDuration,duration,feedback) = +~(de.fdelay1(N,n)*feedback)
 with{
-	N = maxDuration : ba.sec2samp : ma.np2; // compute the next power of 2 of maxDuration
+  // compute the next power of 2 of maxDuration
+	N = maxDuration : ba.sec2samp : int : ma.np2 : max(1);
 	n = duration : ba.sec2samp;
 };
 
