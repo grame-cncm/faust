@@ -1,6 +1,6 @@
 // Radix 2 FFT, decimation in time, real and imag parts interleaved
 
-declare name	"FFT";
+declare name	"FFT"; // Faust Fourier Transform :-)
 declare author	"JOS";
 declare license "STK-4.3";
 
