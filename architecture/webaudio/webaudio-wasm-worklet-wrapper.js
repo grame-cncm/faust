@@ -562,11 +562,11 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
 
 var mydspProcessorString = `
 
+    'use strict';
+
     function getJSONmydsp() { return \`GETJSON\`; }
 
     function getBinaryCodemydsp() { return GETBINARYCODE; }
-
-    'use strict';
 
     var faust = faust || {};
 
@@ -817,44 +817,58 @@ var mydspProcessorString = `
                 .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
 `;
 
+faust.createDSPInstanceAux = function(factory, callback)
+{
+    audio_context = new AudioContext();
+    
+    // Create a generic AudioWorkletNode
+    var audio_node = new AudioWorkletNode(audio_context, factory.name,
+                                          { numberOfInputs: parseInt(factory.json_object.inputs),
+                                          numberOfOutputs: parseInt(factory.json_object.outputs),
+                                          channelCount: 1 });
+    
+    // And patch it with additional functions
+    audio_node.getJSON = function() { return factory.getJSON(); }
+    audio_node.setParamValue = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
+    audio_node.getParamValue = function(path) { return this.parameters.get(path).value; }
+    audio_node.setOutputParamHandler = function(handler) {}
+    audio_node.getNumInputs = function() { return parseInt(factory.json_object.inputs); }
+    audio_node.getNumOutputs = function() { return parseInt(factory.json_object.outputs); }
+    audio_node.getParams = function() { return []; }
+    audio_node.metadata = function (handler) {}
+
+    // And use it
+    callback(audio_node);
+}
+
 faust.createDSPInstance = function(factory, callback)
 {
-    var re1 = /mydsp/g;
-    var re2 = /GETJSON/g;
-    var re3 = /GETBINARYCODE/g;
-    
-    var mydspProcessorString1 = mydspProcessorString.replace(re1, factory.name);
-    var mydspProcessorString2 = mydspProcessorString1.replace(re2, factory.getJSON());
-    var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBinaryCode());
-    
-    var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
-    
-    // The main global scope
-    window.audioWorklet.addModule(url)
-    .then(function () {
-          audio_context = new AudioContext();
-          
-          // Create a generic AudioWorkletNode
-          var audio_node = new AudioWorkletNode(audio_context, factory.name,
-                                                { numberOfInputs: parseInt(factory.json_object.inputs),
-                                                numberOfOutputs: parseInt(factory.json_object.outputs),
-                                                channelCount: 1 });
-          
-          // And patch it with additional functions
-          audio_node.getJSON = function() { return factory.getJSON(); }
-          audio_node.setParamValue = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
-          audio_node.getParamValue = function(path) { return this.parameters.get(path).value; }
-          audio_node.setOutputParamHandler = function(handler) {}
-          audio_node.getNumInputs = function() { return parseInt(factory.json_object.inputs); }
-          audio_node.getNumOutputs = function() { return parseInt(factory.json_object.outputs); }
-          audio_node.getParams = function() { return []; }
-          audio_node.metadata = function (handler) {}
-          
-          // And use it
-          callback(audio_node);
+    if (!factory.registered) {
         
-    })
-    .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); alert(error); });
+        var re1 = /mydsp/g;
+        var re2 = /GETJSON/g;
+        var re3 = /GETBINARYCODE/g;
+        var mydspProcessorString1 = mydspProcessorString.replace(re1, factory.name);
+        var mydspProcessorString2 = mydspProcessorString1.replace(re2, factory.getJSON());
+        var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBinaryCode());
+        var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
+        
+        // The main global scope
+        window.audioWorklet.addModule(url)
+        .then(function () {
+              // Processor has been registered
+              factory.registered = true;
+              
+              // Create audio node
+              faust.createDSPInstanceAux(factory, callback);
+            
+        })
+        .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); alert(error); });
+    } else {
+        
+        // Create audio node
+        faust.createDSPInstanceAux(factory, callback);
+    }
 }
 
 faust.deleteDSPInstance = function (dsp) {}

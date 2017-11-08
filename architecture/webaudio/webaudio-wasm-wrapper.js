@@ -942,44 +942,44 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 faust.deleteDSPInstance = function (dsp) {}
 
 /*
-	Memory layout for polyphonic DSP : audio buffers pointers, audio buffers, DSP struct (voices)
+    Memory layout for polyphonic DSP : audio buffers pointers, audio buffers, DSP struct (voices)
 
-	-----------
-	audio_ptrs:
-	-----------
-	audio_heap_ptr = audio_heap_ptr_inputs = 0
-		getNumInputsAux ==> size = getNumInputsAux * ptr_size
-            ---
-            ---
-	audio_heap_ptr_outputs
-		getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
-			---
-			---
-	audio_heap_ptr_mixing
-		getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
-			---
-			---
+    -----------
+    audio_ptrs:
+    -----------
+    audio_heap_ptr = audio_heap_ptr_inputs = 0
+    getNumInputsAux ==> size = getNumInputsAux * ptr_size
+    ---
+    ---
+    audio_heap_ptr_outputs
+    getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
+    ---
+    ---
+    audio_heap_ptr_mixing
+    getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
+    ---
+    ---
     ---------------
-	audio_buffers:
+    audio_buffers:
     ---------------
-	audio_heap_inputs
-		getNumInputsAux ==> size = getNumInputsAux * buffer_size * sample_size
-			---
-			---
-	audio_heap_outputs
-		getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
-			---
-			---
-	audio_heap_mixing
-		getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
-			---
-			---
-	dsp_start
-		dsp_voices[0]  ==> size = parseInt(factory.json_object.size)
-		dsp_voices[1]  ==> size = parseInt(factory.json_object.size)
-		dsp_voices[2]  ==> size = parseInt(factory.json_object.size)
-		dsp_voices[3]  ==> size = parseInt(factory.json_object.size)
-		.....
+    audio_heap_inputs
+    getNumInputsAux ==> size = getNumInputsAux * buffer_size * sample_size
+    ---
+    ---
+    audio_heap_outputs
+    getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
+    ---
+    ---
+    audio_heap_mixing
+    getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
+    ---
+    ---
+    dsp_start
+    dsp_voices[0]  ==> size = parseInt(factory.json_object.size)
+    dsp_voices[1]  ==> size = parseInt(factory.json_object.size)
+    dsp_voices[2]  ==> size = parseInt(factory.json_object.size)
+    dsp_voices[3]  ==> size = parseInt(factory.json_object.size)
+    .....
 */
 
 faust.createMemory = function (factory, buffer_size, polyphony) {
