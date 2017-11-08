@@ -290,23 +290,23 @@ void WASTCodeContainer::produceClass()
     stringstream size;
     size << gGlobal->gWASTVisitor->getStructSize();
     
-    JSONInstVisitor json_visitor;
-    generateUserInterface(&json_visitor);
+    JSONInstVisitor json_visitor1;
+    generateUserInterface(&json_visitor1);
     
     map <string, string>::iterator it;
     std::map<std::string, int> path_index_table;
     map <string, MemoryDesc>& fieldTable1 = gGlobal->gWASTVisitor->getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
         // Get field index
         MemoryDesc tmp = fieldTable1[(*it).first];
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    JSONInstVisitor visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&visitor);
-    generateMetaData(&visitor);
+    JSONInstVisitor json_visitor2("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&json_visitor2);
+    generateMetaData(&json_visitor2);
     
-    string json = visitor.JSON(true);
+    string json = json_visitor2.JSON(true);
     
     // Now that DSP structure size is known, concatenate stream parts to produce the final stream
     string tmp_aux = fOutAux.str();

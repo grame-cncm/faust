@@ -284,6 +284,13 @@ class BufferWithRandomAccess : public std::vector<uint8_t> {
             *this << int8_t(0);
             return ret;
         }
+    
+        string toString()
+        {
+            stringstream str;
+            for (auto c : *this) str << c;
+            return str.str();
+        }
    
         template <typename T>
         void writeTo(T& o)

@@ -25,6 +25,7 @@
 #include "exception.hh"
 #include "global.hh"
 #include "json_instructions.hh"
+#include "rn_base64.h"
 
 using namespace std;
 
@@ -338,23 +339,23 @@ void WASMCodeContainer::produceClass()
     stringstream size;
     size << gGlobal->gWASMVisitor->getStructSize();
     
-    JSONInstVisitor json_visitor;
-    generateUserInterface(&json_visitor);
+    JSONInstVisitor json_visitor1;
+    generateUserInterface(&json_visitor1);
     
     map <string, string>::iterator it;
     std::map<std::string, int> path_index_table;
     map <string, MemoryDesc>& fieldTable1 = gGlobal->gWASMVisitor->getFieldTable();
-    for (it = json_visitor.fPathTable.begin(); it != json_visitor.fPathTable.end(); it++) {
+    for (it = json_visitor1.fPathTable.begin(); it != json_visitor1.fPathTable.end(); it++) {
         // Get field index
         MemoryDesc tmp = fieldTable1[(*it).first];
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    JSONInstVisitor visitor("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
-    generateUserInterface(&visitor);
-    generateMetaData(&visitor);
+    JSONInstVisitor json_visitor2("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    generateUserInterface(&json_visitor2);
+    generateMetaData(&json_visitor2);
     
-    string json = visitor.JSON(true);
+    string json = json_visitor2.JSON(true);
     
     // Memory size can now be written
     if (fInternalMemory) {
@@ -381,24 +382,44 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper); fHelper << "function getJSON" << fKlassName << "() {";
         tab(n+1, fHelper);
         fHelper << "return \""; fHelper << json; fHelper << "\";";
+        //fHelper << "return `\""; fHelper << json; fHelper << "`\";";
         printlines(n+1, fUICode, fHelper);
     tab(n, fHelper); fHelper << "}\n";
     
-    if (gGlobal->gOutputLang == "wasm-ib") {
+    if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
         // Write binary as an array
         fHelper << showbase         // show the 0x prefix
                 << internal         // fill between the prefix and the number
                 << setfill('0');    // fill with 0s
-        fHelper << "function getBinaryCode" << fKlassName << "() {";
-            tab(n+1, fHelper);
-            fHelper << "return new Uint8Array([";
-            char sep = ' ';
-            for (int i = 0; i < fBinaryOut.size(); i++) {
-                fHelper << sep << hex << int(fBinaryOut[i]);
-                sep = ',';
-            }
-            fHelper << "]).buffer;\n";
-       tab(n, fHelper); fHelper << "}\n";
+        {
+            fHelper << "function getBinaryCode" << fKlassName << "() {";
+                tab(n+1, fHelper);
+                fHelper << "return new Uint8Array([";
+                char sep = ' ';
+                for (int i = 0; i < fBinaryOut.size(); i++) {
+                    fHelper << sep << hex << int(fBinaryOut[i]);
+                    sep = ',';
+                }
+                fHelper << "]).buffer; }\n";
+            tab(n, fHelper);
+        }
+        
+        {
+            fHelper << "function getBinaryCodeString" << fKlassName << "() {";
+                tab(n+1, fHelper);
+                fHelper << "return \"new Uint8Array([";
+                char sep = ' ';
+                for (int i = 0; i < fBinaryOut.size(); i++) {
+                    fHelper << sep << hex << int(fBinaryOut[i]);
+                    sep = ',';
+                }
+                fHelper << "]).buffer\"; }\n";
+            tab(n, fHelper);
+        }
+        /*
+            fHelper << " return atob(\"" << base64_encode(fBinaryOut.toString());
+            fHelper << "\"); }\n";
+        */
     }
 }
 

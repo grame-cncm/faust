@@ -496,7 +496,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
 
         callback(factory);
     })
-    .catch(function() { faust.error_msg = "Faust DSP factory cannot be compiled"; callback(null); });
+    .catch(function(error) { console.log(error); faust.error_msg = "Faust DSP factory cannot be compiled"; callback(null); });
 }
 
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
@@ -509,28 +509,28 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
     dsp = 0;
     size = parseInt(factory.json_object.size)
 
-	-----------
-	audio_ptrs:
-	-----------
-	audio_heap_ptr = audio_heap_ptr_inputs = parseInt(factory.json_object.size)
+    -----------
+    audio_ptrs:
+    -----------
+    audio_heap_ptr = audio_heap_ptr_inputs = parseInt(factory.json_object.size)
     getNumInputsAux ==> size = getNumInputsAux * ptr_size
-        ---
-        ---
+    ---
+    ---
     audio_heap_ptr_outputs
     getNumOutputsAux ==> size = getNumOutputsAux * ptr_size
-        ---
-        ---
-    ---------------
+    ---
+    ---
+    --------------
     audio_buffers:
-    ---------------
+    --------------
     audio_heap_inputs
     getNumInputsAux ==> size = getNumInputsAux * buffer_size * sample_size
-        ---
-        ---
+    ---
+    ---
     audio_heap_outputs
     getNumOutputsAux ==> size = getNumOutputsAux * buffer_size * sample_size
-        ---
-        ---
+    ---
+    ---
 */
 
 /**
@@ -936,7 +936,7 @@ faust.createDSPInstance = function (factory, context, buffer_size, callback) {
         callback(sp);
 
     })
-    .catch(function() { faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
+    .catch(function(error) { console.log(error); faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
 }
 
 faust.deleteDSPInstance = function (dsp) {}
@@ -1645,7 +1645,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
         callback(sp);
 
     }); })
-    .catch(function() { faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
+    .catch(function(error) { console.log(error); faust.error_msg = "Faust DSP cannot be instantiated"; callback(null); });
 }
 
 faust.deletePolyDSPInstance = function (dsp) {}

@@ -251,6 +251,4 @@ WebAssembly.instantiate(getBinaryCodemydsp(), faust.importObject)
                   faust.mydsp_instance = dsp_module.instance;
                   registerProcessor('mydsp', mydspProcessor);
             })
-            .catch(function() { console.log("Faust mydsp cannot be loaded or compiled"); });
-
-
+            .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
