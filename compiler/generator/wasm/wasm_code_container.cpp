@@ -387,6 +387,8 @@ void WASMCodeContainer::produceClass()
     tab(n, fHelper); fHelper << "}\n";
     
     if (gGlobal->gOutputLang == "wasm-ib" || gGlobal->gOutputLang == "wasm-eb") {
+        
+        /*
         // Write binary as an array
         fHelper << showbase         // show the 0x prefix
                 << internal         // fill between the prefix and the number
@@ -416,10 +418,11 @@ void WASMCodeContainer::produceClass()
                 fHelper << "]).buffer\"; }\n";
             tab(n, fHelper);
         }
-        /*
-            fHelper << " return atob(\"" << base64_encode(fBinaryOut.toString());
-            fHelper << "\"); }\n";
         */
+        
+        fHelper << "function getBase64Code" << fKlassName << "() {";
+        fHelper << " return \"" << base64_encode(fBinaryOut.toString()) << "\"; }\n";
+        tab(n, fHelper);
     }
 }
 

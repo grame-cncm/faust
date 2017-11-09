@@ -96,7 +96,7 @@ class mydspNode extends AudioWorkletNode {
         this.parameters.get(path).setValueAtTime(val, 0);
     }
     
-    getParamValue = function (path)
+    getParamValue(path)
     {
         return this.parameters.get(path).value;
     }
