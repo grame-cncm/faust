@@ -68,7 +68,7 @@ class UI
     
         // -- soundfiles
     
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) = 0;
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 

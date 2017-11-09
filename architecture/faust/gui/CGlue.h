@@ -66,7 +66,7 @@ class UIFloat
     
         // -- soundfiles
     
-        virtual void addSoundFile(const char* label, Soundfile** sf_zone) = 0;
+        virtual void addSoundFile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -139,10 +139,10 @@ static void addVerticalBargraphGlueFloat(void* cpp_interface, const char* label,
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
     
-static void addSoundFileGlueFloat(void* cpp_interface, const char* label, Soundfile** sf_zone)
+static void addSoundFileGlueFloat(void* cpp_interface, const char* label, const char* filename, Soundfile** sf_zone)
 {
     UIFloat* ui_interface = static_cast<UIFloat*>(cpp_interface);
-    ui_interface->addSoundFile(label, sf_zone);
+    ui_interface->addSoundFile(label, filename, sf_zone);
 }
 
 static void declareGlueFloat(void* cpp_interface, float* zone, const char* key, const char* value)
@@ -182,7 +182,7 @@ class UIDouble
     
         // -- soundfiles
     
-        virtual void addSoundFile(const char* label, Soundfile** sf_zone) = 0;
+        virtual void addSoundFile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
         // -- metadata declarations
 
@@ -255,10 +255,10 @@ static void addVerticalBargraphGlueDouble(void* cpp_interface, const char* label
     ui_interface->addVerticalBargraph(label, zone, min, max);
 }
     
-static void addSoundFileGlueDouble(void* cpp_interface, const char* label, Soundfile** sf_zone)
+static void addSoundFileGlueDouble(void* cpp_interface, const char* label, const char* filename, Soundfile** sf_zone)
 {
     UIDouble* ui_interface = static_cast<UIDouble*>(cpp_interface);
-    ui_interface->addSoundFile(label, sf_zone);
+    ui_interface->addSoundFile(label, filename, sf_zone);
 }
 
 static void declareGlueDouble(void* cpp_interface, double* zone, const char* key, const char* value)
@@ -429,9 +429,9 @@ class UITemplate
     
         // -- soundfiles
     
-        virtual void addSoundFile(const char* label, Soundfile** sf_zone)
+        virtual void addSoundFile(const char* label, const char* filename, Soundfile** sf_zone)
         {
-            addSoundFileGlueFloat(fCPPInterface, label, sf_zone);
+            addSoundFileGlueFloat(fCPPInterface, label, filename, sf_zone);
         }
     
 };

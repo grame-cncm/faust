@@ -104,9 +104,9 @@ class PrintUI : public PathBuilder, public UI
     
         // -- soundfiles
     
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* filename,  Soundfile** sf_zone)
         {
-            std::cout << "addSoundfile label : " << buildPath(label) << std::endl;
+            std::cout << "addSoundfile label : " << buildPath(label) << " filename :" << filename << std::endl;
         }
 
         // -- metadata declarations

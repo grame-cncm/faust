@@ -56,7 +56,7 @@ class GenericUI : public UI
         virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
     
         // -- soundfiles
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        virtual void addSoundfile(const char* label, const char* soundpath, Soundfile** sf_zone) {}
     
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) {}
     
@@ -101,7 +101,7 @@ class DecoratorUI : public UI
         { fUI->addVerticalBargraph(label, zone, min, max); }
     
         // -- soundfiles
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) { fUI->addSoundfile(label, sf_zone); }
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) { fUI->addSoundfile(label, filename, sf_zone); }
     
         virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val) { fUI->declare(zone, key, val); }
     

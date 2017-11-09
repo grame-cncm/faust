@@ -133,7 +133,7 @@ class FUI : public UI, public PathBuilder
         virtual void addVerticalBargraph(const char*, FAUSTFLOAT*, FAUSTFLOAT, FAUSTFLOAT) {};
     
         // -- soundfiles
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
         // -- metadata are not used
 

@@ -316,7 +316,7 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         // -- soundfiles
     
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
         // -- metadata declarations
 

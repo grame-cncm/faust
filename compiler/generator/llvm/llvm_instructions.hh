@@ -537,6 +537,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
+            FuncTy_19_args.push_back(PointerTy_0);
             FunctionType* FuncTy_19 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
             /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_19_args),

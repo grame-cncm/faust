@@ -625,8 +625,7 @@ var mydspProcessorString = `
                 mydspProcessor.parse_items(item.items, obj, callback);
             } else if (item.type === "hbargraph"
                        || item.type === "vbargraph") {
-                // Keep bargraph adresses
-                //obj.outputs_items.push(item.address);
+                // Nothing
             } else if (item.type === "vslider"
                        || item.type === "hslider"
                        || item.type === "button"
@@ -723,6 +722,7 @@ var mydspProcessorString = `
             
             this.pathTable = [];
             
+            // TODO: send output values to the AudioNode
             this.update_outputs = function ()
             {
                 if (this.outputs_items.length > 0 && this.output_handler && this.outputs_timer-- === 0) {
