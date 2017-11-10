@@ -147,6 +147,7 @@ struct global {
     bool            gInPlace;               // Add cache to input for correct in-place computations
     bool            gHasExp10;              // If the 'exp10' math function is available
     bool            gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
+    bool            gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
     
     dsp_factory_base* gDSPFactory;
 

@@ -1162,6 +1162,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1171,9 +1172,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            
             // This speedup (freewerb for instance) ==> to be done at signal level
-            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-            gGlobal->gLoopVarInBytes = true;
+            //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wast")
                                                             || (gGlobal->gOutputLang == "wast-i")));
@@ -1201,9 +1205,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            
             // This speedup (freewerb for instance) ==> to be done at signal level
-            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-            gGlobal->gLoopVarInBytes = true;
+            //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wasm")
                                                             || (gGlobal->gOutputLang == "wasm-i")
