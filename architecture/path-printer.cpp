@@ -17,12 +17,16 @@
  ************************************************************************
  ************************************************************************/
 
+#include <math.h>
+#include <cmath>
+
 #include "faust/misc.h"
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
-#include <math.h>
-#include <cmath>
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
 
 <<includeIntrinsic>>
 
@@ -47,7 +51,7 @@ int main(int argc, char *argv[])
 
     #if POLY_VOICES
     // kind of funny, but it's the fastest way
-    MapUI *idpVoice = fPolyEngine.keyOn(100,100);
+    MapUI* idpVoice = fPolyEngine.keyOn(100,100);
 
     std::cout << "### Independent Voices" << "\n\n";
     for(int i = 0; i < idpVoice->getParamsCount(); i++) {

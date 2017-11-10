@@ -27,6 +27,7 @@ class FaustPolyEngine;
 class MidiUI;
 class OSCUI;
 class JuceOSCUI;
+class SoundUI;
 class audio;
 
 class DspFaust
@@ -46,6 +47,10 @@ class DspFaust
         
     #if MIDICTRL
         MidiUI* fMidiUI;
+    #endif
+    
+    #if SOUNDFILE
+        SoundUI* fSoundInterface;
     #endif
     
         void init(audio* driver);

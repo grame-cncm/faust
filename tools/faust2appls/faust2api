@@ -26,6 +26,7 @@ NVOICES="0"
 #PACKAGENAME="0"
 POLY2="0"
 MIDI="0"
+SOUNDFILE="0"
 OSC="0"
 NODOC="0"
 EFFECT=""
@@ -69,42 +70,49 @@ echoHelp ()
     echo "Android specific options:"
     echo "   -package : set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
     echo ""
-    echo "iOS specific options "
+    echo "iOS specific options"
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "CoreAudio specific options "
+    echo "CoreAudio specific options"
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "ALSA specific options "
+    echo "ALSA specific options"
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "JACK specific options "
+    echo "JACK specific options"
     echo "   -midi : activate JACK MIDI support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "PortAudio specific options "
+    echo "PortAudio specific options"
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "RTAudio specific options "
+    echo "RTAudio specific options"
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
-    echo "JUCE specific options "
+    echo "JUCE specific options"
     echo "   -midi : add JUCE MIDI support to the API."
     echo "   -osc : add JUCE OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo ""
 }
 
 createAPI ()
 {
     cp -r $FAUSTLIB/api/DspFaust.h $APIFOLDER
-    faust -i -a api/DspFaust.cpp $OPTIONS "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
+    faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
-        faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
+        faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp" || exit 1
         echo "#define POLY2 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
     if [ "$NVOICES" -gt "0" ]; then
@@ -115,6 +123,9 @@ createAPI ()
     fi
     if [ "$OSC" = "1" ]; then
         echo "#define OSCCTRL 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$SOUNDFILE" = "1" ]; then
+        echo "#define SOUNDFILE 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
 }
 
@@ -156,6 +167,8 @@ do
 		EFFECT=$1
     elif [ "$p" = "-midi" ]; then
         MIDI="1"
+    elif [ "$p" = "-soundfile" ]; then
+        SOUNDFILE="1"
     elif [ "$p" = "-osc" ]; then
         OSC="1"
 	elif [ "$p" = "-nodoc" ]; then
@@ -268,14 +281,17 @@ if [ $NODOC -eq 0 ]; then
 	PPBINARY=pp
 	READMEFILE="$APIFOLDER/README.md"
 
-	faust -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
+	faust $OPTIONS -i -a path-printer.cpp "$FILE" -o "$PPFILE" || exit 1
 	if [ "$POLY2" = "1" ]; then
-		faust -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
+		faust $OPTIONS -i -cn effect -a minimal-effect.cpp $EFFECT | cat - "$PPFILE" > temp && mv temp "$PPFILE" || exit 1
 		echo "#define POLY2 1" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
 	fi
-	if [ "$NVOICES" -gt "0" ]; then
-		echo "#define NVOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
-	fi
+    if [ "$NVOICES" -gt "0" ]; then
+        echo "#define NVOICES $NVOICES" | cat - "$PPFILE" > temp && mv temp "$PPFILE"
+    fi
+    if [ "$SOUNDFILE" = "1" ]; then
+        echo "#define SOUNDFILE 1" | cat - "$PPFILE"  > temp && mv temp "$PPFILE"
+    fi
 
 	# compile c++ to binary
 	(

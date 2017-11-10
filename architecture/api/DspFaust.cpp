@@ -98,6 +98,10 @@
 #endif
 #endif
 
+#if SOUNDFILE
+     #include "faust/gui/SoundUI.h"
+#endif
+
 #include "DspFaust.h"
 
 std::list<GUI*> GUI::fGuiList;
@@ -191,6 +195,10 @@ void DspFaust::init(audio* driver)
 #endif
     fPolyEngine->buildUserInterface(fMidiUI);
 #endif
+#if SOUNDFILE
+    fSoundInterface = new SoundUI();
+    fPolyEngine->buildUserInterface(fSoundInterface);
+#endif
 }
 
 DspFaust::~DspFaust()
@@ -200,6 +208,9 @@ DspFaust::~DspFaust()
 #endif
 #if MIDICTRL
     delete fMidiUI;
+#endif
+#if SOUNDFILE
+    delete fSoundInterface;
 #endif
     delete fPolyEngine;
 }
