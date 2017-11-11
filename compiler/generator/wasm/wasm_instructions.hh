@@ -1120,6 +1120,22 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
         }
     
+        virtual void visit(TeeVarInst* inst)
+        {
+            faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
+            LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+            
+            // 'tee_local' is generated the first time the variable is used
+            // All future access simply use a get_local
+            if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
+                inst->fValue->accept(this);
+                *fOut << int8_t(BinaryConsts::TeeLocal) << U32LEB(local.fIndex);
+                fTeeMap[inst->fAddress->getName()] = true;
+            } else {
+                *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
+            }
+        }
+    
         virtual void visit(StoreVarInst* inst)
         {
             inst->fValue->accept(&fTypingVisitor);

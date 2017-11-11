@@ -99,7 +99,7 @@
 #endif
 
 #if SOUNDFILE
-     #include "faust/gui/SoundUI.h"
+    #include "faust/gui/SoundUI.h"
 #endif
 
 #include "DspFaust.h"

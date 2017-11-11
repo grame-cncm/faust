@@ -73,7 +73,7 @@ DeclareFunInst::~DeclareFunInst()
 BasicTyped* InstBuilder::genBasicTyped(Typed::VarType type)
 {
     // Possibly force FAUSTFLOAT type (= kFloatMacro) to internal real
-    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gGlobal->gFaustFloatToInternal) ? itfloat() : type;
+    Typed::VarType new_type = ((type == Typed::kFloatMacro) && gGlobal->gFAUSTFLOATToInternal) ? itfloat() : type;
     
     // If not defined, add the type in the table
     if (gGlobal->gTypeTable.find(new_type) == gGlobal->gTypeTable.end()) {

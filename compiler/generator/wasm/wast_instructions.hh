@@ -232,6 +232,20 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 *fOut << "(get_local $" << inst->fAddress->getName() << ")";
             }
         }
+    
+        virtual void visit(TeeVarInst* inst)
+        {
+            // 'tee_local' is generated the first time the variable is used
+            // All future access simply use a get_local
+            if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
+                *fOut << "(tee_local $" << inst->fAddress->getName() << " ";
+                inst->fValue->accept(this);
+                *fOut << ")";
+                fTeeMap[inst->fAddress->getName()] = true;
+            } else {
+                *fOut << "(get_local $" << inst->fAddress->getName() << ")";
+            }
+        }
 
         virtual void visit(StoreVarInst* inst)
         {

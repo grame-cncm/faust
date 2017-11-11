@@ -230,7 +230,9 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             }
             
         } else {
-            fVarTable.push_back(inst->clone(&cloner));
+            fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                               inst->fType->clone(&cloner),
+                                                               InstBuilder::genTypedZero(inst->fType->getType())));
             return InstBuilder::genDropInst();
         }
     }

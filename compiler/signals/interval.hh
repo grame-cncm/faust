@@ -33,8 +33,8 @@ using namespace std;
 
 inline double min(double x, double y) { return (x<y) ? x:y; }
 inline double max(double x, double y) { return (x>y) ? x:y; }
-inline double min4(double a, double b, double c, double d)	{ return min(min(a,b),min(c,d)); }
-inline double max4(double a, double b, double c, double d)	{ return max(max(a,b),max(c,d)); }
+inline double min4(double a, double b, double c, double d)	{ return min(min(a, b), min(c, d)); }
+inline double max4(double a, double b, double c, double d)	{ return max(max(a, b), max(c, d)); }
 
 struct interval : public virtual Garbageable
 {
@@ -55,9 +55,9 @@ struct interval : public virtual Garbageable
 inline ostream& operator<<(ostream& dst, const interval& i) 	
 { 
 	if (i.valid) {
-		return  dst << "interval(" << i.lo << ", " << i.hi << ")";
+		return dst << "interval(" << i.lo << ", " << i.hi << ")";
 	} else {
-		return  dst << "interval()";
+		return dst << "interval()";
 	}
 }
 
@@ -83,10 +83,10 @@ inline interval operator-(const interval& x, const interval& y)
 inline interval operator*(const interval& x, const interval& y) 	
 { 
 	if (x.valid&y.valid) {
-		double a=x.lo*y.lo; 
-		double b=x.lo*y.hi; 
-		double c=x.hi*y.lo; 
-		double d=x.hi*y.hi;
+		double a = x.lo*y.lo;
+		double b = x.lo*y.hi;
+		double c = x.hi*y.lo;
+		double d = x.hi*y.hi;
 		return interval(min4(a,b,c,d), max4(a,b,c,d));
 	} else {
 		return interval();

@@ -992,7 +992,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
         
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     #ifndef _WIN32
         gGlobal->gHasExp10 = true;
     #endif
@@ -1018,7 +1018,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         
         gGlobal->gAllowForeignFunction = true;  // libc functions will be found by LLVM linker, but not user defined ones...
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     #ifndef _WIN32
         gGlobal->gHasExp10 = true;
     #endif
@@ -1056,7 +1056,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = false; // No foreign functions
         gGlobal->gGenerateSelectWithIf = false; // No 'select with if',
         gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
        
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1133,7 +1133,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "rust") {
             
         #if RUST_BUILD
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1161,7 +1161,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             
         #if ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
@@ -1171,9 +1171,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            //gGlobal->gHasTeeLocal = true;           // combined store/load
             
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
@@ -1204,9 +1205,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            //gGlobal->gHasTeeLocal = true;           // combined store/load
             
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once

@@ -327,7 +327,7 @@ inline void UI::addCallback(float* zone, uiCallback foo, void* data)
 class GTKUI : public UI
 {
  private :
-  static bool			fInitialized;
+  static bool		fInitialized;
   static list<UI*>	fGuiList;
 	
  protected :
