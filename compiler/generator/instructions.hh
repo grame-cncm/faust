@@ -111,7 +111,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual ~InstVisitor()
     {}
     
-     // User interface
+    // User interface
     virtual void visit(AddMetaDeclareInst* inst) {}
     virtual void visit(OpenboxInst* inst) {}
     virtual void visit(CloseboxInst* inst) {}
@@ -1935,7 +1935,7 @@ struct InstBuilder
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
     static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1) { return new LoadVarAddressInst(address, size); }
-    static TeeVarInst* genTeeVar(Address* address, ValueInst* value) { return new TeeVarInst(address, value); }
+    static TeeVarInst* genTeeVar(const string& vname, ValueInst* value) { return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value); }
     static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) { return new StoreVarInst(address, value); }
     static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay) { return new ShiftArrayVarInst(address, delay); }
 

@@ -568,7 +568,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             // Only generated for the DSP loop
             if (gGlobal->gHasTeeLocal) {
                 pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype)));
-                return InstBuilder::genTeeVar(InstBuilder::genNamedAddress(vname, Address::kStack), exp);
+                return InstBuilder::genTeeVar(vname, exp);
             } else {
                 pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
                 return InstBuilder::genLoadStackVar(vname);

@@ -1606,7 +1606,7 @@ static void compileFaustInternal(int argc, const char* argv[], const char* name,
     }
     Tree lsignals = gGlobal->gLsignalsTree;
     
-    if (gGlobal->gDetailsSwitch) { cout << "output signals are : " << endl; printSignal(lsignals, stderr); }
+    if (gGlobal->gDetailsSwitch) { cout << "output signals are : " << endl; printSignal(lsignals, stdout); cout << "\n\n"; }
  
     endTiming("propagation");
  
