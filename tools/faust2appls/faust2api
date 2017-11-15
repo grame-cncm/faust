@@ -29,6 +29,7 @@ MIDI="0"
 SOUNDFILE="0"
 OSC="0"
 NODOC="0"
+NOZIP="0"
 EFFECT=""
 
 COREAUDIO_DRIVER="0"
@@ -65,7 +66,8 @@ echoHelp ()
     echo "Global options:"
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
-	echo "   -nodoc : prevents documentation from being generated."
+	  echo "   -nodoc : prevents documentation from being generated."
+    echo "   -nozip : prevents generated files to be put in a zip file."
     echo ""
     echo "Android specific options:"
     echo "   -package : set the JAVA package name (e.g. '-package mypackage' will change the JAVA package name to 'mypackage.DspFaust'). The default package name is 'com.DspFaust.'"
@@ -171,8 +173,10 @@ do
         SOUNDFILE="1"
     elif [ "$p" = "-osc" ]; then
         OSC="1"
-	elif [ "$p" = "-nodoc" ]; then
-		NODOC="1"
+    elif [ "$p" = "-nodoc" ]; then
+		    NODOC="1"
+    elif [ "$p" = "-nozip" ]; then
+		    NOZIP="1"
     elif [ $p = "-nvoices" ]; then
 		shift
 		NVOICES=$1
@@ -199,7 +203,7 @@ fi
 # GENERATING API
 ###################################
 
-APIFOLDER="dsp-faust"
+APIFOLDER="dsp-faust" # TODO could be selected by the user
 
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
@@ -309,9 +313,11 @@ fi
 ###################################
 # POST PROCESSING
 ###################################
-
-ZIPOUT="$APIFOLDER.zip"
-
-rm $ZIPOUT 2> /dev/null || true
-zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
+if [ "$NOZIP" = "0" ]; then
+  ZIPOUT="$APIFOLDER.zip"
+  rm $ZIPOUT 2> /dev/null || true
+  zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
+else
+  mv $APIFOLDER/* . || exit 1
+fi
 rm -r $APIFOLDER || exit 1
