@@ -55,6 +55,7 @@ install:
 	install faust2msp $(dest)
 	install faust2netjackconsole $(dest)
 	install faust2netjackqt $(dest)
+	install faust2nodejs $(dest)
 	install faust2octave $(dest)
 	install faust2owl $(dest)
 	install faust2paqt $(dest)

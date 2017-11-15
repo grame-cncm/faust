@@ -187,8 +187,17 @@ install :
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
+	# install Android
+	rm -rf $(prefix)/share/faust/android
 	cp -r architecture/android $(prefix)/share/faust/
+	# install APIs
+	rm -rf $(prefix)/share/faust/api/
 	cp -r architecture/api $(prefix)/share/faust/
+	# install nodejs
+	rm -rf $(prefix)/share/faust/nodejs/
+	cp -r architecture/nodejs $(prefix)/share/faust/
+	# install Max/MSP
+	rm -rf $(prefix)/share/faust/max-msp/
 	cp -r architecture/max-msp $(prefix)/share/faust/
 	#install unity
 	rm -rf $(prefix)/share/faust/unity
