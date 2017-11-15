@@ -463,4 +463,28 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
     }
 };
 
+struct VariableSizeCounter : public DispatchVisitor {
+    
+    int fSizeBytes;
+    Typed::VarType fType;
+    Address::AccessType fAccess;
+    
+    VariableSizeCounter(Address::AccessType access, Typed::VarType type = Typed::kNoType)
+    {
+        fSizeBytes = 0;
+        fType = type;
+        fAccess = access;
+    }
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+        
+        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
+            fSizeBytes += inst->fType->getSize();
+        }
+    }
+    
+};
+
 #endif

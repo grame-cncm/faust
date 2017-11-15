@@ -491,13 +491,13 @@
         		}
     		}
 
-		    function getDevice(device) {
-        	// Create an AudioNode from the stream.
-		        var audio_input = window.audio_context.createMediaStreamSource(device);
-        
-        	// Connect it to the destination.
-		        audio_input.connect(window.DSP.getProcessor());
-    		}
+            function getDevice(device) {
+                // Create an AudioNode from the stream.
+                var audio_input = window.audio_context.createMediaStreamSource(device);
+
+                // Connect it to the destination.
+                audio_input.connect(window.DSP.getProcessor());
+            }
 
    			function FileDragHover(e) {
 		        e.stopPropagation();

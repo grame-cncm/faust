@@ -29,7 +29,7 @@
 
 using namespace std;
 
-map <string, int> CPPInstVisitor::gFunctionSymbolTable;
+map <string, bool> CPPInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CPPCodeContainer::produceFactory()
 {

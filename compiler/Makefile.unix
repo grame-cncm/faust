@@ -1027,7 +1027,8 @@ generator/fir/fir_code_container.o: tlib/occurrences.hh generator/floats.hh gene
 generator/fir/fir_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh dsp_factory.hh
 generator/fir/fir_code_container.o: generator/export.hh generator/fir/fir_instructions.hh generator/type_manager.hh
 generator/fir/fir_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
-generator/fir/fir_code_container.o: generator/wss_code_container.hh generator/instructions_complexity.hh
+generator/fir/fir_code_container.o: generator/wss_code_container.hh generator/fir_to_fir.hh
+generator/fir/fir_code_container.o: generator/instructions_complexity.hh
 generator/interpreter/interpreter_code_container.o: errors/exception.hh generator/Text.hh generator/floats.hh
 generator/interpreter/interpreter_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/interpreter/interpreter_code_container.o: tlib/symbol.hh garbageable.hh generator/interpreter/fir_opcode.hh

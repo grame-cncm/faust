@@ -34,7 +34,7 @@ class CInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;      
+        static map <string, bool> gFunctionSymbolTable;
 
     public:
 
@@ -149,7 +149,7 @@ class CInstVisitor : public TextInstVisitor {
             if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                gFunctionSymbolTable[inst->fName] = true;
             }
             
             // Defined as macro in the architecture file...

@@ -35,7 +35,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;    
+        static map <string, bool> gFunctionSymbolTable;
         static map <string, string> gMathLibTable;
 
     public:
@@ -188,7 +188,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
             if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                gFunctionSymbolTable[inst->fName] = true;
             }
             
             // Do not declare Math library functions
