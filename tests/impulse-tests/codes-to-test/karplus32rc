@@ -1,8 +1,0 @@
-128 karplus32/excitator/excitation_(samples)
-0 karplus32/excitator/play
-0.5 karplus32/noise_generator/level
-0.4866 karplus32/output_volume
-0 karplus32/resonator_x32/attenuation
-37.9904 karplus32/resonator_x32/detune
-128 karplus32/resonator_x32/duration_(samples)
-14 karplus32/resonator_x32/polyphony
