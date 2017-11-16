@@ -389,7 +389,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp
             VECTOR_OF_TYPES llvm_create_dsp_args;
             FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, MAKE_VECTOR_OF_TYPES(llvm_create_dsp_args), false);
-            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
+            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type,
+                                                              (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
             func_llvm_create_dsp->setCallingConv(CallingConv::C);
 
             // llvm_create_dsp block
@@ -406,11 +407,13 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         
             call_inst1->setCallingConv(CallingConv::C);
             llvm::CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
+            
             // Only for global object
             if (!internal) {
                 llvm::CallInst* call_inst3 = CallInst::Create(func_allocate, call_inst2, "", entry_func_llvm_create_dsp);
                 call_inst3->setCallingConv(CallingConv::C);
             }
+            
             ReturnInst::Create(fModule->getContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
             fBuilder->ClearInsertionPoint();
@@ -822,6 +825,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         string fPrefix;                             // Prefix for function name
 
         map <string, GlobalVariable*> fGlobalStringTable;
+    
+        map <string, string> gFastMathLibTable;
         
         static list <string> gMathLibTable;
 
@@ -863,6 +868,24 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fTypeMap[Typed::kObj_ptr] = fStructDSP;
             
             initTypes(module);
+            
+            // Fastmath version
+            gFastMathLibTable["powf"] = "fast_powf";
+            gFastMathLibTable["expf"] = "fast_expf";
+            gFastMathLibTable["exp2f"] = "fast_exp2f";
+            gFastMathLibTable["exp10f"] = "fast_exp10f";
+            gFastMathLibTable["logf"] = "fast_logf";
+            gFastMathLibTable["log2f"] = "fast_log2f";
+            gFastMathLibTable["log10f"] = "fast_log10f";
+            
+            // Fastmath version
+            gFastMathLibTable["pow"] = "fast_pow";
+            gFastMathLibTable["exp"] = "fast_exp";
+            gFastMathLibTable["exp2"] = "fast_exp2";
+            gFastMathLibTable["exp10"] = "fast_exp10";
+            gFastMathLibTable["log"] = "fast_log";
+            gFastMathLibTable["log2"] = "fast_log2";
+            gFastMathLibTable["log10"] = "fast_log10";
             
             if (gMathLibTable.size()) {
                 return;
@@ -1918,7 +1941,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
             } 
         }
-
+    
         virtual void visit(FunCallInst* inst)
         {
             // Don't know how to compile vectorized function call for now...
@@ -1936,8 +1959,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Compile arguments
             vector<LlvmValue> fun_args;
             list<ValueInst*>::const_iterator it;
-
-            Function* function = fModule->getFunction(inst->fName);
+            Function* function;
+            
+            if (gGlobal->gFastMath && (gFastMathLibTable.find(inst->fName) != gFastMathLibTable.end())) {
+                function = fModule->getFunction(gFastMathLibTable[inst->fName]);
+            } else {
+                function = fModule->getFunction(inst->fName);
+            }
+  
             //cerr << "FunCallInst " << inst->fName << endl;
             faustassert(function);
 

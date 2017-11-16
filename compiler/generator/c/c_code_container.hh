@@ -47,7 +47,18 @@ class CCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            
+            // For mathematical functions
+            if (gGlobal->gFastMath) {
+                addIncludeFile("\"faust/dsp/fastmath.h\"");
+            } else {
+                addIncludeFile("<math.h>");
+            }
+            
+            // For malloc/free
+            addIncludeFile("<stdlib.h>");
         }
+    
         virtual ~CCodeContainer()
         {}
 
@@ -59,8 +70,6 @@ class CCodeContainer : public virtual CodeContainer {
         virtual void printHeader()
         {
             CodeContainer::printHeader(*fOut);
-            
-            *fOut << "#include <stdlib.h>"<< std::endl;
             
             tab(0, *fOut); *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
             tab(0, *fOut); *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;

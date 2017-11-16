@@ -655,6 +655,18 @@ void CodeContainer::processFIR(void)
         CodeLoop::groupSeqLoops(fCurLoop, visited);
     }
     
+    if (gGlobal->gFastMath) {
+ 
+        // Add 'initFastMath' function declaration
+        list<NamedTyped*> args_types;
+        FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(Typed::kVoid));
+        pushGlobalDeclare(InstBuilder::genDeclareFunInst("initFastMath", fun_type));
+   
+        // Add 'initFastMath' function call
+        list<ValueInst*> args_value;
+        pushAllocateMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("initFastMath", args_value)));
+    }
+    
     // Sort struct fields by size and type
     // 05/16/17 : deactivated since it slows down the code...
     /*

@@ -149,6 +149,7 @@ struct global {
     bool            gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
     bool            gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
     bool            gHasTeeLocal;           // For wast/wasm backends
+    bool            gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     
     dsp_factory_base* gDSPFactory;
 

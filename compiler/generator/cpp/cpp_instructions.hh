@@ -36,6 +36,8 @@ class CPPInstVisitor : public TextInstVisitor {
          so that each function prototype is generated as most once in the module.
          */
         static map <string, bool> gFunctionSymbolTable;
+    
+        map <string, string> gFastMathLibTable;
  
     public:
 
@@ -44,6 +46,9 @@ class CPPInstVisitor : public TextInstVisitor {
         {
             // Mark all math.h functions as generated...
             gFunctionSymbolTable["abs"] = true;
+            
+            gFunctionSymbolTable["max"] = true;
+            gFunctionSymbolTable["min"] = true;
             
             // Float version
             gFunctionSymbolTable["absf"] = true;
@@ -60,13 +65,52 @@ class CPPInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["fmodf"] = true;
             gFunctionSymbolTable["logf"] = true;
             gFunctionSymbolTable["log10f"] = true;
-            gFunctionSymbolTable["max"] = true;
-            gFunctionSymbolTable["min"] = true;
             gFunctionSymbolTable["powf"] = true;
+            gFunctionSymbolTable["remainderf"] = true;
             gFunctionSymbolTable["roundf"] = true;
             gFunctionSymbolTable["sinf"] = true;
             gFunctionSymbolTable["sqrtf"] = true;
             gFunctionSymbolTable["tanf"] = true;
+            
+            // Fastmath version
+            gFastMathLibTable["powf"] = "fast_powf";
+            gFastMathLibTable["expf"] = "fast_expf";
+            gFastMathLibTable["exp2f"] = "fast_exp2f";
+            gFastMathLibTable["exp10f"] = "fast_exp10f";
+            gFastMathLibTable["logf"] = "fast_logf";
+            gFastMathLibTable["log2f"] = "fast_log2f";
+            gFastMathLibTable["log10f"] = "fast_log10f";
+            
+            // Double version
+            gFunctionSymbolTable["abs"] = true;
+            gFunctionSymbolTable["fabs"] = true;
+            gFunctionSymbolTable["acos"] = true;
+            gFunctionSymbolTable["asin"] = true;
+            gFunctionSymbolTable["atan"] = true;
+            gFunctionSymbolTable["atan2"] = true;
+            gFunctionSymbolTable["ceil"] = true;
+            gFunctionSymbolTable["cos"] = true;
+            gFunctionSymbolTable["exp"] = true;
+            gFunctionSymbolTable["exp10"] = true;
+            gFunctionSymbolTable["floor"] = true;
+            gFunctionSymbolTable["fmod"] = true;
+            gFunctionSymbolTable["log"] = true;
+            gFunctionSymbolTable["log10"] = true;
+            gFunctionSymbolTable["pow"] = true;
+            gFunctionSymbolTable["remainder"] = true;
+            gFunctionSymbolTable["round"] = true;
+            gFunctionSymbolTable["sin"] = true;
+            gFunctionSymbolTable["sqrt"] = true;
+            gFunctionSymbolTable["tan"] = true;
+            
+            // Fastmath version
+            gFastMathLibTable["pow"] = "fast_powf";
+            gFastMathLibTable["exp"] = "fast_expf";
+            gFastMathLibTable["exp2"] = "fast_exp2f";
+            gFastMathLibTable["exp10"] = "fast_exp10f";
+            gFastMathLibTable["log"] = "fast_logf";
+            gFastMathLibTable["log2"] = "fast_log2f";
+            gFastMathLibTable["log10"] = "fast_log10f";
         }
 
         virtual ~CPPInstVisitor()
@@ -248,7 +292,11 @@ class CPPInstVisitor : public TextInstVisitor {
                 name = inst->fName;
             }
             
-            generateFunCall(inst, name);
+            if (gGlobal->gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
+                generateFunCall(inst, gFastMathLibTable[name]);
+            } else {
+                generateFunCall(inst, name);
+            }
         }
         
         static void cleanup() { gFunctionSymbolTable.clear(); }

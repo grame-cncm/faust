@@ -2,7 +2,7 @@
 
 faust2nodejs can be used to generate Faust-based nodejs native addons. The 
 generated addons can embed most of the audio engines supported by Faust: alsa, 
-jack, coreaudio, rtaudio, portaudio, etc. Since faust2nodejs essentially acts 
+JACK, coreaudio, rtaudio, portaudio, etc. Since faust2nodejs essentially acts 
 as a wrapper to faust2api, it offers the same features than this system (MIDI 
 and OSC suport, polyphony, separate effect file, etc.).
 
@@ -15,7 +15,7 @@ be: `sudo apt install node-gyp && npm install node-gyp -g`.
 
 As for other Faust architectures, the various SDKs/development files associated 
 with the targeted audio engine should also be installed. For example, if 
-creating a nodejs addon with a Jack driver, libjack should be installed, etc.
+creating a nodejs addon with a JACK driver, libjack should be installed, etc.
 
 ## Generating a Faust Nodejs Native Addon
 
@@ -29,7 +29,7 @@ With [DRIVER]:
 
 * `-coreaudio`: coreaudio audio engine
 * `-alsa`: alsa audio engine
-* `-jack`: jack audio engine
+* `-jack`: JACK audio engine
 * `-portaudio`: portaudio audio engine
 * `-rtaudio`: rtaudio audio engine
 * `-dummy`: dummy audio engine
@@ -61,7 +61,7 @@ const faust = require('./faust');
 instantiate it:
 
 ```
-var dspFaustNode = new faust.DspFaustNode(); // for audio engines where the sampling rate and the buffer length are imposed (e.g., Jack, etc.) 
+var dspFaustNode = new faust.DspFaustNode(); // for audio engines where the sampling rate and the buffer length are imposed (e.g., JACK, etc.) 
 var dspFaustNode = new faust.DspFaustNode(44100,512); // for audio engines where the sampling rate and the buffer length are chosen by the user (e.g., Alsa, CoreAudio, etc.)
 ```
 

@@ -56,13 +56,13 @@ static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 	Type t = getCertifiedSigType(sig); //, NULLENV);
 	if (t->nature() == kInt) {
 
-        ScalarCompiler C( new SigIntGenKlass(parent, name) );
+        ScalarCompiler C(new SigIntGenKlass(parent, name));
 		C.compileSingleSignal(sig);
 		return C.getClass();
 
 	} else {
 
-        ScalarCompiler C( new SigFloatGenKlass(parent, name) );
+        ScalarCompiler C(new SigFloatGenKlass(parent, name));
 		C.compileSingleSignal(sig);
 		return C.getClass();
 
@@ -93,17 +93,17 @@ string ScalarCompiler::getFreshID(const string& prefix)
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
-startTiming("ScalarCompiler::prepare");
-//  startTiming("first simplification");
-//     LS = simplify(LS);
-//  endTiming("first simplification");
- startTiming("deBruijn2Sym");
-	Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
- endTiming("deBruijn2Sym");
- startTiming("second simplification");
-	Tree L2 = simplify(L1);			// simplify by executing every computable operation
- endTiming("second simplification");
-	Tree L3 = privatise(L2);		// Un-share tables with multiple writers
+    startTiming("ScalarCompiler::prepare");
+    //  startTiming("first simplification");
+    //     LS = simplify(LS);
+    //  endTiming("first simplification");
+    startTiming("deBruijn2Sym");
+    Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
+    endTiming("deBruijn2Sym");
+    startTiming("second simplification");
+    Tree L2 = simplify(L1);			// simplify by executing every computable operation
+    endTiming("second simplification");
+    Tree L3 = privatise(L2);		// Un-share tables with multiple writers
 
     conditionAnnotation(L3);
     //conditionStatistics(L3);        // count condition occurences
@@ -126,7 +126,7 @@ startTiming("ScalarCompiler::prepare");
     fOccMarkup = new old_OccMarkup(fConditionProperty);
     fOccMarkup->mark(L3);			// annotate L3 with occurences analysis
 
-endTiming("ScalarCompiler::prepare");
+    endTiming("ScalarCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
@@ -139,7 +139,7 @@ endTiming("ScalarCompiler::prepare");
 
 Tree ScalarCompiler::prepare2(Tree L0)
 {
-startTiming("ScalarCompiler::prepare2");
+    startTiming("ScalarCompiler::prepare2");
 	recursivnessAnnotation(L0);		// Annotate L0 with recursivness information
 	typeAnnotation(L0);				// Annotate L0 with type information
     sharingAnalysis(L0);			// annotate L0 with sharing count
@@ -148,7 +148,7 @@ startTiming("ScalarCompiler::prepare2");
     fOccMarkup = new old_OccMarkup();
     fOccMarkup->mark(L0);			// annotate L0 with occurences analysis
 
-endTiming("ScalarCompiler::prepare2");
+    endTiming("ScalarCompiler::prepare2");
 
   	return L0;
 }
@@ -337,9 +337,9 @@ string ScalarCompiler::generateCode(Tree sig)
 	fprintf(stderr, ")\n");
 #endif
 
-	int 	i;
-	double	r;
-    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+	int i;
+	double r;
+    Tree c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
 	//printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -475,17 +475,16 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
     if (opcode == kDiv) {
         // special handling for division, we always want a float division
-        Type        t1 = getCertifiedSigType(arg1);
-        Type        t2 = getCertifiedSigType(arg2);
+        Type t1 = getCertifiedSigType(arg1);
+        Type t2 = getCertifiedSigType(arg2);
 
-        interval    j = t2->getInterval();
+        interval j = t2->getInterval();
 
         if (j.haszero()) {
             // potential division by zero
             // interval    i = t1->getInterval();
             //std::cerr << "WARNING : potential division by zero (" << i << "/" << j << ") in " << ppsig(sig) << std::endl;
         }
-
 
         if (t1->nature()==kInt && t2->nature()==kInt ) {
             return generateCacheCode(sig, subst("($3($0) $1 $3($2))", CS(arg1), gBinOpTable[opcode]->fName, CS(arg2), ifloat()));
@@ -956,7 +955,7 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 	//cerr << "generateRDTable " << *sig << endl;
 	// test the special case of a read only table that can be compiled
 	// has a static member
-	Tree 	id, size, content;
+	Tree id, size, content;
 	if(	isSigTable(tbl, id, size, content) ) {
 		string tblname;
 		if (!getCompiledExpression(tbl, tblname)) {
@@ -980,7 +979,7 @@ string ScalarCompiler::generateRecProj(Tree sig, Tree r, int i)
     string vname;
     Tree var, le;
 
-    if ( ! getVectorNameProperty(sig, vname)) {
+    if (!getVectorNameProperty(sig, vname)) {
         faustassert(isRec(r, var, le));
         generateRec(r, var, le);
         faustassert(getVectorNameProperty(sig, vname));
@@ -1001,8 +1000,8 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     vector<string> ctype(N);
 
     // prepare each element of a recursive definition
-    for (int i=0; i<N; i++) {
-        Tree    e = sigProj(i,sig);     // recreate each recursive definition
+    for (int i = 0; i < N; i++) {
+        Tree e = sigProj(i,sig);     // recreate each recursive definition
         if (fOccMarkup->retrieve(e)) {
             // this projection is used
             used[i] = true;
@@ -1017,7 +1016,7 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
     }
 
     // generate delayline for each element of a recursive definition
-    for (int i=0; i<N; i++) {
+    for (int i = 0; i < N; i++) {
         if (used[i]) {
             generateDelayLine(ctype[i], vname[i], delay[i], CS(nth(le,i)), getConditionCode(nth(le,i)));
         }
@@ -1032,7 +1031,7 @@ string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
 {
     CS(y);
     return generateCacheCode(x, CS(x));
-//    return CS(x);
+// return CS(x);
 }
 
 /*****************************************************************************
@@ -1185,7 +1184,7 @@ string ScalarCompiler::generateXtended(Tree sig)
 	vector<string> args;
 	vector<Type> types;
 
-	for (int i=0; i<sig->arity(); i++) {
+	for (int i = 0; i < sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i)));
 		types.push_back(getCertifiedSigType(sig->branch(i)));
 	}
@@ -1265,8 +1264,8 @@ int ScalarCompiler::pow2limit(int x)
 
 string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-	int 	mxd, d;
-	string 	vecname;
+	int mxd, d;
+	string vecname;
 
     //cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
     //cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;

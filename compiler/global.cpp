@@ -102,39 +102,39 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
     
-    gResult          = 0;
-    gResult2         = 0;
+    gResult = 0;
+    gResult2 = 0;
     gExpandedDefList = 0;
     
-    gDetailsSwitch  = false;
-    gDrawSignals    = false;
-    gShadowBlur     = false;	// note: svg2pdf doesn't like the blur filter
-    gScaledSVG      = false;	
+    gDetailsSwitch = false;
+    gDrawSignals = false;
+    gShadowBlur = false;        // note: svg2pdf doesn't like the blur filter
+    gScaledSVG = false;
     gStripDocSwitch = false;	// Strip <mdoc> content from doc listings.
-    gFoldThreshold 	= 25;
-    gMaxNameSize 	= 40;
-    gSimpleNames 	= false;
+    gFoldThreshold = 25;
+    gMaxNameSize = 40;
+    gSimpleNames = false;
     gSimplifyDiagrams = false;
     gLessTempSwitch = false;
-    gMaxCopyDelay	= 16;
+    gMaxCopyDelay = 16;
 
-    gVectorSwitch   = false;
+    gVectorSwitch = false;
     gDeepFirstSwitch = false;
-    gVecSize        = 32;
+    gVecSize = 32;
     gVectorLoopVariant = 0;
     gVecLoopSize = 0;
 
-    gOpenMPSwitch   = false;
-    gOpenMPLoop     = false;
-    gSchedulerSwitch  = false;
-    gOpenCLSwitch  = false;
+    gOpenMPSwitch = false;
+    gOpenMPLoop = false;
+    gSchedulerSwitch = false;
+    gOpenCLSwitch = false;
     gCUDASwitch = false;
     gGroupTaskSwitch = false;
     gFunTaskSwitch = false;
 
-    gUIMacroSwitch  = false;
-    gDumpNorm       = false;
-    gFTZMode       = 0;
+    gUIMacroSwitch = false;
+    gDumpNorm = false;
+    gFTZMode = 0;
 
     gFloatSize = 1;
 
@@ -161,6 +161,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gLoopVarInBytes = false;
     gWaveformInDSP = false;
     gHasTeeLocal = false;
+    gFastMath = false;
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
@@ -317,13 +318,13 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     TUPLETTYPE = symbol ("TupletType");
       
     // recursive trees
-    DEBRUIJN 	= symbol ("DEBRUIJN");
+    DEBRUIJN = symbol ("DEBRUIJN");
     DEBRUIJNREF = symbol ("DEBRUIJNREF");
-    SUBSTITUTE  = symbol ("SUBSTITUTE");
+    SUBSTITUTE = symbol ("SUBSTITUTE");
   
-    SYMREC 		= symbol ("SYMREC");
-    SYMRECREF 	= symbol ("SYMRECREF");
-    SYMLIFTN 	= symbol ("LIFTN");
+    SYMREC = symbol ("SYMREC");
+    SYMRECREF = symbol ("SYMRECREF");
+    SYMLIFTN = symbol ("LIFTN");
     
     // Use real values 
     gMachineFloatSize = sizeof(float);
@@ -365,6 +366,9 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gNumInputs = 0;
     gNumOutputs = 0;
     gErrorMessage = "";
+    
+    // By default use "cpp" output
+    gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
 
 // Done after contructor since part of the following allocations need the "global" object to be fully built

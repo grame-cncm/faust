@@ -51,7 +51,7 @@
 #include "exception.hh"
 #include "global.hh"
 
-extern bool		getSigListNickName(Tree t, Tree& id);
+extern bool getSigListNickName(Tree t, Tree& id);
 
 
 /*****************************************************************************
@@ -151,9 +151,9 @@ string DocCompiler::setCompiledExpression(Tree sig, const string& cexp)
  * @param sig the signal expression to compile.
  * @return the C code translation of sig as a string
  */
-string  DocCompiler::CS (Tree sig, int priority)
+string DocCompiler::CS (Tree sig, int priority)
 {
-    string      code;
+    string code;
 
     if (!getCompiledExpression(sig, code)) { // not compiled yet.
         code = generateCode(sig, priority);
@@ -179,7 +179,7 @@ string  DocCompiler::CS (Tree sig, int priority)
  * @param	priority	The environment priority of the expression.
  * @return	<string>	The LaTeX code translation of the signal.
  */
-string	DocCompiler::generateCode (Tree sig, int priority)
+string DocCompiler::generateCode (Tree sig, int priority)
 {
 	int 	i;
 	double	r;
@@ -527,9 +527,9 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 {
 	//cerr << "!! entering generateCacheCode with sig=\"" << ppsig(sig) << "\"" << endl;	
 	
-	string 		vname, ctype, code, vectorname;
+	string vname, ctype, code, vectorname;
 	
-	int 		sharing = getSharingCount(sig);
+	int sharing = getSharingCount(sig);
     Occurences* o = fOccMarkup.retrieve(sig);
 	
 	// check reentrance
@@ -574,8 +574,8 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 
 string DocCompiler::generateVariableStore(Tree sig, const string& exp)
 {
-    string      vname, ctype;
-    Type        t = getCertifiedSigType(sig);
+    string vname, ctype;
+    Type t = getCertifiedSigType(sig);
 	
     switch (t->variability()) {
 			
@@ -683,7 +683,6 @@ string DocCompiler::generateNumEntry(Tree sig, Tree path, Tree cur, Tree min, Tr
 	return generateCacheCode(sig, varname);
 }
 
-
 string DocCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
 	string varname = getFreshID("{u_g}");
@@ -702,7 +701,6 @@ string DocCompiler::generateVBargraph(Tree sig, Tree path, Tree min, Tree max, c
 	}
     return generateCacheCode(sig, varname);
 }
-
 
 string DocCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, const string& exp)
 {
@@ -723,7 +721,6 @@ string DocCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, c
     return generateCacheCode(sig, varname);
 }
 
-
 string DocCompiler::generateAttach (Tree sig, Tree x, Tree y, int priority)
 {
     string vname;
@@ -738,8 +735,6 @@ string DocCompiler::generateAttach (Tree sig, Tree x, Tree y, int priority)
 
     return generateCacheCode(sig, exp);
 }
-
-
 
 /*****************************************************************************
 							   	    TABLES
@@ -777,7 +772,6 @@ string DocCompiler::generateDocConstantTbl (Tree /*tbl*/, Tree size, Tree isig)
     return vname;
 }
 
-
 /**
  * tests if a charactere is a word separator
  */
@@ -790,7 +784,6 @@ static bool isSeparator(char c)
 
     return ! w;
 }
-
 
 /**
  * Replaces the occurences of 't' in a formula with another character
@@ -818,9 +811,9 @@ static string replaceTimeBy(const string& src, char r)
  */
 string DocCompiler::generateDocWriteTbl (Tree /*tbl*/, Tree size, Tree isig, Tree widx, Tree wsig)
 {
-	string	vname, ctype;
-    string 	init = CS(isig,0);
-    int     n;
+	string vname, ctype;
+    string init = CS(isig,0);
+    int n;
     if (!isSigInt(size, &n)) {
         cerr << "error in DocCompiler::generateDocWriteTbl() : "
              << *size
@@ -870,20 +863,17 @@ bool DocCompiler::isShortEnough(string& s, unsigned int max)
 	return (s.length() <= max);
 }
 
-
-
 /*****************************************************************************
 							   RECURSIONS
 *****************************************************************************/
-
 
 /**
  * Generate code for a projection of a group of mutually recursive definitions
  */
 string DocCompiler::generateRecProj(Tree sig, Tree r, int i, int priority)
 {
-    string  vname;
-    Tree    var, le;
+    string vname;
+    Tree var, le;
 	
 	//cerr << "*** generateRecProj sig : \"" << ppsig(sig) << "\"" << endl;            
 
@@ -900,22 +890,21 @@ string DocCompiler::generateRecProj(Tree sig, Tree r, int i, int priority)
     return subst("$0(t)", vname);
 }
 
-
 /**
  * Generate code for a group of mutually recursive definitions
  */
 void DocCompiler::generateRec(Tree sig, Tree var, Tree le, int priority)
 {
-    int             N = len(le);
+    int N = len(le);
 
-    vector<bool>    used(N);
-    vector<int>     delay(N);
-    vector<string>  vname(N);
-    vector<string>  ctype(N);
+    vector<bool> used(N);
+    vector<int> delay(N);
+    vector<string> vname(N);
+    vector<string> ctype(N);
 
     // prepare each element of a recursive definition
-    for (int i=0; i<N; i++) {
-        Tree    e = sigProj(i,sig);     // recreate each recursive definition
+    for (int i = 0; i < N; i++) {
+        Tree e = sigProj(i,sig);     // recreate each recursive definition
         if (fOccMarkup.retrieve(e)) {
             // this projection is used
             used[i] = true;
@@ -999,17 +988,14 @@ string DocCompiler::generateIota (Tree sig, Tree n)
 	return subst(" t \\bmod{$0} ", docT(size));
 }
 
-
-
 // a revoir en utilisant la lecture de table et en partageant la construction de la paire de valeurs
-
 
 /**
  * Generate a select2 code
  */
 string DocCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2, int priority)
 {
-    string var  = getFreshID("q");
+    string var = getFreshID("q");
 	string expsel = CS(sel, 0);
 	string exps1 = CS(s1, 0);
 	string exps2 = CS(s2, 0);
@@ -1028,7 +1014,6 @@ string DocCompiler::generateSelect2  (Tree sig, Tree sel, Tree s1, Tree s2, int 
     setVectorNameProperty(sig, var);
     return subst("$0(t)", var);
 }
-
 
 /**
  * Generate a select3 code
@@ -1057,16 +1042,15 @@ string DocCompiler::generateSelect3  (Tree sig, Tree sel, Tree s1, Tree s2, Tree
     return subst("$0(t)", var);
 }
 
-
 /**
  * retrieve the type annotation of sig
  * @param sig the signal we want to know the type
  */
 string DocCompiler::generateXtended 	(Tree sig, int priority)
 {
-	xtended* 		p = (xtended*) getUserData(sig);
-	vector<string> 	args;
-	vector<Type> 	types;
+	xtended* p = (xtended*) getUserData(sig);
+	vector<string> args;
+	vector<Type> types;
 
 	for (int i=0; i<sig->arity(); i++) {
 		args.push_back(CS(sig->branch(i), 0));
@@ -1082,10 +1066,7 @@ string DocCompiler::generateXtended 	(Tree sig, int priority)
 	}
 }
 
-
-
 //------------------------------------------------------------------------------------------------
-
 
 /*****************************************************************************
 						vector name property
@@ -1103,7 +1084,6 @@ void DocCompiler::setVectorNameProperty(Tree sig, const string& vecname)
 	fVectorProperty.set(sig, vecname);
 }
 
-
 /**
  * Get the vector name property of a signal, the name of the vector used to
  * store the previous values of the signal to implement a delay.
@@ -1116,8 +1096,6 @@ bool DocCompiler::getVectorNameProperty(Tree sig, string& vecname)
 {
     return fVectorProperty.get(sig, vecname);
 }
-
-
 
 /*****************************************************************************
 							   N-SAMPLE FIXED DELAY : sig = exp@delay
@@ -1136,7 +1114,6 @@ bool DocCompiler::getVectorNameProperty(Tree sig, string& vecname)
 		Y(t-0)	Y(t-1)	Y(t-2)  ...
 		Temp	V[0]	V[1]	...
 		V[0]	V[1]	V[2]	...
-
 
 *****************************************************************************/
 
@@ -1168,7 +1145,6 @@ string DocCompiler::generateFixDelay (Tree sig, Tree exp, Tree delay, int priori
 	}
 }
 
-
 /**
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
@@ -1183,16 +1159,13 @@ string DocCompiler::generateDelayVec(Tree sig, const string& exp, const string& 
 	}
 }
 
-
 /**
  * Generate code for the delay mecchanism without using temporary variables
  */
 string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd)
 {
     faustassert(mxd > 0);
-
 	//cerr << "  entering generateDelayVecNoTemp" << endl;
-	
 	string vectorname;
 
 	// if generateVariableStore has already tagged sig, no definition is needed.
@@ -1204,7 +1177,6 @@ string DocCompiler::generateDelayVecNoTemp(Tree sig, const string& exp, const st
         return subst("$0(t)", vname);
 	}
 }
-
 
 /**
  * Generate code for the delay mecchanism without using temporary variables
@@ -1219,13 +1191,9 @@ void DocCompiler::generateDelayLine(const string& ctype, const string& vname, in
 	}
 }
 
-
-
-
 /****************************************************************
 			User interface element utilities.
  *****************************************************************/
-
 
 /**
  * @brief Get the directory of a user interface element.
@@ -1254,7 +1222,6 @@ string DocCompiler::getUIDir(Tree pathname)
 	return s;
 }
 
-
 /**
  * @brief Prepare binary user interface elements (button, checkbox).
  *
@@ -1280,7 +1247,6 @@ string DocCompiler::prepareBinaryUI(const string& name, Tree path)
 	s += " & $(\\mbox{" + gGlobal->gDocMathStringMap["defaultvalue"] + "} = 0)$\\\\";
 	return s;
 }
-
 
 /**
  * @brief Prepare "intervallic" user interface elements (sliders, nentry).
@@ -1315,7 +1281,6 @@ string DocCompiler::prepareIntervallicUI(const string& name, Tree path, Tree tcu
 	return s;
 }
 
-
 /** 
  * Get information on a user interface element for documentation.
  *
@@ -1339,9 +1304,8 @@ void DocCompiler::getUIDocInfos(Tree path, string& label, string& unit)
 		const string& key = i->first;
 		const set<string>& values = i->second;
 		for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-			if(key == "unit") unit += *j;
+			if (key == "unit") unit += *j;
 		}
 	}
 }
-
 

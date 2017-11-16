@@ -245,7 +245,7 @@ void CPPCodeContainer::produceClass()
         fCodeProducer.Tab(n+1);
         tab(n+1, *fOut);
         generateDeclarations(&fCodeProducer);
-   
+    
         if (fAllocateInstructions->fCode.size() > 0) {
             tab(n+1, *fOut); *fOut << "void allocate() {";
                 tab(n+2, *fOut);

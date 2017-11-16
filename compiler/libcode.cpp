@@ -446,6 +446,10 @@ static bool processCmdline(int argc, const char* argv[])
                 throw faustexception(error.str());
             }
             i += 2;
+            
+        } else if (isCmd(argv[i], "-fm", "--fast-math")) {
+            gGlobal->gFastMath = true;
+            i += 1;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if ((strstr(argv[i+1], "http://") != 0) || (strstr(argv[i+1], "https://") != 0)) {
@@ -538,7 +542,7 @@ static bool processCmdline(int argc, const char* argv[])
     // Adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
     
-    // Check options
+    // Check options coherency
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }  
@@ -559,6 +563,16 @@ static bool processCmdline(int argc, const char* argv[])
         stringstream error;
         error << "ERROR : invalid vector loop size [-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
+    }
+    
+    if (gGlobal->gFastMath) {
+        if (!(gGlobal->gOutputLang == "c"
+              || gGlobal->gOutputLang == "cpp"
+              || gGlobal->gOutputLang == "llvm")) {
+            stringstream error;
+            error << "ERROR : -fm can only be used with c, cpp, or llvm backends" << endl;
+            throw faustexception(error.str());
+        }
     }
     
     if (err != 0) {
@@ -647,6 +661,7 @@ static void printHelp()
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]\n";
+    cout << "-fm      \t--fast-math uses optimized versions of exp/pow/log functions\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 
@@ -956,11 +971,6 @@ static void injectCode(ifstream* enrobage, ostream* dst)
 
 static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
-    // By default use "cpp" output
-    if (gGlobal->gOutputLang == "") {
-        gGlobal->gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
-    }
-
     ostream* dst = NULL;
     ostream* helpers = NULL;
     string outpath = "";

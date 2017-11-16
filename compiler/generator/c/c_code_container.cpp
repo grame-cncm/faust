@@ -180,7 +180,7 @@ void CCodeContainer::produceClass()
         generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
-   
+    
     // Memory methods
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {
