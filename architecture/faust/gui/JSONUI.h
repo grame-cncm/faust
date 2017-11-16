@@ -40,8 +40,6 @@
  * This class produce a complete JSON decription of the DSP instance.
  ******************************************************************************/
 
-struct Soundfile;
-
 template <typename REAL>
 class JSONUIAux : public PathBuilder, public Meta, public UI
 {
