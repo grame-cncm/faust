@@ -36,8 +36,6 @@ class CInstVisitor : public TextInstVisitor {
          */
         static map <string, bool> gFunctionSymbolTable;
     
-        map <string, string> gFastMathLibTable;
-
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
@@ -74,15 +72,6 @@ class CInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["sqrtf"] = true;
             gFunctionSymbolTable["tanf"] = true;
             
-            // Fastmath version
-            gFastMathLibTable["powf"] = "fast_powf";
-            gFastMathLibTable["expf"] = "fast_expf";
-            gFastMathLibTable["exp2f"] = "fast_exp2f";
-            gFastMathLibTable["exp10f"] = "fast_exp10f";
-            gFastMathLibTable["logf"] = "fast_logf";
-            gFastMathLibTable["log2f"] = "fast_log2f";
-            gFastMathLibTable["log10f"] = "fast_log10f";
-            
             // Double version
             gFunctionSymbolTable["abs"] = true;
             gFunctionSymbolTable["fabs"] = true;
@@ -104,15 +93,6 @@ class CInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["sin"] = true;
             gFunctionSymbolTable["sqrt"] = true;
             gFunctionSymbolTable["tan"] = true;
-            
-            // Fastmath version
-            gFastMathLibTable["pow"] = "fast_powf";
-            gFastMathLibTable["exp"] = "fast_expf";
-            gFastMathLibTable["exp2"] = "fast_exp2f";
-            gFastMathLibTable["exp10"] = "fast_exp10f";
-            gFastMathLibTable["log"] = "fast_logf";
-            gFastMathLibTable["log2"] = "fast_log2f";
-            gFastMathLibTable["log10"] = "fast_log10f";
         }
 
         virtual ~CInstVisitor()
@@ -296,8 +276,8 @@ class CInstVisitor : public TextInstVisitor {
                 name = inst->fName;
             }
             
-            if (gGlobal->gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
-                *fOut << gFastMathLibTable[name] << "(";
+            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(name) != gGlobal->gFastMathLibTable.end())) {
+                *fOut << gGlobal->gFastMathLibTable[name] << "(";
             } else {
                 *fOut << name << "(";
             }

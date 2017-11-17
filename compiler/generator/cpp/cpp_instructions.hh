@@ -36,9 +36,7 @@ class CPPInstVisitor : public TextInstVisitor {
          so that each function prototype is generated as most once in the module.
          */
         static map <string, bool> gFunctionSymbolTable;
-    
-        map <string, string> gFastMathLibTable;
- 
+  
     public:
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
@@ -72,15 +70,6 @@ class CPPInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["sqrtf"] = true;
             gFunctionSymbolTable["tanf"] = true;
             
-            // Fastmath version
-            gFastMathLibTable["powf"] = "fast_powf";
-            gFastMathLibTable["expf"] = "fast_expf";
-            gFastMathLibTable["exp2f"] = "fast_exp2f";
-            gFastMathLibTable["exp10f"] = "fast_exp10f";
-            gFastMathLibTable["logf"] = "fast_logf";
-            gFastMathLibTable["log2f"] = "fast_log2f";
-            gFastMathLibTable["log10f"] = "fast_log10f";
-            
             // Double version
             gFunctionSymbolTable["abs"] = true;
             gFunctionSymbolTable["fabs"] = true;
@@ -102,15 +91,6 @@ class CPPInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["sin"] = true;
             gFunctionSymbolTable["sqrt"] = true;
             gFunctionSymbolTable["tan"] = true;
-            
-            // Fastmath version
-            gFastMathLibTable["pow"] = "fast_powf";
-            gFastMathLibTable["exp"] = "fast_expf";
-            gFastMathLibTable["exp2"] = "fast_exp2f";
-            gFastMathLibTable["exp10"] = "fast_exp10f";
-            gFastMathLibTable["log"] = "fast_logf";
-            gFastMathLibTable["log2"] = "fast_log2f";
-            gFastMathLibTable["log10"] = "fast_log10f";
         }
 
         virtual ~CPPInstVisitor()
@@ -292,8 +272,8 @@ class CPPInstVisitor : public TextInstVisitor {
                 name = inst->fName;
             }
             
-            if (gGlobal->gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
-                generateFunCall(inst, gFastMathLibTable[name]);
+            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(name) != gGlobal->gFastMathLibTable.end())) {
+                generateFunCall(inst, gGlobal->gFastMathLibTable[name]);
             } else {
                 generateFunCall(inst, name);
             }

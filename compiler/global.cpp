@@ -163,6 +163,23 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gHasTeeLocal = false;
     gFastMath = false;
     
+    // Fastmath version
+    gFastMathLibTable["powf"] = "fast_powf";
+    gFastMathLibTable["expf"] = "fast_expf";
+    gFastMathLibTable["exp2f"] = "fast_exp2f";
+    gFastMathLibTable["exp10f"] = "fast_exp10f";
+    gFastMathLibTable["logf"] = "fast_logf";
+    gFastMathLibTable["log2f"] = "fast_log2f";
+    gFastMathLibTable["log10f"] = "fast_log10f";
+    
+    gFastMathLibTable["pow"] = "fast_powf";
+    gFastMathLibTable["exp"] = "fast_expf";
+    gFastMathLibTable["exp2"] = "fast_exp2f";
+    gFastMathLibTable["exp10"] = "fast_exp10f";
+    gFastMathLibTable["log"] = "fast_logf";
+    gFastMathLibTable["log2"] = "fast_log2f";
+    gFastMathLibTable["log10"] = "fast_log10f";
+    
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
     gLstDistributedSwitch	= true; ///< mdoc listing management.

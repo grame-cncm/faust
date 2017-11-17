@@ -825,9 +825,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         string fPrefix;                             // Prefix for function name
 
         map <string, GlobalVariable*> fGlobalStringTable;
-    
-        map <string, string> gFastMathLibTable;
-        
+  
         static list <string> gMathLibTable;
 
     public:
@@ -868,24 +866,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             fTypeMap[Typed::kObj_ptr] = fStructDSP;
             
             initTypes(module);
-            
-            // Fastmath version
-            gFastMathLibTable["powf"] = "fast_powf";
-            gFastMathLibTable["expf"] = "fast_expf";
-            gFastMathLibTable["exp2f"] = "fast_exp2f";
-            gFastMathLibTable["exp10f"] = "fast_exp10f";
-            gFastMathLibTable["logf"] = "fast_logf";
-            gFastMathLibTable["log2f"] = "fast_log2f";
-            gFastMathLibTable["log10f"] = "fast_log10f";
-            
-            // Fastmath version
-            gFastMathLibTable["pow"] = "fast_pow";
-            gFastMathLibTable["exp"] = "fast_exp";
-            gFastMathLibTable["exp2"] = "fast_exp2";
-            gFastMathLibTable["exp10"] = "fast_exp10";
-            gFastMathLibTable["log"] = "fast_log";
-            gFastMathLibTable["log2"] = "fast_log2";
-            gFastMathLibTable["log10"] = "fast_log10";
             
             if (gMathLibTable.size()) {
                 return;
@@ -1961,8 +1941,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             list<ValueInst*>::const_iterator it;
             Function* function;
             
-            if (gGlobal->gFastMath && (gFastMathLibTable.find(inst->fName) != gFastMathLibTable.end())) {
-                function = fModule->getFunction(gFastMathLibTable[inst->fName]);
+            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(inst->fName) != gGlobal->gFastMathLibTable.end())) {
+                function = fModule->getFunction(gGlobal->gFastMathLibTable[inst->fName]);
             } else {
                 function = fModule->getFunction(inst->fName);
             }
