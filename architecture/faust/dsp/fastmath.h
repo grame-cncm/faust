@@ -317,7 +317,7 @@ void fast_log_set_table(const float* table, int size)
 }
 
 // Entry point
-EXPORT extern "C" void initFastMath()
+extern "C" EXPORT void initFastMath()
 {
     static bool init = false;
     if (!init) {
