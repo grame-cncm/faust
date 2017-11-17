@@ -276,11 +276,7 @@ class CInstVisitor : public TextInstVisitor {
                 name = inst->fName;
             }
             
-            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(name) != gGlobal->gFastMathLibTable.end())) {
-                *fOut << gGlobal->gFastMathLibTable[name] << "(";
-            } else {
-                *fOut << name << "(";
-            }
+            *fOut << gGlobal->getMathFunction(name) << "(";
            
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());

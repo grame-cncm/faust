@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    factory->setMemoryManager(&manager);
+    //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;

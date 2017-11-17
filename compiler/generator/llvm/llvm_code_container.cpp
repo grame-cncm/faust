@@ -24,6 +24,7 @@
 #include "llvm_instructions.hh"
 #include "exception.hh"
 #include "global.hh"
+
 #include "faust/dsp/fastmath.h"
 
 using namespace std;

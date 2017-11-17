@@ -508,6 +508,15 @@ struct global {
     
     string makeDrawPath();
     string makeDrawPathNoExt();
+    
+    string getMathFunction(const string& name)
+    {
+        if (gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
+            return gFastMathLibTable[name];
+        } else {
+            return name;
+        }
+    }
 };
 
 // Unique shared global pointer

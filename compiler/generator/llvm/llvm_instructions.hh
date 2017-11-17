@@ -1939,13 +1939,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Compile arguments
             vector<LlvmValue> fun_args;
             list<ValueInst*>::const_iterator it;
-            Function* function;
-            
-            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(inst->fName) != gGlobal->gFastMathLibTable.end())) {
-                function = fModule->getFunction(gGlobal->gFastMathLibTable[inst->fName]);
-            } else {
-                function = fModule->getFunction(inst->fName);
-            }
+            Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
   
             //cerr << "FunCallInst " << inst->fName << endl;
             faustassert(function);

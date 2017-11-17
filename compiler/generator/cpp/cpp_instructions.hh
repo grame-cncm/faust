@@ -271,12 +271,7 @@ class CPPInstVisitor : public TextInstVisitor {
             } else {
                 name = inst->fName;
             }
-            
-            if (gGlobal->gFastMath && (gGlobal->gFastMathLibTable.find(name) != gGlobal->gFastMathLibTable.end())) {
-                generateFunCall(inst, gGlobal->gFastMathLibTable[name]);
-            } else {
-                generateFunCall(inst, name);
-            }
+            generateFunCall(inst, gGlobal->getMathFunction(name));
         }
         
         static void cleanup() { gFunctionSymbolTable.clear(); }
