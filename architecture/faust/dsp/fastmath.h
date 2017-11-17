@@ -103,20 +103,6 @@ const uint32_t fast_pow_table[65536] = {
 
 static const float _2p23 = 8388608.0f;
 
-void powFastSetTable(uint32_t* const pTable, const uint32_t precision)
-{
-    /* step along table elements and x-axis positions */
-    float zeroToOne = 1.0f / ((float)(1 << precision) * 2.0f);        /* A */
-    int32_t i;                                                        /* B */
-    for (i = 0; i < (1 << precision); ++i)                            /* C */
-    {
-        /* make y-axis value for table element */
-        const float f = ((float)powf(2.0f, zeroToOne) - 1.0f) * _2p23;
-        pTable[i] = (uint32_t)(f < _2p23 ? f : (_2p23 - 1.0f));
-        zeroToOne += 1.0f / (float)(1 << precision);
-    }                                                                 /* D */
-}
-
 /**
  * Get pow (fast!).
  *
@@ -160,25 +146,6 @@ float powFastLookup(const float val, const float ilog2, const uint32_t* pTable, 
  with this program; if not, write to the Free Software Foundation, Inc.,
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
-
-/* Creates the ICSILog lookup table. Must be called
- once before any call to icsi_log().
- n is the number of bits to be taken from the mantissa
- (0<=n<=23)
- lookup_table is a pointer to a floating point array of 2^n positions.
- */
-void fill_icsi_log_table(float* lookup_table, const uint32_t precision)
-{
-    /* step along table elements and x-axis positions
-     (start with extra half increment, so the steps intersect at their midpoints.) */
-    float oneToTwo = 1.0f + (1.0f / (float)(1 <<(precision + 1)));
-    int32_t i;
-    for (i = 0; i < (1 << precision); ++i) {
-        // make y-axis value for table element
-        lookup_table[i] = logf(oneToTwo) / 0.69314718055995f;
-        oneToTwo += 1.0f / (float)( 1 << precision);
-    }
-}
 
 float icsi_log(float arg, const float* lookup_table, const uint32_t precision)
 {
@@ -326,5 +293,3 @@ extern "C" EXPORT void initFastMath()
         init = true;
     }
 }
-
-
