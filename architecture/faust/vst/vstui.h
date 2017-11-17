@@ -2,7 +2,7 @@
 #define __VST_UI_H__
 
 #include <audioeffectx.h>
-#include <faust/gui/UI.h>
+#include "faust/gui/UI.h"
 
 #ifdef DEBUG
 #define TRACE(x) x

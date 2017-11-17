@@ -149,15 +149,15 @@ struct Meta : std::map<const char*, const char*>
 {
     void declare (const char* key, const char* value) { (*this)[key] = value; }
 		
-		const char* get(const char* key, const char* defaultString) {
+		const char* get(const char* key, const char* defaultString)
+        {
 			if (this->find(key) != this->end()) {
 				return (*this)[key];
-			}
-			else {
+			} else {
 				return defaultString;
 			}
-		} // end of get
-}; // end of Meta
+		}
+};
 
 // abs is now predefined
 //template<typename T> T abs (T a) { return (a<T(0)) ? -a : a; }
