@@ -44,6 +44,7 @@ and with [OPTION] (mostly inherited from [faust2api](https://ccrma.stanford.edu/
 * `-source`: generates the source of the addon without compiling it.
 * `-electronv <VERSION>`: allows to specify the current version of electron if
 generating an addon for this framework.
+* `-debug`: prints compilation output.
 
 ## Using the Generated Addon
 

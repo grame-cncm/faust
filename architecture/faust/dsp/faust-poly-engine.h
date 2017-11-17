@@ -112,7 +112,12 @@ class FaustPolyEngine {
             fFinalDSP->buildUserInterface(&fMidiUI);
             fFinalDSP->buildUserInterface(&fAPIUI);
             
-            fDriver->init("Dummy", fFinalDSP);
+            // Retrieving DSP object name
+            std::string objName = 
+              fJSONMeta.substr(fJSONMeta.find("name")+8,fJSONMeta.length());
+            objName = objName.substr(0,objName.find("\"")); 
+            
+            fDriver->init(objName.c_str(), fFinalDSP);
         }
     
     public:

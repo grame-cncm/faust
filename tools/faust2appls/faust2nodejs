@@ -10,10 +10,6 @@
 . faustpath
 . faustoptflags
 
-# change if you want to get the log of what's happening
-LOG="/dev/null"
-#LOG="log"
-
 # exit if a command fails
 set -e
 
@@ -26,6 +22,7 @@ EFFECT=""
 DRIVER=""
 ELECTRON_VERSION=""
 SOURCE="0"
+LOG="/dev/null"
 
 # compilation flags for the different targets
 OSC_CFLAGS=""
@@ -53,6 +50,7 @@ echoHelp ()
   echo "   -osc : add built-in OSC support to the API."
 	echo "   -source : generates the source of the addon without compiling it."
 	echo "   -electronv <VERSION>: allows to specify the current version of electron if generating an addon for this framework."
+	echo "   -debug : prints compilation output."
 }
 
 # dispatch command arguments
@@ -77,6 +75,8 @@ do
 		OSC="-osc"
 		OSC_CFLAGS="-DOSCCTR"
 		OSC_LIBFLAGS="-lOSCFaust -lpthread"
+	elif [ "$p" = "-debug" ]; then
+		LOG="/dev/stdout"
 	elif [ "$p" = "-source" ]; then
 		SOURCE="1"
   elif [ $p = "-nvoices" ]; then
@@ -108,7 +108,7 @@ mkdir $NODE_FOLDER
 
 # Generating DSP engine
 cd $NODE_FOLDER
-faust2api $DRIVER -nodoc -nozip $MIDI $SOUNDFILE $OSC $NVOICES $OPTIONS $EFFECT "../"$FILE &> LOG || exit 1
+faust2api $DRIVER -nodoc -nozip $MIDI $SOUNDFILE $OSC $NVOICES $OPTIONS $EFFECT "../"$FILE &> $LOG || exit 1
 
 # Copying template files
 cp "$FAUSTLIB/nodejs/binding.gyp" .
@@ -128,11 +128,11 @@ elif [ $DRIVER = "-alsa" ]; then
 	sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
 fi
 
-node-gyp $ELECTRON_VERSION configure &> LOG || exit 1
+node-gyp $ELECTRON_VERSION configure &> $LOG || exit 1
 
 if [ $SOURCE = "0" ]; then
 	cd build
-	make &> LOG || exit 1
+	make &> $LOG || exit 1
 	cd ../..
 	# For now the, generated node is always called faust.node, perhaps this
 	# should be changed, although it would be impossible to run more than one
