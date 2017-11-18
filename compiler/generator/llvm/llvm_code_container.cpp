@@ -784,13 +784,6 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
     if (gGlobal->gFastMath) {
-        generateFunMap("exp10", "fast_exp10", 1);
-    } else {
-#ifdef __APPLE__
-        generateFunMap("exp10", "__exp10", 1, true);
-#endif
-    }
-    if (gGlobal->gFastMath) {
         generateFunMap("acos", "fast_acos", 1);
         generateFunMap("asin", "fast_asin", 1);
         generateFunMap("atan", "fast_atan", 1);
@@ -811,6 +804,10 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         generateFunMap("sin", "fast_sin", 1);
         generateFunMap("sqrt", "fast_sqrt", 1);
         generateFunMap("tan", "fast_tan", 1);
+    } else {
+    #ifdef __APPLE__
+        generateFunMap("exp10", "__exp10", 1, true);
+    #endif
     }
     
     generateInfoFunctions(fKlassName, true);
