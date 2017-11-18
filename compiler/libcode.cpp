@@ -449,7 +449,8 @@ static bool processCmdline(int argc, const char* argv[])
             
         } else if (isCmd(argv[i], "-fm", "--fast-math")) {
             gGlobal->gFastMath = true;
-            i += 1;
+            gGlobal->gFastMathLib = argv[i+1];
+            i += 2;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if ((strstr(argv[i+1], "http://") != 0) || (strstr(argv[i+1], "https://") != 0)) {
@@ -661,7 +662,7 @@ static void printHelp()
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]\n";
-    cout << "-fm      \t--fast-math uses optimized versions of exp/pow/log functions\n";
+    cout << "-fm <fm-file>\t--fast-math <fm-file> uses optimized versions of mathematical functions implemented in the <fm-file> file, takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 

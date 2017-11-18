@@ -24,7 +24,6 @@
  ************************************************************************/
 
 #include <stdint.h>
-#include <iostream>
 
 #ifdef __cplusplus
 #include <cmath>
@@ -42,33 +41,49 @@
 extern "C" {
 #endif
     
-// fast lookup-based exponentials
-EXPORT float fast_powf(float x, float y);
-EXPORT float fast_expf(float x);
-EXPORT float fast_exp2f(float x);
-EXPORT float fast_exp10f(float x);
-
-// fast lookup-based logarithmics
-EXPORT float fast_logf(float x);
-EXPORT float fast_log2f(float x);
-EXPORT float fast_log10f(float x);
-
-// fast approximations
-EXPORT float fast_atan2f(float a, float b);
+    // float version
+    EXPORT float fast_acosf(float x) { return acosf(x); }
+    EXPORT float fast_asinf(float x) { return asinf(x); }
+    EXPORT float fast_atanf(float x) { return atanf(x); }
+    EXPORT float fast_atan2f(float x, float y) { return atan2f(x, y); }
+    EXPORT float fast_ceilf(float x) { return ceilf(x); }
+    EXPORT float fast_cosf(float x) { return cosf(x); }
+    EXPORT float fast_expf(float x);
+    EXPORT float fast_exp2f(float x);
+    EXPORT float fast_exp10f(float x);
+    EXPORT float fast_floorf(float x) { return floorf(x); }
+    EXPORT float fast_fmodf(float x, float y) { return fmodf(x, y); }
+    EXPORT float fast_logf(float x);
+    EXPORT float fast_log2f(float x);
+    EXPORT float fast_log10f(float x);
+    EXPORT float fast_powf(float x, float y);
+    EXPORT float fast_remainderf(float x, float y) { return remainderf(x, y); }
+    EXPORT float fast_roundf(float x) { return roundf(x); }
+    EXPORT float fast_sinf(float x) { return sinf(x); }
+    EXPORT float fast_sqrtf(float x) { return sqrtf(x); }
+    EXPORT float fast_tanf(float x) { return tanf(x); }
     
-// fast lookup-based exponentials
-EXPORT double fast_pow(double x, double y);
-EXPORT double fast_exp(double x);
-EXPORT double fast_exp2(double x);
-EXPORT double fast_exp10(double x);
-
-// fast lookup-based logarithmics
-EXPORT double fast_log(double x);
-EXPORT double fast_log2(double x);
-EXPORT double fast_log10(double x);
-
-// fast approximations
-EXPORT double fast_atan2(double a, double b);
+    // double version
+    EXPORT double fast_acos(double x) { return acos(x); }
+    EXPORT double fast_asin(double x) { return asin(x); }
+    EXPORT double fast_atan(double x) { return atan(x); }
+    EXPORT double fast_atan2(double x, double y) { return atan2(x, y); }
+    EXPORT double fast_ceil(double x) { return ceil(x); }
+    EXPORT double fast_cos(double x) { return cos(x); }
+    EXPORT double fast_exp(double x);
+    EXPORT double fast_exp2(double x);
+    EXPORT double fast_exp10(double x);
+    EXPORT double fast_floor(double x) { return floor(x); }
+    EXPORT double fast_fmod(double x, double y) { return fmod(x, y); }
+    EXPORT double fast_log(double x);
+    EXPORT double fast_log2(double x);
+    EXPORT double fast_log10(double x);
+    EXPORT double fast_pow(double x, double y);
+    EXPORT double fast_remainder(double x, double y) { return remainder(x, y); }
+    EXPORT double fast_round(double x) { return round(x); }
+    EXPORT double fast_sin(double x) { return sin(x); }
+    EXPORT double fast_sqrt(double x) { return sqrt(x); }
+    EXPORT double fast_tan(double x) { return tan(x); }
     
 #ifdef __cplusplus
 }
@@ -166,6 +181,7 @@ static inline uint32_t log2i(const uint32_t x)
 /* Fast arctan2
  * from http://dspguru.com/dsp/tricks/fixed-point-atan2-with-self-normalization
  */
+/*
 float fast_atan2f(float y, float x)
 {
     const float coeff_1 = M_PI/4;
@@ -185,6 +201,7 @@ float fast_atan2f(float y, float x)
         return(angle);
     }
 }
+*/
 
 /* static const float* log_table = fast_log_table; */
 /* static uint32_t log_precision = fast_log_precision; */
@@ -284,7 +301,11 @@ void fast_log_set_table(const float* table, int size)
 }
 
 // Entry point
-extern "C" EXPORT void initFastMath()
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
+EXPORT void initFastMath()
 {
     static bool init = false;
     if (!init) {
@@ -293,3 +314,7 @@ extern "C" EXPORT void initFastMath()
         init = true;
     }
 }
+
+#ifdef __cplusplus
+}
+#endif

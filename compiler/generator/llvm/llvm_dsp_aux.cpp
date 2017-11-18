@@ -1911,7 +1911,7 @@ ModulePTR loadSingleModule(const string filename, LLVMContext* context)
     if (module) {
         return module;
     } else {
-        err.print("ParseIRFile failed :", errs());
+        //err.print("ParseIRFile failed :", errs());
         return nullptr;
     }
 }

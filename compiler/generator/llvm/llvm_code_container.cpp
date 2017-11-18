@@ -25,8 +25,6 @@
 #include "exception.hh"
 #include "global.hh"
 
-#include "faust/dsp/fastmath.h"
-
 using namespace std;
 
 /*
@@ -793,12 +791,26 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 #endif
     }
     if (gGlobal->gFastMath) {
-        generateFunMap("pow", "fast_pow", 2);
+        generateFunMap("acos", "fast_acos", 1);
+        generateFunMap("asin", "fast_asin", 1);
+        generateFunMap("atan", "fast_atan", 1);
+        generateFunMap("atan2", "fast_atan2", 2);
+        generateFunMap("ceil", "fast_ceil", 1);
+        generateFunMap("cos", "fast_cos", 1);
         generateFunMap("exp", "fast_exp", 1);
         generateFunMap("exp2", "fast_exp2", 1);
+        generateFunMap("exp10", "fast_exp10", 1);
+        generateFunMap("floor", "fast_floor", 1);
+        generateFunMap("fmod", "fast_fmod", 2);
         generateFunMap("log", "fast_log", 1);
         generateFunMap("log2", "fast_log2", 1);
         generateFunMap("log10", "fast_log10", 1);
+        generateFunMap("pow", "fast_pow", 2);
+        generateFunMap("remainder", "fast_remainder", 2);
+        generateFunMap("round", "fast_round", 1);
+        generateFunMap("sin", "fast_sin", 1);
+        generateFunMap("sqrt", "fast_sqrt", 1);
+        generateFunMap("tan", "fast_tan", 1);
     }
     
     generateInfoFunctions(fKlassName, true);

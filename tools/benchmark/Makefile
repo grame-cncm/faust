@@ -5,7 +5,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk
+all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk fastmath
 
 faustbench-llvm: faustbench-llvm.cpp
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lcrypto -lpthread -o faustbench-llvm
@@ -19,6 +19,9 @@ dynamic-jack-gtk: dynamic-jack-gtk.cpp
 dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lcrypto -lpthread -o dynamic-jack-gtk-plugin
 
+fastmath: ../../architecture/faust/dsp/fastmath.cpp
+	clang++ -Ofast -emit-llvm -S  ../../architecture/faust/dsp/fastmath.cpp -o fastmath.ll
+	clang++ -Ofast -emit-llvm -c ../../architecture/faust/dsp/fastmath.cpp -o fastmath.bc
 
 install:
  
@@ -31,6 +34,7 @@ install:
 	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  $(prefix)/bin || echo dynamic-jack-gtk-plugin not found
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && cp faustbench-llvm-interp $(prefix)/bin || echo faustbench-llvm-interp not found
+	([ -e fastmath.bc ]) && cp fastmath.bc $(prefix)/share/faust || echo fastmath.bc not found
 
 clean:
 
@@ -38,4 +42,5 @@ clean:
 	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
+	([ -e fastmath.bc ]) && rm fastmath.bc || echo fastmath.bc not found
 

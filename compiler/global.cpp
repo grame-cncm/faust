@@ -162,23 +162,51 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gWaveformInDSP = false;
     gHasTeeLocal = false;
     gFastMath = false;
+    gFastMathLib = "default";
     
-    // Fastmath version
-    gFastMathLibTable["powf"] = "fast_powf";
+    // Fastmath float version
+    gFastMathLibTable["acosf"] = "fast_acosf";
+    gFastMathLibTable["asinf"] = "fast_asinf";
+    gFastMathLibTable["atanf"] = "fast_atanf";
+    gFastMathLibTable["atan2f"] = "fast_atan2f";
+    gFastMathLibTable["ceilf"] = "fast_ceilf";
+    gFastMathLibTable["cosf"] = "fast_cosf";
     gFastMathLibTable["expf"] = "fast_expf";
     gFastMathLibTable["exp2f"] = "fast_exp2f";
     gFastMathLibTable["exp10f"] = "fast_exp10f";
+    gFastMathLibTable["floorf"] = "fast_floorf";
+    gFastMathLibTable["fmodf"] = "fast_fmodf";
     gFastMathLibTable["logf"] = "fast_logf";
     gFastMathLibTable["log2f"] = "fast_log2f";
     gFastMathLibTable["log10f"] = "fast_log10f";
+    gFastMathLibTable["powf"] = "fast_powf";
+    gFastMathLibTable["remainderf"] = "fast_remainder";
+    gFastMathLibTable["roundf"] = "fast_roundf";
+    gFastMathLibTable["sinf"] = "fast_sinf";
+    gFastMathLibTable["sqrtf"] = "fast_sqrtf";
+    gFastMathLibTable["tanf"] = "fast_tanf";
     
-    gFastMathLibTable["pow"] = "fast_powf";
-    gFastMathLibTable["exp"] = "fast_expf";
-    gFastMathLibTable["exp2"] = "fast_exp2f";
-    gFastMathLibTable["exp10"] = "fast_exp10f";
-    gFastMathLibTable["log"] = "fast_logf";
-    gFastMathLibTable["log2"] = "fast_log2f";
-    gFastMathLibTable["log10"] = "fast_log10f";
+    // Fastmath double version
+    gFastMathLibTable["acos"] = "fast_acos";
+    gFastMathLibTable["asin"] = "fast_asin";
+    gFastMathLibTable["atan"] = "fast_atan";
+    gFastMathLibTable["atan2"] = "fast_atan2";
+    gFastMathLibTable["ceil"] = "fast_ceil";
+    gFastMathLibTable["cos"] = "fast_cos";
+    gFastMathLibTable["exp"] = "fast_exp";
+    gFastMathLibTable["exp2"] = "fast_exp2";
+    gFastMathLibTable["exp10"] = "fast_exp10";
+    gFastMathLibTable["floor"] = "fast_floor";
+    gFastMathLibTable["fmod"] = "fast_fmod";
+    gFastMathLibTable["log"] = "fast_log";
+    gFastMathLibTable["log2"] = "fast_log2";
+    gFastMathLibTable["log10"] = "fast_log10";
+    gFastMathLibTable["pow"] = "fast_pow";
+    gFastMathLibTable["remainder"] = "fast_remainder";
+    gFastMathLibTable["round"] = "fast_round";
+    gFastMathLibTable["sin"] = "fast_sin";
+    gFastMathLibTable["sqrt"] = "fast_sqrt";
+    gFastMathLibTable["tan"] = "fast_tan";
     
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.

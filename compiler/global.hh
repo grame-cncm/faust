@@ -150,6 +150,7 @@ struct global {
     bool            gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
     bool            gHasTeeLocal;           // For wast/wasm backends
     bool            gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    string          gFastMathLib;           // The fastmath code mapping file
     map <string, string> gFastMathLibTable;
     
     dsp_factory_base* gDSPFactory;

@@ -123,7 +123,7 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     done
 
     for f in *.dsp; do
-        faust2impulse -double -fm $f > $D/$f.scal.ir
+        faust2impulse -double -fm def $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -fm mode" || echo "ERROR $f scalar -fm mode"
     done
 
@@ -211,7 +211,7 @@ if [ $BACKEND = "c" ] || [ $BACKEND = "all" ]; then
     done
 
     for f in *.dsp; do
-        faust2impulse2 -double -fm $f > $D/$f.scal.ir
+        faust2impulse2 -double -fm def $f > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -fm mode" || echo "ERROR $f scalar -fm mode"
     done
 
@@ -307,7 +307,7 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     done
 
     for f in *.dsp; do
-        faust2impulse4 $f -double -fm > $D/$f.scal.ir
+        faust2impulse4 $f -double -fm def -L fastmath.bc > $D/$f.scal.ir
         filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar -fm mode" || echo "ERROR $f scalar -fm mode"
     done
 
