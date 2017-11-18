@@ -180,7 +180,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMathLibTable["log2f"] = "fast_log2f";
     gFastMathLibTable["log10f"] = "fast_log10f";
     gFastMathLibTable["powf"] = "fast_powf";
-    gFastMathLibTable["remainderf"] = "fast_remainder";
+    gFastMathLibTable["remainderf"] = "fast_remainderf";
     gFastMathLibTable["roundf"] = "fast_roundf";
     gFastMathLibTable["sinf"] = "fast_sinf";
     gFastMathLibTable["sqrtf"] = "fast_sqrtf";

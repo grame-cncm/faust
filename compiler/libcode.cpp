@@ -723,15 +723,6 @@ static void printHeader(ostream& dst)
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
-static void printFloatDef(std::ostream& fout)
-{
-    fout << "#ifndef " << FLOATMACRO << std::endl;
-    fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
-    fout << "#endif  " << std::endl;
-    fout << std::endl;
-    if (gGlobal->gFloatSize == 3) fout << "typedef long double quad;" << std::endl;
-}
-
 string makeDrawPath()
 {
     if (gGlobal->gOutputDir != "") {
@@ -1381,12 +1372,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             }
             
             streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            printFloatDef(*dst);
+            printfloatdef(*dst, gGlobal->gFloatSize == 3);
             old_comp->getClass()->println(0,*dst);
             streamCopyUntilEnd(*enrobage, *dst);
             
         } else {
-            printFloatDef(*dst);
+            printfloatdef(*dst, gGlobal->gFloatSize == 3);
             old_comp->getClass()->println(0,*dst);
         }
         
