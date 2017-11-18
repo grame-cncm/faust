@@ -13,7 +13,7 @@
             }]
         ],
         'cflags': [ '__CFLAGS__' ],
-        'libraries': [ '-L/usr/local/lib __LIBFLAGS__' ],
+        'libraries': [ '-L/usr/local/lib -L/opt/local/lib __LIBFLAGS__' ],
         'sources': [ 'faust.cpp','DspFaust.cpp','DspFaustNode.cpp' ]
     }]
 }

@@ -29,7 +29,8 @@ OSC_CFLAGS=""
 OSC_LIBFLAGS=""
 JACK_LIBRARIES_FLAGS="\`pkg-config --cflags --libs jack sndfile\`"
 ALSA_LIBRARIES_FLAGS="\`pkg-config --cflags --libs alsa\` -lpthread"
-# TODO: missing coreaudio, rtaudio, portaudio, etc.
+COREAUDIO_LIBRARIES_FLAGS="\`pkg-config --cflags --static --libs sndfile\` -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+# TODO: missing rtaudio, portaudio, etc.
 
 # useful variables
 PLATFORM=$(uname)
@@ -134,6 +135,9 @@ if [ $DRIVER = "-jack" ]; then
 elif [ $DRIVER = "-alsa" ]; then
 	sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
 	sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+elif [ $DRIVER = "-coreaudio" ]; then
+	sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+	sed -i "" "s/__LIBFLAGS__/$COREAUDIO_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
 fi
 
 node-gyp $ELECTRON_VERSION configure &> $LOG || exit 1
