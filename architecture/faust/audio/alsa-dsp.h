@@ -657,6 +657,7 @@ class alsaaudio : public audio
 
 	virtual bool init(const char */*name*/, dsp* DSP)
     {
+        fDSP = DSP;
         fAudio->inputs(DSP->getNumInputs());
         fAudio->outputs(DSP->getNumOutputs());
 		fAudio->open();
