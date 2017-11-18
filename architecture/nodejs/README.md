@@ -99,3 +99,30 @@ destroy it (forces garbage collection - necessary in most cases):
 ```
 dspFaustNode.destroy();
 ```
+
+## Know Issues
+
+For now, even though Alsa native nodejs and addons can be generated and 
+compiled without any issue, they crash during the constructor call with:
+
+```
+pcm_misc.c:380: snd_pcm_format_size: Assertion `0' failed.
+```
+
+Weirdly, Alsa audio engines generated with faust2api are fine when called from
+a test C++ program. It seems that the problem comes from the setting of the
+sample format in `alsa-dsp.h`:
+
+```
+// search for 32-bits or 16-bits format
+err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
+if (err) {
+  err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
+  check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
+}
+snd_pcm_hw_params_get_format(params, &fSampleFormat);
+```
+
+For some reasons, even though `snd_pcm_hw_params_set_format` doesn't return an
+error, it doesn't seem to set the desired sample format (`fSampleFormat` is
+always equal to `S8` while it should be `S32_LE`).
