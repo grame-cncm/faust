@@ -10,8 +10,19 @@ and OSC suport, polyphony, separate effect file, etc.).
 
 The latest version of [nodejs](https://nodejs.org) should be installed on your
 system. Additionally, you should make sure that `node-gyp` is available on
-your computer. If it's not the case, typical installation steps on Linux would
-be: `sudo apt install node-gyp && npm install node-gyp -g`.
+your computer. 
+
+On the mac:
+
+```
+npm install node-gyp -g
+```
+
+On Linux:
+
+```
+sudo apt install node-gyp && npm install node-gyp -g
+```
 
 As for other Faust architectures, the various SDKs/development files associated 
 with the targeted audio engine should also be installed. For example, if 

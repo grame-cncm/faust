@@ -31,6 +31,9 @@ JACK_LIBRARIES_FLAGS="\`pkg-config --cflags --libs jack sndfile\`"
 ALSA_LIBRARIES_FLAGS="\`pkg-config --cflags --libs alsa\` -lpthread"
 # TODO: missing coreaudio, rtaudio, portaudio, etc.
 
+# useful variables
+PLATFORM=$(uname)
+
 echoHelp ()
 {
 	if [ $p != "-help" ] && [ $p != "-h" ]; then
@@ -118,11 +121,16 @@ cp "$FAUSTLIB/nodejs/faust.cpp" .
 cp "$FAUSTLIB/nodejs/README.md" .
 
 # Customizing configuration file
-# TODO: for now only ported compilation flags for alsa and jack: missing 
+# TODO: for now only ported compilation flags for alsa and jack: missing
 # portaudio, rtaudio, and coreaudio
 if [ $DRIVER = "-jack" ]; then
-	sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
-	sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i "" "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+		sed -i "" "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+	else
+		sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
+		sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
+	fi
 elif [ $DRIVER = "-alsa" ]; then
 	sed -i "s/__CFLAGS__/$MYGCCFLAGS $FAUSTTOOLSFLAGS $OMP $OSC_CFLAGS/g" binding.gyp
 	sed -i "s/__LIBFLAGS__/$JACK_LIBRARIES_FLAGS $OSC_LIBFLAGS/g" binding.gyp
@@ -139,7 +147,7 @@ if [ $SOURCE = "0" ]; then
 	# native node in parallel so I don't really see the need for it.
 	cp $NODE_FOLDER/build/Release/faust.node .
 	rm -rf $NODE_FOLDER
-	echo "A native nodejs node \"faust.node\" was generated in the current folder."	
+	echo "A native nodejs node \"faust.node\" was generated in the current folder."
 else
 	echo "A $NODE_FOLDER folder containing the source of the native Faust node was generated in the current folder. Please refer to the README in it for compilation instructions."
 fi
