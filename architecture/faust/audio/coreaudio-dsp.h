@@ -722,13 +722,13 @@ class TCoreAudioRenderer
                 if (fAggregatePluginID > 0)   {
                     osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
                     if (osErr != noErr) {
-                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
-                        printError(osErr);
+                        //printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
+                        //printError(osErr);
                     }
                     osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize, &fAggregateDeviceID);
                     if (osErr != noErr) {
-                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
-                        printError(osErr);
+                        //printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
+                        //printError(osErr);
                     }
                 }
             }
