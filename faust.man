@@ -1,0 +1,19 @@
+.\" Manpage for Faust.
+.\" Contact research@grame.fr to correct errors or typos.
+.TH man 1 "19 November 2017" "1.0" "Faust man page"
+.SH NAME
+Faust \- DSP to C/C++, Rust, LLVM IR, JAVA, JavaScript, asm.js, WebAssembly (wast/wasm), Interpreter compiler
+.SH SYNOPSIS
+\fBfaust\fR [options] file1 [file2 ...]
+.SH DESCRIPTION
+Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards.
+.SH OPTIONS
+TO COMPLETE
+.SH SEE ALSO
+.PP
+.I http://faust.grame.fr 
+.SH BUGS
+Please report bugs to:
+.I https://github.com/grame-cncm/faust/issues
+.SH AUTHOR
+Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. 
