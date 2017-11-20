@@ -37,65 +37,65 @@ PLATFORM=$(uname)
 
 echoHelp ()
 {
-	if [ $p != "-help" ] && [ $p != "-h" ]; then
-		echo "$p wrong argument"
-		echo ""
-  fi
-	echo "faust2nodejs can be used to generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: alsa, jack, coreaudio, rtaudio, portaudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
-	echo ""
-	echo "USAGE: faust2nodjs [DRIVER] [OPTIONS] faustFile.dsp"
-	echo ""
-	echo "The following drivers (DRIVER) are available: -coreaudio // -alsa // -jack // -portaudio // -rtaudio // -dummy. For example, to create a native nodejs addon with a Jack audio engine, run: faust2nodjs -jack faustFile.dsp"
-	echo ""
-	echo "The following options (OPTIONS) are inherited directly from faust2api and can be used with faust2nodejs:"
-	echo "   -nvoices N : creates a polyphonic object with N voices."
-  echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
-	echo "   -midi : add built-in RtMidi support to the API."
-  echo "   -osc : add built-in OSC support to the API."
-	echo "   -source : generates the source of the addon without compiling it."
-	echo "   -electronv <VERSION>: allows to specify the current version of electron if generating an addon for this framework."
-	echo "   -debug : prints compilation output."
+    if [ $p != "-help" ] && [ $p != "-h" ]; then
+        echo "$p wrong argument"
+        echo ""
+    fi
+    echo "faust2nodejs can be used to generate Faust-based nodejs native addons. The generated addons can embed most of the audio engines supported by Faust: alsa, JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts as a wrapper to faust2api, it offers the same features than this system (MIDI and OSC suport, polyphony, separate effect file, etc.)."
+    echo ""
+    echo "USAGE: faust2nodejs [DRIVER] [OPTIONS] faustFile.dsp"
+    echo ""
+    echo "The following drivers (DRIVER) are available: -coreaudio // -alsa // -jack // -portaudio // -rtaudio // -dummy. For example, to create a native nodejs addon with a JACK audio engine, run: faust2nodjs -jack faustFile.dsp"
+    echo ""
+    echo "The following options (OPTIONS) are inherited directly from faust2api and can be used with faust2nodejs:"
+    echo "   -nvoices N : creates a polyphonic object with N voices."
+    echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
+    echo "   -midi : add built-in RtMidi support to the API."
+    echo "   -osc : add built-in OSC support to the API."
+    echo "   -source : generates the source of the addon without compiling it."
+    echo "   -electronv <VERSION>: allows to specify the current version of electron if generating an addon for this framework."
+    echo "   -debug : prints compilation output."
 }
 
 # dispatch command arguments
 while [ $1 ]
 do
-	p=$1
-	if [ $p = "-help" ] || [ $p = "-h" ]; then
-		echoHelp
+    p=$1
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echoHelp
     exit
-	elif [[ -f "$p" ]]; then
-		FILE="$p"
-  elif [ $p = "-coreaudio" ] || [ $p = "-alsa" ] || [ $p = "-jack" ] || [ $p = "-portaudio" ] || [ $p = "-rtaudio" ] || [ $p = "-dummy" ] ; then
-		DRIVER=$p
-  elif [ "$p" = "-effect" ]; then
-		shift
-		EFFECT="-effect "$1
-  elif [ "$p" = "-midi" ]; then
-		MIDI="-midi"
-  elif [ "$p" = "-soundfile" ]; then # What is this?
-    SOUNDFILE="-soundfile"
-  elif [ "$p" = "-osc" ]; then
-		OSC="-osc"
-		OSC_CFLAGS="-DOSCCTR"
-		OSC_LIBFLAGS="-lOSCFaust -lpthread"
-	elif [ "$p" = "-debug" ]; then
-		LOG="/dev/stdout"
-	elif [ "$p" = "-source" ]; then
-		SOURCE="1"
-  elif [ $p = "-nvoices" ]; then
-		shift
-		NVOICES="-nvoices "$1
-	elif [ $p = "-electronv" ]; then
-		shift
-		ELECTRON_VERSION="--target="$1" --dist-url=https://atom.io/download/electron"
-  elif [ ${p:0:1} = "-" ]; then
-		OPTIONS="$OPTIONS $p"
-  elif [[ -f "$p" ]]; then
-		FILES="$FILES $p"
-	else
-    OPTIONS="$OPTIONS $p"
-  fi
+    elif [[ -f "$p" ]]; then
+        FILE="$p"
+    elif [ $p = "-coreaudio" ] || [ $p = "-alsa" ] || [ $p = "-jack" ] || [ $p = "-portaudio" ] || [ $p = "-rtaudio" ] || [ $p = "-dummy" ] ; then
+        DRIVER=$p
+    elif [ "$p" = "-effect" ]; then
+        shift
+        EFFECT="-effect "$1
+    elif [ "$p" = "-midi" ]; then
+        MIDI="-midi"
+    elif [ "$p" = "-soundfile" ]; then # What is this?
+        SOUNDFILE="-soundfile"
+    elif [ "$p" = "-osc" ]; then
+        OSC="-osc"
+        OSC_CFLAGS="-DOSCCTR"
+        OSC_LIBFLAGS="-lOSCFaust -lpthread"
+    elif [ "$p" = "-debug" ]; then
+        LOG="/dev/stdout"
+    elif [ "$p" = "-source" ]; then
+        SOURCE="1"
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES="-nvoices "$1
+    elif [ $p = "-electronv" ]; then
+        shift
+        ELECTRON_VERSION="--target="$1" --dist-url=https://atom.io/download/electron"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
 shift
 done
 
@@ -112,7 +112,7 @@ mkdir $NODE_FOLDER
 
 # Generating DSP engine
 cd $NODE_FOLDER
-faust2api $DRIVER -nodoc -nozip $MIDI $SOUNDFILE $OSC $NVOICES $OPTIONS $EFFECT "../"$FILE &> $LOG || exit 1
+faust2api $DRIVER -nodoc -nozip $MIDI $SOUNDFILE $OSC $NVOICES $EFFECT $OPTIONS "../"$FILE &> $LOG || exit 1
 
 # Copying template files
 cp "$FAUSTLIB/nodejs/binding.gyp" .
@@ -122,7 +122,7 @@ cp "$FAUSTLIB/nodejs/faust.cpp" .
 cp "$FAUSTLIB/nodejs/README.md" .
 
 # Customizing configuration file
-# TODO: for now only ported compilation flags for alsa and jack: missing
+# TODO: for now only ported compilation flags for alsa and JACK: missing
 # portaudio, rtaudio, and coreaudio
 if [ $DRIVER = "-jack" ]; then
 	if [ $PLATFORM = "Darwin" ]; then
@@ -146,12 +146,9 @@ if [ $SOURCE = "0" ]; then
 	cd build
 	make &> $LOG || exit 1
 	cd ../..
-	# For now the, generated node is always called faust.node, perhaps this
-	# should be changed, although it would be impossible to run more than one
-	# native node in parallel so I don't really see the need for it.
-	cp $NODE_FOLDER/build/Release/faust.node .
+	cp $NODE_FOLDER/build/Release/faust.node $NODE_NAME.node
 	rm -rf $NODE_FOLDER
-	echo "A native nodejs node \"faust.node\" was generated in the current folder."
+	echo "A native nodejs node \"$NODE_NAME.node\" was generated in the current folder."
 else
 	echo "A $NODE_FOLDER folder containing the source of the native Faust node was generated in the current folder. Please refer to the README in it for compilation instructions."
 fi

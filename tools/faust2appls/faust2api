@@ -66,7 +66,7 @@ echoHelp ()
     echo "Global options:"
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
-	  echo "   -nodoc : prevents documentation from being generated."
+    echo "   -nodoc : prevents documentation from being generated."
     echo "   -nozip : prevents generated files to be put in a zip file."
     echo ""
     echo "Android specific options:"
@@ -174,9 +174,9 @@ do
     elif [ "$p" = "-osc" ]; then
         OSC="1"
     elif [ "$p" = "-nodoc" ]; then
-		    NODOC="1"
+        NODOC="1"
     elif [ "$p" = "-nozip" ]; then
-		    NOZIP="1"
+        NOZIP="1"
     elif [ $p = "-nvoices" ]; then
 		shift
 		NVOICES=$1

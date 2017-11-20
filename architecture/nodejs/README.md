@@ -15,7 +15,7 @@ your computer.
 On the mac:
 
 ```
-npm install node-gyp -g
+sudo npm install node-gyp -g
 ```
 
 On Linux:
@@ -33,7 +33,7 @@ creating a nodejs addon with a JACK driver, libjack should be installed, etc.
 In a terminal window, just call:
 
 ```
-faust2nodjs [DRIVER] [OPTIONS] faustFile.dsp
+faust2nodejs [DRIVER] [OPTIONS] faustFile.dsp
 ```
 
 With [DRIVER]:

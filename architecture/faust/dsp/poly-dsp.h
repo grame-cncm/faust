@@ -288,7 +288,7 @@ struct dsp_voice_group {
 
     virtual ~dsp_voice_group()
     {
-        for (int i = 0; i < fVoiceTable.size(); i++) {
+        for (size_t i = 0; i < fVoiceTable.size(); i++) {
             delete fVoiceTable[i];
         }
         delete fVoiceGroup;
@@ -309,7 +309,7 @@ struct dsp_voice_group {
         // Groups all uiItem for a given path
         fVoiceGroup = new proxy_dsp(fVoiceTable[0]);
         fVoiceGroup->buildUserInterface(&fGroups);
-        for (int i = 0; i < fVoiceTable.size(); i++) {
+        for (size_t i = 0; i < fVoiceTable.size(); i++) {
             fVoiceTable[i]->buildUserInterface(&fGroups);
         }
     }
@@ -327,9 +327,9 @@ struct dsp_voice_group {
 
             // If not grouped, also add individual voices UI
             if (!fGroupControl) {
-                for (int i = 0; i < fVoiceTable.size(); i++) {
+                for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
-                    snprintf(buffer, 31, ((fVoiceTable.size() < 8) ? "Voice%d" : "V%d"), i+1);
+                    snprintf(buffer, 31, ((fVoiceTable.size() < 8) ? "Voice%lu" : "V%lu"), i+1);
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
@@ -381,7 +381,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             int voice_playing = kNoVoice;
             int oldest_date_playing = INT_MAX;
             
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fNote == pitch) {
                     // Keeps oldest playing voice
                     if (fVoiceTable[i]->fDate < oldest_date_playing) {
@@ -400,7 +400,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             int voice = kNoVoice;
             
             // Looks for the first available voice
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fNote == kFreeVoice) {
                     voice = i;
                     goto result;
@@ -416,7 +416,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                 int oldest_date_playing = INT_MAX;
 
                 // Scan all voices
-                for (int i = 0; i < fVoiceTable.size(); i++) {
+                for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     if (fVoiceTable[i]->fNote == kReleaseVoice) {
                         // Keeps oldest release voice
                         if (fVoiceTable[i]->fDate < oldest_date_release) {
@@ -528,7 +528,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             fPanic = FAUSTFLOAT(0);
             
             // Init voices
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->init(samplingRate);
             }
         }
@@ -546,7 +546,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             fVoiceGroup->instanceConstants(samplingRate);
             
             // Init voices
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceConstants(samplingRate);
             }
         }
@@ -557,7 +557,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             fVoiceGroup->instanceResetUserInterface();
             fPanic = FAUSTFLOAT(0);
             
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceResetUserInterface();
             }
         }
@@ -567,7 +567,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
             decorator_dsp::instanceClear();
             fVoiceGroup->instanceClear();
             
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->instanceClear();
             }
         }
@@ -586,7 +586,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
 
             if (fVoiceControl) {
                 // Mix all playing voices
-                for (int i = 0; i < fVoiceTable.size(); i++) {
+                for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     dsp_voice* voice = fVoiceTable[i];
                     if (voice->fNote != kFreeVoice) {
                         voice->play(count, inputs, fMixBuffer);
@@ -600,7 +600,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
                 }
             } else {
                 // Mix all voices
-                for (int i = 0; i < fVoiceTable.size(); i++) {
+                for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     fVoiceTable[i]->compute(count, inputs, fMixBuffer);
                     mixVoice(count, fMixBuffer, outputs);
                 }
@@ -677,7 +677,7 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         // Terminate all active voices, gently or immediately (depending of 'hard' value)
         void allNotesOff(bool hard = false)
         {
-            for (int i = 0; i < fVoiceTable.size(); i++) {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 fVoiceTable[i]->keyOff(hard);
             }
         }

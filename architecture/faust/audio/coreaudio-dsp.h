@@ -977,11 +977,12 @@ class TCoreAudioRenderer
             fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
             fBufferSize(0),fSampleRate(0), 
-            fDSP(0),fInputData(0),
-            fDeviceID(0),fAUHAL(0),
-            fState(false), 
+            fDSP(0),
             fIsInJackDevice(false),
-            fIsOutJackDevice(false)
+            fIsOutJackDevice(false),
+            fInputData(0),
+            fDeviceID(0),fAUHAL(0),
+            fState(false)
         {}
 
         virtual ~TCoreAudioRenderer()
