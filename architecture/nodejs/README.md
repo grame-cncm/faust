@@ -2,7 +2,7 @@
 
 faust2nodejs can be used to generate Faust-based nodejs native addons. The 
 generated addons can embed most of the audio engines supported by Faust: alsa, 
-JACK, coreaudio, rtaudio, portaudio, etc. Since faust2nodejs essentially acts 
+JACK, CoreAudio, RtAudio, PortAudio, etc. Since faust2nodejs essentially acts 
 as a wrapper to faust2api, it offers the same features than this system (MIDI 
 and OSC suport, polyphony, separate effect file, etc.).
 
@@ -57,6 +57,8 @@ and with [OPTION] (mostly inherited from [faust2api](https://ccrma.stanford.edu/
 generating an addon for this framework.
 * `-debug`: prints compilation output.
 
+The generated addon will take the DSP name.
+
 ## Using the Generated Addon
 
 Generated Faust addons use essentially the same API than 
@@ -67,7 +69,7 @@ addon will look like:
 First load it:
 
 ```
-const faust = require('./faust');
+const faust = require('./faustFile');
 ```
 
 instantiate it:
@@ -110,6 +112,8 @@ destroy it (forces garbage collection - necessary in most cases):
 ```
 dspFaustNode.destroy();
 ```
+
+Several addons can possibly be loaded and used at the same time. This is especially interesting when using the JACK driver, since each of them will appear as a separated JACK client.   
 
 ## Know Issues
 

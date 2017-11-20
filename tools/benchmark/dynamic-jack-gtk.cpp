@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
    
-    if (!audio.init(filename, DSP, true)) {
+    if (!audio.init(filename, DSP)) {
         return 0;
     }
 
