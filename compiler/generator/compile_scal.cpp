@@ -49,8 +49,6 @@
 
 using namespace std;
 
-string makeDrawPath();
-
 static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 {
 	Type t = getCertifiedSigType(sig); //, NULLENV);
@@ -129,7 +127,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("ScalarCompiler::prepare");
 
     if (gGlobal->gDrawSignals) {
-        ofstream dotfile(subst("$0-sig.dot", makeDrawPath()).c_str());
+        ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
         // SL : 28/09/17 : deactivated for now
         //sigToGraph(L3, dotfile);
     }
@@ -246,7 +244,7 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 	}
 
     if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     }
 }

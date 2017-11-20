@@ -723,15 +723,6 @@ static void printHeader(ostream& dst)
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
-string makeDrawPath()
-{
-    if (gGlobal->gOutputDir != "") {
-        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
-    } else {
-        return gGlobal->gMasterDocument;
-    }
-}
-
 #endif
 
 /**
@@ -1386,7 +1377,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
          *****************************************************************/
         
         if (gGlobal->gGraphSwitch) {
-            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
         }
         
@@ -1425,7 +1416,7 @@ static void generateOutputFiles()
         } else if (old_comp) {
             
             Description* D = old_comp->getDescription(); assert(D);
-            ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
+            ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
             
             if(gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
             if(gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
@@ -1464,7 +1455,7 @@ static void generateOutputFiles()
             container->printGraphDotFormat(dotfile);
     #if OCPP_BUILD
         } else if (old_comp) {
-            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
     #endif
         } else {

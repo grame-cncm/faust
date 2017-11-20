@@ -658,9 +658,7 @@ void CodeContainer::processFIR(void)
     if (gGlobal->gFastMath) {
  
         // Add 'initFastMath' function declaration
-        list<NamedTyped*> args_types;
-        FunTyped* fun_type = InstBuilder::genFunTyped(args_types, InstBuilder::genBasicTyped(Typed::kVoid));
-        pushGlobalDeclare(InstBuilder::genDeclareFunInst("initFastMath", fun_type));
+        pushGlobalDeclare(InstBuilder::genVoidFunction("initFastMath"));
    
         // Add 'initFastMath' function call
         list<ValueInst*> args_value;

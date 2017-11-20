@@ -1,4 +1,4 @@
-version := 2.5.1
+version := 2.5.2
 
 system	?= $(shell uname -s)
 
@@ -82,6 +82,9 @@ asmjs :
 
 wasm :
 	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
+
+light :
+	$(MAKE) -C compiler light -f $(MAKEFILE) prefix=$(prefix)
 
 sound2faust :
 

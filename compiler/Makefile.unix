@@ -247,6 +247,13 @@ wasm : CXXFLAGS = -DEMCC -DWASM_BUILD $(OPT) -Wall -Wuninitialized -Wno-overload
 wasm : libfaust.wasm
 wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
 
+## This target only compiles the C/C++ backends
+light : OPT = -O3
+light : CC = cc
+light : CXX = c++
+light : CXXFLAGS = -DC_BUILD -DCPP_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+light : faustlight
+
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	$(CXX) $(OPT) --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_asmjs) libmain.o -o libfaust.js
@@ -296,6 +303,13 @@ ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
+endif
+
+faustlight : $(common_objects) $(ba_c) $(ba_cpp) main.o
+ifneq ($(findstring MINGW32, $(system)),)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o $(LIBS) -lpthread -o faust
+else
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o `pkg-config --libs libcrypto` -o faust
 endif
 
 ifeq ($(system), Darwin)
