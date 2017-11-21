@@ -177,7 +177,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     tab(fTab, *fOut);
                     if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << desc.fName << "\" (param ";
+                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << gGlobal->getMathFunction(desc.fName) << "\" (param ";
                     } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
                         *fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
                     } else {
@@ -523,7 +523,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                         *fOut << "(" << realStr << "." << desc.fName << " ";
                     }
                 } else {
-                    *fOut  << "(call $" << inst->fName << " ";
+                    *fOut  << "(call $" << gGlobal->getMathFunction(inst->fName) << " ";
                 }
             } else {
                 *fOut  << "(call $" << inst->fName << " ";

@@ -126,7 +126,7 @@ static const float _2p23 = 8388608.0f;
  * @pTable     length must be 2 ^ precision
  * @precision  number of mantissa bits used, >= 0 and <= 18
  */
-float powFastLookup(const float val, const float ilog2, const uint32_t* pTable, const uint32_t precision)
+static float powFastLookup(const float val, const float ilog2, const uint32_t* pTable, const uint32_t precision)
 {
     /* build float bits */
     const int32_t i = (int32_t)((val * (_2p23 * ilog2)) + (127.0f * _2p23));
@@ -162,7 +162,7 @@ float powFastLookup(const float val, const float ilog2, const uint32_t* pTable, 
  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-float icsi_log(float arg, const float* lookup_table, const uint32_t precision)
+static inline float icsi_log(float arg, const float* lookup_table, const uint32_t precision)
 {
     /* get access to float bits */
     const int32_t* const pVal = (const int32_t*)(&arg);
@@ -203,15 +203,11 @@ float fast_atan2f(float y, float x)
 }
 */
 
-/* static const float* log_table = fast_log_table; */
-/* static uint32_t log_precision = fast_log_precision; */
-/* static const uint32_t* pow_table = fast_pow_table; */
-/* static uint32_t pow_precision = fast_pow_precision; */
-
-static const float* log_table;
-static uint32_t log_precision;
-static const uint32_t* pow_table;
-static uint32_t pow_precision;
+// Static table declaration 
+static const float* log_table = fast_log_table;
+static uint32_t log_precision = log2i(fast_log_precision);
+static const uint32_t* pow_table = fast_pow_table;
+static uint32_t pow_precision = log2i(fast_pow_precision);
 
 float fast_powf(float x, float y)
 {
@@ -241,13 +237,13 @@ float fast_logf(float x)
 float fast_log10f(float x)
 {
     // log10 (x) equals log (x) / log (10)
-    return icsi_log(x, log_table, log_precision) / M_LN10;
+    return icsi_log(x, log_table, log_precision) / float(M_LN10);
 }
 
 float fast_log2f(float x)
 {
     // log2 (x) equals log (x) / log (2)
-    return icsi_log(x, log_table, log_precision) / M_LN2;
+    return icsi_log(x, log_table, log_precision) / float(M_LN2);
 }
 
 // 'double' version: to improve
@@ -288,33 +284,14 @@ double fast_log10(double x)
     return icsi_log(x, log_table, log_precision) / M_LN10;
 }
 
-void fast_pow_set_table(const uint32_t* table, int size)
+static void fast_pow_set_table(const uint32_t* table, int size)
 {
     pow_table = table;
     pow_precision = log2i(size);
 }
 
-void fast_log_set_table(const float* table, int size)
+static void fast_log_set_table(const float* table, int size)
 {
     log_table = table;
     log_precision = log2i(size);
 }
-
-// Entry point
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
-EXPORT void initFastMath()
-{
-    static bool init = false;
-    if (!init) {
-        fast_pow_set_table(fast_pow_table, fast_pow_table_size);
-        fast_log_set_table(fast_log_table, fast_log_table_size);
-        init = true;
-    }
-}
-
-#ifdef __cplusplus
-}
-#endif
