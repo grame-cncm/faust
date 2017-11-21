@@ -19,12 +19,16 @@ Faust (Functional Audio Stream) is a  functional  programming  language specific
 OPTIONS
 =======
 
-TO COMPLETE
+-h, --help
+print help message
+
+-v, --version
+print the compiler version
 
 SEE ALSO
 ========
 
- http://faust.grame.fr
+Grame Faust site at: <http://faust.grame.fr>
 
 
 BUGS
