@@ -140,6 +140,9 @@ doc :
 doclib :
 	./libraries/generateDoc
 
+man :
+	pandoc --standalone --to man compiler/README.md -o faust.1
+
 install :
 	# install faust itself
 	mkdir -p $(prefix)/bin/
@@ -254,9 +257,8 @@ install :
 	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
 	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
 
-	# install Faust man file
-	pandoc --standalone --to man compiler/README.md -o faust.1	
-	cp faust.1 $(prefix)/share/man/man1/faust.1
+	# install Faust man file	
+	([ -e faust.1 ])  && cp faust.1 $(prefix)/share/man/man1/faust.1 || echo faust.1 not found
 	
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
