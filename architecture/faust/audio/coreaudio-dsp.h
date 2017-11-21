@@ -970,16 +970,16 @@ class TCoreAudioRenderer
         }
         
     public:
-
+    
         TCoreAudioRenderer()
             :fAggregateDeviceID(-1),fAggregatePluginID(-1),
             fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
-            fBufferSize(0),fSampleRate(0), 
-            fDSP(0),
+            fBufferSize(0),fSampleRate(0),
             fIsInJackDevice(false),
             fIsOutJackDevice(false),
+            fDSP(0),
             fInputData(0),
             fDeviceID(0),fAUHAL(0),
             fState(false)

@@ -662,7 +662,7 @@ static void printHelp()
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]\n";
-    cout << "-fm <fm-file>\t--fast-math <fm-file> uses optimized versions of mathematical functions implemented in the <fm-file> file, takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
+    cout << "-fm <file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in <file>, takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 

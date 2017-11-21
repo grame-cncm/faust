@@ -32,59 +32,58 @@
 #endif
 
 #ifdef _WIN32
-#define	EXPORT __declspec(dllexport)
+#define EXPORT __declspec(dllexport) __attribute__((always_inline))
 #else
-#define	EXPORT __attribute__ ((visibility("default")))
+#define EXPORT __attribute__ ((visibility("default"))) __attribute__((always_inline))
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
     
-    
     // float version
-    EXPORT __attribute__((always_inline)) float  fast_acosf(float x) { return acosf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_asinf(float x) { return asinf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_atanf(float x) { return atanf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_atan2f(float x, float y) { return atan2f(x, y); }
-    EXPORT __attribute__((always_inline)) float  fast_ceilf(float x) { return ceilf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_cosf(float x) { return cosf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_expf(float x);
-    EXPORT __attribute__((always_inline)) float  fast_exp2f(float x);
-    EXPORT __attribute__((always_inline)) float  fast_exp10f(float x);
-    EXPORT __attribute__((always_inline)) float  fast_floorf(float x) { return floorf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_fmodf(float x, float y) { return fmodf(x, y); }
-    EXPORT __attribute__((always_inline)) float  fast_logf(float x);
-    EXPORT __attribute__((always_inline)) float  fast_log2f(float x);
-    EXPORT __attribute__((always_inline)) float  fast_log10f(float x);
-    EXPORT __attribute__((always_inline)) float  fast_powf(float x, float y);
-    EXPORT __attribute__((always_inline)) float  fast_remainderf(float x, float y) { return remainderf(x, y); }
-    EXPORT __attribute__((always_inline)) float  fast_roundf(float x) { return roundf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_sinf(float x) { return sinf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_sqrtf(float x) { return sqrtf(x); }
-    EXPORT __attribute__((always_inline)) float  fast_tanf(float x) { return tanf(x); }
+    EXPORT float fast_acosf(float x) { return acosf(x); }
+    EXPORT float fast_asinf(float x) { return asinf(x); }
+    EXPORT float fast_atanf(float x) { return atanf(x); }
+    EXPORT float fast_atan2f(float x, float y) { return atan2f(x, y); }
+    EXPORT float fast_ceilf(float x) { return ceilf(x); }
+    EXPORT float fast_cosf(float x) { return cosf(x); }
+    EXPORT float fast_expf(float x);
+    EXPORT float fast_exp2f(float x);
+    EXPORT float fast_exp10f(float x);
+    EXPORT float fast_floorf(float x) { return floorf(x); }
+    EXPORT float fast_fmodf(float x, float y) { return fmodf(x, y); }
+    EXPORT float fast_logf(float x);
+    EXPORT float fast_log2f(float x);
+    EXPORT float fast_log10f(float x);
+    EXPORT float fast_powf(float x, float y);
+    EXPORT float fast_remainderf(float x, float y) { return remainderf(x, y); }
+    EXPORT float fast_roundf(float x) { return roundf(x); }
+    EXPORT float fast_sinf(float x) { return sinf(x); }
+    EXPORT float fast_sqrtf(float x) { return sqrtf(x); }
+    EXPORT float fast_tanf(float x) { return tanf(x); }
     
     // double version
-    EXPORT __attribute__((always_inline)) double  fast_acos(double x) { return acos(x); }
-    EXPORT __attribute__((always_inline)) double  fast_asin(double x) { return asin(x); }
-    EXPORT __attribute__((always_inline)) double  fast_atan(double x) { return atan(x); }
-    EXPORT __attribute__((always_inline)) double  fast_atan2(double x, double y) { return atan2(x, y); }
-    EXPORT __attribute__((always_inline)) double  fast_ceil(double x) { return ceil(x); }
-    EXPORT __attribute__((always_inline)) double  fast_cos(double x) { return cos(x); }
-    EXPORT __attribute__((always_inline)) double  fast_exp(double x);
-    EXPORT __attribute__((always_inline)) double  fast_exp2(double x);
-    EXPORT __attribute__((always_inline)) double  fast_exp10(double x);
-    EXPORT __attribute__((always_inline)) double  fast_floor(double x) { return floor(x); }
-    EXPORT __attribute__((always_inline)) double  fast_fmod(double x, double y) { return fmod(x, y); }
-    EXPORT __attribute__((always_inline)) double  fast_log(double x);
-    EXPORT __attribute__((always_inline)) double  fast_log2(double x);
-    EXPORT __attribute__((always_inline)) double  fast_log10(double x);
-    EXPORT __attribute__((always_inline)) double  fast_pow(double x, double y);
-    EXPORT __attribute__((always_inline)) double  fast_remainder(double x, double y) { return remainder(x, y); }
-    EXPORT __attribute__((always_inline)) double  fast_round(double x) { return round(x); }
-    EXPORT __attribute__((always_inline)) double  fast_sin(double x) { return sin(x); }
-    EXPORT __attribute__((always_inline)) double  fast_sqrt(double x) { return sqrt(x); }
-    EXPORT __attribute__((always_inline)) double  fast_tan(double x) { return tan(x); }
+    EXPORT double fast_acos(double x) { return acos(x); }
+    EXPORT double fast_asin(double x) { return asin(x); }
+    EXPORT double fast_atan(double x) { return atan(x); }
+    EXPORT double fast_atan2(double x, double y) { return atan2(x, y); }
+    EXPORT double fast_ceil(double x) { return ceil(x); }
+    EXPORT double fast_cos(double x) { return cos(x); }
+    EXPORT double fast_exp(double x);
+    EXPORT double fast_exp2(double x);
+    EXPORT double fast_exp10(double x);
+    EXPORT double fast_floor(double x) { return floor(x); }
+    EXPORT double fast_fmod(double x, double y) { return fmod(x, y); }
+    EXPORT double fast_log(double x);
+    EXPORT double fast_log2(double x);
+    EXPORT double fast_log10(double x);
+    EXPORT double fast_pow(double x, double y);
+    EXPORT double fast_remainder(double x, double y) { return remainder(x, y); }
+    EXPORT double fast_round(double x) { return round(x); }
+    EXPORT double fast_sin(double x) { return sin(x); }
+    EXPORT double fast_sqrt(double x) { return sqrt(x); }
+    EXPORT double fast_tan(double x) { return tan(x); }
     
 #ifdef __cplusplus
 }

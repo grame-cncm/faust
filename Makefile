@@ -67,7 +67,6 @@ win32 :
 debug :
 	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
 
-
 plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
@@ -94,7 +93,6 @@ bench :
 
 	$(MAKE) -C tools/benchmark
 
-
 .PHONY: clean depend install uninstall dist parser help
 
 help :
@@ -105,6 +103,9 @@ help :
 	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
 	@echo "make asmjs : compile asmjs libfaust.js"
 	@echo "make wasm : compile wasm libfaust-wasm.js"
+	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
+	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"
+	@echo "make debug : produce a debug version of compiler and libraries"
 	@echo "make sound2faust : compile sound to DSP file converter"
 	@echo "make remote : compile remote components used by FaustLive"
 	@echo "make parser : generate the parser from the lex and yacc files"
@@ -253,19 +254,20 @@ install :
 	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
 	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
 
-	# install Faust man file	
-	cp faust.man $(prefix)/share/man/man1/faust.1
+	# install Faust man file
+	pandoc --standalone --to man compiler/README.md -o faust.1	
+	cp faust.1 $(prefix)/share/man/man1/faust.1
 	
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
 	rm -rf $(prefix)/share/faust/
-
 	rm -rf $(prefix)/include/faust/
 	rm -f $(prefix)/bin/faust$(EXE)
 	rm -f $(prefix)/bin/RemoteServer$(EXE)
 	make -C tools/faust2appls uninstall
 	rm -f $(prefix)/bin/sound2faust$(EXE)
 	rm -f $(prefix)/bin/faustbench
+	rm -f $(prefix)/share/man/man1/faust.1
 
 # make a faust distribution .zip file
 dist :
