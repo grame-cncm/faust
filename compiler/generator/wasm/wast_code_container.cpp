@@ -355,10 +355,31 @@ void WASTScalarCodeContainer::generateCompute(int n)
    tab(n+1, fOutAux); fOutAux << "(func $compute (param $dsp i32) (param $count i32) (param $inputs i32) (param $outputs i32)";
         tab(n+2, fOutAux);
         gGlobal->gWASTVisitor->Tab(n+2);
-        // Loop 'i' variable is moved by bytes. 
-        fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
+    
+        // Loop 'i' variable is moved by bytes
+        BlockInst* compute_block = InstBuilder::genBlockInst();
+        compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
+    
+        {
+            // Inline "max_i" calls
+            DeclareFunInst* max_i = WASInst::generateIntMax();
+            InlineFunctionCall inliner(max_i);
+            compute_block = inliner.getCode(compute_block);
+        }
+        
+        {
+            // Inline "min_i" calls
+            DeclareFunInst* min_i = WASInst::generateIntMin();
+            InlineFunctionCall inliner(min_i);
+            compute_block = inliner.getCode(compute_block);
+        }
+
+        // Push the loop in compute block
+        fComputeBlockInstructions->pushBackInst(compute_block);
+    
         MoveVariablesInFront2 mover;
         BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
+    
         block->accept(gGlobal->gWASTVisitor);
     tab(n+1, fOutAux); fOutAux << ")";
 }

@@ -171,9 +171,15 @@ void Typed::init()
 
 bool BlockInst::hasReturn()
 {
-    list<StatementInst*>::const_iterator it = fCode.end();
-    it--;
+    list<StatementInst*>::const_iterator it = fCode.end(); it--;
     return dynamic_cast<RetInst*>(*it);
+}
+
+ValueInst* BlockInst::getReturnValue()
+{
+    list<StatementInst*>::const_iterator it = fCode.end(); it--;
+    RetInst* ret = dynamic_cast<RetInst*>(*it);
+    return (ret) ? ret->fResult : NULL;
 }
 
 struct StoreVarInst* DeclareVarInst::store(ValueInst* exp)

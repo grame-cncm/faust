@@ -428,18 +428,36 @@ void WASMCodeContainer::produceClass()
 
 void WASMScalarCodeContainer::generateCompute()
 {
+    // Loop 'i' variable is moved by bytes
+    BlockInst* compute_block = InstBuilder::genBlockInst();
+    compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
+    
+    {
+        // Inline "max_i" calls
+        DeclareFunInst* max_i = WASInst::generateIntMax();
+        InlineFunctionCall inliner(max_i);
+        compute_block = inliner.getCode(compute_block);
+    }
+    
+    {
+        // Inline "min_i" calls
+        DeclareFunInst* min_i = WASInst::generateIntMin();
+        InlineFunctionCall inliner(min_i);
+        compute_block = inliner.getCode(compute_block);
+    }
+    
+    // Push the loop in compute block
+    fComputeBlockInstructions->pushBackInst(compute_block);
+    
+    MoveVariablesInFront2 mover;
+    BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
+    
+    // Creates function and visit it
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(InstBuilder::genNamedTyped("count", Typed::kInt32));
     args.push_back(InstBuilder::genNamedTyped("inputs", Typed::kVoid_ptr));
     args.push_back(InstBuilder::genNamedTyped("outputs", Typed::kVoid_ptr));
-    
-    // Loop 'i' variable is moved by bytes.
-    fComputeBlockInstructions->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
-    MoveVariablesInFront2 mover;
-    BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
-    
-    // Creates function and visit it
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }

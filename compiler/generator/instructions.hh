@@ -1234,6 +1234,7 @@ struct BlockInst : public StatementInst
     int size() { return fCode.size(); }
 
     bool hasReturn();
+    ValueInst* getReturnValue();
 
 };
 
