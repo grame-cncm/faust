@@ -25,6 +25,8 @@
 #include "floats.hh"
 #include "global.hh"
 
+std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
+
 string Typed::gTypeString[] = {
     "kInt32", "kInt32ish", "kInt32_ptr", "kInt32_vec", "kInt32_vec_ptr",
     "kBool", "kBool_ptr", "kBool_vec", "kBool_vec_ptr",
@@ -179,7 +181,12 @@ ValueInst* BlockInst::getReturnValue()
 {
     list<StatementInst*>::const_iterator it = fCode.end(); it--;
     RetInst* ret = dynamic_cast<RetInst*>(*it);
-    return (ret) ? ret->fResult : NULL;
+    if (ret) {
+        fCode.pop_back();
+        return ret->fResult;
+    } else {
+        return InstBuilder::genNullInst();
+    }
 }
 
 struct StoreVarInst* DeclareVarInst::store(ValueInst* exp)

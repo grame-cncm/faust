@@ -1449,7 +1449,11 @@ struct WhileLoopInst : public StatementInst
 // =====================
 
 class BasicCloneVisitor : public CloneVisitor {
-
+    
+    protected:
+    
+        static std::stack<BlockInst*> fBlockStack;
+   
     public:
 
         BasicCloneVisitor()
@@ -1547,13 +1551,16 @@ class BasicCloneVisitor : public CloneVisitor {
 
         // Block
         virtual StatementInst* visit(BlockInst* inst)
-         {
-            list<StatementInst*> cloned;
+        {
+            //stacktrace(40);
+            BlockInst* cloned = new BlockInst();
+            fBlockStack.push(cloned);
             list<StatementInst*>::const_iterator it;
             for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                cloned.push_back((*it)->clone(this));
+                cloned->pushBackInst((*it)->clone(this));
             }
-            return new BlockInst(cloned);
+            fBlockStack.pop();
+            return cloned;
         }
 
         // User interface
