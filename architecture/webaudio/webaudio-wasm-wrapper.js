@@ -200,16 +200,6 @@ faust.remap = function(v, mn0, mx0, mn1, mx1)
     return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
 }
 
-// special asm2wasm imports
-faust.asm2wasm = {
-	"fmod": function(x, y) {
-        return x % y;
-    },
-    "remainder": function(x, y) {
-        return x - Math.round(x/y) * y;
-    }
-};
-
 // Low-level API
 faust.createWasmCDSPFactoryFromString = faust_module.cwrap('createWasmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.expandCDSPFromString = faust_module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
@@ -543,9 +533,56 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
  */
 faust.createDSPInstance = function (factory, context, buffer_size, callback) {
 
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = Math;
-    importObject["asm2wasm"] = faust.asm2wasm;
+    var importObject = {
+        env: {
+            memoryBase: 0,
+            tableBase: 0,
+                
+            absf: Math.abs,
+            acosf: Math.acos,
+            asinf: Math.asin,
+            atanf: Math.atan,
+            atan2f: Math.atan2,
+            ceilf: Math.ceil,
+            cosf: Math.cos,
+            expf: Math.exp,
+            floorf: Math.floor,
+            fmodf: function(x, y) { return x % y; },
+            logf: Math.log,
+            log10f: Math.log10,
+            max_f: Math.max,
+            min_f: Math.min,
+            remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+            powf: Math.pow,
+            roundf: Math.fround,
+            sinf: Math.sin,
+            sqrtf: Math.sqrt,
+            tanf: Math.tan,
+                
+            abs: Math.abs,
+            acos: Math.acos,
+            asin: Math.asin,
+            atan: Math.atan,
+            atan2: Math.atan2,
+            ceil: Math.ceil,
+            cos: Math.cos,
+            exp: Math.exp,
+            floor: Math.floor,
+            fmod: function(x, y) { return x % y; },
+            log: Math.log,
+            log10: Math.log10,
+            max_: Math.max,
+            min_: Math.min,
+            remainder:function(x, y) { return x - Math.round(x/y) * y; },
+            pow: Math.pow,
+            round: Math.fround,
+            sin: Math.sin,
+            sqrt: Math.sqrt,
+            tan: Math.tan,
+                
+            table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+        }
+    };
 
   	var time1 = performance.now();
 
@@ -1019,11 +1056,59 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, polyphony
 
     var mixObject = { imports: { print: arg => console.log(arg) } }
     mixObject["memory"] = { "memory": memory};
-
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = Math;
-    importObject["asm2wasm"] = faust.asm2wasm;
-    importObject["memory"] = { "memory": memory };
+  
+    var importObject = {
+        env: {
+            memoryBase: 0,
+            tableBase: 0,
+                
+            absf: Math.abs,
+            acosf: Math.acos,
+            asinf: Math.asin,
+            atanf: Math.atan,
+            atan2f: Math.atan2,
+            ceilf: Math.ceil,
+            cosf: Math.cos,
+            expf: Math.exp,
+            floorf: Math.floor,
+            fmodf: function(x, y) { return x % y; },
+            logf: Math.log,
+            log10f: Math.log10,
+            max_f: Math.max,
+            min_f: Math.min,
+            remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+            powf: Math.pow,
+            roundf: Math.fround,
+            sinf: Math.sin,
+            sqrtf: Math.sqrt,
+            tanf: Math.tan,
+                
+            abs: Math.abs,
+            acos: Math.acos,
+            asin: Math.asin,
+            atan: Math.atan,
+            atan2: Math.atan2,
+            ceil: Math.ceil,
+            cos: Math.cos,
+            exp: Math.exp,
+            floor: Math.floor,
+            fmod: function(x, y) { return x % y; },
+            log: Math.log,
+            log10: Math.log10,
+            max_: Math.max,
+            min_: Math.min,
+            remainder:function(x, y) { return x - Math.round(x/y) * y; },
+            pow: Math.pow,
+            round: Math.fround,
+            sin: Math.sin,
+            sqrt: Math.sqrt,
+            tan: Math.tan,
+            
+            memory: memory,
+            
+            table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+        }
+    };
 
     fetch('mixer32.wasm')
     .then(mix_res => mix_res.arrayBuffer())

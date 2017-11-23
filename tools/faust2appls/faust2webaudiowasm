@@ -80,7 +80,7 @@ for p in $@; do
 	fi
 done
 
-if [ $POLY = "true" ] && [ $POLY = "true" ] ; then
+if [ $POLY = "true" ] && [ $WORKLET = "true" ] ; then
     echo "Error: -worklet generation is not yet supported in -poly mode "
     exit
 fi

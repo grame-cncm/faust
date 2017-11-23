@@ -4,7 +4,6 @@
 
 MASTER : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust) 
 master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust) 
-FAUST2 : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=faust2)](https://travis-ci.org/grame-cncm/faust)
 
 ## Introduction
 

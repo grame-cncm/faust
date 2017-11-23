@@ -176,13 +176,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     tab(fTab, *fOut);
-                    if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << gGlobal->getMathFunction(desc.fName) << "\" (param ";
-                    } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                        *fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
+                    if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                        *fOut << "(import $" << inst->fName << " \"env\" \"" << gGlobal->getMathFunction(desc.fName) << "\" (param ";
                     } else {
                         faustassert(false);
                     }
+                    
                     for (int i = 0; i < desc.fArgs; i++) {
                         *fOut << (isIntType(desc.fType) ? "i32" : realStr);
                         if (i < desc.fArgs - 1) *fOut << " ";

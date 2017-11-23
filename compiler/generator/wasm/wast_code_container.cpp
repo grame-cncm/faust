@@ -192,6 +192,10 @@ void WASTCodeContainer::produceClass()
         tab(n+1, fOutAux); fOutAux << "(export \"getParamValue\" (func $getParamValue))";
         tab(n+1, fOutAux); fOutAux << "(export \"compute\" (func $compute))";
     
+        // General imports
+        tab(n+1, fOutAux); fOutAux << "(import \"env\" \"memoryBase\" (global $memoryBase i32))";
+        tab(n+1, fOutAux); fOutAux << "(import \"env\" \"tableBase\" (global $tableBase i32))";
+    
         // Fields : compute the structure size to use in 'new'
         gGlobal->gWASTVisitor->Tab(n+1);
         generateDeclarations(gGlobal->gWASTVisitor);
@@ -324,7 +328,7 @@ void WASTCodeContainer::produceClass()
         *fOut << genMemSize(gGlobal->gWASTVisitor->getStructSize(), fNumInputs + fNumOutputs, json.size()) << ")"; // memory initial pages
     } else {
         // Memory size set by JS code, so use a minimum value that contains the data segment size (shoud be OK for any JSON)
-        *fOut << "(import \"memory\" \"memory\" (memory $0 1))";
+        *fOut << "(import \"env\" \"memory\" (memory $0 1))";
     }
     
     // Generate one data segment containing the JSON string starting at offset 0

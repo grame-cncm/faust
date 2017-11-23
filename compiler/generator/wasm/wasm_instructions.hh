@@ -714,10 +714,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 fFunTypes[inst->fName] = fun_type;
             
                 // Build function import
-                if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                    fFunImports[inst->fName] = std::make_pair("global.Math", desc.fName);
-                } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                    fFunImports[inst->fName] = std::make_pair("asm2wasm", desc.fName);
+                if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
+                    fFunImports[inst->fName] = std::make_pair("env", desc.fName);
                 } else {
                     faustassert(false);
                 }
@@ -805,7 +803,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         
         if (!internal_memory) {
             // Memory
-            *out << "memory";
+            *out << "env";
             *out << "memory";
             *out << U32LEB(int32_t(ExternalKind::Memory));  // Memory kind
             *out << U32LEB(0); // Memory flags
