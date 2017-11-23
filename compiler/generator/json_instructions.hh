@@ -37,6 +37,8 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     
         map <string, string> fPathTable;      // Table : field_name, complete path
       
+		using DispatchVisitor::visit;
+
         JSONInstVisitor(const std::string& name,
                         int inputs,
                         int outputs,

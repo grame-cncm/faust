@@ -52,7 +52,9 @@ struct Stack2StructAnalyser : public DispatchVisitor {
     
     string fName;
     
-    void visit(NamedAddress* address)
+	using DispatchVisitor::visit;
+
+	void visit(NamedAddress* address)
     {
         if (address->fAccess == Address::kStack && address->fName.find(fName) != string::npos) {
             address->fAccess = Address::kStruct;
@@ -69,6 +71,8 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
     CodeContainer* fContainer;
     string fName;
     
+	using DispatchVisitor::visit;
+
     // TODO : also rewrite value memory access
     void visit(DeclareVarInst* inst)
     {
