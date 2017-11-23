@@ -521,7 +521,7 @@ function UploadFile(e) {
             console.log("Poly DSP");
             
             // Create a poly DSP factory from the dsp code    
-            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            //factory = faust.createDSPFactory(dsp_code, ["-I", "https://faust.grame.fr/faustcode/"]);
             factory = faust.createDSPFactory(dsp_code, ["-I", "http://127.0.0.1:8000/libraries/"]);
             
             if (!factory) {
@@ -553,7 +553,7 @@ function UploadFile(e) {
             console.log("Mono DSP");
              
             // Create a mono DSP factory from the dsp code    
-            //factory = faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"]);
+            //factory = faust.createDSPFactory(dsp_code, ["-I", "https://faust.grame.fr/faustcode/"]);
             factory = faust.createDSPFactory(dsp_code, ["-I", "http://127.0.0.1:8000/libraries/"]);
             
             if (!factory) {
@@ -611,7 +611,7 @@ if (window.File && window.FileList && window.FileReader) {
 <div id="export" style="color:white; position: absolute; width:400px; padding:2px 2px 2px 2px; background-color:7F7F7F; visibility:hidden; ">
 
 <div id="centerDiv" style="position:relative; margin-right:auto; margin-left:auto; text-align:center;">
-<input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; maring-right: auto; text-align:center;" contenteditable="true" value="http://faustservice.grame.fr" onkeyup="onEnterKey()"/>
+<input id="exportUrl" style="color:white; border:0px; text-align:center; font-size:16px; background-color:transparent; outline: 0px solid transparent; position:relative; margin-left:auto; maring-right: auto; text-align:center;" contenteditable="true" value="https://faustservice.grame.fr" onkeyup="onEnterKey()"/>
 </br>
 </br>
 </br>

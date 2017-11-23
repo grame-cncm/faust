@@ -361,7 +361,7 @@ static void printFaustdocStamp(const string& faustversion, ostream& docout)
 	
 	docout << "%% This documentation was generated with Faust version " << faustversion << endl;
 	docout << "%% " << datebuf << endl;
-	docout << "%% http://faust.grame.fr" << endl << endl;
+	docout << "%% https://faust.grame.fr" << endl << endl;
 }
 
 /*****************************************************************************

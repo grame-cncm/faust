@@ -189,7 +189,7 @@ class CodeContainer : public virtual Garbageable {
                 }
             }
             
-            dst << "Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+            dst << "Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
             dst << "Compilation options: ";
             printCompilationOptions(dst);
             dst << "\n------------------------------------------------------------ */" << endl;

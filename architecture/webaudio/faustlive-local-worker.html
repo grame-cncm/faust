@@ -525,7 +525,7 @@
                 console.log("Poly DSP");
                 
                 // Create a poly DSP factory from the dsp code    
-                faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
+                faust.createDSPFactory(dsp_code, ["-I", "https://faust.grame.fr/faustcode/"], function(factory) {
                 
                     if (!factory) {
                         alert(faust.getErrorMessage());
@@ -557,7 +557,7 @@
                 console.log("Mono DSP");
                  
                 // Create a mono DSP factory from the dsp code    
-                faust.createDSPFactory(dsp_code, ["-I", "http://faust.grame.fr/faustcode/"], function(factory) {
+                faust.createDSPFactory(dsp_code, ["-I", "https://faust.grame.fr/faustcode/"], function(factory) {
                 
                     /*
                     // Test code 

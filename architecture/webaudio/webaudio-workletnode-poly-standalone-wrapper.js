@@ -86,6 +86,7 @@ class mydsp_polyNode extends AudioWorkletNode {
 faust.createmydsp_poly = function(context, buffer_size, callback)
 {
     // The main global scope
-    window.audioWorklet.addModule("mydsp-processor.js").then(callback(new mydsp_polyNode(context)));
+    var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
+    AWContext.addModule("mydsp-processor.js").then(callback(new mydsp_polyNode(context)));
 }
 

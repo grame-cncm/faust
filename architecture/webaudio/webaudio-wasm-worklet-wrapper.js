@@ -892,7 +892,8 @@ faust.createDSPInstance = function(factory, callback)
         var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
         
         // The main global scope
-        window.audioWorklet.addModule(url)
+        var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
+        AWContext.addModule(url)
         .then(function () {
               // Processor has been registered
               factory.registered = true;

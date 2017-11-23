@@ -721,7 +721,7 @@ static void printHeader(ostream& dst)
     }
     
     dst << "//" << endl;
-    dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
+    dst << "// Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
 }
 
