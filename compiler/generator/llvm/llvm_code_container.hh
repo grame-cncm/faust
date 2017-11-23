@@ -50,6 +50,7 @@ using namespace llvm;
 class LLVMCodeContainer : public virtual CodeContainer {
 
     protected:
+		using CodeContainer::generateInstanceInitFun;
 
         // UI structure creation
         llvm::PointerType* fStructDSP;

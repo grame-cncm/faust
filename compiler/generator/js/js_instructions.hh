@@ -39,6 +39,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         static map <string, string> gMathLibTable;
 
     public:
+		using TextInstVisitor::visit;
 
         JAVAScriptInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", tab)

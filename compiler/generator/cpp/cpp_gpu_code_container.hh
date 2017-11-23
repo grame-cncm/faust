@@ -126,6 +126,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         // Control fields are preceded with "control->"
         // Non-control fields are preceded with "dsp->"
         struct KernelInstVisitor : public CPPInstVisitor {
+			
+			using CPPInstVisitor::visit;
 
             map < string, string> fFunctionTable;
             KernelInstVisitor(std::ostream* out, int tab)
@@ -345,6 +347,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
+			using KernelInstVisitor::visit;
 
             // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
@@ -438,6 +441,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
         // Add __shared__ keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
+			using KernelInstVisitor::visit;
 
             BlockKernelInstVisitor(std::ostream* out, int tab)
                 :KernelInstVisitor(out, tab)

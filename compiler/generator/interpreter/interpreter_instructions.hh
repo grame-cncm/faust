@@ -32,6 +32,7 @@ using namespace std;
 
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
+		using DispatchVisitor::visit;
 
         /*
          Global functions names table as a static variable in the visitor

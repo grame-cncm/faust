@@ -75,6 +75,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         }
     
     public:
+		using TextInstVisitor::visit;
     
         ASMJAVAScriptInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, ".", ifloat(), "", tab)

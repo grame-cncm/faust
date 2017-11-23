@@ -864,6 +864,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
    
     public:
+		using DispatchVisitor::visit;
     
         WASMInstVisitor(BufferWithRandomAccess* out, bool fast_memory):WASInst(fast_memory), fOut(out)
         {}
