@@ -181,6 +181,7 @@ int main(int argc, char* argv[])
     }
     
     cout << "getName " << factory->getName() << endl;
+    //cout << "getSHAKey " << factory->getSHAKey() << endl;
   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;

@@ -89,7 +89,7 @@ LLVM_STATIC_LIBS = $(shell $(LLVM_CONFIG) --libs) $(LLVM_SYS_LIBS)
 
 ## On Windows (mingw32) we must link against the socket library.
 ifneq ($(findstring MINGW32, $(system)),)
-    LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 `pkg-config --libs libcrypto` -lz
+    LIBS = -lshell32 -lpsapi -limagehlp -lwsock32 -lz
     EXE = .exe
 endif
 
@@ -302,14 +302,14 @@ faust : $(common_objects) $(backend_objects) main.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -o faust
 endif
 
 faustlight : $(common_objects) $(ba_c) $(ba_cpp) main.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o `pkg-config --libs libcrypto` -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o -o faust
 endif
 
 ifeq ($(system), Darwin)
@@ -318,7 +318,7 @@ ifeq ($(system), Darwin)
 	libtool $(LIBFLAGS) $(common_objects) $(backend_objects) libmain.o -static -o $@
 
     libfaust.dylib : $(common_objects) $(backend_objects) libmain.o
-	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) libmain.o `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
+	$(CXX) -dynamiclib $(ARCHFLAGS) $(LIBFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) libmain.o `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -install_name /usr/local/lib/libfaust.dylib -o libfaust.dylib
 else
 ifneq ($(findstring MINGW32, $(system)),)
     libfaust.a : $(common_objects) $(backend_objects) libmain.o
@@ -335,7 +335,7 @@ else
 	$(RANLIB) $@
 
     libfaust.so : $(common_objects) $(backend_objects) libmain.o
-	$(CXX) -shared -fPIC $(LDFLAGS) $(common_objects) $(backend_objects) libmain.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -lstdc++
+	$(CXX) -shared -fPIC $(LDFLAGS) $(common_objects) $(backend_objects) libmain.o -o libfaust.so `$(LLVM_CONFIG) --ldflags` $(LLVM_STATIC_LIBS) $(CLANGLIBS) -lstdc++
 endif
 endif
 
