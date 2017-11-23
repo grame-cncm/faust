@@ -18,21 +18,15 @@ While there are Faust contributors everywhere across the globe, Faust is mainly 
 
 The Faust distribution can be downloaded on the Faust Github repository: <https://github.com/grame-cncm/faust>. Official releases packages are also available here: <https://sourceforge.net/projects/faudiostream/files/?source=navbar>.
 
-There are currently 2 different versions of the Faust compiler: "Faust0" and "Faust2". They are available in two separate branches: `master` (Faust0) and `faust2` (Faust2). The main difference between these 2 versions lies in the Faust compiler itself. `master` and `faust2` are merged multiple times a week, so features that are not related to the Faust compiler should be synchronized between these 2 branches. 
-
 In the following subsections, details about the differences between these 2 versions of Faust are provided as well as information on other branches of the repository.
 
-### `master` (Faust0)
+### `master` 
 
-`master` is the main Faust branch hosting Faust0. Faust0 is the "original" version of the Faust compiler. Unlike Faust2, it can only generate C++ code and it doesn't have any dependencies, making it extremely easy to compile and install. Faust0 will suit the needs of most users and is the recommended version of Faust.
+`master` is the main Faust branch. It can compile in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust relies on LLVM and OpenSSL. Finally, Faust is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc. This branch also cotiaons the old Faust1 C++ backend.
 
-### `master-dev` (Faust0 - Preferred Development Branch)
+### `master-dev` (Preferred Development Branch)
 
-`master-dev` is the development sub-branch of `master`, thus it is also based on Faust0. It is used by Faust developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev` and `master` are carried out multiple times a week by the GRAME team. 
-
-### `faust2` (Faust2)
-
-`faust2` is the home of Faust2. As mentioned previously, most of the differences between Faust0 and Faust2 lie in the Faust compiler. Unlike Faust0, Faust2 can generate code in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust2 is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust2 is slightly more complex than Faust0 since it relies on LLVM and OpenSSL. Finally, Faust2 is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc.
+`master-dev` is the development sub-branch of `master`. It is used by Faust developers to commit their changes and can be considered as "the main development branch." The goal is to make sure that `master` is always functional. Merges between `master-dev` and `master` are carried out multiple times a week by the GRAME team. 
 
 More experimental branches are also available but are not documented here.
 
