@@ -33,6 +33,7 @@ class OpenCLInstVisitor : public TextInstVisitor {
         map <string, int> fGlobalTable;
 
     public:
+		using TextInstVisitor::visit;
 
         OpenCLInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)

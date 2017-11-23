@@ -50,6 +50,7 @@ class InstComplexityVisitor : public DispatchVisitor {
         int fFunCall;
 
     public:
+		using DispatchVisitor::visit;
 
         InstComplexityVisitor()
             :fLoad(0), fStore(0), fBinop(0), fNumbers(0),

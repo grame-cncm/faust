@@ -1715,6 +1715,7 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         void Dispatch2Visitor(ValueInst* inst);
 
     public:
+		using DispatchVisitor::visit;
 
         ScalVecDispatcherVisitor(InstVisitor* scal, InstVisitor* vec)
             :fScalarVisitor(scal), fVectorVisitor(vec)

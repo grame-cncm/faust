@@ -38,6 +38,7 @@ class CPPInstVisitor : public TextInstVisitor {
         static map <string, int> gFunctionSymbolTable;
  
     public:
+		using TextInstVisitor::visit;
 
         CPPInstVisitor(std::ostream* out, int tab = 0)
             :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
