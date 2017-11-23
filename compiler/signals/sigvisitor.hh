@@ -30,7 +30,7 @@ struct sigvisitor
 	void visit(Tree sig);
 	
 	// Unrecognized signal (default handler)
-	virtual void visitError		(Tree sig);
+	virtual void visitError(Tree sig);
 	
 	virtual ~sigvisitor() {}
 	
@@ -130,7 +130,7 @@ struct fullvisitor : sigvisitor
 	
 	// recursive
 	virtual void visitRec 		(Tree sig, Tree var, Tree body) 				{ visit(body); }
- 	virtual void visitRef 		(Tree sig, Tree var) 							{ } 
+ 	virtual void visitRef 		(Tree sig, Tree var) 							{} 
  	virtual void visitProj		(Tree sig, int i, Tree s) 						{ visit(s); }
 	
 	// Tables

@@ -26,12 +26,13 @@ Additional Faust compiler options can be given. Note that the Interpreter backen
 
 The **faustbench** uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
 
-`faustbench [-ios] [-fast] [-run <num] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
  - `-ios to generate an iOS project`
- - `-fast to execute only some tests`
+ - `-single to only scalar test`
+ - `-fast to onlyexecute  some tests`
  - `-run <num> to execute each test <num> times`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
 
@@ -41,10 +42,11 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust comptiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-single] [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
+- `-single to only scalar test`
 - `-run <num> to execute each test <num> times`
 
 ## faustbench-wasm
@@ -57,9 +59,11 @@ The **faustbench-wasm** tool tests a given DSP program in [node.js](https://node
 
 The **faust2benchwasm** tool generates an HTML page embedding benchmark code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
 
-`faust2benchwasm [-opt] foo.dsp` 
+`faust2benchwasm [-opt] [-html] [-emcc] foo.dsp` 
 
 Here is the available option:
 
 - `-opt to optimize the wasm module using Binaryen tools`
+- `-html to generate a ready to use HTML test page`
+- `-emcc to compile the generated C code with Emscripten (still experimental)`
 

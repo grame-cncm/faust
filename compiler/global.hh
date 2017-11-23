@@ -143,10 +143,15 @@ struct global {
     bool            gGenerateSelectWithIf;  // Generates select with an 'if'
     bool            gAllowForeignFunction;  // Can use foreign functions
     bool            gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool            gFaustFloatToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool            gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
     bool            gInPlace;               // Add cache to input for correct in-place computations
     bool            gHasExp10;              // If the 'exp10' math function is available
     bool            gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
+    bool            gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
+    bool            gHasTeeLocal;           // For wast/wasm backends
+    bool            gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    string          gFastMathLib;           // The fastmath code mapping file
+    map <string, string> gFastMathLibTable;
     
     dsp_factory_base* gDSPFactory;
 
@@ -504,6 +509,15 @@ struct global {
     
     string makeDrawPath();
     string makeDrawPathNoExt();
+    
+    string getMathFunction(const string& name)
+    {
+        if (gFastMath && (gFastMathLibTable.find(name) != gFastMathLibTable.end())) {
+            return gFastMathLibTable[name];
+        } else {
+            return name;
+        }
+    }
 };
 
 // Unique shared global pointer

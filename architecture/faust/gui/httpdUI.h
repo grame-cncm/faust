@@ -138,7 +138,7 @@ class httpdServerUI : public UI, public httpdUIAux
     
         // -- soundfiles
     
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
         virtual void declare(FAUSTFLOAT*, const char* key, const char* val) { fCtrl->declare(key, val); }
 

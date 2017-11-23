@@ -157,6 +157,8 @@ class UI
 	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
 	
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+    
 	// -- passive widgets
 	
 	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;

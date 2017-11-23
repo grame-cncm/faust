@@ -46,7 +46,7 @@ using namespace std;
 
 //--------------------------------------------------------------------------
 static int annotate(Tree env, Tree sig);
-static int position (Tree env, Tree t, int p=1);
+static int position (Tree env, Tree t, int p = 1);
 //--------------------------------------------------------------------------
 
 /**
@@ -96,16 +96,16 @@ static int annotate(Tree env, Tree sig)
 			return p;	// we are inside \x.(...)
 		} else {
 			int r = annotate(cons(sig, env), body) - 1;
-			if (r<0) r=0;
+			if (r<0) r = 0;
 			setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
 			return r;
 		}
 	} else {
 		int rmax = 0;
 		vector<Tree> v; getSubSignals(sig, v);
-		for (unsigned int i=0; i<v.size(); i++) {
+		for (unsigned int i = 0; i < v.size(); i++) {
 			int r = annotate(env, v[i]);
-			if (r>rmax) rmax=r;
+			if (r>rmax) rmax = r;
 		}
 		setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
 		return rmax;
@@ -120,7 +120,7 @@ static int annotate(Tree env, Tree sig)
  * @param t signal we want to know the position
  * @return the position in the recursive environment
  */
-static int position (Tree env, Tree t, int p)
+static int position(Tree env, Tree t, int p)
 {
 	if (isNil(env)) return 0;	// was not in the environment
 	if (hd(env) == t) return p;
@@ -135,20 +135,20 @@ static int position (Tree env, Tree t, int p)
  * @return the set of symbols
  */
 
-Tree    symlistVisit(Tree sig, set<Tree>& visited)
+Tree symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
     
     if (gGlobal->gSymListProp->get(sig, S)) {
         return S;
-    } else if ( visited.count(sig) > 0 ){
+    } else if (visited.count(sig) > 0) {
         return gGlobal->nil;
     } else {
         visited.insert(sig);
         Tree id, body;
         if (isRec(sig, id, body)) {
             Tree U = singleton(sig);
-            for (int i=0; i<len(body); i++) {
+            for (int i = 0; i < len(body); i++) {
                 U = setUnion(U, symlistVisit(nth(body,i), visited));
             }
             return U;
@@ -156,7 +156,7 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
             vector<Tree> subsigs;
             int n = getSubSignals(sig, subsigs, true); // il faut visiter aussi les tables
             Tree U = gGlobal->nil;
-            for (int i=0; i<n; i++) {
+            for (int i = 0; i < n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));
             }
             return U;
@@ -164,9 +164,9 @@ Tree    symlistVisit(Tree sig, set<Tree>& visited)
     }
 }
 
-Tree    symlist(Tree sig)
+Tree symlist(Tree sig)
 {
-    Tree    S;
+    Tree S;
     
     if (!gGlobal->gSymListProp->get(sig, S)) {
         set<Tree> visited;

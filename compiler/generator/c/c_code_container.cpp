@@ -28,7 +28,7 @@
 
 using namespace std;
 
-map <string, int> CInstVisitor::gFunctionSymbolTable;
+map <string, bool> CInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* CCodeContainer::produceFactory()
 {
@@ -180,7 +180,7 @@ void CCodeContainer::produceClass()
         generateDeclarations(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "} "<<  fKlassName << ";";
-   
+    
     // Memory methods
     tab(n, *fOut);
     if (!gGlobal->gLightMode) {

@@ -16,7 +16,6 @@ import("music.lib");
 
 rintegrate(onoff) 	= (+:*(onoff))~_ : mem;
 
-
 //----------------------------------------------------------------------
 // INTEGRATE : signal integrator
 // It integrates the values of x : 0, x(0), x(0)+x(1), x(0)+x(1)+x(2),...
@@ -25,9 +24,6 @@ rintegrate(onoff) 	= (+:*(onoff))~_ : mem;
 //----------------------------------------------------------------------
 
 integrate 		= rintegrate(1);
-
-
-
 
 //----------------------------------------------------------------------
 // Trigable Parabolic Grain Envelop :
@@ -46,11 +42,8 @@ grainenv(sdur, gamp, trig, sig) = (_|trig|trig' : amplitude : max(0)) ~ >(0) : *
 
 		slope(on) 		= 4 * gamp * (rdur - rdur2) + rintegrate(on,curve);
 		amplitude(on) 	= rintegrate(on, slope(on));
-	}
-	;
-
-
-
+	};
+	
 //----------------------------------------------------------------------
 // A grain
 // <id> is the value that must be used by sel to trig the grain
@@ -67,7 +60,6 @@ grain(id, pos, sdur, gamp, sel, sig)
 
 trig = (integrate(1) % 7 == 3);
 selector_ = integrate(1) % 7;
-
 
 //process 	= integrate(1), slope(trig), max(0.0,bidule(trig));
 //process 	= integrate(1), trig, grainenv(10, 2.8, trig, 1);

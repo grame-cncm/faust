@@ -205,12 +205,12 @@ struct BinOp {
             fLeftAbsorbing(la), fRightAbsorbing(ra), fPriority(priority)
     {}
 
-    Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
+    Node compute(const Node& a, const Node& b) { return fCompute(a,b); }
 
-    bool isRightNeutral(const Node& a)      { return fRightNeutral(a); 	    }
-    bool isLeftNeutral(const Node& a)       { return fLeftNeutral(a); 	    }
-    bool isLeftAbsorbing(const Node& a)     { return fLeftAbsorbing(a);     }
-    bool isRightAbsorbing(const Node& a)    { return fRightAbsorbing(a);    }
+    bool isRightNeutral(const Node& a)      { return fRightNeutral(a); }
+    bool isLeftNeutral(const Node& a)       { return fLeftNeutral(a); }
+    bool isLeftAbsorbing(const Node& a)     { return fLeftAbsorbing(a); }
+    bool isRightAbsorbing(const Node& a)    { return fRightAbsorbing(a); }
 };
 
 extern BinOp* gBinOpTable[];

@@ -117,7 +117,7 @@ public:
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
     virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
     
-    virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
     void copyfrom(MYFLT* mem[]) {
         for (unsigned int i=0; i<vZone.size(); i++) { *vZone[i] = *(mem[i]); }

@@ -16,7 +16,6 @@ import("music.lib");
 
 rintegrate(onoff) 	= (+:*(onoff))~_ : mem;
 
-
 //----------------------------------------------------------------------
 // INTEGRATE : signal integrator
 // It integrates the values of x : 0, x(0), x(0)+x(1), x(0)+x(1)+x(2),...
@@ -25,9 +24,6 @@ rintegrate(onoff) 	= (+:*(onoff))~_ : mem;
 //----------------------------------------------------------------------
 
 integrate 		= rintegrate(1);
-
-
-
 
 //----------------------------------------------------------------------
 // Trigable Parabolic Grain Envelop :
@@ -46,10 +42,7 @@ grainenv(sdur, gamp, trig, sig) = (_|trig|trig' : amplitude : max(0)) ~ >(0) : *
 
 		slope(on) 		= 4 * gamp * (rdur - rdur2) + rintegrate(on,curve);
 		amplitude(on) 	= rintegrate(on, slope(on));
-	}
-	;
-
-
+	};
 
 //----------------------------------------------------------------------
 // A grain
@@ -64,9 +57,6 @@ grainenv(sdur, gamp, trig, sig) = (_|trig|trig' : amplitude : max(0)) ~ >(0) : *
 
 grain(id, pos, gdur, gamp, sel, sig)
 	= sig : delay10s(pos) : grainenv(gdur, gamp, (sel==id));
-
-
-
 
 //----------------------------------------------------------------------
 // A multi grain with a stereo output
@@ -88,7 +78,6 @@ multigrain2(num, tdur, gdur, gamp, sel, sig)
 
 irnd(lo,hi) = int( (lo+hi)/2 + noise*(hi-lo)/2 );
 
-
 //----------------------------------------------------------------------
 // Sample and hold : the value is sampled when <t> is 1
 // and hold when <t> is 0
@@ -96,11 +85,8 @@ irnd(lo,hi) = int( (lo+hi)/2 + noise*(hi-lo)/2 );
 
 SH(t) = *(t): +~*(1-t);
 
-
-
 trig = (integrate(1) % 7 == 3);
 selector_ = irnd(0, 20);
-
 
 //process 	= integrate(1), slope(trig), max(0.0,bidule(trig));
 //process 	= integrate(1), trig, grainenv(10, 2.8, trig, 1);
@@ -112,6 +98,5 @@ vol = hslider("vol", 0, 0, 1, 0.01);
 lim1 = hslider("lim1", 0, 0, 10000, 1);
 lim2 = hslider("lim2", 0, 0, 10000, 1);
 
-
-process 	= *(vol) : multigrain2( 32, 5*SR, SR/20, 1, (irnd(lim1,lim2) : SH(pulse(SR/137))) );
+process = *(vol) : multigrain2( 32, 5*SR, SR/20, 1, (irnd(lim1,lim2) : SH(pulse(SR/137))) );
 

@@ -327,7 +327,7 @@ struct auUI: public UI, public MetaDataUI {
         currentBox->add(bargraph);
     }
     
-    void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
     void openHorizontalBox(const char* label)
     {

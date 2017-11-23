@@ -814,7 +814,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         
         for (auto& import : fFunImports) {
             *out << import.second.first;    // module
-            *out << import.second.second;   // base
+            // Possibly map fastmath functions
+            *out << gGlobal->getMathFunction(import.second.second);   // base
             *out << U32LEB(int32_t(ExternalKind::Function));
             *out << U32LEB(getFunctionTypeIndex(import.first)); // function type index
         }
@@ -1116,6 +1117,22 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             } else {
                 faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
                 LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+                *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
+            }
+        }
+    
+        virtual void visit(TeeVarInst* inst)
+        {
+            faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
+            LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+            
+            // 'tee_local' is generated the first time the variable is used
+            // All future access simply use a get_local
+            if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
+                inst->fValue->accept(this);
+                *fOut << int8_t(BinaryConsts::TeeLocal) << U32LEB(local.fIndex);
+                fTeeMap[inst->fAddress->getName()] = true;
+            } else {
                 *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
             }
         }

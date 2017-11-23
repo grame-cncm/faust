@@ -35,8 +35,8 @@ class CPPInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;
- 
+        static map <string, bool> gFunctionSymbolTable;
+  
     public:
 		using TextInstVisitor::visit;
 
@@ -44,30 +44,54 @@ class CPPInstVisitor : public TextInstVisitor {
             :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)
         {
             // Mark all math.h functions as generated...
-            gFunctionSymbolTable["abs"] = 1;
+            gFunctionSymbolTable["abs"] = true;
+            
+            gFunctionSymbolTable["max"] = true;
+            gFunctionSymbolTable["min"] = true;
             
             // Float version
-            gFunctionSymbolTable["absf"] = 1;
-            gFunctionSymbolTable["fabsf"] = 1;
-            gFunctionSymbolTable["acosf"] = 1;
-            gFunctionSymbolTable["asinf"] = 1;
-            gFunctionSymbolTable["atanf"] = 1;
-            gFunctionSymbolTable["atan2f"] = 1;
-            gFunctionSymbolTable["ceilf"] = 1;
-            gFunctionSymbolTable["cosf"] = 1;
-            gFunctionSymbolTable["expf"] = 1;
-            gFunctionSymbolTable["exp10f"] = 1;
-            gFunctionSymbolTable["floorf"] = 1;
-            gFunctionSymbolTable["fmodf"] = 1;
-            gFunctionSymbolTable["logf"] = 1;
-            gFunctionSymbolTable["log10f"] = 1;
-            gFunctionSymbolTable["max"] = 1;
-            gFunctionSymbolTable["min"] = 1;
-            gFunctionSymbolTable["powf"] = 1;
-            gFunctionSymbolTable["roundf"] = 1;
-            gFunctionSymbolTable["sinf"] = 1;
-            gFunctionSymbolTable["sqrtf"] = 1;
-            gFunctionSymbolTable["tanf"] = 1;
+            gFunctionSymbolTable["absf"] = true;
+            gFunctionSymbolTable["fabsf"] = true;
+            gFunctionSymbolTable["acosf"] = true;
+            gFunctionSymbolTable["asinf"] = true;
+            gFunctionSymbolTable["atanf"] = true;
+            gFunctionSymbolTable["atan2f"] = true;
+            gFunctionSymbolTable["ceilf"] = true;
+            gFunctionSymbolTable["cosf"] = true;
+            gFunctionSymbolTable["expf"] = true;
+            gFunctionSymbolTable["exp10f"] = true;
+            gFunctionSymbolTable["floorf"] = true;
+            gFunctionSymbolTable["fmodf"] = true;
+            gFunctionSymbolTable["logf"] = true;
+            gFunctionSymbolTable["log10f"] = true;
+            gFunctionSymbolTable["powf"] = true;
+            gFunctionSymbolTable["remainderf"] = true;
+            gFunctionSymbolTable["roundf"] = true;
+            gFunctionSymbolTable["sinf"] = true;
+            gFunctionSymbolTable["sqrtf"] = true;
+            gFunctionSymbolTable["tanf"] = true;
+            
+            // Double version
+            gFunctionSymbolTable["abs"] = true;
+            gFunctionSymbolTable["fabs"] = true;
+            gFunctionSymbolTable["acos"] = true;
+            gFunctionSymbolTable["asin"] = true;
+            gFunctionSymbolTable["atan"] = true;
+            gFunctionSymbolTable["atan2"] = true;
+            gFunctionSymbolTable["ceil"] = true;
+            gFunctionSymbolTable["cos"] = true;
+            gFunctionSymbolTable["exp"] = true;
+            gFunctionSymbolTable["exp10"] = true;
+            gFunctionSymbolTable["floor"] = true;
+            gFunctionSymbolTable["fmod"] = true;
+            gFunctionSymbolTable["log"] = true;
+            gFunctionSymbolTable["log10"] = true;
+            gFunctionSymbolTable["pow"] = true;
+            gFunctionSymbolTable["remainder"] = true;
+            gFunctionSymbolTable["round"] = true;
+            gFunctionSymbolTable["sin"] = true;
+            gFunctionSymbolTable["sqrt"] = true;
+            gFunctionSymbolTable["tan"] = true;
         }
 
         virtual ~CPPInstVisitor()
@@ -173,7 +197,7 @@ class CPPInstVisitor : public TextInstVisitor {
             if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                gFunctionSymbolTable[inst->fName] = true;
             }
             
             // Defined as macro in the architecture file...
@@ -248,8 +272,7 @@ class CPPInstVisitor : public TextInstVisitor {
             } else {
                 name = inst->fName;
             }
-            
-            generateFunCall(inst, name);
+            generateFunCall(inst, gGlobal->getMathFunction(name));
         }
         
         static void cleanup() { gFunctionSymbolTable.clear(); }

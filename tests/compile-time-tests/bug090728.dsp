@@ -32,7 +32,7 @@ imp(x) = 1*(x'==0)+1;
 impuls = (imp~_)-1;
 rampno1(x) = x+impuls;
 
-///### these are the lines, that cause the exponatialy increasing compile time ###
+///### these are the lines, that cause the exponentially increasing compile time ###
 pSeries(1,Func) = Func;
 pSeries(i,Func) = Func : pSeries(i-1,Func), _, _;
 pchain(n) = pSeries(n,dynElem) ~ rampno1;

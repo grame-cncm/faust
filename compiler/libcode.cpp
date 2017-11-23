@@ -446,6 +446,11 @@ static bool processCmdline(int argc, const char* argv[])
                 throw faustexception(error.str());
             }
             i += 2;
+            
+        } else if (isCmd(argv[i], "-fm", "--fast-math")) {
+            gGlobal->gFastMath = true;
+            gGlobal->gFastMathLib = argv[i+1];
+            i += 2;
          
         } else if (isCmd(argv[i], "-I", "--import-dir") && (i+1 < argc)) {
             if ((strstr(argv[i+1], "http://") != 0) || (strstr(argv[i+1], "https://") != 0)) {
@@ -538,7 +543,7 @@ static bool processCmdline(int argc, const char* argv[])
     // Adjust related options
     if (gGlobal->gOpenMPSwitch || gGlobal->gSchedulerSwitch) gGlobal->gVectorSwitch = true;
     
-    // Check options
+    // Check options coherency
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }  
@@ -559,6 +564,18 @@ static bool processCmdline(int argc, const char* argv[])
         stringstream error;
         error << "ERROR : invalid vector loop size [-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
+    }
+    
+    if (gGlobal->gFastMath) {
+        if (!(gGlobal->gOutputLang == "c"
+            || gGlobal->gOutputLang == "cpp"
+            || gGlobal->gOutputLang == "llvm"
+            || gGlobal->gOutputLang == "wast"
+            || gGlobal->gOutputLang == "wasm")) {
+            stringstream error;
+            error << "ERROR : -fm can only be used with c, cpp, or llvm backends" << endl;
+            throw faustexception(error.str());
+        }
     }
     
     if (err != 0) {
@@ -647,6 +664,7 @@ static void printHelp()
     cout << "-inpl    \t--in-place generates code working when input and output buffers are the same (in scalar mode only) \n";
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]\n";
+    cout << "-fm <file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in <file>, takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 
@@ -705,24 +723,6 @@ static void printHeader(ostream& dst)
     dst << "//" << endl;
     dst << "// Code generated with Faust " << FAUSTVERSION << " (http://faust.grame.fr)" << endl;
     dst << "//----------------------------------------------------------" << endl << endl;
-}
-
-static void printFloatDef(std::ostream& fout)
-{
-    fout << "#ifndef " << FLOATMACRO << std::endl;
-    fout << "#define " << FLOATMACRO << " " << "float" << std::endl;
-    fout << "#endif  " << std::endl;
-    fout << std::endl;
-    if (gGlobal->gFloatSize == 3) fout << "typedef long double quad;" << std::endl;
-}
-
-string makeDrawPath()
-{
-    if (gGlobal->gOutputDir != "") {
-        return gGlobal->gOutputDir + "/" + gGlobal->gMasterName + ".dsp";
-    } else {
-        return gGlobal->gMasterDocument;
-    }
 }
 
 #endif
@@ -956,11 +956,6 @@ static void injectCode(ifstream* enrobage, ostream* dst)
 
 static void generateCode(Tree signals, int numInputs, int numOutputs, bool generate)
 {
-    // By default use "cpp" output
-    if (gGlobal->gOutputLang == "") {
-        gGlobal->gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
-    }
-
     ostream* dst = NULL;
     ostream* helpers = NULL;
     string outpath = "";
@@ -992,7 +987,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #if LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
         
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     #ifndef _WIN32
         gGlobal->gHasExp10 = true;
     #endif
@@ -1018,7 +1013,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         
         gGlobal->gAllowForeignFunction = true;  // libc functions will be found by LLVM linker, but not user defined ones...
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
     #ifndef _WIN32
         gGlobal->gHasExp10 = true;
     #endif
@@ -1056,7 +1051,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = false; // No foreign functions
         gGlobal->gGenerateSelectWithIf = false; // No 'select with if',
         gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-        gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
        
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1133,7 +1128,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "rust") {
             
         #if RUST_BUILD
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang rust not supported since Rust backend is not built\n");
@@ -1161,7 +1156,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             
         #if ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1170,10 +1166,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            //gGlobal->gHasTeeLocal = true;           // combined store/load
+            
             // This speedup (freewerb for instance) ==> to be done at signal level
-            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-            gGlobal->gLoopVarInBytes = true;
+            //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            
             container = WASTCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wast")
                                                             || (gGlobal->gOutputLang == "wast-i")));
@@ -1200,10 +1200,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
         #if WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
-            gGlobal->gFaustFloatToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
+            //gGlobal->gHasTeeLocal = true;           // combined store/load
+            
             // This speedup (freewerb for instance) ==> to be done at signal level
-            //gGlobal->gComputeIOTA = true;           // Ensure IOTA base fixed delays are computed once
-            gGlobal->gLoopVarInBytes = true;
+            //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
+            
             container = WASMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst,
                                                            ((gGlobal->gOutputLang == "wasm")
                                                             || (gGlobal->gOutputLang == "wasm-i")
@@ -1361,12 +1365,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             }
             
             streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            printFloatDef(*dst);
+            printfloatdef(*dst, gGlobal->gFloatSize == 3);
             old_comp->getClass()->println(0,*dst);
             streamCopyUntilEnd(*enrobage, *dst);
             
         } else {
-            printFloatDef(*dst);
+            printfloatdef(*dst, gGlobal->gFloatSize == 3);
             old_comp->getClass()->println(0,*dst);
         }
         
@@ -1375,7 +1379,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
          *****************************************************************/
         
         if (gGlobal->gGraphSwitch) {
-            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
         }
         
@@ -1414,7 +1418,7 @@ static void generateOutputFiles()
         } else if (old_comp) {
             
             Description* D = old_comp->getDescription(); assert(D);
-            ofstream xout(subst("$0.xml", makeDrawPath()).c_str());
+            ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
             
             if(gGlobal->gMetaDataSet.count(tree("name")) > 0)          D->name(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())));
             if(gGlobal->gMetaDataSet.count(tree("author")) > 0)        D->author(tree2str(*(gGlobal->gMetaDataSet[tree("author")].begin())));
@@ -1453,7 +1457,7 @@ static void generateOutputFiles()
             container->printGraphDotFormat(dotfile);
     #if OCPP_BUILD
         } else if (old_comp) {
-            ofstream dotfile(subst("$0.dot", makeDrawPath()).c_str());
+            ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
     #endif
         } else {
@@ -1597,7 +1601,7 @@ static void compileFaustInternal(int argc, const char* argv[], const char* name,
     }
     Tree lsignals = gGlobal->gLsignalsTree;
     
-    if (gGlobal->gDetailsSwitch) { cout << "output signals are : " << endl; printSignal(lsignals, stderr); }
+    if (gGlobal->gDetailsSwitch) { cout << "output signals are : " << endl; printSignal(lsignals, stdout); cout << "\n\n"; }
  
     endTiming("propagation");
  

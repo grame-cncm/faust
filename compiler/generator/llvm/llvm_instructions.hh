@@ -389,7 +389,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp
             VECTOR_OF_TYPES llvm_create_dsp_args;
             FunctionType* llvm_create_dsp_type = FunctionType::get(dsp_type_ptr, MAKE_VECTOR_OF_TYPES(llvm_create_dsp_args), false);
-            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type, (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
+            Function* func_llvm_create_dsp = Function::Create(llvm_create_dsp_type,
+                                                              (internal) ? GlobalValue::InternalLinkage : GlobalValue::ExternalLinkage, "new" + fPrefix, fModule);
             func_llvm_create_dsp->setCallingConv(CallingConv::C);
 
             // llvm_create_dsp block
@@ -406,11 +407,13 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         
             call_inst1->setCallingConv(CallingConv::C);
             llvm::CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
+            
             // Only for global object
             if (!internal) {
                 llvm::CallInst* call_inst3 = CallInst::Create(func_allocate, call_inst2, "", entry_func_llvm_create_dsp);
                 call_inst3->setCallingConv(CallingConv::C);
             }
+            
             ReturnInst::Create(fModule->getContext(), call_inst2, entry_func_llvm_create_dsp);
             verifyFunction(*func_llvm_create_dsp);
             fBuilder->ClearInsertionPoint();
@@ -534,6 +537,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             StructTy_struct_UIGlue_fields.push_back(PointerTy_15);
             
             VECTOR_OF_TYPES FuncTy_19_args;
+            FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
@@ -821,7 +825,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         string fPrefix;                             // Prefix for function name
 
         map <string, GlobalVariable*> fGlobalStringTable;
-        
+  
         static list <string> gMathLibTable;
 
     public:
@@ -1917,7 +1921,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
             } 
         }
-
+    
         virtual void visit(FunCallInst* inst)
         {
             // Don't know how to compile vectorized function call for now...
@@ -1935,8 +1939,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Compile arguments
             vector<LlvmValue> fun_args;
             list<ValueInst*>::const_iterator it;
-
-            Function* function = fModule->getFunction(inst->fName);
+            Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
+  
             //cerr << "FunCallInst " << inst->fName << endl;
             faustassert(function);
 

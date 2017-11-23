@@ -29,9 +29,9 @@ static:
 
 install :
 
-	install sound2faust $(prefix)/bin/
-	install sound2file $(prefix)/bin/
-	install sound2reader $(prefix)/bin/
+	([ -e sound2faust ]) && install sound2faust $(prefix)/bin/ || echo sound2faust not found
+	([ -e sound2file ]) && install sound2file $(prefix)/bin/ || echo sound2file not found
+	([ -e sound2reader ]) && install sound2reader $(prefix)/bin/ || echo sound2reader not found
 
 clean :
 	rm -f sound2faust$(EXE) sound2file$(EXE)

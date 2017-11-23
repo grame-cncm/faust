@@ -247,6 +247,13 @@ wasm : CXXFLAGS = -DEMCC -DWASM_BUILD $(OPT) -Wall -Wuninitialized -Wno-overload
 wasm : libfaust.wasm
 wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
 
+## This target only compiles the C/C++ backends
+light : OPT = -O3
+light : CC = cc
+light : CXX = c++
+light : CXXFLAGS = -DC_BUILD -DCPP_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
+light : faustlight
+
 libfaust.js : $(common_objects) $(object_ba_asmjs) libmain.o
 	$(CXX) $(OPT) --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
             $(common_objects) $(object_ba_asmjs) libmain.o -o libfaust.js
@@ -296,6 +303,13 @@ ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) $(LIBS) -lpthread -o faust
 else
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) `pkg-config --libs libcrypto` -o faust
+endif
+
+faustlight : $(common_objects) $(ba_c) $(ba_cpp) main.o
+ifneq ($(findstring MINGW32, $(system)),)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o $(LIBS) -lpthread -o faust
+else
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main.o `pkg-config --libs libcrypto` -o faust
 endif
 
 ifeq ($(system), Darwin)
@@ -1027,7 +1041,8 @@ generator/fir/fir_code_container.o: tlib/occurrences.hh generator/floats.hh gene
 generator/fir/fir_code_container.o: parallelize/code_loop.hh generator/json_instructions.hh dsp_factory.hh
 generator/fir/fir_code_container.o: generator/export.hh generator/fir/fir_instructions.hh generator/type_manager.hh
 generator/fir/fir_code_container.o: generator/vec_code_container.hh generator/omp_code_container.hh
-generator/fir/fir_code_container.o: generator/wss_code_container.hh generator/instructions_complexity.hh
+generator/fir/fir_code_container.o: generator/wss_code_container.hh generator/fir_to_fir.hh
+generator/fir/fir_code_container.o: generator/instructions_complexity.hh
 generator/interpreter/interpreter_code_container.o: errors/exception.hh generator/Text.hh generator/floats.hh
 generator/interpreter/interpreter_code_container.o: generator/instructions.hh signals/binop.hh tlib/node.hh
 generator/interpreter/interpreter_code_container.o: tlib/symbol.hh garbageable.hh generator/interpreter/fir_opcode.hh
@@ -1115,7 +1130,7 @@ generator/wasm/wasm_code_container.o: generator/export.hh generator/wasm/wasm_in
 generator/wasm/wasm_code_container.o: generator/wasm/was_instructions.hh generator/text_instructions.hh
 generator/wasm/wasm_code_container.o: generator/type_manager.hh generator/fir_to_fir.hh
 generator/wasm/wasm_code_container.o: generator/fir/fir_instructions.hh generator/typing_instructions.hh
-generator/wasm/wasm_code_container.o: generator/struct_manager.hh
+generator/wasm/wasm_code_container.o: generator/struct_manager.hh generator/llvm/rn_base64.h
 generator/wasm/wasm_dsp_aux.o: tlib/compatibility.hh generator/wasm/wasm_dsp_aux.hh generator/export.hh
 generator/wasm/wasm_dsp_aux.o: generator/dsp_aux.hh errors/exception.hh dsp_factory.hh generator/Text.hh
 generator/wasm/wast_code_container.o: generator/wasm/wast_code_container.hh generator/code_container.hh

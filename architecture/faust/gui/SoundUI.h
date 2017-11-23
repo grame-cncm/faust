@@ -51,19 +51,22 @@ class SoundUI : public GenericUI
         }
 
         // -- soundfiles
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
         {
+            // If no filename was given, take label as the filename
+            if (strlen(filename) == 0) filename = label;
+            
         #if TARGET_OS_IPHONE
-            string label_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(label);
-            const char* label_path = label_path_str.c_str();
+            string filename_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(filename);
+            const char* filename_path = filename_path_str.c_str();
         #else
-            const char* label_path = label;
+            const char* filename_path = filename;
         #endif
             // check if 'label' is already loaded
-            if (fSFMap.find(label) == fSFMap.end()) {
-                fSFMap[label] = new Soundfile(label_path, 64);
+            if (fSFMap.find(filename) == fSFMap.end()) {
+                fSFMap[filename] = new Soundfile(filename_path, 64);
             }
-            *sf_zone = fSFMap[label];
+            *sf_zone = fSFMap[filename];
         }
   
 };

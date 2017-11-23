@@ -263,7 +263,7 @@ class mspUI : public UI
             fDeclareTable.clear();
         }
     
-        void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
         void openTabBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
         void openHorizontalBox(const char* label) {fControlsLevel.push_back(label); fDeclareTable.clear();}
@@ -302,8 +302,8 @@ class mspUI : public UI
         
         FAUSTFLOAT getOutputValue(string name) { return fUITable3[name]->getValue(); }
           
-        iterator begin()	{ return fUITable1.begin(); }
-        iterator end()		{ return fUITable1.end(); }
+        iterator begin() { return fUITable1.begin(); }
+        iterator end() { return fUITable1.end(); }
         
         int itemsCount() { return fUITable1.size(); }
         void clear() 

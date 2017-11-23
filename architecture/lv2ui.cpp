@@ -111,6 +111,8 @@ public:
   virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);
   virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);
   virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
+    
+  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
   virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
   virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);

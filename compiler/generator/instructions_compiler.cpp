@@ -122,8 +122,8 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 			// Annotate the sub signals
 			vector<Tree> subsig;
 			int n = getSubSignals(sig, subsig);
-			if (n>0 && !isSigGen(sig)) {
-				for (int i=0; i<n; i++) sharingAnnotation(v, subsig[i]);
+			if (n > 0 && !isSigGen(sig)) {
+				for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
 			}
 		}
 	}
@@ -377,7 +377,7 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 /**
  * Main code generator dispatch.
  * @param sig the signal expression to compile.
- * @return the C code translation of sig
+ * @return the FIR code translation of sig
  */
 
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
@@ -477,7 +477,8 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
     string vname;
     Typed::VarType ctype;
     int sharing = getSharingCount(sig);
-	Occurences* o = fOccMarkup.retrieve(sig);
+    Occurences* o = fOccMarkup.retrieve(sig);
+    faustassert(o);
 
     // Check for expression occuring in delays
 	if (o->getMaxDelay() > 0) {
@@ -508,21 +509,21 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 ValueInst* InstructionsCompiler::forceCacheCode(Tree sig, ValueInst* exp)
 {
     ValueInst* code;
-    Occurences* o = fOccMarkup.retrieve(sig);
     
-	// check reentrance
+    // check reentrance
     if (getCompiledExpression(sig, code)) {
         return code;
     }
     
     string vname;
     Typed::VarType ctype;
+    Occurences* o = fOccMarkup.retrieve(sig);
+    faustassert(o);
     
 	// check for expression occuring in delays
-    faustassert(o);
-	if (o->getMaxDelay() > 0) {
+    if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
-        return generateDelayVec(sig, generateVariableStore(sig,exp), ctype, vname, o->getMaxDelay());
+        return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
     } else  {
         return generateVariableStore(sig, exp);
  	}
@@ -543,7 +544,7 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
 ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
     // If value is already a variable, no need to create a new one, just reuse it...
-    if (dynamic_cast<LoadVarInst*>(exp)) return exp;
+    if (dynamic_cast<LoadVarInst*>(exp)) { return exp; }
 
     string vname;
     Typed::VarType ctype;
@@ -564,8 +565,14 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 
         case kSamp:
             getTypedNames(t, "Temp", ctype, vname);
-            pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
-            return InstBuilder::genLoadStackVar(vname);
+            // Only generated for the DSP loop
+            if (gGlobal->gHasTeeLocal) {
+                pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype)));
+                return InstBuilder::genTeeVar(vname, exp);
+            } else {
+                pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(ctype), exp));
+                return InstBuilder::genLoadStackVar(vname);
+            }
 
         default:
             return InstBuilder::genNullInst();
@@ -770,11 +777,11 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
 
 ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree content)
 {
-    ValueInst* 	generator = CS(content);
+    ValueInst* generator = CS(content);
     Typed::VarType ctype;
-    Tree        g;
-	string		vname;
-	int 		size;
+    Tree g;
+    string vname;
+    int size;
 
     // already compiled but check if we need to add declarations
     faustassert(isSigGen(content, g));
@@ -840,11 +847,11 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
 {
-    Tree        g;
-	ValueInst* 	cexp;
+    Tree g;
+    ValueInst* 	cexp;
     Typed::VarType ctype;
-	string      vname;
-	int         size;
+    string vname;
+    int size;
 
 	ensure(isSigGen(content, g));
 
@@ -880,9 +887,9 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
     if (!isSigInt(tsize, &size)) {
 	    stringstream error;
         error << "error in InstructionsCompiler::generateStaticTable() : "
-			 << *tsize
-			 << " is not an integer expression "
-			 << endl;
+			  << *tsize
+			  << " is not an integer expression "
+			  << endl;
         throw faustexception(error.str());
   	}
     
@@ -1802,16 +1809,9 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         faustassert(false);
     }
     
-    // In 'asmjs' or 'wast/wasm' waveforms are allocated in the DSP object memory,
-    // which is allocated in the global heap. Initialisation is moved in "classinit" method
-    if ((gGlobal->gOutputLang == "ajs")
-        || (startWith(gGlobal->gOutputLang, "wast"))
-        || (startWith(gGlobal->gOutputLang, "wasm"))) {
+    if (gGlobal->gWaveformInDSP) {
+        // waveform are allocated in the DSP and not as global data
         pushStaticInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
-    // In 'interp' waveforms are allocated in the DSP object memory,
-    // which is allocated in the global heap. Initialisation is moved in "init" method
-    } else if (gGlobal->gOutputLang == "interp") {
-        pushInitMethod(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     } else {
         pushGlobalDeclare(InstBuilder::genDecStaticStructVar(vname, type, num_array));
     }

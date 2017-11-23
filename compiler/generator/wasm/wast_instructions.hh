@@ -177,7 +177,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     tab(fTab, *fOut);
                     if (desc.fMode == MathFunDesc::Gen::kExtMath) {
-                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << desc.fName << "\" (param ";
+                        *fOut << "(import $" << inst->fName << " \"global.Math\" " "\"" << gGlobal->getMathFunction(desc.fName) << "\" (param ";
                     } else if (desc.fMode == MathFunDesc::Gen::kExtWAS) {
                         *fOut << "(import $" << inst->fName << " \"asm2wasm\" " "\"" << desc.fName << "\" (param ";
                     } else {
@@ -228,6 +228,20 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                     *fOut << ")";
                 }
                 
+            } else {
+                *fOut << "(get_local $" << inst->fAddress->getName() << ")";
+            }
+        }
+    
+        virtual void visit(TeeVarInst* inst)
+        {
+            // 'tee_local' is generated the first time the variable is used
+            // All future access simply use a get_local
+            if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
+                *fOut << "(tee_local $" << inst->fAddress->getName() << " ";
+                inst->fValue->accept(this);
+                *fOut << ")";
+                fTeeMap[inst->fAddress->getName()] = true;
             } else {
                 *fOut << "(get_local $" << inst->fAddress->getName() << ")";
             }
@@ -509,7 +523,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                         *fOut << "(" << realStr << "." << desc.fName << " ";
                     }
                 } else {
-                    *fOut  << "(call $" << inst->fName << " ";
+                    *fOut  << "(call $" << gGlobal->getMathFunction(inst->fName) << " ";
                 }
             } else {
                 *fOut  << "(call $" << inst->fName << " ";

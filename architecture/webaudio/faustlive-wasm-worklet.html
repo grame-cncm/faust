@@ -398,7 +398,7 @@
             var rendering_mode = "ScriptProcessor";
             var output_handler = null;
             var libraries_url = "http://127.0.0.1:8000/libraries/";
-            //var libraries_url = "http://faust.grame.fr/modules/libraries/";
+            //var libraries_url = "http://faust.grame.fr/libraries/";
 
             function setBufferSize(bs_item)
             {
@@ -523,6 +523,7 @@
                     navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
                                            alert('Error getting audio input');
                                            console.log(e);
+                                           audio_input = null;
                                            });
                 } else {
                     alert('Audio input API not available');

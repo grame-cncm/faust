@@ -10,7 +10,7 @@ declare copyright 	"(c)GRAME 2006";
 //		with 32 resonators in parallel
 //-----------------------------------------------
 
-import("music.lib"); 
+import("music.lib");
 
 
 // Excitator
@@ -31,7 +31,7 @@ size 		= hslider("excitation (samples)", 128, 2, 512, 1);
 //-----------------
 
 dur 		= hslider("duration (samples)", 128, 2, 512, 1);
-att 		= hslider("attenuation", 0.1, 0, 1, 0.01);
+att 		= hslider("attenuation", 0, 0, 1, 0.01);
 average(x)	= (x+x')/2;
 
 resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
@@ -40,12 +40,12 @@ resonator(d, a) = (+ : delay(4096, d-1.5)) ~ (average : *(1.0-a)) ;
 // Polyphony
 //-----------------
 
-detune 		= hslider("detune", 32, 0, 512, 1);
-polyphony 	= hslider("polyphony", 1, 0, 32, 1);
+detune 		= hslider("detune", 37.9904, 0, 512, 1);
+polyphony 	= hslider("polyphony", 14, 0, 32, 1);
 
 
 
-output 		= hslider("output volume", 0.5, 0, 1, 0.1);
+output 		= hslider("output volume", 0.4866, 0, 1, 0.1);
 
 
 process =  vgroup("karplus32",

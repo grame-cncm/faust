@@ -2,7 +2,7 @@
 #define __VST_UI_H__
 
 #include <audioeffectx.h>
-#include <faust/gui/UI.h>
+#include "faust/gui/UI.h"
 
 #ifdef DEBUG
 #define TRACE(x) x
@@ -451,7 +451,7 @@ public:
     void addVerticalBargraph(const char* label, float* zone, float min, 
                              float max){}
     
-    void addSoundfile(const char* label, Soundfile** sf_zone) {}
+    void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
     
 }; // end of vstUI class
 

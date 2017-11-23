@@ -83,9 +83,6 @@ addOptions ()
 {
     # OSC source always copied in the project
     cp -r $FAUSTLIB/osclib "$T"
-    if [ "$SOUNDFILE" = "1" ]; then
-        echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
-    fi
     if [ "$OSCCTRL" = "1" ]; then
         echo "#define OSCCTRL 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
@@ -100,6 +97,9 @@ addOptions ()
     fi
     if [ $NVOICES -ge 0 ]; then
         echo "#define NVOICES $NVOICES" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
+    fi
+    if [ "$SOUNDFILE" = "1" ]; then
+        echo "#define SOUNDFILE 1" | cat - "$T/iOS/iOS-Prefix.pch" > temp && mv temp "$T/iOS/iOS-Prefix.pch"
     fi
 }
 

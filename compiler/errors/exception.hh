@@ -79,7 +79,13 @@ inline void faustassert(bool cond)
         throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
     }
 }
-            
-            
+
+inline void stacktrace(int val)
+{
+#ifndef EMCC
+    void* array[val];
+    backtrace_symbols_fd(array, backtrace(array, val), STDERR_FILENO);
+#endif
+}
 
 #endif

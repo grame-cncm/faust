@@ -29,7 +29,7 @@
 // Tool to dump FIR
 inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
 {
-    *out << "========== dump2FIR statement begin ==========" << std::endl;
+    *out << "========== dump2FIR " << inst << " statement begin ========== "<< std::endl;
     FIRInstVisitor fir_visitor(out);
     inst->accept(&fir_visitor);
     *out << "========== dump2FIR statement end ==========" << std::endl;
@@ -37,7 +37,7 @@ inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
 
 inline void dump2FIR(ValueInst* value, std::ostream* out = &cout)
 {
-    *out << "========== dump2FIR value begin ==========" << std::endl;
+    *out << "========== dump2FIR " << value << " value begin ========== "<< std::endl;
     FIRInstVisitor fir_visitor(out);
     value->accept(&fir_visitor);
     *out << "\n========== dump2FIR value end ==========" << std::endl;
@@ -234,7 +234,9 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
             }
             
         } else {
-            fVarTable.push_back(inst->clone(&cloner));
+            fVarTable.push_back(InstBuilder::genDeclareVarInst(inst->fAddress->clone(&cloner),
+                                                               inst->fType->clone(&cloner),
+                                                               InstBuilder::genTypedZero(inst->fType->getType())));
             return InstBuilder::genDropInst();
         }
     }
@@ -360,37 +362,25 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
     
 };
 
-// Replace a void function call with the actual inlined function code
+// Inlining tools
 
-struct InlineVoidFunctionCall : public BasicCloneVisitor {
+struct FunctionInliner {
     
-    DeclareFunInst* fFunction;
-    
-    InlineVoidFunctionCall(DeclareFunInst* function):fFunction(function)
-    {}
-    
-    BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod)
+    map <string, string> fVarTable;
+
+    BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* named, ValueInst* arg)
     {
-        list<NamedTyped*>::iterator it1 = args_type.begin();
-        list<ValueInst*>::iterator it2 = args.begin(); if (ismethod) { it2++; }
         
-        for (; it1 != args_type.end(); it1++, it2++) {
-            faustassert(it2 != args.end());
-            code = ReplaceParameterByArg(code, *it1, *it2);
-        }
-        
-        return code;
-    }
-    
-    BlockInst* ReplaceParameterByArg(BlockInst* code, NamedTyped* type, ValueInst* arg)
-    {
         struct InlineValue : public BasicCloneVisitor {
             
-            string fName;
+            NamedTyped* fNamed;
             ValueInst* fArg;
             string fInLoop;
-    
-            InlineValue(const string& name, ValueInst* arg):fName(name), fArg(arg), fInLoop("")
+            map <string, string>& fVarTable;
+            int fOccurence;
+            
+            InlineValue(NamedTyped* named, ValueInst* arg, map <string, string>& table, int occurence)
+                :fNamed(named), fArg(arg), fInLoop(""), fVarTable(table), fOccurence(occurence)
             {}
             
             Address* renameAddress(Address* address, const string& name)
@@ -407,9 +397,22 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
                     fInLoop = gGlobal->getFreshID("re_i");
                     return InstBuilder::genDeclareVarInst(renameAddress(inst->fAddress, fInLoop), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
                 } else {
-                    return InstBuilder::genDeclareVarInst(inst->fAddress->clone(this), inst->fType->clone(this), (inst->fValue) ? inst->fValue->clone(this) : NULL);
+                    return BasicCloneVisitor::visit(inst);
                 }
             }
+            
+            /*
+            ValueInst* visit(LoadVarInst* inst)
+            {
+                if (inst->fAddress->getAccess() == Address::kLoop) {
+                    // Rename loop index
+                    return InstBuilder::genLoadVarInst(renameAddress(inst->fAddress, fInLoop));
+                } else {
+                    BasicCloneVisitor cloner;
+                    return (inst->fAddress->getName() == fNamed->fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
+                }
+            }
+            */
             
             ValueInst* visit(LoadVarInst* inst)
             {
@@ -418,7 +421,22 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
                     return InstBuilder::genLoadVarInst(renameAddress(inst->fAddress, fInLoop));
                 } else {
                     BasicCloneVisitor cloner;
-                    return (inst->fAddress->getName() == fName) ? fArg->clone(&cloner) : inst->clone(&cloner);
+                    if (inst->fAddress->getName() == fNamed->fName) {
+                        if (dynamic_cast<SimpleValueInst*>(fArg) || (fOccurence == 1)) {
+                            return fArg->clone(&cloner);
+                        } else {
+                            // More complex expressions are computed and shared in a new stack variable
+                            if (fVarTable.find(fNamed->fName) == fVarTable.end()) {
+                                // Create a stack variable with the value
+                                string tmp_in = gGlobal->getFreshID("tmp_in");
+                                fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
+                                fVarTable[fNamed->fName] = tmp_in;
+                            }
+                            return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
+                        }
+                    } else {
+                        return inst->clone(&cloner);
+                    }
                 }
             }
             
@@ -426,13 +444,13 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             {
                 LoadVarInst* arg;
                 
-                if ((inst->fAddress->getName() == fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
+                if ((inst->fAddress->getName() == fNamed->fName) && (arg = dynamic_cast<LoadVarInst*>(fArg))) {
                     return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, arg->fAddress->getName()), inst->fValue->clone(this));
                 } else if (inst->fAddress->getAccess() == Address::kLoop) {
                     // Rename loop index
                     return InstBuilder::genStoreVarInst(renameAddress(inst->fAddress, fInLoop), inst->fValue->clone(this));
                 } else {
-                    return InstBuilder::genStoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
+                    return BasicCloneVisitor::visit(inst);
                 }
             }
             
@@ -442,20 +460,70 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
             }
         };
         
-        InlineValue inliner(type->fName, arg);
+        // Count variable load occurences in a block
+        struct VariableLoadCounter : public DispatchVisitor {
+            
+            string fName;
+            int fOccurence;
+            
+            VariableLoadCounter(const string& name)
+                :fName(name), fOccurence(0)
+            {}
+            
+            virtual void visit(LoadVarInst* inst)
+            {
+                if (inst->fAddress->getName() == fName) {
+                    fOccurence++;
+                }
+            }
+            
+        };
+        
+        // Count variable occurence
+        VariableLoadCounter counter(named->fName);
+        code->accept(&counter);
+ 
+        InlineValue inliner(named, arg, fVarTable, counter.fOccurence);
         return inliner.getCode(code);
     }
-    
-    virtual StatementInst* visit(DropInst* inst)
+
+    BlockInst* ReplaceParametersByArgs(BlockInst* code, list<NamedTyped*> args_type, list<ValueInst*> args, bool ismethod)
     {
-        FunCallInst* fun_call;
-        if (inst->fResult
-            && (fun_call = dynamic_cast<FunCallInst*>(inst->fResult))
-            && (fun_call->fName == fFunction->fName)) {
-            return ReplaceParametersByArgs(fFunction->fCode, fFunction->fType->fArgsTypes, fun_call->fArgs, fun_call->fMethod);
+        list<NamedTyped*>::iterator it1 = args_type.begin();
+        list<ValueInst*>::iterator it2 = args.begin(); if (ismethod) { it2++; }
+        
+        for (; it1 != args_type.end(); it1++, it2++) {
+            faustassert(it2 != args.end());
+            code = ReplaceParameterByArg(code, *it1, *it2);
+        }
+        
+        return code;
+    }
+    
+};
+
+// Replace a function call with the actual inlined function code
+
+struct InlineFunctionCall : public BasicCloneVisitor {
+    
+    DeclareFunInst* fFunction;
+    
+    InlineFunctionCall(DeclareFunInst* function):fFunction(function)
+    {}
+    
+    virtual ValueInst* visit(FunCallInst* inst)
+    {
+        FunCallInst* fun_call = inst;
+        if (fun_call->fName == fFunction->fName) {
+            FunctionInliner inliner;
+            BlockInst* inlined = inliner.ReplaceParametersByArgs(fFunction->fCode, fFunction->fType->fArgsTypes, fun_call->fArgs, fun_call->fMethod);
+            // Get return value and remove it from the block
+            ValueInst* res = inlined->getReturnValue();
+            // Put the code without the value into the enclosing block
+            fBlockStack.top()->pushBackInst(inlined);
+            return res;
         } else {
-            BasicCloneVisitor cloner;
-            return inst->clone(&cloner);
+            return BasicCloneVisitor::visit(inst);
         }
     }
    
@@ -463,6 +531,30 @@ struct InlineVoidFunctionCall : public BasicCloneVisitor {
     {
         return dynamic_cast<BlockInst*>(src->clone(this));
     }
+};
+
+struct VariableSizeCounter : public DispatchVisitor {
+    
+    int fSizeBytes;
+    Typed::VarType fType;
+    Address::AccessType fAccess;
+    
+    VariableSizeCounter(Address::AccessType access, Typed::VarType type = Typed::kNoType)
+    {
+        fSizeBytes = 0;
+        fType = type;
+        fAccess = access;
+    }
+    
+    virtual void visit(DeclareVarInst* inst)
+    {
+        DispatchVisitor::visit(inst);
+        
+        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
+            fSizeBytes += inst->fType->getSize();
+        }
+    }
+    
 };
 
 #endif

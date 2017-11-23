@@ -30,7 +30,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] [-single] [-fast] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-single' to execute only scalar test"
         echo "Use '-fast' to execute only some tests"

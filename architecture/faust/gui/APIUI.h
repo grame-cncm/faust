@@ -179,7 +179,7 @@ class APIUI : public PathBuilder, public Meta, public UI
         int getZoneIndex(std::vector<ZoneControl*>* table, int p, int val)
         {
             FAUSTFLOAT* zone = fZone[p];
-            for (int i = 0; i < table[val].size(); i++) {
+            for (size_t i = 0; i < table[val].size(); i++) {
                 if (zone == table[val][i]->getZone()) return i;
             }
             return -1;
@@ -316,7 +316,7 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         // -- soundfiles
     
-        virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
         // -- metadata declarations
 
@@ -439,7 +439,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         void propagateAcc(int acc, double value)
         {
-            for (int i = 0; i < fAcc[acc].size(); i++) {
+            for (size_t i = 0; i < fAcc[acc].size(); i++) {
                 fAcc[acc][i]->update(value);
             }
         }
@@ -517,7 +517,7 @@ class APIUI : public PathBuilder, public Meta, public UI
          */
         void propagateGyr(int gyr, double value)
         {
-            for (int i = 0; i < fGyr[gyr].size(); i++) {
+            for (size_t i = 0; i < fGyr[gyr].size(); i++) {
                 fGyr[gyr][i]->update(value);
             }
         }

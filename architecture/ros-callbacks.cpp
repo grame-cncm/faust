@@ -82,7 +82,7 @@ mydsp*	DSP;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
-    char	appname[256];
+    char appname[256];
 	
 	snprintf(appname, 255, "%s", basename(argv[0]));
     

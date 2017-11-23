@@ -92,7 +92,7 @@ public:
   virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
   virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
     
-  virtual void addSoundfile(const char* label, Soundfile** sf_zone) {}
+  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
   
   virtual void openTabBox(const char* label);
   virtual void openHorizontalBox(const char* label);

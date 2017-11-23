@@ -722,13 +722,13 @@ class TCoreAudioRenderer
                 if (fAggregatePluginID > 0)   {
                     osErr = AudioObjectGetPropertyDataSize(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize);
                     if (osErr != noErr) {
-                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
-                        printError(osErr);
+                        //printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyDataSize error\n");
+                        //printError(osErr);
                     }
                     osErr = AudioObjectGetPropertyData(fAggregatePluginID, &pluginAOPA, 0, NULL, &outDataSize, &fAggregateDeviceID);
                     if (osErr != noErr) {
-                        printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
-                        printError(osErr);
+                        //printf("TCoreAudioRenderer::DestroyAggregateDevice : AudioObjectGetPropertyData error\n");
+                        //printError(osErr);
                     }
                 }
             }
@@ -970,18 +970,19 @@ class TCoreAudioRenderer
         }
         
     public:
-
+    
         TCoreAudioRenderer()
             :fAggregateDeviceID(-1),fAggregatePluginID(-1),
             fDevNumInChans(0),fDevNumOutChans(0),
             fPhysicalInputs(0), fPhysicalOutputs(0),
             fInChannel(0),fOutChannel(0),
-            fBufferSize(0),fSampleRate(0), 
-            fDSP(0),fInputData(0),
-            fDeviceID(0),fAUHAL(0),
-            fState(false), 
+            fBufferSize(0),fSampleRate(0),
             fIsInJackDevice(false),
-            fIsOutJackDevice(false)
+            fIsOutJackDevice(false),
+            fDSP(0),
+            fInputData(0),
+            fDeviceID(0),fAUHAL(0),
+            fState(false)
         {}
 
         virtual ~TCoreAudioRenderer()

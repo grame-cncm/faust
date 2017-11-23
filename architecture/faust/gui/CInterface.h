@@ -60,7 +60,7 @@ typedef void (* addVerticalBargraphFun) (void* ui_interface, const char* label, 
 
 // -- soundfiles
     
-typedef void (* addSoundFileFun) (void* ui_interface, const char* label, Soundfile** sf_zone);
+typedef void (* addSoundFileFun) (void* ui_interface, const char* label, const char* filename, Soundfile** sf_zone);
 
 typedef void (* declareFun) (void* ui_interface, FAUSTFLOAT* zone, const char* key, const char* value);
 

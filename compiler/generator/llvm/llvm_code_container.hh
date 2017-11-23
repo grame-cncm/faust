@@ -144,6 +144,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
         }
         
         LLVMContext& getContext();
+    
+        // To be used for mathematical function mapping (-fm and exp10 on OSX)
+        void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
 
     public:
 

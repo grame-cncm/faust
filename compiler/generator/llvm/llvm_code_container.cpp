@@ -50,50 +50,6 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 
 list <string> LLVMInstVisitor::gMathLibTable;
 
-#ifdef __APPLE__
-
-static void generateExp10f(LLVMInstVisitor* visitor)
-{
-    string val = gGlobal->getFreshID("val");
-    
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(val, Typed::kFloat));
-    
-    list<ValueInst*> args1;
-    args1.push_back(InstBuilder::genLoadFunArgsVar(val));
-    
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst("__exp10f", args1)));
-    
-    // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kFloat), FunTyped::kDefault);
-    
-    InstBuilder::genDeclareFunInst("__exp10f", fun_type)->accept(visitor);
-    InstBuilder::genDeclareFunInst("exp10f", fun_type, block)->accept(visitor);
-}
-
-static void generateExp10(LLVMInstVisitor* visitor)
-{
-    string val = gGlobal->getFreshID("val");
-    
-    list<NamedTyped*> args;
-    args.push_back(InstBuilder::genNamedTyped(val, Typed::kDouble));
-    
-    list<ValueInst*> args1;
-    args1.push_back(InstBuilder::genLoadFunArgsVar(val));
-    
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst("__exp10", args1)));
-    
-    // Creates function
-    FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kDouble), FunTyped::kDefault);
-    
-    InstBuilder::genDeclareFunInst("__exp10", fun_type)->accept(visitor);
-    InstBuilder::genDeclareFunInst("exp10", fun_type, block)->accept(visitor);
-}
-
-#endif
-
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
     return new LLVMScalarCodeContainer(name, 0, 1, fModule, fContext, sub_container_type);
@@ -782,6 +738,32 @@ void LLVMCodeContainer::produceInternal()
     generateFillEnd();
 }
 
+void LLVMCodeContainer::generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body)
+{
+    Typed::VarType type = itfloat();
+    string fun1 = fun1_aux + isuffix();
+    string fun2 = fun2_aux + isuffix();
+    
+    list<NamedTyped*> args1;
+    list<ValueInst*> args2;
+    
+    for (int i = 0; i < num_args; i++) {
+        string var = gGlobal->getFreshID("val");
+        args1.push_back(InstBuilder::genNamedTyped(var, type));
+        args2.push_back(InstBuilder::genLoadFunArgsVar(var));
+    }
+    
+    // Creates function
+    FunTyped* fun_type = InstBuilder::genFunTyped(args1, InstBuilder::genBasicTyped(type), FunTyped::kDefault);
+    
+    InstBuilder::genDeclareFunInst(fun2, fun_type)->accept(fCodeProducer);
+    if (body) {
+        BlockInst* block = InstBuilder::genBlockInst();
+        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genFunCallInst(fun2, args2)));
+        InstBuilder::genDeclareFunInst(fun1, fun_type, block)->accept(fCodeProducer);
+    }
+}
+
 dsp_factory_base* LLVMCodeContainer::produceFactory()
 {
     // Sub containers
@@ -801,14 +783,35 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
-    generateInfoFunctions(fKlassName, true);
+    if (gGlobal->gFastMath) {
+        generateFunMap("acos", "fast_acos", 1);
+        generateFunMap("asin", "fast_asin", 1);
+        generateFunMap("atan", "fast_atan", 1);
+        generateFunMap("atan2", "fast_atan2", 2);
+        generateFunMap("ceil", "fast_ceil", 1);
+        generateFunMap("cos", "fast_cos", 1);
+        generateFunMap("exp", "fast_exp", 1);
+        generateFunMap("exp2", "fast_exp2", 1);
+        generateFunMap("exp10", "fast_exp10", 1);
+        generateFunMap("floor", "fast_floor", 1);
+        generateFunMap("fmod", "fast_fmod", 2);
+        generateFunMap("log", "fast_log", 1);
+        generateFunMap("log2", "fast_log2", 1);
+        generateFunMap("log10", "fast_log10", 1);
+        generateFunMap("pow", "fast_pow", 2);
+        generateFunMap("remainder", "fast_remainder", 2);
+        generateFunMap("round", "fast_round", 1);
+        generateFunMap("sin", "fast_sin", 1);
+        generateFunMap("sqrt", "fast_sqrt", 1);
+        generateFunMap("tan", "fast_tan", 1);
+    } else {
+    #ifdef __APPLE__
+        generateFunMap("exp10", "__exp10", 1, true);
+    #endif
+    }
     
-#ifdef __APPLE__
-    // 'exp10f' and 'exp10' are missing. The 2 functions are created to call internal '__exp10f' and '__exp10'.
-    generateExp10f(fCodeProducer);
-    generateExp10(fCodeProducer);
-#endif
-  
+    generateInfoFunctions(fKlassName, true);
+ 
     // Global declarations
     generateExtGlobalDeclarations(fCodeProducer);
     generateGlobalDeclarations(fCodeProducer);

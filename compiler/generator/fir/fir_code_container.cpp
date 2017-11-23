@@ -20,6 +20,7 @@
  ************************************************************************/
 
 #include "fir_code_container.hh"
+#include "fir_to_fir.hh"
 #include "instructions_complexity.hh"
 #include "global.hh"
 

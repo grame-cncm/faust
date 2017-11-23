@@ -27,8 +27,6 @@
 #include "floats.hh"
 #include "ppsig.hh"
 
-string makeDrawPath();
-
 void VectorCompiler::compileMultiSignal(Tree L)
 {
     //contextor recursivness(0);
@@ -60,7 +58,7 @@ void VectorCompiler::compileMultiSignal(Tree L)
     }
     
     if (gGlobal->gPrintJSONSwitch) {
-        ofstream xout(subst("$0.json", makeDrawPath()).c_str());
+        ofstream xout(subst("$0.json", gGlobal->makeDrawPath()).c_str());
         xout << fJSON.JSON();
     }
 }

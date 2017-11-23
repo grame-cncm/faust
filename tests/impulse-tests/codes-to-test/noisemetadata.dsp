@@ -51,10 +51,10 @@ The white noise then corresponds to:
 \subsection{Just add a user interface element to play volume!}
 </mdoc>
 
-process = noise * vslider("Volume[style:knob]", 0, 0, 1, 0.1);
+process = noise * vslider("Volume[style:knob]", 0.0697, 0, 1, 0.1);
 
 <mdoc>
-Endly, the sound level of this program is controlled by a user slider, which gives the following equation: 
+Endly, the sound level of this program is controlled by a user slider, which gives the following equation:
 <equation>process</equation>
 
 \section{Block-diagram schema of process}

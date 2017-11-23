@@ -41,7 +41,7 @@ using namespace std;
  
 */
 
-map <string, int> RustInstVisitor::gFunctionSymbolTable;
+map <string, bool> RustInstVisitor::gFunctionSymbolTable;
 
 dsp_factory_base* RustCodeContainer::produceFactory()
 {

@@ -173,7 +173,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    factory->setMemoryManager(&manager);
+    //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
@@ -197,7 +197,7 @@ int main(int argc, char* argv[])
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
    
-    if (!audio.init(filename, DSP, true)) {
+    if (!audio.init(filename, DSP)) {
         return 0;
     }
 

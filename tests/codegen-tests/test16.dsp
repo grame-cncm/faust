@@ -17,6 +17,4 @@ curve = -8.0 * grainAmplitude * rdur2;
 slope = 4* grainAmplitude * (rdur - rdur2) + integrate(curve);
 amplitude = integrate(slope);
 
-
-
 process = integrate(1), slope, max(0.0,amplitude);

@@ -27,7 +27,7 @@
 
 using namespace std;
 
-map <string, int> JAVAScriptInstVisitor::gFunctionSymbolTable;  
+map <string, bool> JAVAScriptInstVisitor::gFunctionSymbolTable;
 map <string, string> JAVAScriptInstVisitor::gMathLibTable;
 
 dsp_factory_base* JAVAScriptCodeContainer::produceFactory()

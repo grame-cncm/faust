@@ -39,10 +39,8 @@
 #include <vector>
 #include <map>
 #include <set>
-
 #include <iostream>
 #include <fstream>
-
 #include <libgen.h>
 #include <jack/jack.h>
 
@@ -159,6 +157,7 @@ class Cdsp : public dsp {
         glue.addNumEntry = addNumEntryGlueFloat;
         glue.addHorizontalBargraph = addHorizontalBargraphGlueFloat;
         glue.addVerticalBargraph = addVerticalBargraphGlueFloat;
+        glue.addSoundFile = addSoundFileGlueFloat;
         glue.declare = declareGlueFloat;
 
         buildUserInterfacemydsp(fDsp, &glue);
@@ -176,6 +175,7 @@ class Cdsp : public dsp {
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -183,9 +183,9 @@ list<GUI*> GUI::fGuiList;
 
 int main(int argc, char *argv[])
 {
-	char	appname[256];
-	char  	rcfilename[256];
-	char* 	home = getenv("HOME");
+	char appname[256];
+	char rcfilename[256];
+	char* home = getenv("HOME");
 
 	snprintf(appname, 255, "%s", basename(argv[0]));
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);

@@ -14,7 +14,7 @@ var Sha1 = {};  // Sha1 namespace
  * @returns {String}                  Hash of msg as hex character string
  */
 Sha1.hash = function(msg, utf8encode) {
-    utf8encode =  (typeof utf8encode == 'undefined') ? true : utf8encode;
+    utf8encode = (typeof utf8encode == 'undefined') ? true : utf8encode;
     
     // convert string to UTF-8, as SHA only deals with byte-streams
     if (utf8encode) msg = Utf8.encode(msg);
@@ -506,7 +506,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
     // 'libfaust.js' wasm backend generates UI methods, then we compile the code
     eval(helpers_code);
     factory.getJSON = eval("getJSON" + factory_name);
-    factory.getBinaryCode = eval("getBinaryCodeString" + factory_name);
+    factory.getBase64Code = eval("getBase64Code" + factory_name);
     
     try {
         factory.json_object = JSON.parse(factory.getJSON());
@@ -516,7 +516,6 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
         throw true;
     }
     
-    factory.binary_code = factory.getBinaryCode();
     factory.name = factory_name;
     factory.sha_key = sha_key;
     faust.factory_table[sha_key] = factory;
@@ -565,10 +564,50 @@ var mydspProcessorString = `
     'use strict';
 
     function getJSONmydsp() { return \`GETJSON\`; }
-
-    function getBinaryCodemydsp() { return GETBINARYCODE; }
+    function getBase64Codemydsp() { return \`GETBASE64CODE\`; }
 
     var faust = faust || {};
+
+    faust.b64ToUint6 = function (nChr)
+    {
+        return nChr > 64 && nChr < 91 ?
+            nChr - 65
+            : nChr > 96 && nChr < 123 ?
+            nChr - 71
+            : nChr > 47 && nChr < 58 ?
+            nChr + 4
+            : nChr === 43 ?
+            62
+            : nChr === 47 ?
+            63
+            :
+            0;
+    }
+
+    faust.atob = function (sBase64, nBlocksSize)
+    {
+        if (typeof atob === 'function') {
+            return atob(sBase64);
+        } else {
+            
+            var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+            var nInLen = sB64Enc.length;
+            var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
+            var taBytes = new Uint8Array(nOutLen);
+            
+            for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+                nMod4 = nInIdx & 3;
+                nUint24 |= faust.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+                if (nMod4 === 3 || nInLen - nInIdx === 1) {
+                    for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                        taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+                    }
+                    nUint24 = 0;
+                }
+            }
+            return taBytes.buffer;
+        }
+    }
 
     faust.error_msg = null;
     faust.getErrorMessage = function() { return faust.error_msg; };
@@ -625,8 +664,7 @@ var mydspProcessorString = `
                 mydspProcessor.parse_items(item.items, obj, callback);
             } else if (item.type === "hbargraph"
                        || item.type === "vbargraph") {
-                // Keep bargraph adresses
-                //obj.outputs_items.push(item.address);
+                // Nothing
             } else if (item.type === "vslider"
                        || item.type === "hslider"
                        || item.type === "button"
@@ -723,6 +761,7 @@ var mydspProcessorString = `
             
             this.pathTable = [];
             
+            // TODO: send output values to the AudioNode
             this.update_outputs = function ()
             {
                 if (this.outputs_items.length > 0 && this.output_handler && this.outputs_timer-- === 0) {
@@ -809,7 +848,7 @@ var mydspProcessorString = `
     }
 
     // Compile wasm binary module
-    WebAssembly.instantiate(getBinaryCodemydsp(), faust.importObject)
+    WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject)
                 .then(dsp_module => {
                       faust.mydsp_instance = dsp_module.instance;
                       registerProcessor('mydsp', mydspProcessor);
@@ -843,14 +882,13 @@ faust.createDSPInstanceAux = function(factory, callback)
 
 faust.createDSPInstance = function(factory, callback)
 {
-    if (!factory.registered) {
-        
+    if (!factory.registered) {      
         var re1 = /mydsp/g;
         var re2 = /GETJSON/g;
-        var re3 = /GETBINARYCODE/g;
+        var re3 = /GETBASE64CODE/g;
         var mydspProcessorString1 = mydspProcessorString.replace(re1, factory.name);
         var mydspProcessorString2 = mydspProcessorString1.replace(re2, factory.getJSON());
-        var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBinaryCode());
+        var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBase64Code());
         var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
         
         // The main global scope
@@ -858,14 +896,11 @@ faust.createDSPInstance = function(factory, callback)
         .then(function () {
               // Processor has been registered
               factory.registered = true;
-              
               // Create audio node
               faust.createDSPInstanceAux(factory, callback);
-            
         })
         .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); alert(error); });
-    } else {
-        
+    } else {      
         // Create audio node
         faust.createDSPInstanceAux(factory, callback);
     }

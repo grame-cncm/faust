@@ -45,7 +45,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         int fTab;
         std::ostream* fOut;
         bool fFinishLine;
-        map <string, int> gFunctionSymbolTable;
+        map <string, bool> gFunctionSymbolTable;
    
     public:
 
@@ -319,7 +319,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                gFunctionSymbolTable[inst->fName] = true;
             }
             
             // If function is actually a method (that is "xx::name"), then keep "xx::name" in gSymbolGlobalsTable but print "name"

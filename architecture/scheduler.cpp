@@ -1303,78 +1303,84 @@ class WorkStealingScheduler {
 /*
 C scheduler interface
 */
+    
+#ifdef _WIN32
+#define EXPORT __declspec(dllexport) __attribute__((always_inline))
+#else
+#define EXPORT __attribute__ ((visibility("default"))) __attribute__((always_inline))
+#endif
 
-void* createScheduler(int task_queue_size, int init_task_list_size)
+EXPORT void* createScheduler(int task_queue_size, int init_task_list_size)
 {
     return new WorkStealingScheduler(task_queue_size, init_task_list_size);
 }
 
-void deleteScheduler(void* scheduler)
+EXPORT void deleteScheduler(void* scheduler)
 {   
     delete(static_cast<WorkStealingScheduler*>(scheduler));
 }
 
-void startAll(void* scheduler, void* dsp)
+EXPORT void startAll(void* scheduler, void* dsp)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->StartAll(dsp);
 }
 
-void stopAll(void* scheduler)
+EXPORT void stopAll(void* scheduler)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->StopAll();
 }
 
-void signalAll(void* scheduler)
+EXPORT void signalAll(void* scheduler)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->SignalAll();
 }
 
-void syncAll(void* scheduler)
+EXPORT void syncAll(void* scheduler)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->SyncAll();
 }
 
-void pushHead(void* scheduler, int cur_thread, int task_num)
+EXPORT void pushHead(void* scheduler, int cur_thread, int task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->PushHead(cur_thread, task_num);
 }
 
-int getNextTask(void* scheduler, int cur_thread)
+EXPORT int getNextTask(void* scheduler, int cur_thread)
 {
     return static_cast<WorkStealingScheduler*>(scheduler)->GetNextTask(cur_thread);
 }
 
-void initTask(void* scheduler, int task_num, int count)
+EXPORT void initTask(void* scheduler, int task_num, int count)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->InitTask(task_num, count);
 }
 
-void activateOutputTask1(void* scheduler, int cur_thread, int task, int* task_num)
+EXPORT void activateOutputTask1(void* scheduler, int cur_thread, int task, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread, task, task_num);
 }
 
-void activateOutputTask2(void* scheduler, int cur_thread, int task)
+EXPORT void activateOutputTask2(void* scheduler, int cur_thread, int task)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->ActivateOutputTask(cur_thread, task);
 }
 
-void activateOneOutputTask(void* scheduler, int cur_thread, int task, int* task_num)
+EXPORT void activateOneOutputTask(void* scheduler, int cur_thread, int task, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->ActivateOneOutputTask(cur_thread, task, task_num);
 }
         
-void getReadyTask(void* scheduler, int cur_thread, int* task_num)
+EXPORT void getReadyTask(void* scheduler, int cur_thread, int* task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->GetReadyTask(cur_thread, task_num);
 }
 
-void initTaskList(void* scheduler, int cur_thread)
+EXPORT void initTaskList(void* scheduler, int cur_thread)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->InitTaskList(cur_thread);
 }
 
-void addReadyTask(void* scheduler, int task_num)
+EXPORT void addReadyTask(void* scheduler, int task_num)
 {
     static_cast<WorkStealingScheduler*>(scheduler)->AddReadyTask(task_num);
 }

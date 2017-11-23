@@ -8,5 +8,4 @@ curve = -8.0 * grainAmplitude * rdur2;
 slope = 4* grainAmplitude * (rdur - rdur2) + (curve : +~_:mem);
 amplitude = slope : + ~_:mem;
 
-
 process = slope, amplitude;

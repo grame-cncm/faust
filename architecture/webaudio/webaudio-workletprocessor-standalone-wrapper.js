@@ -26,6 +26,47 @@ faust.importObject = { imports: { print: arg => console.log(arg) } }
 faust.importObject["global.Math"] = Math;
 faust.importObject["asm2wasm"] = faust.asm2wasm;
 
+faust.b64ToUint6 = function (nChr)
+{
+    return nChr > 64 && nChr < 91 ?
+        nChr - 65
+        : nChr > 96 && nChr < 123 ?
+        nChr - 71
+        : nChr > 47 && nChr < 58 ?
+        nChr + 4
+        : nChr === 43 ?
+        62
+        : nChr === 47 ?
+        63
+        :
+        0;
+}
+
+faust.atob = function (sBase64, nBlocksSize)
+{
+    if (typeof atob === 'function') {
+        return atob(sBase64);
+    } else {
+        
+        var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+        var nInLen = sB64Enc.length;
+        var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
+        var taBytes = new Uint8Array(nOutLen);
+        
+        for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+            nMod4 = nInIdx & 3;
+            nUint24 |= faust.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+            if (nMod4 === 3 || nInLen - nInIdx === 1) {
+                for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                    taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+                }
+                nUint24 = 0;
+            }
+        }
+        return taBytes.buffer;
+    }
+}
+
 // WebAssembly instance
 faust.mydsp_instance = null;
 
@@ -62,8 +103,7 @@ class mydspProcessor extends AudioWorkletProcessor {
             mydspProcessor.parse_items(item.items, obj, callback);
         } else if (item.type === "hbargraph"
                    || item.type === "vbargraph") {
-            // Keep bargraph adresses
-            //obj.outputs_items.push(item.address);
+            // Nothing
         } else if (item.type === "vslider"
                    || item.type === "hslider"
                    || item.type === "button"
@@ -160,6 +200,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         
         this.pathTable = [];
         
+        // TODO: send output values to the AudioNode
         this.update_outputs = function ()
         {
             if (this.outputs_items.length > 0 && this.output_handler && this.outputs_timer-- === 0) {
@@ -246,7 +287,7 @@ class mydspProcessor extends AudioWorkletProcessor {
 }
 
 // Compile wasm binary module
-WebAssembly.instantiate(getBinaryCodemydsp(), faust.importObject)
+WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject)
             .then(dsp_module => {
                   faust.mydsp_instance = dsp_module.instance;
                   registerProcessor('mydsp', mydspProcessor);

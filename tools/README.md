@@ -16,6 +16,3 @@ Currently the following tools are available :
   * an interleaved version (all audio channels are generated in a same 'waveform')
   * several 'waveforms' for separated mono channels
   * a resulting 'processor' that simply output all mono 'waveforms' 
-* `faustbench` allows to test CPU use of DSP programs compiled with different compiler parameters:
-  * `faustbench <file.dsp>` runs the test for the given file.dsp
-  * `faustbench -ios <file.dsp>` produces an iOS project to be launched in Xcode 

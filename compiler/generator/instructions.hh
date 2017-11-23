@@ -50,6 +50,7 @@ struct DeclareFunInst;
 struct DeclareTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
+struct TeeVarInst;
 struct StoreVarInst;
 struct ShiftArrayVarInst;
 template <class TYPE> struct ArrayNumInst;
@@ -110,7 +111,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual ~InstVisitor()
     {}
     
-     // User interface
+    // User interface
     virtual void visit(AddMetaDeclareInst* inst) {}
     virtual void visit(OpenboxInst* inst) {}
     virtual void visit(CloseboxInst* inst) {}
@@ -131,6 +132,7 @@ struct InstVisitor : public virtual Garbageable {
     // Memory
     virtual void visit(LoadVarInst* inst) {}
     virtual void visit(LoadVarAddressInst* inst) {}
+    virtual void visit(TeeVarInst* inst) {}
     virtual void visit(StoreVarInst* inst) {}
     virtual void visit(ShiftArrayVarInst* inst) {}
 
@@ -191,6 +193,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Memory
     virtual ValueInst* visit(LoadVarInst* inst) = 0;
     virtual ValueInst* visit(LoadVarAddressInst* inst) = 0;
+    virtual ValueInst* visit(TeeVarInst* inst) = 0;
     virtual StatementInst* visit(StoreVarInst* inst) = 0;
     virtual StatementInst* visit(ShiftArrayVarInst* inst) = 0;
 
@@ -931,6 +934,27 @@ struct LoadVarAddressInst : public ValueInst, public SimpleValueInst
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// Special for wast/wasm backend : combine a store and a load
+struct TeeVarInst : public ValueInst
+{
+    Address* fAddress;
+    ValueInst* fValue;
+    
+    TeeVarInst(Address* address, ValueInst* value)
+        :ValueInst(1), fAddress(address), fValue(value)
+    {}
+    
+    virtual ~TeeVarInst()
+    {}
+    
+    void setName(const string& name) { fAddress->setName(name); }
+    string getName() {return fAddress->getName(); }
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct StoreVarInst : public StatementInst
 {
     Address* fAddress;
@@ -1210,6 +1234,7 @@ struct BlockInst : public StatementInst
     int size() { return fCode.size(); }
 
     bool hasReturn();
+    ValueInst* getReturnValue();
 
 };
 
@@ -1424,7 +1449,11 @@ struct WhileLoopInst : public StatementInst
 // =====================
 
 class BasicCloneVisitor : public CloneVisitor {
-
+    
+    protected:
+    
+        static std::stack<BlockInst*> fBlockStack;
+   
     public:
 
         BasicCloneVisitor()
@@ -1450,6 +1479,7 @@ class BasicCloneVisitor : public CloneVisitor {
         // Memory
         virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); }
         virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize); }
+        virtual ValueInst* visit(TeeVarInst* inst) { return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
         virtual StatementInst* visit(StoreVarInst* inst) { return new StoreVarInst(inst->fAddress->clone(this), inst->fValue->clone(this)); }
         virtual StatementInst* visit(ShiftArrayVarInst* inst) { return new ShiftArrayVarInst(inst->fAddress->clone(this), inst->fDelay); }
 
@@ -1521,13 +1551,16 @@ class BasicCloneVisitor : public CloneVisitor {
 
         // Block
         virtual StatementInst* visit(BlockInst* inst)
-         {
-            list<StatementInst*> cloned;
+        {
+            //stacktrace(40);
+            BlockInst* cloned = new BlockInst();
+            fBlockStack.push(cloned);
             list<StatementInst*>::const_iterator it;
             for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                cloned.push_back((*it)->clone(this));
+                cloned->pushBackInst((*it)->clone(this));
             }
-            return new BlockInst(cloned);
+            fBlockStack.pop();
+            return cloned;
         }
 
         // User interface
@@ -1587,6 +1620,11 @@ struct DispatchVisitor : public InstVisitor {
 
     virtual void visit(LoadVarInst* inst) { inst->fAddress->accept(this); }
     virtual void visit(LoadVarAddressInst* inst) { inst->fAddress->accept(this); }
+    virtual void visit(TeeVarInst* inst)
+    {
+        inst->fAddress->accept(this);
+        inst->fValue->accept(this);
+    }
     virtual void visit(StoreVarInst* inst)
     {
         inst->fAddress->accept(this);
@@ -1733,6 +1771,11 @@ class ScalVecDispatcherVisitor : public DispatchVisitor {
         }
 
         virtual void visit(LoadVarAddressInst* inst)
+        {
+            Dispatch2Visitor(inst);
+        }
+    
+        virtual void visit(TeeVarInst* inst)
         {
             Dispatch2Visitor(inst);
         }
@@ -1901,6 +1944,7 @@ struct InstBuilder
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
     static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1) { return new LoadVarAddressInst(address, size); }
+    static TeeVarInst* genTeeVar(const string& vname, ValueInst* value) { return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value); }
     static StoreVarInst* genStoreVarInst(Address* address, ValueInst* value) { return new StoreVarInst(address, value); }
     static ShiftArrayVarInst* genShiftArrayVarInst(Address* address, int delay) { return new ShiftArrayVarInst(address, delay); }
 

@@ -63,7 +63,7 @@ class FaustPolyEngine {
         midi_handler fMidiHandler;
         MidiUI fMidiUI;
     
-        void init(dsp* mono_dsp, audio* driver)
+        void init(dsp* mono_dsp, audio* driver, midi_handler* midi)
         {
             bool midi_sync = false;
             int nvoices = 0;
@@ -89,6 +89,7 @@ class FaustPolyEngine {
                 
                 fPolyDSP = new mydsp_poly(mono_dsp, nvoices, true);
                 fMidiHandler.addMidiIn(fPolyDSP);
+                if (midi) midi->addMidiIn(fPolyDSP);
                 
             #if POLY2
                 fFinalDSP = new dsp_sequencer(fPolyDSP, new effect());
@@ -112,19 +113,33 @@ class FaustPolyEngine {
             fFinalDSP->buildUserInterface(&fMidiUI);
             fFinalDSP->buildUserInterface(&fAPIUI);
             
-            fDriver->init("Dummy", fFinalDSP);
+            // Retrieving DSP object name
+            struct MyMeta : public Meta
+            {
+                string fName;
+                void declare(const char* key, const char* value)
+                {
+                    if (strcmp(key, "name") == 0) fName = value;
+                }
+                MyMeta():fName("Dummy"){}
+            };
+      
+            MyMeta meta;
+            fFinalDSP->metadata(&meta);
+            fDriver->init(meta.fName.c_str(), fFinalDSP);
+            if (midi) midi->setName(meta.fName.c_str());
         }
     
     public:
     
-        FaustPolyEngine(audio* driver = NULL):fMidiUI(&fMidiHandler)
+        FaustPolyEngine(audio* driver = NULL, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
         {
-            init(new mydsp(), driver);
+            init(new mydsp(), driver, midi);
         }
     
-        FaustPolyEngine(dsp* mono_dsp, audio* driver):fMidiUI(&fMidiHandler)
+        FaustPolyEngine(dsp* mono_dsp, audio* driver, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
         {
-            init(mono_dsp, driver);
+            init(mono_dsp, driver, midi);
         }
 
         virtual ~FaustPolyEngine()

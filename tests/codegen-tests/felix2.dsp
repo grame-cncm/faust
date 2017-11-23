@@ -1,5 +1,5 @@
 /*
-Beamforming - Prototyp
+Beamforming - Prototype
 */
 
 import("music.lib");

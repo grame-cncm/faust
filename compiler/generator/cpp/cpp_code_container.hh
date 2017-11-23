@@ -50,6 +50,13 @@ class CPPCodeContainer : public virtual CodeContainer {
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
+            
+            // For mathematical functions
+            if (gGlobal->gFastMath) {
+                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\"" : ("\"" + gGlobal->gFastMathLib + "\""));
+            } else {
+                addIncludeFile("<cmath>");
+            }
         }
         
         virtual ~CPPCodeContainer()

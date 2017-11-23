@@ -277,6 +277,9 @@ class portCollector : public UI
 	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
 	}
+    
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+    
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {
 		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
 	}

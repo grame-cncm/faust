@@ -148,6 +148,9 @@ class midi_handler : public midi {
 
         virtual bool start_midi() { return true; }
         virtual void stop_midi() {}
+    
+        void setName(const std::string& name) { fName = name; }
+        std::string getName() { return fName; }
         
         void handleSync(double time, int type)
         {

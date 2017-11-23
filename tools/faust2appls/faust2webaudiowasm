@@ -200,13 +200,10 @@ for f in $FILES; do
     
     rm $name.js $name-temp2.html
 
-    if [ $WORKLET = "true" ]; then
-        rm $name.wasm
-    fi
-
     # collect binary file name
     if [ $WORKLET = "true" ]; then
         BINARIES="$BINARIES$name.html;$name-processor.js;"
+        rm $name.wasm
     else
         BINARIES="$BINARIES$name.html;$name.wasm;"
     fi

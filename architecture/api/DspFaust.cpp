@@ -98,6 +98,10 @@
 #endif
 #endif
 
+#if SOUNDFILE
+    #include "faust/gui/SoundUI.h"
+#endif
+
 #include "DspFaust.h"
 
 std::list<GUI*> GUI::fGuiList;
@@ -160,7 +164,23 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
  
 void DspFaust::init(audio* driver)
 {
+#if MIDICTRL
+    midi_handler* midi;
+#if JACK_DRIVER
+    midi = static_cast<jackaudio_midi*>(driver);
+    fMidiUI = new MidiUI(midi);
+#elif JUCE_DRIVER
+    midi = new juce_midi();
+    fMidiUI = new MidiUI(midi, true);
+#else
+    midi = new rt_midi();
+    fMidiUI = new MidiUI(midi, true);
+#endif
+    fPolyEngine = new FaustPolyEngine(driver, midi);
+    fPolyEngine->buildUserInterface(fMidiUI);
+#else
     fPolyEngine = new FaustPolyEngine(driver);
+#endif
     
 #if OSCCTRL
 #if JUCE_DRIVER
@@ -181,15 +201,9 @@ void DspFaust::init(audio* driver)
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
     
-#if MIDICTRL
-#if JACK_DRIVER
-    fMidiUI = new MidiUI(static_cast<jackaudio_midi*>(driver));
-#elif JUCE_DRIVER
-    fMidiUI = new MidiUI(new juce_midi(), true);
-#else
-    fMidiUI = new MidiUI(new rt_midi(), true);
-#endif
-    fPolyEngine->buildUserInterface(fMidiUI);
+#if SOUNDFILE
+    fSoundInterface = new SoundUI();
+    fPolyEngine->buildUserInterface(fSoundInterface);
 #endif
 }
 
@@ -200,6 +214,9 @@ DspFaust::~DspFaust()
 #endif
 #if MIDICTRL
     delete fMidiUI;
+#endif
+#if SOUNDFILE
+    delete fSoundInterface;
 #endif
     delete fPolyEngine;
 }

@@ -56,7 +56,7 @@ class jack_midi_handler : public midi_handler {
 
         void processMidiInBuffer(void* port_buf_in)
         {
-            for (int i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
+            for (size_t i = 0; i < jack_midi_get_event_count(port_buf_in); ++i) {
                 jack_midi_event_t event;
                 if (jack_midi_event_get(&event, port_buf_in, i) == 0) {
 

@@ -90,6 +90,14 @@ if [ "$1" = "osx" ]; then
 
     (faust2api -ios -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect effect.dsp -midi failed")
 
+    (faust2nodejs -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
+
+    (faust2nodejs -coreaudio -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi failed")
+
+    (faust2nodejs -coreaudio -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -midi -nvoices 8 failed")
+
+    #(faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2nodejs -coreaudio -nvoices 8 -effect effect.dsp -midi failed")
+
     (faust2smartkeyb -ios good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios succeeded !")||(echo "ERROR: faust2smartkeyb -ios failed")
 
     (faust2smartkeyb -ios -osc good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -osc succeeded !")||(echo "ERROR: faust2smartkeyb -ios -osc failed")

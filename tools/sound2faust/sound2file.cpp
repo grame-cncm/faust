@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
     char* base_name;
     
     const char* output = lopts(argv, "-o", "");
-    long is_double = isopt(argv, "-d");
+    bool is_double = isopt(argv, "-d");
     
 #ifndef _WIN32
 	base_name = basename(argv[1]);

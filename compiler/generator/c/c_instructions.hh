@@ -34,8 +34,8 @@ class CInstVisitor : public TextInstVisitor {
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
-        static map <string, int> gFunctionSymbolTable;      
-
+        static map <string, bool> gFunctionSymbolTable;
+    
     public:
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
@@ -43,6 +43,56 @@ class CInstVisitor : public TextInstVisitor {
         {
             fTypeManager->fTypeDirectTable[Typed::kObj] = structname;
             fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
+            
+            // Mark all math.h functions as generated...
+            gFunctionSymbolTable["abs"] = true;
+            
+            gFunctionSymbolTable["max"] = true;
+            gFunctionSymbolTable["min"] = true;
+            
+            // Float version
+            gFunctionSymbolTable["absf"] = true;
+            gFunctionSymbolTable["fabsf"] = true;
+            gFunctionSymbolTable["acosf"] = true;
+            gFunctionSymbolTable["asinf"] = true;
+            gFunctionSymbolTable["atanf"] = true;
+            gFunctionSymbolTable["atan2f"] = true;
+            gFunctionSymbolTable["ceilf"] = true;
+            gFunctionSymbolTable["cosf"] = true;
+            gFunctionSymbolTable["expf"] = true;
+            gFunctionSymbolTable["exp10f"] = true;
+            gFunctionSymbolTable["floorf"] = true;
+            gFunctionSymbolTable["fmodf"] = true;
+            gFunctionSymbolTable["logf"] = true;
+            gFunctionSymbolTable["log10f"] = true;
+            gFunctionSymbolTable["powf"] = true;
+            gFunctionSymbolTable["remainderf"] = true;
+            gFunctionSymbolTable["roundf"] = true;
+            gFunctionSymbolTable["sinf"] = true;
+            gFunctionSymbolTable["sqrtf"] = true;
+            gFunctionSymbolTable["tanf"] = true;
+            
+            // Double version
+            gFunctionSymbolTable["abs"] = true;
+            gFunctionSymbolTable["fabs"] = true;
+            gFunctionSymbolTable["acos"] = true;
+            gFunctionSymbolTable["asin"] = true;
+            gFunctionSymbolTable["atan"] = true;
+            gFunctionSymbolTable["atan2"] = true;
+            gFunctionSymbolTable["ceil"] = true;
+            gFunctionSymbolTable["cos"] = true;
+            gFunctionSymbolTable["exp"] = true;
+            gFunctionSymbolTable["exp10"] = true;
+            gFunctionSymbolTable["floor"] = true;
+            gFunctionSymbolTable["fmod"] = true;
+            gFunctionSymbolTable["log"] = true;
+            gFunctionSymbolTable["log10"] = true;
+            gFunctionSymbolTable["pow"] = true;
+            gFunctionSymbolTable["remainder"] = true;
+            gFunctionSymbolTable["round"] = true;
+            gFunctionSymbolTable["sin"] = true;
+            gFunctionSymbolTable["sqrt"] = true;
+            gFunctionSymbolTable["tan"] = true;
         }
 
         virtual ~CInstVisitor()
@@ -121,7 +171,7 @@ class CInstVisitor : public TextInstVisitor {
             }
             *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) 
             << ", &dsp->" << inst->fZone
-            << ", "<< checkReal(inst->fMin)
+            << ", " << checkReal(inst->fMin)
             << ", " << checkReal(inst->fMax) << ")";          
             EndLine();
         }
@@ -149,7 +199,7 @@ class CInstVisitor : public TextInstVisitor {
             if (gFunctionSymbolTable.find(inst->fName) != gFunctionSymbolTable.end()) {
                 return;
             } else {
-                gFunctionSymbolTable[inst->fName] = 1;
+                gFunctionSymbolTable[inst->fName] = true;
             }
             
             // Defined as macro in the architecture file...
@@ -226,7 +276,8 @@ class CInstVisitor : public TextInstVisitor {
                 name = inst->fName;
             }
             
-            *fOut << name << "(";
+            *fOut << gGlobal->getMathFunction(name) << "(";
+           
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";

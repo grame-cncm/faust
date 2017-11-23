@@ -170,8 +170,14 @@ for f in $FILES; do
         fi
     fi
 
-	# collect binary file name
-	BINARIES="$name.js, $name.wasm;"
+    if [ $WORKLET = "true" ]; then
+        # collect binary file name
+        BINARIES="$name.js, $name-processor.js;"
+        rm $name.wasm
+    else
+        # collect binary file name
+        BINARIES="$name.js, $name.wasm;"
+    fi
 
 done
 

@@ -36,7 +36,6 @@ Interpreter backend description:
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
- - sub-containers code is 'inlined': fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
  

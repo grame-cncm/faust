@@ -26,7 +26,6 @@ using namespace std;
 
 #include <string>
 #include <list>
-#include <set>
 #include <map>
 #include <vector>
 #include <stack>
@@ -80,30 +79,6 @@ using namespace std;
     }
 
 */
-
-struct VariableSizeCounter : public DispatchVisitor {
-
-    int fSizeBytes;
-    Typed::VarType fType;
-    Address::AccessType fAccess;
-    
-    VariableSizeCounter(Address::AccessType access, Typed::VarType type = Typed::kNoType)
-    {
-        fSizeBytes = 0;
-        fType = type;
-        fAccess = access;
-    }
-  
-    virtual void visit(DeclareVarInst* inst)
-    {
-        DispatchVisitor::visit(inst);
-    
-        if (((fType == Typed::kNoType) || (inst->fType->getType() == fType)) && inst->fAddress->getAccess() | fAccess) {
-            fSizeBytes += inst->fType->getSize();
-        }
-    }
-    
-};
 
 struct Loop2FunctionBuider : public DispatchVisitor {
 
@@ -307,7 +282,6 @@ struct LoadStoreCloneVisitor : public BasicCloneVisitor {
 };
 
 // Remove linked Declare/Load/Store with a given name family
-
 struct StackVariableRemover : public DispatchVisitor {
 
     ForLoopInst* fResultLoop;
@@ -372,7 +346,6 @@ struct StackVariableRemover : public DispatchVisitor {
 };
 
 // Remove linked Declare/Load/Store with a given name of name family
-
 struct LLVMStackVariableRemover : public DispatchVisitor {
 
     ForLoopInst* fResultLoop;
@@ -955,7 +928,6 @@ struct CodeVerifier : public DispatchVisitor {
 };
 
 // Specialize all simple kStruct variables with a given value
-
 struct StructVarAnalyser : public DispatchVisitor {
 
     map<string, ValueInst*> fSpecializedValueTable;

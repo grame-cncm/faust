@@ -120,13 +120,15 @@ class FtzPrim : public xtended
                         container->pushComputeDSPMethod(InstBuilder::genDecStackVar(vname, InstBuilder::genBasicTyped(itfloat()), *args.begin()));
                         switch (gGlobal->gFloatSize) {
                             case 1:
-                                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt32)),
-                                                                                    InstBuilder::genInt32NumInst(0x7F800000)),
+                                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
+                                                                                                                InstBuilder::genBasicTyped(Typed::kInt32)),
+                                                                                                                InstBuilder::genInt32NumInst(0x7F800000)),
                                                                    InstBuilder::genLoadStackVar(vname),
                                                                    InstBuilder::genTypedZero(itfloat()));
                             case 2:
-                                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname), InstBuilder::genBasicTyped(Typed::kInt64)),
-                                                                                       InstBuilder::genInt64NumInst(0x7FF0000000000000)),
+                                return InstBuilder::genSelect2Inst(InstBuilder::genAnd(InstBuilder::genBitcastInst(InstBuilder::genLoadStackVar(vname),
+                                                                                                                InstBuilder::genBasicTyped(Typed::kInt64)),
+                                                                                                                InstBuilder::genInt64NumInst(0x7FF0000000000000)),
                                                                    InstBuilder::genLoadStackVar(vname),
                                                                    InstBuilder::genTypedZero(itfloat()));
                             default:
