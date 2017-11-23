@@ -29,6 +29,7 @@ std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
 string Typed::gTypeString[] = {
     "kInt32", "kInt32ish", "kInt32_ptr", "kInt32_vec", "kInt32_vec_ptr",
+    "kInt64", "kInt64_ptr", "kInt64_vec", "kInt64_vec_ptr",
     "kBool", "kBool_ptr", "kBool_vec", "kBool_vec_ptr",
     "kFloat", "kFloatish", "kFloat_ptr", "kFloat_vec", "kFloat_vec_ptr",
     "kFloatMacro", "kFloatMacro_ptr",
@@ -63,6 +64,7 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[name] = type->getTyped();
         //cout << "DeclareFunInst " << name << " " << Typed::gTypeString[type->getType()] << endl;
+        //stacktrace(20);
     } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
         //cout << "DeclareFunInst " << name << endl;
         faustassert(false);

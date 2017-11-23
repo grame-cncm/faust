@@ -25,6 +25,7 @@
 #include "instructions.hh"
 #include "code_container.hh"
 #include "fir_instructions.hh"
+#include "typing_instructions.hh"
 
 // Tool to dump FIR
 inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
@@ -551,6 +552,39 @@ struct VariableSizeCounter : public DispatchVisitor {
         }
     }
     
+};
+
+// Remove unnecessary cast
+struct CastRemover : public BasicTypingCloneVisitor {
+
+    virtual ValueInst* visit(CastInst* inst)
+    {
+        inst->fInst->accept(&fTypingVisitor);
+        Typed::VarType type = fTypingVisitor.fCurType;
+        
+        if (inst->fType->getType() == Typed::kInt32) {
+            if (type == Typed::kInt32) {
+                //std::cout << "CastInst : cast to int, but arg already int !" << std::endl;
+                //dump2FIR(inst);
+                return inst->fInst->clone(this);
+            } else {
+                return BasicTypingCloneVisitor::visit(inst);
+            }
+        } else {
+            if (isRealType(type)) {
+                //std::cout << "CastInst : cast to real, but arg already real !" << std::endl;
+                //dump2FIR(inst);
+                return inst->fInst->clone(this);
+            } else {
+                return BasicTypingCloneVisitor::visit(inst);
+            }
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src)
+    {
+        return dynamic_cast<BlockInst*>(src->clone(this));
+    }
 };
 
 #endif

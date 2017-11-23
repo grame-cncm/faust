@@ -256,7 +256,6 @@ static inline BasicTyped* getTypeASM(Typed::VarType result)
 ValueInst* CodeContainer::pushFunction(const string& name, Typed::VarType result, vector<Typed::VarType>& types, const list<ValueInst*>& args)
 {
     BasicTyped* result_type = InstBuilder::genBasicTyped(result);
-    
     list<ValueInst*>::const_iterator it = args.begin();
 
     // Special case for "faustpower", generates sequence of multiplication

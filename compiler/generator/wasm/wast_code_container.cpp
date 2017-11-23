@@ -360,6 +360,10 @@ void WASTScalarCodeContainer::generateCompute(int n)
         BlockInst* compute_block = InstBuilder::genBlockInst();
         compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
     
+        // Remove unecessary cast
+        CastRemover cast_remover;
+        compute_block = cast_remover.getCode(compute_block);
+    
         {
             // Inline "max_i" calls
             DeclareFunInst* max_i = WASInst::generateIntMax();

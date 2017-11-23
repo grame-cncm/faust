@@ -1317,12 +1317,13 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (isRealType(type1)) {
                 visitAuxReal(inst, type1);
             } else {
+                // type1 is kInt
                 inst->fInst2->accept(&fTypingVisitor);
                 Typed::VarType type2 = fTypingVisitor.fCurType;
                 if (isRealType(type2)) {
-                    visitAuxReal(inst, type1);
+                    visitAuxReal(inst, type2);
                 } else if (isIntType(type1) || isIntType(type2)) {
-                    visitAuxInt(inst, type1);
+                    visitAuxInt(inst, type2);
                 } else if (type1 == Typed::kBool && type2 == Typed::kBool) {
                     visitAuxInt(inst, type1);
                 } else {
