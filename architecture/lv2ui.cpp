@@ -1229,6 +1229,8 @@ public:
       addElem(label);
     }
   }
+    
+  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
   // -- passive widgets	
   virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
