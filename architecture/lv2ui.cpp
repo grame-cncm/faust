@@ -1230,9 +1230,7 @@ public:
     }
   }
     
-  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-
-  // -- passive widgets	
+  // -- passive widgets
   virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone,
 				     FAUSTFLOAT min, FAUSTFLOAT max) 
   {
@@ -1245,7 +1243,9 @@ public:
     ui->addVerticalBargraph(label, zone, min, max);
     addElem(label);
   }
-
+    
+  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+ 
   virtual void declare(FAUSTFLOAT* zone, const char* key, const char* val)
   {
     // XXXFIXME: Faust's Qt GUI implementation handles [scale:log] and similar
