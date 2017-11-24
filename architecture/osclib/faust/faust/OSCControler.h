@@ -49,12 +49,12 @@ class OSCRegexp;
 */
 class OSCControler
 {
-	int fUDPPort, fUDPOut, fUPDErr;		// the udp ports numbers
-	std::string		fDestAddress;		// the osc messages destination address, used at initialization only
+	int fUDPPort,   fUDPOut, fUPDErr;	// the udp ports numbers
+	std::string     fDestAddress;		// the osc messages destination address, used at initialization only
 										// to collect the address from the command line
 	OSCSetup*		fOsc;				// the network manager (handles the udp sockets)
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
-	FaustFactory *	fFactory;			// a factory to build the memory represetnatin
+	FaustFactory*	fFactory;			// a factory to build the memory represetnatin
 
     bool            fInit;
     
@@ -101,7 +101,7 @@ class OSCControler
         void setUDPErr(int port) { fUPDErr = port; }
         void setDestAddress(const char* address) { fDestAddress = address; }
 
-//      By default, an osc interface emits all parameters. You can filter specific params dynamically.
+        // By default, an osc interface emits all parameters. You can filter specific params dynamically.
         static std::vector<OSCRegexp*>     fFilteredPaths; // filtered paths will not be emitted
         static void addFilteredPath(std::string path);
         static bool isPathFiltered(std::string path);

@@ -53,7 +53,7 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
         {
-            // If no filename was given, take label as the filename
+            // If no filename was given, assume label is the filename
             if (strlen(filename) == 0) filename = label;
             
         #if TARGET_OS_IPHONE
@@ -62,7 +62,7 @@ class SoundUI : public GenericUI
         #else
             const char* filename_path = filename;
         #endif
-            // check if 'label' is already loaded
+            // Check if 'label' is already loaded
             if (fSFMap.find(filename) == fSFMap.end()) {
                 fSFMap[filename] = new Soundfile(filename_path, 64);
             }

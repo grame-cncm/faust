@@ -26,6 +26,11 @@
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/meta.h"
 
+// Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known 
+#if SOUNDFILE
+    #include "faust/gui/SoundUI.h"
+#endif
+
 //**************************************************************
 // OSC configuration (hardcoded for now...)
 //**************************************************************
@@ -96,10 +101,6 @@
 #else
     #include "faust/gui/OSCUI.h"
 #endif
-#endif
-
-#if SOUNDFILE
-    #include "faust/gui/SoundUI.h"
 #endif
 
 #include "DspFaust.h"
@@ -438,3 +439,18 @@ int DspFaust::getScreenColor()
 	return fPolyEngine->getScreenColor();
 }
 
+#ifdef BUILD
+
+#include <unistd.h>
+int main()
+{
+    DspFaust* dsp = new DspFaust();
+    dsp->start();
+    std::cout << "Type 'q' to quit\n";
+    char c;
+    while ((c = getchar()) && (c != 'q')) { usleep(100000); }
+    dsp->stop();
+    delete dsp;
+}
+
+#endif
