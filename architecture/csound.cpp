@@ -137,14 +137,30 @@ public:
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 struct dataspace {
-    OPDS      h;                          /* basic attributes */
-    MYFLT*    aout[1+FAUST_OUTPUTS];      /* output buffers   */
-    MYFLT*    ain[1+FAUST_INPUTS];        /* input buffers    */
-    MYFLT*    ktl[1+FAUST_ACTIVES];       /* controls         */
+    OPDS      h;                          /* basic attributes  */
+#if (FAUST_OUTPUTS > 0)                   /* omit 0 size array */
+    MYFLT*    aout[FAUST_OUTPUTS];        /* output buffers    */
+#endif
+#if (FAUST_INPUTS > 0)                     /* omit 0 size array */
+    MYFLT*    ain[FAUST_INPUTS];          /* input buffers     */
+#endif
+#if (FAUST_ACTIVES > 0)                   /* omit 0 size array  */
+    MYFLT*    ktl[FAUST_ACTIVES];         /* controls          */
+#endif
     dsp*      DSP;                        /* the Faust generated object */
     CSUI*     interface;                  /* do the mapping between CSound controls and DSP fields */
     AUXCH     dspmem;                     /* aux memory allocated once to store the DSP object */
     AUXCH     intmem;                     /* aux memory allocated once to store the interface object */
+/* Dummies to satisfy the compiler for "zero sized" arrays. */
+#if (FAUST_OUTPUTS == 0)
+    MYFLT*    aout[1];
+#endif
+#if (FAUST_INPUTS == 0)
+    MYFLT*    ain[1];
+#endif
+#if (FAUST_ACTIVES == 0)
+    MYFLT*    ktl[1];
+#endif
 };
 
 /**
