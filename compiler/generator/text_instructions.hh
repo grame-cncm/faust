@@ -198,7 +198,7 @@ class TextInstVisitor : public InstVisitor {
             *fOut << ")";
         }
 
-        virtual void visit(CastInst* inst) { faustassert(false); }
+        virtual void visit(::CastInst* inst) { faustassert(false); }
         
         virtual string generateFunName(const string& name)
         {   
