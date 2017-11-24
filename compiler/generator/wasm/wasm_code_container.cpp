@@ -319,6 +319,7 @@ void WASMCodeContainer::produceClass()
     
     // 12) max_i
     WASInst::generateIntMax()->accept(gGlobal->gWASMVisitor);
+    
     // 13) min_i
     WASInst::generateIntMin()->accept(gGlobal->gWASMVisitor);
     

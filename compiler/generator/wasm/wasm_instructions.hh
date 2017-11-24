@@ -410,13 +410,13 @@ namespace BinaryConsts {
         
         // Math operation moved in Binop.hh
         
-        I32ConvertI64 = 0xa7, // TODO: rename to I32WrapI64
+        I32ConvertI64 = 0xa7,   // TODO: rename to I32WrapI64
         I32STruncF32 = 0xa8,
         I32UTruncF32 = 0xa9,
         I32STruncF64 = 0xaa,
         I32UTruncF64 = 0xab,
-        I64STruncI32 = 0xac, // TODO: rename to I64SExtendI32
-        I64UTruncI32 = 0xad, // TODO: likewise
+        I64STruncI32 = 0xac,    // TODO: rename to I64SExtendI32
+        I64UTruncI32 = 0xad,    // TODO: likewise
         I64STruncF32 = 0xae,
         I64UTruncF32 = 0xaf,
         I64STruncF64 = 0xb0,
@@ -425,12 +425,12 @@ namespace BinaryConsts {
         F32UConvertI32 = 0xb3,
         F32SConvertI64 = 0xb4,
         F32UConvertI64 = 0xb5,
-        F32ConvertF64 = 0xb6, // TODO: rename to F32DemoteI64
+        F32ConvertF64 = 0xb6,   // TODO: rename to F32DemoteI64
         F64SConvertI32 = 0xb7,
         F64UConvertI32 = 0xb8,
         F64SConvertI64 = 0xb9,
         F64UConvertI64 = 0xba,
-        F64ConvertF32 = 0xbb, // TODO: rename to F64PromoteF32
+        F64ConvertF32 = 0xbb,   // TODO: rename to F64PromoteF32
         
         I32ReinterpretF32 = 0xbc,
         I64ReinterpretF64 = 0xbd,
@@ -813,9 +813,9 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         for (auto& import : fFunImports) {
             *out << import.second.first;    // module
             // Possibly map fastmath functions
-            *out << gGlobal->getMathFunction(import.second.second);   // base
+            *out << gGlobal->getMathFunction(import.second.second);  // base
             *out << U32LEB(int32_t(ExternalKind::Function));
-            *out << U32LEB(getFunctionTypeIndex(import.first)); // function type index
+            *out << U32LEB(getFunctionTypeIndex(import.first));      // function type index
         }
         
         finishSectionAux(out, start);
@@ -845,6 +845,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
     }
     
 };
+
+#define EXPORTED_FUNCTION_NUM 11
 
 class WASMInstVisitor : public DispatchVisitor, public WASInst {
     
@@ -902,7 +904,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         void generateExports(bool internal_memory)
         {
             int32_t start = startSection(BinaryConsts::Section::Export);
-            *fOut << U32LEB(11 + ((internal_memory) ? 1 : 0)); // num export = 11 functions (+ memory)
+            *fOut << U32LEB(EXPORTED_FUNCTION_NUM + ((internal_memory) ? 1 : 0)); // num export = EXPORTED_FUNCTION_NUM functions (+ memory)
             
             fFunAndTypeCounter.generateExport(fOut, "compute");
             fFunAndTypeCounter.generateExport(fOut, "getNumInputs");

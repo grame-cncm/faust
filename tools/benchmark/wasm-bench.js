@@ -407,18 +407,56 @@ function bench(instance, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "remainder": function(x, y) {
-            return x - Math.round(x/y) * y;
+    var importObject = {
+        env: {
+            memoryBase: 0,
+            tableBase: 0,
+                
+            absf: Math.abs,
+            acosf: Math.acos,
+            asinf: Math.asin,
+            atanf: Math.atan,
+            atan2f: Math.atan2,
+            ceilf: Math.ceil,
+            cosf: Math.cos,
+            expf: Math.exp,
+            floorf: Math.floor,
+            fmodf: function(x, y) { return x % y; },
+            logf: Math.log,
+            log10f: Math.log10,
+            max_f: Math.max,
+            min_f: Math.min,
+            remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+            powf: Math.pow,
+            roundf: Math.fround,
+            sinf: Math.sin,
+            sqrtf: Math.sqrt,
+            tanf: Math.tan,
+                
+            abs: Math.abs,
+            acos: Math.acos,
+            asin: Math.asin,
+            atan: Math.atan,
+            atan2: Math.atan2,
+            ceil: Math.ceil,
+            cos: Math.cos,
+            exp: Math.exp,
+            floor: Math.floor,
+            fmod: function(x, y) { return x % y; },
+            log: Math.log,
+            log10: Math.log10,
+            max_: Math.max,
+            min_: Math.min,
+            remainder:function(x, y) { return x - Math.round(x/y) * y; },
+            pow: Math.pow,
+            round: Math.fround,
+            sin: Math.sin,
+            sqrt: Math.sqrt,
+            tan: Math.tan,
+                
+            table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
         }
     };
-    
-    var importObject = { imports: { print: arg => console.log(arg) } }
-    importObject["global.Math"] = Math;
-    importObject["asm2wasm"] = asm2wasm;
     
     if (typeof window !== "undefined") {
         fetch('mydsp.wasm')
