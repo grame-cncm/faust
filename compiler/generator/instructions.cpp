@@ -46,11 +46,17 @@ DeclareVarInst::DeclareVarInst(Address* address, Typed* type, ValueInst* value)
     :fAddress(address), fType(type), fValue(value)
 {
     if (gGlobal->gVarTypeTable.find(fAddress->getName()) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[fAddress->getName()] = type;
         //cout << "DeclareVarInst " << fAddress->getName() << " " << Typed::gTypeString[type->getType()] << endl;
+        gGlobal->gVarTypeTable[fAddress->getName()] = type;
     } else if (gGlobal->gVarTypeTable[fAddress->getName()] != type) {
-        //cout << "DeclareVarInst " << fAddress->getName() << endl;
-        //faustassert(false);
+        // If array type, check the internal type
+        ArrayTyped* type1 = dynamic_cast<ArrayTyped*>(gGlobal->gVarTypeTable[fAddress->getName()]);
+        ArrayTyped* type2 = dynamic_cast<ArrayTyped*>(type);
+        if (type1 && type2) {
+            faustassert(type1->fType == type2->fType);
+        } else {
+            faustassert(false);
+        }
     }
 }
 
@@ -64,7 +70,6 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
         gGlobal->gVarTypeTable[name] = type->getTyped();
         //cout << "DeclareFunInst " << name << " " << Typed::gTypeString[type->getType()] << endl;
-        //stacktrace(20);
     } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
         //cout << "DeclareFunInst " << name << endl;
         faustassert(false);
@@ -132,7 +137,10 @@ ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
 }
 
 // BasicTyped are not cloned, but actually point on the same underlying type
-Typed* BasicCloneVisitor::visit(BasicTyped* typed) { return gGlobal->gTypeTable[typed->fType]; }
+Typed* BasicCloneVisitor::visit(BasicTyped* typed)
+{
+    return gGlobal->gTypeTable[typed->fType];
+}
 
 void Typed::init()
 {
@@ -179,6 +187,7 @@ bool BlockInst::hasReturn()
     return dynamic_cast<RetInst*>(*it);
 }
 
+// Return the block value (if is has one) and remove it from the block
 ValueInst* BlockInst::getReturnValue()
 {
     list<StatementInst*>::const_iterator it = fCode.end(); it--;

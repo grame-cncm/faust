@@ -701,6 +701,36 @@ void LLVMCodeContainer::generateGetSize(LlvmValue size)
     verifyFunction(*llvm_getSize);
 }
 
+void LLVMCodeContainer::generateFunMaps()
+{
+    if (gGlobal->gFastMath) {
+        generateFunMap("acos", "fast_acos", 1);
+        generateFunMap("asin", "fast_asin", 1);
+        generateFunMap("atan", "fast_atan", 1);
+        generateFunMap("atan2", "fast_atan2", 2);
+        generateFunMap("ceil", "fast_ceil", 1);
+        generateFunMap("cos", "fast_cos", 1);
+        generateFunMap("exp", "fast_exp", 1);
+        generateFunMap("exp2", "fast_exp2", 1);
+        generateFunMap("exp10", "fast_exp10", 1);
+        generateFunMap("floor", "fast_floor", 1);
+        generateFunMap("fmod", "fast_fmod", 2);
+        generateFunMap("log", "fast_log", 1);
+        generateFunMap("log2", "fast_log2", 1);
+        generateFunMap("log10", "fast_log10", 1);
+        generateFunMap("pow", "fast_pow", 2);
+        generateFunMap("remainder", "fast_remainder", 2);
+        generateFunMap("round", "fast_round", 1);
+        generateFunMap("sin", "fast_sin", 1);
+        generateFunMap("sqrt", "fast_sqrt", 1);
+        generateFunMap("tan", "fast_tan", 1);
+    } else {
+#ifdef __APPLE__
+        generateFunMap("exp10", "__exp10", 1, true);
+#endif
+    }
+}
+
 void LLVMCodeContainer::produceInternal()
 {
     // Creates DSP structure
@@ -713,6 +743,8 @@ void LLVMCodeContainer::produceInternal()
     fStructDSP = fTypeBuilder.getDSPType(true, false);
 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fTypeBuilder.getFieldNames(), fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
+    
+    generateFunMaps();
     
     generateInfoFunctions(fKlassName, false);
   
@@ -783,32 +815,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     fCodeProducer = new LLVMInstVisitor(fModule, fBuilder, fAllocaBuilder, fields_names, fTypeBuilder.getUIPtr(), fStructDSP, fKlassName);
     
-    if (gGlobal->gFastMath) {
-        generateFunMap("acos", "fast_acos", 1);
-        generateFunMap("asin", "fast_asin", 1);
-        generateFunMap("atan", "fast_atan", 1);
-        generateFunMap("atan2", "fast_atan2", 2);
-        generateFunMap("ceil", "fast_ceil", 1);
-        generateFunMap("cos", "fast_cos", 1);
-        generateFunMap("exp", "fast_exp", 1);
-        generateFunMap("exp2", "fast_exp2", 1);
-        generateFunMap("exp10", "fast_exp10", 1);
-        generateFunMap("floor", "fast_floor", 1);
-        generateFunMap("fmod", "fast_fmod", 2);
-        generateFunMap("log", "fast_log", 1);
-        generateFunMap("log2", "fast_log2", 1);
-        generateFunMap("log10", "fast_log10", 1);
-        generateFunMap("pow", "fast_pow", 2);
-        generateFunMap("remainder", "fast_remainder", 2);
-        generateFunMap("round", "fast_round", 1);
-        generateFunMap("sin", "fast_sin", 1);
-        generateFunMap("sqrt", "fast_sqrt", 1);
-        generateFunMap("tan", "fast_tan", 1);
-    } else {
-    #ifdef __APPLE__
-        generateFunMap("exp10", "__exp10", 1, true);
-    #endif
-    }
+    generateFunMaps();
     
     generateInfoFunctions(fKlassName, true);
  

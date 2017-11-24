@@ -481,8 +481,7 @@ struct BasicTyped : public Typed {
     
     static void cleanup();
 
-    BasicTyped(VarType type)
-        :fType(type)
+    BasicTyped(VarType type):fType(type)
     {}
 
     VarType getType() { return fType; }
