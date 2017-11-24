@@ -139,7 +139,7 @@ DspFaust::DspFaust()
 DspFaust::DspFaust(int sample_rate, int buffer_size)
 {
     
-    init(NULL, createDriver());
+    init(NULL, createDriver(sample_rate, buffer_size));
 }
 
 #if DYNAMIC_DSP
@@ -164,11 +164,11 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
         std::cerr << "Cannot allocate DSP instance\n";
         throw bad_alloc();
     }
-    init(dsp, createDriver());
+    init(dsp, createDriver(sample_rate, buffer_size));
 }
 #endif
 
-audio* DspFaust::createDriver()
+audio* DspFaust::createDriver(int sample_rate, int buffer_size)
 {
 #if COREAUDIO_DRIVER
     audio* driver = new coreaudio(sample_rate, buffer_size);

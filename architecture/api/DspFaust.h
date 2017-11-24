@@ -29,6 +29,8 @@ class OSCUI;
 class JuceOSCUI;
 class SoundUI;
 class audio;
+class dsp;
+class dsp_factory;
 
 class DspFaust
 {
@@ -58,7 +60,7 @@ class DspFaust
     #endif
     
         void init(dsp* mono_dsp, audio* driver);
-        audio* createDriver();
+        audio* createDriver(int sample_rate, int buffer_size);
     
     public:
         
