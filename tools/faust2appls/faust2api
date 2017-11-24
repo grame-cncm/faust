@@ -31,6 +31,8 @@ OSC="0"
 NODOC="0"
 NOZIP="0"
 EFFECT=""
+BUILD="0"
+DYNAMIC_DSP="0"
 
 COREAUDIO_DRIVER="0"
 ANDROID_DRIVER="0"
@@ -91,6 +93,8 @@ echoHelp ()
     echo "   -midi : activate JACK MIDI support to the API."
     echo "   -osc : add built-in OSC support to the API."
     echo "   -soundfile : add built-in Soundfile support to the API."
+    echo "   -build : build a ready to test binary."
+    echo "   -dynamic : add libfaust/LLVM dynamic DSP compilation mode."
     echo ""
     echo "PortAudio specific options"
     echo "   -midi : add built-in RtMidi support to the API."
@@ -128,6 +132,12 @@ createAPI ()
     fi
     if [ "$SOUNDFILE" = "1" ]; then
         echo "#define SOUNDFILE 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$DYNAMIC_DSP" = "1" ]; then
+        echo "#define DYNAMIC_DSP 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
+    fi
+    if [ "$BUILD" = "1" ]; then
+        echo "#define BUILD 1" | cat - "$APIFOLDER/DspFaust.cpp" > temp && mv temp "$APIFOLDER/DspFaust.cpp"
     fi
 }
 
@@ -177,6 +187,10 @@ do
         NODOC="1"
     elif [ "$p" = "-nozip" ]; then
         NOZIP="1"
+    elif [ "$p" = "-build" ]; then
+        BUILD="1"
+    elif [ "$p" = "-dynamic" ]; then
+        DYNAMIC_DSP="1"
     elif [ $p = "-nvoices" ]; then
 		shift
 		NVOICES=$1
@@ -266,6 +280,30 @@ else
 fi
 
 ###################################
+# GENERATING BINARY
+###################################
+
+if [ "$BUILD" = "1" ]; then
+
+    if [ "$DYNAMIC_DSP" = "1" ]; then
+        echo "Compile as a binary named 'dynamic-api' "
+        # compile c++ to binary liked with lbfaust/LLSM
+        (
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp /usr/local/lib/libfaust.a -lz -lncurses -lOSCFaust `llvm-config --ldflags --libs all --system-libs`  `pkg-config --cflags --static --libs jack sndfile` -o dynamic-api
+        ) > /dev/null || exit 1
+        exit 0
+   else
+        echo "Compile the ${FILE%.dsp} binary"
+        # compile c++ to binary
+        (
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
+        ) > /dev/null || exit 1
+        exit 0
+    fi
+
+fi
+
+###################################
 # GENERATING API DOCUMENTATION
 ###################################
 
@@ -313,11 +351,13 @@ fi
 ###################################
 # POST PROCESSING
 ###################################
+
 if [ "$NOZIP" = "0" ]; then
-  ZIPOUT="$APIFOLDER.zip"
-  rm $ZIPOUT 2> /dev/null || true
-  zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
+    ZIPOUT="$APIFOLDER.zip"
+    rm $ZIPOUT 2> /dev/null || true
+    zip -r $ZIPOUT $APIFOLDER > /dev/null || exit 1
 else
-  mv $APIFOLDER/* . || exit 1
+    mv $APIFOLDER/* . || exit 1
 fi
+
 rm -r $APIFOLDER || exit 1

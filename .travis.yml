@@ -51,6 +51,5 @@ branches:
   only:
   - master-dev
   - master
-  - faust2
 
-script:  make CXX=$COMPILER -j4
+script:  make light CXX=$COMPILER -j4

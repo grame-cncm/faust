@@ -52,6 +52,7 @@ echoHelp ()
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
     echo "   -midi : add built-in RtMidi support to the API."
     echo "   -osc : add built-in OSC support to the API."
+    echo "   -soundfile : add built-in Soundfile support to the API."
     echo "   -source : generates the source of the addon without compiling it."
     echo "   -electronv <VERSION>: allows to specify the current version of electron if generating an addon for this framework."
     echo "   -debug : prints compilation output."
@@ -73,7 +74,7 @@ do
         EFFECT="-effect "$1
     elif [ "$p" = "-midi" ]; then
         MIDI="-midi"
-    elif [ "$p" = "-soundfile" ]; then # What is this?
+    elif [ "$p" = "-soundfile" ]; then
         SOUNDFILE="-soundfile"
     elif [ "$p" = "-osc" ]; then
         OSC="-osc"

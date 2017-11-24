@@ -8,7 +8,7 @@ faustProcessing.jar : $(SRC) FaustProcessing.java
 	jar cf faustProcessing.jar faustProcessing/* com/grame/faust/*
 	
 libFaustEngine.jnilib : $(SRC)
-	g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -DLLVM_DSP -o libFaustEngine.jnilib ../../../architecture/faust/dsp/faust-dynamic-engine.cpp FaustEngine_wrap.cxx -framework CoreAudio -framework AudioUnit -framework CoreServices -L /usr/local/lib -ljack -ldl -lcrypto -lz -lncurses -lfaust `llvm-config --ldflags --libs all`
+	g++ -dynamiclib -I/System/Library/Frameworks/JavaVM.framework/Headers -DLLVM_DSP -o libFaustEngine.jnilib ../../../architecture/faust/dsp/faust-dynamic-engine.cpp FaustEngine_wrap.cxx -framework CoreAudio -framework AudioUnit -framework CoreServices -L /usr/local/lib -ljack -ldl -lz -lncurses -lfaust `llvm-config --ldflags --libs all`
 	
 FaustProcessing.java : ../src/FaustProcessing.java
 	cp ../src/FaustProcessing.java .

@@ -23,7 +23,6 @@
 #include "wx/notebook.h"
 #include "wx/spinctrl.h"
 
-
 #include <libgen.h>
 #include <jack/jack.h>
 

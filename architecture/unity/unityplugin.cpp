@@ -72,7 +72,6 @@ class AudioChannels
             delete[] fChannels;
         }
         
-        
         //---------------------------------------------------------------------------------------
         // interleavedRead: read, from the interleaved buffer <inbuffer>, <length> frames on
         // <inchannels> channels. The samples are written to the <fNumChannels> internal

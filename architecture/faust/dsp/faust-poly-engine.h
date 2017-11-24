@@ -132,16 +132,11 @@ class FaustPolyEngine {
     
     public:
     
-        FaustPolyEngine(audio* driver = NULL, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
+        FaustPolyEngine(dsp* mono_dsp, audio* driver = NULL, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
         {
-            init(new mydsp(), driver, midi);
+            init(((mono_dsp) ? mono_dsp : new mydsp()), driver, midi);
         }
     
-        FaustPolyEngine(dsp* mono_dsp, audio* driver, midi_handler* midi = NULL):fMidiUI(&fMidiHandler)
-        {
-            init(mono_dsp, driver, midi);
-        }
-
         virtual ~FaustPolyEngine()
         {
             delete fDriver;

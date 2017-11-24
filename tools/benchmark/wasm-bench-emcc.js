@@ -409,15 +409,6 @@ function bench(instance, memory, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
-    var asm2wasm = { // special asm2wasm imports
-        "fmod": function(x, y) {
-            return x % y;
-        },
-        "remainder": function(x, y) {
-            return x - Math.round(x/y) * y;
-        }
-    };
-    
     var module_memory = new WebAssembly.Memory({ initial: 512 });
     
     var importObject = {
@@ -472,9 +463,6 @@ faust.createmydsp = function(display_handler)
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
         }
     };
-    
-    importObject["global.Math"] = Math;
-    importObject["asm2wasm"] = asm2wasm;
     
     if (typeof window !== "undefined") {
         fetch('mydsp.wasm')

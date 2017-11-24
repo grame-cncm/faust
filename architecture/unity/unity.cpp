@@ -55,8 +55,7 @@ class AudioChannels
             }
             delete[] fChannels;
         }
-        
-        
+    
         //-----------------------------------------------------------------------------------
         // interleavedRead: read, from the interleaved buffer <inbuffer>, <length> frames on
         // <inchannels> channels. The samples are written to the <fNumChannels> internal
@@ -77,7 +76,6 @@ class AudioChannels
                 }
             }
         }
-        
         
         //----------------------------------------------------------------------------------------
         // interleavedWrite: write to the interleaved buffer <inbuffer>, <length> frames on
@@ -100,13 +98,11 @@ class AudioChannels
             }
         }
         
-        
         //----------------------------------------------------------------------------------------
         // buffers: the internal buffers ready to use in the compute() method of a faust dsp
         
         FAUSTFLOAT** buffers() { return fChannels; }
 };
-
 
 //=============================================================================
 // unitydsp : a Faust dsp combined with an APIUI and AudioChannels that
@@ -173,7 +169,6 @@ class unitydsp : public mydsp
         
         float getParamValue(int pnum) { return fUI.getParamValue(pnum); }
 };
-
 
 //=============================================================================
 // The seven Unity callbacks: create(), reset(), release(), process(),

@@ -27,6 +27,15 @@
 #include "faust/gui/meta.h"
 
 //**************************************************************
+// Soundfile handling
+//**************************************************************
+
+// Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known 
+#if SOUNDFILE
+    #include "faust/gui/SoundUI.h"
+#endif
+
+//**************************************************************
 // OSC configuration (hardcoded for now...)
 //**************************************************************
 
@@ -98,8 +107,8 @@
 #endif
 #endif
 
-#if SOUNDFILE
-    #include "faust/gui/SoundUI.h"
+#if DYNAMIC_DSP
+    #include "faust/dsp/llvm-dsp.h"
 #endif
 
 #include "DspFaust.h"
@@ -124,10 +133,42 @@ DspFaust::DspFaust()
     std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
 #endif
-    init(driver);
+    init(NULL, driver);
 }
 
 DspFaust::DspFaust(int sample_rate, int buffer_size)
+{
+    
+    init(NULL, createDriver(sample_rate, buffer_size));
+}
+
+#if DYNAMIC_DSP
+DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
+{
+    string error_msg;
+    
+    // Is dsp_content a filename ?
+    fFactory = createDSPFactoryFromFile(dsp_content, 0, NULL, "", error_msg, -1);
+    if (!fFactory) {
+        std::cerr << error_msg;
+        // Is dsp_content a string ?
+        fFactory = createDSPFactoryFromString("FaustDSP", dsp_content, 0, NULL, "", error_msg);
+        if (!fFactory) {
+            std::cerr << error_msg;
+            throw bad_alloc();
+        }
+    }
+  
+    dsp* dsp = fFactory->createDSPInstance();
+    if (!dsp) {
+        std::cerr << "Cannot allocate DSP instance\n";
+        throw bad_alloc();
+    }
+    init(dsp, createDriver(sample_rate, buffer_size));
+}
+#endif
+
+audio* DspFaust::createDriver(int sample_rate, int buffer_size)
 {
 #if COREAUDIO_DRIVER
     audio* driver = new coreaudio(sample_rate, buffer_size);
@@ -159,10 +200,10 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
     audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif
     
-    init(driver);
+    return driver;
 }
- 
-void DspFaust::init(audio* driver)
+
+void DspFaust::init(dsp* mono_dsp, audio* driver)
 {
 #if MIDICTRL
     midi_handler* midi;
@@ -176,10 +217,10 @@ void DspFaust::init(audio* driver)
     midi = new rt_midi();
     fMidiUI = new MidiUI(midi, true);
 #endif
-    fPolyEngine = new FaustPolyEngine(driver, midi);
+    fPolyEngine = new FaustPolyEngine(mono_dsp, driver, midi);
     fPolyEngine->buildUserInterface(fMidiUI);
 #else
-    fPolyEngine = new FaustPolyEngine(driver);
+    fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
 #endif
     
 #if OSCCTRL
@@ -219,6 +260,9 @@ DspFaust::~DspFaust()
     delete fSoundInterface;
 #endif
     delete fPolyEngine;
+#if DYNAMIC_DSP
+    deleteDSPFactory(static_cast<llvm_dsp_factory*>(fFactory));
+#endif
 }
 
 bool DspFaust::start()
@@ -228,7 +272,7 @@ bool DspFaust::start()
 #endif
 #if MIDICTRL
     if (!fMidiUI->run()) {
-        std::cout << "MIDI run error...\n";
+        std::cerr << "MIDI run error...\n";
     }
 #endif
 	return fPolyEngine->start();
@@ -438,3 +482,22 @@ int DspFaust::getScreenColor()
 	return fPolyEngine->getScreenColor();
 }
 
+#ifdef BUILD
+#include <unistd.h>
+
+int main(int argc, char* argv[])
+{
+#ifdef DYNAMIC_DSP
+    DspFaust* dsp = new DspFaust(argv[1], 44100, 512);
+#else
+    DspFaust* dsp = new DspFaust(44100, 512);
+#endif
+    dsp->start();
+    std::cout << "Type 'q' to quit\n";
+    char c;
+    while ((c = getchar()) && (c != 'q')) { usleep(100000); }
+    dsp->stop();
+    delete dsp;
+}
+
+#endif

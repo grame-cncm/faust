@@ -269,8 +269,11 @@ class BelaUI : public UI
   // -- passive widgets
   virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
   virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
+    
+  // -- soundfiles
+  virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
-// -- metadata declarations
+  // -- metadata declarations
   virtual void declare(FAUSTFLOAT* z, const char* k, const char* id) {
     if (strcasecmp(k,"BELA") == 0) {
       for(int i=0;i<kNumInputPins;i++) {

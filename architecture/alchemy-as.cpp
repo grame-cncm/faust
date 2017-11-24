@@ -96,7 +96,6 @@ public:
 	bool stopped() 	{ return fStopped; }
 };
 
-
 ////// Implementation of UI
 
 // Faust UI hookup is straightforward
@@ -186,7 +185,6 @@ class ActionScriptUI : public UI {
     *(uidToZone[id]) = value;
   }
 
-
 	virtual void addButton(char* label, float* zone) {
 	  int id = registerControl(zone);
 	  uielems[uielems_size].type = TYPE_BUTTON;
@@ -248,8 +246,6 @@ class ActionScriptUI : public UI {
 *******************************************************************************
 *******************************************************************************/
 
-
-
 //----------------------------------------------------------------
 //  abstract definition of a signal processor
 //----------------------------------------------------------------
@@ -267,7 +263,6 @@ class dsp {
 	virtual void init(int samplingRate) 			= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
 
 //----------------------------------------------------------------------------
 //  FAUST generated signal processor
@@ -304,7 +299,6 @@ public: // we're all friends here
 	mydsp *dsp_;
 	ActionScriptUI *ui_;
 };
-
 
 Faust *faust = NULL;
 
@@ -393,7 +387,6 @@ static AS3_Val api_tick(void *thisPtr, AS3_Val args) {
   // magic!
   faust->dsp_->compute(nsamples, inputs, outputs);
 
-  
   // Post-process: interleave arrays. 
   // Faust outputs to two separate arrays (which are probably contiguous in memory - see above)
   // Flash's sound callback needs this as LRLRLRLR...
@@ -418,7 +411,6 @@ static AS3_Val api_tick(void *thisPtr, AS3_Val args) {
 
   return AS3_Int(0);
 }
-
 
 //Alchemy entry point
 // Here we are responsible for contructing an API object to pass back to Flash.
