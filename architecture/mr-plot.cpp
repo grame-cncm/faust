@@ -70,7 +70,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -179,19 +178,16 @@ class CMDUI : public UI
 		return dst;
 	}
 
-
 public:
 
 	CMDUI(int argc, char *argv[]) : UI(), fArgc(argc), fArgv(argv) { fPrefix.push("-"); }
 	virtual ~CMDUI() {}
-
 
 	void addOption(const char* label, float* zone, float init, float min, float max)
 	{
 		string fullname = "-" + simplify(fPrefix.top() + "-" + label);
 		fKeyParam.insert(make_pair(fullname, param(zone, init, min, max)));
 	}
-
 
 	virtual void addButton(const char* label, float* zone)
 	{
@@ -230,6 +226,10 @@ public:
 	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{}
 	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) 			{}
 
+    // -- soundfiles
+    
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+    
 	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
 	virtual void openTabBox(const char* label)			{ openAnyBox(label); }
 	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
@@ -288,7 +288,7 @@ public:
 
 <<includeclass>>
 
-mydsp	DSP;
+mydsp DSP;
 
 class channels
 {

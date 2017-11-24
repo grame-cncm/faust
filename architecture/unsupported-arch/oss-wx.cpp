@@ -26,7 +26,6 @@
 // g++ -O3 -lm `wx-config --cflags --libs` ex2.cpp
 
 using namespace std ;
- 
 
 // abs is now predefined
 //template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
@@ -36,28 +35,25 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
-
 void setRealtimePriority ()
 {
-        struct passwd *         pw;
-        int                     err;
-        uid_t                   uid;
-        struct sched_param      param;  
-        
-        uid = getuid ();
-        pw = getpwnam ("root");
-        setuid (pw->pw_uid); 
-        param.sched_priority = 50; /* 0 to 99  */
-        err = sched_setscheduler(0, SCHED_RR,  &param); 
-        setuid (uid);
-        if (err != -1) {
-                printf("OK : Running with realtime priority\n");
-        } else {
-                printf("Warning : running with non-realtime priority\n");
-        }
-        
+    struct passwd *         pw;
+    int                     err;
+    uid_t                   uid;
+    struct sched_param      param;  
+    
+    uid = getuid ();
+    pw = getpwnam ("root");
+    setuid (pw->pw_uid); 
+    param.sched_priority = 50; /* 0 to 99  */
+    err = sched_setscheduler(0, SCHED_RR,  &param); 
+    setuid (uid);
+    if (err != -1) {
+            printf("OK : Running with realtime priority\n");
+    } else {
+            printf("Warning : running with non-realtime priority\n");
+    }
 }
-
 
 /******************************************************************************
 *******************************************************************************
@@ -67,10 +63,7 @@ void setRealtimePriority ()
 *******************************************************************************
 *******************************************************************************/
 
-
 <<includeIntrinsic>>
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -119,7 +112,6 @@ class AudioInterface
 	int			fOutputBufferSize;
 	short*		fOutputBuffer;
 	
-
  public :
  
 	const char*	getDeviceName()				{ return fParam.fDeviceName;  	}
@@ -133,7 +125,6 @@ class AudioInterface
 	int		getInputBufferSize()			{ return fInputBufferSize; 		}
 	int		getOutputBufferSize()			{ return fOutputBufferSize; 	}
 
-	
 	AudioInterface(const AudioParam& ap = AudioParam()) : fParam(ap)
 	{
 		fOutputDevice 			= -1;
@@ -145,7 +136,6 @@ class AudioInterface
 		fOutputBufferSize		= 0;
 		fOutputBuffer			= 0;
 	}
-
 
 	void openInputAudioDev ()
 	{
@@ -166,7 +156,6 @@ class AudioInterface
 		fInputBuffer = (short*) calloc(fInputBufferSize, 1);
 	}
 
-
 	void openOutputAudioDev ()
 	{
 		int	err = 0;
@@ -186,21 +175,17 @@ class AudioInterface
 		fOutputBuffer = (short*)calloc(fOutputBufferSize, 1);
 	}
 
-
 	void open()
 	{
 		if (fParam.fRWMode & kRead) openInputAudioDev();
 		if (fParam.fRWMode & kWrite) openOutputAudioDev();
 	}
 
-
 	void close()
 	{
 		if (fParam.fRWMode & kRead) ::close(fOutputDevice);
 		if (fParam.fRWMode & kWrite) ::close(fInputDevice);
 	}
-
-
 	
 	//----------------------------------------------------------------
 	//  allocChanGroup() : allocate a group of audio buffers
@@ -215,7 +200,6 @@ class AudioInterface
 			chan[c] = (float*) calloc (len, sizeof(float));
 		}
 	}
-
 	
 	//----------------------------------------------------------------
 	//  info() : print information on the audio device
@@ -250,7 +234,6 @@ class AudioInterface
 			printf("Output block size = %d\n", fOutputBufferSize);
 		}	
 
-		
 		if (getRWMode() & kRead) {
 			assert( ioctl(fInputDevice, SNDCTL_DSP_GETISPACE, &info) != -1);
 			printf("input space info: fragments=%d, fragstotal=%d, fragsize=%d, bytes=%d\n", info.fragments, info.fragstotal,
@@ -273,7 +256,6 @@ class AudioInterface
 		}
 	}
 
-
 	//----------------------------------------------------------------
 	//  read() : read 
 	//----------------------------------------------------------------
@@ -292,7 +274,6 @@ class AudioInterface
 		return bytes == count;
 	}	
 
-
 	bool write(int frames, float* channel[])
 	{
 		int 	bytes = frames * 2 * fNumOfOutputChannels; assert(bytes <= fOutputBufferSize);
@@ -308,16 +289,9 @@ class AudioInterface
 		assert (bytes == count);
 
 		return bytes == count;
-	} 
-
-
+	}
 	
 };
-
-
-
-
-
 
 /******************************************************************************
 *******************************************************************************
@@ -354,8 +328,6 @@ public:
 	bool stopped() 	{ return fStopped; }
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -364,9 +336,8 @@ public:
 *******************************************************************************
 *******************************************************************************/
 
-
 //---------------------------------------------------
-// tableaux de buffers initialis�s par allocChannels
+// tableaux de buffers initialises par allocChannels
 //---------------------------------------------------
 
 float* 	gInChannel[256];
@@ -394,10 +365,8 @@ void allocChannels (int size, int numInChan, int numOutChan)
 	}
 }
 
-
-
 //----------------------------------------------------------------
-//  d�finition du processeur de signal
+//  definition du processeur de signal
 //----------------------------------------------------------------
 			
 class dsp {
@@ -411,13 +380,10 @@ class dsp {
 	virtual void init(int samplingRate) 							= 0;
  	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
 };
-		
-		
-<<includeclass>>
-		
-				
-mydsp	DSP;
 
+<<includeclass>>
+
+mydsp DSP;
 
 /******************************************************************************
 *******************************************************************************
@@ -485,8 +451,7 @@ class faustCheckBox : public wxCheckBox
 BEGIN_EVENT_TABLE(faustCheckBox, wxCheckBox)
     EVT_CHECKBOX(-1, faustCheckBox::toggle)
 END_EVENT_TABLE()
-		
-	
+
 class faustHorizontalSlider : public wxSlider
 {
 	float	fStep;
@@ -510,8 +475,7 @@ class faustHorizontalSlider : public wxSlider
 BEGIN_EVENT_TABLE(faustHorizontalSlider, wxSlider)
 	EVT_SLIDER (-1, faustHorizontalSlider::update)
 END_EVENT_TABLE()
-		
-	
+
 class faustVerticalSlider : public wxSlider
 {
 	float	fStep;
@@ -536,14 +500,12 @@ BEGIN_EVENT_TABLE(faustVerticalSlider, wxSlider)
 	EVT_SLIDER (-1, faustVerticalSlider::update)
 END_EVENT_TABLE()
 
-		
 //--------------------------------
 // faustSpinCtrl* b = new faustSpinCtrl(topPanel(), zone, init, min, max, step);
 //			wxSpinCtrl* b = new wxSpinCtrl( topPanel(), -1, "", wxPoint(200, 160), wxSize(80, -1) );
 //    		b->SetRange(int(min),int(max));
 //    		b->SetValue(int(init));		
-		
-	
+
 class faustSpinCtrl : public wxSpinCtrl
 {
 	float	fStep;
@@ -567,11 +529,8 @@ BEGIN_EVENT_TABLE(faustSpinCtrl, wxSlider)
 	EVT_SPINCTRL (-1, faustSpinCtrl::update)
 END_EVENT_TABLE()
 
-		
-		
 class WXUI : public UI // user interface
 {
-
 	class State 
 	{
 		int			const fType;
@@ -643,7 +602,6 @@ class WXUI : public UI // user interface
 	}
 	
  public:
-	
 
 	WXUI(){}
 	
@@ -759,8 +717,6 @@ class WXUI : public UI // user interface
 	virtual void openFrameBox(char* label) {}
 };
 
-
-
 /******************************************************************************
 *******************************************************************************
 
@@ -769,7 +725,6 @@ class WXUI : public UI // user interface
 *******************************************************************************
 *******************************************************************************/
 
-
 enum { ID_QUIT=1, ID_ABOUT };
  
  
@@ -777,7 +732,6 @@ class MyApp : public wxApp
 {
 	virtual bool OnInit();
 };
-
 
 class MyFrame : public wxFrame
 {
@@ -811,16 +765,13 @@ class MyFrame : public wxFrame
 	DECLARE_EVENT_TABLE()
 };
  
- 
+
  BEGIN_EVENT_TABLE(MyFrame, wxFrame)
 		 EVT_MENU(ID_QUIT, MyFrame::OnQuit)
 		 EVT_MENU(ID_ABOUT, MyFrame::OnAbout)
  END_EVENT_TABLE()
 
-		 
-
 IMPLEMENT_APP(MyApp)
-
 
 /******************************************************************************
 *******************************************************************************
@@ -838,7 +789,6 @@ long lopt (char *argv[], char *name, long def)
 	for (i=0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
 	return def;
 }
-	
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -877,8 +827,6 @@ bool MyApp::OnInit()
 	);
 	audio->open();
 	audio->info();
-	
-	
 	
 	MyFrame* frame = new MyFrame(argv[0], wxPoint(50,50), wxSize(-1, -1));
 

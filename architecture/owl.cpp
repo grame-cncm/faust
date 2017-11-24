@@ -85,10 +85,10 @@ class OwlParameter
 class OwlButton
 {
   protected:
-	Patch* 	fPatch;		// needed to register and read owl parameters
+	Patch* 	fPatch;                 // needed to register and read owl parameters
 	PatchButtonId	fButton;		// OWL button id : PUSHBUTTON, ...
-	FAUSTFLOAT* 		fZone;			// Faust widget zone
-	const char*			fLabel;			// Faust widget label 
+	FAUSTFLOAT* 	fZone;			// Faust widget zone
+	const char*		fLabel;			// Faust widget label
   public:
 	OwlButton() :
 		fPatch(0), fButton(PUSHBUTTON), fZone(0), fLabel("") {}
@@ -96,10 +96,9 @@ class OwlButton
 		fPatch(w.fPatch), fButton(w.fButton), fZone(w.fZone), fLabel(w.fLabel) {}
 	OwlButton(Patch* pp, PatchButtonId button, FAUSTFLOAT* z, const char* l) :
 		fPatch(pp), fButton(button), fZone(z), fLabel(l) {}
-	void bind() 	{  }
+	void bind() 	{}
 	void update()	{ *fZone = fPatch->isButtonPressed(fButton); }
 };
-
 
 /**************************************************************************************
 
@@ -120,9 +119,9 @@ class OwlButton
 class OwlUI : public UI
 {
 	Patch* 	fPatch;
-	PatchParameterId	fParameter;					// current parameter ID, value NO_PARAMETER means not set
+	PatchParameterId	fParameter;                             // current parameter ID, value NO_PARAMETER means not set
 	int					fParameterIndex;						// number of OwlParameters collected so far
-	OwlParameter			fParameterTable[MAXOWLPARAMETERS];		// kind of static list of OwlParameters
+	OwlParameter		fParameterTable[MAXOWLPARAMETERS];		// kind of static list of OwlParameters
         PatchButtonId fButton;
         int fButtonIndex;
         OwlButton fButtonTable[MAXOWLBUTTONS];
@@ -152,7 +151,7 @@ class OwlUI : public UI
 
  public:
 
-        OwlUI(Patch* pp) : fPatch(pp), fParameter(NO_PARAMETER), fParameterIndex(0), fButton(NO_BUTTON), fButtonIndex(0) {}
+    OwlUI(Patch* pp) : fPatch(pp), fParameter(NO_PARAMETER), fParameterIndex(0), fButton(NO_BUTTON), fButtonIndex(0) {}
 	
 	virtual ~OwlUI() {}
 	
@@ -183,24 +182,27 @@ class OwlUI : public UI
 
     virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) 									{ skip(); }
     virtual void addVerticalBargraph  (const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) 									{ skip(); }
+    
+    // -- soundfiles
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
 	// -- metadata declarations
 
     virtual void declare(FAUSTFLOAT* z, const char* k, const char* id) {
     	if (strcasecmp(k,"OWL") == 0) {
-	  if(strncasecmp(id, "PARAMETER_", 10) == 0)
-	    id += 10;
-	  if (strcasecmp(id,"A") == 0)  fParameter = PARAMETER_A;
-	  else if (strcasecmp(id,"B") == 0)  fParameter = PARAMETER_B;
-	  else if (strcasecmp(id,"C") == 0)  fParameter = PARAMETER_C;
-	  else if (strcasecmp(id,"D") == 0)  fParameter = PARAMETER_D;
-	  else if (strcasecmp(id,"E") == 0)  fParameter = PARAMETER_E;
-	  else if (strcasecmp(id,"F") == 0)  fParameter = PARAMETER_F;
-	  else if (strcasecmp(id,"G") == 0)  fParameter = PARAMETER_G;
-	  else if (strcasecmp(id,"H") == 0)  fParameter = PARAMETER_H;
-	  else if (strcasecmp(id,"PUSH") == 0)  fButton = PUSHBUTTON;
-	  else if (strcasecmp(id,"BYPASS") == 0)  fButton = BYPASS_BUTTON;
-    	}
+          if (strncasecmp(id, "PARAMETER_", 10) == 0)
+            id += 10;
+          if (strcasecmp(id,"A") == 0)  fParameter = PARAMETER_A;
+          else if (strcasecmp(id,"B") == 0)  fParameter = PARAMETER_B;
+          else if (strcasecmp(id,"C") == 0)  fParameter = PARAMETER_C;
+          else if (strcasecmp(id,"D") == 0)  fParameter = PARAMETER_D;
+          else if (strcasecmp(id,"E") == 0)  fParameter = PARAMETER_E;
+          else if (strcasecmp(id,"F") == 0)  fParameter = PARAMETER_F;
+          else if (strcasecmp(id,"G") == 0)  fParameter = PARAMETER_G;
+          else if (strcasecmp(id,"H") == 0)  fParameter = PARAMETER_H;
+          else if (strcasecmp(id,"PUSH") == 0)  fButton = PUSHBUTTON;
+          else if (strcasecmp(id,"BYPASS") == 0)  fButton = BYPASS_BUTTON;
+        }
     }
 };
 
@@ -231,8 +233,6 @@ struct OwlMemoryManager : public dsp_memory_manager {
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-
-
 /**************************************************************************************
 
 	FaustPatch : an OWL patch that calls Faust generated DSP code
@@ -241,8 +241,8 @@ struct OwlMemoryManager : public dsp_memory_manager {
 
 class FaustPatch : public Patch
 {
-    mydsp*   fDSP;
-    OwlUI	fUI;
+    mydsp* fDSP;
+    OwlUI fUI;
     OwlMemoryManager mem;
     
 public:
@@ -268,21 +268,21 @@ public:
         float*  outs[32];
         int     n = buffer.getChannels();
         
-        if ( (fDSP->getNumInputs() < 32) && (fDSP->getNumOutputs() < 32) ) {
-            
+        if ((fDSP->getNumInputs() < 32) && (fDSP->getNumOutputs() < 32)) {
+
             // create the table of input channels
-	  for(int ch=0; ch<fDSP->getNumInputs(); ++ch) {
+            for(int ch = 0; ch < fDSP->getNumInputs(); ++ch) {
                 ins[ch] = buffer.getSamples(ch%n);
             }
-            
+
             // create the table of output channels
-	  for(int ch=0; ch<fDSP->getNumOutputs(); ++ch) {
+            for(int ch = 0; ch < fDSP->getNumOutputs(); ++ch) {
                 outs[ch] = buffer.getSamples(ch%n);
             }
-            
+
             // read OWL parameters and updates corresponding Faust Widgets zones
             fUI.update(); 
-            
+
             // Process the audio samples
             fDSP->compute(buffer.getSize(), ins, outs);
         }
@@ -307,6 +307,5 @@ extern "C" {
 }
 
 #endif // __FaustPatch_h__
-
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

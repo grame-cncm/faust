@@ -73,7 +73,6 @@ inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
 
 inline int 		int2pow2 (int x)	{ int r=0; while ((1<<r)<x) r++; return r; }
 
-
 /******************************************************************************
 *******************************************************************************
 
@@ -359,7 +358,6 @@ class MidiShareUI : public UI
             fMidiCtrl[n] = fZoneCtrl[zone];
     }
 
-
     // -- MidiShare session
 
     virtual void open(const char* name) {
@@ -369,7 +367,6 @@ class MidiShareUI : public UI
     }
 
     virtual void close() { MidiClose(fRefnum); fRefnum=-1; }
-
 
     // -- MidiShare event processing
 

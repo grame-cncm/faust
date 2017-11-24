@@ -125,6 +125,7 @@ public:
   virtual void run();
 
   virtual void declare(float* zone, const char* key, const char* value);
+    
 };
 
 LV2UI::LV2UI(int maxvoices)

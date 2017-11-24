@@ -76,7 +76,7 @@ public:
     ControlCounter()
         : mNumControlInputs(0),
           mNumControlOutputs(0)
-    { }
+    {}
 
     size_t getNumControls() const { return getNumControlInputs(); }
     size_t getNumControlInputs() const { return mNumControlInputs; }
