@@ -53,7 +53,12 @@ class DspFaust
         SoundUI* fSoundInterface;
     #endif
     
-        void init(audio* driver);
+    #if DYNAMIC_DSP
+        dsp_factory* fFactory;
+    #endif
+    
+        void init(dsp* mono_dsp, audio* driver);
+        audio* createDriver();
     
     public:
         
@@ -71,9 +76,22 @@ class DspFaust
         // #### Arguments
         //
         // * `SR`: sampling rate
-        // * `BS`: block size
+        // * `BS`: buffer size
         //--------------------------------------------------------
         DspFaust(int, int);
+    
+        //--------------`DspFaust(cinst string& dsp_content, int SR, int BS)`----------------
+        // Constructor.
+        //
+        // #### Arguments
+        //
+        // * `dsp_content`: the DSP as a file or string
+        // * `SR`: sampling rate
+        // * `BS`: buffer size
+        //--------------------------------------------------------
+    #if DYNAMIC_DSP
+        DspFaust(const string&, int, int);
+    #endif
         
         ~DspFaust();
         
