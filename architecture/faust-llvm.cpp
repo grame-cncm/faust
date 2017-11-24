@@ -83,8 +83,8 @@ int main(int argc, char *argv[])
 /*
 Compilation :
 
-g++ faust-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -lcrypto -lz -lcurses -o faust-llvm-static
-g++ faust-llvm.cpp -lfaust -L /usr/local/lib `llvm-config --ldflags --libs all` -lcrypto -lz -lcurses -o faust-llvm-shared
+g++ faust-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -lz -lcurses -o faust-llvm-static
+g++ faust-llvm.cpp -lfaust -L /usr/local/lib `llvm-config --ldflags --libs all` -lz -lcurses -o faust-llvm-shared
 
 Usage (possibly with explicit parameters given to the compiler) : 
 

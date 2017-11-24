@@ -27,8 +27,8 @@ clean :
 
 ### FOR DARWIN	
 libfaustcsound.dylib : faustcsound.cpp
-	g++ -O3 -dynamiclib -o libfaustcsound.dylib faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS) -lz -lncurses -L/usr/local/lib -lfaust -lcrypto `llvm-config --ldflags --libs all`
+	g++ -O3 -dynamiclib -o libfaustcsound.dylib faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS) -lz -lncurses -L/usr/local/lib -lfaust `llvm-config --ldflags --libs all`
 
 ## FOR LINUX
 libfaustcsound.so : faustcsound.cpp
- 	g++ -O3 -shared -o libfaustcsound.so faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS)  -L/usr/local/lib -lfaust -lcrypto `llvm-config --ldflags --libs all`
+ 	g++ -O3 -shared -o libfaustcsound.so faustcsound.cpp -DFAUSTFLOAT=double -DUSE_DOUBLE -I$(CSOUNDHEADERS)  -L/usr/local/lib -lfaust `llvm-config --ldflags --libs all`

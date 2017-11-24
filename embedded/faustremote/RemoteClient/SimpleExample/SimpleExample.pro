@@ -31,7 +31,6 @@ LIBS += -L/usr/lib/x86_64-linux-gnu
 LIBS += -lcurl
 LIBS += -ljack
 LIBS += -ljacknet
-LIBS += -lcrypto
 LIBS+= $$LLVMDIR
 LIBS+= $$LLVMLIBS
 LIBS += -ldl

@@ -32,7 +32,7 @@ CXXFLAGS      = -g
 INCPATH       = -I/usr/local/Qt4.8/mkspecs/macx-g++ -I. -I/Library/Frameworks/QtCore.framework/Versions/4/Headers -I/usr/include/QtCore -I/Library/Frameworks/QtGui.framework/Versions/4/Headers -I/usr/include/QtGui -I/usr/include -I. -I/opt/local/include -I. -F/Library/Frameworks -I/opt/local/include/faust
 LINK          = g++
 LFLAGS        = -headerpad_max_install_names -arch x86_64 -Xarch_x86_64 -mmacosx-version-min=10.5
-LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs`  -L/usr/local/lib -lfaust $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lOSCFaust -lcurl -ljack -ljacknet -L/usr/local/lib -lcrypto -lHTTPDFaust -lmicrohttpd -lqrencode -lfaustremote -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore -ldl -llo
+LIBS          = `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs`  -L/usr/local/lib -lfaust $(SUBLIBS) -F/Library/Frameworks -L/Library/Frameworks -lOSCFaust -lcurl -ljack -ljacknet -L/usr/local/lib -lHTTPDFaust -lmicrohttpd -lqrencode -lfaustremote -framework CoreAudio -framework AudioUnit -framework CoreServices -framework QtGui -framework QtCore -ldl -llo
 
 
 ####### Install
