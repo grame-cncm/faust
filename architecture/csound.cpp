@@ -123,7 +123,11 @@ public:
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
     void copyfrom(MYFLT* mem[]) {
-        for (unsigned int i=0; i<vZone.size(); i++) { *vZone[i] = *(mem[i]); }
+        for (unsigned int i=0; i<vZone.size(); i++) {
+            if (*(mem[i] != FL(-1.)) {
+                *vZone[i] = *(mem[i]);
+            }
+        }
     }
 
     int size()                  { return vZone.size(); }
@@ -175,7 +179,7 @@ static char* makeDescription(int numa, int numk=0)
     char* str = (char*)malloc(numa+numk+1); // NEED TO BE CHANGED ?
     if (str) {
         for (int i=0; i<numa; i++) str[i] = 'a';
-        for (int i=0; i<numk; i++) str[numa+i] = 'k';
+        for (int i=0; i<numk; i++) str[numa+i] = 'J';
         str[numa+numk] = 0;
     }
     return str;
