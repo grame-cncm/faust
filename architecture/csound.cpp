@@ -124,7 +124,7 @@ public:
 
     void copyfrom(MYFLT* mem[]) {
         for (unsigned int i=0; i<vZone.size(); i++) {
-            if (*(mem[i] != FL(-1.)) {
+            if (*(mem[i]) != FL(-1.)) {
                 *vZone[i] = *(mem[i]);
             }
         }
