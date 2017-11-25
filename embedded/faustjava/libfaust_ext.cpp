@@ -47,8 +47,10 @@ using namespace std;
 
 static char gLastError[256];
 
-llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename, const char* argv,
-                                                const char* target, int opt_level)
+llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename,
+                                               const char* argv,
+                                               const char* target,
+                                               int opt_level)
 {
     int argc1 = 0;
     const char* argv1[64];
@@ -69,8 +71,11 @@ llvm_dsp_factory* createCDSPFactoryFromFileAux(const char* filename, const char*
     return factory;
 }
       
-llvm_dsp_factory* createCDSPFactoryFromStringAux(const char* name_app, const char* dsp_content,
-                                                const char* argv, const char* target, int opt_level)
+llvm_dsp_factory* createCDSPFactoryFromStringAux(const char* name_app,
+                                                 const char* dsp_content,
+                                                 const char* argv,
+                                                 const char* target,
+                                                 int opt_level)
 {
     int argc1 = 0;
     const char* argv1[64];

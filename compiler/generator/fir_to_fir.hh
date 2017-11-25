@@ -430,10 +430,17 @@ struct FunctionInliner {
                             if (fVarTable.find(fNamed->fName) == fVarTable.end()) {
                                 // Create a stack variable with the value
                                 string tmp_in = gGlobal->getFreshID("tmp_in");
-                                fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
                                 fVarTable[fNamed->fName] = tmp_in;
+                                if (gGlobal->gHasTeeLocal) {
+                                    fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner)));
+                                    return InstBuilder::genTeeVar(tmp_in, fArg->clone(&cloner));
+                                } else {
+                                    fBlockStack.top()->pushBackInst(InstBuilder::genDecStackVar(tmp_in, fNamed->fType->clone(&cloner), fArg->clone(&cloner)));
+                                    return InstBuilder::genLoadStackVar(tmp_in);
+                                }
+                            } else {
+                                return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
                             }
-                            return InstBuilder::genLoadStackVar(fVarTable[fNamed->fName]);
                         }
                     } else {
                         return inst->clone(&cloner);

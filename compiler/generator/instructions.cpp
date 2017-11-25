@@ -23,7 +23,6 @@
 #include "sigtype.hh"
 #include "global.hh"
 #include "floats.hh"
-#include "global.hh"
 
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
@@ -140,45 +139,6 @@ ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
 Typed* BasicCloneVisitor::visit(BasicTyped* typed)
 {
     return gGlobal->gTypeTable[typed->fType];
-}
-
-void Typed::init()
-{
-    gGlobal->gTypeSizeMap.clear();
-    
-    gGlobal->gTypeSizeMap[Typed::kFloat] = gGlobal->gMachineFloatSize;
-    gGlobal->gTypeSizeMap[Typed::kFloat_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kFloat_vec] = gGlobal->gMachineFloatSize * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kFloat_vec_ptr] = gGlobal->gMachinePtrSize;
-
-    gGlobal->gTypeSizeMap[Typed::kInt32] = gGlobal->gMachineInt32Size;
-    gGlobal->gTypeSizeMap[Typed::kInt32_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kInt32_vec] = gGlobal->gMachineInt32Size * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kInt32_vec_ptr] = gGlobal->gMachinePtrSize;
-    
-    gGlobal->gTypeSizeMap[Typed::kInt64] = gGlobal->gMachineInt64Size;
-    gGlobal->gTypeSizeMap[Typed::kInt64_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kInt64_vec] = gGlobal->gMachineInt64Size * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kInt64_vec_ptr] = gGlobal->gMachinePtrSize;
-
-    gGlobal->gTypeSizeMap[Typed::kDouble] = gGlobal->gMachineDoubleSize;
-    gGlobal->gTypeSizeMap[Typed::kDouble_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kDouble_vec] = gGlobal->gMachineDoubleSize * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kDouble_vec_ptr] = gGlobal->gMachinePtrSize;
-
-    gGlobal->gTypeSizeMap[Typed::kBool] = gGlobal->gMachineBoolSize;
-    gGlobal->gTypeSizeMap[Typed::kBool_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kBool_vec] = gGlobal->gMachineBoolSize * gGlobal->gVecSize;
-    gGlobal->gTypeSizeMap[Typed::kBool_vec_ptr] = gGlobal->gMachinePtrSize;
-
-    // Takes the type of internal real
-    gGlobal->gTypeSizeMap[Typed::kFloatMacro] = gGlobal->gTypeSizeMap[itfloat()];
-    gGlobal->gTypeSizeMap[Typed::kFloatMacro_ptr] = gGlobal->gMachinePtrSize;
-
-    gGlobal->gTypeSizeMap[Typed::kVoid_ptr] = gGlobal->gMachinePtrSize;
-    gGlobal->gTypeSizeMap[Typed::kVoid_ptr_ptr] = gGlobal->gMachinePtrSize;
-    
-    gGlobal->gTypeSizeMap[Typed::kObj_ptr] = gGlobal->gMachinePtrSize;
 }
 
 bool BlockInst::hasReturn()

@@ -438,9 +438,9 @@ struct global {
     map<Tree, string>    gBackLink;		// link to enclosing file for sub schema
     
     // FIR 
-    map<Typed::VarType, BasicTyped*> gTypeTable;    
-    map<string, Typed*> gVarTypeTable;          // Types of variables or functions
-    map<Typed::VarType, int> gTypeSizeMap;      // Size of types in bytes 
+    map<Typed::VarType, BasicTyped*> gTypeTable;    // To share a unique BasicTyped* object for a given type
+    map<string, Typed*> gVarTypeTable;              // Types of variables or functions
+    map<Typed::VarType, int> gTypeSizeMap;          // Size of types in bytes
     
     // colorize
     map<Tree, int> gColorMap;
@@ -517,6 +517,16 @@ struct global {
         } else {
             return name;
         }
+    }
+    
+    bool hasVarType(const string& name)
+    {
+        return gVarTypeTable.find(name) != gVarTypeTable.end();
+    }
+    
+    Typed::VarType getVarType(const string& name)
+    {
+        return gVarTypeTable[name]->getType();
     }
 };
 

@@ -45,8 +45,8 @@ struct TypingVisitor : public InstVisitor {
             //dump2FIR(inst);
             
             // Stack or struct variables
-            if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
-                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+            if (gGlobal->hasVarType(inst->getName())) {
+                fCurType = gGlobal->getVarType(inst->getName());
                 if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
                     fCurType = Typed::getTypeFromPtr(fCurType);
                 }
@@ -60,8 +60,8 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(TeeVarInst* inst)
         {
-            if (gGlobal->gVarTypeTable.find(inst->getName()) != gGlobal->gVarTypeTable.end()) {
-                fCurType = gGlobal->gVarTypeTable[inst->getName()]->getType();
+            if (gGlobal->hasVarType(inst->getName())) {
+                fCurType = gGlobal->getVarType(inst->getName());
             } else {
                 fCurType = Typed::kNoType;
             }
@@ -150,8 +150,8 @@ struct TypingVisitor : public InstVisitor {
     
         virtual void visit(FunCallInst* inst)
         { 
-            if (gGlobal->gVarTypeTable.find(inst->fName) != gGlobal->gVarTypeTable.end()) {
-                fCurType = gGlobal->gVarTypeTable[inst->fName]->getType();
+            if (gGlobal->hasVarType(inst->fName)) {
+                fCurType = gGlobal->getVarType(inst->fName);
             } else {
                 // Should never happen...
                 faustassert(false);

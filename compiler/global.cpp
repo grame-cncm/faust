@@ -431,29 +431,29 @@ void global::init()
     gAllocationCount = 0;
     gEnableFlag = true;
   
-    TINT 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TREAL 	= makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
+    TINT = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+    TREAL = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
 
     TKONST = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TBLOCK = makeSimpleType(kInt, kBlock, kComp, kVect, kNum, interval());
-    TSAMP 	= makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
+    TSAMP = makeSimpleType(kInt, kSamp, kComp, kVect, kNum, interval());
 
-    TCOMP 	= makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
-    TINIT 	= makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
-    TEXEC 	= makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
+    TCOMP = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
+    TINIT = makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
+    TEXEC = makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
     // more predefined types
 
-    TINPUT	= makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
-    TGUI	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
-    TGUI01	= makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
-    INT_TGUI  = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
+    TINPUT = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
+    TGUI = makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval());
+    TGUI01 = makeSimpleType(kReal, kBlock,kExec, kVect, kNum, interval(0,1));
+    INT_TGUI = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
 
-    TREC   = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
+    TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
     
     // predefined symbols CONS and NIL
     CONS = symbol("cons");
-    NIL  = symbol("nil");
+    NIL = symbol("nil");
     
     // predefined nil tree
     nil = tree(NIL);
@@ -486,8 +486,41 @@ void global::init()
     
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
-   
-    Typed::init();
+    
+    // Init type size table
+    gTypeSizeMap[Typed::kFloat] = gMachineFloatSize;
+    gTypeSizeMap[Typed::kFloat_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kFloat_vec] = gMachineFloatSize * gVecSize;
+    gTypeSizeMap[Typed::kFloat_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kInt32] = gMachineInt32Size;
+    gTypeSizeMap[Typed::kInt32_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kInt32_vec] = gMachineInt32Size * gVecSize;
+    gTypeSizeMap[Typed::kInt32_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kInt64] = gMachineInt64Size;
+    gTypeSizeMap[Typed::kInt64_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kInt64_vec] = gMachineInt64Size * gVecSize;
+    gTypeSizeMap[Typed::kInt64_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kDouble] = gMachineDoubleSize;
+    gTypeSizeMap[Typed::kDouble_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kDouble_vec] = gMachineDoubleSize * gVecSize;
+    gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kBool] = gMachineBoolSize;
+    gTypeSizeMap[Typed::kBool_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kBool_vec] = gMachineBoolSize * gVecSize;
+    gTypeSizeMap[Typed::kBool_vec_ptr] = gMachinePtrSize;
+    
+    // Takes the type of internal real
+    gTypeSizeMap[Typed::kFloatMacro] = gTypeSizeMap[itfloat()];
+    gTypeSizeMap[Typed::kFloatMacro_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kVoid_ptr] = gMachinePtrSize;
+    gTypeSizeMap[Typed::kVoid_ptr_ptr] = gMachinePtrSize;
+    
+    gTypeSizeMap[Typed::kObj_ptr] = gMachinePtrSize;
     
     gCurrentLocal = setlocale(LC_ALL, NULL);
     if (gCurrentLocal != NULL) {

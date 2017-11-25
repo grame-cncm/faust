@@ -335,8 +335,6 @@ struct Typed : public Printable
     
     static string gTypeString[];
     
-    static void init();
-
     Typed()
     {}
 
@@ -1522,7 +1520,14 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(DropInst* inst) { return new DropInst((inst->fResult) ? inst->fResult->clone(this) : NULL); }
 
         // Conditionnal
-        virtual ValueInst* visit(Select2Inst* inst) { return new Select2Inst(inst->fCond->clone(this), inst->fThen->clone(this), inst->fElse->clone(this), inst->fSize); }
+        virtual ValueInst* visit(Select2Inst* inst)
+        {
+            ValueInst* then_exp = inst->fThen->clone(this);
+            ValueInst* else_exp = inst->fElse->clone(this);
+            ValueInst* cond_exp = inst->fCond->clone(this);
+            // cond_exp has to be evaluated last for FunctionInliner to correctly work in gHasTeeLocal mode
+            return new Select2Inst(cond_exp, then_exp, else_exp);
+        }
         virtual StatementInst* visit(IfInst* inst)
         {
             return new IfInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fThen->clone(this)), dynamic_cast<BlockInst*>(inst->fElse->clone(this)));

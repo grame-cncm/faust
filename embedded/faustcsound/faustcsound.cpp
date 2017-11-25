@@ -124,6 +124,8 @@ public:
                                      FAUSTFLOAT min, FAUSTFLOAT max){};
   virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone,
                                    FAUSTFLOAT min, FAUSTFLOAT max) {};
+    
+  void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
   MYFLT *getZone(char *label){
     ctl *pctl = &anchor;
