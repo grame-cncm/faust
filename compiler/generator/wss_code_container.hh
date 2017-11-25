@@ -41,6 +41,7 @@ class WSSCodeContainer : public virtual CodeContainer {
         void generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
 
         void processFIR(void);
+        BlockInst* flattenFIR(void);
 
     protected:
     
@@ -56,7 +57,7 @@ class WSSCodeContainer : public virtual CodeContainer {
             initializeCodeContainer(numInputs, numOutputs);
             fFullCount = "count";
         }
-
+    
 };
 
 #endif

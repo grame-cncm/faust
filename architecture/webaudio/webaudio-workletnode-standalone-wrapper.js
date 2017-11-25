@@ -128,6 +128,7 @@ faust.createmydsp = function(callback)
 {
     // The main global scope
     var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
+    console.log(AWContext);
     AWContext.addModule("mydsp-processor.js")
     .then(function () {
          audio_context = new AudioContext();

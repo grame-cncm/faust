@@ -22,7 +22,7 @@
 #include "rust_code_container.hh"
 #include "Text.hh"
 #include "floats.hh"
-#include "function_builder.hh"
+#include "fir_function_builder.hh"
 #include "exception.hh"
 #include "global.hh"
 

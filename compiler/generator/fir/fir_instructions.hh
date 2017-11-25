@@ -46,6 +46,30 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         std::ostream* fOut;
         bool fFinishLine;
         map <string, bool> gFunctionSymbolTable;
+    
+        void generateAccess(Address* address)
+        {
+            if (address->getAccess() & Address::kGlobal) {
+                *fOut << "global, ";
+            }
+            if (address->getAccess() & Address::kStaticStruct) {
+                *fOut << "static, ";
+            }
+            if (address->getAccess() & Address::kVolatile) {
+                *fOut << "volatile, ";
+            }
+            if (address->getAccess() & Address::kStruct) {
+                *fOut << "struct, ";
+            } else if (address->getAccess() & Address::kStack) {
+                *fOut << "stack, ";
+            } else if (address->getAccess() & Address::kLink) {
+                *fOut << "link, ";
+            } else if (address->getAccess() & Address::kLoop) {
+                *fOut << "loop, ";
+            } else if (address->getAccess() & Address::kFunArgs) {
+                *fOut << "kFunArgs, ";
+            }
+        }
    
     public:
 
@@ -242,43 +266,11 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             *fOut << inst->fLabel;
             tab(fTab, *fOut);
         }
-
+    
         virtual void visit(DeclareVarInst* inst)
         {
             *fOut << "DeclareVarInst(";
-
-            if (inst->fAddress->getAccess() & Address::kGlobal) {
-                 *fOut << "global, ";
-            }
-
-            if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-                 *fOut << "static, ";
-            }
-
-            if (inst->fAddress->getAccess() & Address::kVolatile) {
-                 *fOut << "volatile, ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kStruct) {
-                *fOut << "struct, ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kStack) {
-                *fOut << "stack, ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kLink) {
-                *fOut << "link, ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kLoop) {
-                *fOut << "loop, ";
-            }
-            
-            if (inst->fAddress->getAccess() & Address::kFunArgs) {
-                *fOut << "kFunArgs, ";
-            }
-
+            generateAccess(inst->fAddress);
             *fOut << generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
                 *fOut << ", "; inst->fValue->accept(this);
@@ -309,7 +301,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 *fOut << "DropInst(";
                 inst->fResult->accept(this);
                 *fOut << ")";
-                 EndLine();
+                EndLine();
             }
         }
 
@@ -375,6 +367,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             } else {
                 *fOut << "LoadVarInst(";
             }
+            generateAccess(inst->fAddress);
             inst->fAddress->accept(this);
             *fOut << ")";
         }
@@ -386,6 +379,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             } else {
                 *fOut << "LoadVarAddressInst(";
             }
+            generateAccess(inst->fAddress);
             inst->fAddress->accept(this);
             *fOut << ")";
         }
@@ -397,6 +391,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             } else {
                 *fOut << "StoreVarInst(";
             }
+            generateAccess(inst->fAddress);
             inst->fAddress->accept(this);
             *fOut << ", ";
             inst->fValue->accept(this);

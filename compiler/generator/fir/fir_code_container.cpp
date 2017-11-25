@@ -332,7 +332,7 @@ void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
         VariableSizeCounter stack_counter_compute_thread(Address::kStack);
         fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);
         
-        *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
+        *dst << "======= Object memory footprint ==========\n\n";
         *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
         *dst << "Stack size in compute = " << stack_counter_compute.fSizeBytes << " bytes"<< std::endl;
         *dst << "Stack size in computeThread = " << stack_counter_compute_thread.fSizeBytes << " bytes" << "\n\n";

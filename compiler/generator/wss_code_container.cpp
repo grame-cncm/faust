@@ -469,3 +469,11 @@ void WSSCodeContainer::processFIR(void)
     global_block.accept(&verifier);
     */
 }
+
+BlockInst* WSSCodeContainer::flattenFIR(void)
+{
+    BlockInst* global_block = CodeContainer::flattenFIR();
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute DSP Thread =========="));
+    global_block->pushBackInst(fThreadLoopBlock);
+    return global_block;
+}

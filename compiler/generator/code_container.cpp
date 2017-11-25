@@ -667,24 +667,35 @@ BlockInst* CodeContainer::flattenFIR(void)
     BlockInst* global_block = InstBuilder::genBlockInst();
     
     // Declaration part
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Declaration part =========="));
     global_block->merge(fExtGlobalDeclarationInstructions);
     global_block->merge(fGlobalDeclarationInstructions);
     global_block->merge(fDeclarationInstructions);
     
     // Init method
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Init method =========="));
     global_block->merge(fInitInstructions);
+    global_block->merge(fResetUserInterfaceInstructions);
+    global_block->merge(fClearInstructions);
     global_block->merge(fPostInitInstructions);
+    
+    // Static init method
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Static init method =========="));
     global_block->merge(fStaticInitInstructions);
     global_block->merge(fPostStaticInitInstructions);
     
     // Subcontainers
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Subcontainers =========="));
     list<CodeContainer*>::const_iterator it;
     for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
         global_block->merge((*it)->flattenFIR());
     }
    
     // Compute method
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute control =========="));
     global_block->merge(fComputeBlockInstructions);
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute DSP =========="));
+    global_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
     
     return global_block;
 }

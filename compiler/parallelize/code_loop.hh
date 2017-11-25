@@ -23,11 +23,10 @@
 #define _CODE_LOOP_H
 
 /**********************************************************************
-			- code_gen.h : generic code generator (projet FAUST) -
+    - code_gen.h : generic code generator (projet FAUST) -
 
-
-		Historique :
-		-----------
+    Historique :
+    -----------
 
 ***********************************************************************/
 
@@ -38,7 +37,7 @@
 #include <vector>
 
 #include "tree.hh"
-#include "function_builder.hh"
+#include "fir_function_builder.hh"
 #include "list.hh"
 #include "garbageable.hh"
 
@@ -102,7 +101,7 @@ class CodeLoop : public virtual Garbageable {
             }
         }
 
-        bool isEmpty();                     ///< true when the loop doesn't contain any line of code
+        bool isEmpty();                 ///< true when the loop doesn't contain any line of code
 
         void absorb(CodeLoop* l);       ///< absorb a loop inside this one
         void concat(CodeLoop* l);
@@ -156,7 +155,7 @@ class CodeLoop : public virtual Garbageable {
         }
 
         bool hasRecDependencyIn(Tree S);    ///< returns true is this loop has recursive dependencies
-        void addBackwardDependency(CodeLoop* ls)  { fBackwardLoopDependencies.insert(ls); }
+        void addBackwardDependency(CodeLoop* ls) { fBackwardLoopDependencies.insert(ls); }
 
         static void sortGraph(CodeLoop* root, lclgraph& V);
         static void computeUseCount(CodeLoop* l);

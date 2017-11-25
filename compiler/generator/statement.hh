@@ -33,6 +33,7 @@ class Statement
 {
     
     private:
+    
         const bool fHasCondition;
         const string fCondition;
         const string fCode;

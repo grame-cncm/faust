@@ -2750,8 +2750,8 @@ II)
 Scalarisation (some ideas, possibly not correct or not complete...):
 
 1) transform all vectors *without delay* on the stack (used in loops) in scalar
-2) in each loop, transform input vector accessin scalar access (Load/Store)
-3) regroup all  "postcode" of all loop at the end
+2) in each loop, transform input vector accessing scalar access (Load/Store)
+3) regroup all "postcode" of all loop at the end
 4) rename loop variable into the Compute variable name
 5) extract code and put it in Compute, suppress Loop statements
 
@@ -2765,13 +2765,13 @@ compute(count, float**, float**)
 1) générer le header qui prépare les tableaux d'entrée et de sortie séparés
 2) compiler les boucles
 
-Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard? Avec un nommage spécifique?
+Comment différencier les vecteurs sans retard (qu'on peut transformer en scalaire) des vecteurs avec retard ? Avec un nommage spécifique ?
 
 TODO : gestion des indices de boucles:
 
  - dans IndexedAddress, mettre un ValueInst à la place de fIndex, mettre à jour les visiteurs
 
- - dans InstructionsCompiler, generer des accès avec "LoadVar (loop-index)
+ - dans InstructionsCompiler, generer des accès avec "LoadVar" (loop-index)
 
  - dans ForLoopInst, fName devient un "DeclareVarInst" (permet de nommer et d'initialiser l'indice), ajout d'une expression test, ajout de ValueInst fNext, calcul qui utilise fName.
 

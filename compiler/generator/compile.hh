@@ -44,7 +44,6 @@
 
 #define kMaxHeight 1024
 
-
 class Compiler
 {
 protected:
@@ -94,6 +93,6 @@ protected:
 
 #define generateEquivRecGroup generateRecGroup
 
-void compileSignals (const string& name, const string& super, int numInputs, int numOutputs, Tree lsig);
+void compileSignals(const string& name, const string& super, int numInputs, int numOutputs, Tree lsig);
 
 #endif

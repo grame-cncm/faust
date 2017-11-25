@@ -138,7 +138,7 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
     }
 };
 
-// Used in asm.js and WebAssembly backend
+// Used in asm.js and WebAssembly backends
 
 /*
  For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation

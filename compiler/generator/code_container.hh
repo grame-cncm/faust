@@ -31,7 +31,7 @@
 #include "floats.hh"
 #include "Text.hh"
 #include "property.hh"
-#include "function_builder.hh"
+#include "fir_function_builder.hh"
 #include "code_loop.hh"
 #include "garbageable.hh"
 #include "json_instructions.hh"

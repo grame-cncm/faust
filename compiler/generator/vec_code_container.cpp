@@ -22,6 +22,7 @@
 #include "vec_code_container.hh"
 #include "global.hh"
 #include "fir_to_fir.hh"
+#include "fir_code_checker.hh"
 #include "exception.hh"
 
 using namespace std;
@@ -174,7 +175,7 @@ void VectorCodeContainer::processFIR(void)
     /*
     Still not working for Array variables access
     
-    CodeVerifier verifier;
+    FIRCodeChecker verifier;
     BlockInst* global_block = flattenFIR();
     global_block->accept(&verifier);
     
