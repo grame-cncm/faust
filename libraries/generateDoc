@@ -31,14 +31,14 @@ done
 # Reformatting the html file with the right template
 if [ $PLATFORM = "Darwin" ]; then
 	(sed -i "" "s/<title>/<title>Faust Libraries Documentation/g" "$DOCFOLDER/library.html") || exit
-	(sed -i "" "s/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g" "$DOCFOLDER/library.html") || exit
+	(sed -i "" "s/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"https:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"https:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g" "$DOCFOLDER/library.html") || exit
 	(sed -i "" "s/<body>/<div class=\"container\"><div class=\"row\" style=\"height: 100vh;\">/g" "$DOCFOLDER/library.html") || exit
 	(sed -i "" "s/<\/body>/<\/div><\/div><\/body>/g" "$DOCFOLDER/library.html") || exit
 	(sed -i "" "s/<div id=\"TOC\">/<div class=\"col-sm-4\" id=\"TOC\" style=\"height: 100%;overflow: scroll;\">/g" "$DOCFOLDER/library.html") || exit
 	(sed -i "" "s/<h1 id=\"faust-libraries\">Faust Libraries<\/h1>/<div class=\"col-sm-8\" style=\"height: 100%;overflow-y: scroll\"><h1 id=\"faust-libraries\">Faust Libraries<\/h1>/g" "$DOCFOLDER/library.html") || exit
 else
 	(sed -i 's/<title>/<title>Faust Libraries Documentation/g' "$DOCFOLDER/library.html") || exit
-	(sed -i 's/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"http:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g' "$DOCFOLDER/library.html") || exit
+	(sed -i 's/<style type=\"text\/css\">code{white-space: pre;}<\/style>/<\/style><link rel=\"stylesheet\" href=\"https:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/css\/bootstrap.min.css\"><script src=\"https:\/\/ajax.googleapis.com\/ajax\/libs\/jquery\/1.12.4\/jquery.min.js\">\n<\/script><script src=\"https:\/\/maxcdn.bootstrapcdn.com\/bootstrap\/3.3.7\/js\/bootstrap.min.js\"><\/script>/g' "$DOCFOLDER/library.html") || exit
 	(sed -i 's/<body>/<div class=\"container\"><div class=\"row\" style=\"height: 100vh;\">/g' "$DOCFOLDER/library.html") || exit
 	(sed -i 's/<\/body>/<\/div><\/div><\/body>/g' "$DOCFOLDER/library.html") || exit
 	(sed -i 's/<div id=\"TOC\">/<div class=\"col-sm-4\" id=\"TOC\" style=\"height: 100%;overflow: scroll;\">/g' "$DOCFOLDER/library.html") || exit
