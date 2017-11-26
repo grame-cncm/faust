@@ -27,7 +27,7 @@
 #include "fir_instructions.hh"
 #include "typing_instructions.hh"
 
-// Tool to dump FIR
+// Tools to dump FIR
 inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
 {
     *out << "========== dump2FIR " << inst << " statement begin ========== "<< std::endl;
@@ -47,8 +47,8 @@ inline void dump2FIR(ValueInst* value, std::ostream* out = &cout)
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b);
 
-// Change stack access for struct access
-struct Stack2StructAnalyser : public DispatchVisitor {
+// Analysis to change stack access to struct access
+struct Stack2StructRewriter1 : public DispatchVisitor {
     
     string fName;
     
@@ -61,19 +61,18 @@ struct Stack2StructAnalyser : public DispatchVisitor {
         }
     }
     
-    Stack2StructAnalyser(const string& name):fName(name)
+    Stack2StructRewriter1(const string& name):fName(name)
     {}
 };
 
 // Analysis to promote stack variables to struct variables
-struct Stack2StructAnalyser1 : public DispatchVisitor {
+struct Stack2StructRewriter2 : public DispatchVisitor {
     
     CodeContainer* fContainer;
     string fName;
     
 	using DispatchVisitor::visit;
 
-    // TODO : also rewrite value memory access
     void visit(DeclareVarInst* inst)
     {
         BasicCloneVisitor cloner;
@@ -84,8 +83,13 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
             // Variable moved to the Struct
             fContainer->pushDeclare(InstBuilder::genDecStructVar(name, inst->fType->clone(&cloner)));
             
-            // For local thread access (in compute), rewrite the Declare instruction by a Store and put in Init section
+            // For local thread access (in compute):
+            // - rewrite the Declare instruction by a Store and put in Init section
+            // - rewrite value access
             if (inst->fValue) {
+                // Rewrite value access before cloning it
+                Stack2StructRewriter1 rewriter(name);
+                inst->fValue->accept(&rewriter);
                 fContainer->pushInitMethod(InstBuilder::genStoreStructVar(name, inst->fValue->clone(&cloner)));
             }
             
@@ -104,7 +108,7 @@ struct Stack2StructAnalyser1 : public DispatchVisitor {
         }
     }
     
-    Stack2StructAnalyser1(CodeContainer* container, const string& name)
+    Stack2StructRewriter2(CodeContainer* container, const string& name)
         :fContainer(container), fName(name)
     {}
     
@@ -115,12 +119,12 @@ struct VariableMover {
     static void Move(CodeContainer* container, const string& name)
     {
         // Transform stack variables in struct variables
-        Stack2StructAnalyser1 analyser1(container, name);
-        container->generateComputeBlock(&analyser1);
+        Stack2StructRewriter2 rewriter2(container, name);
+        container->generateComputeBlock(&rewriter2);
         
-        // Variable access stack ==> struct
-        Stack2StructAnalyser analyser2(name);
-        container->transformDAG(&analyser2);
+        // Rewrite variable access stack ==> struct
+        Stack2StructRewriter1 rewriter1(name);
+        container->transformDAG(&rewriter1);
     }
 };
 
@@ -166,8 +170,7 @@ struct DspRenamer : public BasicCloneVisitor {
         if (startWith(inst->fAddress->getName(), "sig")) {
             return InstBuilder::genDropInst();
         } else {
-            BasicCloneVisitor cloner;
-            return inst->clone(&cloner);
+            return BasicCloneVisitor::visit(inst);
         }
     }
     
