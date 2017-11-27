@@ -257,8 +257,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             gGlobal->gASMJSVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateASMBlock(renamer.getCode(fStaticInitInstructions));
+                generateASMBlock(DspRenamer().getCode(fStaticInitInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
 
@@ -270,8 +269,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             gGlobal->gASMJSVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateASMBlock(renamer.getCode(fInitInstructions));
+                generateASMBlock(DspRenamer().getCode(fInitInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -282,8 +280,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             gGlobal->gASMJSVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateASMBlock(renamer.getCode(fResetUserInterfaceInstructions));
+                generateASMBlock(DspRenamer().getCode(fResetUserInterfaceInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
     
@@ -294,8 +291,7 @@ void ASMJAVAScriptCodeContainer::produceClass()
             gGlobal->gASMJSVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateASMBlock(renamer.getCode(fClearInstructions));
+                generateASMBlock(DspRenamer().getCode(fClearInstructions));
             }
         tab(n+1, *fOut); *fOut << "}";
 

@@ -447,7 +447,7 @@ faust.createmydsp = function(display_handler)
             _cos: Math.cos,
             _exp: Math.exp,
             _floor: Math.floor,
-            _fmod: : function(x, y) { return x % y; },
+            _fmod: function(x, y) { return x % y; },
             _log: Math.log,
             _log10: Math.log10,
             _max_: Math.max,

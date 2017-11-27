@@ -25,7 +25,7 @@ fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -c $(FASTMATH) -o fastmath.bc
 
 emcc: $(FASTMATH)
-	emcc -O3 -s WASM=1 -s SIDE_MODULE=1 $(FASTMATH) -o fastmath.wasm
+	emcc -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 $(FASTMATH) -o fastmath.wasm
 	wasm-dis fastmath.wasm -o fastmath.wast
 
 install:

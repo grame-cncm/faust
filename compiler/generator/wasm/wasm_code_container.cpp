@@ -117,8 +117,7 @@ DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
     
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
     
-    MoveVariablesInFront3 mover;
-    BlockInst* block = mover.getCode(inlined);
+    BlockInst* block = MoveVariablesInFront3().getCode(inlined);
     
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
@@ -133,11 +132,9 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     }
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    DspRenamer renamer;
-    BlockInst* renamed = renamer.getCode(fClearInstructions);
+    BlockInst* renamed = DspRenamer().getCode(fClearInstructions);
     
-    MoveVariablesInFront3 mover;
-    BlockInst* block = mover.getCode(renamed);
+    BlockInst* block = MoveVariablesInFront3().getCode(renamed);
     
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
@@ -154,8 +151,7 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     
     BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
     
-    MoveVariablesInFront3 mover;
-    BlockInst* block = mover.getCode(inlined);
+    BlockInst* block = MoveVariablesInFront3().getCode(inlined);
   
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
@@ -170,11 +166,9 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     }
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    DspRenamer renamer;
-    BlockInst* renamed = renamer.getCode(fResetUserInterfaceInstructions);
+    BlockInst* renamed = DspRenamer().getCode(fResetUserInterfaceInstructions);
     
-    MoveVariablesInFront3 mover;
-    BlockInst* block = mover.getCode(renamed);
+    BlockInst* block = MoveVariablesInFront3().getCode(renamed);
     
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kVoid), FunTyped::kDefault);
@@ -201,27 +195,16 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     BlockInst* init_block = InstBuilder::genBlockInst();
     
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fStaticInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fPostInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fResetUserInterfaceInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fClearInstructions));
-    }
-    
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
+
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
+
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
+
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
+
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
+
     if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
     
     // Creates function
@@ -434,28 +417,19 @@ void WASMScalarCodeContainer::generateCompute()
     compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
     
     // Remove unecessary cast
-    CastRemover cast_remover;
-    compute_block = cast_remover.getCode(compute_block);
+    compute_block = CastRemover().getCode(compute_block);
     
-    {
-        // Inline "max_i" calls
-        DeclareFunInst* max_i = WASInst::generateIntMax();
-        InlineFunctionCall inliner(max_i);
-        compute_block = inliner.getCode(compute_block);
-    }
+    // Inline "max_i" call
+    compute_block = FunctionCallInliner(WASInst::generateIntMax()).getCode(compute_block);
     
-    {
-        // Inline "min_i" calls
-        DeclareFunInst* min_i = WASInst::generateIntMin();
-        InlineFunctionCall inliner(min_i);
-        compute_block = inliner.getCode(compute_block);
-    }
+    // Inline "min_i" call
+    compute_block = FunctionCallInliner(WASInst::generateIntMin()).getCode(compute_block);
     
     // Push the loop in compute block
     fComputeBlockInstructions->pushBackInst(compute_block);
     
-    MoveVariablesInFront2 mover;
-    BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
+    // Put local variables at the begining
+    BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
     
     // Creates function and visit it
     list<NamedTyped*> args;

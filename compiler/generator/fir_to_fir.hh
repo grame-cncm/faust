@@ -515,11 +515,11 @@ struct FunctionInliner {
 
 // Replace a function call with the actual inlined function code
 
-struct InlineFunctionCall : public BasicCloneVisitor {
+struct FunctionCallInliner : public BasicCloneVisitor {
     
     DeclareFunInst* fFunction;
     
-    InlineFunctionCall(DeclareFunInst* function):fFunction(function)
+    FunctionCallInliner(DeclareFunInst* function):fFunction(function)
     {}
     
     virtual ValueInst* visit(FunCallInst* inst)

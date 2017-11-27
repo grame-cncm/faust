@@ -127,26 +127,15 @@ DeclareFunInst* WASTCodeContainer::generateInstanceInitFun(const string& name, c
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     BlockInst* init_block = InstBuilder::genBlockInst();
     
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fStaticInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fPostInitInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fResetUserInterfaceInstructions));
-    }
-    {
-        MoveVariablesInFront3 mover;
-        init_block->pushBackInst(mover.getCode(fClearInstructions));
-    }
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
+  
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
+    
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
+    
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
+    
+    init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
     
     if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
     
@@ -236,8 +225,7 @@ void WASTCodeContainer::produceClass()
             tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateWASTBlock(renamer.getCode(fResetUserInterfaceInstructions));
+                generateWASTBlock(DspRenamer().getCode(fResetUserInterfaceInstructions));
             }
         tab(n+1, fOutAux); fOutAux << ")";
     
@@ -245,8 +233,7 @@ void WASTCodeContainer::produceClass()
             tab(n+2, fOutAux); gGlobal->gWASTVisitor->Tab(n+2);
             {
                 // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-                DspRenamer renamer;
-                generateWASTBlock(renamer.getCode(fClearInstructions));
+                generateWASTBlock(DspRenamer().getCode(fClearInstructions));
             }
         tab(n+1, fOutAux); fOutAux << ")";
     
@@ -365,28 +352,19 @@ void WASTScalarCodeContainer::generateCompute(int n)
         compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
     
         // Remove unecessary cast
-        CastRemover cast_remover;
-        compute_block = cast_remover.getCode(compute_block);
+        compute_block = CastRemover().getCode(compute_block);
     
-        {
-            // Inline "max_i" calls
-            DeclareFunInst* max_i = WASInst::generateIntMax();
-            InlineFunctionCall inliner(max_i);
-            compute_block = inliner.getCode(compute_block);
-        }
-        
-        {
-            // Inline "min_i" calls
-            DeclareFunInst* min_i = WASInst::generateIntMin();
-            InlineFunctionCall inliner(min_i);
-            compute_block = inliner.getCode(compute_block);
-        }
-
+        // Inline "max_i" call
+        compute_block = FunctionCallInliner(WASInst::generateIntMax()).getCode(compute_block);
+    
+        // Inline "min_i" call
+        compute_block = FunctionCallInliner(WASInst::generateIntMin()).getCode(compute_block);
+    
         // Push the loop in compute block
         fComputeBlockInstructions->pushBackInst(compute_block);
     
-        MoveVariablesInFront2 mover;
-        BlockInst* block = mover.getCode(fComputeBlockInstructions, true);
+        // Put local variables at the begining
+        BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
     
         block->accept(gGlobal->gWASTVisitor);
     tab(n+1, fOutAux); fOutAux << ")";

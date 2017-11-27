@@ -62,7 +62,7 @@ for f in $FILES; do
         faust $OPTIONS -lang c -light -cn $name "$f" -o $name.c || exit
         # generate the $name.js file
         faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
-        emcc $name.c -O3 -s WASM=1 -s SIDE_MODULE=1 -o $name.wasm || echo "emcc compilation error"
+        emcc $name.c -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 -o $name.wasm || echo "emcc compilation error"
     else
         faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
     fi

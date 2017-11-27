@@ -753,8 +753,7 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
 {
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
-    DspRenamer renamer;
-    block = renamer.getCode(block);
+    block = DspRenamer().getCode(block);
     
     // Inline subcontainers 'instanceInit' and 'fill' function call
     list<CodeContainer*>::const_iterator it;
@@ -763,18 +762,15 @@ BlockInst* CodeContainer::inlineSubcontainersFunCalls(BlockInst* block)
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* inst_init_fun = (*it)->generateInstanceInitFun("instanceInit" + (*it)->getClassName(), "dsp", true, false);
         //dump2FIR(inst_init_fun);
-        InlineFunctionCall inliner1(inst_init_fun);
-        block = inliner1.getCode(block);
+        block = FunctionCallInliner(inst_init_fun).getCode(block);
         
         // Build the function to be inlined (prototype and code)
         DeclareFunInst* fill_fun = (*it)->generateFillFun("fill" + (*it)->getClassName(), "dsp", true, false);
         //dump2FIR(fill_fun);
-        InlineFunctionCall inliner2(fill_fun);
-        block = inliner2.getCode(block);
+        block = FunctionCallInliner(fill_fun).getCode(block);
     }
     
     //dump2FIR(block);
-    
     return block;
 }
 
