@@ -108,6 +108,11 @@ if [ "$1" = "osx" ]; then
 
     (faust2smartkeyb -ios -effect effect.dsp -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 succeeded !")||(echo "ERROR: faust2smartkeyb -ios -effect effect.dsp -nvoices 8 failed")
 
+    # Test of -exp10
+    (faust2jack -exp10 exp10.dsp) &&(echo "OK: faust2jack -exp10 succeeded !")||(echo "ERROR: faust2jack -exp10 failed")
+
+    (faust2android -exp10 exp10.dsp) &&(echo "OK: faust2android -exp10 correctly failed !")||(echo "WARNING: faust2android -exp10 succeeded ?")
+
 elif [ "$1" = "linux" ]; then
     echo
     echo "Test $LINUX"

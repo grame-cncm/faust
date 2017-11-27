@@ -993,10 +993,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     if (gGlobal->gOutputLang == "cllvm") {
 
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-    // #ifndef _WIN32
-    //     gGlobal->gHasExp10 = true;
-    // #endif
-
+  
     #if CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -1019,10 +1016,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         gGlobal->gAllowForeignFunction = true;  // libc functions will be found by LLVM linker, but not user defined ones...
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-    // #ifndef _WIN32
-    //     gGlobal->gHasExp10 = true;
-    // #endif
-
+  
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
         } else {
@@ -1092,12 +1086,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         if (gGlobal->gOutputLang == "c") {
 
-            if (!gGlobal->gLightMode) {
-            // #ifndef _WIN32
-            //     gGlobal->gHasExp10 = true;
-            // #endif
-            }
-
         #if C_BUILD
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
@@ -1105,10 +1093,6 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #endif
 
         } else if (gGlobal->gOutputLang == "cpp") {
-
-        // #ifndef _WIN32
-        //     gGlobal->gHasExp10 = true;
-        // #endif
 
         #if CPP_BUILD
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);

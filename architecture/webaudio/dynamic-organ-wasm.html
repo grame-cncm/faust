@@ -6,7 +6,6 @@
     
 <P> Organ volume:
 <input type="range" oninput="changeVolume(event) "min="0" max="1" value="0.5" step="0.01"/>
-
     
 <!-- Load 'libfaust' library and wrapper code -->
 <script src="libfaust-wasm.js"></script>
@@ -26,7 +25,7 @@ var midi_input = [];
 //var dsp_code_url = "https://faust.grame.fr/images/organ.dsp";
 var dsp_code_url = "http://127.0.0.1:8000/organ.dsp";
 
-//var libraries_url = "https://faust.grame.fr/modules/libraries/";
+//var libraries_url = "https://faust.grame.fr/libraries/";
 var libraries_url = "http://127.0.0.1:8000/libraries/";
 
 // Slider handler to change the 'noise' volume
