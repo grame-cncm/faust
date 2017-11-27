@@ -63,6 +63,8 @@ use simpler names (without arguments) during block-diagram generation
 
 **-xml** generate an XML description file of the user interface
 
+**-exp10**, **--generate-exp10** function call instead of pow(10) function
+
 **-json** generate a JSON description file of the user interface
 
 **-blur**, **--shadow-blur**

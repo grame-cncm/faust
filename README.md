@@ -50,7 +50,7 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 The build steps are the same for all the versions of Faust (Faust0 and Faust2). While Faust0 has no dependencies, the following elements are required to build Faust2:
 
-* `llvm/clang` (>= 3.4 / <= 5.0. Note that a 'universal' makefile target can be used to create 32/64 bits binaries. In this case LLVM has to be installed in universal mode [32/64 bits], so  for instance on OSX using MacPorts, using : `sudo port install llvm-3.xx +universal`)
+* `llvm/clang` (>= 3.8 / <= 5.0. Note that a 'universal' makefile target can be used to create 32/64 bits binaries. In this case LLVM has to be installed in universal mode [32/64 bits], so  for instance on OSX using MacPorts, using : `sudo port install llvm-3.xx +universal`)
 * `openssl` (has to be installed in universal mode [32/64 bits] if *make universal* is to be used).
 
 ### Linux and MacOSX 

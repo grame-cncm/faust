@@ -147,7 +147,6 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gClassName = "mydsp";
  
     gDSPFactory = 0;
-    gInterpreterVisitor = 0;
     
     gInputString = 0;
     
@@ -164,7 +163,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMath = false;
     gFastMathLib = "default";
     
-    // Fastmath float version
+    // Fastmath mapping float version
     gFastMathLibTable["acosf"] = "fast_acosf";
     gFastMathLibTable["asinf"] = "fast_asinf";
     gFastMathLibTable["atanf"] = "fast_atanf";
@@ -186,7 +185,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMathLibTable["sqrtf"] = "fast_sqrtf";
     gFastMathLibTable["tanf"] = "fast_tanf";
     
-    // Fastmath double version
+    // Fastmath mapping double version
     gFastMathLibTable["acos"] = "fast_acos";
     gFastMathLibTable["asin"] = "fast_asin";
     gFastMathLibTable["atan"] = "fast_atan";
@@ -389,6 +388,10 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 #if WASM_BUILD
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
+#endif
+    
+#if INTERP_BUILD
+    gInterpreterVisitor = 0; // Will be (possibly) allocated in Interp backend
 #endif
     
     gHelpSwitch = false;

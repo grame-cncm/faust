@@ -139,25 +139,26 @@ struct global {
 
     string			gClassName;
     
+    
+    
     // Backend configuration
-    bool            gGenerateSelectWithIf;  // Generates select with an 'if'
-    bool            gAllowForeignFunction;  // Can use foreign functions
-    bool            gComputeIOTA;           // Cache some computation done with IOTA variable
-    bool            gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
-    bool            gInPlace;               // Add cache to input for correct in-place computations
-    bool            gHasExp10;              // If the 'exp10' math function is available
-    bool            gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
-    bool            gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
-    bool            gHasTeeLocal;           // For wast/wasm backends
-    bool            gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
-    string          gFastMathLib;           // The fastmath code mapping file
-    map <string, string> gFastMathLibTable;
+    string gOutputLang;          // Chosen backend
+    
+    bool gGenerateSelectWithIf;  // Generates select with an 'if'
+    bool gAllowForeignFunction;  // Can use foreign functions
+    bool gComputeIOTA;           // Cache some computation done with IOTA variable
+    bool gFAUSTFLOATToInternal;  // FAUSTFLOAT type (= kFloatMacro) forced to internal real
+    bool gInPlace;               // Add cache to input for correct in-place computations
+    bool gHasExp10;              // If the 'exp10' math function is available
+    bool gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
+    bool gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
+    bool gHasTeeLocal;           // For wast/wasm backends
+    bool gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    string gFastMathLib;         // The fastmath code mapping file
+    map <string, string> gFastMathLibTable; // Mapping table for fastmtah functions
     
     dsp_factory_base* gDSPFactory;
-
-    // Interpreter backend
-    DispatchVisitor*  gInterpreterVisitor;
-    
+  
     const char*     gInputString;
     
     bool			gLstDependenciesSwitch;     ///< mdoc listing management.
@@ -321,7 +322,7 @@ struct global {
     Sym FFUN;
     
     // the property used to memoize the results
-    property<Tree>*  gSymListProp;
+    property<Tree>* gSymListProp;
     
     Sym SIGINPUT;
     Sym SIGOUTPUT;
@@ -367,7 +368,7 @@ struct global {
     Sym TABLETYPE;
     Sym TUPLETTYPE;
     
-    // memoized type contruction
+    // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
     
     // Essential predefined types
@@ -451,21 +452,24 @@ struct global {
     
     char* gCurrentLocal;
     
-    int gAllocationCount;
+    int gAllocationCount;   // Internal signal types counter
     
     bool gEnableFlag;
-    
-    string gOutputLang;
-    
+  
 #if ASMJS_BUILD
-    // One single global visitor for asm.js, so that sub-containers and main class use the same heap
+    // One single global visitor for asm.js, so that sub-containers and global container use the same heap
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
 #endif
     
 #if WASM_BUILD
-    // One single global visitor for WebAssembly, so that sub-containers and main class use the same heap
+    // One single global visitor for WebAssembly, so that sub-containers and global container use the same heap
     WASMInstVisitor* gWASMVisitor;
     WASTInstVisitor* gWASTVisitor;
+#endif
+    
+#if INTERP_BUILD
+    // One single global visitor Interpreter backend, so that sub-containers and global container use the same heap
+    DispatchVisitor* gInterpreterVisitor;
 #endif
     
     bool gHelpSwitch;
@@ -480,11 +484,11 @@ struct global {
     string gArchFile;
     bool gExportDSP;
     
-    // source file injection
+    // Source file injection
     bool gInjectFlag;
     string gInjectFile;
 
-    int gTimeout;   // time out to abort compiler (in seconds)
+    int gTimeout;   // Time out to abort compiler (in seconds)
     
     // Globals to transfer results in thread based evaluation
     Tree gProcessTree;
