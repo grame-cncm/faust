@@ -95,7 +95,7 @@ inline interval operator*(const interval& x, const interval& y)
 
 inline interval operator/(const interval& x, const interval& y)
 {
-	return (x.valid && y.valid && (y.lo > 0 | y.hi < 0)) 
+	return (x.valid && y.valid && ((y.lo > 0) || (y.hi < 0))) 
 			? x * interval(1/y.hi,1/y.lo)
 			: interval();
 }
