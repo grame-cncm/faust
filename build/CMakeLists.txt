@@ -35,8 +35,6 @@ option ( LIBSTATIC 	"Compile the faust library as a static library" 	off )
 file (GLOB SRC ${SRCDIR}/*.cpp ${SRCDIR}/*/*.cpp ${SRCDIR}/draw/*/*.cpp ${SRCDIR}/generator/fir/*.cpp)
 file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 
-set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -std=c++11)
-
 ####################################
 # include directories 
 set (INC ${SRCDIR} ${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw ${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended ${SRCDIR}/generator ${SRCDIR}/generator/fir ${SRCDIR}/generator/interpreter ${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals ${SRCDIR}/tlib ${SRCDIR}/utils  ${SRCDIR}/draw/device ${SRCDIR}/draw/schema ${SRCDIR}/../architecture /usr/local/include)
@@ -139,13 +137,16 @@ endif()
 set (SRC ${SRC} ${BACKEND_SRC})
 set (HH  ${HH} ${BACKEND_H})
 
+if(NOT WIN32)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -std=c++11)
+endif()
 
 ####################################
 # faust libraries 
 if(APPLE)
 elseif(WIN32)
 	if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
+		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__  -std=c++11)
 	endif()
 	set (FAUST_LIBS Ws2_32.lib)
 else()
