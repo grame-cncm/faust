@@ -69,23 +69,22 @@ class faustexception : public std::runtime_error {
         }
 };
 
-inline void faustassert(bool cond)
-{
-    if (!cond) {
-    #ifndef EMCC
-        void* array[20];
-        backtrace_symbols_fd(array, backtrace(array, 20), STDERR_FILENO);
-    #endif
-        throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
-    }
-}
-
 inline void stacktrace(int val)
 {
 #ifndef EMCC
     void* array[val];
     backtrace_symbols_fd(array, backtrace(array, val), STDERR_FILENO);
 #endif
+}
+
+inline void faustassert(bool cond)
+{
+    if (!cond) {
+    #ifndef EMCC
+        stacktrace(20);
+    #endif
+        throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
+    }
 }
 
 #endif

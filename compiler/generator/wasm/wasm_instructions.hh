@@ -1449,7 +1449,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             fTypingVisitor.visit(inst);
         }
     
-        // Conditional : if : TO CHECK : utilise drop ?
+        // Conditional : if (TO CHECK : utilise drop ?)
         virtual void visit(IfInst* inst)
         {
             inst->fCond->accept(this);
