@@ -24,6 +24,8 @@
 
 #include <string>
 
+#include "export.hh"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -39,7 +41,7 @@ extern "C" {
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-const char* expandCDSPFromFile(const char* filename, 
+EXPORT const char* expandCDSPFromFile(const char* filename, 
                                 int argc, const char* argv[],
                                 char* sha_key,
                                 char* error_msg);
@@ -55,7 +57,7 @@ const char* expandCDSPFromFile(const char* filename,
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-const char* expandCDSPFromString(const char* name_app, 
+EXPORT const char* expandCDSPFromString(const char* name_app,
                                 const char* dsp_content,
                                 int argc, const char* argv[], 
                                 char* sha_key,
@@ -71,7 +73,7 @@ const char* expandCDSPFromString(const char* name_app,
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -83,7 +85,7 @@ bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
     
 /**
@@ -93,7 +95,7 @@ bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, 
  * @param key - a 64 characters buffer to be filled with the computed key
  *
  */
-void generateCSHA1(const char* data, char* key);
+EXPORT void generateCSHA1(const char* data, char* key);
     
 /**
  * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, 
@@ -104,7 +106,7 @@ void generateCSHA1(const char* data, char* key);
  *
  * @param ptr - the pointer to be deleted.
  */
-void freeCMemory(void* ptr);
+//EXPORT void freeCMemory(void* ptr);
 
 #ifdef __cplusplus
 }
