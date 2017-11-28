@@ -49,6 +49,10 @@
 #include "binop.hh"
 #include "instructions.hh"
 
+#ifdef WIN32
+#pragma warning (disable: 4996)
+#endif
+
 #if ASMJS_BUILD
 #include "asmjs_instructions.hh"
 #endif

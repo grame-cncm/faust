@@ -22,6 +22,10 @@
 #ifndef _FIR_CODE_CONTAINER_H
 #define _FIR_CODE_CONTAINER_H
 
+#ifdef WIN32 
+#pragma warning (disable: 4250)
+#endif
+
 #include "code_container.hh"
 #include "fir_instructions.hh"
 #include "vec_code_container.hh"
@@ -29,6 +33,8 @@
 #include "wss_code_container.hh"
 
 using namespace std;
+
+
 
 class FirCodeContainer : public virtual CodeContainer {
     

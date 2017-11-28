@@ -29,6 +29,11 @@
 #include "wss_code_container.hh"
 #include "dsp_factory.hh"
 
+#ifdef WIN32
+#pragma warning (disable: 4250)
+#endif
+
+
 using namespace std;
 
 class CCodeContainer : public virtual CodeContainer {

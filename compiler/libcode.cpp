@@ -58,6 +58,10 @@
 #include "exception.hh"
 #include "Text.hh"
 
+#ifdef WIN32
+#pragma warning (disable: 4996)
+#endif
+
 #if ASMJS_BUILD
 #include "asmjs_code_container.hh"
 #endif
@@ -745,7 +749,7 @@ static string fxName(const string& filename)
     }
 
 	// determine position of the last '.'
-	unsigned int p2 = filename.size();
+	size_t p2 = filename.size();
     for (unsigned int i = p1; i < filename.size(); i++) {
         if (filename[i] == '.') { p2 = i; }
     }

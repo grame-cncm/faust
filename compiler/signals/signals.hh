@@ -30,6 +30,10 @@
 
 using namespace std;
 
+#ifdef WIN32
+#pragma warning (disable : 4800)
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Signals
