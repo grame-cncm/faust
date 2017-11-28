@@ -24,9 +24,11 @@
  
 unsigned faust_alarm(unsigned seconds);
 
-#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
+#if defined(__MSYS__)
+#define faust_mkdir(path, attribute) mkdir(path, attribute)
+#elif defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define faust_mkdir(path, attribute) mkdir(path)
-#else
+#elif !defined(WIN32)
 #define faust_mkdir(path, attribute) mkdir(path, attribute)
 #endif
 
@@ -34,6 +36,8 @@ unsigned faust_alarm(unsigned seconds);
 #include <windows.h>
 #include <time.h>
 #include <assert.h>
+
+#define faust_mkdir(path, attribute) mkdir(path)
 
 #ifdef __MINGW32__
 // mingw has PATH_MAX defined in limits.h. Make sure that it's included.
@@ -75,7 +79,9 @@ extern "C" {
       int mkdir(const char* path);
     #endif
     char* getcwd(char* str, int size);
-    int isatty(int file);
+#ifndef WIN32
+	int isatty(int file);
+#endif
 }
 
 void getFaustPathname(char* str, unsigned int size);
