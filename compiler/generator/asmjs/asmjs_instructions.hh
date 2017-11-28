@@ -182,7 +182,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
         {
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
+            size_t size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 // No type is generated...
                 *fOut << (*it)->fName;

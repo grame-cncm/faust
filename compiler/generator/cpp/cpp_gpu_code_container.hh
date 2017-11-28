@@ -225,7 +225,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     (*it)->accept(this);
                     *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                     list<ValueInst*>::const_iterator it1;
-                    int size = inst->fArgs.size() - 1, i = 0;
+                    size_t size = inst->fArgs.size() - 1, i = 0;
                     for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
                         // Compile argument
                         (*it1)->accept(this);
@@ -235,7 +235,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
               } else {
                     *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                     list<ValueInst*>::const_iterator it;
-                    int size = inst->fArgs.size(), i = 0;
+                    size_t size = inst->fArgs.size(), i = 0;
                     for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                         // Compile argument
                         (*it)->accept(this);
