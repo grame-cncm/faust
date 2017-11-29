@@ -26,9 +26,29 @@ option ( WASM_BACKEND 	"Include WASM backend"		off )
 
 #######################################
 # Output options
-# compiles the faust compiler by default
-option ( LIBSHARED 	"Compile the faust library as a shared library" 	off )
-option ( LIBSTATIC 	"Compile the faust library as a static library" 	off )
+# compiles the faust compiler and static library by default
+option ( COMPILER 	"Compiles the faust compiler" 	on )
+option ( LIBSHARED 	"Compiles the faust library as a shared library" 	off )
+option ( LIBSTATIC 	"Compiles the faust library as a static library" 	on )
+option ( WASM 		"Compiles the faust library as a Web Assembly library" 	off )
+option ( ASMJS 		"Compiles the faust library as an ASM JS library" 	off )
+option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures" off )
+
+#######################################
+# Misc options
+option ( VERBOSE 	"Enable verbose output from Makefile builds." 	off )
+if (VERBOSE)
+	set(CMAKE_VERBOSE_MAKEFILE on)
+endif()
+
+#######################################
+# Check output options
+if (UNIVERSAL AND NOT APPLE)
+	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
+endif()
+if (LIBSTATIC AND LIBSHARED)
+	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
+endif()
 
 ####################################
 # source and headers files 
@@ -37,7 +57,7 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 
 ####################################
 # include directories 
-set (INC ${SRCDIR} ${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw ${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended ${SRCDIR}/generator ${SRCDIR}/generator/fir ${SRCDIR}/generator/interpreter ${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals ${SRCDIR}/tlib ${SRCDIR}/utils  ${SRCDIR}/draw/device ${SRCDIR}/draw/schema ${SRCDIR}/../architecture /usr/local/include)
+set (FAUST_INC ${SRCDIR} ${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw ${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended ${SRCDIR}/generator ${SRCDIR}/generator/fir ${SRCDIR}/generator/interpreter ${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals ${SRCDIR}/tlib ${SRCDIR}/utils  ${SRCDIR}/draw/device ${SRCDIR}/draw/schema ${SRCDIR}/../architecture /usr/local/include)
 
 ####################################
 # check backends 
@@ -46,7 +66,7 @@ if (ASMJS_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DASMJS_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/asmjs/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/asmjs/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/asmjs)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/asmjs)
 endif()
 
 if (C_BACKEND)
@@ -54,7 +74,7 @@ if (C_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DC_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/c/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/c/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/c)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/c)
 endif()
 
 if (CPP_BACKEND)
@@ -62,7 +82,7 @@ if (CPP_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DCPP_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/cpp/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/cpp/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/cpp)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/cpp)
 endif()
 
 if (FIR_BACKEND)
@@ -75,7 +95,7 @@ if (INTERP_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DINTERP_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/interpreter/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/interpreter/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/interpreter)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/interpreter)
 endif()
 
 if (JAVA_BACKEND)
@@ -83,7 +103,7 @@ if (JAVA_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DJAVA_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/java/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/java/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/java)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/java)
 endif()
 
 if (JS_BACKEND)
@@ -91,7 +111,7 @@ if (JS_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DJS_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/js/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/js/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/js)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/js)
 endif()
 
 if (OLDCPP_BACKEND)
@@ -104,7 +124,7 @@ if (RUST_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DRUST_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/rust/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/rust/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/rust)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/rust)
 endif()
 
 if (WASM_BACKEND)
@@ -112,7 +132,7 @@ if (WASM_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWASM_BUILD)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/wasm/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/wasm/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/wasm)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/wasm)
 endif()
 
 ####################################
@@ -129,7 +149,7 @@ if (LLVM_BACKEND)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD -D${LLVM_VERSION} -std=gnu++11)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/llvm/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/llvm/*.hh)
-	set (INC ${INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
 
 	# by default, llvm is compiled without rtti
 	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -fno-rtti)
@@ -145,8 +165,35 @@ if(NOT WIN32)
 endif()
 
 ####################################
+if (WASM OR ASMJS)
+	set (CMAKE_OSX_DEPLOYMENT_TARGET "")
+	set (CMAKE_OSX_SYSROOT "")
+	set (CMAKE_CXX_COMPILER emcc)
+	set (CMAKE_AR emcc)
+	set (CMAKE_CXX_ARCHIVE_FINISH "")
+
+if (WASM)
+	set (EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']\"")
+	set (EMCC_LINK_FLAGS "-O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${EXPORTED}")
+	set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR>  -o libfaust-wasm.js ${EMCC_LINK_FLAGS} <OBJECTS>")
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} "-DEMCC -DWASM_BUILD -O3")
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/wasm)
+else()
+	set (EXPORTED "\"['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']\"")
+	set (EMCC_LINK_FLAGS "-O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=${EXPORTED}")
+	set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR>  -o libfaust.js ${EMCC_LINK_FLAGS} <OBJECTS>")
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} "-DEMCC -DASMJS_BUILD -O3")
+	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/asmjs)
+endif()
+endif()
+
+####################################
 # faust libraries 
 if(APPLE)
+	if (UNIVERSAL)
+		set (CMAKE_OSX_ARCHITECTURES "x86_64 i386")
+		message (STATUS "Compiles an universal binary")
+	endif()
 elseif(WIN32)
 	if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__  -std=c++11)
@@ -160,12 +207,11 @@ endif()
 ####################################
 # output option management
 if (LIBSHARED OR LIBSTATIC)
-	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DFAUST_LIB)
 	if (LIBSHARED)
-		 message (STATUS "Compile the faust library as a shared library")
+		 message (STATUS "Compiles the faust library as a shared library")
 		 set (LIBTYPE "SHARED")
 	else() 
-		 message (STATUS "Compile the faust library as a static library")
+		 message (STATUS "Compiles the faust library as a static library")
 		 set (LIBTYPE "STATIC")
 	endif()
 endif()
@@ -173,18 +219,38 @@ endif()
 
 ####################################
 # set include directories
-include_directories(${INC} ${LLVM_INCLUDE_DIRS})
+include_directories(${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 
 ####################################
 # add definitions
 add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
 
+####################################
 # Now build our tools
-if (LIBSHARED OR LIBSTATIC)
-	add_library(faust ${LIBTYPE} ${SRC} ${HH})
-else ()
-	add_executable(faust ${SRC} ${HH})
+if (LIBSHARED OR LIBSTATIC AND NOT (WASM OR ASMS))
+	add_library(faustlib ${LIBTYPE} ${SRC} ${HH})
+	set_target_properties(faustlib PROPERTIES 
+				OUTPUT_NAME faust
+				COMPILE_FLAGS  -DFAUST_LIB)
+	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
 
-# Link against libraries
-target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
+if (WASM)
+	add_library(faust STATIC ${SRC} ${HH})
+	set_target_properties(faust PROPERTIES  
+		OUTPUT_NAME faust-wasm
+		COMPILE_FLAGS  -DFAUST_LIB
+		SUFFIX ".js" )
+endif()	
+
+if (ASMJS)
+	add_library(faust STATIC ${SRC} ${HH})
+	set_target_properties(faust PROPERTIES  
+		COMPILE_FLAGS  -DFAUST_LIB
+		SUFFIX ".js" )
+endif()	
+
+if (COMPILER AND NOT (WASM OR ASMS))
+	add_executable(faust ${SRC} ${HH})
+	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
+endif()
