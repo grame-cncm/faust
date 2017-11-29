@@ -80,11 +80,6 @@ for p in $@; do
 	fi
 done
 
-if [ $POLY = "true" ] && [ $WORKLET = "true" ] ; then
-    echo "Error: -worklet generation is not yet supported in -poly mode "
-    exit
-fi
-
 echo "Compiling with :" $OPTIONS
 
 #-------------------------------------------------------------------
@@ -100,8 +95,10 @@ if [ $POLY = "true" ]; then
         HTML_FOOTER=webaudio-wasm-poly-footer.html
     else
         if [ $WORKLET = "true" ]; then
+            WASM="wasm-eb"
             echo "Compiled with 'wasm' backend in polyphonic and AudioWorklet mode"
-            CODE_WRAPPER1=webaudio-poly-workletprocessor-standalone-wrapper.js
+            CODE_WRAPPER1=webaudio-workletprocessor-poly-standalone-wrapper.js
+            CODE_WRAPPER2=webaudio-workletnode-poly-standalone-wrapper.js
             HTML_FOOTER=webaudio-wasm-poly-worklet-footer.html
         else
             echo "Compiled with 'wasm' backend in polyphonic mode"

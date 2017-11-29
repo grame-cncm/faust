@@ -1,5 +1,6 @@
 LIB := ../../compiler
 FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
+#FASTMATH = ../../architecture/faust/dsp/fastmath-light.cpp
 
 DESTDIR ?=
 PREFIX ?= /usr/local

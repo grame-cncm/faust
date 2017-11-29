@@ -6,6 +6,8 @@
  
 'use strict';
 
+function getBase64Mixer() { return "AGFzbQEAAAABj4CAgAACYAN/f38AYAR/f39/AX0CkoCAgAABBm1lbW9yeQZtZW1vcnkCAAIDg4CAgAACAAEHmoCAgAACC2NsZWFyT3V0cHV0AAAIbWl4Vm9pY2UAAQqKgoCAAALigICAAAEDfwJAQQAhBQNAAkAgAiAFQQJ0aigCACEDQQAhBANAAkAgAyAEQQJ0akMAAAAAOAIAIARBAWohBCAEIABIBEAMAgUMAQsACwsgBUEBaiEFIAUgAUgEQAwCBQwBCwALCwsLnYGAgAACBH8DfQJ9QQAhB0MAAAAAIQgDQAJAQQAhBiACIAdBAnRqKAIAIQQgAyAHQQJ0aigCACEFA0ACQCAEIAZBAnRqKgIAIQkgCCAJi5chCCAFIAZBAnRqKgIAIQogBSAGQQJ0aiAKIAmSOAIAIAZBAWohBiAGIABIBEAMAgUMAQsACwsgB0EBaiEHIAcgAUgEQAwCBQwBCwALCyAIDwsL"; }
+
 var faust = faust || {};
 
 faust.error_msg = null;
@@ -27,7 +29,16 @@ faust.createMemory = function (inputs, outputs, buffer_size, polyphony) {
         return n;
     }
     
-    var memory_size = pow2limit(getSizemydsp() * polyphony + ((inputs + outputs * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    // Keep JSON parsed object
+    var json_object = null;
+    try {
+        json_object = JSON.parse(getJSONmydsp());
+    } catch (e) {
+        faust.error_msg = "Error in JSON.parse: " + e;
+        return null;
+    }
+    
+    var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
     return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
 }
@@ -75,7 +86,7 @@ faust.importObject = {
         log10: Math.log10,
         max_: Math.max,
         min_: Math.min,
-        remainder:function(x, y) { return x - Math.round(x/y) * y; },
+        remainder: function(x, y) { return x - Math.round(x/y) * y; },
         pow: Math.pow,
         round: Math.fround,
         sin: Math.sin,
@@ -86,6 +97,47 @@ faust.importObject = {
     }
 };
 
+faust.b64ToUint6 = function (nChr)
+{
+    return nChr > 64 && nChr < 91 ?
+        nChr - 65
+        : nChr > 96 && nChr < 123 ?
+        nChr - 71
+        : nChr > 47 && nChr < 58 ?
+        nChr + 4
+        : nChr === 43 ?
+        62
+        : nChr === 47 ?
+        63
+        :
+        0;
+}
+
+faust.atob = function (sBase64, nBlocksSize)
+{
+    if (typeof atob === 'function') {
+        return atob(sBase64);
+    } else {
+        
+        var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+        var nInLen = sB64Enc.length;
+        var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
+        var taBytes = new Uint8Array(nOutLen);
+        
+        for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+            nMod4 = nInIdx & 3;
+            nUint24 |= faust.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+            if (nMod4 === 3 || nInLen - nInIdx === 1) {
+                for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                    taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+                }
+                nUint24 = 0;
+            }
+        }
+        return taBytes.buffer;
+    }
+}
+
 faust.mixObject = { imports: { print: arg => console.log(arg) } }
 faust.mixObject["memory"] = { "memory": memory };
 
@@ -93,58 +145,79 @@ faust.mixObject["memory"] = { "memory": memory };
 faust.mydsp_instance = null;
 faust.mixer_instance = null;
 
-// JSON parsing functions
-faust.parse_ui = function (ui, callback)
-{
-    for (var i = 0; i < ui.length; i++) {
-        faust.parse_group(ui[i], callback);
-    }
-}
-
-faust.parse_group = function (group, callback)
-{
-    if (group.items) {
-        faust.parse_items(group.items, callback);
-    }
-}
-
-faust.parse_items = function (items, callback)
-{
-    for (var i = 0; i < items.length; i++) {
-        callback(items[i]);
-    }
-}
-
 // Polyphonic Faust DSP
 class mydsp_polyProcessor extends AudioWorkletProcessor {
     
+    // JSON parsing functions
+    static parse_ui(ui, obj, callback)
+    {
+        for (var i = 0; i < ui.length; i++) {
+           	mydsp_polyProcessor.parse_group(ui[i], obj, callback);
+        }
+    }
+    
+    static parse_group(group, obj, callback)
+    {
+        if (group.items) {
+            mydsp_polyProcessor.parse_items(group.items, obj, callback);
+        }
+    }
+    
+    static parse_items(items, obj, callback)
+    {
+        for (var i = 0; i < items.length; i++) {
+            callback(items[i], obj, callback);
+        }
+    }
+    
+    static parse_item1(item, obj, callback)
+    {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
+            mydsp_polyProcessor.parse_items(item.items, obj, callback);
+        } else if (item.type === "hbargraph"
+                   || item.type === "vbargraph") {
+            // Nothing
+        } else if (item.type === "vslider"
+                   || item.type === "hslider"
+                   || item.type === "button"
+                   || item.type === "checkbox"
+                   || item.type === "nentry") {
+            obj.push({ name: item.address,
+                     defaultValue: item.init,
+                     minValue: item.min,
+                     maxValue: item.max });
+        }
+    }
+    
+    static parse_item2(item, obj, callback)
+    {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
+            mydsp_polyProcessor.parse_items(item.items, obj, callback);
+        } else if (item.type === "hbargraph"
+                   || item.type === "vbargraph") {
+            // Keep bargraph adresses
+            obj.outputs_items.push(item.address);
+            obj.pathTable[item.address] = parseInt(item.index);
+        } else if (item.type === "vslider"
+                   || item.type === "hslider"
+                   || item.type === "button"
+                   || item.type === "checkbox"
+                   || item.type === "nentry") {
+            // Keep inputs adresses
+            obj.inputs_items.push(item.address);
+            obj.pathTable[item.address] = parseInt(item.index);
+        }
+    }
+
     static get parameterDescriptors () {
         
         // Analyse JSON to generate AudioParam parameters
         var params = [];
-        
-        faust.parse_ui(JSON.parse(getJSONmydsp()).ui,
-                       function (item) {
-                           if (item.type === "vgroup"
-                               || item.type === "hgroup"
-                               || item.type === "tgroup") {
-                                faust.parse_items(item.items);
-                           } else if (item.type === "hbargraph"
-                                      || item.type === "vbargraph") {
-                                // Keep bargraph adresses
-                                ///this.outputs_items.push(item.address);
-                           } else if (item.type === "vslider"
-                                      || item.type === "hslider"
-                                      || item.type === "button"
-                                      || item.type === "checkbox"
-                                      || item.type === "nentry") {
-                                params.push({ name: item.address,
-                                       defaultValue: item.init,
-                                       minValue: item.min,
-                                       maxValue: item.max });
-                           }
-                       });
-        
+        mydsp_polyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydsp_polyProcessor.parse_item1);
         return params;
     }
     
@@ -225,13 +298,13 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.kReleaseVoice = -2;
         this.kNoVoice = -3;
      
-        this.pathTable = getPathTablemydsp();
+        this.pathTable = [];
         
         // Allocate table for 'setParamValue'
         this.value_table = [];
         
-        for (var i = 0; i < polyphony; i++) {
-            this.dsp_voices[i] = this.dsp_start + i * getSizemydsp();
+        for (var i = 0; i < faust.polyphony; i++) {
+            this.dsp_voices[i] = this.dsp_start + i * parseInt(this.json_object.size);
             this.dsp_voices_state[i] = this.kFreeVoice;
             this.dsp_voices_level[i] = 0;
             this.dsp_voices_date[i] = 0;
@@ -279,7 +352,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             var oldest_date_playing = Number.MAX_VALUE;
             
             // Scan all voices
-            for (var i = 0; i < polyphony; i++) {
+            for (var i = 0; i < faust.polyphony; i++) {
                 // Try to steal a voice in kReleaseVoice mode...
                 if (this.dsp_voices_state[i] === this.kReleaseVoice) {
                     // Keeps oldest release voice
@@ -359,13 +432,17 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                 }
             }
             
+             // Parse UI
+            mydspProcessor.parse_ui(this.json_object.ui, this, mydspProcessor.parse_item2);
+            
+            
             // Parse UI
-            faust.parse_ui(this.json_object.ui,
+            mydsp_polyProcessor.parse_ui(this.json_object.ui,
                            function (item) {
                                if (item.type === "vgroup"
                                    || item.type === "hgroup"
                                    || item.type === "tgroup") {
-                                    faust.parse_items(item.items);
+                                	mydsp_polyProcessor.parse_items(item.items);
                                } else if (item.type === "hbargraph"
                                           || item.type === "vbargraph") {
                                     // Keep bargraph adresses
@@ -395,7 +472,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             }
             
             // Init DSP voices
-            for (i = 0; i < polyphony; i++) {
+            for (i = 0; i < faust.polyphony; i++) {
                 this.factory.init(this.dsp_voices[i], context.sampleRate);
             }
         }
@@ -442,7 +519,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
          */
         this.allNotesOff = function ()
         {
-            for (var i = 0; i < polyphony; i++) {
+            for (var i = 0; i < faust.polyphony; i++) {
                 this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
                 this.dsp_voices_state[i] = this.kReleaseVoice;
             }
@@ -475,25 +552,22 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
     process(inputs, outputs, parameters) {
         
+        var input = inputs[0];
+        var output = outputs[0];
+
         // Copy inputs
-        for (var channel = 0; channel < input.length; ++channel) {
-            var dspInput = this.dspInChannnels[i];
-            for (var frame = 0; frame < input[channel].length; ++frame) {
-                dspInput[j] = input[channel][frame];
+        if (input !== undefined) {
+            for (var channel = 0; channel < input.length; ++channel) {
+                var dspInput = this.dspInChannnels[channel];
+                dspInput.set(input[channel]);
             }
         }
         
-        //var myParam = parameters.myParam;
-       
-        /*
-         // Update control state
-         for (i = 0; i < this.inputs_items.length; i++) {
-         var path = this.inputs_items[i];
-         var values = this.value_table[path];
-         this.factory.setParamValue(this.dsp, this.pathTable[path], values[0]);
-         values[0] = values[1];
-         }
-         */
+        // Update controls
+        var params = Object.entries(parameters);
+        for (var i = 0; i < params.length; i++) {
+            this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
+        }
         
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (this.compute_handler) {
@@ -504,7 +578,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.mixer.clearOutput(faust.buffer_size, this.numOut, this.outs);
         
         // Compute all running voices
-        for (i = 0; i < polyphony; i++) {
+        for (i = 0; i < faust.polyphony; i++) {
             if (this.dsp_voices_state[i] != this.kFreeVoice) {
                 if (this.dsp_voices_trigger[i]) {
                     // FIXME : properly cut the buffer in 2 slices...
@@ -529,28 +603,38 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         // Update bargraph
         this.update_outputs();
         
-        // Copy outputs
-        for (var channel = 0; channel < input.length; ++channel) {
-            var dspOutput = this.dspOutChannnels[i];
-            for (var frame = 0; frame < output[channel].length; ++frame) {
-                output[channel][frame] = dspOutput[frame];
+       // Copy outputs
+        if (output !== undefined) {
+            for (var channel = 0; channel < output.length; ++channel) {
+                var dspOutput = this.dspOutChannnels[channel];
+                output[channel].set(dspOutput);
             }
         }
     }
 }
 
+console.log("registerProcessor");
+
+// Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+try {
+	registerProcessor('mydsp_poly', mydsp_polyProcessor);
+} catch (e) {
+	console.log(e);
+}
+
+console.log("registerProcessor OK");
+
 // Compile the WebAssembly file, then register the processor class
-fetch('mixer32.wasm')
-.then(mix_res => mix_res.arrayBuffer())
-.then(mix_bytes => WebAssembly.instantiate(mix_bytes, mixObject))
-.then(mix_module =>
-      fetch('mydsp.wasm')
-      .then(dsp_file => dsp_file.arrayBuffer())
-      .then(dsp_bytes => WebAssembly.instantiate(dsp_bytes, importObject))
-      .then(dsp_module => { faust.mixer_instance = mix_module.instance;
-                            faust.mydsp_instance = dsp_module.instance;
-                            registerProcessor('mydsp_poly', mydsp_polyProcessor); })
-.catch(function() { faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
+WebAssembly.instantiate(faust.atob(getBase64Mixer()), faust.mixObject))
+.then(mix_module => WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject))
+.then(dsp_module => { faust.mixer_instance = mix_module.instance;
+                    	faust.mydsp_instance = dsp_module.instance;
+                    	console.log(mix_module);
+                    	console.log(dsp_module);
+                        // Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+                        registerProcessor('mydsp_poly', mydsp_polyProcessor); 
+                    }) 
+.catch(function(error) { console.log(error); faust.error_msg = "Faust mydsp_poly cannot be loaded or compiled"; });
 
 
 

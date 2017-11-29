@@ -254,7 +254,7 @@ faust.importObject = {
         log10: Math.log10,
         max_: Math.max,
         min_: Math.min,
-        remainder:function(x, y) { return x - Math.round(x/y) * y; },
+        remainder: function(x, y) { return x - Math.round(x/y) * y; },
         pow: Math.pow,
         round: Math.fround,
         sin: Math.sin,
@@ -922,19 +922,31 @@ var mydspProcessorString = `
             return true;
         }
     }
+    
+    //Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+    try {
+		registerProcessor('mydsp', mydspProcessor);
+	} catch (e) {
+		console.log(e);
+	}
 
     // Compile wasm binary module
     WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject)
                 .then(dsp_module => {
                       faust.mydsp_instance = dsp_module.instance;
-                      registerProcessor('mydsp', mydspProcessor);
+                      // Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+                      //registerProcessor('mydsp', mydspProcessor);
                 })
                 .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
 `;
 
 faust.createDSPInstanceAux = function(factory, callback)
 {
-    audio_context = new AudioContext();
+	try {
+    	audio_context = new AudioContext();
+    } catch(e) {
+    	console.log(e);
+    }
     
     // Create a generic AudioWorkletNode
     var audio_node = new AudioWorkletNode(audio_context, factory.name,
@@ -967,6 +979,7 @@ faust.createDSPInstance = function(factory, callback)
         var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBase64Code());
         var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
         
+        /*
         // The main global scope
         var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
         AWContext.addModule(url)
@@ -977,6 +990,22 @@ faust.createDSPInstance = function(factory, callback)
               faust.createDSPInstanceAux(factory, callback);
         })
         .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); alert(error); });
+    	*/
+    	
+    	// Hack : 11/28/17, add an explicit timeout
+    	// The main global scope
+        var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
+        AWContext.addModule(url)
+        .then(function () {
+        	setTimeout(function () {
+              	// Processor has been registered
+              	factory.registered = true;
+              	// Create audio node
+              	faust.createDSPInstanceAux(factory, callback);
+            }, 500)
+        })
+        .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); alert(error); });
+    	
     } else {      
         // Create audio node
         faust.createDSPInstanceAux(factory, callback);
