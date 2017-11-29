@@ -130,6 +130,9 @@ if (LLVM_BACKEND)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/llvm/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/llvm/*.hh)
 	set (INC ${INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
+
+	# by default, llvm is compiled without rtti
+	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -fno-rtti)
 endif()
 
 ####################################
