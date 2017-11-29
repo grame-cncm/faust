@@ -77,14 +77,6 @@ inline void stacktrace(int val)
 #endif
 }
 
-inline void faustassert(bool cond)
-{
-    if (!cond) {
-    #ifndef EMCC
-        stacktrace(20);
-    #endif
-        throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
-    }
-}
+void faustassert(bool cond);
 
 #endif

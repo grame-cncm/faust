@@ -24,8 +24,8 @@
 
 #include "tlib.hh"
 
-extern int 			yylineno;
-extern const char * yyfilename;
+extern int yylineno;
+extern const char* yyfilename;
 
 // associate and retrieve file and line properties to a symbol definition
 void 		setDefProp(Tree sym, const char* filename, int lineno);

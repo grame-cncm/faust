@@ -130,42 +130,6 @@ class CodeContainer : public virtual Garbageable {
         void generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num, bool omp = false);
         void generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp);
 
-        void printCompilationOptions(ostream& dst)
-        {
-            if (gGlobal->gSchedulerSwitch) {
-                dst << "-sch"
-                << " -vs " << gGlobal->gVecSize
-                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
-                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
-                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
-                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "");
-            } else if (gGlobal->gVectorSwitch) {
-                dst << "-vec" << " -lv " << gGlobal->gVectorLoopVariant
-                << " -vs " << gGlobal->gVecSize
-                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
-                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
-                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
-                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "");
-            } else if (gGlobal->gOpenMPSwitch) {
-                dst << "-omp" << " -vs " << gGlobal->gVecSize
-                << " -vs " << gGlobal->gVecSize
-                << ((gGlobal->gFunTaskSwitch) ? " -fun" : "")
-                << ((gGlobal->gGroupTaskSwitch) ? " -g" : "")
-                << ((gGlobal->gDeepFirstSwitch) ? " -dfs" : "")
-                << ((gGlobal->gFloatSize == 2) ? " -double" : (gGlobal->gFloatSize == 3) ? " -quad" : "")
-                << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "");
-            } else {
-                dst << ((gGlobal->gFloatSize == 1) ? "-scal" : ((gGlobal->gFloatSize == 2) ? "-double" : (gGlobal->gFloatSize == 3) ? "-quad" : ""))
-                << " -ftz " << gGlobal->gFTZMode
-                << ((gGlobal->gMemoryManager) ? " -mem" : "");
-            }
-        }
-    
         void printHeader(ostream& dst)
         {
             // defines the metadata we want to print as comments at the begin of in the file
@@ -191,7 +155,7 @@ class CodeContainer : public virtual Garbageable {
             
             dst << "Code generated with Faust " << FAUSTVERSION << " (https://faust.grame.fr)" << endl;
             dst << "Compilation options: ";
-            printCompilationOptions(dst);
+            gGlobal->printCompilationOptions(dst);
             dst << "\n------------------------------------------------------------ */" << endl;
         }
     

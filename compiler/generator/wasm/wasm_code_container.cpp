@@ -318,7 +318,7 @@ void WASMCodeContainer::produceClass()
     
     // Prepare compilation options
     stringstream options;
-    printCompilationOptions(options);
+    gGlobal->printCompilationOptions(options);
     
     stringstream size;
     size << gGlobal->gWASMVisitor->getStructSize();
@@ -359,7 +359,7 @@ void WASMCodeContainer::produceClass()
     // Generate JSON and getSize
     tab(n, fHelper); fHelper << "/*\n" << "Code generated with Faust version " << FAUSTVERSION << endl;
     fHelper << "Compilation options: ";
-    printCompilationOptions(fHelper);
+    gGlobal->printCompilationOptions(fHelper);
     fHelper << "\n*/\n";
     
     // Generate JSON

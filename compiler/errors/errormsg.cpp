@@ -30,6 +30,19 @@ using namespace std;
 
 const char* yyfilename  = "????";
 
+void faustassert(bool cond)
+{
+    if (!cond) {
+    #ifndef EMCC
+        stacktrace(20);
+    #endif
+        std::stringstream str;
+        str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
+        gGlobal->printCompilationOptions(str); str << ")\n";
+        throw faustexception(str.str());
+    }
+}
+
 void lexerror(const char* msg)
 {
     string fullmsg = "ERROR : " + string(msg) + '\n';

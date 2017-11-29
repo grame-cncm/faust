@@ -538,7 +538,44 @@ void global::init()
     gInjectFlag = false;    // inject an external source file into the architecture file
     gInjectFile  = "";      // instead of a compiled dsp file
 }
-    
+
+void global::printCompilationOptions(ostream& dst)
+{
+    if (gSchedulerSwitch) {
+        dst << "-sch"
+        << " -vs " << gVecSize
+        << ((gFunTaskSwitch) ? " -fun" : "")
+        << ((gGroupTaskSwitch) ? " -g" : "")
+        << ((gDeepFirstSwitch) ? " -dfs" : "")
+        << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "")
+        << " -ftz " << gFTZMode
+        << ((gMemoryManager) ? " -mem" : "");
+    } else if (gVectorSwitch) {
+        dst << "-vec" << " -lv " << gVectorLoopVariant
+        << " -vs " << gVecSize
+        << ((gFunTaskSwitch) ? " -fun" : "")
+        << ((gGroupTaskSwitch) ? " -g" : "")
+        << ((gDeepFirstSwitch) ? " -dfs" : "")
+        << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "")
+        << " -ftz " << gFTZMode
+        << ((gMemoryManager) ? " -mem" : "");
+    } else if (gOpenMPSwitch) {
+        dst << "-omp" << " -vs " << gVecSize
+        << " -vs " << gVecSize
+        << ((gFunTaskSwitch) ? " -fun" : "")
+        << ((gGroupTaskSwitch) ? " -g" : "")
+        << ((gDeepFirstSwitch) ? " -dfs" : "")
+        << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "")
+        << " -ftz " << gFTZMode
+        << ((gMemoryManager) ? " -mem" : "");
+    } else {
+        dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
+        << " -ftz " << gFTZMode
+        << ((gMemoryManager) ? " -mem" : "");
+    }
+}
+
+
 global::~global()
 {
     Garbageable::cleanup();

@@ -743,7 +743,7 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 {
     // Prepare compilation options
     stringstream options;
-    printCompilationOptions(options);
+    gGlobal->printCompilationOptions(options);
     
     visitor->init("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), "", std::map<std::string, int>());
     generateUserInterface(visitor);

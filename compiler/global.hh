@@ -532,6 +532,8 @@ struct global {
     {
         return gVarTypeTable[name]->getType();
     }
+    
+    void printCompilationOptions(ostream& dst);
 };
 
 // Unique shared global pointer
