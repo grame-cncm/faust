@@ -124,7 +124,6 @@ class mydspNode extends AudioWorkletNode {
     
 }
 
-/*
 faust.createmydsp = function(callback)
 {
     // The main global scope
@@ -137,22 +136,4 @@ faust.createmydsp = function(callback)
     })
     .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
 }
-*/
-
-// Hack : 11/28/17, add an explicit timeout
-faust.createmydsp = function(callback)
-{
-    // The main global scope
-    var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
-    console.log(AWContext);
-    AWContext.addModule("mydsp-processor.js")
-    .then(function () {
-    	setTimeout(function () {
-         	audio_context = new AudioContext();
-         	callback(new mydspNode(audio_context, {}));
-    	}, 500)
-    })
-	.catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
-}
-
 

@@ -324,18 +324,12 @@ class mydspProcessor extends AudioWorkletProcessor {
     }
 }
 
-// Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+// Synchronously compile and instantiate the WASM module
 try {
-	registerProcessor('mydsp', mydspProcessor);
+    let wasm_module = new WebAssembly.Module(faust.atob(getBase64Codemydsp()));
+    faust.mydsp_instance = new WebAssembly.Instance(wasm_module, faust.importObject);
+    registerProcessor('mydsp', mydspProcessor);
 } catch (e) {
-	console.log(error);
+    console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
 }
 
-// Compile wasm binary module
-WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject)
-            .then(dsp_module => {
-                  faust.mydsp_instance = dsp_module.instance;
-                  // Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
-                  //registerProcessor('mydsp', mydspProcessor);
-            })
-            .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
