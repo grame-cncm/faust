@@ -15,12 +15,6 @@ ifeq ($(system), MINGW)
 	TARGET = windows
 	GENERATOR ?= "MSYS Makefiles"
 	ARCH ?= Win64
-	ifeq ($(ARCH), "Win32") 
-		ARCH = ""
-	else
-		ARCH = " $(ARCH)"
-	endif
-
 else
 ifeq ($(system), Linux)
 	TARGET = linux
@@ -73,7 +67,7 @@ help:
 	@echo "  GENERATOR=<cmake generator> : set the cmake generator to use"
 	@echo "                                Note that it may conflict with the 'make' command"
 	@echo "  BACKENDS=<backends>         : see 'Backends' below"
-	@echo "  ARCH=[Win64 | Win32]        : [Windows] defaults to Win64
+	@echo "  ARCH=[Win64 | Win32]        : [Windows] defaults to Win64"
 	@echo "  VERBOSE=[ON | OFF(default)] : set or unset verbose mode for makefile based build"
 	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
 	@echo 
@@ -109,10 +103,10 @@ windows:
 	make linux
 
 vs14:
-	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="\"Visual Studio 14 2015$(ARCH)\"" TASKS=$(TASKS)
+	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="\"Visual Studio 14 2015 $(ARCH)\"" TASKS=$(TASKS)
 
 vs12:
-	make _VS VSDIR=$(VS12DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 12.0" GENERATOR="\"Visual Studio 12 2013$(ARCH)\"" TASKS=$(TASKS)
+	make _VS VSDIR=$(VS12DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 12.0" GENERATOR="\"Visual Studio 12 2013 $(ARCH)\"" TASKS=$(TASKS)
 
 _VS:
 	@[ -d $(VSDIR) ] || mkdir $(VSDIR)
