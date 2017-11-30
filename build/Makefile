@@ -15,6 +15,11 @@ ifeq ($(system), MINGW)
 	TARGET = windows
 	GENERATOR ?= "MSYS Makefiles"
 	ARCH ?= Win64
+	ifeq ($(ARCH), Win32)
+		GENERATOR = $(GENERATOR)
+	else
+		GENERATOR = $(GENERATOR) $(ARCH)
+	endif
 else
 ifeq ($(system), Linux)
 	TARGET = linux
@@ -103,14 +108,14 @@ windows:
 	make linux
 
 vs14:
-	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="\"Visual Studio 14 2015 $(ARCH)\"" TASKS=$(TASKS)
+	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="Visual Studio 14 2015" TASKS=$(TASKS)
 
 vs12:
-	make _VS VSDIR=$(VS12DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 12.0" GENERATOR="\"Visual Studio 12 2013 $(ARCH)\"" TASKS=$(TASKS)
+	make _VS VSDIR=$(VS12DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 12.0" GENERATOR="Visual Studio 12 2013" TASKS=$(TASKS)
 
 _VS:
 	@[ -d $(VSDIR) ] || mkdir $(VSDIR)
-	cd $(VSDIR) && cmake -C ../$(BACKENDS) .. -G $(GENERATOR) 
+	cd $(VSDIR) && cmake -C ../$(BACKENDS) .. -G "$(GENERATOR)" 
 	cmd /c "\"$(MSVC)\VC\vcvarsall.bat\" && msbuild $(VSDIR)/faust.sln /maxcpucount:$(TASKS) /p:Configuration=Release"
 
 	
