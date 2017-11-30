@@ -28,6 +28,12 @@ endif
 endif
 endif
 
+CMAKEOPT := ""
+LLVM_DIR ?= ""
+ifdef LLVM_DIR
+	CMAKEOPT = -DLLVM_DIR=\"$(LLVM_DIR)\"
+endif
+
 
 .PHONY: wasm asmjs faust xcode vs12 vs14
 
@@ -72,6 +78,7 @@ help:
 	@echo "  GENERATOR=<cmake generator> : set the cmake generator to use"
 	@echo "                                Note that it may conflict with the 'make' command"
 	@echo "  BACKENDS=<backends>         : see 'Backends' below"
+	@echo "  LLVM_DIR=<dir>              : sets the llvm directory (may be used with LLVM backend)
 	@echo "  ARCH=[Win64 | Win32]        : [Windows] defaults to Win64"
 	@echo "  VERBOSE=[ON | OFF(default)] : set or unset verbose mode for makefile based build"
 	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
