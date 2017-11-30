@@ -27,6 +27,7 @@
 #include <set>
 #include <map>
 #include <list>
+#include <stack>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -37,8 +38,8 @@
 #include "sigtype.hh"
 #include "loopDetector.hh"
 #include "occurrences.hh"
-#include "instructions.hh"
 #include "exception.hh"
+#include "instructions_type.hh"
 
 class CTree;
 typedef CTree* Tree;
@@ -53,9 +54,13 @@ class Garbageable;
 
 struct LLVMResult;
 
+struct DispatchVisitor;
 class ASMJAVAScriptInstVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+
+struct Typed;
+struct BasicTyped;
 
 class dsp_factory_base;
 

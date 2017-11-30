@@ -30,8 +30,8 @@
 #include "sigvisitor.hh"
 #include "lateq.hh"
 #include "garbageable.hh"
+#include "instructions.hh"
 
-struct ValueInst;
 class CodeGen;
 class CodeContainer;
 

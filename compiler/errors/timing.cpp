@@ -29,6 +29,7 @@
 #include "compatibility.hh"
 #include "timing.hh"
 #include "global.hh"
+#include "Text.hh"
 
 // Timing can be used outside of the scope of 'gGlobal'
 bool gTimingSwitch;

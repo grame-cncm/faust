@@ -34,6 +34,7 @@
 #include "exception.hh"
 #include "rn_base64.h"
 #include "global.hh"
+#include "Text.hh"
 #include "libfaust.h"
 
 #include <llvm/Target/TargetMachine.h>
@@ -1035,7 +1036,7 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 
 llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
 {
-    llvm_dsp_factory* tmp = dynamic_cast<llvm_dsp_factory*>(factory);
+    llvm_dsp_factory* tmp = static_cast<llvm_dsp_factory*>(factory);
     faustassert(tmp);
     
     if (tmp->getFactory()->getMemoryManager()) {

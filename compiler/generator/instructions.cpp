@@ -26,6 +26,11 @@
 
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
+Typed::VarType ctType(Type t)
+{
+    return (t->nature() == kInt) ? Typed::kInt32 : Typed::kFloat;
+}
+
 string Typed::gTypeString[] = {
     "kInt32", "kInt32ish", "kInt32_ptr", "kInt32_vec", "kInt32_vec_ptr",
     "kInt64", "kInt64_ptr", "kInt64_vec", "kInt64_vec_ptr",

@@ -28,7 +28,6 @@
 #include "tree.hh"
 #include "smartpointer.hh"
 #include "interval.hh"
-#include "instructions.hh"
 #include "garbageable.hh"
 
 /*********************************************************************
@@ -421,12 +420,10 @@ Type checkWRTbl(Type tbl, Type wr);	///< verifie que wr est compatible avec le c
 int checkDelayInterval(Type t);		///< Check if the interval of t is appropriate for a delay
 
 //--------------------------------------------------
-// conversion de type
+// Type conversion
 
 // SL : 28/09/17
 string old_cType(Type t);
-
-Typed::VarType ctType(Type t);
 
 Tree codeAudioType(AudioType* t);   ///< Code an audio type as a tree (memoization)
 
