@@ -146,7 +146,7 @@ if (LLVM_BACKEND)
 	# Find the libraries that correspond to the LLVM components that we wish to use
 	llvm_map_components_to_libnames(LLVM_LIBS all)
 
-	string (REGEX REPLACE "([0-9])\\.([0-9])\\.[0-9]" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
+	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD -D${LLVM_VERSION} -std=gnu++11)
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/llvm/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/llvm/*.hh)
