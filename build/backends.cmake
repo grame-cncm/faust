@@ -1,3 +1,6 @@
+# this file may be used to select different backends
+# it's always read by the default makefile target
+
 set ( ASMJS_BACKEND  ON  CACHE BOOL  "Include ASMJS backend" 	FORCE )
 set ( C_BACKEND 	 ON  CACHE BOOL  "Include C backend" 		FORCE )
 set ( CPP_BACKEND 	 ON  CACHE BOOL  "Include CPP backend" 		FORCE )
