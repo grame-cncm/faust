@@ -15,10 +15,8 @@ ifeq ($(system), MINGW)
 	TARGET = windows
 	GENERATOR ?= "MSYS Makefiles"
 	ARCH ?= Win64
-	ifeq ($(ARCH), Win32)
-		GENERATOR = $(GENERATOR)
-	else
-		GENERATOR = $(GENERATOR) $(ARCH)
+	ifneq ($(ARCH), Win32)
+		GENERATOR += " $(ARCH)"
 	endif
 else
 ifeq ($(system), Linux)
@@ -28,10 +26,10 @@ endif
 endif
 endif
 
-CMAKEOPT := ""
+CMAKEOPT ?= "-DCMAKE_BUILD_TYPE=Release"
 LLVM_DIR ?= ""
 ifdef LLVM_DIR
-	CMAKEOPT = -DLLVM_DIR=\"$(LLVM_DIR)\"
+	CMAKEOPT += -DLLVM_DIR=\"$(LLVM_DIR)\"
 endif
 
 
@@ -75,10 +73,11 @@ help:
 	@echo " 'vs12'     : [Windows] equivalent to the faust target but using visual studio 12 build"
 	@echo 
 	@echo "Available options:"
+	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '-DCMAKE_BUILD_TYPE=Release'"
 	@echo "  GENERATOR=<cmake generator> : set the cmake generator to use"
 	@echo "                                Note that it may conflict with the 'make' command"
 	@echo "  BACKENDS=<backends>         : see 'Backends' below"
-	@echo "  LLVM_DIR=<dir>              : set the llvm directory (may be used with LLVM backend)
+	@echo "  LLVM_DIR=<dir>              : sets the llvm directory (may be used with LLVM backend)"
 	@echo "  ARCH=[Win64 | ARM | Win32]  : [Windows] defaults to Win64"
 	@echo "  VERBOSE=[ON | OFF(default)] : set or unset verbose mode for makefile based build"
 	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
@@ -96,7 +95,7 @@ macos:
 
 xcode:
 	@[ -d $(XCODEDIR) ] || mkdir $(XCODEDIR)
-	cd $(XCODEDIR) && cmake -C ../$(BACKENDS) .. -G Xcode
+	cd $(XCODEDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G Xcode
 	xcodebuild -jobs $(TASKS) -project $(XCODEDIR)/faust.xcodeproj -target ALL_BUILD -configuration Release
 
 #===============================================================
@@ -104,7 +103,7 @@ xcode:
 #===============================================================
 linux:
 	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) -DVERBOSE=$(VERBOSE) .. -G $(GENERATOR)
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DVERBOSE=$(VERBOSE) .. -G $(GENERATOR)
 	make -C $(FAUSTDIR) -j $(TASKS)
 
 #===============================================================
@@ -122,7 +121,7 @@ vs12:
 
 _VS:
 	@[ -d $(VSDIR) ] || mkdir $(VSDIR)
-	cd $(VSDIR) && cmake -C ../$(BACKENDS) .. -G "$(GENERATOR)" 
+	cd $(VSDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G "$(GENERATOR)" 
 	cmd /c "\"$(MSVC)\VC\vcvarsall.bat\" && msbuild $(VSDIR)/faust.sln /maxcpucount:$(TASKS) /p:Configuration=Release"
 
 	
@@ -132,13 +131,13 @@ _VS:
 wasm:
 	@make checkemcc
 	@[ -d $(WASMDIR) ] || mkdir $(WASMDIR)
-	cd $(WASMDIR) && cmake -C ../emcc.cmake -DWASM_BACKEND=ON -DLIBWASM=ON -DVERBOSE=$(VERBOSE) .. 
+	cd $(WASMDIR) && cmake -C ../emcc.cmake -DCMAKE_BUILD_TYPE=Release -DWASM_BACKEND=ON -DLIBWASM=ON -DVERBOSE=$(VERBOSE) .. 
 	make -C $(WASMDIR) -j $(TASKS)
 
 asmjs:
 	@make checkemcc
 	@[ -d $(ASMJSDIR) ] || mkdir $(ASMJSDIR)
-	cd $(ASMJSDIR) && cmake -C ../emcc.cmake -DASMJS_BACKEND=ON -DLIBASMJS=ON -DVERBOSE=$(VERBOSE) .. 
+	cd $(ASMJSDIR) && cmake -C ../emcc.cmake -DCMAKE_BUILD_TYPE=Release -DASMJS_BACKEND=ON -DLIBASMJS=ON -DVERBOSE=$(VERBOSE) .. 
 	make -C $(ASMJSDIR) -j $(TASKS)
 	
 checkemcc:
