@@ -101,7 +101,10 @@ EXPORT std::string generateSHA1(const std::string& dsp_content);
  *
  * @param ptr - the pointer to be deleted.
  */
-//extern "C" void freeCMemory(void* ptr);
+#ifdef EMCC
+extern "C" void freeCMemory(void* ptr);
+#else
 EXPORT void freeCMemory(void* ptr);
+#endif
 
 #endif
