@@ -27,10 +27,13 @@ WASMDIR  := wasm
 ASMJSDIR := asmjs
 EMCC 	?= emcc
 VERBOSE ?= OFF
+TASKS	?= 4
+
 
 faust:
 	make $(TARGET)
 
+#===============================================================
 help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
@@ -39,6 +42,7 @@ help:
 	@echo " 'asmjs'    : builds the FAUST compiler as a ASM JS library"
 	@echo "Available options:"
 	@echo "  VERBOSE=[ON | OFF(default)] : set or unset verbose mode for makefile based build"
+	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
 
 #===============================================================
 # building faust on mac os
@@ -52,17 +56,17 @@ macos:
 #===============================================================
 linux:
 	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../backends.cmake -DVERBOSE=$(VERBOSE) .. 
-	make -C $(FAUSTDIR) -j 8
+	cd $(FAUSTDIR) && cmake -C ../backends.cmake -DVERBOSE=$(VERBOSE) .. -G "Unix Makefiles"
+	make -C $(FAUSTDIR) -j $(TASKS)
 
 #===============================================================
 # building faust on windows
-# default is to build the 64bits architecture
+# default is to build using MSYS
 #===============================================================
 windows:
 	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../backends.cmake -DVERBOSE=$(VERBOSE) .. 
-	make -C $(FAUSTDIR) -j 8
+	cd $(FAUSTDIR) && cmake -C ../backends.cmake -DVERBOSE=$(VERBOSE) .. -G "MSYS Makefiles"
+	make -C $(FAUSTDIR) -j $(TASKS)
 	
 #===============================================================
 # building faust with emscripten
@@ -71,13 +75,13 @@ wasm:
 	@make checkemcc
 	@[ -d $(WASMDIR) ] || mkdir $(WASMDIR)
 	cd $(WASMDIR) && cmake -C ../emcc.cmake -DWASM_BACKEND=ON -DLIBWASM=ON -DVERBOSE=$(VERBOSE) .. 
-	make -C $(WASMDIR) -j 8
+	make -C $(WASMDIR) -j $(TASKS)
 
 asmjs:
 	@make checkemcc
 	@[ -d $(ASMJSDIR) ] || mkdir $(ASMJSDIR)
 	cd $(ASMJSDIR) && cmake -C ../emcc.cmake -DASMJS_BACKEND=ON -DLIBASMJS=ON -DVERBOSE=$(VERBOSE) .. 
-	make -C $(ASMJSDIR) -j 8
+	make -C $(ASMJSDIR) -j $(TASKS)
 	
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
