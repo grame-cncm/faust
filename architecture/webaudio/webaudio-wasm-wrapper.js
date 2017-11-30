@@ -265,10 +265,8 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback) {
     }
 
     try {
-    	var time1 = performance.now();
-
+        var time1 = performance.now();
         var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv.length, argv_ptr, error_msg_ptr, internal_memory);
-
         var time2 = performance.now();
         console.log("Faust compilation duration : " + (time2 - time1));
 

@@ -35,6 +35,7 @@
 #if defined(ALL_TESTS)
 
 #include "dsp_scal.h"
+#include "dsp_scal_exp10.h"
 
 #include "dsp_vec0_4.h"
 #include "dsp_vec0_8.h"
@@ -113,6 +114,7 @@ extern "C" int bench_all(const char* name, int run)
 #if defined(ALL_TESTS)
     
     options.push_back(ADD_DOUBLE + "-scal");
+    options.push_back(ADD_DOUBLE + "-scal -exp10");
     
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 4");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 8");
@@ -153,6 +155,7 @@ extern "C" int bench_all(const char* name, int run)
 #elif defined(FAST_TESTS)
     
     options.push_back(ADD_DOUBLE + "-scal");
+    options.push_back(ADD_DOUBLE + "-scal -exp10");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32");
     options.push_back(ADD_DOUBLE + "-vec -lv 0 -vs 32 -g");
     options.push_back(ADD_DOUBLE + "-vec -lv 1 -vs 32");
@@ -170,6 +173,7 @@ extern "C" int bench_all(const char* name, int run)
     
     // Scalar
     measures.push_back(bench(new dsp_scal(), options[ind++], run));
+    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run));
     
     // Vector -lv 0
     measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
@@ -212,6 +216,8 @@ extern "C" int bench_all(const char* name, int run)
 #elif defined(FAST_TESTS)
     
     measures.push_back(bench(new dsp_scal(), options[ind++], run));
+    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run));
+    
     measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
     measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
     measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));

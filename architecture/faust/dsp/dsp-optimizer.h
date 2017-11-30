@@ -92,6 +92,13 @@ class dsp_optimizer {
             t0.push_back("-scal");
             fOptionsTable.push_back(t0);
             
+            // Scalar mode with exp10
+            std::vector <std::string> t0_exp10;
+            if (typeid(SAMPLE_TYPE).name() == typeid(double).name()) { t0_exp10.push_back("-double"); }
+            t0_exp10.push_back("-scal");
+            t0_exp10.push_back("-exp10");
+            fOptionsTable.push_back(t0_exp10);
+       
             SAMPLE_TYPE var;
             
             // vec -lv 0

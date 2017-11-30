@@ -87,6 +87,7 @@ for p in $FILES; do
     if [ $TESTS == "all" ] ; then
 
         faust -cn dsp_scal $OPTIONS "$SRCDIR/$f" -o "$TMP/dsp_scal.h"
+        faust -cn dsp_scal_exp10 $OPTIONS -exp10 "$SRCDIR/$f" -o "$TMP/dsp_scal_exp10.h"
 
         faust -cn dsp_vec0_4 $OPTIONS -vec -lv 0 -vs 4 "$SRCDIR/$f" -o "$TMP/dsp_vec0_4.h"
         faust -cn dsp_vec0_8 $OPTIONS -vec -lv 0 -vs 8 "$SRCDIR/$f" -o "$TMP/dsp_vec0_8.h"
