@@ -30,14 +30,15 @@ option ( WASM_BACKEND 	"Include WASM backend"		off )
 option ( COMPILER 	"Compiles the faust compiler" 	on )
 option ( LIBSHARED 	"Compiles the faust library as a shared library" 	off )
 option ( LIBSTATIC 	"Compiles the faust library as a static library" 	on )
-option ( WASM 		"Compiles the faust library as a Web Assembly library" 	off )
-option ( ASMJS 		"Compiles the faust library as an ASM JS library" 	off )
+option ( LIBWASM 	"Compiles the faust library as a Web Assembly library" 	off )
+option ( LIBASMJS 	"Compiles the faust library as an ASM JS library" 	off )
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures" off )
 
 #######################################
 # Misc options
 option ( VERBOSE 	"Enable verbose output from Makefile builds." 	off )
 if (VERBOSE)
+	message(STATUS "Verbose mode is ON")
 	set(CMAKE_VERBOSE_MAKEFILE on)
 endif()
 
@@ -46,8 +47,8 @@ endif()
 if (UNIVERSAL AND NOT APPLE)
 	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
 endif()
-if (LIBSTATIC AND LIBSHARED)
-	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
+if (LIBSTATIC AND LIBSHARED AND WIN32)
+	message(WARNING "Conflict between shared and static names on Windows")
 endif()
 
 ####################################
@@ -165,26 +166,19 @@ if(NOT WIN32)
 endif()
 
 ####################################
-if (WASM OR ASMJS)
-	set (CMAKE_OSX_DEPLOYMENT_TARGET "")
-	set (CMAKE_OSX_SYSROOT "")
-	set (CMAKE_CXX_COMPILER emcc)
-	set (CMAKE_AR emcc)
-	set (CMAKE_CXX_ARCHIVE_FINISH "")
-
-if (WASM)
+# emscripten support
+if (LIBWASM)
 	set (EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']\"")
 	set (EMCC_LINK_FLAGS "-O3 --memory-init-file 0 -s WASM=1 -s EXPORT_NAME=\"'FaustModule'\" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=${EXPORTED}")
 	set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR>  -o libfaust-wasm.js ${EMCC_LINK_FLAGS} <OBJECTS>")
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} "-DEMCC -DWASM_BUILD -O3")
 	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/wasm)
-else()
+elseif(LIBASMJS)
 	set (EXPORTED "\"['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']\"")
 	set (EMCC_LINK_FLAGS "-O3 --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=${EXPORTED}")
 	set (CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR>  -o libfaust.js ${EMCC_LINK_FLAGS} <OBJECTS>")
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} "-DEMCC -DASMJS_BUILD -O3")
 	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/asmjs)
-endif()
 endif()
 
 ####################################
@@ -226,31 +220,37 @@ include_directories(${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
 
 ####################################
-# Now build our tools
-if (LIBSHARED OR LIBSTATIC AND NOT (WASM OR ASMS))
+# Declare the different outputs
+if (LIBSHARED OR LIBSTATIC)
 	add_library(faustlib ${LIBTYPE} ${SRC} ${HH})
 	set_target_properties(faustlib PROPERTIES 
 				OUTPUT_NAME faust
 				COMPILE_FLAGS  -DFAUST_LIB)
-	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
+	target_link_libraries(faustlib ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
 
-if (WASM)
-	add_library(faust STATIC ${SRC} ${HH})
+if (LIBWASM)
+	message (STATUS "Compiles the faust library as a WASM library")
+	add_executable(faust ${SRC} ${HH})
 	set_target_properties(faust PROPERTIES  
-		OUTPUT_NAME faust-wasm
+		OUTPUT_NAME libfaust-wasm
 		COMPILE_FLAGS  -DFAUST_LIB
+		LINK_FLAGS ${EMCC_LINK_FLAGS}
 		SUFFIX ".js" )
 endif()	
 
-if (ASMJS)
-	add_library(faust STATIC ${SRC} ${HH})
+if (LIBASMJS)
+	message (STATUS "Compiles the faust library as a ASMJS library")
+	add_executable(faust ${SRC} ${HH})
 	set_target_properties(faust PROPERTIES  
+		OUTPUT_NAME libfaust
 		COMPILE_FLAGS  -DFAUST_LIB
+		LINK_FLAGS ${EMCC_LINK_FLAGS}
 		SUFFIX ".js" )
 endif()	
 
-if (COMPILER AND NOT (WASM OR ASMS))
+if (COMPILER)
+	message (STATUS "Compiles the faust compiler")
 	add_executable(faust ${SRC} ${HH})
 	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
