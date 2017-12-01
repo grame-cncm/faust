@@ -30,7 +30,7 @@
 
 using namespace std;
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(__MSYS__)
 #pragma warning (disable : 4800)
 #endif
 
