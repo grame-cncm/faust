@@ -153,7 +153,7 @@ if (LLVM_BACKEND)
 	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
 
 	# by default, llvm is compiled without rtti
-	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -fno-rtti)
+	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp ${SRCDIR}/generator/llvm/llvm_code_container.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -fno-rtti)
 endif()
 
 ####################################
