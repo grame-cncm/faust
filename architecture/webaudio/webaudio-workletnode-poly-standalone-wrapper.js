@@ -79,9 +79,6 @@ class mydsp_polyNode extends AudioWorkletNode {
     
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
-        
-        // Start node/processor communication port
-        //this.port.start();
     }
     
     getJSON()
@@ -91,7 +88,8 @@ class mydsp_polyNode extends AudioWorkletNode {
     
     setParamValue(path, val)
     {
-        this.parameters.get(path).setValueAtTime(val, 0);
+        //this.port.postMessage({ setParamValue: [path, val] });
+        this.port.postMessage({ type:"param", key:path, value:val });
     }
     
     getParamValue(path)
@@ -99,7 +97,6 @@ class mydsp_polyNode extends AudioWorkletNode {
         return this.parameters.get(path).value;
     }
     
-     
     setOutputParamHandler(handler)
     {
         // TODO
@@ -120,20 +117,80 @@ class mydsp_polyNode extends AudioWorkletNode {
     {
         return this.inputs_items;
     }
+     
+    /**
+     * Instantiates a new polyphonic voice.
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param pitch - the MIDI pitch (0..127)
+     * @param velocity - the MIDI velocity (0..127)
+     */
+    keyOn(channel, pitch, velocity)
+    {
+        this.port.postMessage({ type: "keyOn", data: [channel, pitch, velocity] });
+    }
+    
+    /**
+     * De-instantiates a polyphonic voice.
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param pitch - the MIDI pitch (0..127)
+     * @param velocity - the MIDI velocity (0..127)
+     */
+    keyOff(channel, pitch, velocity)
+    {
+        this.port.postMessage({ type: "keyOff", data: [channel, pitch, velocity] });
+    }
+
+    /**
+     * Gently terminates all the active voices.
+     */
+    allNotesOff()
+    {
+        this.port.postMessage({ type: "ctrlChange", data: [channel, 123, 0] });
+    }
+
+    /**
+     * Controller
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param ctrl - the MIDI controller number (0..127)
+     * @param value - the MIDI controller value (0..127)
+     */
+    ctrlChange (channel, ctrl, value)
+    {
+        this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
+    }
+    
+    /**
+     * PitchWeel
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param value - the MIDI controller value (-1..1)
+     */
+    pitchWheel(channel, wheel)
+    {
+        this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
+    }
+    
+    midiMessage(data)
+    {
+    	this.port.postMessage({ type:"midi", data:data });
+    }
+    
 }
 
-// Hack : 11/28/17, add an explicit timeout
-faust.createmydsp_poly = function(callback)
+faust.createmydsp_poly = function(max_polyphony, callback)
 {
+    // TODO: handle max_polyphony
+    
     // The main global scope
-    var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
-    console.log(AWContext);
-    AWContext.addModule("mydsp-processor.js")
+    var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
+    console.log(awc);
+    awc.addModule("mydsp-processor.js")
     .then(function () {
-    	setTimeout(function () {
-         	audio_context = new AudioContext();
-         	callback(new mydsp_polyNode(audio_context, {}));
-    	}, 500)
+        audio_context = new AudioContext();
+        callback(new mydsp_polyNode(audio_context, {}));
     })
 	.catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); });
 }

@@ -885,6 +885,17 @@ var mydspProcessorString = `
            
             // Init resulting DSP
             this.initAux();
+            
+            // Set message handler
+            this.port.onmessage = this.handleMessage.bind(this);
+        }
+        
+        handleMessage(event) {
+            // Parameters change handling
+            if (event.data.setParamValue) {
+                var data = event.data.setParamValue;
+                this.HEAPF32[this.pathTable[data[0]] >> 2] = data[1];
+            }
         }
         
         process(inputs, outputs, parameters) {
@@ -900,7 +911,7 @@ var mydspProcessorString = `
                 }
             }
             
-            // Update controls
+            // Update controls (possibly needed for sample accurate control)
             var params = Object.entries(parameters);
             for (var i = 0; i < params.length; i++) {
                 this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
@@ -945,9 +956,13 @@ faust.createDSPInstanceAux = function(factory, callback)
                                           numberOfOutputs: parseInt(factory.json_object.outputs),
                                           channelCount: 1 });
     
-    // And patch it with additional functions
+    // Patch it with additional functions
     audio_node.getJSON = function() { return factory.getJSON(); }
+    
+    // Needed for sample accurate control
     audio_node.setParamValue = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
+    //audio_node.setParamValue = function(path, val) { this.port.postMessage({ setParamValue: [path, val] }); }
+    
     audio_node.getParamValue = function(path) { return this.parameters.get(path).value; }
     audio_node.setOutputParamHandler = function(handler) {}
     audio_node.getNumInputs = function() { return parseInt(factory.json_object.inputs); }
@@ -971,8 +986,8 @@ faust.createDSPInstance = function(factory, callback)
         var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
         
         // The main global scope
-        var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
-        AWContext.addModule(url)
+        var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
+        awc.addModule(url)
         .then(function () {
               // Processor has been registered
               factory.registered = true;

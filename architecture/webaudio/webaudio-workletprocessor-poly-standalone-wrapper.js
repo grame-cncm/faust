@@ -13,10 +13,18 @@ var faust = faust || {};
 faust.error_msg = null;
 faust.getErrorMessage = function() { return faust.error_msg; };
 
+faust.remap = function(v, mn0, mx0, mn1, mx1)
+{
+    return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+}
+
 // Audio buffer size
 faust.buffer_size = 128;
 
-faust.createMemory = function (inputs, outputs, buffer_size, polyphony) {
+// Polyphony
+faust.polyphony = 16;
+
+faust.createMemory = function (buffer_size, polyphony) {
     
     // Memory allocator
     var ptr_size = 4;
@@ -40,11 +48,11 @@ faust.createMemory = function (inputs, outputs, buffer_size, polyphony) {
     
     var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
-    return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
+    return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
 }
 
-// Polyphony
-faust.polyphony = 16;
+// Create memory block
+faust.memory = faust.createMemory(faust.buffer_size, faust.polyphony);
 
 faust.importObject = {
     env: {
@@ -92,6 +100,8 @@ faust.importObject = {
         sin: Math.sin,
         sqrt: Math.sqrt,
         tan: Math.tan,
+        
+        memory: faust.memory,
             
         table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
     }
@@ -139,7 +149,7 @@ faust.atob = function (sBase64, nBlocksSize)
 }
 
 faust.mixObject = { imports: { print: arg => console.log(arg) } }
-faust.mixObject["memory"] = { "memory": memory };
+faust.mixObject["memory"] = { "memory": faust.memory };
 
 // WebAssembly instance
 faust.mydsp_instance = null;
@@ -210,6 +220,20 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             // Keep inputs adresses
             obj.inputs_items.push(item.address);
             obj.pathTable[item.address] = parseInt(item.index);
+            if (item.meta !== undefined) {
+                for (var i = 0; i < item.meta.length; i++) {
+                    if (item.meta[i].midi !== undefined) {
+                        if (item.meta[i].midi.trim() === "pitchwheel") {
+                            obj.fPitchwheelLabel.push(item.address);
+                        } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
+                            obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
+                            .push({ path:item.address,
+                                  min:parseFloat(item.min),
+                                  max:parseFloat(item.max) });
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -241,6 +265,10 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.fGainLabel = "";
         this.fDate = 0;
         
+        this.fPitchwheelLabel = [];
+        this.fCtrlLabel = new Array(128);
+        for (var i = 0; i < this.fCtrlLabel.length; i++) { this.fCtrlLabel[i] = []; }
+   
         this.numIn = parseInt(this.json_object.inputs);
         this.numOut = parseInt(this.json_object.outputs);
         
@@ -249,7 +277,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.sample_size = 4;
         
         this.factory = faust.mydsp_instance.exports;
-        this.HEAP = faust.createMemory(this.numIn, this.numOut, faust.buffer_size, faust.polyphony).buffer;
+        this.HEAP = faust.memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
@@ -265,7 +293,8 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.inputs_items = [];
         
         // Start of HEAP index
-        this.audio_heap_ptr = 0;
+        // this.audio_heap_ptr = 0; Fails when 0...
+        this.audio_heap_ptr = 65536;
         
         // Setup pointers offset
         this.audio_heap_ptr_inputs = this.audio_heap_ptr;
@@ -287,6 +316,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         console.log(this.factory);
         
         // Start of DSP memory ('polyphony' DSP voices)
+        this.polyphony = faust.polyphony;
         this.dsp_voices = [];
         this.dsp_voices_state = [];
         this.dsp_voices_level = [];
@@ -303,7 +333,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         // Allocate table for 'setParamValue'
         this.value_table = [];
         
-        for (var i = 0; i < faust.polyphony; i++) {
+        for (var i = 0; i <  this.polyphony; i++) {
             this.dsp_voices[i] = this.dsp_start + i * parseInt(this.json_object.size);
             this.dsp_voices_state[i] = this.kFreeVoice;
             this.dsp_voices_level[i] = 0;
@@ -316,7 +346,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             var voice_playing = this.kNoVoice;
             var oldest_date_playing = Number.MAX_VALUE;
             
-            for (var i = 0; i < polyphony; i++) {
+            for (var i = 0; i <  this.polyphony; i++) {
                 if (this.dsp_voices_state[i] === pitch) {
                     // Keeps oldest playing voice
                     if (this.dsp_voices_date[i] < oldest_date_playing) {
@@ -340,7 +370,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         this.getFreeVoice = function()
         {
-            for (var i = 0; i < polyphony; i++) {
+            for (var i = 0; i <  this.polyphony; i++) {
                 if (this.dsp_voices_state[i] === this.kFreeVoice) {
                     return this.allocVoice(i);
                 }
@@ -352,7 +382,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             var oldest_date_playing = Number.MAX_VALUE;
             
             // Scan all voices
-            for (var i = 0; i < faust.polyphony; i++) {
+            for (var i = 0; i <  this.polyphony; i++) {
                 // Try to steal a voice in kReleaseVoice mode...
                 if (this.dsp_voices_state[i] === this.kReleaseVoice) {
                     // Keeps oldest release voice
@@ -399,9 +429,6 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         {
             var i;
             
-            console.log("buffer_size %d", faust.buffer_size);
-            this.onaudioprocess = this.compute;
-            
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
@@ -433,29 +460,7 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             }
             
              // Parse UI
-            mydspProcessor.parse_ui(this.json_object.ui, this, mydspProcessor.parse_item2);
-            
-            
-            // Parse UI
-            mydsp_polyProcessor.parse_ui(this.json_object.ui,
-                           function (item) {
-                               if (item.type === "vgroup"
-                                   || item.type === "hgroup"
-                                   || item.type === "tgroup") {
-                                	mydsp_polyProcessor.parse_items(item.items);
-                               } else if (item.type === "hbargraph"
-                                          || item.type === "vbargraph") {
-                                    // Keep bargraph adresses
-                                    this.outputs_items.push(item.address);
-                               } else if (item.type === "vslider"
-                                          || item.type === "hslider"
-                                          || item.type === "button"
-                                          || item.type === "checkbox"
-                                          || item.type === "nentry") {
-                                    // Keep inputs adresses
-                                    this.inputs_items.push(item.address);
-                               }
-                           });
+            mydsp_polyProcessor.parse_ui(this.json_object.ui, this, mydsp_polyProcessor.parse_item2);
             
             // keep 'keyOn/keyOff' labels
             for (i = 0; i < this.inputs_items.length; i++) {
@@ -472,18 +477,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             }
             
             // Init DSP voices
-            for (i = 0; i < faust.polyphony; i++) {
-                this.factory.init(this.dsp_voices[i], context.sampleRate);
+            for (i = 0; i <  this.polyphony; i++) {
+                this.factory.init(this.dsp_voices[i], sampleRate);  // 'sampleRate' is defined in AudioWorkletGlobalScope
             }
         }
         
-        /**
-         * Instantiates a new polyphonic voice.
-         *
-         * @param channel - the MIDI channel (0..15, not used for now)
-         * @param pitch - the MIDI pitch (0..127)
-         * @param velocity - the MIDI velocity (0..127)
-         */
         this.keyOn = function (channel, pitch, velocity)
         {
             var voice = this.getFreeVoice();
@@ -493,13 +491,6 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             this.dsp_voices_state[voice] = pitch;
         }
         
-        /**
-         * De-instantiates a polyphonic voice.
-         *
-         * @param channel - the MIDI channel (0..15, not used for now)
-         * @param pitch - the MIDI pitch (0..127)
-         * @param velocity - the MIDI velocity (0..127)
-         */
         this.keyOff = function (channel, pitch, velocity)
         {
             var voice = this.getPlayingVoice(pitch);
@@ -514,47 +505,98 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             }
         }
         
-        /**
-         * Gently terminates all the active voices.
-         */
         this.allNotesOff = function ()
         {
-            for (var i = 0; i < faust.polyphony; i++) {
+            for (var i = 0; i <  this.polyphony; i++) {
                 this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
                 this.dsp_voices_state[i] = this.kReleaseVoice;
             }
         }
         
-        /**
-         * Controller 123 allNoteOff only is handled.
-         *
-         * @param channel - the MIDI channel (0..15, not used for now)
-         * @param ctrl - the MIDI controller number (0..127)
-         * @param value - the MIDI controller value (0..127)
-         */
         this.ctrlChange = function (channel, ctrl, value)
         {
             if (ctrl === 123 || ctrl === 120) {
                 this.allNotesOff();
             }
+            
+            if (this.fCtrlLabel[ctrl] !== []) {
+                for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
+                    var path = this.fCtrlLabel[ctrl][i].path;
+                    this.setParamValue(path, faust.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
+                    this.output_handler(path, this.getParamValue(path));
+                }
+            }
         }
         
-        /**
-         * PitchWeel: empty for now.
-         *
-         */
         this.pitchWheel = function (channel, wheel)
-        {}
+        {
+            for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
+                var path = this.fPitchwheelLabel[i];
+                this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+                this.output_handler(path, this.getParamValue(path));
+            }
+        }
         
+        this.setParamValue = function (path, val)
+        {
+            for (var i = 0; i < this.polyphony; i++) {
+                this.factory.setParamValue(this.dsp_voices[i], this.pathTable[path], val);
+            }
+        }
+
+        this.getParamValue = function (path)
+        {
+            return this.factory.getParamValue(this.dsp_voices[0], this.pathTable[path]);
+        }
+            
         // Init resulting DSP
         this.initAux();
-    }
         
+        // Set message handler
+        this.port.onmessage = this.handleMessage.bind(this);
+    }
+   
+    handleMessage(event) {
+        var msg = event.data;
+        switch (msg.type) {
+            // Generic MIDI message
+            case "midi": this.midiMessage(msg.data); break;
+            // Typed MIDI message
+            case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
+            case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
+            case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
+            case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
+            // Generic data message
+            case "param": this.setParamValue(msg.key, msg.value); break;
+            //case "patch": this.onpatch(msg.data); break;
+        }
+    }
+  	
+    midiMessage(data)
+    {
+        var cmd = data[0] >> 4;
+        var channel = data[0] & 0xf;
+        var data1 = data[1];
+        var data2 = data[2];
+
+        if (channel === 9) {
+            return;
+        } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
+            this.keyOff(channel, data1, data2);
+        } else if (cmd === 9) {
+            this.keyOn(channel, data1, data2);
+        } else if (cmd === 11) {
+            this.ctrlChange(channel, data1, data2);
+        } else if (cmd === 14) {
+            this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        }
+    }
+    
     process(inputs, outputs, parameters) {
         
         var input = inputs[0];
         var output = outputs[0];
-
+      
         // Copy inputs
         if (input !== undefined) {
             for (var channel = 0; channel < input.length; ++channel) {
@@ -562,23 +604,17 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                 dspInput.set(input[channel]);
             }
         }
-        
-        // Update controls
-        var params = Object.entries(parameters);
-        for (var i = 0; i < params.length; i++) {
-            this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
-        }
-        
+         
         // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
         if (this.compute_handler) {
             this.compute_handler(faust.buffer_size);
         }
-        
+         
         // First clear the outputs
         this.mixer.clearOutput(faust.buffer_size, this.numOut, this.outs);
         
         // Compute all running voices
-        for (i = 0; i < faust.polyphony; i++) {
+        for (var i = 0; i < this.polyphony; i++) {
             if (this.dsp_voices_state[i] != this.kFreeVoice) {
                 if (this.dsp_voices_trigger[i]) {
                     // FIXME : properly cut the buffer in 2 slices...
@@ -603,38 +639,27 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         // Update bargraph
         this.update_outputs();
         
-       // Copy outputs
+        // Copy outputs
         if (output !== undefined) {
             for (var channel = 0; channel < output.length; ++channel) {
                 var dspOutput = this.dspOutChannnels[channel];
                 output[channel].set(dspOutput);
             }
         }
+        
+        return true;
     }
 }
 
-console.log("registerProcessor");
-
-// Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
+// Synchronously compile and instantiate the WASM modules
 try {
-	registerProcessor('mydsp_poly', mydsp_polyProcessor);
+    let wasm_mixer_module = new WebAssembly.Module(faust.atob(getBase64Mixer()));
+    faust.mixer_instance = new WebAssembly.Instance(wasm_mixer_module, faust.mixObject);
+    let wasm_module = new WebAssembly.Module(faust.atob(getBase64Codemydsp()));
+    faust.mydsp_instance = new WebAssembly.Instance(wasm_module, faust.importObject);
+    registerProcessor('mydsp_poly', mydsp_polyProcessor);
 } catch (e) {
-	console.log(e);
+    console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
 }
-
-console.log("registerProcessor OK");
-
-// Compile the WebAssembly file, then register the processor class
-WebAssembly.instantiate(faust.atob(getBase64Mixer()), faust.mixObject))
-.then(mix_module => WebAssembly.instantiate(faust.atob(getBase64Codemydsp()), faust.importObject))
-.then(dsp_module => { faust.mixer_instance = mix_module.instance;
-                    	faust.mydsp_instance = dsp_module.instance;
-                    	console.log(mix_module);
-                    	console.log(dsp_module);
-                        // Hack : 11/28/17, registerProcessor done *before* compilation of the WASM module
-                        registerProcessor('mydsp_poly', mydsp_polyProcessor); 
-                    }) 
-.catch(function(error) { console.log(error); faust.error_msg = "Faust mydsp_poly cannot be loaded or compiled"; });
-
 
 

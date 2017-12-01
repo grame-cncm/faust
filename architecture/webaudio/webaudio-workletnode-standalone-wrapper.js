@@ -78,12 +78,6 @@ class mydspNode extends AudioWorkletNode {
        
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
-        
-        //console.log(this.inputs_items);
-        //console.log(this.outputs_items);
-        
-        // Start node/processor communication port
-        //this.port.start();
     }
     
     getJSON()
@@ -93,6 +87,8 @@ class mydspNode extends AudioWorkletNode {
     
     setParamValue(path, val)
     {
+        //this.port.postMessage({ type:"param", key:path, value:val });
+        // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }
     
@@ -127,9 +123,9 @@ class mydspNode extends AudioWorkletNode {
 faust.createmydsp = function(callback)
 {
     // The main global scope
-    var AWContext = window.audioWorklet || BaseAudioContext.AudioWorklet;
-    console.log(AWContext);
-    AWContext.addModule("mydsp-processor.js")
+    var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
+    console.log(awc);
+    awc.addModule("mydsp-processor.js")
     .then(function () {
          audio_context = new AudioContext();
          callback(new mydspNode(audio_context, {}));

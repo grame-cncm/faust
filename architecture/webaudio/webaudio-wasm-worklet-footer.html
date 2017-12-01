@@ -160,11 +160,7 @@ function startDSPAux(dsp)
     faustsvg = $('<div />');
     $('body').append(faustsvg);
     
-    // TODO : does not work : 'this' is not know inside DSP.setParamValue
-    //output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, DSP.setParamValue);
-    output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, function(path, val)
-                                 { DSP.parameters.get(path).setValueAtTime(val, 0); });
-   
+    output_handler = _f4u$t.main(DSP.getJSON(), faustsvg, function(path, val) { DSP.setParamValue(path, val); });
     DSP.setOutputParamHandler(output_handler);
 
     // Load DSP state from local storage

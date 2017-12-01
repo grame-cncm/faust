@@ -692,7 +692,7 @@ faust.createMemory = function (buffer_size, polyphony) {
 
     var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
     memory_size = Math.max(2, memory_size); // As least 2
-    return new WebAssembly.Memory({initial:memory_size, maximum:memory_size});
+    return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
 }
 
 /**
