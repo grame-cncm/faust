@@ -127,6 +127,11 @@ class mydspProcessor extends AudioWorkletProcessor {
             return taBytes.buffer;
         }
     }
+    
+    static remap(v, mn0, mx0, mn1, mx1)
+    {
+        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+    }
    
     static get parameterDescriptors () {
         
@@ -134,11 +139,6 @@ class mydspProcessor extends AudioWorkletProcessor {
         var params = [];
         mydspProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydspProcessor.parse_item1);
         return params;
-    }
-    
-    static remap(v, mn0, mx0, mn1, mx1)
-    {
-        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
     
     constructor(options)

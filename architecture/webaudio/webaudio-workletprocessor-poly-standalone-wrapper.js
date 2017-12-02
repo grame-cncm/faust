@@ -130,6 +130,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             return taBytes.buffer;
         }
     }
+    
+    static remap(v, mn0, mx0, mn1, mx1)
+    {
+        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+    }
 
     static get parameterDescriptors () {
         
@@ -137,11 +142,6 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         var params = [];
         mydsp_polyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydsp_polyProcessor.parse_item1);
         return params;
-    }
-    
-    static remap(v, mn0, mx0, mn1, mx1)
-    {
-        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
     
     static createMemory(buffer_size, polyphony) {
@@ -654,7 +654,7 @@ try {
     mydsp_polyProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydsp_polyProcessor.importObject);
     registerProcessor('mydsp_poly', mydsp_polyProcessor);
 } catch (e) {
-    console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
+    console.log(e); console.log("Faust mydsp_poly cannot be loaded or compiled");
 }
 
 

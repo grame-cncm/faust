@@ -392,7 +392,8 @@
             var DSP = null;
             var dsp_code = null;
             var faust_svg = null;
-            var poly_flag = "OFF";
+            //var poly_flag = "OFF";
+            var poly_flag = "ON";
             var ftz_flag = "2";
             var poly_nvoices = 16;
             var rendering_mode = "ScriptProcessor";
@@ -702,7 +703,7 @@
             
             function compileMonoDSP(factory)
             {
-                faust.createDSPInstance(factory,
+                faust.createDSPWorkletInstance(factory,
                                         function (dsp) {
                                             
                                             if (!dsp) {
@@ -737,9 +738,7 @@
             
             function compilePolyDSP(factory)
             {
-                faust.createPolyDSPInstance(factory,
-                                            audio_context,
-                                            buffer_size,
+                faust.createPolyDSPWorkletInstance(factory,
                                             poly_nvoices,
                                             function (dsp) {
                                             
@@ -782,9 +781,9 @@
                     }
                     DSP.disconnect(audio_context.destination);
                     if (isPoly) {
-                        faust.deletePolyDSPInstance(DSP);
+                        faust.deletePolyDSPWorkletInstance(DSP);
                     } else {
-                        faust.deleteDSPInstance(DSP);
+                        faust.deleteDSPWorkletInstance(DSP);
                     }
                     DSP = null;
                     _f4u$t.hard_delete(faust_svg);

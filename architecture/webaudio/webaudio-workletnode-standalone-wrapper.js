@@ -170,6 +170,7 @@ class mydspNode extends AudioWorkletNode {
             this.output_handler(msg.path, msg.value);
         }
     }
+    
 }
 
 // Faust context
