@@ -5,114 +5,6 @@
  
 'use strict';
 
-var faust = faust || {};
-
-faust.error_msg = null;
-faust.getErrorMessage = function() { return faust.error_msg; };
-
-faust.remap = function(v, mn0, mx0, mn1, mx1)
-{
-    return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
-}
-
-// Audio buffer size
-faust.buffer_size = 128;
-
-faust.importObject = {
-    env: {
-        memoryBase: 0,
-        tableBase: 0,
-            
-        absf: Math.abs,
-        acosf: Math.acos,
-        asinf: Math.asin,
-        atanf: Math.atan,
-        atan2f: Math.atan2,
-        ceilf: Math.ceil,
-        cosf: Math.cos,
-        expf: Math.exp,
-        floorf: Math.floor,
-        fmodf: function(x, y) { return x % y; },
-        logf: Math.log,
-        log10f: Math.log10,
-        max_f: Math.max,
-        min_f: Math.min,
-        remainderf: function(x, y) { return x - Math.round(x/y) * y; },
-        powf: Math.pow,
-        roundf: Math.fround,
-        sinf: Math.sin,
-        sqrtf: Math.sqrt,
-        tanf: Math.tan,
-            
-        abs: Math.abs,
-        acos: Math.acos,
-        asin: Math.asin,
-        atan: Math.atan,
-        atan2: Math.atan2,
-        ceil: Math.ceil,
-        cos: Math.cos,
-        exp: Math.exp,
-        floor: Math.floor,
-        fmod: function(x, y) { return x % y; },
-        log: Math.log,
-        log10: Math.log10,
-        max_: Math.max,
-        min_: Math.min,
-        remainder:function(x, y) { return x - Math.round(x/y) * y; },
-        pow: Math.pow,
-        round: Math.fround,
-        sin: Math.sin,
-        sqrt: Math.sqrt,
-        tan: Math.tan,
-            
-        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-    }
-};
-
-faust.b64ToUint6 = function (nChr)
-{
-    return nChr > 64 && nChr < 91 ?
-        nChr - 65
-        : nChr > 96 && nChr < 123 ?
-        nChr - 71
-        : nChr > 47 && nChr < 58 ?
-        nChr + 4
-        : nChr === 43 ?
-        62
-        : nChr === 47 ?
-        63
-        :
-        0;
-}
-
-faust.atob = function (sBase64, nBlocksSize)
-{
-    if (typeof atob === 'function') {
-        return atob(sBase64);
-    } else {
-        
-        var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
-        var nInLen = sB64Enc.length;
-        var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
-        var taBytes = new Uint8Array(nOutLen);
-        
-        for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
-            nMod4 = nInIdx & 3;
-            nUint24 |= faust.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
-            if (nMod4 === 3 || nInLen - nInIdx === 1) {
-                for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
-                    taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
-                }
-                nUint24 = 0;
-            }
-        }
-        return taBytes.buffer;
-    }
-}
-
-// WebAssembly instance
-faust.mydsp_instance = null;
-
 // Monophonic Faust DSP
 class mydspProcessor extends AudioWorkletProcessor {
     
@@ -195,6 +87,47 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
     }
     
+    static b64ToUint6(nChr)
+    {
+        return nChr > 64 && nChr < 91 ?
+        nChr - 65
+        : nChr > 96 && nChr < 123 ?
+        nChr - 71
+        : nChr > 47 && nChr < 58 ?
+        nChr + 4
+        : nChr === 43 ?
+        62
+        : nChr === 47 ?
+        63
+        :
+        0;
+    }
+    
+    static atob(sBase64, nBlocksSize)
+    {
+        if (typeof atob === 'function') {
+            return atob(sBase64);
+        } else {
+            
+            var sB64Enc = sBase64.replace(/[^A-Za-z0-9\+\/]/g, "");
+            var nInLen = sB64Enc.length;
+            var nOutLen = nBlocksSize ? Math.ceil((nInLen * 3 + 1 >> 2) / nBlocksSize) * nBlocksSize : nInLen * 3 + 1 >> 2;
+            var taBytes = new Uint8Array(nOutLen);
+            
+            for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
+                nMod4 = nInIdx & 3;
+                nUint24 |= mydspProcessor.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+                if (nMod4 === 3 || nInLen - nInIdx === 1) {
+                    for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
+                        taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
+                    }
+                    nUint24 = 0;
+                }
+            }
+            return taBytes.buffer;
+        }
+    }
+   
     static get parameterDescriptors () {
         
         // Analyse JSON to generate AudioParam parameters
@@ -203,13 +136,19 @@ class mydspProcessor extends AudioWorkletProcessor {
         return params;
     }
     
+    static remap(v, mn0, mx0, mn1, mx1)
+    {
+        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+    }
+    
     constructor(options)
     {
         super(options);
-
+      
         this.json_object = JSON.parse(getJSONmydsp());
 
-        this.output_handler = null;
+        this.output_handler = function(path, value) { this.port.postMessage({ path: path, value: value }); };
+        
         this.ins = null;
         this.outs = null;
 
@@ -227,8 +166,8 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.ptr_size = 4;
         this.sample_size = 4;
         
-        this.factory = faust.mydsp_instance.exports;
-        this.HEAP = faust.mydsp_instance.exports.memory.buffer;
+        this.factory = mydspProcessor.mydsp_instance.exports;
+        this.HEAP = mydspProcessor.mydsp_instance.exports.memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
 
@@ -254,20 +193,20 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         // Setup buffer offset
         this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
-        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * faust.buffer_size * this.sample_size);
+        this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydspProcessor.buffer_size * this.sample_size);
 
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;
 
         this.pathTable = [];
 
-        // TODO: send output values to the AudioNode
+        // Send output values to the AudioNode
         this.update_outputs = function ()
         {
             if (this.outputs_items.length > 0 && this.output_handler && this.outputs_timer-- === 0) {
                 this.outputs_timer = 5;
                 for (var i = 0; i < this.outputs_items.length; i++) {
-                    this.output_handler(this.outputs_items[i], this.factory.getParamValue(this.dsp, this.pathTable[this.outputs_items[i]]));
+                    this.output_handler(this.outputs_items[i], this.HEAPF32[this.pathTable[this.outputs_items[i]] >> 2]);
                 }
             }
         }
@@ -279,26 +218,26 @@ class mydspProcessor extends AudioWorkletProcessor {
             if (this.numIn > 0) {
                 this.ins = this.audio_heap_ptr_inputs;
                 for (i = 0; i < this.numIn; i++) {
-                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((faust.buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((mydspProcessor.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Ins buffer tables
                 var dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
                 for (i = 0; i < this.numIn; i++) {
-                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + faust.buffer_size * this.sample_size) >> 2);
+                    this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + mydspProcessor.buffer_size * this.sample_size) >> 2);
                 }
             }
             
             if (this.numOut > 0) {
                 this.outs = this.audio_heap_ptr_outputs;
                 for (i = 0; i < this.numOut; i++) {
-                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((faust.buffer_size * this.sample_size) * i);
+                    this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((mydspProcessor.buffer_size * this.sample_size) * i);
                 }
                 
                 // Prepare Out buffer tables
                 var dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
                 for (i = 0; i < this.numOut; i++) {
-                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + faust.buffer_size * this.sample_size) >> 2);
+                    this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + mydspProcessor.buffer_size * this.sample_size) >> 2);
                 }
             }
             
@@ -314,8 +253,10 @@ class mydspProcessor extends AudioWorkletProcessor {
             if (this.fCtrlLabel[ctrl] !== []) {
                 for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
                     var path = this.fCtrlLabel[ctrl][i].path;
-                    this.setParamValue(path, faust.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
-                    this.output_handler(path, this.getParamValue(path));
+                    this.setParamValue(path, mydspProcessor.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
+                    if (this.output_handler) {
+                   		this.output_handler(path, this.getParamValue(path));
+                   	}
                 }
             }
         }
@@ -325,7 +266,9 @@ class mydspProcessor extends AudioWorkletProcessor {
             for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
                 var path = this.fPitchwheelLabel[i];
                 this.setParamValue(path, Math.pow(2.0, wheel/12.0));
-                this.output_handler(path, this.getParamValue(path));
+                if (this.output_handler) {
+                   	this.output_handler(path, this.getParamValue(path));
+                }
             }
         }
 
@@ -389,9 +332,9 @@ class mydspProcessor extends AudioWorkletProcessor {
         
         // Copy inputs
         if (input !== undefined) {
-            for (var channel = 0; channel < input.length; ++channel) {
-                var dspInput = this.dspInChannnels[channel];
-                dspInput.set(input[channel]);
+            for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
+                var dspInput = this.dspInChannnels[chan];
+                dspInput.set(input[chan]);
             }
         }
         
@@ -402,13 +345,17 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
         
         // Compute
-        this.factory.compute(this.dsp, faust.buffer_size, this.ins, this.outs);
+        this.factory.compute(this.dsp, mydspProcessor.buffer_size, this.ins, this.outs);
+        
+        // Update bargraph
+        this.update_outputs();
         
         // Copy outputs
         if (output !== undefined) {
-            for (var channel = 0; channel < output.length; ++channel) {
-                var dspOutput = this.dspOutChannnels[channel];
-                output[channel].set(dspOutput);
+            //console.log("output.length " + output.length);
+            for (var chan = 0; chan < Math.min(this.numOut, output.length); ++chan) {
+                var dspOutput = this.dspOutChannnels[chan];
+                output[chan].set(dspOutput);
             }
         }
         
@@ -416,10 +363,65 @@ class mydspProcessor extends AudioWorkletProcessor {
     }
 }
 
+// Globals
+
+mydspProcessor.buffer_size = 128;
+
+mydspProcessor.importObject = {
+    env: {
+        memoryBase: 0,
+        tableBase: 0,
+            
+        absf: Math.abs,
+        acosf: Math.acos,
+        asinf: Math.asin,
+        atanf: Math.atan,
+        atan2f: Math.atan2,
+        ceilf: Math.ceil,
+        cosf: Math.cos,
+        expf: Math.exp,
+        floorf: Math.floor,
+        fmodf: function(x, y) { return x % y; },
+        logf: Math.log,
+        log10f: Math.log10,
+        max_f: Math.max,
+        min_f: Math.min,
+        remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+        powf: Math.pow,
+        roundf: Math.fround,
+        sinf: Math.sin,
+        sqrtf: Math.sqrt,
+        tanf: Math.tan,
+            
+        abs: Math.abs,
+        acos: Math.acos,
+        asin: Math.asin,
+        atan: Math.atan,
+        atan2: Math.atan2,
+        ceil: Math.ceil,
+        cos: Math.cos,
+        exp: Math.exp,
+        floor: Math.floor,
+        fmod: function(x, y) { return x % y; },
+        log: Math.log,
+        log10: Math.log10,
+        max_: Math.max,
+        min_: Math.min,
+        remainder:function(x, y) { return x - Math.round(x/y) * y; },
+        pow: Math.pow,
+        round: Math.fround,
+        sin: Math.sin,
+        sqrt: Math.sqrt,
+        tan: Math.tan,
+            
+        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+    }
+};
+
 // Synchronously compile and instantiate the WASM module
 try {
-    let wasm_module = new WebAssembly.Module(faust.atob(getBase64Codemydsp()));
-    faust.mydsp_instance = new WebAssembly.Instance(wasm_module, faust.importObject);
+    let wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
+    mydspProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydspProcessor.importObject);
     registerProcessor('mydsp', mydspProcessor);
 } catch (e) {
     console.log(e); console.log("Faust mydsp cannot be loaded or compiled");

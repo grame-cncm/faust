@@ -10,8 +10,6 @@ if (typeof (AudioWorkletNode) === "undefined") {
 	alert("AudioWorklet is not supported in this browser !")
 }
 
-var faust = faust || {};
-
 class mydsp_polyNode extends AudioWorkletNode {
     
     constructor(context, options) {
@@ -69,6 +67,8 @@ class mydsp_polyNode extends AudioWorkletNode {
             }
         }
         
+        this.output_handler = null;
+        
         this.json_object = json_object;
             
         // input/output items
@@ -79,6 +79,9 @@ class mydsp_polyNode extends AudioWorkletNode {
     
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
+        
+        // Set message handler
+        this.port.onmessage = this.handleMessage.bind(this);
     }
     
     getJSON()
@@ -88,7 +91,6 @@ class mydsp_polyNode extends AudioWorkletNode {
     
     setParamValue(path, val)
     {
-        //this.port.postMessage({ setParamValue: [path, val] });
         this.port.postMessage({ type:"param", key:path, value:val });
     }
     
@@ -97,9 +99,24 @@ class mydsp_polyNode extends AudioWorkletNode {
         return this.parameters.get(path).value;
     }
     
+    /**
+     * Setup a control output handler with a function of type (path, value)
+     * to be used on each generated output value. This handler will be called
+     * each audio cycle at the end of the 'compute' method.
+     *
+     * @param handler - a function of type function(path, value)
+     */
     setOutputParamHandler(handler)
     {
-        // TODO
+        this.output_handler = handler;
+    }
+    
+    /**
+     * Get the current output handler.
+     */
+    getOutputParamHandler()
+    {
+        return this.output_handler;
     }
     
     // TO REMOVE
@@ -157,7 +174,7 @@ class mydsp_polyNode extends AudioWorkletNode {
      * @param ctrl - the MIDI controller number (0..127)
      * @param value - the MIDI controller value (0..127)
      */
-    ctrlChange (channel, ctrl, value)
+    ctrlChange(channel, ctrl, value)
     {
         this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
     }
@@ -178,7 +195,16 @@ class mydsp_polyNode extends AudioWorkletNode {
     	this.port.postMessage({ type:"midi", data:data });
     }
     
+    handleMessage(event) {
+        var msg = event.data;
+        if (this.output_handler) {
+            this.output_handler(msg.path, msg.value);
+        }
+    }
 }
+
+// Faust context
+var faust = faust || {};
 
 faust.createmydsp_poly = function(max_polyphony, callback)
 {

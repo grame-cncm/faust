@@ -9,8 +9,6 @@ if (typeof (AudioWorkletNode) === "undefined") {
 	alert("AudioWorklet is not supported in this browser !")
 }
 
-var faust = faust || {};
-
 class mydspNode extends AudioWorkletNode {
     
     constructor(context, options) {
@@ -67,6 +65,8 @@ class mydspNode extends AudioWorkletNode {
                 obj.pathTable[item.address] = parseInt(item.index);
             }
         }
+        
+        this.output_handler = null;
    
         this.json_object = json_object;
         
@@ -78,6 +78,9 @@ class mydspNode extends AudioWorkletNode {
        
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
+        
+        // Set message handler
+        this.port.onmessage = this.handleMessage.bind(this);
     }
     
     getJSON()
@@ -97,9 +100,24 @@ class mydspNode extends AudioWorkletNode {
         return this.parameters.get(path).value;
     }
     
+    /**
+     * Setup a control output handler with a function of type (path, value)
+     * to be used on each generated output value. This handler will be called
+     * each audio cycle at the end of the 'compute' method.
+     *
+     * @param handler - a function of type function(path, value)
+     */
     setOutputParamHandler(handler)
     {
-        // TODO
+        this.output_handler = handler;
+    }
+    
+    /**
+     * Get the current output handler.
+     */
+    getOutputParamHandler()
+    {
+        return this.output_handler;
     }
     
     // TO REMOVE
@@ -118,7 +136,44 @@ class mydspNode extends AudioWorkletNode {
         return this.inputs_items;
     }
     
+    /**
+     * Controller
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param ctrl - the MIDI controller number (0..127)
+     * @param value - the MIDI controller value (0..127)
+     */
+    ctrlChange(channel, ctrl, value)
+    {
+        this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
+    }
+    
+    /**
+     * PitchWeel
+     *
+     * @param channel - the MIDI channel (0..15, not used for now)
+     * @param value - the MIDI controller value (-1..1)
+     */
+    pitchWheel(channel, wheel)
+    {
+        this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
+    }
+    
+    midiMessage(data)
+    {
+        this.port.postMessage({ type:"midi", data:data });
+    }
+    
+    handleMessage(event) {
+        var msg = event.data;
+        if (this.output_handler) {
+            this.output_handler(msg.path, msg.value);
+        }
+    }
 }
+
+// Faust context
+var faust = faust || {};
 
 faust.createmydsp = function(callback)
 {

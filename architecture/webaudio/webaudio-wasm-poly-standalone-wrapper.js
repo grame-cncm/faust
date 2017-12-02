@@ -578,7 +578,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
             for (var i = 0; i < sp.fCtrlLabel[ctrl].length; i++) {
             	var path = sp.fCtrlLabel[ctrl][i].path;
             	sp.setParamValue(path, faust.remap(value, 0, 127, sp.fCtrlLabel[ctrl][i].min, sp.fCtrlLabel[ctrl][i].max));
-            	sp.output_handler(path, sp.getParamValue(path));
+                if (sp.output_handler) {
+                    sp.output_handler(path, sp.getParamValue(path));
+                }
             }
         }
     }
@@ -594,7 +596,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
         for (var i = 0; i < sp.fPitchwheelLabel.length; i++) {
         	var path = sp.fPitchwheelLabel[i];
         	sp.setParamValue(path, Math.pow(2.0, wheel/12.0));
-        	sp.output_handler(path, sp.getParamValue(path));
+            if (sp.output_handler) {
+                sp.output_handler(path, sp.getParamValue(path));
+            }
         }
     }
 
