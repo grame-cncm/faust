@@ -175,7 +175,7 @@ function startDSP()
 function startNewDSP()
 {
     if (isWasm) {
-        faust.createDSP(startDSPAux);
+        faust.createDSP(audio_context, startDSPAux);
     }  else {
         alert("WebAssembly is not supported in this browser !")
     }

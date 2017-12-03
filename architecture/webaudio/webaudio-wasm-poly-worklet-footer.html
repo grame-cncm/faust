@@ -199,7 +199,7 @@ function startDSP()
 function startNewDSP()
 {
     if (isWasm) {
-        faust.createDSP_poly(max_polyphony, startDSPAux);
+        faust.createDSP_poly(audio_context, max_polyphony, startDSPAux);
     }  else {
         alert("WebAssembly is not supported in this browser !")
     }

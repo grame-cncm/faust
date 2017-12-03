@@ -323,6 +323,7 @@
     </head>
     <body bgcolor= "#FFFFFF">
         <center> <H1 > Testing the embedded dynamic Faust compiler </H1> </center>
+        
         <P> This page embeds the Faust compiler as a JavaScript library named libfaust.js (associated with the auxiliary WebAssembly library), including its WebAssembly generating backend, and compiled using <a href="http://kripken.github.io/emscripten-site/">Emscripten</a>.
             
         <P> You can compile Faust .dsp files or URL by just dropping them on the drop zone. A WebAudio node will be created and connected to audio inputs/outputs and controlled with the displayed HTML/SVG based GUI.
@@ -382,7 +383,7 @@
                     </select>
                 </form>
                 <p>ScriptProcessor: audio rendering is done using the old ScriptProcessor model</p>
-                <p>AudioWorklet: audio rendering is done using the new AudioWorklet model<p>
+                <p>AudioWorklet: audio rendering is done using the new AudioWorklet model. This can only be tested with Chrome Canary for now, be sure to <a href="https://googlechromelabs.github.io/web-audio-samples/audio-worklet/">activate it</a><p>
             </div>
 
             <div class="config-element">
@@ -534,6 +535,13 @@
                 } else if (cmd === 14) {
                     pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
                 }
+                
+                /*
+                // Direct message
+                if (DSP && isPoly) {
+                    DSP.midiMessage(ev.data);
+                }
+                */
             }
 
             function onerrorcallback(error) {
@@ -774,72 +782,81 @@
                 }
             }
             
+            function activateMonoDSP(dsp)
+            {
+                if (!dsp) {
+                    alert(faust.getErrorMessage());
+                    return;
+                }
+                
+                DSP = dsp;
+                if (DSP.getNumInputs() > 0) {
+                    activateAudioInput();
+                } else {
+                    audio_input = null;
+                }
+                
+                // Setup UI
+                faust_svg = $('<div />');
+                $('body').append(faust_svg);
+                output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), function(path, val) { DSP.setParamValue(path, val); });
+                DSP.setOutputParamHandler(output_handler);
+                console.log(DSP.getNumInputs());
+                console.log(DSP.getNumOutputs());
+                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                DSP.connect(audio_context.destination);
+                
+                loadDSPState();
+            }
+            
+            function activatePolyDSP(dsp)
+            {
+                if (!dsp) {
+                    alert(faust.getErrorMessage());
+                    return;
+                }
+                checkPolyphonicDSP(dsp.getJSON());
+                DSP = dsp;
+                
+                if (DSP.getNumInputs() > 0) {
+                    activateAudioInput();
+                } else {
+                    audio_input = null;
+                }
+                
+                // Setup UI
+                faust_svg = $('<div />');
+                $('body').append(faust_svg);
+                output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), function(path, val) { DSP.setParamValue(path, val); });
+                DSP.setOutputParamHandler(output_handler);
+                console.log(DSP.getNumInputs());
+                console.log(DSP.getNumOutputs());
+                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                DSP.connect(audio_context.destination);
+                
+                loadDSPState();
+            }
+            
             function compileMonoDSP(factory)
             {
-                faust.createDSPInstance(factory,
-                                        audio_context,
-                                        buffer_size,
-                                        function (dsp) {
-                                            
-                                            if (!dsp) {
-                                                alert(faust.getErrorMessage());
-                                                return;
-                                            }
-                                            
-                                            DSP = dsp;
-                                            if (DSP.getNumInputs() > 0) {
-                                                activateAudioInput();
-                                            } else {
-                                                audio_input = null;
-                                            }
-                                            
-                                            // Setup UI
-                                            faust_svg = $('<div />');
-                                            $('body').append(faust_svg);
-                                            output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
-                                            DSP.setOutputParamHandler(output_handler);
-                                            console.log(DSP.getNumInputs());
-                                            console.log(DSP.getNumOutputs());
-                                            DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
-                                            DSP.connect(audio_context.destination);
-                                            
-                                            loadDSPState();
-                                        });
+                if (rendering_mode === "ScriptProcessor") {
+                    console.log("ScriptProcessor createDSPInstance");
+                    faust.createDSPInstance(factory, audio_context, buffer_size, activateMonoDSP);
+                } else {
+                    console.log("Worklet createDSPWorkletInstance");
+                    faust.createDSPWorkletInstance(factory, audio_context, activateMonoDSP);
+                }
             }
             
             function compilePolyDSP(factory)
             {
-                faust.createPolyDSPInstance(factory,
-                                            audio_context,
-                                            buffer_size,
-                                            poly_nvoices,
-                                            function (dsp) {
-                                            
-                                                if (!dsp) {
-                                                    alert(faust.getErrorMessage());
-                                                    return;
-                                                }
-                                                checkPolyphonicDSP(dsp.getJSON());
-                                                DSP = dsp;
-                                                
-                                                if (DSP.getNumInputs() > 0) {
-                                                    activateAudioInput();
-                                                } else {
-                                                    audio_input = null;
-                                                }
-                                                
-                                                // Setup UI
-                                                faust_svg = $('<div />');
-                                                $('body').append(faust_svg);
-                                                output_handler = _f4u$t.main(DSP.getJSON(), $(faust_svg), DSP.setParamValue);
-                                                DSP.setOutputParamHandler(output_handler);
-                                                console.log(DSP.getNumInputs());
-                                                console.log(DSP.getNumOutputs());
-                                                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
-                                                DSP.connect(audio_context.destination);
-                                                
-                                                loadDSPState();
-                                            });
+            	if (rendering_mode === "ScriptProcessor") {
+                    console.log("ScriptProcessor createPolyDSPInstance");
+                	faust.createPolyDSPInstance(factory, audio_context, buffer_size, poly_nvoices, activatePolyDSP);
+                } else {
+                    console.log("Worklet createPolyDSPWorkletInstance");
+                	faust.createPolyDSPWorkletInstance(factory, audio_context, poly_nvoices, activatePolyDSP);
+                }
             }
 
             function compileDSP()

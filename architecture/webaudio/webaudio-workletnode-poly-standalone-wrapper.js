@@ -92,6 +92,7 @@ class mydsp_polyNode extends AudioWorkletNode {
     setParamValue(path, val)
     {
         this.port.postMessage({ type:"param", key:path, value:val });
+        this.parameters.get(path).setValueAtTime(val, 0);
     }
     
     getParamValue(path)
@@ -206,7 +207,7 @@ class mydsp_polyNode extends AudioWorkletNode {
 // Faust context
 var faust = faust || {};
 
-faust.createmydsp_poly = function(max_polyphony, callback)
+faust.createmydsp_poly = function(context, max_polyphony, callback)
 {
     // TODO: handle max_polyphony
     
@@ -215,6 +216,7 @@ faust.createmydsp_poly = function(max_polyphony, callback)
     console.log(awc);
     awc.addModule("mydsp-processor.js")
     .then(function () {
+        // Because of a bug in Chrome, allocate new global context each time
         audio_context = new AudioContext();
         callback(new mydsp_polyNode(audio_context, {}));
     })
