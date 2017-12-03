@@ -164,7 +164,8 @@ class mydspNode extends AudioWorkletNode {
         this.port.postMessage({ type:"midi", data:data });
     }
     
-    handleMessage(event) {
+    handleMessage(event) 
+    {
         var msg = event.data;
         if (this.output_handler) {
             this.output_handler(msg.path, msg.value);

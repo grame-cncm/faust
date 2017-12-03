@@ -12,8 +12,8 @@ if (typeof (AudioWorkletNode) === "undefined") {
 
 class mydsp_polyNode extends AudioWorkletNode {
     
-    constructor(context, options) {
-        
+    constructor(context, options) 
+    {
         var json_object = JSON.parse(getJSONmydsp());
      
         // Setting values for the input, the output and the channel count.
@@ -196,7 +196,8 @@ class mydsp_polyNode extends AudioWorkletNode {
     	this.port.postMessage({ type:"midi", data:data });
     }
     
-    handleMessage(event) {
+    handleMessage(event) 
+    {
         var msg = event.data;
         if (this.output_handler) {
             this.output_handler(msg.path, msg.value);

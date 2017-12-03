@@ -162,8 +162,8 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
      
      //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
      while (options.size() != 0) {
-     if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
-     options.erase(options.begin());
+        if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
+        options.erase(options.begin());
      }
      */
     
@@ -269,7 +269,7 @@ EXPORT string expandDSPFromString(const string& name_app,
         argv1[argc1] = 0;  // NULL terminated argv
         
         // 'expandDsp' adds the normalized compilation options in the DSP code before computing the SHA key
-        return expandDsp(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
+        return expandDSP(argc1, argv1, name_app.c_str(), dsp_content.c_str(), sha_key, error_msg);
     }
 }
 

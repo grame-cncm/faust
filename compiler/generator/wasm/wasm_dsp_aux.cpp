@@ -105,6 +105,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
                                                             error_msg,
                                                             true);
     if (dsp_factory_aux) {
+        dsp_factory_aux->setName(name_app);
         wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
         gWasmFactoryTable.setFactory(factory);
         factory->setSHAKey(sha_key);

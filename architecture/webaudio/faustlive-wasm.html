@@ -941,10 +941,18 @@
                 loadPageState();
             }
             
+            // -- borrowed from Google's AudioWorklet demo page
+            function workletAvailable()
+            {
+                return window.audioWorklet &&
+                typeof window.audioWorklet.addModule === 'function' &&
+                window.AudioWorkletNode;
+            }
+            
             function init()
             {
                 // Check AudioWorklet support
-                if ((typeof (AudioWorkletNode) === "undefined")) {
+                if (!workletAvailable()) {
                     document.getElementById("selectedRenderingMode").disabled = true;
                     alert("AudioWorklet is not supported, ScriptProcessor model only will be available");
                 }
@@ -1117,7 +1125,7 @@
 
                 document.getElementById("loader").style.visibility = "hidden";
 
-                for (var i = toEmpty.children.length-1; i >= 0;  i--) {
+                for (var i = toEmpty.children.length-1; i >= 0; i--) {
                     if (toEmpty.children[i].id != "loader") {
                         toEmpty.removeChild(toEmpty.children[i]);
                     }

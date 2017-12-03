@@ -1158,7 +1158,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
-            //gGlobal->gHasTeeLocal = true;           // combined store/load
+            //gGlobal->gHasTeeLocal = true;         // combined store/load
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
@@ -1192,7 +1192,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
-            //gGlobal->gHasTeeLocal = true;           // combined store/load
+            //gGlobal->gHasTeeLocal = true;         // combined store/load
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             //gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
@@ -1455,7 +1455,7 @@ static void generateOutputFiles()
     }
 }
 
-static string expandDspInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
+static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
     /****************************************************************
      1 - process command line
@@ -1465,7 +1465,6 @@ static string expandDspInternal(int argc, const char* argv[], const char* name, 
     /****************************************************************
      2 - parse source files
     *****************************************************************/
-
     if (dsp_content) {
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
@@ -1479,14 +1478,13 @@ static string expandDspInternal(int argc, const char* argv[], const char* name, 
     /****************************************************************
      3 - evaluate 'process' definition
     *****************************************************************/
-
     callFun(threadEvaluateBlockDiagram); // In a thread with more stack size...
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
-    stringstream out;
-
+   
     // Encode compilation options as a 'declare' : has to be located first in the string
+    stringstream out;
     out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
 
     // Encode all libraries paths as 'declare'
@@ -1625,14 +1623,14 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
     return factory;
 }
 
-string expandDsp(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
+string expandDSP(int argc, const char* argv[], const char* name, const char* dsp_content, string& sha_key, string& error_msg)
 {
     gGlobal = NULL;
     string res = "";
 
     try {
         global::allocate();
-        res = expandDspInternal(argc, argv, name, dsp_content);
+        res = expandDSPInternal(argc, argv, name, dsp_content);
         sha_key = generateSHA1(res);
         error_msg = gGlobal->gErrorMsg;
     } catch (faustexception& e) {

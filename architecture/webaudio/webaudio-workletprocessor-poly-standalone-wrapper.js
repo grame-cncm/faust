@@ -136,16 +136,16 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
 
-    static get parameterDescriptors () {
-        
+    static get parameterDescriptors () 
+    {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
         mydsp_polyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydsp_polyProcessor.parse_item1);
         return params;
     }
     
-    static createMemory(buffer_size, polyphony) {
-        
+    static createMemory(buffer_size, polyphony) 
+    {
         // Memory allocator
         var ptr_size = 4;
         var sample_size = 4;
@@ -486,7 +486,8 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.port.onmessage = this.handleMessage.bind(this);
     }
    
-    handleMessage(event) {
+    handleMessage(event) 
+    {
         var msg = event.data;
         switch (msg.type) {
             // Generic MIDI message
@@ -522,8 +523,8 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         }
     }
     
-    process(inputs, outputs, parameters) {
-        
+    process(inputs, outputs, parameters) 
+    {
         var input = inputs[0];
         var output = outputs[0];
       

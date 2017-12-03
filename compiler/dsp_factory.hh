@@ -100,13 +100,20 @@ class dsp_factory_imp : public dsp_factory_base {
                         const std::string& sha_key,
                         const std::string& dsp,
                         const std::vector<std::string>& pathname_list)
-            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fPathnameList(pathname_list), fManager(nullptr)
+            :fName(name),
+            fSHAKey(sha_key),
+            fExpandedDSP(dsp),
+            fPathnameList(pathname_list),
+            fManager(nullptr)
         {}
     
         dsp_factory_imp(const std::string& name,
                         const std::string& sha_key,
                         const std::string& dsp)
-            :fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fManager(nullptr)
+            :fName(name),
+            fSHAKey(sha_key),
+            fExpandedDSP(dsp),
+            fManager(nullptr)
         {}
         
         virtual ~dsp_factory_imp()
@@ -191,6 +198,6 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
 dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* name, const char* input, std::string& error_msg, bool generate);
 
-std::string expandDsp(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
+std::string expandDSP(int argc, const char* argv[], const char* name, const char* input, std::string& sha_key, std::string& error_msg);
 
 #endif

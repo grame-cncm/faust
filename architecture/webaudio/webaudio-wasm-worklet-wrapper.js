@@ -393,7 +393,7 @@ faust.expandDSP = function (code, argv)
     faust_module._free(argv_ptr);
     
     return expand_dsp;
-};
+}
 
 /**
  * Write a Faust DSP factory into struct containing name, Faust wasm compiled code, and helpers code.

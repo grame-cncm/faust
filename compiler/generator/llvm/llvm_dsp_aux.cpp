@@ -1229,15 +1229,13 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg,
                                                                                                         true));
-            if (!factory_aux) { return nullptr; }
             
-            factory_aux->setTarget(target);
-            factory_aux->setOptlevel(opt_level);
-            factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
-            factory_aux->setName(name_app);
-            factory_aux->setIsDouble(isParam(argc, argv, "-double"));
-          
-            if (factory_aux->initJIT(error_msg)) {
+            if (factory_aux && factory_aux->initJIT(error_msg)) {
+                factory_aux->setTarget(target);
+                factory_aux->setOptlevel(opt_level);
+                factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
+                factory_aux->setName(name_app);
+                factory_aux->setIsDouble(isParam(argc, argv, "-double"));
                 factory = new llvm_dsp_factory(factory_aux);
                 gLLVMFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
@@ -1245,26 +1243,10 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                 return factory;
             } else {
                 delete factory_aux;
-                return nullptr;
+                return NULL;
             }
         }
     }
-    
-    /*
-    string sha_key = generateSHA1(reorganize_compilation_options(argc, argv) + dsp_content);
-    FactoryTableIt it;
-    llvm_dsp_factory_aux* factory = 0;
-    
-    if (getFactory(sha_key, it)) {
-        Sllvm_dsp_factory_aux sfactory = (*it).first;
-        sfactory->addReference();
-        return sfactory;
-    } else if ((factory = llvm_dsp_factory_aux::checkDSPFactory(new llvm_dsp_factory_aux(sha_key, argc, argv, name_app, dsp_content, target, error_msg, opt_level), error_msg)) != 0) {
-        llvm_dsp_factory_aux::gLLVMFactoryTable[factory] = list<llvm_dsp*>();
-        return factory;
-    } else {
-        return nullptr;
-    }*/
 }
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)

@@ -24,6 +24,7 @@
 #include "ppbox.hh"
 #include "global.hh"
 #include "exception.hh"
+#include "export.hh"
 
 #include <iostream>
 using namespace std;
@@ -38,7 +39,10 @@ void faustassert(bool cond)
     #endif
         std::stringstream str;
         str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
-        gGlobal->printCompilationOptions(str); str << ")\n";
+        str << "lang: " << gGlobal->gOutputLang << ", ";
+        str << "version: " << FAUSTVERSION << ", ";
+        str << "options: "; gGlobal->printCompilationOptions(str);
+        str << ")\n";
         throw faustexception(str.str());
     }
 }

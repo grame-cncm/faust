@@ -133,8 +133,8 @@ class mydspProcessor extends AudioWorkletProcessor {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
    
-    static get parameterDescriptors () {
-        
+    static get parameterDescriptors () 
+    {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
         mydspProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydspProcessor.parse_item1);
@@ -289,7 +289,8 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.port.onmessage = this.handleMessage.bind(this);
     }
     
-    handleMessage(event) {
+    handleMessage(event) 
+    {
         var msg = event.data;
         switch (msg.type) {
             // Generic MIDI message
@@ -325,8 +326,8 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
     }
     
-    process(inputs, outputs, parameters) {
-        
+    process(inputs, outputs, parameters) 
+    {
         var input = inputs[0];
         var output = outputs[0];
         

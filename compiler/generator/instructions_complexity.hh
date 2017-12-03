@@ -86,14 +86,14 @@ class InstComplexityVisitor : public DispatchVisitor {
             fSelect++;
             inst->fCond->accept(this);
 
-            // Max of the 2 branch cast
+            // Max of the 2 branches
             InstComplexityVisitor then_branch;
             inst->fThen->accept(&then_branch);
 
             InstComplexityVisitor else_branch;
             inst->fThen->accept(&else_branch);
 
-            // Takes the max of bth then/els branches
+            // Takes the max of both then/else branches
             if (then_branch.cost() > else_branch.cost()) {
                 fLoad += then_branch.fLoad;
                 fStore += then_branch.fStore;
@@ -133,6 +133,18 @@ class InstComplexityVisitor : public DispatchVisitor {
             *dst << "Select = " << fSelect << endl;
             *dst << "Loop = " << fLoop << endl;
             *dst << "Funcall = " << fFunCall << endl;
+        }
+    
+        void operator+(const InstComplexityVisitor& visitor)
+        {
+            fLoad += visitor.fLoad;
+            fStore += visitor.fStore;
+            fBinop += visitor.fBinop;
+            fNumbers += visitor.fNumbers;
+            fDeclare += visitor.fDeclare;
+            fCast += visitor.fCast;
+            fSelect += visitor.fSelect;
+            fLoop += visitor.fLoop;
         }
 
         int cost()
