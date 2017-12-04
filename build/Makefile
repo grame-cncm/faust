@@ -114,8 +114,9 @@ _maccp:
 #===============================================================
 linux:
 	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
-	[ -e $(FAUSTDIR)/faust ] && cp $(FAUSTDIR)/faust .
-	[ -e $(FAUSTDIR)/libfaust.* ] && cp $(FAUSTDIR)/libfaust.* .
+	-[ -e $(FAUSTDIR)/faust ] && cp $(FAUSTDIR)/faust .
+	-[ -e $(FAUSTDIR)/libfaust.a ] && cp $(FAUSTDIR)/libfaust.a .
+	-[ -e $(FAUSTDIR)/libfaust.so ] && cp $(FAUSTDIR)/libfaust.so* .
 
 #===============================================================
 # building faust on windows
@@ -123,9 +124,9 @@ linux:
 #===============================================================
 windows:
 	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
-	[ -e $(FAUSTDIR)/faust.exe ] && cp $(FAUSTDIR)/faust.exe .
-	[ -e $(FAUSTDIR)/faust.dll ] && cp $(FAUSTDIR)/faust.dll .
-	[ -e $(FAUSTDIR)/faust.lib ] && cp $(FAUSTDIR)/faust.lib .
+	-[ -e $(FAUSTDIR)/faust.exe ] && cp $(FAUSTDIR)/faust.exe .
+	-[ -e $(FAUSTDIR)/faust.dll ] && cp $(FAUSTDIR)/faust.dll .
+	-[ -e $(FAUSTDIR)/faust.lib ] && cp $(FAUSTDIR)/faust.lib .
 
 vs14:
 	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="Visual Studio 14 2015" TASKS=$(TASKS)
