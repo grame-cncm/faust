@@ -27,7 +27,6 @@ endif
 endif
 
 CMAKEOPT ?= "-DCMAKE_BUILD_TYPE=Release"
-LLVM_DIR ?= ""
 ifdef LLVM_DIR
 	CMAKEOPT += -DLLVM_DIR=\"$(LLVM_DIR)\"
 endif
@@ -37,7 +36,7 @@ endif
 
 #===============================================================
 # output directories
-FAUSTDIR := faust
+FAUSTDIR := faustdir
 XCODEDIR := xcode
 VS14DIR:= vs14
 VS12DIR:= vs12
@@ -58,14 +57,18 @@ EMCC 	?= emcc
 # main target
 faust:
 	make $(TARGET)
+	
+clean:
+	rm -rf $(FAUSTDIR) faust faust.exe libfaust.* faust.dll faust.lib
 
 #===============================================================
 help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
-	@echo " 'faust' (default): builds the FAUST compiler and the static FAUST library."
+	@echo " 'faust' (default): builds the FAUST compiler and the FAUST libraries."
 	@echo " 'wasm'     : builds the FAUST compiler as a Web Assembly library"
 	@echo " 'asmjs'    : builds the FAUST compiler as a ASM JS library"
+	@echo " 'clean'    : clean remove the output of the 'faust' target"
 	@echo 
 	@echo "Platform specific targets :"
 	@echo " 'xcode'    : [Mac OS]  equivalent to the faust target but using xcode build"
@@ -91,27 +94,38 @@ help:
 # default is to use the unix makefile strategy
 #===============================================================
 macos:
-	make linux
+	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
+	make _maccp DIR=$(FAUSTDIR)
 
 xcode:
 	@[ -d $(XCODEDIR) ] || mkdir $(XCODEDIR)
 	cd $(XCODEDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G Xcode
 	xcodebuild -jobs $(TASKS) -project $(XCODEDIR)/faust.xcodeproj -target ALL_BUILD -configuration Release
+	make _maccp DIR=$(XCODEDIR)/Release
+
+_maccp:
+	-[ -e $(DIR)/faust ] && cp $(DIR)/faust .
+	-[ -e $(DIR)/libfaust.a ] && cp $(DIR)/libfaust.a .
+	-[ -e $(DIR)/libfaust.dylib ] && cp $(DIR)/libfaust.dylib .
+
 
 #===============================================================
 # building faust on linux
 #===============================================================
 linux:
-	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DVERBOSE=$(VERBOSE) .. -G $(GENERATOR)
-	make -C $(FAUSTDIR) -j $(TASKS)
+	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
+	[ -e $(FAUSTDIR)/faust ] && cp $(FAUSTDIR)/faust .
+	[ -e $(FAUSTDIR)/libfaust.* ] && cp $(FAUSTDIR)/libfaust.* .
 
 #===============================================================
 # building faust on windows
 # default is to build using MSYS makefiles
 #===============================================================
 windows:
-	make linux
+	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
+	[ -e $(FAUSTDIR)/faust.exe ] && cp $(FAUSTDIR)/faust.exe .
+	[ -e $(FAUSTDIR)/faust.dll ] && cp $(FAUSTDIR)/faust.dll .
+	[ -e $(FAUSTDIR)/faust.lib ] && cp $(FAUSTDIR)/faust.lib .
 
 vs14:
 	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="Visual Studio 14 2015" TASKS=$(TASKS)
@@ -125,6 +139,15 @@ _VS:
 	cmd /c "\"$(MSVC)\VC\vcvarsall.bat\" && msbuild $(VSDIR)/faust.sln /maxcpucount:$(TASKS) /p:Configuration=Release"
 
 	
+#===============================================================
+# building using unix makefiles
+#===============================================================
+_umake:
+	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DVERBOSE=$(VERBOSE) .. -G $(GENERATOR)
+	make -C $(FAUSTDIR) -j $(TASKS)
+
+
 #===============================================================
 # building faust with emscripten
 #===============================================================

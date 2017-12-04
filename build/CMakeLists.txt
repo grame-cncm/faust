@@ -28,11 +28,11 @@ option ( WASM_BACKEND 	"Include WASM backend"		off )
 # Output options
 # compiles the faust compiler and static library by default
 option ( COMPILER 	"Compiles the faust compiler" 	on )
-option ( LIBSHARED 	"Compiles the faust library as a shared library" 	off )
-option ( LIBSTATIC 	"Compiles the faust library as a static library" 	on )
+option ( LIBSHARED 	"Compiles the faust library as a shared library" 		off )
+option ( LIBSTATIC 	"Compiles the faust library as a static library" 		off )
 option ( LIBWASM 	"Compiles the faust library as a Web Assembly library" 	off )
-option ( LIBASMJS 	"Compiles the faust library as an ASM JS library" 	off )
-option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures" off )
+option ( LIBASMJS 	"Compiles the faust library as an ASM JS library" 		off )
+option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures"	off )
 
 #######################################
 # Misc options
@@ -199,19 +199,6 @@ endif()
 
 
 ####################################
-# output option management
-if (LIBSHARED OR LIBSTATIC)
-	if (LIBSHARED)
-		 message (STATUS "Compiles the faust library as a shared library")
-		 set (LIBTYPE "SHARED")
-	else() 
-		 message (STATUS "Compiles the faust library as a static library")
-		 set (LIBTYPE "STATIC")
-	endif()
-endif()
-
-
-####################################
 # set include directories
 include_directories(${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 
@@ -221,12 +208,28 @@ add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
 
 ####################################
 # Declare the different outputs
-if (LIBSHARED OR LIBSTATIC)
-	add_library(faustlib ${LIBTYPE} ${SRC} ${HH})
-	set_target_properties(faustlib PROPERTIES 
+if (COMPILER)
+	message (STATUS "Compiles the faust compiler")
+	add_executable(faust ${SRC} ${HH})
+	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
+endif()
+
+if (LIBSTATIC)
+	message (STATUS "Compiles the faust library as a static library")
+	add_library(staticfaustlib STATIC ${SRC} ${HH})
+	set_target_properties(staticfaustlib PROPERTIES 
 				OUTPUT_NAME faust
 				COMPILE_FLAGS  -DFAUST_LIB)
-	target_link_libraries(faustlib ${FAUST_LIBS} ${LLVM_LIBS})
+	target_link_libraries(staticfaustlib ${FAUST_LIBS} ${LLVM_LIBS})
+endif()
+
+if (LIBSHARED)
+	message (STATUS "Compiles the faust library as a shared library")
+	add_library(dynamicfaustlib SHARED ${SRC} ${HH})
+	set_target_properties(dynamicfaustlib PROPERTIES 
+				OUTPUT_NAME faust
+				COMPILE_FLAGS  -DFAUST_LIB)
+	target_link_libraries(dynamicfaustlib ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
 
 if (LIBWASM)
@@ -248,9 +251,3 @@ if (LIBASMJS)
 		LINK_FLAGS ${EMCC_LINK_FLAGS}
 		SUFFIX ".js" )
 endif()	
-
-if (COMPILER)
-	message (STATUS "Compiles the faust compiler")
-	add_executable(faust ${SRC} ${HH})
-	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
-endif()

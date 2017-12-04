@@ -12,3 +12,8 @@ set ( LLVM_BACKEND	 OFF CACHE BOOL  "Include LLVM backend"		FORCE )
 set ( OLDCPP_BACKEND ON  CACHE BOOL  "Include old CPP backend"	FORCE )
 set ( RUST_BACKEND	 ON  CACHE BOOL  "Include RUST backend" 	FORCE )
 set ( WASM_BACKEND	 ON  CACHE BOOL  "Include WASM backend"		FORCE )
+
+# in addition, you can select the different outputs
+set ( COMPILER	 OFF  CACHE BOOL  "Compiles the faust compiler"						FORCE )
+set ( LIBSHARED  ON  CACHE BOOL  "Compiles the faust library as a shared library" 	FORCE )
+set ( LIBSTATIC  ON  CACHE BOOL  "Compiles the faust library as a static library" 	FORCE )
