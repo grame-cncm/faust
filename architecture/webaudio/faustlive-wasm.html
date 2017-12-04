@@ -551,12 +551,13 @@
                 */
             }
 
-            function onerrorcallback(error) {
+            function onerrorcallback(error)
+            {
                 console.log(error);
             }
             
-            function onsuccesscallbackStandard(access) {
-                
+            function onsuccesscallbackStandard(access)
+            {
                 access.onstatechange = function(e) {
                     if (e.port.type === "input") {
                         if (e.port.state === "connected") {
@@ -575,7 +576,8 @@
                 }
             }
             
-            function activateMIDIInput() {
+            function activateMIDIInput()
+            {
                 console.log("activateMIDIInput");
                 if (typeof(navigator.requestMIDIAccess) !== "undefined") {
                     navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
