@@ -35,14 +35,6 @@ option ( LIBASMJS 	"Compiles the faust library as an ASM JS library" 		off )
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures"	off )
 
 #######################################
-# Misc options
-option ( VERBOSE 	"Enable verbose output from Makefile builds." 	off )
-if (VERBOSE)
-	message(STATUS "Verbose mode is ON")
-	set(CMAKE_VERBOSE_MAKEFILE on)
-endif()
-
-#######################################
 # Check output options
 if (UNIVERSAL AND NOT APPLE)
 	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
