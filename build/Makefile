@@ -32,17 +32,16 @@ ifdef LLVM_DIR
 endif
 
 
-.PHONY: wasm asmjs faust xcode vs12 vs14
-
 #===============================================================
 # output directories
 FAUSTDIR := faustdir
 XCODEDIR := xcode
 VS14DIR:= vs14
 VS12DIR:= vs12
-
 WASMDIR  := wasm
 ASMJSDIR := asmjs
+
+.PHONY: $(WASMDIR) $(ASMJSDIR) $(FAUSTDIR) $(XCODEDIR) $(VS14DIR) $(VS12DIR)
 
 #===============================================================
 # options
@@ -145,24 +144,28 @@ _VS:
 #===============================================================
 _umake:
 	@[ -d $(FAUSTDIR) ] || mkdir $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DVERBOSE=$(VERBOSE) .. -G $(GENERATOR)
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DCMAKE_VERBOSE_MAKEFILE=$(VERBOSE) .. -G $(GENERATOR)
 	make -C $(FAUSTDIR) -j $(TASKS)
 
 
 #===============================================================
 # building faust with emscripten
 #===============================================================
+wasm: CMAKEOPT += -DWASM_BACKEND=ON -DLIBWASM=ON -DCMAKE_VERBOSE_MAKEFILE=$(VERBOSE)
 wasm:
 	@make checkemcc
 	@[ -d $(WASMDIR) ] || mkdir $(WASMDIR)
-	cd $(WASMDIR) && cmake -C ../emcc.cmake -DCMAKE_BUILD_TYPE=Release -DWASM_BACKEND=ON -DLIBWASM=ON -DVERBOSE=$(VERBOSE) .. 
+	cd $(WASMDIR) && cmake -C ../emcc.cmake $(CMAKEOPT) .. 
 	make -C $(WASMDIR) -j $(TASKS)
+	cp $(WASMDIR)/libfaust-wasm.* .
 
+asmjs: CMAKEOPT += -DASMJS_BACKEND=ON -DLIBASMJS=ON -DCMAKE_VERBOSE_MAKEFILE=$(VERBOSE)
 asmjs:
 	@make checkemcc
 	@[ -d $(ASMJSDIR) ] || mkdir $(ASMJSDIR)
-	cd $(ASMJSDIR) && cmake -C ../emcc.cmake -DCMAKE_BUILD_TYPE=Release -DASMJS_BACKEND=ON -DLIBASMJS=ON -DVERBOSE=$(VERBOSE) .. 
+	cd $(ASMJSDIR) && cmake -C ../emcc.cmake $(CMAKEOPT) ..  
 	make -C $(ASMJSDIR) -j $(TASKS)
+	cp $(ASMJSDIR)/libfaust.js .
 	
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
