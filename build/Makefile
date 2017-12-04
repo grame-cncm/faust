@@ -15,8 +15,12 @@ ifeq ($(system), MINGW)
 	TARGET = windows
 	GENERATOR ?= "MSYS Makefiles"
 	ARCH ?= Win64
-	ifneq ($(ARCH), Win32)
-		GENERATOR += " $(ARCH)"
+	ifneq ($(GENERATOR), "MSYS Makefiles")
+	ifeq ($(ARCH), Win32)
+		GENERATOR = $(GENERATOR)
+	else
+		GENERATOR = $(GENERATOR) $(ARCH)
+	endif
 	endif
 else
 ifeq ($(system), Linux)

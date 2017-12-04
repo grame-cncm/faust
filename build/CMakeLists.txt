@@ -132,20 +132,46 @@ endif()
 # LLVM 
 if (LLVM_BACKEND)
 	message(STATUS "Include LLVM backend")
+if (WIN32)
+	execute_process (COMMAND llvm-config.exe --version OUTPUT_VARIABLE LLVM_VERSION)
+	string (REGEX REPLACE "\n.*" "" LLVM_PACKAGE_VERSION ${LLVM_VERSION})
+	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+
+	execute_process (COMMAND llvm-config.exe --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
+	string (REGEX REPLACE "\n.*" "" LLVM_INCLUDE_DIRS ${LLVM_INCLUDE})
+
+	execute_process (COMMAND llvm-config.exe --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
+	string (REGEX REPLACE "\n.*" "" LLVM_LDFLAGS ${LLVM_LDFLAGS_TMP})
+
+	execute_process (COMMAND llvm-config.exe --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+	string (REGEX REPLACE " *\n.*" "" LLVM_LIB ${LLVM_LIBS_TMP})
+
+#	set (LLVM_LIBS "${LLVM_LDFLAGS} ${LLVM_LIB}")
+	set (LLVM_LIBS "-L/c/msys64/mingw64/lib -lLLVM.dll")
+message ("LLVM_LIBS: ${LLVM_LIBS}")
+
+	execute_process (COMMAND llvm-config.exe --cppflags OUTPUT_VARIABLE LLVM_CXX_FLAGS)
+	string (REGEX REPLACE " *\n.*" "" LLVM_DEFINITIONS ${LLVM_CXX_FLAGS})
+else()
 	find_package(LLVM REQUIRED CONFIG)
 	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 	message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
 	# Find the libraries that correspond to the LLVM components that we wish to use
 	llvm_map_components_to_libnames(LLVM_LIBS all)
+endif()
 
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
-	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD -D${LLVM_VERSION} -std=gnu++11)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD -D${LLVM_VERSION})
 	file (GLOB BACKEND_SRC	${BACKEND_SRC}	${SRCDIR}/generator/llvm/*.cpp)
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/llvm/*.hh)
 	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
 
-	# by default, llvm is compiled without rtti
-	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp ${SRCDIR}/generator/llvm/llvm_code_container.cpp APPEND_STRING PROPERTY COMPILE_FLAGS -fno-rtti)
+	execute_process (COMMAND llvm-config.exe --has-rtti OUTPUT_VARIABLE LLVM_RTTI)
+	string (REGEX REPLACE "\n.*" "" LLVM_HAS_RTTI ${LLVM_RTTI})
+	message(STATUS "LLVM has RTTI: ${LLVM_HAS_RTTI}")
+	if (${LLVM_HAS_RTTI} EQUAL "NO")
+		set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS ${LLVM_DEFINITIONS})
+	endif()
 endif()
 
 ####################################
@@ -182,7 +208,7 @@ if(APPLE)
 	endif()
 elseif(WIN32)
 	if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__  -std=c++11)
+		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -std=c++11)
 	endif()
 	set (FAUST_LIBS Ws2_32.lib)
 else()
@@ -196,29 +222,20 @@ include_directories(${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 
 ####################################
 # add definitions
-add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
+#add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
+add_definitions (${FAUST_DEFINITIONS})
 
 ####################################
-# Declare the different outputs
+# Add the different outputs
 if (COMPILER)
 	message (STATUS "Compiles the faust compiler")
 	add_executable(faust ${SRC} ${HH})
 	target_link_libraries(faust ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
 
-if (LIBSTATIC)
-	message (STATUS "Compiles the faust library as a static library")
-	add_library(staticfaustlib STATIC ${SRC} ${HH})
-	set_target_properties(staticfaustlib PROPERTIES 
-				OUTPUT_NAME faust
-				COMPILE_FLAGS  -DFAUST_LIB)
-	target_link_libraries(staticfaustlib ${FAUST_LIBS} ${LLVM_LIBS})
-endif()
-
-if (LIBSHARED)
-	message (STATUS "Compiles the faust library as a shared library")
-	add_library(dynamicfaustlib SHARED ${SRC} ${HH})
-	set_target_properties(dynamicfaustlib PROPERTIES 
+if (LIBSHARED OR LIBSTATIC)
+	add_library(faustlib ${LIBTYPE} ${SRC} ${HH})
+	set_target_properties(faustlib PROPERTIES 
 				OUTPUT_NAME faust
 				COMPILE_FLAGS  -DFAUST_LIB)
 	target_link_libraries(dynamicfaustlib ${FAUST_LIBS} ${LLVM_LIBS})
