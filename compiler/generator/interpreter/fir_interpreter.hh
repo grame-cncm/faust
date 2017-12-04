@@ -117,16 +117,16 @@ class FIRInterpreter  {
     
         inline T check_real_aux(InstructionIT it, T val)
         {
-            if (fIntrumentMode == 0) {
-                // Nothing
+            if (fIntrumentMode >= 2) {
+                if (std::isnan(val)) {
+                    fRealStats[FP_NAN]++;
+                } else if (std::isinf(val)) {
+                    fRealStats[FP_INFINITE]++;
+                }
             } else if ((fIntrumentMode >= 1) && !std::isnormal(val) && (val != T(0))) {
                 fRealStats[FP_SUBNORMAL]++;
-            } else if (fIntrumentMode >= 2) {
-                if (std::isinf(val)) {
-                    fRealStats[FP_INFINITE]++;
-                } else if (std::isnan(val)) {
-                    fRealStats[FP_NAN]++;
-                }
+            } else if (fIntrumentMode == 0) {
+                // Nothing
             }
             
         #ifdef FULL_INTERPRETER_TRACE
