@@ -1,0 +1,101 @@
+<html>
+<head>
+<H1> Faust dynamically generated WebAudio node </H1>
+</head>
+<body>
+    
+<P> OSC freq:
+<input type="range" oninput="changeFreq(event) "min="20" max="5000" value="1000" step="10"/>
+<P> OSC volume:
+<input type="range" oninput="changeVolume(event) "min="-96" max="1" value="0" step="0.1"/>
+
+<!-- Load 'libfaust' library and wrapper code -->
+<script src="libfaust-wasm.js"></script>
+<script src="webaudio-wasm-wrapper.js"></script>
+
+<script>
+    
+function workletAvailable()
+{
+    if (typeof (OfflineAudioContext) === "undefined") return false;
+    var context = new OfflineAudioContext(1, 1, 44100);
+    return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
+}
+
+if (typeof (WebAssembly) === "undefined" || !workletAvailable()) {
+    alert("WebAssembly or AudioWorklet is not supported in this browser !")
+}
+
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var dsp_code = "import(\"stdfaust.lib\"); vol = hslider(\"volume [unit:dB]\", 0, -96, 0, 0.1) : ba.db2linear : si.smoo; freq = hslider(\"freq [unit:Hz]\", 1000, 20, 24000, 1); process = vgroup(\"Oscillator\", os.osc(freq) * vol);";
+var osc = null;
+var libraries_url = "http://127.0.0.1:8000/libraries/";
+//var libraries_url = "https://faust.grame.fr/libraries/";
+
+// Slider handler to change the 'osc' frequency
+function changeFreq(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    osc.setParamValue("/Oscillator/freq", val);
+}
+
+// Slider handler to change the 'osc' volume
+function changeVolume(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    osc.setParamValue("/Oscillator/volume", val);
+}
+
+function startosc()
+{
+    // Prepare argv list
+    var argv = [];
+    argv.push("-ftz");
+    argv.push("2");
+    argv.push("-I");
+    argv.push(libraries_url);
+    
+    // Dynamically create the Faust generated node from explicit DSP source in 'dsp_code'
+    faust.createDSPFactory(dsp_code,
+                           argv,
+                           function (factory) {
+                           faust.createDSPWorkletInstance(factory, audio_context,
+                                                          function (node) {
+                                                          osc = node;
+                                                          console.log(osc.getJSON());
+                                                          // Print paths to be used with 'setParamValue'
+                                                          console.log(osc.getParams());
+                                                          // Connect it to output as a regular WebAudio node
+                                                          osc.connect(audio_context.destination);
+                                                          });});
+}
+
+// Load handler which call 'startosc' when 'libfaust-wasm.js' is properly loaded
+faust_module['onRuntimeInitialized'] = startosc;
+
+// To activate audio on iOS
+window.addEventListener('touchstart', function() {
+                        
+                        // create empty buffer
+                        var buffer = audio_context.createBuffer(1, 1, 22050);
+                        var source = audio_context.createBufferSource();
+                        source.buffer = buffer;
+                        
+                        // connect to output (your speakers)
+                        source.connect(audio_context.destination);
+                        
+                        // play the file
+                        source.start();
+                        
+                        }, false);
+
+
+</script>
+
+</body>
+</html>

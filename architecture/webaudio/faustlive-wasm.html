@@ -428,6 +428,13 @@
             if (!isWasm) {
                 alert("WebAssembly is not supported in this browser, the page will not work !")
             }
+            
+            function workletAvailable()
+            {
+                if (typeof (OfflineAudioContext) === "undefined") return false;
+                var context = new OfflineAudioContext(1, 1, 44100);
+                return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
+            }
 
             var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
             var buffer_size = 1024;
@@ -939,13 +946,6 @@
 
                 // Load page state
                 loadPageState();
-            }
-            
-            // -- borrowed from Google's AudioWorklet demo page
-            function workletAvailable()
-            {
-                var context = new OfflineAudioContext(1, 1, 44100);
-                return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
             }
             
             function init()

@@ -15,6 +15,7 @@ var output_handler = null;
 
 function workletAvailable()
 {
+    if (typeof (OfflineAudioContext) === "undefined") return false;
     var context = new OfflineAudioContext(1, 1, 44100);
     return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
 }
