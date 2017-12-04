@@ -180,13 +180,9 @@ var faust = faust || {};
 faust.createmydsp = function(context, callback)
 {
     // The main global scope
-    var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
-    console.log(awc);
-    awc.addModule("mydsp-processor.js")
+    context.audioWorklet.addModule("mydsp-processor.js")
     .then(function () {
-    	// Because of a bug in Chrome, allocate new global context each time
-         audio_context = new AudioContext();
-         callback(new mydspNode(audio_context, {}));
+         callback(new mydspNode(context, {}));
     })
     .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
 }

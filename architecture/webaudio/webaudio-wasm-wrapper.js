@@ -1412,15 +1412,8 @@ var mydspProcessorString = `
 
 faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 {
-    // Because of a bug in Chrome, allocate new global context each time
-    try {
-        audio_context = new AudioContext();
-    } catch(e) {
-        console.log(e);
-    }
-    
-    // Create a generic AudioWorkletNode
-    var audio_node = new AudioWorkletNode(audio_context, factory.name,
+	// Create a generic AudioWorkletNode
+	var audio_node = new AudioWorkletNode(audio_context, factory.name,
                                           { numberOfInputs: parseInt(factory.json_object.inputs),
                                             numberOfOutputs: parseInt(factory.json_object.outputs),
                                             channelCount: 1,
@@ -1554,9 +1547,7 @@ faust.createDSPWorkletInstance = function(factory, context, callback)
         var mydspProcessorString3 = mydspProcessorString2.replace(re3, factory.getBase64Code());
         var url = window.URL.createObjectURL(new Blob([mydspProcessorString3], { type: 'text/javascript' }));
         
-        // The main global scope
-        var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
-        awc.addModule(url)
+        context.audioWorklet.addModule(url)
         .then(function () {
               // Processor has been registered
               factory.polyphony.push(1);
@@ -3001,15 +2992,8 @@ var mydsp_polyProcessorString = `
 
 faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, callback)
 {
-    // Because of a bug in Chrome, allocate new global context each time
-    try {
-        audio_context = new AudioContext();
-    } catch(e) {
-        console.log(e);
-    }
-    
-    // Create a generic AudioWorkletNode, use polyphony to distinguish different classes
-    var audio_node = new AudioWorkletNode(audio_context, factory.name + '_' + polyphony.toString() + "_poly",
+	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
+	var audio_node = new AudioWorkletNode(audio_context, factory.name + '_' + polyphony.toString() + "_poly",
                                           { numberOfInputs: parseInt(factory.json_object.inputs),
                                             numberOfOutputs: parseInt(factory.json_object.outputs),
                                             channelCount: 1,
@@ -3182,9 +3166,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
         var mydsp_polyProcessorString4 = mydsp_polyProcessorString3.replace(re4, factory.getBase64Code());
         var url = window.URL.createObjectURL(new Blob([mydsp_polyProcessorString4], { type: 'text/javascript' }));
         
-        // The main global scope
-        var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
-        awc.addModule(url)
+        context.audioWorklet.addModule(url)
         .then(function () {
               // Processor has been registered
               factory.polyphony.push(polyphony);

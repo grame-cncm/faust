@@ -213,13 +213,9 @@ faust.createmydsp_poly = function(context, max_polyphony, callback)
     // TODO: handle max_polyphony
     
     // The main global scope
-    var awc = window.audioWorklet || BaseAudioContext.AudioWorklet;
-    console.log(awc);
-    awc.addModule("mydsp-processor.js")
+    context.audioWorklet.addModule("mydsp-processor.js")
     .then(function () {
-        // Because of a bug in Chrome, allocate new global context each time
-        audio_context = new AudioContext();
-        callback(new mydsp_polyNode(audio_context, {}));
+        callback(new mydsp_polyNode(context, {}));
     })
 	.catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); });
 }

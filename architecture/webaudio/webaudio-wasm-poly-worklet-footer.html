@@ -5,13 +5,20 @@
 
 // Faust part
 
-var isWasm = (typeof (WebAssembly) !== "undefined");
-var audio_context = null;
+var isWasm = (typeof(WebAssembly) !== "undefined");
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var max_polyphony = 16;
 var audio_input = null;
 var DSP_poly = null;
 var faustsvg = null;
 var output_handler = null;
+
+function workletAvailable()
+{
+    var context = new OfflineAudioContext(1, 1, 44100);
+    return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
+}
 
 function changeBufferSize(buffer_size)
 {
@@ -198,10 +205,10 @@ function startDSP()
 
 function startNewDSP()
 {
-    if (isWasm) {
+    if (isWasm && workletAvailable()) {
         faust.createDSP_poly(audio_context, max_polyphony, startDSPAux);
     }  else {
-        alert("WebAssembly is not supported in this browser !")
+        alert("WebAssembly or AudioWorklet is not supported in this browser !");
     }
 }
 
