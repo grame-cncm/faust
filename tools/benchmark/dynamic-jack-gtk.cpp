@@ -55,26 +55,6 @@ using namespace std;
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
 
-inline string pathToContent(const string& path)
-{
-    ifstream file(path.c_str(), ifstream::binary);
-    
-    file.seekg(0, file.end);
-    int size = int(file.tellg());
-    file.seekg(0, file.beg);
-    
-    // And allocate buffer to that a single line can be read...
-    char* buffer = new char[size + 1];
-    file.read(buffer, size);
-    
-    // Terminate the string
-    buffer[size] = 0;
-    string result = buffer;
-    file.close();
-    delete [] buffer;
-    return result;
-}
-
 struct malloc_memory_manager : public dsp_memory_manager {
     
     void* allocate(size_t size)
@@ -107,7 +87,6 @@ int main(int argc, char* argv[])
     bool is_midi = isopt(argv, "-midi");
     bool is_osc = isopt(argv, "-osc");
     bool is_httpd = isopt(argv, "-httpd");
-    bool is_trace = isopt(argv, "-trace");
     int nvoices = lopt(argv, "-nvoices", -1);
     
     malloc_memory_manager manager;
@@ -116,14 +95,13 @@ int main(int argc, char* argv[])
     #ifdef INTERP_PLUGIN
         cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
     #else
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [-trace] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
         cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
-        cout << "Use '-trace' to activate trace mode in -interp mode\n";
     #endif
         exit(EXIT_FAILURE);
     }
@@ -148,8 +126,7 @@ int main(int argc, char* argv[])
             || (string(argv[i]) == "-interp")
             || (string(argv[i]) == "-midi")
             || (string(argv[i]) == "-osc")
-            || (string(argv[i]) == "-httpd")
-            || (string(argv[i]) == "-trace")) {
+            || (string(argv[i]) == "-httpd")) {
             continue;
         } else if (string(argv[i]) == "-nvoices") {
             i++;
@@ -172,10 +149,6 @@ int main(int argc, char* argv[])
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
     } else {
         cout << "Using interpreter backend" << endl;
-        if (is_trace) {
-            setenv("FAUST_INTERP_TRACE", "on", 1);
-            setenv("FAUST_INTERP_TRACE_MODE", "3", 1);
-        }
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
     }

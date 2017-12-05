@@ -53,7 +53,7 @@ if [ "$1" = "osx" ]; then
 
     faust2dummymem waveform4.dsp > /dev/null
     ./waveform4 > waveform4.txt
-    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummy waveform4.dsp failed"
+    diff waveform4.txt waveform4_ref.txt && echo "OK: faust2dummymem waveform4.dsp succeeded !" || echo "ERROR: faust2dummymem waveform4.dsp failed"
 
 	for scriptname in $OSX; do
     	($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
@@ -111,7 +111,7 @@ if [ "$1" = "osx" ]; then
     # Test of -exp10
     (faust2jack -exp10 exp10.dsp) &&(echo "OK: faust2jack -exp10 succeeded !")||(echo "ERROR: faust2jack -exp10 failed")
 
-    (faust2android -exp10 exp10.dsp) &&(echo "OK: faust2android -exp10 correctly failed !")||(echo "WARNING: faust2android -exp10 succeeded ?")
+    (faust2android -exp10 exp10.dsp)&&(echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
 
 elif [ "$1" = "linux" ]; then
     echo

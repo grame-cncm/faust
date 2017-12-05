@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <iomanip>
+#include <pthread.h>
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -44,24 +45,51 @@ class dummyaudio : public audio {
         long fSampleRate;
         long fBufferSize;
     
+        FAUSTFLOAT** fInChannel;
+        FAUSTFLOAT** fOutChannel;
+    
         int fNumInputs;
         int fNumOutputs;
-
-        FAUSTFLOAT** fInChannel;
-        FAUSTFLOAT** fOutChannel;  
+    
+        pthread_t fAudioThread;
+        bool fRunning;
 
         int fRender;
         int fCount;
-        bool fIsSample;
+        int fSample;
         bool fManager;
+    
+        static void* __run(void* ptr)
+        {
+            dummyaudio* audio = (dummyaudio*)ptr;
+            audio->process();
+            return 0;
+        }
+    
+        void process()
+        {
+            while (fRunning && (--fRender > 0)) {
+                if (fSample > 0) { std::cout << "Render one buffer\n"; }
+                render();
+            }
+            fRunning = false;
+        }
 
     public:
 
-        dummyaudio(int sr, int bs, int count = 10, bool sample = false, bool manager = false)
-        :fSampleRate(sr), fBufferSize(bs), fRender(0), fCount(count), fIsSample(sample), fManager(manager) {}
+        dummyaudio(int sr, int bs, int count = BUFFER_TO_RENDER, int sample = -1, bool manager = false)
+            :fSampleRate(sr), fBufferSize(bs),
+            fInChannel(0), fOutChannel(0),
+            fRender(0), fCount(count),
+            fSample(sample), fManager(manager)
+        {}
     
-        dummyaudio(int count = 10)
-        :fSampleRate(48000), fBufferSize(512), fRender(0), fCount(count), fIsSample(false), fManager(false) {}
+        dummyaudio(int count = BUFFER_TO_RENDER)
+            :fSampleRate(48000), fBufferSize(512),
+            fInChannel(0), fOutChannel(0),
+            fRender(0), fCount(count),
+            fSample(512), fManager(false)
+        {}
     
         virtual ~dummyaudio()
         {
@@ -79,6 +107,8 @@ class dummyaudio : public audio {
         virtual bool init(const char* name, dsp* dsp)
         {
             fDSP = dsp;
+            
+            // To be used in destructor
             fNumInputs = fDSP->getNumInputs();
             fNumOutputs = fDSP->getNumOutputs();
             
@@ -89,50 +119,54 @@ class dummyaudio : public audio {
                 fDSP->init(fSampleRate);
             }
             
-            fInChannel = new FAUSTFLOAT*[fNumInputs];
-            fOutChannel = new FAUSTFLOAT*[fNumOutputs];
+            fInChannel = new FAUSTFLOAT*[fDSP->getNumInputs()];
+            fOutChannel = new FAUSTFLOAT*[fDSP->getNumOutputs()];
             
-            for (int i = 0; i < fNumInputs; i++) {
+            for (int i = 0; i < fDSP->getNumInputs(); i++) {
                 fInChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fInChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
-            for (int i = 0; i < fNumOutputs; i++) {
+            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
                 fOutChannel[i] = new FAUSTFLOAT[fBufferSize];
                 memset(fOutChannel[i], 0, sizeof(FAUSTFLOAT) * fBufferSize);
             }
             return true;
         }
+    
         virtual bool start()
         {
             fRender = fCount;
-            while (--fRender > 0) {
-                printf("Render one buffer\n");
-                render();
+            fRunning = true;
+            if (fCount == INT_MAX) {
+                if (pthread_create(&fAudioThread, 0, __run, this)) {
+                    fRunning = false;
+                }
+                return fRunning;
+            } else {
+                process();
+                return true;
             }
-            return true;
         }
+    
         virtual void stop()
-        {}
+        {
+            if (fRunning) {
+                fRunning = false;
+                pthread_join(fAudioThread, 0);
+            }
+        }
 
         void render()
         {
             fDSP->compute(fBufferSize, fInChannel, fOutChannel);
-            if (fNumInputs > 0) {
-                if (fIsSample) {
-                    for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
-                    }
-                } else {
-                    std::cout << std::setprecision(6) << "sample in " << fInChannel[0][0] << std::endl;
+            if (fDSP->getNumInputs() > 0) {
+                for (int frame = 0; frame < fSample; frame++) {
+                    std::cout << std::fixed << std::setprecision(6) << "sample in " << fInChannel[0][frame] << std::endl;
                 }
             }
-            if (fNumOutputs > 0) {
-                if (fIsSample) {
-                    for (int frame = 0; frame < fBufferSize; frame++) {
-                        std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
-                    }
-                } else {
-                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][0] << std::endl;
+            if (fDSP->getNumOutputs() > 0) {
+                for (int frame = 0; frame < fSample; frame++) {
+                    std::cout << std::fixed << std::setprecision(6) << "sample out " << fOutChannel[0][frame] << std::endl;
                 }
             }
         }
@@ -140,8 +174,8 @@ class dummyaudio : public audio {
         virtual int getBufferSize() { return fBufferSize; }
         virtual int getSampleRate() { return fSampleRate; }
     
-        virtual int getNumInputs() { return fNumInputs; }
-        virtual int getNumOutputs() { return fNumOutputs; }
+        virtual int getNumInputs() { return fDSP->getNumInputs(); }
+        virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
     
 };
 					

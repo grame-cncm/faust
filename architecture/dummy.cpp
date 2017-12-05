@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     cout << "OSC is on" << endl;
 #endif
     
-    dummyaudio audio(44100, 128, 5, true);
+    dummyaudio audio(44100, 128, 5, 128);
     audio.init(name, DSP);
     
 #ifdef MIDICTRL

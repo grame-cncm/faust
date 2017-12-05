@@ -83,7 +83,7 @@ static void test1()
     mydsp* DSP = new (manager.allocate(sizeof(mydsp))) mydsp();
     
     /// Audio rendering
-    dummyaudio audio(SAMPLE_RATE, 512, 5, false, true);  // custom memory manager is used
+    dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
     
     audio.init("Dummy", DSP);   // 'instanceInit' only will be called on the DSP
     audio.start();
@@ -113,7 +113,7 @@ static void test2()
     mydsp* DSP2 = new (manager.allocate(sizeof(mydsp))) mydsp();
     
     /// Audio rendering
-    dummyaudio audio(SAMPLE_RATE, 512, 5, false, true);  // custom memory manager is used
+    dummyaudio audio(SAMPLE_RATE, 512, 5, 1, true);  // custom memory manager is used
     
     audio.init("Dummy", DSP1);   // 'instanceInit' only will be called on the DSP
     audio.start();

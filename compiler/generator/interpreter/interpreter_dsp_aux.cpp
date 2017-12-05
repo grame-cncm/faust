@@ -183,9 +183,9 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
         interpreter_dsp_factory* factory = 0;
         
         if (type == "float") {
-            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, false>::read(in));
+            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, false, false>::read(in));
         } else if (type == "double") {
-            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, false>::read(in));
+            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, false, false>::read(in));
         } else {
             faustassert(false);
         }
