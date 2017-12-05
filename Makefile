@@ -220,11 +220,11 @@ install :
 
 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
 	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
-	
+
 	cp -r architecture/httpdlib/html/js $(prefix)/share/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/share/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/share/faust/js/jsscripts.js) || echo jsscripts not available
-	
+
 	# install includes files for architectures
 	cp -r architecture/faust $(prefix)/include/
 
@@ -251,15 +251,15 @@ install :
 
 	# install benchmark tools
 	rm -rf $(prefix)/share/faust/iOS-bench
-	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/ 
-	cp tools/benchmark/faustbench $(prefix)/bin/ 
+	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
+	cp tools/benchmark/faustbench $(prefix)/bin/
 	cp tools/benchmark/faustbench.cpp $(prefix)/share/faust/
 	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
 	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
 
-	# install Faust man file	
-	([ -e faust.1 ])  && cp faust.1 $(prefix)/share/man/man1/faust.1 || echo faust.1 not found
-	
+	# install Faust man file
+	([ -e faust.1 ]) && (install -d $(prefix)/share/man/man1/; install faust.1 $(prefix)/share/man/man1) || echo faust.1 not found
+
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
 	rm -rf $(prefix)/share/faust/
