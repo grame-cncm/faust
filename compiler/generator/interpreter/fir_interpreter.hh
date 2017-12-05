@@ -33,32 +33,31 @@
 #include "interpreter_bytecode.hh"
 #include "exception.hh"
 
-// Interpreter
 /*
  
  Trace mode: only check 'non-optimized' interpreter operations, since the code is not optimized in this case.
  
- fIntrumentMode = 1 : shows FP_SUBNORMAL only
- fIntrumentMode = 2 : shows FP_SUBNORMAL, FP_INFINITE and FP_NAN
- fIntrumentMode = 3 : shows FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO
- fIntrumentMode = 4 : shows FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN
- fIntrumentMode = 5 : shows FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN
+ 1 : collect FP_SUBNORMAL only
+ 2 : collect FP_SUBNORMAL, FP_INFINITE and FP_NAN
+ 3 : collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO
+ 4 : collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN
+ 5 : collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN
  
 */
 
 #define INTEGER_OVERFLOW        -1
 #define DIV_BY_ZERO             -2
 
-template <class T, bool TRACE, bool FULL>
+template <class T, int TRACE>
 struct interpreter_dsp_factory_aux;
 
 // FIR bytecode interpreter
-template <class T, bool TRACE, bool FULL>
+template <class T, int TRACE>
 class FIRInterpreter  {
     
     protected:
     
-        interpreter_dsp_factory_aux<T, TRACE, FULL>* fFactory;
+        interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     
         int* fIntHeap;
         T* fRealHeap;
@@ -69,23 +68,21 @@ class FIRInterpreter  {
         T** fInputs;
         T** fOutputs;
     
-        int fIntrumentMode;
-    
         std::map<int, long long> fRealStats;
     
         void printStats()
         {
-            if (fIntrumentMode > 0) {
+            if (TRACE > 0) {
                 std::cout << "-------------------------------"<< std::endl;
                 std::cout << "Interpreter statistics" << std::endl;
-                if (fIntrumentMode >= 1) {
+                if (TRACE >= 1) {
                     std::cout << "FP_SUBNORMAL: " << fRealStats[FP_SUBNORMAL] << std::endl;
                 }
-                if (fIntrumentMode >= 2) {
+                if (TRACE >= 2) {
                     std::cout << "FP_INFINITE: " << fRealStats[FP_INFINITE] << std::endl;
                     std::cout << "FP_NAN: " << fRealStats[FP_NAN] << std::endl;
                 }
-                if (fIntrumentMode >= 3) {
+                if (TRACE >= 3) {
                     std::cout << "INTEGER_OVERFLOW: " << fRealStats[INTEGER_OVERFLOW] << std::endl;
                     std::cout << "DIV_BY_ZERO: " << fRealStats[DIV_BY_ZERO] << std::endl;
                 }
@@ -95,10 +92,10 @@ class FIRInterpreter  {
     
         inline void warning_overflow(InstructionIT it)
         {
-            if (fIntrumentMode >= 3) {
+            if (TRACE >= 3) {
                 fRealStats[INTEGER_OVERFLOW]++;
             }
-            if (FULL) {
+            if (TRACE >= 4) {
                 std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
@@ -108,10 +105,10 @@ class FIRInterpreter  {
     
         inline void check_div_zero(InstructionIT it, T val)
         {
-            if ((fIntrumentMode >= 3) && (val == T(0))) {
+            if ((TRACE >= 3) && (val == T(0))) {
                 fRealStats[DIV_BY_ZERO]++;
             }
-            if (FULL && (val == T(0))) {
+            if ((TRACE >= 4) && (val == T(0))) {
                 std::cout << "-------- Interpreter 'div by zero' trace start --------" << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
@@ -121,35 +118,37 @@ class FIRInterpreter  {
     
         inline T check_real_aux(InstructionIT it, T val)
         {
-            if (fIntrumentMode >= 2) {
+            if (TRACE >= 2) {
                 if (std::isnan(val)) {
                     fRealStats[FP_NAN]++;
                 } else if (std::isinf(val)) {
                     fRealStats[FP_INFINITE]++;
                 }
-            } else if ((fIntrumentMode >= 1) && !std::isnormal(val) && (val != T(0))) {
-                fRealStats[FP_SUBNORMAL]++;
-            } else if (fIntrumentMode == 0) {
-                // Nothing
             }
             
-            if (FULL) {
+            if (TRACE >= 1) {
+                if (std::fpclassify(val) == FP_SUBNORMAL) {
+                    fRealStats[FP_SUBNORMAL]++;
+                }
+            }
+            
+            if (TRACE >= 4) {
                 if (std::isnan(val)) {
                     std::cout << "-------- Interpreter 'Nan' trace start --------" << std::endl;
                     traceInstruction(it);
                     fTraceContext.write(&std::cout);
                     std::cout << "-------- Interpreter 'Nan' trace end --------\n\n";
                     // Fails at first error...
-                    if (fIntrumentMode == 4) {
+                    if (TRACE == 4) {
                         throw faustexception("");
                     }
-                } else if (!std::isfinite(val)) {
+                } else if (std::isinf(val)) {
                     std::cout << "-------- Interpreter 'Inf' trace start --------" << std::endl;
                     traceInstruction(it);
                     fTraceContext.write(&std::cout);
                     std::cout << "-------- Interpreter 'Inf' trace end --------\n\n";
                     // Fails at first error...
-                    if (fIntrumentMode == 4) {
+                    if (TRACE == 4) {
                         throw faustexception("");
                     }
                 }
@@ -197,7 +196,7 @@ class FIRInterpreter  {
     
         inline void traceInstruction(InstructionIT it)
         {
-            if (FULL) {
+            if (TRACE >= 4) {
                 std::stringstream message;
                 (*it)->write(&message);
                 fTraceContext.push(message.str());
@@ -206,7 +205,7 @@ class FIRInterpreter  {
     
         inline int assert_audio_buffer(InstructionIT it, int index)
         {
-            if (FULL && ((index < 0) || (index >= fIntHeap[fFactory->fCountOffset]))) {
+            if (TRACE >= 4 && ((index < 0) || (index >= fIntHeap[fFactory->fCountOffset]))) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_audio_buffer : count " << fIntHeap[fFactory->fCountOffset]  << " index " << index << std::endl;
                 fTraceContext.write(&std::cout);
@@ -219,7 +218,7 @@ class FIRInterpreter  {
         
         inline int assert_int_heap(InstructionIT it, int index, int size = -1)
         {
-            if (FULL && ((index < 0) || (index >= fFactory->fIntHeapSize) || (size > 0 && index >= size))) {
+            if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fIntHeapSize) || (size > 0 && index >= size))) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_int_heap : fIntHeapSize " << fFactory->fIntHeapSize  << " index " << index << " size " << size << std::endl;
                 fTraceContext.write(&std::cout);
@@ -232,7 +231,7 @@ class FIRInterpreter  {
         
         inline int assert_real_heap(InstructionIT it, int index, int size = -1)
         {
-            if (FULL && ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && index >= size))) {
+            if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fRealHeapSize) || (size > 0 && index >= size))) {
                 std::cout << "-------- Interpreter crash trace start --------" << std::endl;
                 std::cout << "assert_real_heap : fRealHeapSize " << fFactory->fRealHeapSize  << " index " << index << " size " << size << std::endl;
                 fTraceContext.write(&std::cout);
@@ -245,7 +244,7 @@ class FIRInterpreter  {
     
         inline T check_real(InstructionIT it, T val)
         {
-            return (TRACE) ? check_real_aux(it, val) : val;
+            return (TRACE > 0) ? check_real_aux(it, val) : val;
         }
     
         #define push_int(val) (int_stack[int_stack_index++] = val)
@@ -2507,7 +2506,7 @@ class FIRInterpreter  {
     
     public:
     
-        FIRInterpreter(interpreter_dsp_factory_aux<T, TRACE, FULL>* factory)
+        FIRInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
         {
             /*
             std::cout << "FIRInterpreter :"
@@ -2540,16 +2539,7 @@ class FIRInterpreter  {
             fRealStats[FP_INFINITE] = 0;
             fRealStats[FP_NAN] = 0;
             fRealStats[FP_SUBNORMAL] = 0;
-            
-            const char* trace = getenv("FAUST_INTERP_TRACE");
-            if (trace && (strcasecmp(trace, "on") == 0)) {
-                const char* mode = getenv("FAUST_INTERP_TRACE_MODE");
-                fIntrumentMode = (mode) ? atoi(mode) : 1;
-                std::cout << "Interpreter trace is on, with mode " << fIntrumentMode << std::endl;
-            } else {
-                fIntrumentMode = 0;
-            }
-         }
+        }
     
         virtual ~FIRInterpreter()
         {

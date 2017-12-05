@@ -1,6 +1,6 @@
-# Dynamic compiler usage, benchmark and optimizing tools 
+# Dynamic compiler usage, benchmark, tracing and optimizing tools 
 
-Several programs and tools are available to test the dynamic compilation chain and benchmark the compiled programs. 
+Several programs and tools are available to test the dynamic compilation chain, benchmark and trace the compiled programs. 
 
 ## dynamic-jack-gtk
 
@@ -16,11 +16,23 @@ Here are the available options:
 - `-osc to activate OSC control`
 - `-httpd to activate HTTPD control`
 
-Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed when closing the application. For developers: trace mode is activated by setting the *FAUST_INTERP_TRACE* environment variable to "on". Then *FAUST_INTERP_TRACE_MODE* environment variable can be set to values from 1 to 3: 
+Additional Faust compiler options can be given. Note that the Interpreter backend can be launched in *trace* mode, so that various statistics on the running code are collected and displayed while running and/or when closing the application. For developers. Then *FAUST_INTERP_TRACE* environment variable can be set to values from 1 to 5 (see the **interp-trace** tool). 
 
- - 1 mode collects the number of FP_SUBNORMAL values generated in the audio computation (not that you'll have to deactivate hardware flush-to-zero protection, typically by removing the AVOIDDENORMALS macro added arround the call to the DSP compute method in architecture files)
- - 2 mode also collects the number of FP_INFINITE and FP_NAN float values
- - 3 mode also collects the number of INTEGER_OVERFLOW and DIV_BY_ZERO operations
+## interp-trace
+
+The **interp-trace** runs and intruments the compiled program using the Interpreter backend. Various statistics on the running code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE or FP_NAN values are produced.
+
+Several Several tracing levels can be used:
+
+`interp-trace -trace <1-5> [additional Faust options (-ftz xx)] foo.dsp`
+
+Here are the available options:
+
+ - `-Use '-trace 1' to collect FP_SUBNORMAL only` 
+ - `-Use '-trace 2' to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN`
+ - `-Use '-trace 3' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO`
+ - `-Use '-trace 4' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN`
+ - `-Use '-trace 5' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN`
 
 ## faustbench
 

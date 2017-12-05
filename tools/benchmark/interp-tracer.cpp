@@ -53,12 +53,12 @@ int main(int argc, char* argv[])
     int trace_mode = lopt(argv, "-trace", 0);
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 5) {
-        cout << "interp-trace -trace <0-5> foo.dsp" << endl;
-        cout << "Use '-trace 1' to show FP_SUBNORMAL only\n";
-        cout << "Use '-trace 2' to show FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
-        cout << "Use '-trace 3' FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO\n";
-        cout << "Use '-trace 4' to show FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN\n";
-        cout << "Use '-trace 5' to show FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN\n";
+        cout << "interp-trace -trace <1-5>  [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "Use '-trace 1' to collect FP_SUBNORMAL only\n";
+        cout << "Use '-trace 2' to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
+        cout << "Use '-trace 3' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO\n";
+        cout << "Use '-trace 4' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, fails at first FP_INFINITE or FP_NAN\n";
+        cout << "Use '-trace 5' to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW, DIV_BY_ZERO, continue after FP_INFINITE or FP_NAN\n";
         exit(EXIT_FAILURE);
     }
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
@@ -81,9 +81,8 @@ int main(int argc, char* argv[])
     
     cout << "Using interpreter backend" << endl;
     if (trace_mode > 0) {
-        setenv("FAUST_INTERP_TRACE", "on", 0);
         char mode[8]; sprintf(mode, "%d", trace_mode);
-        setenv("FAUST_INTERP_TRACE_MODE", mode, 1);
+        setenv("FAUST_INTERP_TRACE", mode, 1);
     }
     
     string error_msg;

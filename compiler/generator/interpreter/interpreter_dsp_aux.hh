@@ -42,10 +42,10 @@
 
 class interpreter_dsp_factory;
 
-template <class T, bool TRACE, bool FULL>
+template <class T, int TRACE>
 class interpreter_dsp_aux;
 
-template <class T, bool TRACE, bool FULL>
+template <class T, int TRACE>
 struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     
     int fVersion;
@@ -220,7 +220,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     }
     
     // Factory reader
-    static interpreter_dsp_factory_aux<T, TRACE, FULL>* read(std::istream* in)
+    static interpreter_dsp_factory_aux<T, TRACE>* read(std::istream* in)
     {
         std::string dummy;
         
@@ -634,8 +634,8 @@ struct interpreter_dsp_base : public dsp {
     
 };
 
-template <class T, bool TRACE, bool FULL>
-class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T, TRACE, FULL> {
+template <class T, int TRACE>
+class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T, TRACE> {
 	
     protected:
     
@@ -655,8 +655,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
     public:
     
-        interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE, FULL>* factory)
-        : FIRInterpreter<T, TRACE, FULL>(factory)
+        interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
+        : FIRInterpreter<T, TRACE>(factory)
         {
             if (this->fFactory->getMemoryManager()) {
                 this->fInputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
@@ -920,8 +920,8 @@ TODO:
  
 */
 
-template <class T, bool TRACE, bool FULL>
-class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE, FULL> {
+template <class T, int TRACE>
+class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
     
     private:
     
@@ -929,8 +929,8 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE, FULL> {
 
     public:
     
-        interpreter_dsp_aux_down(interpreter_dsp_factory_aux<T, TRACE, FULL>* factory, int down_sampling_factor)
-            : interpreter_dsp_aux<T, TRACE, FULL>(factory), fDownSamplingFactor(down_sampling_factor)
+        interpreter_dsp_aux_down(interpreter_dsp_factory_aux<T, TRACE>* factory, int down_sampling_factor)
+            : interpreter_dsp_aux<T, TRACE>(factory), fDownSamplingFactor(down_sampling_factor)
         {
             // Allocate and set downsampled inputs/outputs
             for (int i = 0; i < this->fFactory->fNumInputs; i++) {
@@ -1004,23 +1004,40 @@ class EXPORT interpreter_dsp : public dsp {
  
     public:
     
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, true, false>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 0>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, true, false>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 0>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, true, true>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 1>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, true, true>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 1>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
-    
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, false, false>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 2>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
-        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, false, false>* dsp)
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 2>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 3>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 3>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 4>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 4>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<float, 5>* dsp)
+            :fFactory(factory), fDSP(dsp)
+        {}
+        interpreter_dsp(interpreter_dsp_factory* factory, interpreter_dsp_aux<double, 5>* dsp)
             :fFactory(factory), fDSP(dsp)
         {}
     
@@ -1089,8 +1106,8 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     
 };
 
-template <class T, bool TRACE, bool FULL>
-dsp* interpreter_dsp_factory_aux<T, TRACE, FULL>::createDSPInstance(dsp_factory* factory)
+template <class T, int TRACE>
+dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* factory)
 {
     interpreter_dsp_factory* tmp = dynamic_cast<interpreter_dsp_factory*>(factory);
     faustassert(tmp);
@@ -1098,10 +1115,10 @@ dsp* interpreter_dsp_factory_aux<T, TRACE, FULL>::createDSPInstance(dsp_factory*
     if (tmp->getMemoryManager()) {
         return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
             interpreter_dsp(tmp,
-                new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE, FULL>)))
-                    interpreter_dsp_aux<T, TRACE, FULL>(this));
+                new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>)))
+                    interpreter_dsp_aux<T, TRACE>(this));
     } else {
-        return new interpreter_dsp(tmp, new interpreter_dsp_aux<T, TRACE, FULL>(this));
+        return new interpreter_dsp(tmp, new interpreter_dsp_aux<T, TRACE>(this));
     }
 }
 
