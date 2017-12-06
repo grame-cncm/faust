@@ -45,7 +45,7 @@ VS12DIR:= vs12
 WASMDIR  := wasm
 ASMJSDIR := asmjs
 
-.PHONY: $(WASMDIR) $(ASMJSDIR) $(FAUSTDIR) $(XCODEDIR) $(VS14DIR) $(VS12DIR)
+.PHONY: faust $(WASMDIR) $(ASMJSDIR) $(FAUSTDIR) $(XCODEDIR) $(VS14DIR) $(VS12DIR)
 
 #===============================================================
 # options
@@ -127,9 +127,9 @@ linux:
 #===============================================================
 windows:
 	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
-	-[ -e $(FAUSTDIR)/faust.exe ] && cp $(FAUSTDIR)/faust.exe .
-	-[ -e $(FAUSTDIR)/faust.dll ] && cp $(FAUSTDIR)/faust.dll .
-	-[ -e $(FAUSTDIR)/faust.lib ] && cp $(FAUSTDIR)/faust.lib .
+	-cp $(FAUSTDIR)/faust.exe .
+	-cp $(FAUSTDIR)/libfaust.dll $(FAUSTDIR)/libfaust.dll.a .
+	-cp $(FAUSTDIR)/libfaust.a .
 
 vs14:
 	make _VS VSDIR=$(VS14DIR)$(ARCH) MSVC="C:\Program Files (x86)\Microsoft Visual Studio 14.0" GENERATOR="Visual Studio 14 2015" TASKS=$(TASKS)
