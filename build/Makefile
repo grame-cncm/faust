@@ -100,6 +100,7 @@ macos:
 	make _umake BACKENDS=$(BACKENDS) CMAKEOPT=$(CMAKEOPT) VERBOSE=$(VERBOSE) TASKS=$(TASKS)
 	make _maccp DIR=$(FAUSTDIR)
 
+xcode: CMAKEOPT ?= ""
 xcode:
 	@[ -d $(XCODEDIR) ] || mkdir $(XCODEDIR)
 	cd $(XCODEDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G Xcode
