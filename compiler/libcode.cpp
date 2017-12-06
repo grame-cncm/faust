@@ -62,6 +62,69 @@
 #pragma warning (disable: 4996)
 #endif
 
+
+static string makeBackendsString() {
+	stringstream backends;
+	const char* sep = " ";
+	backends << "DSP to";
+#if C_BUILD
+	backends << sep << "C";
+	sep = ", ";
+#endif
+
+#if CPP_BUILD
+	backends << sep << "C++";
+	sep = ", ";
+#endif
+
+#if FIR_BUILD
+	backends << sep << "FIR";
+	sep = ", ";
+#endif
+
+#if INTERP_BUILD
+	backends << sep << "Interpreter";
+	sep = ", ";
+#endif
+
+#if JAVA_BUILD
+	backends << sep << "Java";
+	sep = ", ";
+#endif
+
+#if JS_BUILD
+	backends << sep << "JavaScript";
+	sep = ", ";
+#endif
+
+#if LLVM_BUILD
+	backends << sep << "LLVM IR";
+	sep = ", ";
+#endif
+
+#if OCPP_BUILD
+	backends << sep << "old C++";
+	sep = ", ";
+#endif
+
+#if RUST_BUILD
+	backends << sep << "Rust";
+	sep = ", ";
+#endif
+
+#if ASMJS_BUILD
+	backends << sep << "asm.js";
+	sep = ", ";
+#endif
+
+#if WASM_BUILD
+	backends << sep << "WebAssembly (wast/wasm)";
+#endif
+	backends << " compiler";
+	return backends.str();
+}
+
+
 #if ASMJS_BUILD
 #include "asmjs_code_container.hh"
 #endif
@@ -601,7 +664,8 @@ static bool processCmdline(int argc, const char* argv[])
 
 static void printVersion()
 {
-	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, asm.js, WebAssembly (wast/wasm), Interpreter compiler, Version " << FAUSTVERSION << "\n";
+//	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, asm.js, WebAssembly (wast/wasm), Interpreter compiler, Version " << FAUSTVERSION << "\n";
+	cout << "FAUST : " << makeBackendsString() << ", Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
