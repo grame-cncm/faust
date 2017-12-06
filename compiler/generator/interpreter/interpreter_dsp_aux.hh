@@ -127,7 +127,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         if (!fOptimized) {
             fOptimized = true;
             // Bytecode optimization
-            if (!TRACE) {
+            if (TRACE == 0) {
                 fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
                 fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
                 fResetUIBlock = FIRInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
@@ -847,7 +847,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
         {
-            if (TRACE && !fInitialized) {
+            if (TRACE > 0 && !fInitialized) {
                 std::cout << "-------- DSP is not initialized ! --------" << std::endl;
             } else {
                 //std::cout << "compute " << count << std::endl;

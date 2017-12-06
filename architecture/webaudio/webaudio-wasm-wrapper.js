@@ -451,8 +451,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
         var time2 = performance.now();
         console.log("WASM compilation duration : " + (time2 - time1));
           
-        var factory = {};
-          
+        var factory = {};     
         factory.polyphony = [];  // Default mode
           
         factory.code = factory_code;
@@ -479,7 +478,6 @@ faust.readDSPFactoryFromMachineAux = function (factory_name, factory_code, helpe
         callback(factory);
     })
     .catch(function(error) { console.log(error); faust.error_msg = "Faust DSP factory cannot be compiled"; callback(null); });
-    
 }
 
 faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
@@ -1413,7 +1411,7 @@ var mydspProcessorString = `
 faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 {
 	// Create a generic AudioWorkletNode
-	var audio_node = new AudioWorkletNode(audio_context, factory.name,
+	var audio_node = new AudioWorkletNode(context, factory.name,
                                           { numberOfInputs: parseInt(factory.json_object.inputs),
                                             numberOfOutputs: parseInt(factory.json_object.outputs),
                                             channelCount: 1,
@@ -2993,7 +2991,7 @@ var mydsp_polyProcessorString = `
 faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, callback)
 {
 	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
-	var audio_node = new AudioWorkletNode(audio_context, factory.name + '_' + polyphony.toString() + "_poly",
+	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "_poly",
                                           { numberOfInputs: parseInt(factory.json_object.inputs),
                                             numberOfOutputs: parseInt(factory.json_object.outputs),
                                             channelCount: 1,
