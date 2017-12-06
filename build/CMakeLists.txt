@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.0)
+cmake_minimum_required(VERSION 3.4.0)
 project (faust)
 
 #######################################
@@ -38,9 +38,6 @@ option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures"	off )
 # Check output options
 if (UNIVERSAL AND NOT APPLE)
 	message(WARNING "UNIVERSAL option is only available on MacOS or iOS")
-endif()
-if (LIBSTATIC AND LIBSHARED AND WIN32)
-	message(WARNING "Conflict between shared and static names on Windows")
 endif()
 
 ####################################
@@ -132,33 +129,25 @@ endif()
 # LLVM 
 if (LLVM_BACKEND)
 	message(STATUS "Include LLVM backend")
-if (WIN32)
-	execute_process (COMMAND llvm-config.exe --version OUTPUT_VARIABLE LLVM_VERSION)
-	string (REGEX REPLACE "\n.*" "" LLVM_PACKAGE_VERSION ${LLVM_VERSION})
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+	if (WIN32)
+		set (LLVM_CONFIG llvm-config.exe)
+		execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
+		string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 
-	execute_process (COMMAND llvm-config.exe --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-	string (REGEX REPLACE "\n.*" "" LLVM_INCLUDE_DIRS ${LLVM_INCLUDE})
-
-	execute_process (COMMAND llvm-config.exe --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-	string (REGEX REPLACE "\n.*" "" LLVM_LDFLAGS ${LLVM_LDFLAGS_TMP})
-
-	execute_process (COMMAND llvm-config.exe --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-	string (REGEX REPLACE " *\n.*" "" LLVM_LIB ${LLVM_LIBS_TMP})
-
-#	set (LLVM_LIBS "${LLVM_LDFLAGS} ${LLVM_LIB}")
-	set (LLVM_LIBS "-L/c/msys64/mingw64/lib -lLLVM.dll")
-message ("LLVM_LIBS: ${LLVM_LIBS}")
-
-	execute_process (COMMAND llvm-config.exe --cppflags OUTPUT_VARIABLE LLVM_CXX_FLAGS)
-	string (REGEX REPLACE " *\n.*" "" LLVM_DEFINITIONS ${LLVM_CXX_FLAGS})
-else()
-	find_package(LLVM REQUIRED CONFIG)
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-	message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-	# Find the libraries that correspond to the LLVM components that we wish to use
-	llvm_map_components_to_libnames(LLVM_LIBS all)
-endif()
+		execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
+		string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
+		execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
+		string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
+		execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+		string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
+	else()
+		find_package(LLVM REQUIRED CONFIG)
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+		# Find the libraries that correspond to the LLVM components that we wish to use
+		llvm_map_components_to_libnames(LLVM_LIBS all)
+	endif()
 
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD -D${LLVM_VERSION})
@@ -166,12 +155,10 @@ endif()
 	file (GLOB BACKEND_H 	${BACKEND_H} 	${SRCDIR}/generator/llvm/*.hh)
 	set (FAUST_INC ${FAUST_INC} ${SRCDIR}/generator/llvm ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp)
 
-	execute_process (COMMAND llvm-config.exe --has-rtti OUTPUT_VARIABLE LLVM_RTTI)
-	string (REGEX REPLACE "\n.*" "" LLVM_HAS_RTTI ${LLVM_RTTI})
-	message(STATUS "LLVM has RTTI: ${LLVM_HAS_RTTI}")
-	if (${LLVM_HAS_RTTI} EQUAL "NO")
-		set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS ${LLVM_DEFINITIONS})
-	endif()
+	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms 
+	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
+	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
+	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS})
 endif()
 
 ####################################
@@ -200,7 +187,7 @@ elseif(LIBASMJS)
 endif()
 
 ####################################
-# faust libraries 
+# platform dependent settings 
 if(APPLE)
 	if (UNIVERSAL)
 		set (CMAKE_OSX_ARCHITECTURES "x86_64 i386")
@@ -208,11 +195,11 @@ if(APPLE)
 	endif()
 elseif(WIN32)
 	if ( ${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
-		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -std=c++11)
+		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__ -std=c++11)
 	endif()
-	set (FAUST_LIBS Ws2_32.lib)
+	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32.lib)
 else()
-	set (FAUST_LIBS -lpthread)
+	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
 
 
@@ -222,7 +209,6 @@ include_directories(${FAUST_INC} ${LLVM_INCLUDE_DIRS})
 
 ####################################
 # add definitions
-#add_definitions(${LLVM_DEFINITIONS} ${FAUST_DEFINITIONS})
 add_definitions (${FAUST_DEFINITIONS})
 
 ####################################
