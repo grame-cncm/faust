@@ -18,26 +18,22 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef __COMPATIBILITY__
 #define __COMPATIBILITY__
- 
+
 unsigned faust_alarm(unsigned seconds);
 
-#if defined(__MSYS__)
-#define faust_mkdir(path, attribute) mkdir(path, attribute)
-#elif defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
-#define faust_mkdir(path, attribute) mkdir(path)
-#elif !defined(WIN32)
-#define faust_mkdir(path, attribute) mkdir(path, attribute)
-#endif
-
-#ifdef _WIN32
+#if defined(_WIN32)
 #include <windows.h>
 #include <time.h>
 #include <assert.h>
 
+#if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define faust_mkdir(path, attribute) mkdir(path)
+#elif !defined(WIN32)
+#define faust_mkdir(path, attribute) mkdir(path, attribute)
+#endif
 
 #ifdef __MINGW32__
 // mingw has PATH_MAX defined in limits.h. Make sure that it's included.
@@ -52,7 +48,7 @@ unsigned faust_alarm(unsigned seconds);
                      + __GNUC_PATCHLEVEL__)
 
 #if GCC_VERSION < 40700
-struct timezone 
+struct timezone
 {
 	int  tz_minuteswest; /* minutes W of Greenwich */
 	int  tz_dsttime;     /* type of dst correction */
