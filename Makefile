@@ -16,6 +16,7 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
+BINLOCATION := build
 
 MAKEFILE := Makefile.unix
 
@@ -152,9 +153,9 @@ install :
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/include/faust/dsp/
 	mkdir -p $(prefix)/share/faust
-	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
-	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
-	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
+	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
+	([ -e $(BINLOCATION)/libfaust.$(LIB_EXT) ] && install $(BINLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
+	([ -e $(BINLOCATION)/libfaust.a ] && install $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
