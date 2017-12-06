@@ -27,7 +27,7 @@
 #include "math.h"
 
 
-#if (defined(__MINGW32__) || defined (_WIN32)) && !defined(__MSYS__)
+#if defined(__MINGW32__) || defined (_WIN32)
 // Simulate some Unix fonctions on Windows
 #include <time.h>
 
