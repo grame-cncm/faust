@@ -24,16 +24,16 @@
 
 unsigned faust_alarm(unsigned seconds);
 
-#if defined(_WIN32)
-#include <windows.h>
-#include <time.h>
-#include <assert.h>
-
 #if defined(__MINGW32__) || (defined(_MSC_VER) && _MSC_VER >= 1900)
 #define faust_mkdir(path, attribute) mkdir(path)
 #elif !defined(WIN32)
 #define faust_mkdir(path, attribute) mkdir(path, attribute)
 #endif
+
+#if defined(_WIN32)
+#include <windows.h>
+#include <time.h>
+#include <assert.h>
 
 #ifdef __MINGW32__
 // mingw has PATH_MAX defined in limits.h. Make sure that it's included.
