@@ -488,7 +488,8 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     
     // Creates module and context
     fContext = new LLVMContext();
-    fModule = new Module(string(LLVM_BACKEND_NAME) + ": v" + string(FAUSTVERSION), *fContext);
+    stringstream options; gGlobal->printCompilationOptions(options);
+    fModule = new Module(string(options.str()) + ", v" + string(FAUSTVERSION), *fContext);
 }
 #endif
 

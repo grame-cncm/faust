@@ -541,6 +541,7 @@ void global::init()
 
 void global::printCompilationOptions(ostream& dst)
 {
+    dst << gGlobal->gOutputLang << ", ";
     if (gSchedulerSwitch) {
         dst << "-sch"
         << " -vs " << gVecSize

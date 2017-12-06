@@ -39,7 +39,6 @@ void faustassert(bool cond)
     #endif
         std::stringstream str;
         str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
-        str << "lang: " << gGlobal->gOutputLang << ", ";
         str << "version: " << FAUSTVERSION << ", ";
         str << "options: "; gGlobal->printCompilationOptions(str);
         str << ")\n";
