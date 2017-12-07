@@ -120,7 +120,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         string fTarget;
         string fClassName;
         string fTypeName;
-        bool fIsDouble;
     
         newDspFun fNew;
         deleteDspFun fDelete;
@@ -136,6 +135,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         getSampleRateFun fGetSampleRate;
         computeFun fCompute;
         metadataFun fMetadata;
+        getSampleSizeFun fGetSampleSize;
     
         void* loadOptimize(const string& function);
     
@@ -200,8 +200,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         void setClassName(const string& class_name) { fClassName = class_name; }
     
-        void setIsDouble(bool is_double) { fIsDouble = is_double; }
-   
         llvm_dsp* createDSPInstance(dsp_factory* factory);
     
         void write(std::ostream* out, bool binary, bool small = false);

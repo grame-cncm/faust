@@ -33,8 +33,7 @@ using namespace std;
 
 #define offStrNum ((gGlobal->gFloatSize == 1) ? 2 : ((gGlobal->gFloatSize == 2) ? 3 : 0))
 
-#define audioPtrSize int(pow(2, offStrNum))
-#define audioSampleSize int(pow(2, offStrNum))
+#define audioPtrSize audioSampleSize()
 
 #define wasmBlockSize int(pow(2, 16))
 
@@ -54,10 +53,10 @@ inline int pow2limit(int x)
     return n;
 }
 
-// DSP size + (inputs + outputs) * (audioPtrSize + max_buffer_size * audioSampleSize), json_len
+// DSP size + (inputs + outputs) * (fsize() + max_buffer_size * audioSampleSize), json_len
 inline int genMemSize(int struct_size, int channels, int json_len)
 {
-    return std::max((pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize)))) / wasmBlockSize), 1);
+    return std::max((pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize())))) / wasmBlockSize), 1);
 }
 
 // Base class for textual 'wast' and binary 'wasm' visitors

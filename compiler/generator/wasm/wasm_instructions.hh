@@ -667,7 +667,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize()); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -675,7 +675,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize(); // Always use biggest size so that int/real access are correctly aligned
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);
@@ -1036,7 +1036,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (array_typed && array_typed->fSize > 1) {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                    fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += (array_typed->fSize * audioSampleSize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
                     faustassert(false);
@@ -1044,7 +1044,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             } else {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                    fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += audioSampleSize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Local variables declared by [var_num, type] pairs
                     faustassert(inst->fValue == nullptr);

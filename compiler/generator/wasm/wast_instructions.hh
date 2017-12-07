@@ -101,7 +101,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (array_typed && array_typed->fSize > 1) {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                    fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += (array_typed->fSize * audioSampleSize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
                     faustassert(false);
@@ -109,7 +109,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             } else {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                    fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += audioSampleSize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
                     // Local variable declaration has been previsouly separated as 'pure declaration' first, followed by 'store' later on (done in MoveVariablesInFront3)

@@ -501,7 +501,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
     :dsp_factory_imp("BitcodeDSP", sha_key, "", pathname_list)
 {
     startLLVMLibrary();
-    
+     
     init("BitcodeDSP", "");
     fSHAKey = sha_key;
     fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
@@ -552,7 +552,6 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fInstanceClear = 0;
     fCompute = 0;
     fClassName = "mydsp";
-    fIsDouble = false;
     fName = dsp_name;
     fTypeName = type_name;
     fExpandedDSP = "";
@@ -869,6 +868,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
+        fGetSampleSize = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
         endTiming("initJIT");
         return true;
      } catch (faustexception& e) { // Module does not contain the Faust entry points, or external symbol was not found...
@@ -990,6 +990,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
         fCompute = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
+        fGetSampleSize = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
         endTiming("initJIT");
         return true;
     } catch (...) { // Module does not contain the Faust entry points...
@@ -1123,7 +1124,7 @@ int llvm_dsp::getSampleRate()
 void llvm_dsp::buildUserInterface(UI* ui_interface)
 {
     UIGlue glue;
-    buildUIGlue(&glue, ui_interface, fFactory->getFactory()->fIsDouble);
+    buildUIGlue(&glue, ui_interface, (fFactory->getFactory()->fGetSampleSize() == sizeof(double)));
     fFactory->getFactory()->fBuildUserInterface(fDSP, &glue);
 }
 
@@ -1235,7 +1236,6 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                 factory_aux->setOptlevel(opt_level);
                 factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                 factory_aux->setName(name_app);
-                factory_aux->setIsDouble(isParam(argc, argv, "-double"));
                 factory = new llvm_dsp_factory(factory_aux);
                 gLLVMFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);

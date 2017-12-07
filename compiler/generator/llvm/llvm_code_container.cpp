@@ -303,14 +303,14 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 void LLVMCodeContainer::generateInfoFunctions(const string& classname, bool isvirtual)
 {
     // Input/Output method
-    generateGetInputs(subst("getNumInputs$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
-    generateGetOutputs(subst("getNumOutputs$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
+    generateGetInputs("getNumInputs" + classname, "dsp", false, isvirtual)->accept(fCodeProducer);
+    generateGetOutputs("getNumOutputs" + classname, "dsp", false, isvirtual)->accept(fCodeProducer);
 
     // Input Rates
-    generateGetInputRate(subst("getInputRate$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
+    generateGetInputRate("getInputRate" + classname, "dsp", false, isvirtual)->accept(fCodeProducer);
 
     // Output Rates
-    generateGetOutputRate(subst("getOutputRate$0", classname), "dsp", false, isvirtual)->accept(fCodeProducer);
+    generateGetOutputRate("getOutputRate" + classname, "dsp", false, isvirtual)->accept(fCodeProducer);
 }
 
 void LLVMCodeContainer::generateClassInitBegin()
@@ -855,7 +855,21 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateBuildUserInterfaceEnd();
     
     generateGetSize(fTypeBuilder.getSize());
-
+    
+    // Generate getSampleSize()
+    {
+        list<NamedTyped*> args;
+        BlockInst* block = InstBuilder::genBlockInst();
+        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(audioSampleSize())));
+            
+        // Creates function
+        FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
+        DeclareFunInst* function = InstBuilder::genDeclareFunInst("getSampleSize" + fKlassName, fun_type, block);
+        
+        // Generate it
+        function->accept(fCodeProducer);
+    }
+    
     // Compute
     generateCompute();
 

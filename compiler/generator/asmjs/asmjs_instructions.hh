@@ -158,7 +158,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
                 if (is_struct) {
                     // Keep pointer type
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, Typed::getPtrFromType(array_typed->fType->getType()));
-                    fStructOffset += (array_typed->fSize * fsize()); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += (array_typed->fSize * audioSampleSize()); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     // Should never happen...
                     faustassert(false);
@@ -166,7 +166,7 @@ class ASMJAVAScriptInstVisitor : public TextInstVisitor {
             } else {
                 if (is_struct) {
                     fFieldTable[inst->fAddress->getName()] = make_pair(fStructOffset, inst->fType->getType());
-                    fStructOffset += fsize(); // Always use biggest size so that int/real access are correctly aligned
+                    fStructOffset += audioSampleSize(); // Always use biggest size so that int/real access are correctly aligned
                 } else {
                     *fOut << "var " << inst->fAddress->getName();
                     if (inst->fValue) {
