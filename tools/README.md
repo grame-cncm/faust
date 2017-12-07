@@ -16,4 +16,4 @@ Currently the following tools are available :
   * an interleaved version (all audio channels are generated in a same 'waveform')
   * several 'waveforms' for separated mono channels
   * a resulting 'processor' that simply output all mono 'waveforms' 
-* `benchmark` folder contains additional tools to test C++, LLVM and Interpreter backends.
+* `benchmark` folder contains additional tools to test C++, LLVM, WebAssembly and Interpreter backends, and the performance of their generated code. 
