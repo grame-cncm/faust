@@ -38,6 +38,7 @@ cp impulsellvm /usr/local/bin/
 
 cp filesCompare /usr/local/bin/
 
+cp controlTools.h /usr/local/share/faust/
 cp impulsearch.cpp /usr/local/share/faust/
 cp impulsearch1.cpp /usr/local/share/faust/
 cp impulsearch2.cpp /usr/local/share/faust/

@@ -1,80 +1,10 @@
-#include <libgen.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <limits.h>
-#include <errno.h>
-#include <time.h>
-#include <ctype.h>
-#include <string>
-#include <map>
-#include <iostream>
-#include <math.h>
-#include <algorithm>
-#include <cfenv>
-#include <cmath>
-#include <cfloat>
 
-#include "faust/misc.h"
-#include "faust/gui/console.h"
-#include "faust/dsp/dsp.h"
-#include "faust/gui/FUI.h"
-#include "faust/gui/DecoratorUI.h"
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT double
+#endif
+
 #include "faust/gui/CGlue.h"
-#include "faust/audio/channels.h"
-
-using std::max;
-using std::min;
-
-#define kFrames 64
-
-using namespace std;
-
-//----------------------------------------------------------------------------
-// DSP control UI
-//----------------------------------------------------------------------------
-
-struct CheckControlUI : public GenericUI {
-    
-    vector<FAUSTFLOAT> fControlDefault;
-    vector<FAUSTFLOAT*> fControlZone;
-    
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addItem(zone, FAUSTFLOAT(0)); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    {
-        addItem(zone, init);
-    }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    {
-        addItem(zone, init);
-    }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-    {
-        addItem(zone, init);
-    }
-    
-    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init)
-    {
-        fControlZone.push_back(zone);
-        fControlDefault.push_back(init);
-    }
-    
-    bool checkDefaults()
-    {
-        for (int i = 0; i < fControlDefault.size(); i++) {
-            if (fControlDefault[i] != *fControlZone[i]) return false;
-        }
-        return true;
-    }
-    
-    void initRandom()
-    {
-        for (int i = 0; i < fControlZone.size(); i++) {
-            *fControlZone[i] = 0.123456789;
-        }
-    }
-};
+#include "/usr/local/share/faust/controlTools.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
@@ -85,18 +15,6 @@ struct CheckControlUI : public GenericUI {
 <<includeclass>>
 
 mydsp* DSP;
-
-static inline FAUSTFLOAT normalize(FAUSTFLOAT f)
-{
-    if (std::isnan(f)) {
-        cerr << "ERROR : isnan" << std::endl;
-        throw -1;
-    } else if (!std::isfinite(f)) {
-        cerr << "ERROR : !isfinite" << std::endl;
-        throw -1;
-    }
-    return (fabs(f) < FAUSTFLOAT(0.000001) ? FAUSTFLOAT(0.0) : f);
-}
 
 int main(int argc, char* argv[])
 {
