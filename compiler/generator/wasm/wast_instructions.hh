@@ -177,7 +177,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     tab(fTab, *fOut);
                     if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
-                        // emcc compiled functions are prefixed with '_'
+                        // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
                         *fOut << "(import $" << inst->fName << " \"env\" \"" << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
                     } else {
                         faustassert(false);

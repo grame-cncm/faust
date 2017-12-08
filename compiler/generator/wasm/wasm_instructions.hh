@@ -812,8 +812,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         
         for (auto& import : fFunImports) {
             *out << import.second.first;    // module
-            // Possibly map fastmath functions
-            *out << gGlobal->getMathFunction(import.second.second);  // base
+            // Possibly map fastmath functions, , emcc compiled functions are prefixed with '_'
+            *out << ("_" + gGlobal->getMathFunction(import.second.second));  // base
             *out << U32LEB(int32_t(ExternalKind::Function));
             *out << U32LEB(getFunctionTypeIndex(import.first));      // function type index
         }
