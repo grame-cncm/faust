@@ -41,6 +41,7 @@
 <li><a href="#amplitude-tracking">Amplitude Tracking</a><ul>
 <li><a href="#an.amp_follower"><code>(an.)amp_follower</code></a></li>
 <li><a href="#an.amp_follower_ud"><code>(an.)amp_follower_ud</code></a></li>
+<li><a href="#an.amp_follower_ar"><code>(an.)amp_follower_ar</code></a></li>
 </ul></li>
 <li><a href="#spectrum-analyzers">Spectrum-Analyzers</a><ul>
 <li><a href="#an.mth_octave_analyzer"><code>(an.)mth_octave_analyzer</code></a></li>
@@ -55,7 +56,6 @@
 <li><a href="#fast-fourier-transform-fft-and-its-inverse-ifft">Fast Fourier Transform (fft) and its Inverse (ifft)</a><ul>
 <li><a href="#an.fft"><code>(an.)fft</code></a></li>
 <li><a href="#an.ifft"><code>(an.)ifft</code></a></li>
-<li><a href="#an.amp_follower_ar"><code>(an.)amp_follower_ar</code></a></li>
 </ul></li>
 </ul></li>
 <li><a href="#basics.lib">basics.lib</a><ul>
@@ -1551,6 +1551,14 @@ TODO: potentially say something about demos.lib and demo functions here. Also, n
 <li>&quot;Digital Dynamic Range Compressor Design --- A Tutorial and Analysis&quot;, by Dimitrios Giannoulis, Michael Massberg, and Joshua D. Reiss <a href="http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf" class="uri">http://www.eecs.qmul.ac.uk/~josh/documents/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf</a></li>
 </ul>
 <hr />
+<h3 id="an.amp_follower_ar"><code>(an.)amp_follower_ar</code></h3>
+<p>Envelope follower with independent attack and release times. The release can be shorter than the attack (unlike in <code>amp_follower_ud</code> above).</p>
+<h4 id="usage-2">Usage</h4>
+<pre><code>_ : amp_follower_ar(att,rel) : _;</code></pre>
+<ul>
+<li>Author Jonatan Liljedahl, revised by RM</li>
+</ul>
+<hr />
 <h2 id="spectrum-analyzers">Spectrum-Analyzers</h2>
 <p>Spectrum-analyzers split the input signal into a bank of parallel signals, one for each spectral band. They are related to the Mth-Octave Filter-Banks in <code>filters.lib</code>. The documentation of this library contains more details about the implementation. The parameters are:</p>
 <ul>
@@ -1571,7 +1579,7 @@ TODO: potentially say something about demos.lib and demo functions here. Also, n
 </ul>
 <h3 id="an.mth_octave_analyzer"><code>(an.)mth_octave_analyzer</code></h3>
 <p>Octave analyzer. <code>mth_octave_analyzer[N]</code> are standard Faust functions.</p>
-<h4 id="usage-2">Usage</h4>
+<h4 id="usage-3">Usage</h4>
 <pre><code>_ : mth_octave_analyzer(O,M,ftop,N) : par(i,N,_); // Oth-order Butterworth
 _ : mth_octave_analyzer6e(M,ftop,N) : par(i,N,_); // 6th-order elliptic</code></pre>
 <p>Also for convenience:</p>
@@ -1590,7 +1598,7 @@ mth_octave_analyzer_default = mth_octave_analyzer6e;</code></pre>
 <p>Spectral Level: Display (in bar graphs) the average signal level in each spectral band.</p>
 <h3 id="an.mth_octave_spectral_level6e"><code>(an.)mth_octave_spectral_level6e</code></h3>
 <p>Spectral level display.</p>
-<h4 id="usage-3">Usage:</h4>
+<h4 id="usage-4">Usage:</h4>
 <pre><code>_ : mth_octave_spectral_level6e(M,ftop,NBands,tau,dB_offset) : _;</code></pre>
 <p>Where:</p>
 <ul>
@@ -1612,14 +1620,14 @@ half_octave_analyzer(N) = mth_octave_analyzer_default(2,10000,N);
 half_octave_filterbank(N) = mth_octave_filterbank_default(2,10000,N);
 octave_filterbank(N) = mth_octave_filterbank_default(1,10000,N);
 octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
-<h4 id="usage-4">Usage</h4>
+<h4 id="usage-5">Usage</h4>
 <p>See <code>mth_octave_spectral_level_demo</code> in <code>demos.lib</code>.</p>
 <hr />
 <h2 id="arbritary-crossover-filter-banks-and-spectrum-analyzers">Arbritary-Crossover Filter-Banks and Spectrum Analyzers</h2>
 <p>These are similar to the Mth-octave analyzers above, except that the band-split frequencies are passed explicitly as arguments.</p>
 <h3 id="an.analyzer"><code>(an.)analyzer</code></h3>
 <p>Analyzer.</p>
-<h4 id="usage-5">Usage</h4>
+<h4 id="usage-6">Usage</h4>
 <pre><code>_ : analyzer(O,freqs) : par(i,N,_); // No delay equalizer</code></pre>
 <p>Where:</p>
 <ul>
@@ -1633,7 +1641,7 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <p>Sliding FFTs that compute a rectangularly windowed FFT each sample</p>
 <h3 id="an.fft"><code>(an.)fft</code></h3>
 <p>Fast Fourier Transform (FFT)</p>
-<h4 id="usage-6">Usage</h4>
+<h4 id="usage-7">Usage</h4>
 <pre><code>si.cbus(N) : fft(N) : si.cbus(N);</code></pre>
 <p>Where:</p>
 <ul>
@@ -1659,21 +1667,13 @@ octave_analyzer(N) = mth_octave_analyzer_default(1,10000,N);</code></pre>
 <hr />
 <h3 id="an.ifft"><code>(an.)ifft</code></h3>
 <p>Inverse Fast Fourier Transform (IFFT)</p>
-<h4 id="usage-7">Usage</h4>
+<h4 id="usage-8">Usage</h4>
 <pre><code>si.cbus(N) : ifft(N) : si.cbus(N);</code></pre>
 <p>Where:</p>
 <ul>
 <li>N is the IFFT size (power of 2)</li>
 <li>Input is a complex spectrum represented as interleaved real and imaginary parts: (R0, I0), (R1,I1), (R2,I2), ...</li>
 <li>Output is a bank of N complex signals giving the complex signal in the time domain: (r0, i0), (r1,i1), (r2,i2), ...</li>
-</ul>
-<hr />
-<h3 id="an.amp_follower_ar"><code>(an.)amp_follower_ar</code></h3>
-<p>Envelope follower with independent attack and release times. The release can be shorter than the attack (unlike in <code>amp_follower_ud</code> above).</p>
-<h4 id="usage-8">Usage</h4>
-<pre><code>_ : amp_follower_ar(att,rel) : _;</code></pre>
-<ul>
-<li>Author Jonatan Liljedahl, revised by RM</li>
 </ul>
 <hr />
 <h1 id="basics.lib">basics.lib</h1>
