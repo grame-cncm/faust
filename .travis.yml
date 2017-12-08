@@ -42,7 +42,7 @@ matrix:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libmicrohttpd-dev llvm-3.8 llvm-3.8-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
+  - sudo apt-get install -y libmicrohttpd-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
 
 env:
   - LLVM_CONFIG=llvm-config-3.8
