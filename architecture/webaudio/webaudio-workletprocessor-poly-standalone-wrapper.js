@@ -599,7 +599,10 @@ mydsp_polyProcessor.importObject = {
         memoryBase: 0,
         tableBase: 0,
             
-        _absf: Math.abs,
+        // Integer version
+        _abs: Math.abs,
+        
+        // Float version
         _acosf: Math.acos,
         _asinf: Math.asin,
         _atanf: Math.atan,
@@ -619,8 +622,8 @@ mydsp_polyProcessor.importObject = {
         _sinf: Math.sin,
         _sqrtf: Math.sqrt,
         _tanf: Math.tan,
-            
-        _abs: Math.abs,
+           
+        // Double version
         _acos: Math.acos,
         _asin: Math.asin,
         _atan: Math.atan,
