@@ -33,7 +33,7 @@ do
         echo "faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-single' to execute only scalar test"
-        echo "Use '-fast' to execute only some tests"
+        echo "Use '-fast' to only execute some tests"
         echo "Use '-run <num>' to execute each test <num> times"
         echo "Use '-double' to compile DSP in double and set FAUSTFLOAT to double"
         echo "Use 'export CXX=/path/to/compiler' before running faustbench to change the C++ compiler"

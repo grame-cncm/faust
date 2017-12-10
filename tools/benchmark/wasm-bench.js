@@ -407,33 +407,17 @@ function bench(instance, display_handler)
 
 faust.createmydsp = function(display_handler)
 {
+    var module_memory = new WebAssembly.Memory({ initial: 512 });
+    
     var importObject = {
         env: {
             memoryBase: 0,
             tableBase: 0,
                 
-            absf: Math.abs,
-            acosf: Math.acos,
-            asinf: Math.asin,
-            atanf: Math.atan,
-            atan2f: Math.atan2,
-            ceilf: Math.ceil,
-            cosf: Math.cos,
-            expf: Math.exp,
-            floorf: Math.floor,
-            fmodf: function(x, y) { return x % y; },
-            logf: Math.log,
-            log10f: Math.log10,
-            max_f: Math.max,
-            min_f: Math.min,
-            remainderf: function(x, y) { return x - Math.round(x/y) * y; },
-            powf: Math.pow,
-            roundf: Math.fround,
-            sinf: Math.sin,
-            sqrtf: Math.sqrt,
-            tanf: Math.tan,
-            
-            _absf: Math.abs,
+            // Integer version
+            _abs: Math.abs,
+                
+            // Float version
             _acosf: Math.acos,
             _asinf: Math.asin,
             _atanf: Math.atan,
@@ -454,28 +438,7 @@ faust.createmydsp = function(display_handler)
             _sqrtf: Math.sqrt,
             _tanf: Math.tan,
                 
-            abs: Math.abs,
-            acos: Math.acos,
-            asin: Math.asin,
-            atan: Math.atan,
-            atan2: Math.atan2,
-            ceil: Math.ceil,
-            cos: Math.cos,
-            exp: Math.exp,
-            floor: Math.floor,
-            fmod: function(x, y) { return x % y; },
-            log: Math.log,
-            log10: Math.log10,
-            max_: Math.max,
-            min_: Math.min,
-            remainder:function(x, y) { return x - Math.round(x/y) * y; },
-            pow: Math.pow,
-            round: Math.fround,
-            sin: Math.sin,
-            sqrt: Math.sqrt,
-            tan: Math.tan,
-            
-            _abs: Math.abs,
+            // Double version
             _acos: Math.acos,
             _asin: Math.asin,
             _atan: Math.atan,
@@ -495,7 +458,8 @@ faust.createmydsp = function(display_handler)
             _sin: Math.sin,
             _sqrt: Math.sqrt,
             _tan: Math.tan,
-                
+            
+            memory: module_memory,
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
         }
     };

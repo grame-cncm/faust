@@ -417,7 +417,10 @@ faust.createmydsp = function(display_handler)
             tableBase: 0,
             _memset: function(a,b,c) { return 0; },
             
-            _absf: Math.abs,
+            // Integer version
+            _abs: Math.abs,
+                
+            // Float version
             _acosf: Math.acos,
             _asinf: Math.asin,
             _atanf: Math.atan,
@@ -437,8 +440,8 @@ faust.createmydsp = function(display_handler)
             _sinf: Math.sin,
             _sqrtf: Math.sqrt,
             _tanf: Math.tan,
-            
-            _abs: Math.abs,
+                
+            // Double version
             _acos: Math.acos,
             _asin: Math.asin,
             _atan: Math.atan,
@@ -458,7 +461,7 @@ faust.createmydsp = function(display_handler)
             _sin: Math.sin,
             _sqrt: Math.sqrt,
             _tan: Math.tan,
-            
+                
             memory: module_memory,
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
         }

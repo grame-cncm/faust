@@ -179,7 +179,8 @@ function startDSPAux(dsp)
     
     faustsvg = $('<div />');
     $('body').append(faustsvg);
-    output_handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, DSP_poly.setParamValue);
+   
+    output_handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg,  function(path, val) { DSP_poly.setParamValue(path, val); });
     DSP_poly.setOutputParamHandler(output_handler);
     
     // Load DSP state from local storage

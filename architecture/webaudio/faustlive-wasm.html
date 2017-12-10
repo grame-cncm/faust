@@ -870,6 +870,10 @@
 
             function compileDSP()
             {
+                if (!dsp_code) {
+                    return;
+                }
+
                 // If needed, deactivate running DSP
                 if (DSP) {
                     if (audio_input) {
@@ -883,10 +887,6 @@
                     }
                     DSP = null;
                     _f4u$t.hard_delete(faust_svg);
-                }
-
-                if (!dsp_code) {
-                    return;
                 }
 
                 // Prepare argv list
@@ -912,8 +912,7 @@
                                                         return;
                                                     }
                                                     compilePolyDSP(factory);
-                                               
-                                                });
+                                               });
                 } else {
 
                     isPoly = false;

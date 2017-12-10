@@ -42,7 +42,7 @@ Here are the available options:
 
  - `-ios to generate an iOS project`
  - `-single to only scalar test`
- - `-fast to onlyexecute  some tests`
+ - `-fast to only execute some tests`
  - `-run <num> to execute each test <num> times`
  - `-double to compile DSP in double and set FAUSTFLOAT to double`
 

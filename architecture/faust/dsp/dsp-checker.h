@@ -47,7 +47,7 @@ class dsp_checker : public decorator_dsp
                         fFP_NAN++;
                     } else if (std::isinf(value)) {
                         fFP_INFINITE++;
-                    } else if (!std::isnormal(value) && (value != FAUSTFLOAT(0))) {
+                    } else if (std::fpclassify(val) == FP_SUBNORMAL) {
                         fFP_SUBNORMAL++;
                     }
                 }

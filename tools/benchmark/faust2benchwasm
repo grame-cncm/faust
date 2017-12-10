@@ -3,6 +3,7 @@
 OPT="false"
 HTML="false"
 EMCC="false"
+JSMEM="false"
 
 #####################################################################
 #                                                                   #
@@ -29,10 +30,11 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2benchwasm [-opt] [-html] [-emcc] foo.dsp"
+        echo "faust2benchwasm [-opt] [-html] [-emcc] [-jsmem] foo.dsp"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-html' to generate an HTML page with the benchmark"
         echo "Use '-emcc' to compile C generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
+        echo "Use '-jsmem' to generate a wasm module and wrapper code using JavaScript side allocated wasm memory"
         exit
     elif [ $p = "-html" ]; then
         HTML="true"
@@ -40,6 +42,8 @@ for p in $@; do
         OPT="true"
     elif [ $p = "-emcc" ]; then
         EMCC="true"
+    elif [ $p = "-jsmem" ]; then
+        JSMEM="true"
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -63,6 +67,9 @@ for f in $FILES; do
         # generate the $name.js file
         faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
         emcc $name.c -O3 -s WASM=1 -s SIDE_MODULE=1 -s LEGALIZE_JS_FFI=0 -o $name.wasm || echo "emcc compilation error"
+    elif [ $JSMEM = "true" ]; then
+        # generate a wasm module using JS side wasm allocated memory
+        faust $OPTIONS -lang wasm-e "$f" -o $name.wasm || exit
     else
         faust $OPTIONS -lang wasm "$f" -o $name.wasm || exit
     fi
@@ -77,6 +84,9 @@ for f in $FILES; do
     sed -e "s/mydsp/"$name"/g" $name-tmp1.js >> $name-tmp2.js
     if [ $EMCC = "true" ]; then
         sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench-emcc.js >> $name-tmp2.js
+    elif [ $JSMEM = "true" ]; then
+        # wraps using JS side wasm allocated memory
+        sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench-jsmem.js >> $name-tmp2.js
     else
         sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/wasm-bench.js >> $name-tmp2.js
     fi

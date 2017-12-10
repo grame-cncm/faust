@@ -36,7 +36,7 @@ install:
  
 	cp faustbench-wasm $(prefix)/bin
 	cp faust2benchwasm $(prefix)/bin
-	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js $(prefix)/share/faust/webaudio
+	cp wasm-node-bench.js wasm-bench.js wasm-bench-emcc.js wasm-bench-jsmem.js $(prefix)/share/faust/webaudio
 	cp faustbench.cpp $(prefix)/share/faust
 	cp faustbench $(prefix)/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found

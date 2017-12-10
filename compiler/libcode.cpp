@@ -574,8 +574,8 @@ static bool processCmdline(int argc, const char* argv[])
         if (!(gGlobal->gOutputLang == "c"
             || gGlobal->gOutputLang == "cpp"
             || gGlobal->gOutputLang == "llvm"
-            || gGlobal->gOutputLang == "wast"
-            || gGlobal->gOutputLang == "wasm")) {
+            || startWith(gGlobal->gOutputLang, "wast")
+            || startWith(gGlobal->gOutputLang, "wasm"))) {
             stringstream error;
             error << "ERROR : -fm can only be used with c, cpp, or llvm backends" << endl;
             throw faustexception(error.str());
