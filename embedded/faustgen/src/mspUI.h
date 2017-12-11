@@ -316,6 +316,22 @@ class mspUI : public UI
             fUITable2.clear(); 
         }
     
+        void displayControls()
+        {
+            iterator it;
+            post((char*)"------- labels and ranges ----------");
+            for (it = fUITable1.begin(); it != fUITable1.end(); it++) {
+                char param[1024];
+                it->second->toString(param);
+                post(param);
+            }
+            post((char*)"------- complete paths ----------");
+            for (it = fUITable2.begin(); it != fUITable2.end(); it++) {
+                post(it->first.c_str());
+            }
+            post((char*)"---------------------------------");
+        }
+    
 };
 
 #endif

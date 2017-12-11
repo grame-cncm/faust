@@ -111,7 +111,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.60"
+#define EXTERNAL_VERSION "0.61"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -481,6 +481,23 @@ class mspUI : public UI
             fUITable1.clear(); 
             fUITable2.clear(); 
         }
+    
+        void displayControls()
+        {
+            iterator it;
+            post((char*)"------- labels and ranges ----------");
+            for (it = fUITable1.begin(); it != fUITable1.end(); it++) {
+                char param[1024];
+                it->second->toString(param);
+                post(param);
+            }
+            post((char*)"------- complete paths ----------");
+            for (it = fUITable2.begin(); it != fUITable2.end(); it++) {
+                post(it->first.c_str());
+            }
+            post((char*)"---------------------------------");
+        }
+    
 };
 
 //--------------------------------------------------------------------------
@@ -802,16 +819,11 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 /*--------------------------------------------------------------------------*/
 void faust_dblclick(t_faust* x, long inlet)
 {
-    post((char*)"------------------");
-    for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
-        char param[1024];
-        it->second->toString(param);
-        post(param);
-    }
+    x->m_dspUI->displayControls();
 }
 
 /*--------------------------------------------------------------------------*/
-//11/13/2015 : faust_assist is actually called at each click in the patcher... to we now use 'faust_dblclick' to display the parameters...
+//11/13/2015 : faust_assist is actually called at each click in the patcher, so we now use 'faust_dblclick' to display the parameters...
 void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
 {
     if (msg == ASSIST_INLET) {
@@ -821,14 +833,6 @@ void faust_assist(t_faust* x, void* b, long msg, long a, char* dst)
             } else {
                 sprintf(dst, "(signal) : Audio Input %ld", (a+1));
 			}
-            /*
-			post((char*)"------------------");
-			for (mspUI::iterator it = x->m_dspUI->begin1(); it != x->m_dspUI->end1(); ++it) {
-				char param[1024];
-				it->second->toString(param);
-				post(param);
-			}
-            */
         } else if (a < x->m_dsp->getNumInputs()) {
             sprintf(dst, "(signal) : Audio Input %ld", (a+1));
         }
@@ -855,8 +859,9 @@ void faust_free(t_faust* x)
     if (x->m_json) free(x->m_json);
     systhread_mutex_free(x->m_mutex);
 #ifdef MIDICTRL
-    delete x->m_midiHandler;
+    // m_midiUI *must* be deleted before m_midiHandler
     delete x->m_midiUI;
+    delete x->m_midiHandler;
 #endif
 }
 

@@ -1339,7 +1339,7 @@ void faustgen::dblclick(long inlet)
             break;
     
         case 1: 
-            // Display inside the max window the current values of the module's parameters, as well as their bounds
+            // Display inside the max window the current values of the module's parameters, as well as their ranges
             display_dsp_params();
             break;
             
@@ -1436,19 +1436,7 @@ void faustgen::display_dsp_source()
 // Display the Faust module's parameters along with their standard values
 void faustgen::display_dsp_params()
 {
-    if (fDSPUI.itemsCount() > 0) {
-        post("------------------");
-    }
-    
-    char param[1024];
-    for (mspUI::iterator it = fDSPUI.begin(); it != fDSPUI.end(); ++it) {
-        it->second->toString(param);
-        post(param);
-    };
-    
-    if (fDSPUI.itemsCount() > 0) {
-        post("------------------");
-    }
+    fDSPUI.displayControls();
     
     post("JSON : %s", fDSPfactory->get_json());
 }
