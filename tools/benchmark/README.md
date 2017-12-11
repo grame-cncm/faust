@@ -69,11 +69,13 @@ The **faustbench-wasm** tool tests a given DSP program in [node.js](https://node
 
 The **faust2benchwasm** tool generates an HTML page embedding benchmark code, to be tested in browsers, and displaying the performances as MBytes/sec and DSP CPU use.
 
-`faust2benchwasm [-opt] [-html] [-emcc] foo.dsp` 
+`faust2benchwasm [-opt] [-html] [-emcc] [-jsmem] [additional Faust options (-ftz 2...)] foo.dsp` 
 
-Here is the available option:
+Here is the available options:
 
 - `-opt to optimize the wasm module using Binaryen tools`
 - `-html to generate a ready to use HTML test page`
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
+- `-jsmem' to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
+
 

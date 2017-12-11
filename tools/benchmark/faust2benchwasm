@@ -30,7 +30,7 @@ fi
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2benchwasm [-opt] [-html] [-emcc] [-jsmem] foo.dsp"
+        echo "faust2benchwasm [-opt] [-html] [-emcc] [-jsmem] [additional Faust options (-ftz 2...)] foo.dsp"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-html' to generate an HTML page with the benchmark"
         echo "Use '-emcc' to compile C generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
@@ -59,6 +59,8 @@ done
 for f in $FILES; do
 
     name=$(basename "$f" .dsp)
+
+    echo "Compiled with additional options:$OPTIONS"
 
     # compile Faust to wasm
     if [ $EMCC = "true" ]; then
