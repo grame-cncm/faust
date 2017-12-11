@@ -76,6 +76,6 @@ Here is the available options:
 - `-opt to optimize the wasm module using Binaryen tools`
 - `-html to generate a ready to use HTML test page`
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
-- `-jsmem' to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
+- `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
 
 
