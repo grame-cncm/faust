@@ -317,6 +317,8 @@ debrevision = 1
 debsrc = faust2_$(debversion).orig.tar.gz
 debdist = faust2-$(debversion)
 
+submodules = libraries
+
 # This is used for automatically generated debian/changelog entries (cf. 'make
 # debchange'). Adjust as needed.
 debmsg = "Build from latest upstream source."
@@ -330,9 +332,9 @@ debversion:
 debchange:
 	dch -u $(debprio) -v $(debversion)-$(debrevision) $(debmsg) && dch -r ""
 
-debclean: $(debsrc)
+debclean:
 	rm -rf $(debdist)
-	rm -f faust2_$(version)+git*
+	rm -f faust2_$(version)+git* faust2-dbgsym_$(version)+git*
 
 deb: $(debsrc)
 	rm -rf $(debdist)
@@ -352,6 +354,15 @@ debsrc-us:
 	$(MAKE) deb DEBUILD_FLAGS="-S -us -uc"
 
 $(debsrc) :
-	git archive --format=tar.gz -o $(debsrc) --prefix=$(debdist)/ HEAD
+	rm -rf $(debdist)
+# Make sure that the submodules are initialized.
+	git submodule update --init
+# Grab the main source.
+	git archive --format=tar.gz --prefix=$(debdist)/ HEAD | tar xfz -
+# Grab the submodules.
+	for x in $(submodules); do (cd $(debdist) && rm -rf $$x && git -C ../$$x archive --format=tar.gz --prefix=$$x/ HEAD | tar xfz -); done
+# Create the source tarball.
+	tar cfz $(debsrc) $(debdist)
+	rm -rf $(debdist)
 
 # DO NOT DELETE
