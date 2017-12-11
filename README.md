@@ -2,7 +2,7 @@
 
 ## Grame, Centre National de Creation Musicale: <http://www.grame.fr>
 
-MASTER : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust) 
+master : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master)](https://travis-ci.org/grame-cncm/faust) 
 master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=master-dev)](https://travis-ci.org/grame-cncm/faust) 
 
 ## Introduction
@@ -48,10 +48,20 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 ## Compilation and Installation
 
-The build steps are the same for all the versions of Faust (Faust0 and Faust2). While Faust0 has no dependencies, the following elements are required to build Faust2:
+The following elements are required to build Faust:
 
 * `llvm/clang` (>= 3.8 / <= 5.0. Note that a 'universal' makefile target can be used to create 32/64 bits binaries. In this case LLVM has to be installed in universal mode [32/64 bits], so  for instance on OSX using MacPorts, using : `sudo port install llvm-3.xx +universal`)
 * `openssl` (has to be installed in universal mode [32/64 bits] if *make universal* is to be used).
+
+### Getting the source code
+
+In order to compile Faust on your machine you can either download the latest release of the source code <https://github.com/grame-cncm/faust/releases> or clone the git repository. In order to clone the git repository you will have to do the following steps:
+
+	git clone https://github.com/grame-cncm/faust.git 
+	cd faust
+	git submodule update --init
+	
+The last step `git submodule update --init` is a new one. This is due to the fact that the Faust libraries have been moved to an independent github repository <https://github.com/grame-cncm/faustlibraries.git>. This repository is a submodule of the Faust repository (as well as some other Faust related projects).
 
 ### Linux and MacOSX 
 
