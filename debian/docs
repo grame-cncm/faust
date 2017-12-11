@@ -1,3 +1,5 @@
 README.md
 documentation/*.pdf
 documentation/*.html
+libraries/doc/*.pdf
+libraries/doc/*.html
