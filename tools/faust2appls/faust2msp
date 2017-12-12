@@ -146,7 +146,8 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI `pkg-config --cflags --static --libs sndfile` -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+#$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI `pkg-config --cflags --static --libs sndfile` -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
