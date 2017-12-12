@@ -474,7 +474,7 @@ faust.createmydsp = function(display_handler)
         var dsp_bytes = os.file.readFile('mydsp.wasm', 'binary');
         WebAssembly.instantiate(dsp_bytes, importObject)
         .then(dsp_module => bench(dsp_module.instance, display_handler))
-        .catch(function(error) { console.log(error); faust.error_msg = "Faust karplus cannot be loaded or compiled"; });
+        .catch(function(error) { console.log(error); faust.error_msg = "Faust mydsp cannot be loaded or compiled"; });
     }
 }
 

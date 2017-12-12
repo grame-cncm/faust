@@ -110,7 +110,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.61"
+#define EXTERNAL_VERSION "0.62"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -585,6 +585,12 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 void faust_polyphony(t_faust* obj, t_symbol* s, short ac, t_atom* av)
 {
     if (systhread_mutex_lock(obj->m_mutex) == MAX_ERR_NONE) {
+    #ifdef MIDICTRL
+        mydsp_poly* poly = dynamic_cast<mydsp_poly*>(obj->m_dsp);
+        if (poly) {
+            obj->m_midiHandler->removeMidiIn(poly);
+        }
+    #endif
         // Delete old
         delete obj->m_dsp;
         obj->m_dspUI->clear();
