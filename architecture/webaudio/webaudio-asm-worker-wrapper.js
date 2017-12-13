@@ -258,9 +258,9 @@ faust.pow2limit = function (x) {
 faust.createDSPFactoryAux = function (code, argv, max_polyphony, callback) {
 
     if (max_polyphony > 0) {
-        code = "declare DSP \"POLY\";\n" + code;  
+        code = "declare DSP \"POLY\";\n" + code;
     } else {
-        code = "declare DSP \"MONO\";\n" + code;  
+        code = "declare DSP \"MONO\";\n" + code;
     }
   
     var sha_key = Sha1.hash(code, true);
@@ -856,12 +856,12 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
             
             // Then decide which one to steal
             if (oldest_date_release != Number.MAX_VALUE) {
-                console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice_release], fDate, voice_release);
+                console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", dsp_voices_date[voice_release], fDate, voice_release);
                 dsp_voices_date[voice_release] = fDate++;
                 dsp_voices_trigger[voice_release] = true;
                 return voice_release;
             } else {
-                console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", dsp_voices_date[voice_playing], fDate, voice_playing);
+                console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", dsp_voices_date[voice_playing], fDate, voice_playing);
                 dsp_voices_date[voice_playing] = fDate++;
                 dsp_voices_trigger[voice_playing] = true;
                 return voice_playing;
@@ -1139,7 +1139,7 @@ faust.createPolyDSPInstance = function (factory, context, buffer_size, callback)
                 // Release voice
                 dsp_voices_state[voice] = kReleaseVoice;
             } else {
-                console.log("Playing voice not found...\n");
+                console.log("Playing voice not found...");
             }
         },
             

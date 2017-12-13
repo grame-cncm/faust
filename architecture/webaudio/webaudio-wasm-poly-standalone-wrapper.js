@@ -26,6 +26,8 @@ faust.remap = function(v, mn0, mx0, mn1, mx1)
     return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
 }
 
+faust.debug = false;
+
 // Polyphonic Faust DSP
 
 /**
@@ -208,10 +210,12 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
 
         // Then decide which one to steal
         if (oldest_date_release != Number.MAX_VALUE) {
-            console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
+            if (faust.debug)
+                console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
             return sp.allocVoice(voice_release);
         } else if (oldest_date_playing != Number.MAX_VALUE) {
-            console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
+            if (faust.debug)
+                console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
             return sp.allocVoice(voice_playing);
         } else {
             return sp.kNoVoice;
@@ -524,7 +528,8 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     sp.keyOn = function (channel, pitch, velocity)
     {
         var voice = sp.getFreeVoice();
-        //console.log("keyOn voice %d", voice);
+        if (faust.debug)
+            console.log("keyOn voice %d", voice);
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
         sp.dsp_voices_state[voice] = pitch;
@@ -541,13 +546,15 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, memory, context, buff
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) {
-            //console.log("keyOff voice %d", voice);
+            if (faust.debug)
+                console.log("keyOff voice %d", voice);
             // No use of velocity for now...
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel, 0.0);
             // Release voice
             sp.dsp_voices_state[voice] = sp.kReleaseVoice;
         } else {
-            console.log("Playing voice not found...\n");
+            if (faust.debug)
+                console.log("Playing voice not found...");
         }
     }
 

@@ -178,6 +178,8 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         this.output_handler = function(path, value) { this.port.postMessage({ path: path, value: value }); };
         
+        this.debug = false;
+        
         this.ins = null;
         this.outs = null;
         this.mixing = null;
@@ -326,10 +328,12 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             
             // Then decide which one to steal
             if (oldest_date_release != Number.MAX_VALUE) {
-                console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d\n", this.dsp_voices_date[voice_release], this.fDate, voice_release);
+                if (this.debug)
+                    console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_release], this.fDate, voice_release);
                 return this.allocVoice(voice_release);
             } else if (oldest_date_playing != Number.MAX_VALUE) {
-                console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d\n", this.dsp_voices_date[voice_playing], this.fDate, voice_playing);
+                if (this.debug)
+                    console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_playing], this.fDate, voice_playing);
                 return this.allocVoice(voice_playing);
             } else {
                 return this.kNoVoice;
@@ -411,7 +415,8 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         this.keyOn = function (channel, pitch, velocity)
         {
             var voice = this.getFreeVoice();
-            //console.log("keyOn voice %d", voice);
+            if (this.debug)
+                console.log("keyOn voice %d", voice);
             this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel, this.midiToFreq(pitch));
             this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel, velocity/127.);
             this.dsp_voices_state[voice] = pitch;
@@ -421,13 +426,15 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
-                //console.log("keyOff voice %d", voice);
+                if (this.debug)
+                    console.log("keyOff voice %d", voice);
                 // No use of velocity for now...
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel, 0.0);
                 // Release voice
                 this.dsp_voices_state[voice] = this.kReleaseVoice;
             } else {
-                console.log("Playing voice not found...\n");
+                if (this.debug)
+                    console.log("Playing voice not found...");
             }
         }
         
