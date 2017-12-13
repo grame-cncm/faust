@@ -95,7 +95,7 @@ class FIRInterpreter  {
             if (TRACE >= 3) {
                 fRealStats[INTEGER_OVERFLOW]++;
             }
-            if (TRACE >= 4) {
+            if (TRACE >= 5) {
                 std::cout << "-------- Interpreter 'Overflow' warning trace start --------" << std::endl;
                 traceInstruction(it);
                 fTraceContext.write(&std::cout);
