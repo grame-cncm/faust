@@ -148,6 +148,16 @@ class MapUI : public UI, public PathBuilder
             while (index-- > 0 && it++ != fPathZoneMap.end()) {}
             return (*it).first;
         }
+    
+        std::string getParamAddress(FAUSTFLOAT* zone)
+        {
+            std::map<std::string, FAUSTFLOAT*>::iterator it = fPathZoneMap.begin();
+            do {
+                if ((*it).second == zone) return (*it).first;
+            }
+            while (it++ != fPathZoneMap.end());
+            return "";
+        }
 };
 
 #endif // FAUST_MAPUI_H

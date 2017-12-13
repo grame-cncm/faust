@@ -26,15 +26,71 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
+#include <algorithm>
 
 #include "faust/audio/dummy-audio.h"
 #include "faust/dsp/interpreter-dsp.h"
 #include "faust/gui/meta.h"
-#include "faust/gui/FUI.h"
+#include "faust/gui/DecoratorUI.h"
+#include "faust/gui/MapUI.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/misc.h"
 
 using namespace std;
+
+//----------------------------------------------------------------------------
+// DSP control UI
+//----------------------------------------------------------------------------
+
+struct CheckControlUI : public MapUI {
+    
+    struct ZoneDesc {
+        
+        FAUSTFLOAT fInit;
+        FAUSTFLOAT fMin;
+        FAUSTFLOAT fMax;
+        FAUSTFLOAT fStep;
+        
+        ZoneDesc(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+            :fInit(init), fMin(min), fMax(max), fStep(step)
+        {}
+    };
+    
+    vector<pair<FAUSTFLOAT*, ZoneDesc> > fControlZone;
+    
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)
+    {
+        MapUI::addButton(label, zone);
+        addItem(zone, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(1), FAUSTFLOAT(0));
+    }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)
+    {
+        MapUI::addCheckButton(label, zone);
+        addItem(zone, FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(1), FAUSTFLOAT(0));
+    }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        MapUI::addVerticalSlider(label, zone, init, min, max, step);
+        addItem(zone, init, min, max, step);
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        MapUI::addHorizontalSlider(label, zone, init, min, max, step);
+        addItem(zone, init, min, max, step);
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        MapUI::addNumEntry(label, zone, init, min, max, step);
+        addItem(zone, init, min, max, step);
+    }
+    
+    void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        fControlZone.push_back(make_pair(zone, ZoneDesc(init, min, max, step)));
+    }
+
+};
 
 list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -43,17 +99,17 @@ int main(int argc, char* argv[])
 {
     char name[256];
     char filename[256];
-    char rcfilename[256];
     char* home = getenv("HOME");
     
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(filename, 255, "%s", basename(argv[argc-1]));
-    snprintf(rcfilename, 255, "%s/.%s-%src", home, name, filename);
     
     int trace_mode = lopt(argv, "-trace", 0);
+    bool is_control = isopt(argv, "-control");
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 5) {
-        cout << "interp-trace -trace <1-5>  [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "interp-trace -trace <1-5> -control [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "-control to activate min/max control check\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
         cout << "-trace 3 to collect FP_SUBNORMAL, FP_INFINITE, FP_NAN, INTEGER_OVERFLOW and DIV_BY_ZERO\n";
@@ -68,7 +124,7 @@ int main(int argc, char* argv[])
     
     cout << "Compiled with additional options : ";
     for (int i = 1; i < argc-1; i++) {
-        if (string(argv[i]) == "-trace") {
+        if (string(argv[i]) == "-trace" || string(argv[i]) == "-control") {
             i++;
             continue;
         }
@@ -110,21 +166,34 @@ int main(int argc, char* argv[])
     GUI* interface = new GTKUI(filename, &argc, &argv);
     DSP->buildUserInterface(interface);
     
-    FUI* finterface = new FUI();
-    DSP->buildUserInterface(finterface);
-
-    // After audio.init that calls 'init'
-    finterface->recallState(rcfilename);
-
-    audio.start();
+    if (is_control) {
+        CheckControlUI ctl;
+        DSP->buildUserInterface(&ctl);
+        cout << "Check control min/max for " << ctl.fControlZone.size() << " controls" << endl;
+        for (int index = 0; index < ctl.fControlZone.size(); index++) {
+            cout << "------------------------------" << endl;
+            cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
+            FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
+            FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+            cout << "Min: " << min << endl;
+            *ctl.fControlZone[index].first = min;
+            audio.render();
+            cout << "Max: " << max << endl;
+            *ctl.fControlZone[index].first = max;
+            audio.render();
+        }
+        goto end;
+    } else {
+        audio.start();
+    }
+   
     interface->run();
     audio.stop();
     
-    finterface->saveState(rcfilename);
+end:
     
     delete DSP;
     delete interface;
-    delete finterface;
     
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     return 0;

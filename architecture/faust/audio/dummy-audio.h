@@ -59,7 +59,7 @@ class dummyaudio : public audio {
         int fSample;
         bool fManager;
     
-        static void* __run(void* ptr)
+        static void* run(void* ptr)
         {
             dummyaudio* audio = (dummyaudio*)ptr;
             audio->process();
@@ -138,7 +138,7 @@ class dummyaudio : public audio {
             fRender = fCount;
             fRunning = true;
             if (fCount == INT_MAX) {
-                if (pthread_create(&fAudioThread, 0, __run, this)) {
+                if (pthread_create(&fAudioThread, 0, run, this)) {
                     fRunning = false;
                 }
                 return fRunning;
