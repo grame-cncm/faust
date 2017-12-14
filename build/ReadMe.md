@@ -41,10 +41,22 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 
 
 ## Compiling on Windows
-The current Makefile assumes that Visual Studio 2015 is installed, however you can use any other development environment including Unix like environments like MSYS or MINGW.
+Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
 Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
 > pacman -S mingw-w64-x86_64-gcc
+
+To compile using Visual Studio, you'll have to configure manually your project using a commands prompt (e.g. Windows PowerShell):
+
+`> mkdir your_output_folder`  
+`> cd your_output_folder`  
+`> cmake -C ../backends.cmake .. -G "Visual Studio 14 2015 Win64"`
+
+Then you can open the Visual Studio solution located in `your_output_folder` or continue using the command line:
+
+`> cmake --build .`  
+
+
 
 
 ## Notes regarding the backends compilation
