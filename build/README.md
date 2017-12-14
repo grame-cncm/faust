@@ -39,7 +39,6 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 - CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
 -
 
-
 ## Compiling on Windows
 Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
@@ -55,9 +54,6 @@ To compile using Visual Studio, you'll have to configure manually your project u
 Then you can open the Visual Studio solution located in `your_output_folder` or continue using the command line:
 
 `> cmake --build .`  
-
-
-
 
 ## Notes regarding the backends compilation
 

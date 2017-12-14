@@ -48,7 +48,7 @@ faust:
 	make $(TARGET)
 
 clean:
-	cmake --build --target clean
+	cmake --build $(FAUSTDIR) --target clean
 
 #===============================================================
 help:
@@ -59,7 +59,7 @@ help:
 	@echo " 'dynamiclib' : builds the FAUST static library."
 	@echo " 'wasmlib'     : builds the FAUST compiler as a Web Assembly library"
 	@echo " 'asmjslib'    : builds the FAUST compiler as a ASM JS library"
-	@echo " 'cmake'       : regenerate the Makefile (or platform specific project)
+	@echo " 'cmake'       : regenerate the Makefile (or platform specific project)"
 	@echo " 'clean'       : clean remove the output of the 'faust' target"
 	@echo
 	@echo "Available options:"

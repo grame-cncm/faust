@@ -71,15 +71,14 @@ public:
 	}
 };
 
-inline void faustassert(bool cond)
+inline void stacktrace(int val)
 {
-	if (!cond) {
-#if !defined(EMCC) && !defined(WIN32)
-		void* array[20];
-		backtrace_symbols_fd(array, backtrace(array, 20), STDERR_FILENO);
+#ifndef EMCC
+    void* array[val];
+    backtrace_symbols_fd(array, backtrace(array, val), STDERR_FILENO);
 #endif
-		throw faustexception("ASSERT : please report the stack trace and the failing DSP file to Faust developers.\n");
-	}
 }
+
+void faustassert(bool cond);
 
 #endif

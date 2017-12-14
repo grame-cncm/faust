@@ -650,10 +650,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 
         std::map<int, int> fIntMap;
         std::map<int, T> fRealMap;
-    #ifdef INTERPRETER_TRACE
         bool fInitialized;
-    #endif
-
+ 
     public:
 
         interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)

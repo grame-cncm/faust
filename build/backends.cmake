@@ -9,7 +9,7 @@
 #    WASM      embed the backend in the faust wasm library
 
 
-set ( ASMJS_BACKEND  COMPILER ASMJS             CACHE STRING  "Include ASMJS backend"     FORCE )
+set ( ASMJS_BACKEND  COMPILER STATIC DYNAMIC ASMJS          CACHE STRING  "Include ASMJS backend"     FORCE )
 set ( C_BACKEND      COMPILER STATIC DYNAMIC    CACHE STRING  "Include C backend"         FORCE )
 set ( CPP_BACKEND    COMPILER STATIC DYNAMIC    CACHE STRING  "Include CPP backend"       FORCE )
 set ( FIR_BACKEND    COMPILER STATIC DYNAMIC    CACHE STRING  "Include FIR backend"       FORCE )
@@ -19,5 +19,5 @@ set ( JS_BACKEND     COMPILER STATIC DYNAMIC    CACHE STRING  "Include JAVASCRIP
 set ( LLVM_BACKEND   COMPILER STATIC DYNAMIC    CACHE STRING  "Include LLVM backend"      FORCE )
 set ( OLDCPP_BACKEND COMPILER STATIC DYNAMIC    CACHE STRING  "Include old CPP backend"   FORCE )
 set ( RUST_BACKEND   COMPILER STATIC DYNAMIC    CACHE STRING  "Include RUST backend"      FORCE )
-set ( WASM_BACKEND   WASM                       CACHE STRING  "Include WASM backend"      FORCE )
+set ( WASM_BACKEND  COMPILER STATIC DYNAMIC WASM   CACHE STRING  "Include WASM backend"      FORCE )
 
