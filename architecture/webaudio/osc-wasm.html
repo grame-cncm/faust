@@ -20,7 +20,6 @@ if (typeof (WebAssembly) === "undefined") {
 }
 
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-//var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var audio_context = null;
 var osc = null;
 
@@ -45,8 +44,8 @@ function changeVolume(event)
 function startosc()
 {
     // Create audio context
-    audio_context = new AudioContext();
-    
+    audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+  
     // Create the Faust generated node
     faust.createosc(audio_context, 1024,
                       function (node) {
