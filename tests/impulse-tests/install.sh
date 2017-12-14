@@ -10,7 +10,7 @@
 
 g++ -std=c++11 -O3 filesCompare.cpp -o filesCompare
 g++ -std=c++11 -O3 impulsearch3.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -I/opt/local/include -o impulseinterp
-g++ -std=c++11 -g impulsearch4.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -I/opt/local/include -o impulsellvm
+g++ -std=c++11 -O3 impulsearch4.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -I/opt/local/include -o impulsellvm
 
 cp faust2valgrind /usr/local/bin/
 

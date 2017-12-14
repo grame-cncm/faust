@@ -1,6 +1,5 @@
 
 # How to compile
-======================================================================
 
 ### Prerequisites
 - you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
@@ -37,7 +36,6 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 ## Usefull cmake options
 
 - CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
--
 
 ## Compiling on Windows
 Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
