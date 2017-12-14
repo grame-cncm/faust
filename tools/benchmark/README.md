@@ -20,7 +20,7 @@ Additional Faust compiler options can be given. Note that the Interpreter backen
 
 ## interp-trace
 
-The **interp-trace** tool runs and intruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE or FP_NAN values are produced. The -control mode allows to check controls value, by explicitly setting their *min* and *max* values (for now).
+The **interp-trace** tool runs and intruments the compiled program using the Interpreter backend. Various statistics on the code are collected and displayed while running and/or when closing the application, typically FP_SUBNORMAL, FP_INFINITE and FP_NAN values, or INTEGER_OVERFLOW and DIV_BY_ZERO operations. Mode 4 and 5 allow to display the stack trace of the running code when FP_INFINITE, FP_NAN or INTEGER_OVERFLOW values are produced. The -control mode allows to check control parameters, by explicitly setting their *min* and *max* values (for now).
 
 `interp-trace -trace <1-5> [additional Faust options (-ftz xx)] foo.dsp`
 

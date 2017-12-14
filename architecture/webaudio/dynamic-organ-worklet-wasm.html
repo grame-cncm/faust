@@ -156,6 +156,7 @@ function startorgan()
                                                                            console.log(organ.getParams());
                                                                            // Connect it to output as a regular WebAudio node
                                                                            organ.connect(audio_context.destination);
+                                                                           // Activate MIDI
                                                                            activateMIDIInput();
                                                                            });});
         }

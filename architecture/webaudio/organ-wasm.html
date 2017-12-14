@@ -1,0 +1,160 @@
+<html>
+<head>
+<H1> Faust generated polyphonic MIDI ready WebAudio node </H1>
+</head>
+<body>
+    
+<P> Organ volume:
+<input type="range" oninput="changeVolume(event) "min="-96" max="1" value="0" step="0.1"/>        
+
+
+<!-- Load 'faust2wasm' script generated .js file -->
+<script src="organ.js"></script>
+
+<script>
+    
+if (typeof (WebAssembly) === "undefined") {
+    alert("WebAssembly is not supported in this browser, the page will not work !")
+}
+
+var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
+//var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var audio_context = null;
+var organ = null;
+
+// Slider handler to change the 'organ' volume
+function changeVolume(event)
+{
+    var val = event.target.value;
+    val = parseFloat(val);
+    console.log(val);
+    organ.setParamValue("/organ/volume", val);
+}
+
+// MIDI input handling
+function keyOn(channel, pitch, velocity)
+{
+    if (organ) {
+        organ.keyOn(channel, pitch, velocity);
+    }
+}
+
+function keyOff(channel, pitch, velocity)
+{
+    if (organ) {
+        organ.keyOff(channel, pitch, velocity);
+    }
+}
+
+function pitchWheel(channel, bend)
+{
+    if (organ) {
+        organ.pitchWheel(channel, bend);
+    }
+}
+
+function ctrlChange(channel, ctrl, value)
+{
+    if (organ) {
+        organ.ctrlChange(channel, ctrl, value);
+    }
+}
+
+function midiMessageReceived(ev)
+{
+    var cmd = ev.data[0] >> 4;
+    var channel = ev.data[0] & 0xf;
+    var data1 = ev.data[1];
+    var data2 = ev.data[2];
+    
+    if (channel === 9) {
+        return;
+    } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
+        keyOff(channel, data1, data2);
+    } else if (cmd === 9) {
+        keyOn(channel, data1, data2);
+    } else if (cmd === 11) {
+        ctrlChange(channel, data1, data2);
+    } else if (cmd === 14) {
+        pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+    }
+}
+
+function onerrorcallback(error)
+{
+    console.log(error);
+}
+
+function onsuccesscallbackStandard(access)
+{
+    access.onstatechange = function(e) {
+        if (e.port.type === "input") {
+            if (e.port.state === "connected") {
+                console.log(e.port.name + " is connected");
+                e.port.onmidimessage = midiMessageReceived;
+            } else if (e.port.state  === "disconnected") {
+                console.log(e.port.name + " is disconnected");
+                e.port.onmidimessage = null;
+            }
+        }
+    }
+    
+    for (var input of access.inputs.values()) {
+        input.onmidimessage = midiMessageReceived;
+        console.log(input.name + " is connected");
+    }
+}
+
+function activateMIDIInput()
+{
+    console.log("activateMIDIInput");
+    if (typeof(navigator.requestMIDIAccess) !== "undefined") {
+        navigator.requestMIDIAccess().then(onsuccesscallbackStandard, onerrorcallback);
+    } else {
+        alert("MIDI input cannot be activated, either your browser still does't have it, or you need to explicitly activate it.");
+    }
+}
+
+
+function startorgan()
+{
+    // Create audio context
+    audio_context = new AudioContext();
+    
+    // Create the Faust generated node
+    faust.createorgan_poly(audio_context, 256, 16,
+                      function (node) {
+                            organ = node;
+                            console.log(organ.getJSON());
+                            // Print paths to be used with 'setParamValue'
+                            console.log(organ.getParams());
+                            // Connect it to output as a regular WebAudio node
+                            organ.connect(audio_context.destination);
+                            // Activate MIDI
+                            activateMIDIInput();
+                      });
+}
+
+// Load handler
+window.addEventListener('load', startorgan);
+
+// To activate audio on iOS
+window.addEventListener('touchstart', function() {
+                        
+                        // create empty buffer
+                        var buffer = audio_context.createBuffer(1, 1, 22050);
+                        var source = audio_context.createBufferSource();
+                        source.buffer = buffer;
+                        
+                        // connect to output (your speakers)
+                        source.connect(audio_context.destination);
+                        
+                        // play the file
+                        source.start();
+                        
+                        }, false);
+
+</script>
+
+</body>
+</html>

@@ -52,7 +52,10 @@ struct CheckControlUI : public MapUI {
         FAUSTFLOAT fMax;
         FAUSTFLOAT fStep;
         
-        ZoneDesc(FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+        ZoneDesc(FAUSTFLOAT init,
+                 FAUSTFLOAT min,
+                 FAUSTFLOAT max,
+                 FAUSTFLOAT step)
             :fInit(init), fMin(min), fMax(max), fStep(step)
         {}
     };
@@ -175,12 +178,17 @@ int main(int argc, char* argv[])
             cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
             FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
             FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+            FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
+            // Test min
             cout << "Min: " << min << endl;
             *ctl.fControlZone[index].first = min;
             audio.render();
+            *ctl.fControlZone[index].first = init; // reset to init
+            // Test max
             cout << "Max: " << max << endl;
             *ctl.fControlZone[index].first = max;
             audio.render();
+            *ctl.fControlZone[index].first = init; // reset to init
         }
         goto end;
     } else {
