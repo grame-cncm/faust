@@ -133,7 +133,7 @@ if(APPLE)
 		set (CMAKE_OSX_ARCHITECTURES "x86_64 i386")
 	endif()
 elseif(WIN32)
-	if ( NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32.lib)
@@ -150,15 +150,23 @@ endif()
 # Add the different targets
 add_executable(faust ${SRC} ${HH})
 set_target_properties(faust  PROPERTIES 
-	RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
 
 add_library(staticlib STATIC EXCLUDE_FROM_ALL ${SRC} ${HH})
+set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+
 add_library(dynamiclib SHARED EXCLUDE_FROM_ALL ${SRC} ${HH})
-set_target_properties(dynamiclib  staticlib PROPERTIES
-				OUTPUT_NAME faust
-				LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
-				ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
-				COMPILE_FLAGS  -DFAUST_LIB)
+if (WIN32)
+	set_target_properties(dynamiclib PROPERTIES 
+		ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
+		RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
+	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+	set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
+else()
+	set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
+	set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+endif()
+set_target_properties(dynamiclib  staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
 
 foreach (TARGET faust staticlib dynamiclib)
 	target_compile_definitions (${TARGET} PRIVATE ${FAUST_DEFINITIONS})
@@ -171,8 +179,8 @@ scan_backends (staticlib STATIC)
 scan_backends (dynamiclib DYNAMIC)
 
 ####################################
-if (NOT ${CMAKE_GENERATOR} STREQUAL "Xcode")
+if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
 else()
-	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode generator")
+	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
