@@ -16,7 +16,7 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
-BINLOCATION := build
+BINLOCATION := compiler
 
 MAKEFILE := Makefile.unix
 
