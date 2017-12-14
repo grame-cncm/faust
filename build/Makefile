@@ -9,12 +9,18 @@ system	:= $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), Darwin)
 	TARGET = unix
+	DLIBEXT = dylib
+	SLIBEXT = a
 else
 ifeq ($(system), MINGW)
 	TARGET = windows
+	DLIBEXT = dll
+	SLIBEXT = lib
 else
 ifeq ($(system), Linux)
 	TARGET = unix
+	DLIBEXT = so
+	SLIBEXT = a
 endif
 endif
 endif
@@ -25,8 +31,6 @@ CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 #===============================================================
 # output directories
 FAUSTDIR := faustdir
-BINDIR := bin
-LIBDIR := lib
 
 .PHONY: faust
 
@@ -44,7 +48,7 @@ faust:
 	make $(TARGET)
 
 clean:
-	rm -rf $(FAUSTDIR) $(BINDIR) $(LIBDIR)
+	cmake --build --target clean
 
 #===============================================================
 help:
@@ -72,31 +76,21 @@ help:
 #===============================================================
 # building faust on unix like systems
 #===============================================================
-unix: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(BINDIR)
+unix: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
-	cp $(FAUSTDIR)/faust $(BINDIR)
 
-
-staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS)
-	cp $(FAUSTDIR)/libfaust.a $(LIBDIR)
 
-dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) --target dynamiclib -- -j $(TASKS)
-	cp $(FAUSTDIR)/libfaust.dylib $(LIBDIR) || true
-	cp $(FAUSTDIR)/libfaust.so $(LIBDIR) || true
+
 
 #===============================================================
 # misc targets
 #===============================================================
 $(FAUSTDIR):
 	mkdir $(FAUSTDIR)
-
-$(BINDIR):
-	mkdir $(BINDIR)
-
-$(LIBDIR):
-	mkdir $(LIBDIR)
 
 $(FAUSTDIR)/Makefile: CMakeLists.txt $(BACKENDS)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
@@ -109,23 +103,20 @@ cmake:
 # building faust on windows
 # default is to build using MSYS makefiles
 #===============================================================
-windows: $(FAUSTDIR) $(BINDIR)
+windows: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G "MSYS Makefiles"
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
-	cp $(FAUSTDIR)/faust.exe $(BINDIR)		|| echo no faust.exe output
 
 #===============================================================
 # building faust with emscripten
 #===============================================================
-wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@make checkemcc
 	cmake --build $(FAUSTDIR) --target wasmlib -- -j $(TASKS)
-	cp $(FAUSTDIR)/emcc/libfaust-wasm.* $(LIBDIR)
 
-asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@make checkemcc
 	cmake --build $(FAUSTDIR) --target asmjslib -- -j $(TASKS)
-	cp $(FAUSTDIR)/emcc/libfaust.js $(LIBDIR)
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)

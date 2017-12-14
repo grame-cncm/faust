@@ -33,6 +33,7 @@ set_target_properties (asmjslib PROPERTIES
 
 set_target_properties(wasmlib asmjslib PROPERTIES  
 		COMPILE_FLAGS  -O3 
+		RUNTIME_OUTPUT_DIRECTORY ${LIBDIR}
 		SUFFIX ".js" )
 
 foreach (TARGET wasmlib asmjslib)

@@ -7,6 +7,9 @@ set (VERSION 2.5.6)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 set (SRCDIR ${ROOT}/compiler)
+set (BINDIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+set (LIBDIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+
 set (CMAKE_CXX_STANDARD 11)
 
 
@@ -146,11 +149,15 @@ endif()
 ####################################
 # Add the different targets
 add_executable(faust ${SRC} ${HH})
+set_target_properties(faust  PROPERTIES 
+	RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
 
 add_library(staticlib STATIC EXCLUDE_FROM_ALL ${SRC} ${HH})
 add_library(dynamiclib SHARED EXCLUDE_FROM_ALL ${SRC} ${HH})
 set_target_properties(dynamiclib  staticlib PROPERTIES
 				OUTPUT_NAME faust
+				LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
+				ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
 				COMPILE_FLAGS  -DFAUST_LIB)
 
 foreach (TARGET faust staticlib dynamiclib)
