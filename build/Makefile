@@ -8,13 +8,13 @@ system	:= $(shell uname -s)
 # normalizes MINGW versions
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), Darwin)
-	TARGET = linux
+	TARGET = unix
 else
 ifeq ($(system), MINGW)
 	TARGET = windows
 else
 ifeq ($(system), Linux)
-	TARGET = linux
+	TARGET = unix
 endif
 endif
 endif
@@ -70,12 +70,25 @@ help:
 
 
 #===============================================================
-# building faust on linux
+# building faust on unix like systems
 #===============================================================
-linux: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(BINDIR)
+unix: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(BINDIR)
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
 	cp $(FAUSTDIR)/faust $(BINDIR)
 
+
+staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS)
+	cp $(FAUSTDIR)/libfaust.a $(LIBDIR)
+
+dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
+	cmake --build $(FAUSTDIR) --target dynamiclib -- -j $(TASKS)
+	cp $(FAUSTDIR)/libfaust.dylib $(LIBDIR) || true
+	cp $(FAUSTDIR)/libfaust.so $(LIBDIR) || true
+
+#===============================================================
+# misc targets
+#===============================================================
 $(FAUSTDIR):
 	mkdir $(FAUSTDIR)
 
@@ -92,22 +105,12 @@ cmake:
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
 
 
-staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
-	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS)
-	cp $(FAUSTDIR)/libfaust.a $(LIBDIR)
-
-dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
-	cmake --build $(FAUSTDIR) --target dynamiclib -- -j $(TASKS)
-	cp $(FAUSTDIR)/libfaust.dylib $(LIBDIR) || true
-	cp $(FAUSTDIR)/libfaust.so $(LIBDIR) || true
-
-
 #===============================================================
 # building faust on windows
 # default is to build using MSYS makefiles
 #===============================================================
 windows: $(FAUSTDIR)
-	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G "MSYS Makefiles"
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
 	cp $(FAUSTDIR)/faust.exe $(BINDIR)		|| echo no faust.exe output
 
