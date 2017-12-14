@@ -1,4 +1,4 @@
-# 
+#
 # FAUST compiler makefile
 #
 
@@ -28,7 +28,7 @@ FAUSTDIR := faustdir
 BINDIR := bin
 LIBDIR := lib
 
-.PHONY: faust 
+.PHONY: faust
 
 #===============================================================
 # options
@@ -42,7 +42,7 @@ EMCC 	?= emcc
 # main target
 faust:
 	make $(TARGET)
-	
+
 clean:
 	rm -rf $(FAUSTDIR) $(BINDIR) $(LIBDIR)
 
@@ -57,12 +57,12 @@ help:
 	@echo " 'asmjslib'    : builds the FAUST compiler as a ASM JS library"
 	@echo " 'cmake'       : regenerate the Makefile (or platform specific project)
 	@echo " 'clean'       : clean remove the output of the 'faust' target"
-	@echo 
+	@echo
 	@echo "Available options:"
 	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '-DCMAKE_BUILD_TYPE=Release'"
 	@echo "  BACKENDS=<backends>         : see 'Backends' below"
 	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
-	@echo 
+	@echo
 	@echo "Backends:"
 	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
@@ -109,7 +109,7 @@ cmake:
 # building faust on windows
 # default is to build using MSYS makefiles
 #===============================================================
-windows: $(FAUSTDIR)
+windows: $(FAUSTDIR) $(BINDIR)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) .. -G "MSYS Makefiles"
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
 	cp $(FAUSTDIR)/faust.exe $(BINDIR)		|| echo no faust.exe output
@@ -126,10 +126,9 @@ asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile $(LIBDIR)
 	@make checkemcc
 	cmake --build $(FAUSTDIR) --target asmjslib -- -j $(TASKS)
 	cp $(FAUSTDIR)/emcc/libfaust.js $(LIBDIR)
-	
+
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
 
 undefined:
 	$(error System is undefined, not target available)
-
