@@ -2,26 +2,23 @@
 # How to compile
 ======================================================================
 
-### Prerequisite
+### Prerequisites
 - you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
 - you must have [LLVM](http://llvm.org/) installed to compile the llvm backend.
-- [Windows] you should have a unix like environment installed. [MSYS2](http://www.msys2.org/) is recommended and further windows specific notes assume it is.
+- on Windows, you should have MS [Visual Studio](http://www.microsoft.com/express/) installed. The current Makefile is targetting Visual Studio 14 2015 Win64. See Windows specific notes.
+
 
 ## Using the Makefile
 
-Simply type `make` in the `build` folder and on output you should get:
-- the faust compilers
-- the faust static library
-- the faust dynamic library
+Simply type `make` in the `build` folder to compile the **Faust** compiler.
+On output, you'll find applications in the `bin` folder and libraries in the `lib` folder.
 
-The build process is actually based on [cmake](https://cmake.org/). It is platform independant although platform specific targets are availble. Type `make help` for all details.
+Type `make help` for all details on targets and options.
 
-### Customizing the embedded backends
+## Customizing the embedded backends
 
-The file `backends.cmake` describes the `make` output and the embedded backends.
-You can freely customize this file to your needs.
-
-The file `emmcc.cmake` is used to compile the Web assembly and/or the ASMJS libraries. By default, the WASM backend is included in the Web assembly library and the ASMJS backend is included in the ASMJS library (that's hard coded in the CMakeList.txt) but you can freely customize the backends section.
+The file `backends.cmake` describes the embedded backends for each possible output.
+You can freely customize this file to your needs or use another one.
 
 
 ## Advanced settings with cmake
@@ -34,6 +31,22 @@ You can directly invoke `cmake` with the appropriate options. In this case, it i
 
 You can have a look at the `Makefile` for examples of cmake invocations.
 
+**Warning**: running cmake from the build folder may override the existing Makefile.
+
+
+## Usefull cmake options
+
+- CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
+-
+
+
+## Compiling on Windows
+The current Makefile assumes that Visual Studio 2015 is installed, however you can use any other development environment including Unix like environments like MSYS or MINGW.
+
+Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
+> pacman -S mingw-w64-x86_64-gcc
+
+
 ## Notes regarding the backends compilation
 
 ### Notes regarding LLVM
@@ -42,9 +55,8 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
 
 #### LLVM on windows:
-Install the following msys2 packages using pacman:
+Install the following msys2 packages using pacman if you compile using MSYS2 environment:
 - pacman -S mingw-w64-x86_64-llvm
-- pacman -S mingw-w64-x86_64-gcc
 
 #### LLVM on GNU/Linux:
 LLVM is generally available from the package manager but it might be an old version that don't statisfy the rtti constrain. In this case you should get a binary distribution from the [LLVM Releases page](http://releases.llvm.org/).
@@ -52,7 +64,14 @@ LLVM is generally available from the package manager but it might be an old vers
 Identified potential compile time errors:
 - cannot find -ledit -> sudo apt-get install libedit-dev
 
+#### LLVM on MacOS:
+
+While compiling with llvm 5.0.0 you may get the following link error:
+> Undefined symbols for architecture x86_64: "\_futimens"
+
+seems to be related to xcode version, the problem is not present using xcode 9
+
 
 ### Notes regarding the `interpreter` backend
 The 'interpreter' backend is not supported on windows using MSVC compilers
-This is due to label dereferencing operator && that is only supported by some versions of gcc.
+This is due to label dereferencing operator && that is only supported by gcc version 5 or greater.
