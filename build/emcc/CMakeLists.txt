@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.4.0)
 project (faustemcc)
 
 set ( CMAKE_OSX_DEPLOYMENT_TARGET	"")
-set ( CMAKE_OSX_SYSROOT 			"")
-set ( CMAKE_CXX_COMPILER 		  	"emcc")
+set ( CMAKE_OSX_SYSROOT 		"")
+set ( CMAKE_CXX_COMPILER 	"emcc")
 
 ####################################
 # emscripten support

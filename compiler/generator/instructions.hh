@@ -279,6 +279,8 @@ struct StatementInst : public Printable
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual StatementInst* clone(CloneVisitor* cloner) = 0;
+    
+    virtual string getName() { return ""; }
 };
 
 // Results from the compilation
@@ -1248,19 +1250,7 @@ struct ForLoopInst : public StatementInst
         fCode->pushBackInst(inst);
     }
     
-    string getLoopName()
-    {
-        DeclareVarInst* loop_decl1 = dynamic_cast<DeclareVarInst*>(fInit);
-        StoreVarInst* loop_decl2 = dynamic_cast<StoreVarInst*>(fInit);
-        if (loop_decl1) {
-            return loop_decl1->getName();
-        } else if (loop_decl2) {
-            return loop_decl2->getName();
-        } else {
-            faustassert(false);
-        }
-        return "";
-    }
+    string getName() { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1931,25 +1921,28 @@ struct InstBuilder
 
     // Function management
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new FunCallInst(name, args, false); }
+    { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new FunCallInst(name, args, method, size); }
+    { return new FunCallInst(name, args, method, size); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new DropInst(new FunCallInst(name, args, false)); }
+    { return new DropInst(new FunCallInst(name, args, false)); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new DropInst(new FunCallInst(name, args, method, size)); }
+    { return new DropInst(new FunCallInst(name, args, method, size)); }
 
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code = new BlockInst())
-        { return new ForLoopInst(init, end, increment, code); }
+    {
+        faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
+        return new ForLoopInst(init, end, increment, code);
+    }
   
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code)
-        { return new WhileLoopInst(cond, code); }
+    { return new WhileLoopInst(cond, code); }
 
     static BlockInst* genBlockInst(const list<StatementInst*>& code)
-        { return new BlockInst(code); }
+    { return new BlockInst(code); }
     static BlockInst* genBlockInst()
-        { return new BlockInst(); }
+    { return new BlockInst(); }
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type); // moved in instructions.cpp
