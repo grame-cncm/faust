@@ -39,6 +39,7 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 - CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
 -
 
+
 ## Compiling on Windows
 Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
@@ -55,6 +56,9 @@ Then you can open the Visual Studio solution located in `your_output_folder` or 
 
 `> cmake --build .`  
 
+
+
+
 ## Notes regarding the backends compilation
 
 ### Notes regarding LLVM
@@ -65,6 +69,12 @@ Then you can open the Visual Studio solution located in `your_output_folder` or 
 #### LLVM on windows:
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
 - pacman -S mingw-w64-x86_64-llvm
+
+Compiling using Visual Studio and LLVM 5.0.0 may lead to a link error:
+
+`Error	LNK1181	cannot open input file 'LTO-NOTFOUND.obj'`
+
+This is due to an incorrect `llvm-config` output. Open the solution and edit the project properties and remove the faulty input LTO-NOTFOUND entry from the `Linker->Input` section.
 
 #### LLVM on GNU/Linux:
 LLVM is generally available from the package manager but it might be an old version that don't statisfy the rtti constrain. In this case you should get a binary distribution from the [LLVM Releases page](http://releases.llvm.org/).
