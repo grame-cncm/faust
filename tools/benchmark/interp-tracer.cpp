@@ -90,6 +90,8 @@ struct CheckControlUI : public MapUI {
     
     void addItem(FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     {
+        // Reset to init
+        *zone = init;
         fControlZone.push_back(make_pair(zone, ZoneDesc(init, min, max, step)));
     }
 
@@ -161,7 +163,7 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     
-    dummyaudio audio(44100, 512, INT_MAX);
+    dummyaudio audio(44100, 4, INT_MAX);
     if (!audio.init(filename, DSP)) {
         return 0;
     }
@@ -170,27 +172,83 @@ int main(int argc, char* argv[])
     DSP->buildUserInterface(interface);
     
     if (is_control) {
-        CheckControlUI ctl;
-        DSP->buildUserInterface(&ctl);
-        cout << "Check control min/max for " << ctl.fControlZone.size() << " controls" << endl;
-        for (int index = 0; index < ctl.fControlZone.size(); index++) {
+        
+        // Check by setting each control to min, the max, then reset to init before going to next one
+        {
+            CheckControlUI ctl;
+            DSP->buildUserInterface(&ctl);
+            
             cout << "------------------------------" << endl;
-            cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
-            FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
-            FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
-            FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
-            // Test min
-            cout << "Min: " << min << endl;
-            *ctl.fControlZone[index].first = min;
-            audio.render();
-            *ctl.fControlZone[index].first = init; // reset to init
-            // Test max
-            cout << "Max: " << max << endl;
-            *ctl.fControlZone[index].first = max;
-            audio.render();
-            *ctl.fControlZone[index].first = init; // reset to init
+            cout << "Check control min/max for " << ctl.fControlZone.size() << " controls" << endl;
+            for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                cout << "------------------------------" << endl;
+                cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
+                FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
+                FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+                FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
+                // Test min
+                cout << "Min: " << min << endl;
+                *ctl.fControlZone[index].first = min;
+                audio.render();
+                *ctl.fControlZone[index].first = init; // reset to init
+                // Test max
+                cout << "Max: " << max << endl;
+                *ctl.fControlZone[index].first = max;
+                audio.render();
+                *ctl.fControlZone[index].first = init; // reset to init
+            }
         }
+        
+        // Check by setting each control to max, then min, then keeping to min before going to next one
+        {
+            CheckControlUI ctl;
+            DSP->buildUserInterface(&ctl);
+            
+            cout << "------------------------------" << endl;
+            cout << "Check control min/max successively keeping min for " << ctl.fControlZone.size() << " controls" << endl;
+            for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                cout << "------------------------------" << endl;
+                cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
+                FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
+                FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+                FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
+                // Test max
+                cout << "Max: " << max << endl;
+                *ctl.fControlZone[index].first = max;
+                audio.render();
+                // Test min
+                cout << "Min: " << min << endl;
+                *ctl.fControlZone[index].first = min;
+                audio.render();
+            }
+        }
+        
+        // Check by setting each control to min, then max, then keeping to max before going to next one
+        {
+            CheckControlUI ctl;
+            DSP->buildUserInterface(&ctl);
+            
+            cout << "------------------------------" << endl;
+            cout << "Check control min/max successively, keeping max for " << ctl.fControlZone.size() << " controls" << endl;
+            for (int index = 0; index < ctl.fControlZone.size(); index++) {
+                cout << "------------------------------" << endl;
+                cout << "Control: " << ctl.getParamAddress(ctl.fControlZone[index].first) << endl;
+                FAUSTFLOAT min = ctl.fControlZone[index].second.fMin;
+                FAUSTFLOAT max = ctl.fControlZone[index].second.fMax;
+                FAUSTFLOAT init = ctl.fControlZone[index].second.fInit;
+                // Test min
+                cout << "Min: " << min << endl;
+                *ctl.fControlZone[index].first = min;
+                audio.render();
+                // Test max
+                cout << "Max: " << max << endl;
+                *ctl.fControlZone[index].first = max;
+                audio.render();
+            }
+        }
+
         goto end;
+        
     } else {
         audio.start();
     }
