@@ -3,7 +3,7 @@
 #define FAUSTFLOAT double
 #endif
 
-#include "/usr/local/share/faust/controlTools.h"
+#include "controlTools.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code

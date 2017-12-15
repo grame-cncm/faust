@@ -4,7 +4,7 @@
 #endif
 
 #include "faust/dsp/interpreter-dsp.h"
-#include "/usr/local/share/faust/controlTools.h"
+#include "controlTools.h"
 
 int main(int argc, char* argv[])
 {

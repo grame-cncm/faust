@@ -4,7 +4,7 @@
 #endif
 
 #include "faust/gui/CGlue.h"
-#include "/usr/local/share/faust/controlTools.h"
+#include "controlTools.h"
 
 //----------------------------------------------------------------------------
 //FAUST generated code
