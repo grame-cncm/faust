@@ -31,6 +31,7 @@ zname := faust-$(version)
 
 all :
 	$(MAKE) -C build
+	$(MAKE) -C build staticlib
 	$(MAKE) -C architecture/osclib
 
 universal :
