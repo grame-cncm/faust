@@ -1,4 +1,5 @@
-LIB := ../../compiler
+#LIB := ../../compiler
+LIB ?= ../../build/lib
 FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
 #FASTMATH = ../../architecture/faust/dsp/fastmath-light.cpp
 
@@ -9,19 +10,19 @@ prefix := $(DESTDIR)$(PREFIX)
 
 all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk interp-tracer fastmath
 
-faustbench-llvm: faustbench-llvm.cpp
+faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
 
-faustbench-llvm-interp: faustbench-llvm-interp.cpp
-	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o faustbench-llvm-interp
+faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm-interp
 
-dynamic-jack-gtk: dynamic-jack-gtk.cpp
+dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
 
-dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
+dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp 
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin
 
-interp-tracer: interp-tracer.cpp
+interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 interp-tracer.cpp $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -lz -lncurses -lpthread -o interp-tracer
 
 fastmath: $(FASTMATH)
