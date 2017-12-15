@@ -14,6 +14,10 @@ notinlist() {
   return 0
 }
 
+PATH=../../build/bin:$PATH
+faust --version
+echo location $(which faust)
+
 ######################################################
 ## Test all scripts for faust errors and c++ errors ##
 ######################################################

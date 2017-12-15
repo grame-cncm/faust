@@ -1,5 +1,10 @@
 #!/bin/bash
 
+PATH=../../build/bin:$PATH
+faust --version
+echo location $(which faust)
+
+
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
