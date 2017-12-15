@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# set PATH to address faust in place
+PATH=$(PWD)/../../build/bin:..:$PATH
+export PATH
+faust --version
+echo location $(which faust)
+
 #####################################################################
 #                                                                   #
 #               Compare with the reference impulse responses        #

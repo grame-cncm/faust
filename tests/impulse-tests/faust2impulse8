@@ -42,7 +42,7 @@ for f in $FILES; do
     dirname=$(dirname "$f");
 
     # compile Faust to wast
-    faust $OPTIONS -a impulsearch5.rs -lang rust  "$f" -o "${f%.dsp}.rs" || exit
+    faust $OPTIONS -A .. -a impulsearch5.rs -lang rust  "$f" -o "${f%.dsp}.rs" || exit
 
     rustc "${f%.dsp}.rs"
 
