@@ -791,6 +791,25 @@
                 }
             }
             
+            function deleteDSP()
+            {
+                if (DSP) {
+                    if (audio_input) {
+                        audio_input.disconnect(DSP);
+                    }
+                    DSP.disconnect(audio_context.destination);
+                    if (isPoly) {
+                        faust.deletePolyDSPInstance(DSP);
+                    } else {
+                        faust.deleteDSPInstance(DSP);
+                    }
+                    _f4u$t.hard_delete(faust_svg);
+                    
+                    DSP = null;
+                    faust_svg = null;
+                }
+            }
+            
             function activateMonoDSP(dsp)
             {
                 if (!dsp) {
@@ -812,7 +831,7 @@
                 DSP.setOutputParamHandler(output_handler);
                 console.log(DSP.getNumInputs());
                 console.log(DSP.getNumOutputs());
-                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                 DSP.connect(audio_context.destination);
                 
                 loadDSPState();
@@ -840,7 +859,7 @@
                 DSP.setOutputParamHandler(output_handler);
                 console.log(DSP.getNumInputs());
                 console.log(DSP.getNumOutputs());
-                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                 DSP.connect(audio_context.destination);
                 
                 loadDSPState();
@@ -874,20 +893,7 @@
                     return;
                 }
 
-                // If needed, deactivate running DSP
-                if (DSP) {
-                    if (audio_input) {
-                        audio_input.disconnect(DSP);
-                    }
-                    DSP.disconnect(audio_context.destination);
-                    if (isPoly) {
-                        faust.deletePolyDSPInstance(DSP);
-                    } else {
-                        faust.deleteDSPInstance(DSP);
-                    }
-                    DSP = null;
-                    _f4u$t.hard_delete(faust_svg);
-                }
+                deleteDSP();
 
                 // Prepare argv list
                 var argv = [];
@@ -969,7 +975,7 @@
             // Init page
             initPage();
 
-            // Save DSP state to local storage
+            // Timer to save page and DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
             
             // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready

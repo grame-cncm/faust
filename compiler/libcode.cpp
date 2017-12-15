@@ -62,8 +62,8 @@
 #pragma warning (disable: 4996)
 #endif
 
-
-static string makeBackendsString() {
+static string makeBackendsString()
+{
 	stringstream backends;
 	const char* sep = " ";
 	backends << "DSP to";
@@ -123,7 +123,6 @@ static string makeBackendsString() {
 	backends << " compiler";
 	return backends.str();
 }
-
 
 #if ASMJS_BUILD
 #include "asmjs_code_container.hh"
@@ -664,7 +663,6 @@ static bool processCmdline(int argc, const char* argv[])
 
 static void printVersion()
 {
-//	cout << "FAUST : DSP to C, C++, Rust, LLVM IR, JAVA, JavaScript, asm.js, WebAssembly (wast/wasm), Interpreter compiler, Version " << FAUSTVERSION << "\n";
 	cout << "FAUST : " << makeBackendsString() << ", Version " << FAUSTVERSION << "\n";
 	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }

@@ -34,8 +34,8 @@ backend_objects = $(ba_asmjs:.cpp=.o) $(ba_c:.cpp=.o) $(ba_cpp:.cpp=.o) \
                 $(ba_js:.cpp=.o) $(ba_llvm:.cpp=.o) $(ba_rust:.cpp=.o) $(ba_wasm:.cpp=.o)
 
 # For Web compilation
-object_ba_asmjs = $(ba_asmjs:.cpp=.o)
-object_ba_wasm = $(ba_wasm:.cpp=.o)
+object_ba_asmjs = $(ba_asmjs:.cpp=.o) main-lib.o
+object_ba_wasm = $(ba_wasm:.cpp=.o) main-lib.o
 
 # For iOS compilation
 object_ba_interp = $(ba_interp:.cpp=.o)
@@ -570,7 +570,6 @@ generator/code_container.o: generator/floats.hh generator/fir_function_builder.h
 generator/code_container.o: generator/json_instructions.hh dsp_factory.hh generator/export.hh signals/recursivness.hh
 generator/code_container.o: generator/type_manager.hh generator/text_instructions.hh generator/fir_to_fir.hh
 generator/code_container.o: generator/fir/fir_instructions.hh generator/typing_instructions.hh
-generator/code_container.o: generator/struct_manager.hh
 generator/compile.o: errors/timing.hh generator/compile.hh signals/signals.hh errors/exception.hh tlib/tlib.hh
 generator/compile.o: tlib/symbol.hh garbageable.hh tlib/node.hh tlib/tree.hh tlib/num.hh tlib/list.hh tlib/shlysis.hh
 generator/compile.o: signals/binop.hh generator/interpreter/fir_opcode.hh generator/klass.hh signals/sigtype.hh

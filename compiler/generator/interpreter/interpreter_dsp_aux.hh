@@ -1108,7 +1108,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
 template <class T, int TRACE>
 dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* factory)
 {
-    interpreter_dsp_factory* tmp = dynamic_cast<interpreter_dsp_factory*>(factory);
+    interpreter_dsp_factory* tmp = static_cast<interpreter_dsp_factory*>(factory);
     faustassert(tmp);
 
     if (tmp->getMemoryManager()) {

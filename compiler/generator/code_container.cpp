@@ -28,7 +28,6 @@
 #include "global.hh"
 #include "type_manager.hh"
 #include "text_instructions.hh"
-#include "struct_manager.hh"
 #include "fir_to_fir.hh"
 
 using namespace std;
