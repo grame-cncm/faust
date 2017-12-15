@@ -16,7 +16,8 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
-BINLOCATION := compiler
+BINLOCATION := build/bin
+LIBLOCATION := build/lib
 
 MAKEFILE := Makefile.unix
 
@@ -29,12 +30,23 @@ zname := faust-$(version)
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 all :
-	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C build
 	$(MAKE) -C architecture/osclib
 
 universal :
-	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) universal
+	$(MAKE) -C build universal
 	$(MAKE) -C architecture/osclib
+	@echo 
+	@echo "### Universal mode is ON"
+	@echo "### You need to recompile"
+	@echo "### Use 'make native' to revert"
+	 
+
+native :
+	$(MAKE) -C build native
+	@echo 
+	@echo "### Universal mode is OFF"
+	@echo "### You need to recompile"
 
 # make world: This builds all the common targets for a fairly complete Faust
 # installation: Faust compiler and library, sound2faust utility, OSC and HTTPD
@@ -47,7 +59,7 @@ universal :
 world : all sound2faust httpd dynamic
 
 dynamic : all httpd
-	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
+	$(MAKE) -C build dynamiclib
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
 	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
@@ -78,20 +90,28 @@ ios-llvm :
 	$(MAKE) -C compiler ios-llvm -f $(MAKEFILE) prefix=$(prefix)
 
 asmjs :
-	$(MAKE) -C compiler asmjs -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C build asmjslib
 
 wasm :
-	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C build wasmlib
 
 light :
-	$(MAKE) -C compiler light -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C build cmake BACKENDS=light.cmake
+	@echo 
+	@echo "### Light version of backends is ON"
+	@echo "### You need to recompile"
+	@echo "### Use 'make backends' to revert"
+
+backends :
+	$(MAKE) -C build cmake BACKENDS=backends.cmake
+	@echo 
+	@echo "### Default version of backends is ON"
+	@echo "### You need to recompile"
 
 sound2faust :
-
 	$(MAKE) -C tools/sound2faust
 
 bench :
-
 	$(MAKE) -C tools/benchmark
 
 .PHONY: clean depend install uninstall dist parser help
@@ -119,10 +139,10 @@ help :
 	@echo "make log : make a changelog file"
 
 parser :
-	$(MAKE) -C compiler -f $(MAKEFILE) parser
+	$(MAKE) -C compiler/parser
 
 clean :
-	$(MAKE) -C compiler -f $(MAKEFILE) clean
+	$(MAKE) -C build clean
 	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
@@ -154,8 +174,8 @@ install :
 	mkdir -p $(prefix)/include/faust/dsp/
 	mkdir -p $(prefix)/share/faust
 	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
-	([ -e $(BINLOCATION)/libfaust.$(LIB_EXT) ] && install $(BINLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
-	([ -e $(BINLOCATION)/libfaust.a ] && install $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
+	([ -e $(LIBLOCATION)/libfaust.$(LIB_EXT) ] && install $(LIBLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
+	([ -e $(LIBLOCATION)/libfaust.a ] && install $(LIBLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
