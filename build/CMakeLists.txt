@@ -130,7 +130,7 @@ endif()
 if(APPLE)
 	if (UNIVERSAL)
 		message (STATUS "Compiles an universal binary")
-		set (CMAKE_OSX_ARCHITECTURES "x86_64 i386")
+		set (CMAKE_OSX_ARCHITECTURES x86_64 i386)
 	endif()
 elseif(WIN32)
 	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
@@ -184,3 +184,15 @@ if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL 
 else()
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
+
+
+####################################
+# install section
+####################################
+
+#install ( TARGETS faust staticlib dynamiclib
+#	RUNTIME DESTINATION bin 
+#    LIBRARY DESTINATION lib
+#    ARCHIVE DESTINATION lib 
+#    PUBLIC_HEADER DESTINATION include/faust
+#)
