@@ -587,7 +587,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (inst->fCode->size() == 0) return;
             
             // Local variables declaration including the loop counter have been moved outside of the loop
-            string name = inst->getLoopName();
+            string name = inst->getName();
             
             // Init loop counter
             inst->fInit->accept(this);

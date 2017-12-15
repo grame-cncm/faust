@@ -47,7 +47,7 @@ template <class T> map <string, FIRInstruction::Opcode> InterpreterInstVisitor<T
 template <class T>
 static FIRBlockInstruction<T>* getCurrentBlock()
 {
-    FIRBlockInstruction<T>* block = dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
+    FIRBlockInstruction<T>* block = static_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
     // Add kReturn in generated block
     block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
     return block;
@@ -56,13 +56,13 @@ static FIRBlockInstruction<T>* getCurrentBlock()
 template <class T>
 static InterpreterInstVisitor<T>* getInterpreterVisitor()
 {
-    return dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor);
+    return static_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor);
 }
 
 template <class T>
 static void setCurrentBlock(FIRBlockInstruction<T>* block)
 {
-    dynamic_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock = block;
+    static_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock = block;
 }
 
 template <class T>

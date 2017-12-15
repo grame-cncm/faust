@@ -279,6 +279,8 @@ struct StatementInst : public Printable
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual StatementInst* clone(CloneVisitor* cloner) = 0;
+    
+    virtual string getName() { return ""; }
 };
 
 // Results from the compilation
@@ -1248,19 +1250,7 @@ struct ForLoopInst : public StatementInst
         fCode->pushBackInst(inst);
     }
     
-    string getLoopName()
-    {
-        DeclareVarInst* loop_decl1 = dynamic_cast<DeclareVarInst*>(fInit);
-        StoreVarInst* loop_decl2 = dynamic_cast<StoreVarInst*>(fInit);
-        if (loop_decl1) {
-            return loop_decl1->getName();
-        } else if (loop_decl2) {
-            return loop_decl2->getName();
-        } else {
-            faustassert(false);
-        }
-        return "";
-    }
+    string getName() { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1309,7 +1299,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(DeclareFunInst* inst)
         {
-            return new DeclareFunInst(inst->fName, dynamic_cast<FunTyped*>(inst->fType->clone(this)), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
         virtual StatementInst* visit(DeclareTypeInst* inst)
         {
@@ -1374,14 +1364,14 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(IfInst* inst)
         {
-            return new IfInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fThen->clone(this)), dynamic_cast<BlockInst*>(inst->fElse->clone(this)));
+            return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)), static_cast<BlockInst*>(inst->fElse->clone(this)));
         }
         virtual StatementInst* visit(SwitchInst* inst)
         {
             SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
             list<pair <int, BlockInst*> >::const_iterator it;
             for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                cloned->addCase((*it).first, dynamic_cast<BlockInst*>(((*it).second)->clone(this)));
+                cloned->addCase((*it).first, static_cast<BlockInst*>(((*it).second)->clone(this)));
             }
             return cloned;
         }
@@ -1389,12 +1379,12 @@ class BasicCloneVisitor : public CloneVisitor {
         // Loop
         virtual StatementInst* visit(ForLoopInst* inst)
         {
-            return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
 
         virtual StatementInst* visit(WhileLoopInst* inst)
         {
-            return new WhileLoopInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new WhileLoopInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
 
         // Block
@@ -1428,9 +1418,9 @@ class BasicCloneVisitor : public CloneVisitor {
             list<NamedTyped*> cloned;
             list<NamedTyped*>::const_iterator it;
             for (it = typed->fArgsTypes.begin(); it != typed->fArgsTypes.end(); it++) {
-                cloned.push_back(dynamic_cast<NamedTyped*>((*it)->clone(this)));
+                cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
             }
-            return new FunTyped(cloned, dynamic_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
+            return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
         }
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
@@ -1438,7 +1428,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new StructTyped(typed->fName, typed->clone(this));
         }
 
-        virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(dynamic_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
+        virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
 
 };
 
@@ -1858,7 +1848,6 @@ struct InstBuilder
         Int32NumInst* int_num = dynamic_cast<Int32NumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
-      
         BasicTyped* typed = dynamic_cast<BasicTyped*>(typed_ext);
 
         if (!typed) {
@@ -1931,25 +1920,28 @@ struct InstBuilder
 
     // Function management
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new FunCallInst(name, args, false); }
+    { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new FunCallInst(name, args, method, size); }
+    { return new FunCallInst(name, args, method, size); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new DropInst(new FunCallInst(name, args, false)); }
+    { return new DropInst(new FunCallInst(name, args, false)); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new DropInst(new FunCallInst(name, args, method, size)); }
+    { return new DropInst(new FunCallInst(name, args, method, size)); }
 
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code = new BlockInst())
-        { return new ForLoopInst(init, end, increment, code); }
+    {
+        faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
+        return new ForLoopInst(init, end, increment, code);
+    }
   
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code)
-        { return new WhileLoopInst(cond, code); }
+    { return new WhileLoopInst(cond, code); }
 
     static BlockInst* genBlockInst(const list<StatementInst*>& code)
-        { return new BlockInst(code); }
+    { return new BlockInst(code); }
     static BlockInst* genBlockInst()
-        { return new BlockInst(); }
+    { return new BlockInst(); }
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type); // moved in instructions.cpp
