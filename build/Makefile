@@ -70,7 +70,23 @@ help:
 	@echo "Backends:"
 	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
+	@echo
+	@echo "Utilities:"
+	@echo " 'universal'   : [MacOSX] set the universal binaries option ON."
+	@echo " 'native'      : [MacOSX] set the universal binaries option OFF."
+	@echo " 'verbose'     : turn the verbose makefile option ON."
+	@echo " 'silent'      : turn the verbose makefile option OFF."
 
+
+
+#===============================================================
+# building universal binaries on macos
+#===============================================================
+universal: 
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DUNIVERSAL=ON ..
+
+native: 
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DUNIVERSAL=OFF ..
 
 
 #===============================================================
@@ -94,6 +110,12 @@ $(FAUSTDIR):
 
 $(FAUSTDIR)/Makefile: CMakeLists.txt $(BACKENDS)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
+
+verbose:
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DCMAKE_VERBOSE_MAKEFILE=ON ..
+
+silent:
+	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
 cmake:
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
