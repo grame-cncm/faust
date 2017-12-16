@@ -151,13 +151,13 @@ static Tree real_a2sb(Tree exp)
 			return result;
 
 		} else if (isBoxAbstr(abstr, var, body)) {
-			// Here we have remaining abstraction that we will try to 
+			// Here we have remaining abstraction that we will try to
 			// transform in a symbolic box by applying it to a slot
 
-			Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 
+			Tree slot = boxSlot(++gGlobal->gBoxSlotNumber);
 			stringstream s; s << boxpp(var);
 			setDefNameProperty(slot, s.str()); // ajout YO
-			
+
 			// Apply the abstraction to the slot
 			Tree result = boxSymbolic(slot, a2sb(eval(body, visited, pushValueDef(var, slot, localValEnv))));
 
@@ -167,21 +167,21 @@ static Tree real_a2sb(Tree exp)
 
         } else if (isBoxEnvironment(abstr)) {
             return abstr;
-	
+
 		} else {
             evalerror(yyfilename, -1, "a2sb : internal error : not an abstraction inside closure", exp);
             // Never reached...
             return 0;
         }
-		
+
 	} else if (isBoxPatternMatcher(exp)) {
-		// Here we have remaining PM rules that we will try to 
+		// Here we have remaining PM rules that we will try to
 		// transform in a symbolic box by applying it to a slot
-		
-		Tree slot = boxSlot(++gGlobal->gBoxSlotNumber); 			
+
+		Tree slot = boxSlot(++gGlobal->gBoxSlotNumber);
 		stringstream s; s << "PM" << gGlobal->gBoxSlotNumber;
 		setDefNameProperty(slot, s.str());
-		
+
 		// apply the PM rules to the slot and transfoms the result in a symbolic box
 		Tree result = boxSymbolic(slot, a2sb(applyList(exp, cons(slot,gGlobal->nil))));
 
@@ -259,7 +259,7 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 {
 	Tree	id;
 	Tree 	result;
-	
+
     if (!getEvalProperty(exp, localValEnv, result)) {
         gGlobal->gLoopDetector.detect(cons(exp, localValEnv));
         //cerr << "ENTER eval("<< *exp << ") with env " << *localValEnv << endl;
@@ -267,7 +267,7 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 		setEvalProperty(exp, localValEnv, result);
         //cerr << "EXIT eval(" << *exp << ") IS " << *result << " with env " << *localValEnv << endl;
 		if (getDefNameProperty(exp, id)) {
-			setDefNameProperty(result, id);		// propagate definition name property 
+			setDefNameProperty(result, id);		// propagate definition name property
 		}
 	}
 	return result;
@@ -297,17 +297,17 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	//cerr << "EVAL " << *exp << " (visited : " << *visited << ")" << endl;
     //cerr << "REALEVAL of " << *exp << endl;
-	
+
 	xtended* xt = (xtended*) getUserData(exp);
 
 	// constants
 	//-----------
-	
-	if ( 	xt || 
-			isBoxInt(exp) || isBoxReal(exp) || 
+
+	if ( 	xt ||
+			isBoxInt(exp) || isBoxReal(exp) ||
 			isBoxWire(exp) || isBoxCut(exp) ||
-			isBoxPrim0(exp) || isBoxPrim1(exp) || 
-			isBoxPrim2(exp) || isBoxPrim3(exp) || 
+			isBoxPrim0(exp) || isBoxPrim1(exp) ||
+			isBoxPrim2(exp) || isBoxPrim3(exp) ||
 			isBoxPrim4(exp) || isBoxPrim5(exp) ||
             isBoxFFun(exp) || isBoxFConst(exp) || isBoxFVar(exp) ||
             isBoxWaveform(exp)) {
@@ -315,7 +315,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	// block-diagram constructors
 	//---------------------------
-	
+
 	} else if (isBoxSeq(exp, e1, e2)) {
 		return boxSeq(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
 
@@ -330,7 +330,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	} else if (isBoxMerge(exp, e1, e2)) {
 		return boxMerge(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
-		
+
 	// Modules
 	//--------
 
@@ -377,7 +377,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	// user interface elements
 	//------------------------
-	
+
 	} else if (isBoxButton(exp, label)) {
 		const char* l1 = tree2str(label);
         string l2 = evalLabel(l1, visited, localValEnv);
@@ -453,14 +453,14 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	// lambda calculus
 	//----------------
-		
+
 	} else if (isBoxIdent(exp)) {
 		return evalIdDef(exp, visited, localValEnv);
 
 	} else if (isBoxWithLocalDef(exp, body, ldef)) {
         Tree expandedldef = gGlobal->gReader.expandList(ldef);
         return eval(body, visited, pushMultiClosureDefs(expandedldef, visited, localValEnv));
-	
+
 	} else if (isBoxAppl(exp, fun, arg)) {
         return applyList( eval(fun, visited, localValEnv),
 						  revEvalList(arg, visited, localValEnv) );
@@ -488,7 +488,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
 	// Algorithmic constructions
 	//--------------------------
-	
+
 	} else if (isBoxIPar(exp, var, num, body)) {
 		int n = eval2int(num, visited, localValEnv);
 		return iteratePar(var, n, body, visited, localValEnv);
@@ -516,7 +516,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             error << "ERROR : can't evaluate ' : " << *exp << endl;
             throw faustexception(error.str());
         }
-  
+
     } else if (isBoxOutputs(exp, body)) {
         int ins, outs;
         Tree b = a2sb(eval(body, visited, localValEnv));
@@ -528,15 +528,15 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             throw faustexception(error.str());
         }
 
-	} else if (isBoxSlot(exp)) 		{ 
-		return exp; 
-	
+	} else if (isBoxSlot(exp)) 		{
+		return exp;
+
 	} else if (isBoxSymbolic(exp)) 	{
 	 	return exp;
 
 	// Pattern matching extension
 	//---------------------------
-	
+
 	} else if (isBoxCase(exp, rules)) {
         return evalCase(rules, localValEnv);
 
@@ -587,7 +587,7 @@ bool getNumericProperty(Tree t, Tree& num)
  * Simplify a block-diagram pattern by computing its numerical sub-expressions
  * \param pattern an evaluated block-diagram
  * \return a simplified pattern
- * 
+ *
  */
 /* uncomment for debugging output */
 //#define DEBUG
@@ -635,10 +635,10 @@ static bool isBoxNumeric (Tree in, Tree& out)
 }
 
 static Tree patternSimplification (Tree pattern)
-{	
+{
 	Node 	n(0);
 	Tree 	v, t1, t2;
-	
+
 	if (isBoxNumeric(pattern, v)) {
 		return v;
 	} else if (isBoxPatternOp(pattern, n, t1, t2)) {
@@ -722,7 +722,7 @@ static void writeIdentValue(string& dst, const string& format, const string& ide
     int     n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
     int     i = min(4,max(f,0));
     char    val[256];
-    
+
     snprintf(val, 250, Formats[i], n);
     dst += val;
 }
@@ -815,7 +815,7 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
     if (num == 0) {
         evalerror(yyfilename, -1, "iteratePar called with 0 iterations", id);
     }
-   
+
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
     for (int i = num-2; i >= 0; i--) {
         res = boxPar(eval(body, visited, pushValueDef(id, tree(i), localValEnv)), res);
@@ -959,9 +959,9 @@ static Tree nwires(int n)
 }
 
 /**
- * Apply a function to a list of arguments. 
+ * Apply a function to a list of arguments.
  * Apply a function F to a list of arguments (a,b,c,...).
- * F can be either a closure over an abstraction, or a 
+ * F can be either a closure over an abstraction, or a
  * pattern matcher. If it is not the case then we have :
  * F(a,b,c,...) ==> (a,b,c,...):F
  *
@@ -981,7 +981,7 @@ static Tree applyList (Tree fun, Tree larg)
 
 	Tree id;
 	Tree body;
-	
+
 	Automaton*	automat;
 	int			state;
 
@@ -999,10 +999,10 @@ static Tree applyList (Tree fun, Tree larg)
 		Tree 			result;
 		int 			state2;
 		vector<Tree>	envVect;
-		
+
 		list2vec(envList, envVect);
         //cerr << "applyList/apply_pattern_matcher(" << automat << "," << state << "," << *hd(larg) << ")" << endl;
-		state2 = apply_pattern_matcher(automat, state, hd(larg), result, envVect);
+		state2 = apply_pattern_matcher(automat, state, boxSimplification(hd(larg)), result, envVect);
         //cerr << "state2 = " << state2 << "; result = " << *result << endl;
 		if (state2 >= 0 && isNil(result)) {
 			// we need to continue the pattern matching
@@ -1011,7 +1011,7 @@ static Tree applyList (Tree fun, Tree larg)
 						tl(larg) );
 		} else if (state2 < 0) {
 		    stringstream error;
-            error << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules)) 
+            error << "ERROR : pattern matching failed, no rule of " << boxpp(boxCase(originalRules))
 				 << " matches argument list " << boxpp(reverse(cons(hd(larg), revParamList))) << endl;
             throw faustexception(error.str());
 		} else {
@@ -1025,12 +1025,12 @@ static Tree applyList (Tree fun, Tree larg)
 				cerr << "wrong result from pattern matching (not a closure) : " << boxpp(result) << endl;
 				return boxError();
 			}
-		}			
+		}
 	}
 	if (!isClosure(fun, abstr, globalDefEnv, visited, localValEnv)) {
 		// principle : f(a,b,c,...) ==> (a,b,c,...):f
          int ins, outs;
-         
+
          // check arity of function
          Tree efun = a2sb(fun);
          //cerr << "TRACEPOINT 1 : " << boxpp(efun) << endl;
@@ -1039,7 +1039,7 @@ static Tree applyList (Tree fun, Tree larg)
          	// hope for the best
          	return boxSeq(larg2par(larg), fun);
          }
- 
+
          // check arity of arg list
          if (!boxlistOutputs(larg, &outs)) {
          	// we don't know yet the output arity of larg. Therefore we can't
@@ -1047,7 +1047,7 @@ static Tree applyList (Tree fun, Tree larg)
             // cerr << "warning : can't infere the type of : " << boxpp(larg) << endl;
          	return boxSeq(larg2par(larg), fun);
          }
-		
+
 		if (outs > ins) {
             stringstream error;
 			error << "too much arguments : " << outs << ", instead of : " << ins << endl;
@@ -1055,7 +1055,7 @@ static Tree applyList (Tree fun, Tree larg)
             << "to : " << boxpp(larg) << endl;
             throw faustexception(error.str());
 		}
-		
+
         if ((outs == 1) &&
             ((isBoxPrim2(fun, &p2) && (p2 != sigPrefix))
             ||(getUserData(fun) && ((xtended*)getUserData(fun))->isSpecialInfix()))) {
@@ -1081,7 +1081,7 @@ static Tree applyList (Tree fun, Tree larg)
 	// try to synthetise a  name from the function name and the argument name
 	{
 		Tree arg = eval(hd(larg), visited, localValEnv);
-		Tree narg; if ( isBoxNumeric(arg,narg) ) { arg =  narg; } 
+		Tree narg; if ( isBoxNumeric(arg,narg) ) { arg =  narg; }
 		Tree f = eval(body, visited, pushValueDef(id, arg, localValEnv));
 
 		Tree fname;
@@ -1197,7 +1197,7 @@ static Tree listn (int n, Tree e)
  * A property to store the pattern matcher corresponding to a set of rules
  * in a specific environement
  */
- 
+
 static void setPMProperty(Tree t, Tree env, Tree pm)
 {
 	setProperty(t, tree(gGlobal->PMPROPERTYNODE, env), pm);
@@ -1210,13 +1210,13 @@ static bool getPMProperty(Tree t, Tree env, Tree& pm)
 
 /**
  * Eval a case expression containing a list of pattern matching rules.
- * Creates a boxPatternMatcher containing a pm autamaton a state 
+ * Creates a boxPatternMatcher containing a pm autamaton a state
  * and a list of environments.
  * @param rules the list of rules
  * @param env the environment uused to evaluate the patterns and closure the rhs
  * @return a boxPatternMatcher ready to be applied
  */
- 
+
 static Tree	evalCase(Tree rules, Tree env)
 {
 	Tree pm;
@@ -1226,7 +1226,7 @@ static Tree	evalCase(Tree rules, Tree env)
         setPMProperty(rules, env, pm);
 	}
 	return pm;
-}		
+}
 
 /**
  * Evaluates each rule of the list
@@ -1261,8 +1261,8 @@ static Tree	evalPatternList(Tree patterns, Tree env)
 }
 
 /**
- * Evaluates a pattern and simplify it to numerical value 
- * if possible 
+ * Evaluates a pattern and simplify it to numerical value
+ * if possible
  */
 static Tree	evalPattern(Tree pattern, Tree env)
 {
@@ -1308,7 +1308,7 @@ Tree boxSimplification (Tree box)
 
     } else {
 
-        simplified = numericBoxSimplification(box);
+        simplified = numericBoxSimplification(a2sb(box));
 
         // transferts name property if any
         Tree name; if (getDefNameProperty(box, name)) setDefNameProperty(simplified, name);
