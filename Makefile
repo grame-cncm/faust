@@ -28,11 +28,11 @@ zname := faust-$(version)
 
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
-all :
+all : updatesubmodules
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
-universal :
+universal : updatesubmodules
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) universal
 	$(MAKE) -C architecture/osclib
 
@@ -87,11 +87,9 @@ light :
 	$(MAKE) -C compiler light -f $(MAKEFILE) prefix=$(prefix)
 
 sound2faust :
-
 	$(MAKE) -C tools/sound2faust
 
 bench :
-
 	$(MAKE) -C tools/benchmark
 
 .PHONY: clean depend install uninstall dist parser help
@@ -112,6 +110,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
+	@echo "make updatesubmodules : update the libraries submodule"
 	@echo "make doclib : generate the documentation of the faust libraries"
 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
@@ -138,7 +137,13 @@ depend :
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
-doclib :
+
+# the target 'lib' can be used to init and update the libraries submodule
+updatesubmodules :
+	git submodule update --init
+
+
+doclib : updatesubmodules
 	./libraries/generateDoc
 
 man :
