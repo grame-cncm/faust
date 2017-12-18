@@ -173,6 +173,14 @@ class CPPInstVisitor : public TextInstVisitor {
             << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel)
+            << ", " << quote(inst->fFilename)
+            << ", &" << inst->fVarname << ")";
+            EndLine();
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {

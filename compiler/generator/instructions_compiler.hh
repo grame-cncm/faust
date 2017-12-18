@@ -179,6 +179,11 @@ class InstructionsCompiler : public virtual Garbageable {
 
         virtual ValueInst* generateVBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
         virtual ValueInst* generateHBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
+    
+        virtual ValueInst* generateSoundfile(Tree sig, Tree label);
+        virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf);
+        virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf);
+        virtual ValueInst* generateSoundfileChannel(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y);
 
         virtual ValueInst* generateIntNumber(Tree sig, int num);
         virtual ValueInst* generateRealNumber(Tree sig, double num);

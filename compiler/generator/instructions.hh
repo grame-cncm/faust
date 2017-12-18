@@ -89,6 +89,7 @@ struct CloseboxInst;
 struct AddButtonInst;
 struct AddSliderInst;
 struct AddBargraphInst;
+struct AddSoundfileInst;
 struct LabelInst;
 
 struct Typed;
@@ -124,6 +125,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(AddButtonInst* inst) {}
     virtual void visit(AddSliderInst* inst) {}
     virtual void visit(AddBargraphInst* inst) {}
+    virtual void visit(AddSoundfileInst* inst) {}
 
     virtual void visit(LabelInst* inst) {}
     
@@ -248,6 +250,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(AddButtonInst* inst) = 0;
     virtual StatementInst* visit(AddSliderInst* inst) = 0;
     virtual StatementInst* visit(AddBargraphInst* inst) = 0;
+    virtual StatementInst* visit(AddSoundfileInst* inst) = 0;
     virtual StatementInst* visit(LabelInst* inst) = 0;
 
     // Types
@@ -692,6 +695,21 @@ struct AddBargraphInst : public StatementInst
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct AddSoundfileInst : public StatementInst
+{
+    string fLabel;
+    string fFilename;
+    string fVarname;
+    
+    AddSoundfileInst(const string& label, const string& filename, const string& varname)
+        :fLabel(label), fFilename(filename), fVarname(varname)
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -1442,6 +1460,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(AddButtonInst* inst) { return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType); }
         virtual StatementInst* visit(AddSliderInst* inst) { return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, inst->fType); }
         virtual StatementInst* visit(AddBargraphInst* inst) { return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType); }
+        virtual StatementInst* visit(AddSoundfileInst* inst) { return new AddSoundfileInst(inst->fLabel, inst->fFilename, inst->fVarname); }
         virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
         // Typed
@@ -1791,7 +1810,10 @@ struct InstBuilder
 
     static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal); }
-
+    
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& filename, const string& varname)
+        { return new AddSoundfileInst(label, filename, varname); }
+  
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical); }
 

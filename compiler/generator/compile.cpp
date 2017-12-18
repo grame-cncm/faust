@@ -244,7 +244,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
    
     extractMetadata(tree2str(fulllabel), label, metadata);
     
-    // Extract "soundfile" metadata to be given as parameter to 'addSoundfile' function
+    // Extract "filename" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
         for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
             string key = i->first;

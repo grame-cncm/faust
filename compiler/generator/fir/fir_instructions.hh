@@ -260,6 +260,14 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            *fOut << "AddSoundfile(" << quote(inst->fLabel)
+            << ", " << quote(inst->fFilename)
+            << ", &" << inst->fVarname << ")";
+            EndLine();
+        }
 
         virtual void visit(LabelInst* inst)
         {

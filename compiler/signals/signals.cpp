@@ -413,7 +413,6 @@ bool verySimple(Tree exp)
 			||	isSigFConst(exp, type, name, file);
 }
 
-
 /*****************************************************************************
 							 FTZ wrapping
     Add FTZ wrapping to a signal
