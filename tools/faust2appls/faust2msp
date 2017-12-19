@@ -12,6 +12,7 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" -fbracket-depth=512"
 
 NVOICES=-1
 EFFECT=""

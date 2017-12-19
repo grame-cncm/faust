@@ -33,44 +33,12 @@
 struct StringTypeManager {
     
         std::map <Typed::VarType, std::string> fTypeDirectTable;
-        std::map <std::string, Typed::VarType> fInvertTypeTable;
         std::string fPtrPosfix;
     
         StringTypeManager(const std::string& float_macro_name, const std::string& float_macro_name_ptr)
         {
-            // Direct
             fTypeDirectTable[Typed::kFloatMacro] = float_macro_name;
             fTypeDirectTable[Typed::kFloatMacro_ptr] = float_macro_name_ptr;
-            
-            // Invert
-            fInvertTypeTable[FLOATMACRO] = Typed::kFloatMacro;
-            fInvertTypeTable[FLOATMACROPTR] = Typed::kFloatMacro_ptr;
-            
-            fInvertTypeTable["int"] =  Typed::kInt32;
-            fInvertTypeTable["int" + fPtrPosfix] = Typed::kInt32_ptr;
-            fInvertTypeTable["vector<int>"] = Typed::kInt32_vec;
-            
-            fTypeDirectTable[Typed::kInt64] = "long long";
-            fTypeDirectTable[Typed::kInt64_ptr] = "long long" + fPtrPosfix;
-            fTypeDirectTable[Typed::kInt64_vec] = "vector<long long>";
-            
-            fInvertTypeTable["float"] = Typed::kFloat;
-            fInvertTypeTable["float" + fPtrPosfix] = Typed::kFloat_ptr;
-            fInvertTypeTable["vector<float>"] = Typed::kFloat_vec;
-            
-            fInvertTypeTable["double"] = Typed::kDouble;
-            fInvertTypeTable["double" + fPtrPosfix] = Typed::kDouble_ptr;
-            fInvertTypeTable["vector<double>"] = Typed::kDouble_vec;
-            
-            fInvertTypeTable["quad"] = Typed::kQuad;
-            fInvertTypeTable["quad" + fPtrPosfix] = Typed::kQuad_ptr;
-            
-            fInvertTypeTable["bool"] = Typed::kBool;
-            fInvertTypeTable["bool" + fPtrPosfix] = Typed::kBool_ptr;
-            fInvertTypeTable["vector<bool>"] = Typed::kBool_vec;
-            
-            fInvertTypeTable["void"] = Typed::kVoid;
-            fInvertTypeTable["void" + fPtrPosfix] = Typed::kVoid_ptr;
         }
     
         virtual ~StringTypeManager()
