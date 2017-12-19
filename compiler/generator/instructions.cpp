@@ -39,7 +39,10 @@ string Typed::gTypeString[] = {
     "kFloatMacro", "kFloatMacro_ptr",
     "kDouble", "kDoublish", "kDouble_ptr", "kDouble_vec", "kDouble_vec_ptr",
     "kQuad", "kQuad_ptr", "kQuad_vec", "kQuad_vec_ptr",
-    "kVoid", "kVoid_ptr", "kVoid_ptr_ptr", "kObj", "kObj_ptr", "kNoType"
+    "kVoid", "kVoid_ptr", "kVoid_ptr_ptr",
+    "kObj", "kObj_ptr",
+    "kSound", "kSound_ptr",
+    "kNoType"
 };
 
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }

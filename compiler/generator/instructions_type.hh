@@ -54,7 +54,11 @@ struct Typed : public Printable
                 kFloatMacro, kFloatMacro_ptr,
                 kDouble, kDoublish, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
                 kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType };
+                kVoid, kVoid_ptr, kVoid_ptr_ptr,
+                kObj, kObj_ptr,
+                kSound, kSound_ptr,
+                kNoType
+    };
     
     static string gTypeString[];
     
@@ -109,11 +113,13 @@ struct Typed : public Printable
                 return kVoid_ptr;
             case kVoid_ptr:
                 return kVoid_ptr_ptr;
+            case kSound:
+                return kSound_ptr;
             default:
                 // Not supposed to happen
                 cerr << "getPtrFromType " << type << endl;
                 faustassert(false);
-                return kVoid;
+                return kNoType;
         }
     }
 
@@ -133,7 +139,7 @@ struct Typed : public Printable
                 // Not supposed to happen
                 cerr << "getVecFromType " << type << endl;
                 faustassert(false);
-                return kVoid;
+                return kNoType;
         }
     }
 
@@ -165,11 +171,13 @@ struct Typed : public Printable
                 return kVoid;
             case kVoid_ptr_ptr:
                 return kVoid_ptr;
+            case kSound_ptr:
+                return kSound;
             default:
                 // Not supposed to happen
                 cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
                 faustassert(false);
-                return kVoid;
+                return kNoType;
         }
     }
 
@@ -189,7 +197,7 @@ struct Typed : public Printable
                 // Not supposed to happen
                 cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
                 faustassert(false);
-                return kVoid;
+                return kNoType;
         }
     }
     

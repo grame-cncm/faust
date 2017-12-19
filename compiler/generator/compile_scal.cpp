@@ -604,26 +604,22 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
     switch (t->variability()) {
 
         case kKonst:
-
             getTypedNames(t, "Const", ctype, vname);
             fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
             fClass->addInitCode(subst("$0 = $1;", vname, exp));
             break;
 
         case kBlock:
-
             getTypedNames(t, "Slow", ctype, vname);
             fClass->addFirstPrivateDecl(vname);
             fClass->addZone2(subst("$0 \t$1 = $2;", ctype, vname, exp));
             break;
 
         case kSamp:
-
             getTypedNames(t, "TempPerm", ctype, vname);
             // need to be preserved because of new enable and control primitives
             fClass->addDeclCode(subst("$0 \t$1;", ctype, vname));
             fClass->addInitCode(subst("$0 = 0;", vname));
-
             fClass->addExecCode(Statement(getConditionCode(sig), subst("$0 = $1;", vname, exp)));
             break;
     }
@@ -772,7 +768,6 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
     
     // SL
     fClass->addInitUICode(subst("if (!$0) $0 = defaultsound;", varname));
-    
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
     
     // SL

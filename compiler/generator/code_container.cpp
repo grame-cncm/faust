@@ -56,6 +56,7 @@ CodeContainer::CodeContainer()
     fPostStaticInitInstructions(InstBuilder::genBlockInst()),
     fStaticDestroyInstructions(InstBuilder::genBlockInst()),
     fComputeBlockInstructions(InstBuilder::genBlockInst()),
+    fPostComputeBlockInstructions(InstBuilder::genBlockInst()),
     fComputeFunctions(InstBuilder::genBlockInst()),
     fUserInterfaceInstructions(InstBuilder::genBlockInst()),
     fSubContainerType(kInt), fFullCount("count"),
@@ -696,6 +697,8 @@ BlockInst* CodeContainer::flattenFIR(void)
     global_block->merge(fComputeBlockInstructions);
     global_block->pushBackInst(InstBuilder::genLabelInst("========== Compute DSP =========="));
     global_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount));
+    global_block->pushBackInst(InstBuilder::genLabelInst("========== Post compute DSP =========="));
+    global_block->merge(fPostComputeBlockInstructions);
     
     return global_block;
 }

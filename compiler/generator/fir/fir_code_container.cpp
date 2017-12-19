@@ -241,13 +241,21 @@ void FirCodeContainer::produceClass()
     dumpThread(firvisitor, fOut);
     dumpComputeBlock(firvisitor, fOut);
     dumpCompute(firvisitor, fOut);
+    dumpPostCompute(firvisitor, fOut);
     dumpFlatten(fOut);
     dumpMemory(fOut);
 }
 
+void FirCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
+{
+    *dst << "======= Post compute DSP ==========" << std::endl;
+    fPostComputeBlockInstructions->accept(&firvisitor);
+    *dst << std::endl;
+}
+
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    *dst << "======= Compute DSP ==========" << std::endl << std::endl;
+    *dst << "======= Compute DSP ==========" << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     // Complexity estimation
     dumpCost(loop, dst);

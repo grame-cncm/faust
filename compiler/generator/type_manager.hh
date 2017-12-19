@@ -56,7 +56,7 @@ class CStringTypeManager : public StringTypeManager {
       public:
 
         CStringTypeManager(const std::string& float_macro_name, const std::string&  ptr_postfix)
-        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+            :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
         {
             fPtrPosfix = ptr_postfix;
             
@@ -88,6 +88,9 @@ class CStringTypeManager : public StringTypeManager {
             
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
+            
+            fTypeDirectTable[Typed::kSound] = "Soundfile";
+            fTypeDirectTable[Typed::kSound_ptr] = "Soundfile" + fPtrPosfix;
             
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
@@ -142,7 +145,7 @@ class RustStringTypeManager : public StringTypeManager {
     public:
     
         RustStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix)
-        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+            :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
         {
             fPtrPosfix = ptr_postfix;
             
@@ -174,6 +177,8 @@ class RustStringTypeManager : public StringTypeManager {
             
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
+            
+            // TODO : handling Soundfile
             
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;

@@ -1316,8 +1316,21 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     string varname = gGlobal->getFreshID("SF");
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
     
-    //faustassert(false);
-    return InstBuilder::genNullInst();
+    pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+    pushResetUIInstructions(InstBuilder::genIfInst(InstBuilder::genEqual(InstBuilder::genLoadStructVar(varname),
+                                                                         InstBuilder::genTypedZero(Typed::kSound_ptr)),
+                                                   block,
+                                                   InstBuilder::genBlockInst()));
+    
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(varname + "cache",
+                                                    InstBuilder::genBasicTyped(Typed::kSound_ptr),
+                                                    InstBuilder::genLoadStructVar(varname)));
+    pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(varname + "cache")));
+    
+    return InstBuilder::genLoadStructVar(varname);
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf)

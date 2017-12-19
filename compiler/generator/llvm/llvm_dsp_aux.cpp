@@ -59,8 +59,6 @@
 using namespace llvm;
 using namespace std;
 
-#ifdef LLVM_MACHINE 
-
 void faustassert(bool) {}
 extern "C" EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
 

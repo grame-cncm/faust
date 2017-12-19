@@ -1856,7 +1856,8 @@ struct InstBuilder
                 || type == Typed::kFloat_ptr
                 || type == Typed::kFloatMacro_ptr
                 || type == Typed::kDouble_ptr
-                || type == Typed::kObj_ptr) ? genInt32NumInst(0) : genRealNumInst(type, 0.);
+                || type == Typed::kObj_ptr
+                || type == Typed::kSound_ptr) ? genInt32NumInst(0) : genRealNumInst(type, 0.);
     }
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
