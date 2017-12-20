@@ -65,17 +65,17 @@ $(TARGET) : faust/$(TARGET)
 
 	
 oscpack/liboscpack.a:
-	make -C oscpack
+	$(MAKE) -C oscpack
 	
 faust/libOSCFaust.a:
-	make -C faust
+	$(MAKE) -C faust
 	
 faust/$(TARGET):
-	make -C faust VERSION=$(VERSION) SOVERSION=$(SOVERSION) PREFIX=$(PREFIX) MODE=SHARED
+	$(MAKE) -C faust VERSION=$(VERSION) SOVERSION=$(SOVERSION) PREFIX=$(PREFIX) MODE=SHARED
 
 ios : 
-	make -C oscpack ios
-	make -C faust ios
+	$(MAKE) -C oscpack ios
+	$(MAKE) -C faust ios
 
 android :
 	ndk-build -C android -j 4
@@ -83,10 +83,10 @@ android :
 clean :
 	rm -f liboscpack.a libOSCFaust.a
 	rm -f libOSCFaust*.dylib libOSCFaust.so* libOSCFaust*.dll
-	make -C oscpack clean
-	make -C faust clean
+	$(MAKE) -C oscpack clean
+	$(MAKE) -C faust clean
 
 depend :
-	make -C oscpack depend
-	make -C faust depend
+	$(MAKE) -C oscpack depend
+	$(MAKE) -C faust depend
 
