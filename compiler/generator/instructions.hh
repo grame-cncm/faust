@@ -429,21 +429,27 @@ struct ArrayTyped : public Typed {
 
 struct StructTyped : public Typed {
 
-    Typed* fType;
     string fName;
+    list<NamedTyped*> fFields;
   
-    StructTyped(const string& name, Typed* type)
-        :fType(type), fName(name)
+    StructTyped(const string& name, list<NamedTyped*> fields)
+        :fName(name), fFields(fields)
     {}
     
     virtual ~StructTyped()
     {}
 
-    //VarType getType() { return getPtrFromType(fType->getType()); }
-
     VarType getType() { return kObj_ptr; }
     
-    int getSize() { return fType->getSize(); }
+    int getSize()
+    {
+        int size = 0;
+        list<NamedTyped*>::iterator it;
+        for (it = fFields.begin(); it != fFields.end(); it++) {
+            size += (*it)->getSize();
+        }
+        return size;
+    }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -1478,7 +1484,12 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
         {
-            return new StructTyped(typed->fName, typed->clone(this));
+            list<NamedTyped*> cloned;
+            list<NamedTyped*>::const_iterator it;
+            for (it = typed->fFields.begin(); it != typed->fFields.end(); it++) {
+                cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
+            }
+            return new StructTyped(typed->fName, cloned);
         }
 
         virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
@@ -2006,10 +2017,11 @@ struct InstBuilder
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
 
-    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault) { return new FunTyped(args, result, attribute); }
+    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault)
+    { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
     static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
-    static StructTyped* genStructTyped(const string& name, Typed* type) { return new StructTyped(name, type); }
+    static StructTyped* genStructTyped(const string& name, const list<NamedTyped*>& fields) { return new StructTyped(name, fields); }
 
     // Addresses
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
