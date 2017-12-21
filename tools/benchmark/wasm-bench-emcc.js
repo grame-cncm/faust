@@ -34,7 +34,7 @@ faust.mydsp = function (instance, memory, buffer_size, sample_rate) {
     var factory = instance.exports;
     
     //var HEAP = instance.imports.memory.buffer;
-    var HEAP = memory;
+    var HEAP = memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);
     
@@ -85,9 +85,7 @@ faust.mydsp = function (instance, memory, buffer_size, sample_rate) {
         for (i = 0; i < numIn; i++) {
             var input = inputs[i];
             var dspInput = dspInChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                dspInput[j] = input[j];
-            }
+            dspInput.set(input);
         }
         
         // Compute
@@ -100,9 +98,7 @@ faust.mydsp = function (instance, memory, buffer_size, sample_rate) {
         for (i = 0; i < numOut; i++) {
             var output = outputs[i];
             var dspOutput = dspOutChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                output[j] = dspOutput[j];
-            }
+            output.set(dspOutput);
         }
     };
     
@@ -412,6 +408,12 @@ faust.createmydsp = function(display_handler)
     var module_memory = new WebAssembly.Memory({ initial: 512 });
     
     var importObject = {
+        
+        "global.Math": {
+            powf: Math.pow,
+            pow: Math.pow,
+        },
+    
         env: {
             memoryBase: 0,
             tableBase: 0,

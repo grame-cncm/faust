@@ -84,9 +84,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         for (i = 0; i < numIn; i++) {
             var input = inputs[i];
             var dspInput = dspInChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                dspInput[j] = input[j];
-            }
+            dspInput.set(input);
         }
         
         // Compute
@@ -99,9 +97,7 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         for (i = 0; i < numOut; i++) {
             var output = outputs[i];
             var dspOutput = dspOutChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                output[j] = dspOutput[j];
-            }
+            output.set(dspOutput);
         }
     };
          
