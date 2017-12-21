@@ -31,8 +31,9 @@ CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 #===============================================================
 # output directories
 FAUSTDIR := faustdir
+IOSDIR   := iosdir
 
-.PHONY: faust
+.PHONY: faust 
 
 #===============================================================
 # options
@@ -57,10 +58,11 @@ help:
 	@echo " 'faust' (default): builds the FAUST compiler."
 	@echo " 'staticlib'  : builds the FAUST static library."
 	@echo " 'dynamiclib' : builds the FAUST static library."
-	@echo " 'wasmlib'     : builds the FAUST compiler as a Web Assembly library"
-	@echo " 'asmjslib'    : builds the FAUST compiler as a ASM JS library"
-	@echo " 'cmake'       : regenerate the Makefile (or platform specific project)"
-	@echo " 'clean'       : clean remove the output of the 'faust' target"
+	@echo " 'wasmlib'    : builds the FAUST compiler as a Web Assembly library"
+	@echo " 'asmjslib'   : builds the FAUST compiler as a ASM JS library"
+	@echo " 'ios'        : builds the static lib for iOS (makes use of the ios.cmake backend)"
+	@echo " 'cmake'      : regenerate the Makefile (or platform specific project)"
+	@echo " 'clean'      : clean remove the output of the 'faust' target"
 	@echo
 	@echo "Available options:"
 	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '-DCMAKE_BUILD_TYPE=Release'"
@@ -96,10 +98,20 @@ unix: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) -- -j $(TASKS)
 
 staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
-	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS)
+	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS) 
 
 dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) --target dynamiclib -- -j $(TASKS)
+
+
+#===============================================================
+# building libfaust.a for ios
+#===============================================================
+ios: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
+	cmake --build $(IOSDIR) --target staticlib --config Release
+
+$(IOSDIR)/faust.xcodeproj: CMakeLists.txt ios.cmake
+	cd $(IOSDIR) && cmake -C ../ios.cmake .. -G Xcode
 
 
 #===============================================================
@@ -107,6 +119,9 @@ dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 #===============================================================
 $(FAUSTDIR):
 	mkdir $(FAUSTDIR)
+
+$(IOSDIR):
+	mkdir $(IOSDIR)
 
 $(FAUSTDIR)/Makefile: CMakeLists.txt $(BACKENDS)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..

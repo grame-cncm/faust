@@ -85,10 +85,7 @@ plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
 ios :
-	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix)
-
-ios-llvm :
-	$(MAKE) -C compiler ios-llvm -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C build ios
 
 asmjs :
 	$(MAKE) -C build asmjslib

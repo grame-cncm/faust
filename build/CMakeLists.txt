@@ -16,6 +16,7 @@ set (CMAKE_CXX_STANDARD 11)
 #######################################
 # Output options
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
+option ( IOS     	"Compiles for iOS"	off )
 
 #######################################
 # Check output options
@@ -128,7 +129,12 @@ endif()
 ####################################
 # platform dependent settings
 if(APPLE)
-	if (UNIVERSAL)
+	if(IOS)
+		set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "iphoneos")
+		set (CMAKE_OSX_ARCHITECTURES "arm64 armv7 armv7s")
+		set (CMAKE_OSX_SYSROOT "iphoneos")
+		set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0) 
+	elseif (UNIVERSAL)
 		message (STATUS "Compiles an universal binary")
 		set (CMAKE_OSX_ARCHITECTURES x86_64 i386)
 	endif()
@@ -141,10 +147,6 @@ else()
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
 
-####################################
-# add backends src and headers
-#set (SRC ${SRC} ${BACKEND_SRC})
-#set (HH  ${HH} ${BACKEND_H})
 
 ####################################
 # Add the different targets
@@ -154,6 +156,9 @@ set_target_properties(faust  PROPERTIES
 
 add_library(staticlib STATIC EXCLUDE_FROM_ALL ${SRC} ${HH})
 set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+if (APPLE AND IOS)
+	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
+endif()
 
 add_library(dynamiclib SHARED EXCLUDE_FROM_ALL ${SRC} ${HH})
 if (WIN32)
@@ -163,7 +168,11 @@ if (WIN32)
 	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
 	set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 else()
-	set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
+	if (IOS)
+		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust.ios)
+	else()
+		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
+	endif()	
 	set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 endif()
 set_target_properties(dynamiclib  staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
@@ -181,7 +190,7 @@ scan_backends (dynamiclib DYNAMIC)
 ####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
-else()
+elseif(NOT IOS)
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
 
