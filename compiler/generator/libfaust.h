@@ -22,9 +22,13 @@
 #ifndef LIBFAUST_H
 #define LIBFAUST_H
 
-#include <string>
+#include <string.h>
 
-#include "export.hh"
+#ifdef _WIN32
+#define LIBEXPORT __declspec(dllexport)
+#else
+#define LIBEXPORT
+#endif
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a filename.
@@ -37,10 +41,10 @@
  *
  * @return the expanded DSP or an empty string in case of failure
  */
-EXPORT std::string expandDSPFromFile(const std::string& filename,
-                            int argc, const char* argv[],
-                            std::string& sha_key,
-                            std::string& error_msg);
+LIBEXPORT std::string expandDSPFromFile(const std::string& filename,
+                                        int argc, const char* argv[],
+                                        std::string& sha_key,
+                                        std::string& error_msg);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
@@ -53,11 +57,11 @@ EXPORT std::string expandDSPFromFile(const std::string& filename,
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-EXPORT std::string expandDSPFromString(const std::string& name_app,
-                                const std::string& dsp_content,
-                                int argc, const char* argv[], 
-                                std::string& sha_key,
-                                std::string& error_msg);
+LIBEXPORT std::string expandDSPFromString(const std::string& name_app,
+                                        const std::string& dsp_content,
+                                        int argc, const char* argv[], 
+                                        std::string& sha_key,
+                                        std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -69,7 +73,7 @@ EXPORT std::string expandDSPFromString(const std::string& name_app,
  *
  * @return the expanded DSP or an empty string in case of failure
  */
-EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
+LIBEXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, const char* argv[], std::string& error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -81,7 +85,7 @@ EXPORT bool generateAuxFilesFromFile(const std::string& filename, int argc, cons
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
+LIBEXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::string& dsp_content, int argc, const char* argv[], std::string& error_msg);
 
 /**
  * Generate SHA key from a DSP as a string
@@ -90,7 +94,7 @@ EXPORT bool generateAuxFilesFromString(const std::string& name_app, const std::s
  *
  * @return the SHA key
  */
-EXPORT std::string generateSHA1(const std::string& dsp_content);
+LIBEXPORT std::string generateSHA1(const std::string& dsp_content);
 
 /**
  * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
@@ -104,7 +108,7 @@ EXPORT std::string generateSHA1(const std::string& dsp_content);
 #ifdef EMCC
 extern "C" void freeCMemory(void* ptr);
 #else
-EXPORT void freeCMemory(void* ptr);
+LIBEXPORT void freeCMemory(void* ptr);
 #endif
 
 #endif

@@ -100,21 +100,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateBuildUserInterfaceEnd();
     
         void generateGetSize(LlvmValue size);
-
-        void addGenericButton(const string& label, const string& zone, const string& button_type);
-        void addGenericSlider(const string& label,
-                            const string& zone,
-                            float init,
-                            float min,
-                            float max,
-                            float step,
-                            const string& type);
-        void addGenericBargraph(const string& label,
-                                const string& zone,
-                                float min,
-                                float max,
-                                const string& type);
-
+    
         LlvmValue genInt1(int number)
         {
             return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);

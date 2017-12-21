@@ -12,6 +12,7 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" -fbracket-depth=512"
 
 POLY=""
 NOPATCH="0"

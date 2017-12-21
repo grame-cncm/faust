@@ -16,7 +16,7 @@ LLVM_CONFIG = $(lastword $(wildcard /usr/bin/llvm-config* /opt/local/bin/llvm-co
 CC            = gcc -O3
 CXX           = g++ -O3 -fvisibility=hidden
 DEFINE	      = D_REENTRANT	 
-INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator/llvm -I../../../compiler/generator/interpreter  -I../../../compiler/utils -I/usr/include -I/opt/local/include 
+INCPATH       = -I. -I../ -I../../../architecture -I../../../compiler/generator -I../../../compiler/generator/llvm -I../../../compiler/generator/interpreter -I../../../compiler/utils -I/usr/include -I/opt/local/include 
 LINK          = g++
 
 system	?= $(shell uname -s)

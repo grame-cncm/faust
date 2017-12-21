@@ -309,7 +309,7 @@ faustlight : $(common_objects) $(ba_c) $(ba_cpp) main-exe.o
 ifneq ($(findstring MINGW32, $(system)),)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main-exe.o $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main-exe.o -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main-exe.o -pthread -o faust
 endif
 
 ifeq ($(system), Darwin)
