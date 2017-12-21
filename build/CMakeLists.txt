@@ -31,7 +31,17 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 
 ####################################
 # include directories
-set (FAUST_INC ${SRCDIR} ${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw ${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended ${SRCDIR}/generator ${SRCDIR}/generator/fir ${SRCDIR}/generator/interpreter ${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser ${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals ${SRCDIR}/tlib ${SRCDIR}/utils  ${SRCDIR}/draw/device ${SRCDIR}/draw/schema ${SRCDIR}/../architecture /usr/local/include)
+set (FAUST_INC ${SRCDIR} 
+	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw 
+	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended 
+	${SRCDIR}/generator 
+	${SRCDIR}/generator/fir 
+	${SRCDIR}/generator/interpreter 
+	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser 
+	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals 
+	${SRCDIR}/tlib ${SRCDIR}/utils  
+	${SRCDIR}/draw/device ${SRCDIR}/draw/schema 
+	${SRCDIR}/../architecture /usr/local/include)
 
 
 ####################################
@@ -150,6 +160,7 @@ endif()
 
 ####################################
 # Add the different targets
+####################################
 add_executable(faust ${SRC} ${HH})
 set_target_properties(faust  PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
@@ -188,11 +199,14 @@ scan_backends (staticlib STATIC)
 scan_backends (dynamiclib DYNAMIC)
 
 ####################################
+# add sub projects (emcc, osclib)
+####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
 elseif(NOT IOS)
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
+add_subdirectory (osc)
 
 
 ####################################

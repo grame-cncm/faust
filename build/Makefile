@@ -108,7 +108,8 @@ dynamiclib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 # building libfaust.a for ios
 #===============================================================
 ios: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
-	cmake --build $(IOSDIR) --target staticlib --config Release
+	cmake --build $(IOSDIR) --target staticlib --config Release --  -jobs $(TASKS)
+	cmake --build $(IOSDIR) --target OSCFaust --config Release --  -jobs $(TASKS)
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt ios.cmake
 	cd $(IOSDIR) && cmake -C ../ios.cmake .. -G Xcode
