@@ -2,7 +2,7 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    buildToolsVersion "25.0.2"
     defaultConfig {
         applicationId "com.faust"
         minSdkVersion 11
@@ -10,6 +10,7 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        ndk { abiFilters 'armeabi', 'armeabi-v7a', 'arm64-v8a' }
         externalNativeBuild {
             cmake {
                 cppFlags "-O3 -fexceptions -frtti -lOpenSLES"
