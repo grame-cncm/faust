@@ -10,29 +10,30 @@ else
  FAUST ?= ../../build/bin/faust
 endif
 
+CONTINUE ?= false
+
 SAMPLESROOT := ../..
+REGRESSION := ..
 FAUSTLIBS ?= ../../libraries
 FAUSTINC  ?= ../../architecture/faust
 
 version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //')
 
-dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v TODO | grep -v faust-stk | grep -v "misc/guitarix.dsp")
+dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v TODO | grep -v old | grep -v faust-stk)
+regressionfiles = $(shell find $(REGRESSION)/codegen-tests -name "*.dsp")
 
-cppout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/cpp/%.cpp,   $(dspfiles))
-ocppout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/ocpp/%.cpp,  $(dspfiles))
-cout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/c/%.c,       $(dspfiles))
-jsout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/js/%.js,     $(dspfiles))
-ajsout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/ajs/%.js,    $(dspfiles))
-wasmout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/wasm/%.js,   $(dspfiles))
-javaout	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/java/%.java, $(dspfiles))
-firout 	:= $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/fir/%.fir,   $(dspfiles))
-rustout := $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/rust/%.rust, $(dspfiles))
-llvmout := $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/llvm/%.llvm, $(dspfiles))
-interpout := $(patsubst $(SAMPLESROOT)/%.dsp, $(version)/interp/%.itp, $(dspfiles))
+langs    := js ajs wasm java fir rust llvm
+gcclangs := cpp o.cpp c 
+examplesout   := $(foreach lang, $(langs), $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(lang)/%.$(lang)))
+regressionout := $(foreach lang, $(langs), $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(lang)))
+interpout   := $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/interp/%.itp)
+interpout   += $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/interp/%.itp)
 
-cppobj	:= $(patsubst %.cpp, %.o, $(cppout))
-ocppobj	:= $(patsubst %.cpp, %.o, $(ocppout))
-cobj	:= $(patsubst %.c, %.o, $(cout))
+gccexamplesout   := $(foreach lang, $(gcclangs), $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(lang)/%.$(lang)))
+gccregressionout := $(foreach lang, $(gcclangs), $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(lang)))
+
+gccobj := $(gccexamplesout:%.cpp=%.o)  $(gccexamplesout:%.ocpp=%.o) $(gccexamplesout:%.c=%.o)
+gccobj += $(gccregressionout:%.cpp=%.o)  $(gccregressionout:%.ocpp=%.o) $(gccregressionout:%.c=%.o)
 
 CXX ?= g++
 GCC ?= gcc
@@ -40,135 +41,153 @@ GCC ?= gcc
 OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
 all:
-	make cpp
-	make ocpp
-	make c
-	make js
-	make asmjs
-	make wasm
-	make java
-	make fir
-	make rust
-	make llvm
-#	make interp
+	make examples
+	make regression
+	make gcc
 
 
 help:
 	@echo "-------- FAUST compilation tests --------"
 	@echo "Available targets are:"
-	@echo " 'all' (default): compiles all the dsp found in the examples folder"
-	@echo "            using all backends (apart the interp backend)"
-	@echo "            C and C++ output are also compile using $(GCC) and $(CXX)"
-	@echo "            Output is located in a folder named using faust version"
-	@echo "Individual targets:"
-	@echo " 'cpp'    : makes use of the cpp backend          (-lang cpp)"
-	@echo " 'ocpp'   : makes use of the old cpp backend      (-lang ocpp)"
-	@echo " 'c'      : makes use of the c backend            (-lang c)"
-	@echo " 'js'     : makes use of the javascript backend   (-lang js)"
-	@echo " 'asmjs'  : makes use of the asmjs backend        (-lang ajs)"
-	@echo " 'wasm'   : makes use of the web-assembly backend (-lang wast/wasm)"
-	@echo " 'java'   : makes use of the java backend         (-lang java)"
-	@echo " 'fir'    : makes use of the fir backend          (-lang fir)"
-	@echo " 'rust'   : makes use of the rust backend         (-lang rust)"
-	@echo " 'llvm'   : makes use of the LLVM backend         (-lang llvm)"
-	@echo " 'interp' : makes use of the interpreter backend  (-lang interp)"
+	@echo " 'all' (default): compiles all the dsp found in the examples and regression"
+	@echo "              folders using all backends (apart the interp backend)"
+	@echo "              C and C++ output are also compile using $(GCC) and $(CXX)"
+	@echo "              Output is located in a folder named using faust version"
+	@echo "Specific targets:"
+	@echo " 'examples'   : use only the examples folder"
+	@echo " 'regression' : use only the regression folder"
+	@echo " 'gcc'        : use only the c, cpp and ocpp backends and compiles"
+	@echo "                the C and C++ output"
+	@echo " 'interp'     : compiles using the interpreter backend"
+	@echo "Options:"
+	@echo " CONTINUE=[true | false] : ignore errors when true (default is false)"
 	
-
+gcc: $(gccexamplesout) $(gccregressionout) $(gccobj)
+examples: $(examplesout) $(gccexamplesout)
+regression: $(regressionout) $(gccregressionout)
 
 clean:
 	rm -rf $(version)
 
 
 #########################################################################
-cpp:   $(cppout) $(cppobj)
-ocpp:  $(ocppout) $(ocppobj)
-c:     $(cout) $(cobj)
-js:    $(jsout)
-asmjs: $(ajsout)
-wasm:  $(wasmout)
-java:  $(javaout)
-fir:   $(firout)
-rust:  $(rustout)
-llvm:  $(llvmout)
+# interp lang has a special status since the corresponding backend may not
+# be available due to gcc specific extensions
 interp: $(interpout)
+
+test:
+	@echo $(interpout)
 
 #########################################################################
 # rule for cpp output
 $(version)/cpp/%.cpp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+$(version)/cpp/%.cpp: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for ocpp output
-$(version)/ocpp/%.cpp: $(SAMPLESROOT)/%.dsp
+$(version)/o.cpp/%.o.cpp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+$(version)/o.cpp/%.o.cpp: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for c output
 $(version)/c/%.c: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ || $(CONTINUE)
+$(version)/c/%.c: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for js output
 $(version)/js/%.js: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang js -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/js/%.js: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for asmjs output
-$(version)/ajs/%.js: $(SAMPLESROOT)/%.dsp
+$(version)/ajs/%.ajs: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/ajs/%.ajs: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for wasm output
-$(version)/wasm/%.js: $(SAMPLESROOT)/%.dsp
+$(version)/wasm/%.wasm: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/wasm/%.wasm: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for java output
 $(version)/java/%.java: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang java -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/java/%.java: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for fir output
 $(version)/fir/%.fir: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/fir/%.fir: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for rust output
 $(version)/rust/%.rust: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/rust/%.rust: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for llvm output
 $(version)/llvm/%.llvm: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/llvm/%.llvm: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 #########################################################################
 # rule for interp output
 $(version)/interp/%.itp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  > $@ || (rm $@ ; false; )
+	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+$(version)/interp/%.itp: $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
 
 
 #########################################################################
 # rules for c/c++ compilation
 $(version)/cpp/%.o: $(version)/cpp/%.cpp
 	$(eval tmp := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@
+	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
 
-$(version)/ocpp/%.o: $(version)/ocpp/%.cpp
+$(version)/o.cpp/%.o.o: $(version)/o.cpp/%.o.cpp
 	$(eval tmp := $(patsubst $(version)/ocpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@
+	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
 
 $(version)/c/%.o: $(version)/c/%.c
 	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(GCC) -c $(OPTIONS) -I$(tmp) $< -o $@
+	$(GCC) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
