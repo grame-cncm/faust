@@ -73,13 +73,13 @@ CXX = /opt/local/libexec/llvm-3.9/bin/clang++
 LLC = /opt/local/libexec/llvm-3.9/bin/llc
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0, 4.0.1))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 4.0.0 4.0.1))
 LLVM_VERSION  = LLVM_40
 CXX = /opt/local/libexec/llvm-4.0/bin/clang++
 LLC = /opt/local/libexec/llvm-4.0/bin/llc
 endif
 
-ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 5.0.0))
+ifeq ($(LLVM_VERSION),$(filter $(LLVM_VERSION), 5.0.0 5.0.1))
 LLVM_VERSION  = LLVM_50
 CXX = /opt/local/libexec/llvm-5.0/bin/clang++
 LLC = /opt/local/libexec/llvm-5.0/bin/llc
