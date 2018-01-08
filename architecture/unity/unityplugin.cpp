@@ -52,7 +52,7 @@ class AudioChannels
         
         AudioChannels(int nframes, int nchannels) : fNumFrames(nframes), fNumChannels(nchannels)
         {
-            fChannels    = new FAUSTFLOAT*[nchannels];
+            fChannels = new FAUSTFLOAT*[nchannels];
             
             // allocate audio channels
             for (unsigned int i = 0; i < fNumChannels; i++) {
@@ -152,7 +152,7 @@ class unitydsp : public mydsp
             if (fOutputs) delete fOutputs;
         }
         
-         void unityProcess(float* inbuffer, float* outbuffer, unsigned int length, int inchannels, int outchannels)
+        void unityProcess(float* inbuffer, float* outbuffer, unsigned int length, int inchannels, int outchannels)
         {
             fInputs->interleavedRead(inbuffer, length, inchannels);
             compute(length, fInputs->buffers(), fOutputs->buffers());
