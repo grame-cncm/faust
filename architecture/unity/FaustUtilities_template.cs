@@ -30,8 +30,8 @@ namespace FaustUtilities_MODEL {
 			if (!FaustUI.fJSONParser(ref fJSON, out fUI)) { // Parses the JSON file
       			UnityEngine.Debug.LogError("Error JSON Parser");
 			}
-			param = fUI.getUI(0).setNumParams(param); // Sets the parameter number
-			_dsp = (FaustPlugin_MODEL) target; // Sets which component will be edited in the inspector
+			param = fUI.getUI(0).setNumParams(param);   // Sets the parameter number
+			_dsp = (FaustPlugin_MODEL) target;          // Sets which component will be edited in the inspector
 		}
 
 		// @brief Method called when you click on the inspector
