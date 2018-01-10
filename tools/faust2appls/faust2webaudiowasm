@@ -155,7 +155,19 @@ for f in $FILES; do
         faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
 
         # possibly compile effect
-        if [ "$EFFECT" != "" ]; then
+        if [ $EFFECT = "auto" ]; then
+            cat > $name"_effect".dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit
+        elif [ "$EFFECT" != "" ]; then
             faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
         fi
         # wasm ==> wasm optimizations
