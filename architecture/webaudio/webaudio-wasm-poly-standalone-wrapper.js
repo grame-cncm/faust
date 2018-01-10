@@ -45,7 +45,6 @@ faust.debug = false;
  */
 faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memory, context, buffer_size, polyphony) {
 
-    // Keep JSON parsed object
     var json_object = null;
     try {
         json_object = JSON.parse(getJSONmydsp());
@@ -53,7 +52,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         faust.error_msg = "Error in JSON.parse: " + e;
         return null;
     }
-
+    
     var sp;
     try {
         sp = context.createScriptProcessor(buffer_size, parseInt(json_object.inputs), parseInt(json_object.outputs));
@@ -63,6 +62,16 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     }
 
     sp.json_object = json_object;
+    
+    sp.effect_json_object = null;
+    if (typeof (getJSONeffect) !== "undefined") {
+        try {
+            sp.effect_json_object = JSON.parse(getJSONeffect());
+        } catch (e) {
+            faust.error_msg = "Error in JSON.parse: " + e;
+            return null;
+        }
+    }
 
     sp.output_handler = null;
     sp.ins = null;
@@ -156,7 +165,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         sp.dsp_voices_trigger[i] = false;
     }
     
-    // Effect starts after last voice
+    // Effect memory starts after last voice
     sp.effect_start = sp.dsp_voices[polyphony - 1] + parseInt(json_object.size);
 
     sp.getPlayingVoice = function(pitch)
@@ -400,6 +409,10 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
 
         // Parse JSON UI part
         sp.parse_ui(sp.json_object.ui);
+        
+        if (sp.effect) {
+            sp.parse_ui(sp.effect_json_object.ui);
+        }
 
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < sp.inputs_items.length; i++) {
@@ -635,8 +648,12 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
      */
     sp.setParamValue = function (path, val)
     {
-        for (var i = 0; i < polyphony; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[i], sp.pathTable[path], val);
+        if (sp.effect && getJSONeffect().includes(path)) {
+            sp.effect.setParamValue(sp.effect_start, sp.pathTable[path], val);
+        } else {
+            for (var i = 0; i < polyphony; i++) {
+                sp.factory.setParamValue(sp.dsp_voices[i], sp.pathTable[path], val);
+            }
         }
     }
 
@@ -649,13 +666,17 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
      */
     sp.getParamValue = function (path)
     {
-        return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
+        if (sp.effect && getJSONeffect().includes(path)) {
+            return sp.effect.getParamValue(sp.effect_start, sp.pathTable[path]);
+        } else {
+            return sp.factory.getParamValue(sp.dsp_voices[0], sp.pathTable[path]);
+        }
     }
 
     /**
      * Get the table of all input parameter paths.
      *
-     * @returnthe table of all input parameter paths
+     * @return the table of all input parameter paths
      */
     sp.getParams = function()
     {
@@ -669,9 +690,28 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
      */
     sp.getJSON = function ()
     {
-        return getJSONmydsp();
+        if (sp.effect) {
+            var res = "";
+            res = res.concat("{\"name\":\""); res = res.concat(sp.json_object.name); res = res.concat("\",");
+            res = res.concat("\"version\":\""); res = res.concat(sp.json_object.version); res = res.concat("\",");
+            res = res.concat("\"options\":\""); res = res.concat(sp.json_object.options); res = res.concat("\",");
+            res = res.concat("\"inputs\":\""); res = res.concat(json_object.inputs); res = res.concat("\",");
+            res = res.concat("\"outputs\":\""); res = res.concat(sp.json_object.outputs); res = res.concat("\",");
+            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(json_object.meta)); res = res.concat(",");
+            res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Polyphonic\",\"items\":");
+            res = res.concat(JSON.stringify(sp.json_object.ui));
+            res = res.concat("},");
+            res = res.concat("{\"type\":\"vgroup\",\"label\":\"Effect\",\"items\":");
+            res = res.concat(JSON.stringify(sp.effect_json_object.ui));
+            res = res.concat("}");
+            res = res.concat("]}]}");
+            return res;
+        } else {
+            return getJSONmydsp();
+        }
     }
-
+ 
     /**
      * Set a compute handler to be called each audio cycle
      * (for instance to synchronize playing a MIDIFile...).
