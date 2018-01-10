@@ -15,7 +15,7 @@ class mydsp_polyNode extends AudioWorkletNode {
     constructor(context, options) 
     {
         var json_object = JSON.parse(getJSONmydsp());
-     
+      
         // Setting values for the input, the output and the channel count.
         options.numberOfInputs = parseInt(json_object.inputs);
         options.numberOfOutputs = parseInt(json_object.outputs);
@@ -67,10 +67,16 @@ class mydsp_polyNode extends AudioWorkletNode {
             }
         }
         
+        this.json_object = json_object;
+        
+        if (typeof (getJSONeffect) !== "undefined") {
+            this.effect_json_object = JSON.parse(getJSONeffect());
+        } else {
+            this.effect_json_object = null;
+        }
+        
         this.output_handler = null;
         
-        this.json_object = json_object;
-            
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
@@ -80,13 +86,36 @@ class mydsp_polyNode extends AudioWorkletNode {
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
         
+        if (this.effect_json_object) {
+            this.parse_ui(this.effect_json_object.ui, this);
+        }
+        
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
     }
     
     getJSON()
     {
-        return getJSONmydsp();
+        if (this.effect_json_object) {
+            var res = "";
+            res = res.concat("{\"name\":\""); res = res.concat(this.json_object.name); res = res.concat("\",");
+            res = res.concat("\"version\":\""); res = res.concat(this.json_object.version); res = res.concat("\",");
+            res = res.concat("\"options\":\""); res = res.concat(this.json_object.options); res = res.concat("\",");
+            res = res.concat("\"inputs\":\""); res = res.concat(this.json_object.inputs); res = res.concat("\",");
+            res = res.concat("\"outputs\":\""); res = res.concat(this.json_object.outputs); res = res.concat("\",");
+            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(this.json_object.meta)); res = res.concat(",");
+            res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Instrument\",\"items\":");
+            res = res.concat(JSON.stringify(this.json_object.ui));
+            res = res.concat("},");
+            res = res.concat("{\"type\":\"vgroup\",\"label\":\"Effect\",\"items\":");
+            res = res.concat(JSON.stringify(this.effect_json_object.ui));
+            res = res.concat("}");
+            res = res.concat("]}]}");
+            return res;
+        } else {
+            return getJSONmydsp();
+        }
     }
     
     setParamValue(path, val)

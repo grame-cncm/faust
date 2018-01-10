@@ -32,7 +32,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-soundfile <path>] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-soundfile <path>] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"

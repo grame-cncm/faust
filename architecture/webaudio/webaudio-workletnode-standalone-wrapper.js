@@ -91,6 +91,7 @@ class mydspNode extends AudioWorkletNode {
     setParamValue(path, val)
     {
         //this.port.postMessage({ type:"param", key:path, value:val });
+        
         // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }

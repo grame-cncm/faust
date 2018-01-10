@@ -433,7 +433,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
             sp.factory.init(sp.dsp_voices[i], context.sampleRate);
         }
         
-        // Init DSP effect
+        // Init effect
         if (sp.effect) {
             sp.effect.init(sp.effect_start, context.sampleRate);
         }

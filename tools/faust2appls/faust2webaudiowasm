@@ -47,9 +47,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowasm [-poly] [-effect <effect.dsp>] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
+        echo "faust2webaudiowasm [-poly] [-effect auto|<effect.dsp>] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
@@ -240,6 +241,7 @@ EndOfCode
     if [ $WORKLET = "true" ]; then
         BINARIES="$BINARIES$name.html;$name-processor.js;"
         rm $name.wasm
+        rm -f $name"_effect".wasm
     else
         BINARIES="$BINARIES$name.html;$name.wasm;"
     fi
