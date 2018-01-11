@@ -156,7 +156,7 @@ for f in $FILES; do
         faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
 
         # possibly compile effect
-        if [ $EFFECT = "auto" ]; then
+        if [ "$EFFECT" = "auto" ]; then
             cat > $name"_effect".dsp << EndOfCode
             adapt(1,1) = _;
             adapt(2,2) = _,_;
