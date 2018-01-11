@@ -41,7 +41,7 @@ using namespace std;
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetSelect.h>
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/IR/IRBuilder.h>
     #include <llvm/IR/DataLayout.h>
     #include <llvm/IR/DerivedTypes.h>
@@ -57,25 +57,25 @@ using namespace std;
     #include <llvm/Module.h>
 #endif
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/IR/Verifier.h>
 #else
     #include <llvm/Analysis/Verifier.h>
 #endif
 
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/ExecutionEngine/MCJIT.h>
 #else
     #include <llvm/ExecutionEngine/JIT.h>
 #endif
 
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/IR/PassManager.h>
 #else
     #include <llvm/PassManager.h>
 #endif
 
-#if defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/Bitcode/BitcodeWriter.h>
     #include <llvm/Bitcode/BitcodeReader.h>
 #else
@@ -90,7 +90,7 @@ using namespace std;
     #define LLVM_FREE   "free"
 #endif
 
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #define GET_ITERATOR(it) &(*(it))
 #else
     #define GET_ITERATOR(it) it
@@ -291,7 +291,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         VECTOR_OF_TYPES fDSPFields;
         int fDSPFieldsCounter;
         string fPrefix;
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         DataLayout* fDataLayout;
     #endif
 
@@ -396,7 +396,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp block
             BasicBlock* entry_func_llvm_create_dsp = BasicBlock::Create(fModule->getContext(), "entry", func_llvm_create_dsp);
 
-        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             llvm::CallInst* call_inst1 = CallInst::Create(func_malloc, genInt64(fModule, fDataLayout->getTypeSizeInBits(dsp_type)), "", entry_func_llvm_create_dsp);
         #else
             // Dynamically computed object size (see http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)
@@ -614,7 +614,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             initTypes(module);
         #if defined(LLVM_35) || defined(LLVM_36)
             fDataLayout = new DataLayout(*module->getDataLayout());
-        #elif defined(LLVM_34)  || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #elif defined(LLVM_34)  || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             fDataLayout = new DataLayout(module->getDataLayout());
         #endif
         }
@@ -623,7 +623,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // External object not covered by Garbageable, so delete it here
             delete fBuilder;
-        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             delete fDataLayout;
         #endif
         }
@@ -1001,7 +1001,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             GlobalVariable* llvm_key = addStringConstant(inst->fKey, type_def1);
             GlobalVariable* llvm_value = addStringConstant(inst->fValue, type_def2);
 
-         #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+         #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* const_string1 = fBuilder->CreateConstGEP2_32(type_def1, llvm_key, 0, 0);
             Value* const_string2 = fBuilder->CreateConstGEP2_32(type_def2, llvm_value, 0, 0);
          #else
@@ -1015,7 +1015,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 zone_ptr = Constant::getNullValue((itfloat() == Typed::kFloat) ? fTypeMap[Typed::kFloat_ptr] : fTypeMap[Typed::kDouble_ptr]);
             } else {
                 int field_index = fDSPFieldsNames[inst->fZone];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
             #else
                 zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -1043,7 +1043,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(inst->fName);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
        #else
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_name, 0, 0);
@@ -1065,7 +1065,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx[1] = mth_index;
             Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* fun_args[] = { fUIInterface_ptr, const_string };
             CallInst* call_inst = fBuilder->CreateCall(mth, fun_args);
         #else
@@ -1102,7 +1102,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
        #else
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
@@ -1116,7 +1116,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
             Value* fun_args[] = { fUIInterface_ptr, const_string, zone_ptr };
             CallInst* call_inst = fBuilder->CreateCall(mth, fun_args);
@@ -1153,7 +1153,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
        #else
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
@@ -1166,7 +1166,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #else
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -1213,7 +1213,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
        #else
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
@@ -1227,7 +1227,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #else
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
@@ -1378,7 +1378,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                                                     inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
                 
-            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 // In order for auto-vectorization to correctly work with vectorizable math functions
                 if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
                     function->setDoesNotAccessMemory();
@@ -1499,7 +1499,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 return fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #else
                 return fBuilder->CreateStructGEP(getDSP(), field_index);
@@ -1672,7 +1672,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 Value* store_ptr = fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #else
                 Value* store_ptr = fBuilder->CreateStructGEP(getDSP(), field_index);
@@ -2362,7 +2362,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // Inst result for comparison
                 return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
             } else {
-            #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) ||defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50))
+            #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) ||defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
                 LlvmValue value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
                 Instruction* inst = cast<Instruction>(value);
                 inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
