@@ -713,13 +713,10 @@ try {
     mydsp_polyProcessor.mixer_instance = new WebAssembly.Instance(wasm_mixer_module, mydsp_polyProcessor.mixObject);
     let wasm_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codemydsp()));
     mydsp_polyProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydsp_polyProcessor.importObject);
-    
     // Possibly compile effect
     if (typeof (getBase64Codeeffect) !== "undefined") {
         let wasm_effect_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codeeffect()));
         mydsp_polyProcessor.effect_instance = new WebAssembly.Instance(wasm_effect_module, mydsp_polyProcessor.importObject);
-    } else {
-        mydsp_polyProcessor.effect_instance = null;
     }
     registerProcessor('mydsp_poly', mydsp_polyProcessor);
 } catch (e) {

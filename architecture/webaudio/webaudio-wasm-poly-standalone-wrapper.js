@@ -690,16 +690,16 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
      */
     sp.getJSON = function ()
     {
-        if (sp.effect) {
+        if (sp.effect_json_object) {
             var res = "";
             res = res.concat("{\"name\":\""); res = res.concat(sp.json_object.name); res = res.concat("\",");
             res = res.concat("\"version\":\""); res = res.concat(sp.json_object.version); res = res.concat("\",");
             res = res.concat("\"options\":\""); res = res.concat(sp.json_object.options); res = res.concat("\",");
-            res = res.concat("\"inputs\":\""); res = res.concat(json_object.inputs); res = res.concat("\",");
+            res = res.concat("\"inputs\":\""); res = res.concat(sp.json_object.inputs); res = res.concat("\",");
             res = res.concat("\"outputs\":\""); res = res.concat(sp.json_object.outputs); res = res.concat("\",");
-            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(json_object.meta)); res = res.concat(",");
+            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(sp.json_object.meta)); res = res.concat(",");
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
-            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Polyphonic\",\"items\":");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Instrument\",\"items\":");
             res = res.concat(JSON.stringify(sp.json_object.ui));
             res = res.concat("},");
             res = res.concat("{\"type\":\"vgroup\",\"label\":\"Effect\",\"items\":");
