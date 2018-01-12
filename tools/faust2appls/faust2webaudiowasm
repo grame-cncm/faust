@@ -167,10 +167,12 @@ for f in $FILES; do
 
             process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
 EndOfCode
-            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit
+            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit 
+            rm $name"_effect".dsp
         elif [ "$EFFECT" != "" ]; then
             faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
         fi
+
         # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
             echo "Optimize wasm module"
