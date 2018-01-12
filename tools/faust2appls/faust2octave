@@ -49,7 +49,6 @@ for p in $@; do
 	fi
 done
 
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files 
 
@@ -73,5 +72,6 @@ for f in $FILES; do
 	# collect binary file name for FaustWorks
 	BINARIES="$BINARIES${f%.dsp};"
 done
+
 echo $BINARIES
 

@@ -16,8 +16,8 @@ MAXSDK=/usr/local/include/c74support
 EXT="~.mxe"
 
 if [ ! -d "${MAXSDK}" ]; then
- echo "Unable to locate Max/Msp SDK: MAXSDK=${MAXSDK}" 1>&2
- exit 1
+ 	echo "Unable to locate Max/Msp SDK: MAXSDK=${MAXSDK}" 1>&2
+ 	exit 1
 fi
 
 #------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ CXXFLAGS="-DWIN_VERSION -DWIN_EXT_VERSION"
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-    FAUSTLIB=$FAUST_LIB_PATH
+	FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/share/faust/music.lib ]
 then
     FAUSTLIB=/usr/local/share/faust

@@ -48,6 +48,7 @@ for p in $@; do
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         echo "Use '-emcc' to compile C++ generated code to asm.js with Emscripten, otherwise the internal asm.js backend is used"
+    	exit
     elif [ $p = "-comb" ]; then
         COMB="true"
     elif [ $p = "-poly" ]; then

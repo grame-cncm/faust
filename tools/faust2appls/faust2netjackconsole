@@ -5,7 +5,6 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-
 #-------------------------------------------------------------------
 # Set Faust include path
 
@@ -22,7 +21,6 @@ else
     echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
 
-
 #-------------------------------------------------------------------
 # Analyze command arguments :
 # faust options                 -> OPTIONS
@@ -31,9 +29,9 @@ fi
 
 for p in $@; do
     if [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+	 	HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
