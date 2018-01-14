@@ -69,35 +69,37 @@ if [ ! -f "$FAUSTLIB/pure.cpp" ]; then echo "$0: pure.cpp architecture file not 
 
 for p in $FILES; do
 
-arch=pure.cpp
 dspname=$p
 SRCDIR=$(dirname "$dspname")
 ABSDIR=$(cd $SRCDIR && pwd)
 CURDIR=$(pwd)
 
 clsname=`basename "$dspname" .dsp`
-cppname="$clsname.cpp"
 if [[ $BITCODE == yes ]]; then
 # Output is LLVM bitcode.
+arch=pure.c
+cppname="$clsname.c"
 soname="$clsname.bc"
+TARGET="-lang c"
 else
+arch=pure.cpp
+cppname="$clsname.cpp"
 soname="$clsname$dllext"
 fi
 tmpdir=`mktemp -d /tmp/faust2pure.XXXXXX`
 
 CXX=g++
-LLVMCXX="clang++ -emit-llvm"
+LLVMCC="clang -emit-llvm"
 
 # Create the temp directory
 mkdir -p $tmpdir
 #trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
 # Compile the Faust module.
-faust -i -a "$FAUSTLIB/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
+faust -i $TARGET -a "$FAUSTLIB/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
 if [[ $BITCODE == yes ]]; then
-# compile Faust C++ module to LLVM bitcode (needs clang++) NB: need -std=c++11
-# here to avoid a clang error on the __float128 type in newer libc versions
-# (this type is only supported in clang 3.9+)
-$LLVMCXX -std=c++11 $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" -c "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+# compile Faust C module to LLVM bitcode using the pure.c architecture (needs
+# clang)
+$LLVMCC $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" -c "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
 else
 $CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
 fi
