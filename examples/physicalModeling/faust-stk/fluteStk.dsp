@@ -60,7 +60,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = en.asr(nonLinAttack,1,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
@@ -100,7 +100,7 @@ stereo = stereoizer(ma.SR/freq);
 vibrato = vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);
 
 //Breath pressure is controlled by an Attack / Decay / Sustain / Release envelope
-envelopeBreath = pressure*en.adsr(pressure*envelopeAttack,envelopeDecay,80,envelopeRelease,gate);
+envelopeBreath = pressure*en.adsr(pressure*envelopeAttack,envelopeDecay,0.8,envelopeRelease,gate);
 breathPressure = envelopeBreath + envelopeBreath*(noiseGain*no.noise + vibrato) + 10.0^(-15.0);
 
 //delay lines
