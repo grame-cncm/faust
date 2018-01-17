@@ -320,8 +320,8 @@ debversion = $(version)+git$(shell git log -1 --format=%cd --date=short 2>/dev/n
 # Debian revision number of the package.
 debrevision = 1
 # Source tarball and folder.
-debsrc = faust2_$(debversion).orig.tar.gz
-debdist = faust2-$(debversion)
+debsrc = faust_$(debversion).orig.tar.gz
+debdist = faust-$(debversion)
 
 submodules = libraries
 
@@ -340,7 +340,7 @@ debchange:
 
 debclean:
 	rm -rf $(debdist)
-	rm -f faust2_$(version)+git* faust2-dbgsym_$(version)+git*
+	rm -f faust_$(version)+git* faust-dbgsym_$(version)+git*
 
 deb: $(debsrc)
 	rm -rf $(debdist)
