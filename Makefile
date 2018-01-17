@@ -140,7 +140,7 @@ doc :
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :
-	git submodule update --init
+	if test -d .git; then git submodule update --init; fi
 
 
 doclib : updatesubmodules
