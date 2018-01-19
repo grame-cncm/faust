@@ -277,9 +277,25 @@ uninstall :
 	rm -f $(prefix)/bin/faustbench
 	rm -f $(prefix)/share/man/man1/faust.1
 
-# make a faust distribution .zip file
+# make a faust distribution tarball
+dist = faust-$(version)
+submodules = libraries
 dist :
-	git archive --format=tar.gz -o faust-$(version).tgz --prefix=faust-$(version)/ HEAD
+	rm -rf $(dist)
+# Make sure that the submodules are initialized.
+	git submodule update --init
+# Grab the main source.
+	git archive --format=tar.gz --prefix=$(dist)/ HEAD | tar xfz -
+# Grab the submodules.
+	for x in $(submodules); do (cd $(dist) && rm -rf $$x && git -C ../$$x archive --format=tar.gz --prefix=$$x/ HEAD | tar xfz -); done
+# Create the source tarball.
+	tar cfz $(dist).tar.gz $(dist)
+	rm -rf $(dist)
+
+# this does the same, but uses the $(debversion) instead (see below) which
+# includes the actual git revision number and hash (useful for git snapshots)
+dist-snapshot :
+	$(MAKE) dist dist=faust-$(debversion)
 
 log :
 	git log --oneline --date-order --reverse --after={2014-05-19} master >log-$(version)
@@ -322,8 +338,6 @@ debrevision = 1
 # Source tarball and folder.
 debsrc = faust_$(debversion).orig.tar.gz
 debdist = faust-$(debversion)
-
-submodules = libraries
 
 # This is used for automatically generated debian/changelog entries (cf. 'make
 # debchange'). Adjust as needed.
