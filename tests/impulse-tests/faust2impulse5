@@ -9,7 +9,6 @@
 
 #-------------------------------------------------------------------
 # Set Faust include path
-
 if [ -f $FAUST_LIB_PATH/music.lib ]
     then
     FAUSTLIB=$FAUST_LIB_PATH
@@ -35,7 +34,6 @@ done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files 
-
 for f in $FILES; do
 
     name=$(basename "$f" .dsp)

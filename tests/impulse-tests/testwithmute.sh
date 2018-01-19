@@ -17,7 +17,8 @@ echo location $(which faust)
 
 D=`mktemp -d 2>/dev/null || mktemp -d -t 'mytmpdir'`
 
-cd codes-to-test
+REF=reference
+cd dsp
 
 echo "==============================================================="
 echo 'Impulse response in scalar mode with additional mute checkbox'
@@ -26,9 +27,10 @@ echo "==============================================================="
 
 rm *-mute.dsp
 for f in *.dsp; do
+	DSP=$(basename $f .dsp)
     echo "process = P : par(i, outputs(P), (_,(1-checkbox(\"fakedisable %2i\")) : *) ) with { P = component(\"${f}\"); };" > $f-mute.dsp
-	../faust2impulse -double $f-mute.dsp  > $D/$f.scal.ir
-	../filesCompare $D/$f.scal.ir ../expected-responses/$f.scal.ir && echo "OK $f scalar mode" || echo "ERROR $f-mute scalar mode"
+	../faust2impulse -double $f-mute.dsp  > $D/$DSP.ir
+	../filesCompare $D/$DSP.ir ../$REF/$DSP.ir && echo "OK $f scalar mode" || echo "ERROR $f-mute scalar mode"
 done
 
 

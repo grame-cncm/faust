@@ -29,7 +29,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3 -I$P -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} ${CXXFLAGS=-O3 -I$P -I../archs -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 
 
