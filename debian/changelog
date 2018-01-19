@@ -1,41 +1,10 @@
-faust2 (2.0.a34+git20150520+5963-1) trusty; urgency=low
+faust (2.0.a34+git20150520+5963-1) trusty; urgency=low
 
   * Build from latest upstream source.
 
  -- Albert Graef <aggraef@gmail.com>  Wed, 20 May 2015 17:19:41 +0200
 
-faust2 (2.0.a30+git20141124+5346-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Mon, 24 Nov 2014 16:20:47 +0100
-
-faust2 (2.0.a29+git20141018+5243-1) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Sat, 18 Oct 2014 23:31:56 +0200
-
-faust2 (2.0.a28+git20141008+5170-0) trusty; urgency=low
-
-  * Build from latest upstream source.
-
- -- Albert Graef <aggraef@gmail.com>  Thu, 09 Oct 2014 19:44:53 +0200
-
-faust2 (2.0.a9+git20130826-1) saucy; urgency=low
-
-  * Latest upstream revision from git
-
- -- Albert Graef <aggraef@gmail.com>  Fri, 18 Oct 2013 11:12:49 +0200
-
-faust2 (2.0.a5+git20130115-1) precise; urgency=low
-
-  * Latest upstream revision from git
-  * Fix code generation for C, Java, JavaScript, LLVM
-
- -- Albert Graef <Dr.Graef@t-online.de>  Tue, 15 Jan 2013 16:21:53 +0100
-
-faust2 (2.0.a3+git20120529-1) natty; urgency=low
+faust (2.0.a3+git20120529-1) natty; urgency=low
 
   * Initial release
 

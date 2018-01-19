@@ -62,6 +62,7 @@ install:
 	install faust2pdf $(dest)
 	install faust2plot $(dest)
 	install faust2png $(dest)
+	install faust2pure $(dest)
 	install faust2puredata $(dest)
 	install faust2osxiosunity $(dest)
 	install faust2raqt $(dest)
@@ -140,6 +141,7 @@ uninstall:
 	rm -f $(dest)/faust2pdf
 	rm -f $(dest)/faust2plot
 	rm -f $(dest)/faust2png
+	rm -f $(dest)/faust2pure
 	rm -f $(dest)/faust2puredata
 	rm -f $(dest)/faust2osxiosunity
 	rm -f $(dest)/faust2raqt

@@ -85,7 +85,7 @@ typedef struct {
 typedef void (* metaDeclareFun) (void*, const char* key, const char* value);
 
 typedef struct {
-  void *mInterface;
+  void *metaInterface;
   metaDeclareFun declare;
 } MetaGlue;
 

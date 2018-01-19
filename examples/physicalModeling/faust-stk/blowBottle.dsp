@@ -58,7 +58,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = en.asr(nonLinAttack,1,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
@@ -79,10 +79,10 @@ bandPassFilter = bandPass(freq,bottleRadius);
 //----------------------- Algorithm implementation ----------------------------
 
 //global envelope is of type attack - decay - sustain - release
-envelopeG =  gain*en.adsr(gain*envelopeAttack,envelopeDecay,100,envelopeRelease,gate);
+envelopeG =  gain*en.adsr(gain*envelopeAttack,envelopeDecay,1,envelopeRelease,gate);
 
 //pressure envelope is also ADSR
-envelope = pressure*en.adsr(gain*0.02,0.01,100,gain*0.2,gate);
+envelope = pressure*en.adsr(gain*0.02,0.01,1,gain*0.2,gate);
 
 //vibrato
 vibrato = os.osc(vibratoFreq)*vibratoGain*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate)*os.osc(vibratoFreq);

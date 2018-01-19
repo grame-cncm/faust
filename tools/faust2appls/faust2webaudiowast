@@ -23,7 +23,7 @@ OPTIONS="-ftz 2"
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-    FAUSTLIB=$FAUST_LIB_PATH
+	FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/share/faust/music.lib ]
 then
     FAUSTLIB=/usr/local/share/faust/

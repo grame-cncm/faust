@@ -37,8 +37,10 @@ faust2paqt  <file.dsp>...      	: create a PortAudio/QT application for each inp
 faust2netjackqt  <file.dsp>...  	: create a NetJack/QT application for each input file
 
 faust2netjackconsole  <file.dsp>...   : create a NetJack/console application for each input file
-	
-faust2puredata  <file.dsp>...  	: create a PureData 4 or 5 plugin for each input file
+
+faust2pure  <file.dsp>...  	: create a Pure plugin for each input file
+
+faust2puredata  <file.dsp>...  	: create a PureData plugin for each input file
 
 faust2raqt  <file.dsp>...   	      : create a RTAudio/QT application for each input file
 

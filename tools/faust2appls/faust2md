@@ -35,7 +35,6 @@
 #	markdown text....
 #--------------------------------------------------------
 
-
 import sys, re, datetime, string, getopt
 
 # Outdent a comment line by n characters in

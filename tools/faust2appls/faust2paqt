@@ -49,6 +49,7 @@ for p in $@; do
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        exit
     fi
     
     if [ "$p" = -omp ]; then
@@ -81,8 +82,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
-
 
 #-------------------------------------------------------------------
 # Check darwin specifics
@@ -129,5 +128,3 @@ for p in $FILES; do
 done
 
 echo $BINARIES
-
-

@@ -1,0 +1,124 @@
+#! /bin/bash
+
+#set -x
+
+# Where the Faust library files are. We try 'ls' on pure.cpp in some common
+# locations here, and fall back to the current directory if the file isn't
+# found. You can also specify this explicitly by setting the FAUSTLIB
+# environment variable accordingly.
+[ -z "$FAUSTLIB" ] && FAUSTLIB=$(dirname "$((ls -f /usr/share/faust/pure.cpp /usr/local/share/faust/pure.cpp /opt/local/share/faust/pure.cpp "$PWD/pure.cpp" 2>/dev/null)|tail -1)")
+[ -z "$FAUSTLIB" ] && FAUSTLIB="$PWD"
+
+# defaults (these can be changed with the options listed below)
+KEEP="no"
+BITCODE="no"
+
+PROCARCH="-fPIC"
+dllext=".so"
+CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize"
+
+# Darwin specifics
+if [[ $(uname) == Darwin ]]; then
+    dllext=".dylib"
+fi
+
+# dispatch command arguments
+for ((i=1;i<$#+1;i++)); do
+    p=${!i}
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+	cat <<EOF
+faust2pure [-bitcode] [-keep] <file.dsp>
+
+Options:
+-bitcode: generate an LLVM bitcode module (requires clang++)
+-keep: retain the build directory
+
+Environment variables:
+FAUSTLIB: specify the location of the Faust library (where pure.cpp lives)
+  Default: $FAUSTLIB
+EOF
+	exit 0
+    elif [ $p = "-omp" ]; then
+	: ignore
+    elif [ $p = "-icc" ]; then
+	CXX=icpc
+	CXXFLAGS="-O3 -xHost -ftz -fno-alias -fp-model fast=2"
+    elif [ $p = "-arch32" ]; then
+	PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+	PROCARCH="-m64 -fPIC"
+    elif [ $p = "-osx" ]; then
+	CXXFLAGS="-O3 -march=native -mfpmath=sse -msse -msse2 -msse3 -ffast-math -ftree-vectorize -I/opt/local/include"
+	dllext=".dylib"
+    elif [ $p = "-keep" ]; then
+	KEEP="yes"
+    elif [ $p = "-bitcode" ]; then
+	BITCODE="yes"
+    elif [ ${p:0:1} = "-" ]; then
+	OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+	FILES="$FILES $p"
+    else
+	OPTIONS="$OPTIONS $p"
+    fi
+done
+
+# Check to see whether the required library files are where we expect them,
+# and bail out with an error message otherwise.
+if [ ! -f "$FAUSTLIB/pure.cpp" ]; then echo "$0: pure.cpp architecture file not found" >&2; exit 1; fi
+
+for p in $FILES; do
+
+dspname=$p
+SRCDIR=$(dirname "$dspname")
+ABSDIR=$(cd $SRCDIR && pwd)
+CURDIR=$(pwd)
+
+clsname=`basename "$dspname" .dsp`
+if [[ $BITCODE == yes ]]; then
+# Output is LLVM bitcode.
+arch=pure.c
+cppname="$clsname.c"
+soname="$clsname.bc"
+TARGET="-lang c"
+else
+arch=pure.cpp
+cppname="$clsname.cpp"
+soname="$clsname$dllext"
+fi
+tmpdir=`mktemp -d /tmp/faust2pure.XXXXXX`
+
+CXX=g++
+LLVMCC="clang -emit-llvm"
+
+# Create the temp directory
+mkdir -p $tmpdir
+#trap "echo $0: compile error, intermediate files left in $tmpdir >&2" EXIT
+# Compile the Faust module.
+faust -i $TARGET -a "$FAUSTLIB/$arch" $OPTIONS "$dspname" -o "$tmpdir/$cppname" || exit 1
+if [[ $BITCODE == yes ]]; then
+# compile Faust C module to LLVM bitcode using the pure.c architecture (needs
+# clang)
+$LLVMCC $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" -c "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+else
+$CXX -shared $CXXFLAGS $FAUSTTOOLSFLAGS $PROCARCH -I"$ABSDIR" "$tmpdir/$cppname" -o "$tmpdir/$soname" || exit 1
+fi
+#trap - EXIT
+
+# copy down the plugin
+rm -rf "$SRCDIR/$soname"
+cp "$tmpdir/$soname" "$SRCDIR"
+if [[ $KEEP == yes ]]; then
+    # keep the build directory
+    rm -rf "$SRCDIR/$clsname"
+    mv $tmpdir "$SRCDIR/$clsname"
+else
+    # Clean up.
+    rm -rf $tmpdir
+fi
+BINARIES="$BINARIES$SRCDIR/$soname;"
+
+done
+
+# Print the names of the generated plugin files.
+echo $BINARIES

@@ -16,7 +16,8 @@ CXXFLAGS=$MYGCCFLAGS
 # Set Faust include path
 
 ARCHFILE="jack-qt.cpp"
-ARCHLIB="-L/usr/local/lib -ljack `pkg-config --cflags --static --libs sndfile`"
+#ARCHLIB="-L/usr/local/lib -ljack `pkg-config --cflags --static --libs sndfile`"
+ARCHLIB="-L/usr/local/lib -ljack"
 PATH=$PATH:/usr/local/bin
 
 if [ -f $FAUST_LIB_PATH/music.lib ]

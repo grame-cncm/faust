@@ -36,6 +36,7 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2gen [-nvoices <num>] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
+    	exit
     fi
     
     if [[ -f "$p" ]]; then

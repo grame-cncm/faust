@@ -7,7 +7,7 @@ override_dh_auto_build:
 	dh_auto_build -- prefix=/usr world
 
 override_dh_auto_install:
-	dh_auto_install -- prefix=$(CURDIR)/debian/faust2/usr
+	dh_auto_install -- prefix=$(CURDIR)/debian/faust/usr
 
 override_dh_compress:
 	dh_compress -X.h -X.cc -X.lib -X.dsp -X.pd -X.maxpat -X.mid -X.txt -XMakefile -XREADME

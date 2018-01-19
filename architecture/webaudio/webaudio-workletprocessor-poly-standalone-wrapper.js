@@ -140,7 +140,14 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
     {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
+        
+        // Add instrument parameters
         mydsp_polyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydsp_polyProcessor.parse_item1);
+        
+        // Possibly add effect parameters
+        if (typeof (getJSONeffect) !== "undefined") {
+             mydsp_polyProcessor.parse_ui(JSON.parse(getJSONeffect()).ui, params, mydsp_polyProcessor.parse_item1);
+        }
         return params;
     }
     
@@ -157,7 +164,6 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             return n;
         }
         
-        // Keep JSON parsed object
         var json_object = null;
         try {
             json_object = JSON.parse(getJSONmydsp());
@@ -165,7 +171,19 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             return null;
         }
         
-        var memory_size = pow2limit(parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+        var effect_json_object_size = 0;
+        if (typeof (getJSONeffect) !== "undefined") {
+            var effect_json_object = null;
+            try {
+                effect_json_object = JSON.parse(getJSONeffect());
+                effect_json_object_size = parseInt(effect_json_object.size);
+            } catch (e) {
+                faust.error_msg = "Error in JSON.parse: " + e;
+                return null;
+            }
+        }
+        
+        var memory_size = pow2limit(effect_json_object_size + parseInt(json_object.size) * polyphony + ((parseInt(json_object.inputs) + parseInt(json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
         memory_size = Math.max(2, memory_size); // As least 2
         return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
     }
@@ -175,6 +193,9 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         super(options);
         
         this.json_object = JSON.parse(getJSONmydsp());
+        if (typeof (getJSONeffect) !== "undefined") {
+            this.effect_json_object = JSON.parse(getJSONeffect());
+        }
         
         this.output_handler = function(path, value) { this.port.postMessage({ path: path, value: value }); };
         
@@ -240,8 +261,12 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         // wasm mixer
         this.mixer = mydsp_polyProcessor.mixer_instance.exports;
         
+        // wasm effect
+        this.effect = (mydsp_polyProcessor.effect_instance) ? mydsp_polyProcessor.effect_instance.exports : null;
+        
         console.log(this.mixer);
         console.log(this.factory);
+        console.log(this.effect);
         
         // Start of DSP memory ('polyphony' DSP voices)
         this.polyphony = mydsp_polyProcessor.polyphony;
@@ -269,6 +294,9 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             this.dsp_voices_trigger[i] = false;
         }
         
+        // Effect memory starts after last voice
+        this.effect_start = this.dsp_voices[this.polyphony - 1] + parseInt(this.json_object.size);
+    
         this.getPlayingVoice = function(pitch)
         {
             var voice_playing = this.kNoVoice;
@@ -389,9 +417,13 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                 }
             }
             
-             // Parse UI
+            // Parse UI part
             mydsp_polyProcessor.parse_ui(this.json_object.ui, this, mydsp_polyProcessor.parse_item2);
             
+            if (this.effect) {
+                mydsp_polyProcessor.parse_ui(this.effect_json_object.ui, this, mydsp_polyProcessor.parse_item2);
+            }
+     
             // keep 'keyOn/keyOff' labels
             for (i = 0; i < this.inputs_items.length; i++) {
                 if (this.inputs_items[i].endsWith("/gate")) {
@@ -409,6 +441,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
             // Init DSP voices
             for (i = 0; i <  this.polyphony; i++) {
                 this.factory.init(this.dsp_voices[i], sampleRate);  // 'sampleRate' is defined in AudioWorkletGlobalScope
+            }
+            
+            // Init effect
+            if (this.effect) {
+                this.effect.init(this.effect_start, sampleRate);
             }
         }
         
@@ -476,14 +513,22 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
         
         this.setParamValue = function (path, val)
         {
-            for (var i = 0; i < this.polyphony; i++) {
-                this.factory.setParamValue(this.dsp_voices[i], this.pathTable[path], val);
+            if (this.effect && getJSONeffect().includes(path)) {
+                this.effect.setParamValue(this.effect_start, this.pathTable[path], val);
+            } else {
+                for (var i = 0; i < this.polyphony; i++) {
+                    this.factory.setParamValue(this.dsp_voices[i], this.pathTable[path], val);
+                }
             }
         }
 
         this.getParamValue = function (path)
         {
-            return this.factory.getParamValue(this.dsp_voices[0], this.pathTable[path]);
+            if (this.effect && getJSONeffect().includes(path)) {
+                return this.effect.getParamValue(this.effect_start, this.pathTable[path]);
+            } else {
+                return this.factory.getParamValue(this.dsp_voices[0], this.pathTable[path]);
+            }
         }
             
         // Init resulting DSP
@@ -572,6 +617,11 @@ class mydsp_polyProcessor extends AudioWorkletProcessor {
                     this.dsp_voices_state[i] = this.kFreeVoice;
                 }
             }
+        }
+        
+        // Apply effect
+        if (this.effect) {
+            this.effect.compute(this.effect_start, mydsp_polyProcessor.buffer_size, this.outs, this.outs);
         }
         
         // Update bargraph
@@ -663,6 +713,11 @@ try {
     mydsp_polyProcessor.mixer_instance = new WebAssembly.Instance(wasm_mixer_module, mydsp_polyProcessor.mixObject);
     let wasm_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codemydsp()));
     mydsp_polyProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydsp_polyProcessor.importObject);
+    // Possibly compile effect
+    if (typeof (getBase64Codeeffect) !== "undefined") {
+        let wasm_effect_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codeeffect()));
+        mydsp_polyProcessor.effect_instance = new WebAssembly.Instance(wasm_effect_module, mydsp_polyProcessor.importObject);
+    }
     registerProcessor('mydsp_poly', mydsp_polyProcessor);
 } catch (e) {
     console.log(e); console.log("Faust mydsp_poly cannot be loaded or compiled");

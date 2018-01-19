@@ -24,7 +24,7 @@ resonance = hslider("v:Physical_Parameters/Resonance
 stereo = stereoizer(ma.SR/freq);
 
 //excitation envelope (adsr)
-envelope = en.adsr(0.001,0.04,100,0.5,gate);
+envelope = en.adsr(0.001,0.04,1,0.5,gate);
 
 //the delay length is randomly modulated
 targetDelay = ma.SR/freq;

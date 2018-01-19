@@ -44,7 +44,9 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
+#ifdef SOUNDFILE
 #include "faust/gui/SoundUI.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -89,12 +91,14 @@ int main(int argc, char *argv[] )
 
     CMDUI interface(argc, argv);
     FUI finterface;
-    SoundUI soundinterface;
 
+#ifdef SOUNDFILE
+    SoundUI soundinterface;
+    DSP->buildUserInterface(&soundinterface);
+#endif
     DSP.buildUserInterface(&interface);
     DSP.buildUserInterface(&finterface);
-    DSP.buildUserInterface(&soundinterface);
-
+ 
 #ifdef OSCCTRL
     OSCUI oscinterface(appname, argc, argv);
     DSP.buildUserInterface(&oscinterface);

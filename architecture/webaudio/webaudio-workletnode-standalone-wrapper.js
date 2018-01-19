@@ -54,7 +54,6 @@ class mydspNode extends AudioWorkletNode {
                        || item.type === "vbargraph") {
                 // Keep bargraph adresses
                 obj.outputs_items.push(item.address);
-                obj.pathTable[item.address] = parseInt(item.index);
             } else if (item.type === "vslider"
                        || item.type === "hslider"
                        || item.type === "button"
@@ -62,7 +61,6 @@ class mydspNode extends AudioWorkletNode {
                        || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
-                obj.pathTable[item.address] = parseInt(item.index);
             }
         }
         
@@ -73,8 +71,6 @@ class mydspNode extends AudioWorkletNode {
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
-        
-        this.pathTable = [];
        
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
@@ -91,6 +87,7 @@ class mydspNode extends AudioWorkletNode {
     setParamValue(path, val)
     {
         //this.port.postMessage({ type:"param", key:path, value:val });
+        
         // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }
