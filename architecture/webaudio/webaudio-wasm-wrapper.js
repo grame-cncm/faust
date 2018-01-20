@@ -321,9 +321,9 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback)
     code_effect = code_effect.concat("process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;");
     
     var res1 = faust.compileCode(factory_name1, code, argv, internal_memory);
-    var res2 = faust.compileCode(factory_name2, code_effect, argv, internal_memory);
     
     if (res1) {
+    	var res2 = faust.compileCode(factory_name2, code_effect, argv, internal_memory);
         if (res2) {
             // Effect is in the code
             faust.readDSPFactoryFromMachineAux(factory_name1,
