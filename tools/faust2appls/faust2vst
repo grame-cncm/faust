@@ -124,10 +124,10 @@ for p in $FILES; do
 	else
  		g++ -fPIC -shared $CXXFLAGS $FAUSTTOOLSFLAGS $INCLUDES -o "${f%.dsp}.so" "${f%.dsp}.cpp" $SOURCES
 	fi
-    )> /dev/null || exit
 
 	createInfoPList "${f%.dsp}" "${f%.dsp}$EXT/Contents/Info.plist"
 	echo "BNDL????" > "${f%.dsp}$EXT/Contents/PkgInfo"
+    )> /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
