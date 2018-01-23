@@ -60,7 +60,7 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
 # rules for llvm
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulsellvm $(notdir $<) -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-	filesCompare  $@ reference/$(notdir $@)
+	filesCompare  $@ reference/$(notdir $@) || (rm -f $@; false)
 
 
 

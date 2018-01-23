@@ -75,7 +75,7 @@ ir/$(outdir)/%.js : dsp/%.dsp
 # rules for wasm
 ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
-	filesCompare  $@ reference/$(notdir $@)
+	filesCompare  $@ reference/$(notdir $@) || (rm -f $@; false)
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
