@@ -728,7 +728,7 @@
 
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-                            dsp_code = "process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
+                            dsp_code = xmlhttp.responseText;
                             callback();
                         }
                     }
@@ -747,7 +747,6 @@
 
                     // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
                     if (dsp_code) {
-                        dsp_code = "process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
                         callback();
                     }
                     // CASE 3 : THE DROPPED OBJECT IS A FILE CONTAINING SOME FAUST CODE
@@ -774,7 +773,7 @@
                             }
 
                             reader.onloadend = function(e) {
-                                dsp_code = "process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
+                                dsp_code = reader.result;
                                 callback();
                             };
                         }

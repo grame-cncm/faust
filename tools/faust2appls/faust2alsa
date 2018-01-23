@@ -40,6 +40,7 @@ for p in $@; do
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        exit
     fi
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then

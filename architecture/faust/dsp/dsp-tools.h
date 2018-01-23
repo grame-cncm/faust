@@ -134,4 +134,91 @@ class Interleaver
         }
 };
 
+//=============================================================================
+// An AudioChannels is a group of non-interleaved buffers that knows how to read
+// from or write to an interleaved buffer. The interleaved buffer may have a
+// different number of channels than the AudioChannels internal channels.
+//=============================================================================
+
+class AudioChannels
+{
+    
+protected:
+    
+    const unsigned int  fNumFrames;
+    const unsigned int  fNumChannels;
+    FAUSTFLOAT**        fChannels;
+    
+public:
+    
+    AudioChannels(int nframes, int nchannels) : fNumFrames(nframes), fNumChannels(nchannels)
+    {
+        fChannels = new FAUSTFLOAT*[nchannels];
+        
+        // allocate audio channels
+        for (unsigned int i = 0; i < fNumChannels; i++) {
+            fChannels[i] = new FAUSTFLOAT[fNumFrames];
+            for (unsigned int j = 0; j < fNumFrames; j++) {
+                fChannels[i][j] = 0;
+            }
+        }
+    }
+    
+    virtual ~AudioChannels()
+    {
+        // free separate input channels
+        for (int i = 0; i < fNumChannels; i++) {
+            delete[] fChannels[i];
+        }
+        delete[] fChannels;
+    }
+    
+    //---------------------------------------------------------------------------------------
+    // interleavedRead: read, from the interleaved buffer <inbuffer>, <length> frames on
+    // <inchannels> channels. The samples are written to the <fNumChannels> internal
+    // <fChannels>.
+    void interleavedRead(float* inbuffer, unsigned int length, unsigned int inchannels)
+    {
+        assert(length <= fNumFrames);
+        unsigned int C = std::min(inchannels, fNumChannels);
+        unsigned int L = std::min(length, fNumFrames);
+        
+        for (unsigned int f = 0; f < L; f++) {
+            unsigned int p = f * inchannels;
+            for (unsigned int c = 0; c < C; c++) {
+                fChannels[c][f] = inbuffer[p++];
+            }
+            for (unsigned int c = C; c < fNumChannels; c++) {
+                fChannels[c][f] = 0;
+            }
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------
+    // interleavedWrite: write to the interleaved buffer <inbuffer>, <length> frames on
+    // <outchannels> channels. The samples are read from <fNumChannels> internal
+    // <fChannels>.
+    void interleavedWrite(float* outbuffer, unsigned int length, unsigned int outchannels)
+    {
+        assert(length <= fNumFrames);
+        unsigned int C = std::min(outchannels, fNumChannels);
+        unsigned int F = std::min(length, fNumFrames);
+        
+        for (unsigned int f = 0; f < F; f++) {
+            int p = f * outchannels;
+            for (unsigned int c = 0; c < C; c++) {
+                outbuffer[p++] = fChannels[c][f];
+            }
+            for (unsigned int c = C; c < outchannels; c++) {
+                outbuffer[p++] = 0;
+            }
+        }
+    }
+    
+    //----------------------------------------------------------------------------------------
+    // buffers: the internal buffers ready to use in the compute() method of a faust dsp
+    
+    FAUSTFLOAT** buffers() { return fChannels; }
+};
+
 #endif

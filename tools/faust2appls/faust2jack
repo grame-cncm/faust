@@ -105,7 +105,8 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

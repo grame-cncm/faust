@@ -1,4 +1,4 @@
-Source: faust2
+Source: faust
 Section: sound
 Priority: optional
 Maintainer: Albert Graef <aggraef@gmail.com>
@@ -7,10 +7,10 @@ Build-Depends: debhelper (>= 7.0.50~), bison, flex, pkg-config,
  libncurses5-dev, libedit-dev, vim-common
 Standards-Version: 3.9.3
 
-Package: faust2
+Package: faust
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}
-Conflicts: faust
+Conflicts: faust2
 Recommends: clang, ruby, libc6-dev | libc-dev, g++, make, libjack-dev, libgtk2.0-dev
 Suggests: kate
 Description: functional programming language for realtime audio applications
@@ -21,10 +21,7 @@ Description: functional programming language for realtime audio applications
  .
  The generated code can be wrapped into an 'architecture file' in order to
  create for example a standalone jack/gtk application. Several architecture
- files are provided and additional ones are fairly easy to add.
- .
- This is the development version of Faust, a.k.a. Faust2, which is available
- in the faust2 branch of the Faust git repository. Faust2 offers additional
- code generation backends and architectures for C, Java, JavaScript and LLVM
- bitcode.
+ files are provided and additional ones are fairly easy to add. Faust also
+ offers additional code generation backends and architectures for C, Java,
+ JavaScript and LLVM bitcode.
 Homepage: http://faust.grame.fr/

@@ -1,1 +1,2 @@
 syntax-highlighting/faust.xml usr/share/kde4/apps/katepart/syntax/
+syntax-highlighting/faust-mode.el usr/share/emacs/site-lisp/

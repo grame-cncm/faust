@@ -36,7 +36,7 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
-#if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #define LLVM_MAX_OPT_LEVEL 5
 #else
     #define LLVM_MAX_OPT_LEVEL 4
@@ -109,7 +109,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         llvm::ExecutionEngine* fJIT;
 
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)) && !defined(_MSC_VER)
+    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
         FaustObjectCache* fObjectCache;
     #endif
     
@@ -143,7 +143,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         
         bool crossCompile(const std::string& target);
       
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
     
@@ -160,7 +160,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
                              const string& target,
                              int opt_level = 0);
         
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)) && !defined(_MSC_VER)
+    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
         llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target);
     #endif
     

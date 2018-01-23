@@ -7,13 +7,13 @@ override_dh_auto_build:
 	dh_auto_build -- prefix=/usr world
 
 override_dh_auto_install:
-	dh_auto_install -- prefix=$(CURDIR)/debian/faust2/usr
+	dh_auto_install -- prefix=$(CURDIR)/debian/faust/usr
 
 override_dh_compress:
 	dh_compress -X.h -X.cc -X.lib -X.dsp -X.pd -X.maxpat -X.mid -X.txt -XMakefile -XREADME
 
 override_dh_strip:
-	dh_strip -Xlibfaust_dsp.so -XiOS/libOSCFaust.a -XiOS/liboscpack.a -Xfaust/libsndfile.a
+	dh_strip -Xosclib/libOSCFaust.a -Xosclib/liboscpack.a -Xosclib/*/libOSCFaust.a -Xosclib/*/liboscpack.a -Xfaust/libsndfile.a
 
 override_dh_shlibdeps:
-	dh_shlibdeps -Xlibfaust_dsp.so
+	dh_shlibdeps -Xfaust/osclib/libOSCFaust.so* -Xfaust/osclib/*/libOSCFaust.so*

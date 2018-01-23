@@ -14,6 +14,7 @@ COMB_WRAPPED_FILES=
 COMB_SEP=
 WASM=
 WORKLET="false"
+EFFECT=""
 
 OPT="false"
 EMCC="false"
@@ -47,10 +48,15 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2wasm [-poly] [-comb] [-opt] [-worklet] [-emcc] <file.dsp>"
+        echo "faust2wasm [-poly] [-effect auto|<effect.dsp>] [-comb] [-opt] [-worklet] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
         echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
@@ -60,6 +66,9 @@ for p in $@; do
         COMB="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
+    elif [ $p = "-effect" ]; then
+        shift
+        EFFECT=$1
     elif [ $p = "-opt" ]; then
         OPT="true"
     elif [ $p = "-worklet" ]; then
@@ -73,6 +82,9 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+
+shift
+
 done
 
 echo "Compiling with :" $OPTIONS
@@ -132,6 +144,25 @@ for f in $FILES; do
         faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
+
+        # possibly compile effect
+        if [ "$EFFECT" = "auto" ]; then
+        cat > $name"_effect".dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit
+            rm $name"_effect".dsp
+        elif [ "$EFFECT" != "" ]; then
+            faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
+        fi
+
         # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
             echo "Optimize wasm module"
@@ -158,6 +189,12 @@ for f in $FILES; do
         rm $name-temp.js
         rm $name.cpp
     else
+
+        if [ "$EFFECT" != "" ]; then
+            cat $name"_effect".js >> $name.js
+            rm $name"_effect".js
+        fi
+
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
@@ -191,15 +228,34 @@ for f in $FILES; do
         faust -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM -cn $name $OPTIONS $f -o $name.wasm || exit
-       # wasm ==> wasm optimizations
+
+        # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
             echo "Optimize $name wasm module"
             wasm-opt $name.wasm -O3 -o $name.wasm
         fi
+
+        # possibly compile effect
+        if [ "$EFFECT" = "auto" ]; then
+            cat > $name"_effect".dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit
+            rm $name"_effect".dsp
+        elif [ "$EFFECT" != "" ]; then
+            faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
+        fi
     fi
 
     if [ $EMCC = "true" ]; then
-    
+
         # prepare emcc compilation files
         if [ $POLY = false ]; then
             EXPORTED=EXPORTED_MONO
@@ -224,6 +280,12 @@ for f in $FILES; do
         
     else
         echo $name.js
+
+        if [ "$EFFECT" != "" ]; then
+            cat $name"_effect".js >> $name.js
+            rm $name"_effect".js
+        fi
+
         sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
         cat $name.js >> comb.js
         rm $name.js
@@ -238,7 +300,6 @@ if [ $EMCC = "true" ]; then
 
     rm $COMB_SRC
     rm $COMB_WRAPPED_FILES
-
 fi
 
 # collect binary file name

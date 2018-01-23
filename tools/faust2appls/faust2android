@@ -57,7 +57,7 @@ for p in $@; do
 		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
 		echo "-reuse: keep build directory and reuse it to speedup compilation."
 		echo "-debug: verbose output."
-		exit 1
+		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
 	else

@@ -43,9 +43,9 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+		PROCARCH="-m64"
     elif [ $p = "-osc" ]; then
     	#option ignored for dssi plugins
 		 OSCDEFS="-DOSCCTRL -lOSCFaust"

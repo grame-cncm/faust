@@ -58,7 +58,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = en.asr(nonLinAttack,1,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
@@ -75,7 +75,7 @@ tableSlope = 5 - (4*bowPressure);
 bowTable = bow(tableOffset,tableSlope);
 
 //a attack - decay - sustain - release envelope is used 
-envelope = en.adsr(gain*envelopeAttack,envelopeDecay,100, (1-gain)*envelopeRelease,gate);
+envelope = en.adsr(gain*envelopeAttack,envelopeDecay,1, (1-gain)*envelopeRelease,gate);
 maxVelocity = 0.03 + (0.2 * gain);
 
 //Delay lines declaration and vibrato, the length of the two delay lines are evolving propotionally

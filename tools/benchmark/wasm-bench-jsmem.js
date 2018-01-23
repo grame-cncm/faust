@@ -35,7 +35,6 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
     
     // JS side allocated wasm memory
     var HEAP = module_memory.buffer;
-    
     var HEAP32 = new Int32Array(HEAP);
     var HEAPF32 = new Float32Array(HEAP);
   
@@ -86,9 +85,7 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
         for (i = 0; i < numIn; i++) {
             var input = inputs[i];
             var dspInput = dspInChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                dspInput[j] = input[j];
-            }
+            dspInput.set(input);
         }
         
         // Compute
@@ -101,9 +98,7 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
         for (i = 0; i < numOut; i++) {
             var output = outputs[i];
             var dspOutput = dspOutChannnels[i];
-            for (j = 0; j < buffer_size; j++) {
-                output[j] = dspOutput[j];
-            }
+            output.set(dspOutput);
         }
     };
          

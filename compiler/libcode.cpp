@@ -617,6 +617,10 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }
+    
+    if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
+        throw faustexception("ERROR : 'ocpp' option can only be used in scalar mode\n");
+    }
 
     if (gGlobal->gVectorLoopVariant < 0 || gGlobal->gVectorLoopVariant > 1) {
         stringstream error;
@@ -635,6 +639,7 @@ static bool processCmdline(int argc, const char* argv[])
         error << "ERROR : invalid vector loop size [-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
     }
+    
 
     if (gGlobal->gFastMath) {
         if (!(gGlobal->gOutputLang == "c"

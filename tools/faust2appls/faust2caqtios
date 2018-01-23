@@ -57,6 +57,7 @@ for p in $@; do
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-debug' to print all the build steps"
+        exit
     fi
     
     if [ "$p" = -omp ]; then

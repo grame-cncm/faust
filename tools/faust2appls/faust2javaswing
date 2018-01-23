@@ -5,17 +5,16 @@
 
 if [ -f $FAUST_LIB_PATH/music.lib ]
 then
-  FAUSTLIB=$FAUST_LIB_PATH
+  	FAUSTLIB=$FAUST_LIB_PATH
 elif [ -f /usr/local/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/local/share/faust/
+  	FAUSTLIB=/usr/local/share/faust/
 elif [ -f /usr/share/faust/music.lib ]
 then
-  FAUSTLIB=/usr/share/faust/
+  	FAUSTLIB=/usr/share/faust/
 else
-  error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
+  	error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
 fi
-
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -36,7 +35,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files
