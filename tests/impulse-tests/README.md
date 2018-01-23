@@ -33,7 +33,6 @@ The generated impulse responses are not preserved by the shell scripts. Intermed
 ### To do
 - add precision arg to filesCompare (for float and fastmath outputs)
 - check that all test.sh subscripts are based on the current development branch and don't require any installation
-- put the C/C++ tests in a separate sub-makefile and add additional tests
 - simplify and rename the `faust2impulse_xxx_` scripts
 
 ### Obsolete Files
