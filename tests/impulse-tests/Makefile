@@ -12,22 +12,20 @@ endif
 
 GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
 outdir ?= float
-lang ?= cpp
 arch ?= ./archs/impulsearch.cpp
-FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
-FAUSTASMJSOPTIONS ?= 
+FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
 
 .PHONY: test reference
 
 dspfiles := $(wildcard dsp/*.dsp)
-
-listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.ir) 
-
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir) 
 
-listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/vec/%) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/sched/%) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/omp/%) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.cpp)
+#listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.ir) 
 
-.INTERMEDIATE: $(call listintermediate, $(outdir))
+
+#listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/vec/%) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/sched/%) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/omp/%) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.cpp)
+
+#.INTERMEDIATE: $(call listintermediate, $(outdir))
 
 
 #.DELETE_ON_ERROR: $(cppfiles)
@@ -38,11 +36,12 @@ SRCDIR := tools
 
 
 all:
-	make float
-	make double
-	make quad
+	make cpp
+	make c
 	make mute
-
+	make asmjs
+	make wasm
+	make llvm
 
 test:
 #	$(file > faustoptions.txt, "some text")
@@ -51,40 +50,52 @@ test:
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
-	@echo " 'all' (default): call the float, double, quad and mute targets"
-	@echo " 'float'    : check float output in scalar, vec, openmp and sched modes"
-	@echo " 'double'   : check double output in scalar, vec, openmp and sched modes"
-	@echo " 'quad'     : check quad output in scalar, vec, openmp and sched modes"
-	@echo " 'mute'     : check double output with mute"
+	@echo " 'all' (default): call all the targets below"
 	@echo
-	@echo " 'web'      : call the asmjs and wasm targets"
-	@echo " 'asmjs'    : check double output with asmjs backend and various options"
-	@echo " 'wasm'     : check double output with wasm backend and various options"
-	@echo
-	@echo " 'llvm'     : check double output with llvm backend and various options"
+	@echo " 'cpp'    : check float, double and quad outputs with the cpp backend in scalar, vec, openmp and sched modes"
+	@echo " 'c'      : check float, double and quad outputs with the c backend in scalar, vec, openmp and sched modes"
+	@echo " 'mute'   : check double output with mute"
+	@echo " 'asmjs'  : check double output with asmjs backend and various options"
+	@echo " 'wasm'   : check double output with wasm backend and various options"
+	@echo " 'llvm'   : check double output with llvm backend and various options"
+	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
+	@echo " 'web'       : call the asmjs and wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'tools'     : builds binary tools used by the tests"
 
 
-
 #########################################################################
-# checking float, double and quad outputs
-float:  
-	make _float  outdir=float
-_float: FAUSTOPTIONS = -lang $(lang) -single -i -a $(arch)
-_float : ir/float/vec ir/float/sched ir/float/omp $(call listfiles,float)
+# c and c++ backends
+cpp:
+	make -f Make.cpp outdir=cpp/float  		lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single"
+	make -f Make.cpp outdir=cpp/float/vec	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -vec"
+	make -f Make.cpp outdir=cpp/float/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -sch"
+	make -f Make.cpp outdir=cpp/float/omp 	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -omp"
+	make -f Make.cpp outdir=cpp/double  	 lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
+	make -f Make.cpp outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
+	make -f Make.cpp outdir=cpp/double/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
+	make -f Make.cpp outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
+	make -f Make.cpp outdir=cpp/quad  	   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad"
+	make -f Make.cpp outdir=cpp/quad/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -vec"
+	make -f Make.cpp outdir=cpp/quad/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -sch"
+	make -f Make.cpp outdir=cpp/quad/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -omp"
 
-double: 
-	make _double outdir=double
-_double: FAUSTOPTIONS = -lang $(lang) -double -i -a $(arch)
-_double: ir/double/vec ir/double/sched ir/double/omp $(call listfiles,double)
+c:
+	make -f Make.cpp outdir=c/float         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single"
+	make -f Make.cpp outdir=c/float/vec     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -vec"
+	make -f Make.cpp outdir=c/float/sched   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -sch"
+	make -f Make.cpp outdir=c/float/omp     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -omp"
+	make -f Make.cpp outdir=c/double        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"
+	make -f Make.cpp outdir=c/double/vec    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec"
+	make -f Make.cpp outdir=c/double/sched  lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch"
+	make -f Make.cpp outdir=c/double/omp   	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp"
+	make -f Make.cpp outdir=c/quad          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad"
+	make -f Make.cpp outdir=c/quad/vec      lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad -vec"
+	make -f Make.cpp outdir=c/quad/sched 	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad -sch"
+	make -f Make.cpp outdir=c/quad/omp   	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad -omp"
 
-quad:  
-	make _quad outdir=quad
-_quad: FAUSTOPTIONS = -lang $(lang) -quad -i -a $(arch)
-_quad: ir/quad/vec ir/quad/sched ir/quad/omp $(call listfiles,quad)
 
 mute: ir/mute  $(mutefiles)
 
@@ -111,12 +122,6 @@ llvm:
 
 #########################################################################
 # output directories
-ir/$(outdir)/vec:
-	mkdir -p ir/$(outdir)/vec
-ir/$(outdir)/sched:
-	mkdir -p ir/$(outdir)/sched
-ir/$(outdir)/omp:
-	mkdir -p ir/$(outdir)/omp
 ir/mute:
 	mkdir -p ir/mute
 
@@ -140,40 +145,6 @@ impulseinterp: $(SRCDIR)/impulseinterp.cpp ../../build/lib/libfaust.a
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` -o impulsellvm
 
-
-#########################################################################
-# rules for scalar, vec, openmp and sched tests
-ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
-	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@)
-ir/$(outdir)/% : ir/$(outdir)/%.cpp
-	$(CXX) $(GCCOPTIONS) $<  -o $@
-ir/$(outdir)/%.cpp : dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) $<  -o $@
-
-ir/$(outdir)/vec/%.ir: ir/$(outdir)/vec/% reference/%.ir
-	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@)
-ir/$(outdir)/vec/% : ir/$(outdir)/vec/%.cpp
-	$(CXX) $(GCCOPTIONS) $<  -o $@
-ir/$(outdir)/vec/%.cpp : dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) -vec $<  -o $@
-
-ir/$(outdir)/sched/%.ir: ir/$(outdir)/sched/% reference/%.ir
-	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@)
-ir/$(outdir)/sched/%.cpp : dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) -sch $<  -o $@
-ir/$(outdir)/sched/% : ir/$(outdir)/sched/%.cpp
-	$(CXX) $(GCCOPTIONS) $<  -o $@
-
-ir/$(outdir)/omp/%.ir: ir/$(outdir)/omp/% reference/%.ir
-	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@)
-ir/$(outdir)/omp/%.cpp : dsp/%.dsp
-	$(FAUST) $(FAUSTOPTIONS) -omp $<  -o $@
-ir/$(outdir)/omp/% : ir/$(outdir)/omp/%.cpp
-	$(CXX) $(GCCOPTIONS) $<  -o $@
 
 #########################################################################
 # rules for mute tests

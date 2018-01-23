@@ -1,0 +1,73 @@
+#
+# Makefile for testing the faust compiler output
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+else
+ FAUST ?= ../../build/bin/faust
+endif
+
+GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
+outdir ?= cpp/double
+lang ?= cpp
+ext  ?= cpp
+arch ?= impulsearch.cpp
+precision ?=		# filesCompare precision (empty by default)
+FAUSTOPTIONS := -double
+ifeq ($(lang), c)
+#	CXX = gcc
+	ext = c
+endif
+
+.PHONY: test 
+
+dspfiles := $(wildcard dsp/*.dsp)
+
+listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
+listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) 
+
+
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
+LIB    ?= ../../build/lib/libfaust.a
+SRCDIR := tools
+
+
+all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
+
+
+test:
+#	$(file > faustoptions.txt, "some text")
+	@echo $(call listwebfiles,$(asmjsdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'all' (default): generate ir for all the dsp files using the given options"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir' 	   : define the output directory (default to '$(outdir)')"
+	@echo " 'lang'         : used for faust -lang option (default to '$(lang)')"
+	@echo " 'arch'         : used for faust -a option (default to '$(arch)')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (default to $(FAUSTOPTIONS))"
+	@echo " 'precision'    : define filesCompare expected precision (empty by default)"
+
+#########################################################################
+# output directories
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+
+filesCompare:
+	make tools
+
+#########################################################################
+# rules 
+ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
+	$< -n 60000 > $@
+	filesCompare  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
+	$(CXX) $(GCCOPTIONS) $<  -o $@
+ir/$(outdir)/%.$(ext) : dsp/%.dsp
+	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -a ../archs/$(arch) $<  -o $@
