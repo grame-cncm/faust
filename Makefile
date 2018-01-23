@@ -160,7 +160,7 @@ install :
 	mkdir -p $(prefix)/share/faust
 	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
 	([ -e $(BINLOCATION)/libfaust.$(LIB_EXT) ] && install $(BINLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
-	([ -e $(BINLOCATION)/libfaust.a ] && install $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
+	([ -e $(BINLOCATION)/libfaust.a ] && cp $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
