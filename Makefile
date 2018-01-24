@@ -153,6 +153,7 @@ install :
 	# install faust itself
 	mkdir -p $(prefix)/bin/
 	mkdir -p $(prefix)/lib/
+	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
@@ -188,11 +189,11 @@ install :
 	# install iOS
 	rm -rf $(prefix)/share/faust/iOS
 	cp -r architecture/iOS $(prefix)/share/faust/
-	# remove object files and libraries before copying the entire osclib folder
-	$(MAKE) -C architecture/osclib clean
 	cp -r architecture/osclib $(prefix)/share/faust
+	# remove object files and libraries in the copied osclib folder
+	$(MAKE) -C $(prefix)/share/faust/osclib clean
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
-	cp architecture/ios-libsndfile.a $(prefix)/lib/
+	cp architecture/ios-libsndfile.a $(prefix)/lib/faust
 
 	# install smartKeyboard
 	rm -rf $(prefix)/share/faust/smartKeyboard
@@ -286,6 +287,7 @@ uninstall :
 	rm -f $(prefix)/bin/sound2faust$(EXE)
 	rm -f $(prefix)/bin/faustbench
 	rm -f $(prefix)/share/man/man1/faust.1
+	rm -f $(prefix)/lib/faust/ios-libsndfile.a
 
 # make a faust distribution tarball
 dist = faust-$(version)
