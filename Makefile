@@ -176,7 +176,6 @@ install :
 	cp architecture/*.cpp $(prefix)/share/faust/
 	cp architecture/*.java $(prefix)/share/faust/
 	cp architecture/*.js $(prefix)/share/faust/
-	cp architecture/*.a $(prefix)/share/faust/
 	cp libraries/old/*.lib $(prefix)/share/faust/
 	cp libraries/*.lib $(prefix)/share/faust/
 
@@ -189,29 +188,40 @@ install :
 	# install iOS
 	rm -rf $(prefix)/share/faust/iOS
 	cp -r architecture/iOS $(prefix)/share/faust/
+	# remove object files and libraries before copying the entire osclib folder
+	$(MAKE) -C architecture/osclib clean
 	cp -r architecture/osclib $(prefix)/share/faust
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
+	cp architecture/ios-libsndfile.a $(prefix)/lib/
+
 	# install smartKeyboard
 	rm -rf $(prefix)/share/faust/smartKeyboard
 	cp -r architecture/smartKeyboard $(prefix)/share/faust/
+
 	# install Juce
 	rm -rf $(prefix)/share/faust/juce
 	cp -r architecture/juce $(prefix)/share/faust/
+
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
+
 	# install Android
 	rm -rf $(prefix)/share/faust/android
 	cp -r architecture/android $(prefix)/share/faust/
+
 	# install APIs
 	rm -rf $(prefix)/share/faust/api/
 	cp -r architecture/api $(prefix)/share/faust/
+
 	# install nodejs
 	rm -rf $(prefix)/share/faust/nodejs/
 	cp -r architecture/nodejs $(prefix)/share/faust/
+
 	# install Max/MSP
 	rm -rf $(prefix)/share/faust/max-msp/
 	cp -r architecture/max-msp $(prefix)/share/faust/
+
 	#install unity
 	rm -rf $(prefix)/share/faust/unity
 	cp -r architecture/unity $(prefix)/share/faust/

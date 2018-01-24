@@ -99,7 +99,7 @@ class dsp_poly_factory {
             if (fEffectFactory) {
                 return new dsp_sequencer(*poly_dsp, fEffectFactory->createDSPInstance());
             } else {
-                return  *poly_dsp;
+                return *poly_dsp;
             }
         }
     
