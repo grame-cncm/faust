@@ -56,53 +56,78 @@ inline std::string pathToContent(const std::string& path)
  * Polyphonic DSP factory class. Helper code to support polyphonic DSP source with an integrated effect.
  */
 
-class dsp_poly_factory {
+struct dsp_poly_factory : public dsp_factory {
     
-    private:
-        
-        llvm_dsp_factory* fFactory;
-        llvm_dsp_factory* fEffectFactory;
+    llvm_dsp_factory* fProcessFactory;
+    llvm_dsp_factory* fEffectFactory;
     
-    public:
+    dsp_poly_factory(llvm_dsp_factory* process_factory,
+                     llvm_dsp_factory* effect_factory)
+        :fProcessFactory(process_factory),
+        fEffectFactory(effect_factory)
+    {}
+
+    dsp_poly_factory(const std::string& name_app,
+                     const std::string& dsp_content,
+                     int argc, const char* argv[],
+                     const std::string& target,
+                     std::string& error_msg,
+                     int opt_level = -1)
+    {
+        // Create 'effect' expression
+        std::stringstream code_effect;
+        code_effect << "adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;";
+        code_effect << "adaptor(F,G) = adapt(outputs(F),inputs(G)); dsp_code = environment{ " << dsp_content << " };";
+        code_effect << "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
         
-        dsp_poly_factory(const std::string& name_app,
-                         const std::string& dsp_content,
-                         int argc, const char* argv[],
-                         const std::string& target,
-                         std::string& error_msg,
-                         int opt_level = -1)
-        {
-            // Create 'effect' expression
-            std::stringstream code_effect;
-            code_effect << "adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;";
-            code_effect << "adaptor(F,G) = adapt(outputs(F),inputs(G)); dsp_code = environment{ " << dsp_content << " };";
-            code_effect << "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
-            
-            fFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
-            if (fFactory) {
-                fEffectFactory = createDSPFactoryFromString(name_app, code_effect.str(), argc, argv, target, error_msg);
-            } else {
-                throw std::bad_alloc();
-            }
+        fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
+        if (fProcessFactory) {
+            fEffectFactory = createDSPFactoryFromString(name_app, code_effect.str(), argc, argv, target, error_msg);
+        } else {
+            throw std::bad_alloc();
         }
-        
-        virtual ~dsp_poly_factory()
-        {
-            deleteDSPFactory(fFactory);
-            if (fEffectFactory) deleteDSPFactory(fEffectFactory);
+    }
+    
+    virtual ~dsp_poly_factory()
+    {
+        deleteDSPFactory(fProcessFactory);
+        if (fEffectFactory) { deleteDSPFactory(fEffectFactory); }
+    }
+    
+    virtual std::string getName() { return fProcessFactory->getName(); }
+    virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
+    virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
+    
+    virtual void setMemoryManager(dsp_memory_manager* manager)
+    {
+        fProcessFactory->setMemoryManager(manager);
+        if (fEffectFactory) {
+            fEffectFactory->setMemoryManager(manager);
         }
-        
-        /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete' */
-        dsp* createPolyDSPInstance(int nvoices, bool control, bool group, mydsp_poly** poly_dsp)
-        {
-            *poly_dsp = new mydsp_poly(fFactory->createDSPInstance(), nvoices, control, group);
+    }
+    virtual dsp_memory_manager* getMemoryManager() { return fProcessFactory->getMemoryManager(); }
+    
+    /* Create a new polyphonic DSP instance with global effect */
+    dsp* createPolyDSPInstance(int nvoices, bool control, bool group, mydsp_poly** poly_dsp)
+    {
+        if (nvoices == 1) {
+            *poly_dsp = nullptr;
+            return fProcessFactory->createDSPInstance();
+        } else {
+            *poly_dsp = new mydsp_poly(fProcessFactory->createDSPInstance(), nvoices, control, group);
             if (fEffectFactory) {
                 return new dsp_sequencer(*poly_dsp, fEffectFactory->createDSPInstance());
             } else {
                 return *poly_dsp;
             }
         }
+    }
     
+    dsp* createDSPInstance()
+    {
+        return fProcessFactory->createDSPInstance();
+    }
+
 };
 
 dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
@@ -123,6 +148,30 @@ dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
                                                int opt_level = -1)
 {
     return createPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, target, error_msg, opt_level);
+}
+
+dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = -1)
+{
+    std::string process_path = bit_code_path + "_process";
+    std::string effect_path = bit_code_path + "_effect";
+    
+    llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, opt_level);
+    llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, opt_level);
+    
+    if (!process_factory && !effect_factory) {
+        return nullptr;
+    } else {
+        return new dsp_poly_factory(process_factory, effect_factory);
+    }
+}
+
+void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::string& bit_code_path)
+{
+    std::string process_path = bit_code_path + "_process";
+    std::string effect_path = bit_code_path + "_effect";
+    
+    writeDSPFactoryToBitcodeFile(factory->fProcessFactory, process_path);
+    writeDSPFactoryToBitcodeFile(factory->fEffectFactory, effect_path);
 }
 
 #endif // __poly_dsp_tools__

@@ -8,7 +8,7 @@ PREFIX ?= /usr/local
 
 prefix := $(DESTDIR)$(PREFIX)
 
-all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk interp-tracer fastmath
+all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
 
 faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
@@ -19,7 +19,10 @@ faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
 
-dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp 
+poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
+	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
+
+dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
 	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin
 
 interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
@@ -41,6 +44,7 @@ install:
 	cp faustbench.cpp $(prefix)/share/faust
 	cp faustbench $(prefix)/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found
+	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
 	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  $(prefix)/bin || echo dynamic-jack-gtk-plugin not found
 	([ -e faustbench-llvm ]) && cp faustbench-llvm $(prefix)/bin || echo faustbench-llvm not found
@@ -52,6 +56,7 @@ clean:
 
 	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugin || echo dynamic-jack-gtk-plugin not found
 	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
+	([ -e poly-dynamic-jack-gtk ]) && rm poly-dynamic-jack-gtk || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && rm interp-tracer || echo interp-tracer not found
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found
 	([ -e faustbench-llvm-interp ]) && rm faustbench-llvm-interp || echo faustbench-llvm-interp not found
