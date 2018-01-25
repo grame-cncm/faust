@@ -51,6 +51,7 @@ help:
 	@echo "Warning: you must have at least 10G available on your hard disk to run all the tests"
 	@echo
 	@echo "Specific targets:"
+	@echo " 'travis'    : tests subset for travis"
 	@echo " 'web'       : call the asmjs and wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'tools'     : builds binary tools used by the tests"
@@ -61,6 +62,14 @@ help:
 	@echo "NOTE: when running make with option '-j', you should also use '-i' (see the README.md file)"
 	@echo
 
+
+#########################################################################
+# automatic travis test
+travis:
+	make -f Make.cpp outdir=cpp/double  	 lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
+	make -f Make.cpp outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
+	make -f Make.cpp outdir=cpp/double/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
+	make -f Make.cpp outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
 
 
 #########################################################################
