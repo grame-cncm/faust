@@ -121,19 +121,19 @@ $(IOSDIR)/faust.xcodeproj: CMakeLists.txt ios.cmake
 $(FAUSTDIR):
 	mkdir $(FAUSTDIR)
 
-$(IOSDIR):
+$(IOSDIR): 
 	mkdir $(IOSDIR)
 
 $(FAUSTDIR)/Makefile: CMakeLists.txt $(BACKENDS)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
 
-verbose:
+verbose: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DCMAKE_VERBOSE_MAKEFILE=ON ..
 
-silent:
+silent: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) -DCMAKE_VERBOSE_MAKEFILE=OFF ..
 
-cmake:
+cmake: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../$(BACKENDS) $(CMAKEOPT) ..
 
 
