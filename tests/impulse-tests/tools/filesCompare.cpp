@@ -10,6 +10,7 @@
 #include <map>
 #include <iostream>
 #include <istream>
+#include <fstream>
 #include <ostream>
 #include <sstream>
 #include <math.h>
@@ -18,11 +19,6 @@
 #include <cmath>
 #include <cfloat>
 #include <stdlib.h>
-
-#include "faust/gui/console.h"
-#include "faust/dsp/dsp.h"
-#include "faust/gui/FUI.h"
-#include "faust/audio/channels.h"
 
 static int gResult = 0;
 static int gError = 0;
