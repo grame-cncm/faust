@@ -6,8 +6,10 @@ system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
 else
  FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
 endif
 
 outdir ?= llvm
@@ -60,7 +62,7 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
 # rules for llvm
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulsellvm $(notdir $<) -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
-	filesCompare  $@ reference/$(notdir $@) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
 
 
 

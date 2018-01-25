@@ -6,8 +6,10 @@ system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
 else
  FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
 endif
 
 outdir ?= asmjs
@@ -22,7 +24,6 @@ FAUSTOPTIONS ?=
 dspfiles := $(wildcard dsp/*.dsp)
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
 SRCDIR := tools
 
 
@@ -60,14 +61,14 @@ ir/$(wasmdir):
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
-	$(CXX) $(TOOLSOPTIONS) $(SRCDIR)/filesCompare.cpp -o filesCompare
+	make tools
 
 
 #########################################################################
 # rules for asm.js
 ir/$(outdir)/%.ir: ir/$(outdir)/%.js reference/%.ir
 	node $< > $@ || (rm -f $@; false)
-	filesCompare  $@ reference/$(notdir $@)
+	$(COMPARE)  $@ reference/$(notdir $@)
 ir/$(outdir)/%.js : dsp/%.dsp
 	$(FAUST) -double -lang $(lang) $(FAUSTOPTIONS) -cn $(basename $(notdir $@)) -a $(arch)  $<  -o $@
 
@@ -75,7 +76,7 @@ ir/$(outdir)/%.js : dsp/%.dsp
 # rules for wasm
 ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
-	filesCompare  $@ reference/$(notdir $@) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@

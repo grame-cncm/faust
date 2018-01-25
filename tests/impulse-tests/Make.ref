@@ -6,8 +6,10 @@ system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
 else
  FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
 endif
 
 refdir := reference
@@ -65,7 +67,7 @@ $(refdir)/sched:
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
-	$(CXX) $(TOOLSOPTIONS) $(SRCDIR)/filesCompare.cpp -o filesCompare
+	make tools
 
 
 #########################################################################
@@ -73,8 +75,8 @@ filesCompare: $(SRCDIR)/filesCompare.cpp
 $(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
-	filesCompare  $@ $(refdir)/vec/$(notdir $@)
-	filesCompare  $@ $(refdir)/sched/$(notdir $@)
+	$(COMPARE)  $@ $(refdir)/vec/$(notdir $@)
+	$(COMPARE)  $@ $(refdir)/sched/$(notdir $@)
 
 $(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)

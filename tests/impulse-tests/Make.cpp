@@ -6,8 +6,10 @@ system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
 else
  FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
 endif
 
 GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
@@ -66,7 +68,7 @@ filesCompare:
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
