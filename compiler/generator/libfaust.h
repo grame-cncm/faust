@@ -108,7 +108,7 @@ LIBEXPORT std::string generateSHA1(const std::string& dsp_content);
 #ifdef EMCC
 extern "C" void freeCMemory(void* ptr);
 #else
-LIBEXPORT void freeCMemory(void* ptr);
+extern "C" LIBEXPORT void freeCMemory(void* ptr);
 #endif
 
 #endif

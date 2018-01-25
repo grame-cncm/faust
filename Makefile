@@ -164,9 +164,6 @@ install :
 	([ -e $(BINLOCATION)/libfaust.a ] && cp $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/interpreter/interpreter-dsp.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/wasm/wasm-dsp.h  $(prefix)/include/faust/dsp/
 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available

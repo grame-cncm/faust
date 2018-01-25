@@ -44,9 +44,9 @@
 */
 
 #ifdef LLVM_DSP_FACTORY
-#include "llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #else
-#include "interpreter-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #endif
 
 #include "faust/audio/audio.h"
