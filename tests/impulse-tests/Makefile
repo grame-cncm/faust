@@ -6,8 +6,10 @@ system := $(shell uname -s)
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
 else
  FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
 endif
 
 GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
@@ -20,15 +22,6 @@ FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir) 
 
-#listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.ir) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.ir) 
-
-
-#listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/vec/%) $(dspfiles:dsp/%.dsp=ir/$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/sched/%) $(dspfiles:dsp/%.dsp=ir/$1/sched/%.cpp) $(dspfiles:dsp/%.dsp=ir/$1/omp/%) $(dspfiles:dsp/%.dsp=ir/$1/omp/%.cpp)
-
-#.INTERMEDIATE: $(call listintermediate, $(outdir))
-
-
-#.DELETE_ON_ERROR: $(cppfiles)
 
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
 LIB    ?= ../../build/lib/libfaust.a
@@ -43,17 +36,14 @@ all:
 	make wasm
 	make llvm
 
-test:
-#	$(file > faustoptions.txt, "some text")
-	@echo $(call listwebfiles,$(asmjsdir))
 
 help:
 	@echo "-------- FAUST impulse response tests --------"
 	@echo "Available targets are:"
 	@echo " 'all' (default): call all the targets below"
 	@echo
-	@echo " 'cpp'    : check float, double and quad outputs with the cpp backend in scalar, vec, openmp and sched modes"
-	@echo " 'c'      : check float, double and quad outputs with the c backend in scalar, vec, openmp and sched modes"
+	@echo " 'cpp'    : check float and double outputs with the cpp backend in scalar, vec, openmp and sched modes"
+	@echo " 'c'      : check float and double outputs with the c backend in scalar, vec, openmp and sched modes"
 	@echo " 'mute'   : check double output with mute"
 	@echo " 'asmjs'  : check double output with asmjs backend and various options"
 	@echo " 'wasm'   : check double output with wasm backend and various options"
@@ -64,6 +54,10 @@ help:
 	@echo " 'web'       : call the asmjs and wasm targets"
 	@echo " 'reference' : builds the reference files"
 	@echo " 'tools'     : builds binary tools used by the tests"
+	@echo
+	@echo "Experimental targets:"
+	@echo " 'quad'    : check quad output with the cpp and c backends in scalar, vec, openmp and sched modes"
+
 
 
 #########################################################################
@@ -77,10 +71,6 @@ cpp:
 	make -f Make.cpp outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
 	make -f Make.cpp outdir=cpp/double/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
 	make -f Make.cpp outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
-	make -f Make.cpp outdir=cpp/quad  	   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad"
-	make -f Make.cpp outdir=cpp/quad/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -vec"
-	make -f Make.cpp outdir=cpp/quad/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -sch"
-	make -f Make.cpp outdir=cpp/quad/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -omp"
 
 c:
 	make -f Make.cpp outdir=c/float         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single"
@@ -91,6 +81,13 @@ c:
 	make -f Make.cpp outdir=c/double/vec    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec"
 	make -f Make.cpp outdir=c/double/sched  lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch"
 	make -f Make.cpp outdir=c/double/omp   	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp"
+
+
+quad:
+	make -f Make.cpp outdir=cpp/quad  	   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad"
+	make -f Make.cpp outdir=cpp/quad/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -vec"
+	make -f Make.cpp outdir=cpp/quad/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -sch"
+	make -f Make.cpp outdir=cpp/quad/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-quad -omp"
 	make -f Make.cpp outdir=c/quad          lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad"
 	make -f Make.cpp outdir=c/quad/vec      lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad -vec"
 	make -f Make.cpp outdir=c/quad/sched 	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-quad -sch"
@@ -150,7 +147,7 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
 # rules for mute tests
 ir/mute/%.ir: ir/mute/% reference/%.ir
 	$< -n 60000 > $@
-	filesCompare  $@ reference/$(notdir $@)
+	$(COMPARE)  $@ reference/$(notdir $@)
 ir/mute/%.cpp : dsp/%-mute.dsp
 	$(FAUST) $(FAUSTOPTIONS) $<  -o $@
 ir/mute/% : ir/mute/%.cpp
