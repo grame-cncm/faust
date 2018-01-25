@@ -52,4 +52,7 @@ branches:
   - master-dev
   - master
 
-script:  make light CXX=$COMPILER -j4 && make
+script: 
+  - make light CXX=$COMPILER -j4 && make
+  - make -C tests/impulse-tests travis
+
