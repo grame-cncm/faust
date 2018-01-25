@@ -25,6 +25,7 @@ ifeq ($(lang), c)
 endif
 
 .PHONY: test 
+.DELETE_ON_ERROR:
 
 dspfiles := $(wildcard dsp/*.dsp)
 
@@ -68,7 +69,7 @@ filesCompare:
 # rules 
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
-	$(COMPARE)  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) $(precision)
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $<  -o $@
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
