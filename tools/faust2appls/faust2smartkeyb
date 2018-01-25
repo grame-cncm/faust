@@ -138,6 +138,7 @@ fi
 ###############################
 # Creating Default Project
 ###############################
+PLATFORM=$(uname)
 
 if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 	if [ -d "$BUILDDIR" ]; then # if BUILDIR exists, then delete it
@@ -154,7 +155,6 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 			cp -r $FAUSTLIB/smartKeyboard/android/* "$BUILDDIR"
 
 			# change 'faust' with real *APPNAME
-			PLATFORM=$(uname)
 
 			if [ $PLATFORM = "Darwin" ]; then
 				sed -i '' 's,com.ccrma.faust,com.ccrma.'$APPNAME',g' $BUILDDIR/app/build.gradle
@@ -181,9 +181,13 @@ if [ $REUSE -eq 0 ] || [ ! -d "$BUILDDIR" ]; then
 		elif [ $IOS -eq 1 ]; then
 			echo "Creating a new iOS project in $BUILDDIR" > $LOG
 			cp -r $FAUSTLIB/smartKeyboard/iOS/* "$BUILDDIR"
-
-			sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
-			sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+			if [ $PLATFORM = "Darwin" ]; then
+				sed -i '' 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+				sed -i '' 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+			else
+				sed -i 's,$(TARGET_NAME),'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+				sed -i 's,ccrma.Faust,ccrma.'$APPNAME',g' $BUILDDIR/Faust.xcodeproj/project.pbxproj
+			fi
             # Put OSC in project in all cases, even if not compiled
             # cp -r $FAUSTLIB/osclib "$BUILDDIR"/Faust
         fi
