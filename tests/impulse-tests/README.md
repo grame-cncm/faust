@@ -24,11 +24,20 @@ Type `make help` for details about the available targets.
 
 There is no target `clean`: simply delete the `ir` folder or one of its subfolders to regenerate the impulse responses.
 
+**Note**:
+
+when using the make option `-j`, I suggest to also add a `-i` option (`--ignore-errors : Ignore errors from commands`), especially with the 'cpp' and 'c' targets. Indeed, make should first _1)_ build all the C++ and/or C output, _2)_ compile these output and _3)_ finally run the Faust program and check the result.
+
+If `make` fails with the first check and since intermediate files are removed, the steps _1)_ and _2)_ will restart from the beginning (which is quite time consuming) on next run. With the `-i` option, `make` will run to the end and on next run, only the faulty dsp will be rebuild.
+
 
 #### Using the shell scripts
 The main script is `test.sh`. Type `test.sh -help` for details about the available tests.
 
 The generated impulse responses are not preserved by the shell scripts. Intermediate files may be generated in the dsp folder without being deleted.
+
+You should run `make tools` before first run of `tests.sh`.
+
 
 ### To do
 - add precision arg to filesCompare (for float and fastmath outputs)

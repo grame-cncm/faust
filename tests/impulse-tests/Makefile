@@ -57,6 +57,9 @@ help:
 	@echo
 	@echo "Experimental targets:"
 	@echo " 'quad'    : check quad output with the cpp and c backends in scalar, vec, openmp and sched modes"
+	@echo
+	@echo "NOTE: when running make with option '-j', you should also use '-i' (see the README.md file)"
+	@echo
 
 
 
