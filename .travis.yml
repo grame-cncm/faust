@@ -45,7 +45,7 @@ before_install:
   - sudo apt-get install -y libmicrohttpd-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
 
 env:
-  - LLVM_CONFIG=llvm-config-3.8
+  - LLVM_CONFIG=llvm-config-4.1
   
 branches:
   only:
