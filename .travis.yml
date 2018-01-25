@@ -45,7 +45,7 @@ before_install:
   - sudo apt-get install -y libmicrohttpd-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
 
 env:
-  - LLVM_CONFIG=llvm-config-4.1
+  - LLVM_CONFIG=llvm-config-3.8
   
 branches:
   only:
@@ -54,5 +54,6 @@ branches:
 
 script: 
   - make light CXX=$COMPILER -j4 && make
-  - make -C tests/impulse-tests travis
+  - cp compiler/generator/llvm/llvm-dsp.h architecture/faust/dsp
+  - make -C tests/impulse-tests travis -j 4
 
