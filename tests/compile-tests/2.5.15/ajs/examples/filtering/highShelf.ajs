@@ -1,0 +1,182 @@
+/* ------------------------------------------------------------
+name: "highShelf"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var cosf = foreign.cos;
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var sinf = foreign.sin;
+	var sqrtf = foreign.sqrt;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 4 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 8 >> 2] = +(6.28318548 / +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 4 >> 2] | 0)))))));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 12 >> 2] = 1000.;
+		HEAPF[dsp + 16 >> 2] = 1.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		for (l0 = 0; (((l0 | 0) < 3) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 20 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 4 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var fSlow11 = 0.;
+		var fSlow12 = 0.;
+		var i = 0;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		fSlow0 = +(powf(10., +(0.0250000004 * +(+(HEAPF[dsp + 0 >> 2])))));
+		fSlow1 = +(+(HEAPF[dsp + 8 >> 2]) * +(max_f(0., +(+(HEAPF[dsp + 12 >> 2])))));
+		fSlow2 = +(+(+(sqrtf(+(fSlow0))) * +(sinf(+(fSlow1)))) / +(max_f(0.00100000005, +(+(HEAPF[dsp + 16 >> 2])))));
+		fSlow3 = +(cosf(+(fSlow1)));
+		fSlow4 = +(+(+(fSlow0) + -1.) * +(fSlow3));
+		fSlow5 = +(1. / +(+(+(fSlow0) + +(fSlow2)) + +(1. - +(fSlow4))));
+		fSlow6 = +(+(fSlow0) + +(fSlow4));
+		fSlow7 = +(+(fSlow0) * +(+(+(fSlow2) + +(fSlow6)) + 1.));
+		fSlow8 = +(+(fSlow0) + +(1. - +(+(fSlow4) + +(fSlow2))));
+		fSlow9 = +(+(+(fSlow0) + 1.) * +(fSlow3));
+		fSlow10 = +(2. * +(+(fSlow0) + +(-1. - +(fSlow9))));
+		fSlow11 = +(+(0. - +(2. * +(fSlow0))) * +(+(+(fSlow0) + +(fSlow9)) + -1.));
+		fSlow12 = +(+(fSlow0) * +(+(fSlow6) + +(1. - +(fSlow2))));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[dsp + 20 + (0 << 2) >> 2] = +(+(+(HEAPF[input0 + ((i | 0) << 2) >> 2])) - +(+(fSlow5) * +(+(+(fSlow8) * +(HEAPF[dsp + 20 + (2 << 2) >> 2])) + +(+(fSlow10) * +(HEAPF[dsp + 20 + (1 << 2) >> 2])))));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(fSlow5) * +(+(+(+(fSlow7) * +(HEAPF[dsp + 20 + (0 << 2) >> 2])) + +(+(fSlow11) * +(HEAPF[dsp + 20 + (1 << 2) >> 2]))) + +(+(fSlow12) * +(HEAPF[dsp + 20 + (2 << 2) >> 2])))));
+			HEAPF[dsp + 20 + (2 << 2) >> 2] = +(HEAPF[dsp + 20 + (1 << 2) >> 2]);
+			HEAPF[dsp + 20 + (1 << 2) >> 2] = +(HEAPF[dsp + 20 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 32;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/highShelf/Gain"] = 0;
+	pathTable["/highShelf/Freq"] = 12;
+	pathTable["/highShelf/Q"] = 16;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"highShelf\",\"inputs\":\"1\",\"outputs\":\"1\",\"meta\":[{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"maxmsp.lib/author\":\"GRAME\"},{\"maxmsp.lib/copyright\":\"GRAME\"},{\"maxmsp.lib/license\":\"LGPL\"},{\"maxmsp.lib/name\":\"MaxMSP compatibility Library\"},{\"maxmsp.lib/version\":\"1.1\"},{\"name\":\"highShelf\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"highShelf\",\"items\":[{\"type\":\"hslider\",\"label\":\"Freq\",\"address\":\"/highShelf/Freq\",\"init\":\"1000\",\"min\":\"100\",\"max\":\"10000\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"Gain\",\"address\":\"/highShelf/Gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-10\",\"max\":\"10\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"Q\",\"address\":\"/highShelf/Q\",\"init\":\"1\",\"min\":\"0.01\",\"max\":\"100\",\"step\":\"0.01\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("maxmsp.lib/author", "GRAME");
+	m.declare("maxmsp.lib/copyright", "GRAME");
+	m.declare("maxmsp.lib/license", "LGPL");
+	m.declare("maxmsp.lib/name", "MaxMSP compatibility Library");
+	m.declare("maxmsp.lib/version", "1.1");
+	m.declare("name", "highShelf");
+}
+

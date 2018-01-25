@@ -1,0 +1,195 @@
+/* ------------------------------------------------------------
+name: "cryBaby"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var cosf = foreign.cos;
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 16 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 20 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 16 >> 2] | 0))))));
+		HEAPF[dsp + 24 >> 2] = +(1413.71667 / +(HEAPF[dsp + 20 >> 2]));
+		HEAPF[dsp + 28 >> 2] = +(2827.43335 / +(HEAPF[dsp + 20 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 4 >> 2] = 0.800000012;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 32 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 40 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 3) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 48 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 16 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var iSlow0 = 0;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		iSlow0 = ~~(+(+(HEAPF[dsp + 0 >> 2])));
+		fSlow1 = +(+(HEAPF[dsp + 4 >> 2]));
+		fSlow2 = +(9.99999975e-05 * +(powf(4., +(fSlow1))));
+		fSlow3 = +(powf(2., +(2.29999995 * +(fSlow1))));
+		fSlow4 = +(1. - +(+(HEAPF[dsp + 24 >> 2]) * +(+(fSlow3) / +(powf(2., +(+(2. * +(1. - +(fSlow1))) + 1.))))));
+		fSlow5 = +(0.00100000005 * +(0. - +(2. * +(+(fSlow4) * +(cosf(+(+(HEAPF[dsp + 28 >> 2]) * +(fSlow3))))))));
+		fSlow6 = +(0.00100000005 * +(powf(+(fSlow4), 2.)));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			HEAPF[dsp + 8 + (0 << 2) >> 2] = +(+(fSlow2) + +(0.999000013 * +(HEAPF[dsp + 8 + (1 << 2) >> 2])));
+			HEAPF[dsp + 32 + (0 << 2) >> 2] = +(+(fSlow5) + +(0.999000013 * +(HEAPF[dsp + 32 + (1 << 2) >> 2])));
+			HEAPF[dsp + 40 + (0 << 2) >> 2] = +(+(fSlow6) + +(0.999000013 * +(HEAPF[dsp + 40 + (1 << 2) >> 2])));
+			HEAPF[dsp + 48 + (0 << 2) >> 2] = +(+(+((iSlow0 | 0)?0.:+(fTemp0)) * +(HEAPF[dsp + 8 + (0 << 2) >> 2])) - +(+(+(HEAPF[dsp + 32 + (0 << 2) >> 2]) * +(HEAPF[dsp + 48 + (1 << 2) >> 2])) + +(+(HEAPF[dsp + 40 + (0 << 2) >> 2]) * +(HEAPF[dsp + 48 + (2 << 2) >> 2]))));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+((iSlow0 | 0)?+(fTemp0):+(+(HEAPF[dsp + 48 + (0 << 2) >> 2]) - +(HEAPF[dsp + 48 + (1 << 2) >> 2]))));
+			HEAPF[dsp + 8 + (1 << 2) >> 2] = +(HEAPF[dsp + 8 + (0 << 2) >> 2]);
+			HEAPF[dsp + 32 + (1 << 2) >> 2] = +(HEAPF[dsp + 32 + (0 << 2) >> 2]);
+			HEAPF[dsp + 40 + (1 << 2) >> 2] = +(HEAPF[dsp + 40 + (0 << 2) >> 2]);
+			HEAPF[dsp + 48 + (2 << 2) >> 2] = +(HEAPF[dsp + 48 + (1 << 2) >> 2]);
+			HEAPF[dsp + 48 + (1 << 2) >> 2] = +(HEAPF[dsp + 48 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 60;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/CRYBABY/Bypass"] = 0;
+	pathTable["/CRYBABY/Wah_parameter"] = 4;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"cryBaby\",\"inputs\":\"1\",\"outputs\":\"1\",\"meta\":[{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"description\":\"Application demonstrating the CryBaby wah pedal emulation\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"cryBaby\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"vaeffects.lib/name\":\"Faust Virtual Analog Filter Effect Library\"},{\"vaeffects.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"hgroup\",\"label\":\"CRYBABY\",\"meta\":[{\"tooltip\":\"Reference:   https://ccrma.stanford.edu/~jos/pasp/vegf.html\"}],\"items\":[{\"type\":\"checkbox\",\"label\":\"Bypass\",\"address\":\"/CRYBABY/Bypass\",\"meta\":[{\"0\":\"\"},{\"tooltip\":\"When this is checked, the wah   pedal has no effect\"}]},{\"type\":\"hslider\",\"label\":\"Wah parameter\",\"address\":\"/CRYBABY/Wah_parameter\",\"meta\":[{\"1\":\"\"},{\"tooltip\":\"wah pedal angle between   0 (rocked back) and 1 (rocked forward)\"}],\"init\":\"0.8\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("description", "Application demonstrating the CryBaby wah pedal emulation");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "cryBaby");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("vaeffects.lib/name", "Faust Virtual Analog Filter Effect Library");
+	m.declare("vaeffects.lib/version", "0.0");
+}
+

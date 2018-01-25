@@ -1,0 +1,180 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fHslider0: f32,
+	iVec0: [i32;2],
+	fRec0: [f32;2],
+	fRec1: [f32;2],
+	fHslider1: f32,
+	fRec2: [f32;2],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fHslider0: 0.0,
+			iVec0: [0;2],
+			fRec0: [0.0;2],
+			fRec1: [0.0;2],
+			fHslider1: 0.0,
+			fRec2: [0.0;2],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("author", "Grame");
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("copyright", "(c)GRAME 2009");
+		m.declare("filters.lib/name", "Faust Filters Library");
+		m.declare("filters.lib/version", "0.0");
+		m.declare("license", "BSD");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "osc");
+		m.declare("oscillators.lib/name", "Faust Oscillator Library");
+		m.declare("oscillators.lib/version", "0.0");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("version", "1.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		0
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		1
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 1000.0;
+		self.fHslider1 = 0.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.iVec0[l0 as usize] = 0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fRec0[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec1[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 2) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec2[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = (6.28318548 / f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32))));
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("Oscillator");
+		ui_interface.declare(&mut self.fHslider0, "unit", "Hz");
+		ui_interface.addHorizontalSlider("freq", &mut self.fHslider0, 1000.0, 20.0, 24000.0, 1.0);
+		ui_interface.declare(&mut self.fHslider1, "unit", "dB");
+		ui_interface.addHorizontalSlider("volume", &mut self.fHslider1, 0.0, -96.0, 0.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fConst0 * (self.fHslider0 as f32));
+		let mut fSlow1: f32 = f32::sin(fSlow0);
+		let mut fSlow2: f32 = f32::cos(fSlow0);
+		let mut fSlow3: f32 = (0.0 - fSlow1);
+		let mut fSlow4: f32 = (0.00100000005 * f32::powf(10.0, (0.0500000007 * (self.fHslider1 as f32))));
+		let mut i: i32 = 0;
+		loop {
+			self.iVec0[0] = 1;
+			self.fRec0[0] = ((fSlow1 * self.fRec1[1]) + (fSlow2 * self.fRec0[1]));
+			self.fRec1[0] = (((fSlow2 * self.fRec1[1]) + (fSlow3 * self.fRec0[1])) + ((1 - self.iVec0[1]) as f32));
+			self.fRec2[0] = (fSlow4 + (0.999000013 * self.fRec2[1]));
+			outputs[0][i as usize] = ((self.fRec0[0] * self.fRec2[0]) as f32);
+			self.iVec0[1] = self.iVec0[0];
+			self.fRec0[1] = self.fRec0[0];
+			self.fRec1[1] = self.fRec1[0];
+			self.fRec2[1] = self.fRec2[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

@@ -1,0 +1,9 @@
+
+/*
+Code generated with Faust version 2.5.15
+Compilation options: wast/wasm, -scal -ftz 0
+*/
+
+function getJSONmydsp() {
+	return "{\"name\":\"vocal\",\"version\":\"2.5.15\",\"options\":\"wast/wasm, -scal -ftz 0\",\"size\":\"180\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"interface\":\"SmartKeyboard{  'Number of Keyboards':'1',  'Max Keyboard Polyphony':'0',  'Keyboard 0 - Number of Keys':'1',  'Keyboard 0 - Send Freq':'0',  'Keyboard 0 - Static Mode':'1',  'Keyboard 0 - Send X':'1',  'Keyboard 0 - Piano Keyboard':'0' }\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"vocal\"},{\"noises.lib/name\":\"Faust Noise Generator Library\"},{\"noises.lib/version\":\"0.0\"},{\"oscillators.lib/name\":\"Faust Oscillator Library\"},{\"oscillators.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"vocal\",\"items\":[{\"type\":\"hslider\",\"label\":\"gain\",\"address\":\"/vocal/gain\",\"index\":\"0\",\"init\":\"0.25\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"vibrato\",\"address\":\"/vocal/vibrato\",\"index\":\"16\",\"meta\":[{\"acc\":\"1 0 -10 0 10\"}],\"init\":\"0.05\",\"min\":\"0\",\"max\":\"0.1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"vowel\",\"address\":\"/vocal/vowel\",\"index\":\"84\",\"meta\":[{\"acc\":\"0 0 -10 0 10\"}],\"init\":\"2\",\"min\":\"0\",\"max\":\"4\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"x\",\"address\":\"/vocal/x\",\"index\":\"60\",\"init\":\"0.5\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"}]}]}";
+}

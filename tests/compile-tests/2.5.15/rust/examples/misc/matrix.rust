@@ -1,0 +1,522 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fVslider0: f32,
+	fVslider1: f32,
+	fVslider2: f32,
+	fVslider3: f32,
+	fVslider4: f32,
+	fVslider5: f32,
+	fVslider6: f32,
+	fVslider7: f32,
+	fVslider8: f32,
+	fVslider9: f32,
+	fVslider10: f32,
+	fVslider11: f32,
+	fVslider12: f32,
+	fVslider13: f32,
+	fVslider14: f32,
+	fVslider15: f32,
+	fVslider16: f32,
+	fVslider17: f32,
+	fVslider18: f32,
+	fVslider19: f32,
+	fVslider20: f32,
+	fVslider21: f32,
+	fVslider22: f32,
+	fVslider23: f32,
+	fVslider24: f32,
+	fVslider25: f32,
+	fVslider26: f32,
+	fVslider27: f32,
+	fVslider28: f32,
+	fVslider29: f32,
+	fVslider30: f32,
+	fVslider31: f32,
+	fVslider32: f32,
+	fVslider33: f32,
+	fVslider34: f32,
+	fVslider35: f32,
+	fVslider36: f32,
+	fVslider37: f32,
+	fVslider38: f32,
+	fVslider39: f32,
+	fVslider40: f32,
+	fVslider41: f32,
+	fVslider42: f32,
+	fVslider43: f32,
+	fVslider44: f32,
+	fVslider45: f32,
+	fVslider46: f32,
+	fVslider47: f32,
+	fVslider48: f32,
+	fVslider49: f32,
+	fVslider50: f32,
+	fVslider51: f32,
+	fVslider52: f32,
+	fVslider53: f32,
+	fVslider54: f32,
+	fVslider55: f32,
+	fVslider56: f32,
+	fVslider57: f32,
+	fVslider58: f32,
+	fVslider59: f32,
+	fVslider60: f32,
+	fVslider61: f32,
+	fVslider62: f32,
+	fVslider63: f32,
+	fSamplingFreq: i32,
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fVslider0: 0.0,
+			fVslider1: 0.0,
+			fVslider2: 0.0,
+			fVslider3: 0.0,
+			fVslider4: 0.0,
+			fVslider5: 0.0,
+			fVslider6: 0.0,
+			fVslider7: 0.0,
+			fVslider8: 0.0,
+			fVslider9: 0.0,
+			fVslider10: 0.0,
+			fVslider11: 0.0,
+			fVslider12: 0.0,
+			fVslider13: 0.0,
+			fVslider14: 0.0,
+			fVslider15: 0.0,
+			fVslider16: 0.0,
+			fVslider17: 0.0,
+			fVslider18: 0.0,
+			fVslider19: 0.0,
+			fVslider20: 0.0,
+			fVslider21: 0.0,
+			fVslider22: 0.0,
+			fVslider23: 0.0,
+			fVslider24: 0.0,
+			fVslider25: 0.0,
+			fVslider26: 0.0,
+			fVslider27: 0.0,
+			fVslider28: 0.0,
+			fVslider29: 0.0,
+			fVslider30: 0.0,
+			fVslider31: 0.0,
+			fVslider32: 0.0,
+			fVslider33: 0.0,
+			fVslider34: 0.0,
+			fVslider35: 0.0,
+			fVslider36: 0.0,
+			fVslider37: 0.0,
+			fVslider38: 0.0,
+			fVslider39: 0.0,
+			fVslider40: 0.0,
+			fVslider41: 0.0,
+			fVslider42: 0.0,
+			fVslider43: 0.0,
+			fVslider44: 0.0,
+			fVslider45: 0.0,
+			fVslider46: 0.0,
+			fVslider47: 0.0,
+			fVslider48: 0.0,
+			fVslider49: 0.0,
+			fVslider50: 0.0,
+			fVslider51: 0.0,
+			fVslider52: 0.0,
+			fVslider53: 0.0,
+			fVslider54: 0.0,
+			fVslider55: 0.0,
+			fVslider56: 0.0,
+			fVslider57: 0.0,
+			fVslider58: 0.0,
+			fVslider59: 0.0,
+			fVslider60: 0.0,
+			fVslider61: 0.0,
+			fVslider62: 0.0,
+			fVslider63: 0.0,
+			fSamplingFreq: 0,
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("author", "Grame");
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("copyright", "(c)GRAME 2006");
+		m.declare("license", "BSD");
+		m.declare("name", "matrix");
+		m.declare("version", "1.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		8
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		8
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			2 => {
+				rate = 1;
+				
+			},
+			3 => {
+				rate = 1;
+				
+			},
+			4 => {
+				rate = 1;
+				
+			},
+			5 => {
+				rate = 1;
+				
+			},
+			6 => {
+				rate = 1;
+				
+			},
+			7 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			2 => {
+				rate = 1;
+				
+			},
+			3 => {
+				rate = 1;
+				
+			},
+			4 => {
+				rate = 1;
+				
+			},
+			5 => {
+				rate = 1;
+				
+			},
+			6 => {
+				rate = 1;
+				
+			},
+			7 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fVslider0 = -10.0;
+		self.fVslider1 = -10.0;
+		self.fVslider2 = -10.0;
+		self.fVslider3 = -10.0;
+		self.fVslider4 = -10.0;
+		self.fVslider5 = -10.0;
+		self.fVslider6 = -10.0;
+		self.fVslider7 = -10.0;
+		self.fVslider8 = -10.0;
+		self.fVslider9 = -10.0;
+		self.fVslider10 = -10.0;
+		self.fVslider11 = -10.0;
+		self.fVslider12 = -10.0;
+		self.fVslider13 = -10.0;
+		self.fVslider14 = -10.0;
+		self.fVslider15 = -10.0;
+		self.fVslider16 = -10.0;
+		self.fVslider17 = -10.0;
+		self.fVslider18 = -10.0;
+		self.fVslider19 = -10.0;
+		self.fVslider20 = -10.0;
+		self.fVslider21 = -10.0;
+		self.fVslider22 = -10.0;
+		self.fVslider23 = -10.0;
+		self.fVslider24 = -10.0;
+		self.fVslider25 = -10.0;
+		self.fVslider26 = -10.0;
+		self.fVslider27 = -10.0;
+		self.fVslider28 = -10.0;
+		self.fVslider29 = -10.0;
+		self.fVslider30 = -10.0;
+		self.fVslider31 = -10.0;
+		self.fVslider32 = -10.0;
+		self.fVslider33 = -10.0;
+		self.fVslider34 = -10.0;
+		self.fVslider35 = -10.0;
+		self.fVslider36 = -10.0;
+		self.fVslider37 = -10.0;
+		self.fVslider38 = -10.0;
+		self.fVslider39 = -10.0;
+		self.fVslider40 = -10.0;
+		self.fVslider41 = -10.0;
+		self.fVslider42 = -10.0;
+		self.fVslider43 = -10.0;
+		self.fVslider44 = -10.0;
+		self.fVslider45 = -10.0;
+		self.fVslider46 = -10.0;
+		self.fVslider47 = -10.0;
+		self.fVslider48 = -10.0;
+		self.fVslider49 = -10.0;
+		self.fVslider50 = -10.0;
+		self.fVslider51 = -10.0;
+		self.fVslider52 = -10.0;
+		self.fVslider53 = -10.0;
+		self.fVslider54 = -10.0;
+		self.fVslider55 = -10.0;
+		self.fVslider56 = -10.0;
+		self.fVslider57 = -10.0;
+		self.fVslider58 = -10.0;
+		self.fVslider59 = -10.0;
+		self.fVslider60 = -10.0;
+		self.fVslider61 = -10.0;
+		self.fVslider62 = -10.0;
+		self.fVslider63 = -10.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openTabBox("Matrix 8 x 8");
+		ui_interface.openHorizontalBox("Output 0");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider0, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider1, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider2, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider3, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider4, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider5, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider6, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider7, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 1");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider8, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider9, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider10, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider11, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider12, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider13, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider14, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider15, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 2");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider16, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider17, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider18, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider19, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider20, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider21, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider22, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider23, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 3");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider24, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider25, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider26, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider27, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider28, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider29, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider30, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider31, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 4");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider32, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider33, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider34, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider35, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider36, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider37, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider38, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider39, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 5");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider40, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider41, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider42, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider43, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider44, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider45, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider46, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider47, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 6");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider48, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider49, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider50, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider51, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider52, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider53, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider54, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider55, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Output 7");
+		ui_interface.addVerticalSlider("Input 0", &mut self.fVslider56, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 1", &mut self.fVslider57, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 2", &mut self.fVslider58, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 3", &mut self.fVslider59, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 4", &mut self.fVslider60, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 5", &mut self.fVslider61, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 6", &mut self.fVslider62, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("Input 7", &mut self.fVslider63, -10.0, -96.0, 4.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider0 as f32)));
+		let mut fSlow1: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider1 as f32)));
+		let mut fSlow2: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider2 as f32)));
+		let mut fSlow3: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider3 as f32)));
+		let mut fSlow4: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider4 as f32)));
+		let mut fSlow5: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider5 as f32)));
+		let mut fSlow6: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider6 as f32)));
+		let mut fSlow7: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider7 as f32)));
+		let mut fSlow8: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider8 as f32)));
+		let mut fSlow9: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider9 as f32)));
+		let mut fSlow10: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider10 as f32)));
+		let mut fSlow11: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider11 as f32)));
+		let mut fSlow12: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider12 as f32)));
+		let mut fSlow13: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider13 as f32)));
+		let mut fSlow14: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider14 as f32)));
+		let mut fSlow15: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider15 as f32)));
+		let mut fSlow16: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider16 as f32)));
+		let mut fSlow17: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider17 as f32)));
+		let mut fSlow18: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider18 as f32)));
+		let mut fSlow19: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider19 as f32)));
+		let mut fSlow20: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider20 as f32)));
+		let mut fSlow21: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider21 as f32)));
+		let mut fSlow22: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider22 as f32)));
+		let mut fSlow23: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider23 as f32)));
+		let mut fSlow24: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider24 as f32)));
+		let mut fSlow25: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider25 as f32)));
+		let mut fSlow26: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider26 as f32)));
+		let mut fSlow27: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider27 as f32)));
+		let mut fSlow28: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider28 as f32)));
+		let mut fSlow29: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider29 as f32)));
+		let mut fSlow30: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider30 as f32)));
+		let mut fSlow31: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider31 as f32)));
+		let mut fSlow32: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider32 as f32)));
+		let mut fSlow33: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider33 as f32)));
+		let mut fSlow34: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider34 as f32)));
+		let mut fSlow35: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider35 as f32)));
+		let mut fSlow36: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider36 as f32)));
+		let mut fSlow37: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider37 as f32)));
+		let mut fSlow38: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider38 as f32)));
+		let mut fSlow39: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider39 as f32)));
+		let mut fSlow40: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider40 as f32)));
+		let mut fSlow41: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider41 as f32)));
+		let mut fSlow42: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider42 as f32)));
+		let mut fSlow43: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider43 as f32)));
+		let mut fSlow44: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider44 as f32)));
+		let mut fSlow45: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider45 as f32)));
+		let mut fSlow46: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider46 as f32)));
+		let mut fSlow47: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider47 as f32)));
+		let mut fSlow48: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider48 as f32)));
+		let mut fSlow49: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider49 as f32)));
+		let mut fSlow50: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider50 as f32)));
+		let mut fSlow51: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider51 as f32)));
+		let mut fSlow52: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider52 as f32)));
+		let mut fSlow53: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider53 as f32)));
+		let mut fSlow54: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider54 as f32)));
+		let mut fSlow55: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider55 as f32)));
+		let mut fSlow56: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider56 as f32)));
+		let mut fSlow57: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider57 as f32)));
+		let mut fSlow58: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider58 as f32)));
+		let mut fSlow59: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider59 as f32)));
+		let mut fSlow60: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider60 as f32)));
+		let mut fSlow61: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider61 as f32)));
+		let mut fSlow62: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider62 as f32)));
+		let mut fSlow63: f32 = f32::powf(10.0, (0.0500000007 * (self.fVslider63 as f32)));
+		let mut i: i32 = 0;
+		loop {
+			let mut fTemp0: f32 = (inputs[0][i as usize] as f32);
+			let mut fTemp1: f32 = (inputs[1][i as usize] as f32);
+			let mut fTemp2: f32 = (inputs[2][i as usize] as f32);
+			let mut fTemp3: f32 = (inputs[3][i as usize] as f32);
+			let mut fTemp4: f32 = (inputs[4][i as usize] as f32);
+			let mut fTemp5: f32 = (inputs[5][i as usize] as f32);
+			let mut fTemp6: f32 = (inputs[6][i as usize] as f32);
+			let mut fTemp7: f32 = (inputs[7][i as usize] as f32);
+			outputs[0][i as usize] = (((((((((fSlow0 * fTemp0) + (fSlow1 * fTemp1)) + (fSlow2 * fTemp2)) + (fSlow3 * fTemp3)) + (fSlow4 * fTemp4)) + (fSlow5 * fTemp5)) + (fSlow6 * fTemp6)) + (fSlow7 * fTemp7)) as f32);
+			outputs[1][i as usize] = (((((((((fSlow8 * fTemp0) + (fSlow9 * fTemp1)) + (fSlow10 * fTemp2)) + (fSlow11 * fTemp3)) + (fSlow12 * fTemp4)) + (fSlow13 * fTemp5)) + (fSlow14 * fTemp6)) + (fSlow15 * fTemp7)) as f32);
+			outputs[2][i as usize] = (((((((((fSlow16 * fTemp0) + (fSlow17 * fTemp1)) + (fSlow18 * fTemp2)) + (fSlow19 * fTemp3)) + (fSlow20 * fTemp4)) + (fSlow21 * fTemp5)) + (fSlow22 * fTemp6)) + (fSlow23 * fTemp7)) as f32);
+			outputs[3][i as usize] = (((((((((fSlow24 * fTemp0) + (fSlow25 * fTemp1)) + (fSlow26 * fTemp2)) + (fSlow27 * fTemp3)) + (fSlow28 * fTemp4)) + (fSlow29 * fTemp5)) + (fSlow30 * fTemp6)) + (fSlow31 * fTemp7)) as f32);
+			outputs[4][i as usize] = (((((((((fSlow32 * fTemp0) + (fSlow33 * fTemp1)) + (fSlow34 * fTemp2)) + (fSlow35 * fTemp3)) + (fSlow36 * fTemp4)) + (fSlow37 * fTemp5)) + (fSlow38 * fTemp6)) + (fSlow39 * fTemp7)) as f32);
+			outputs[5][i as usize] = (((((((((fSlow40 * fTemp0) + (fSlow41 * fTemp1)) + (fSlow42 * fTemp2)) + (fSlow43 * fTemp3)) + (fSlow44 * fTemp4)) + (fSlow45 * fTemp5)) + (fSlow46 * fTemp6)) + (fSlow47 * fTemp7)) as f32);
+			outputs[6][i as usize] = (((((((((fSlow48 * fTemp0) + (fSlow49 * fTemp1)) + (fSlow50 * fTemp2)) + (fSlow51 * fTemp3)) + (fSlow52 * fTemp4)) + (fSlow53 * fTemp5)) + (fSlow54 * fTemp6)) + (fSlow55 * fTemp7)) as f32);
+			outputs[7][i as usize] = (((((((((fSlow56 * fTemp0) + (fSlow57 * fTemp1)) + (fSlow58 * fTemp2)) + (fSlow59 * fTemp3)) + (fSlow60 * fTemp4)) + (fSlow61 * fTemp5)) + (fSlow62 * fTemp6)) + (fSlow63 * fTemp7)) as f32);
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

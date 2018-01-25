@@ -1,0 +1,144 @@
+/* ------------------------------------------------------------
+name: "BUG080127-twgosc"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: java, -scal -ftz 0
+------------------------------------------------------------ */
+
+public class mydsp extends dsp {
+	
+	
+	int fSamplingFreq;
+	float fConst0;
+	float fVslider0;
+	float fVec0[] = new float[2];
+	
+	public void metadata(Meta m) { 
+		m.declare("math.lib/author", "GRAME");
+		m.declare("math.lib/copyright", "GRAME");
+		m.declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m.declare("math.lib/license", "LGPL with exception");
+		m.declare("math.lib/name", "Math Library");
+		m.declare("math.lib/version", "1.0");
+		m.declare("music.lib/author", "GRAME");
+		m.declare("music.lib/copyright", "GRAME");
+		m.declare("music.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m.declare("music.lib/license", "LGPL with exception");
+		m.declare("music.lib/name", "Music Library");
+		m.declare("music.lib/version", "1.0");
+		m.declare("name", "BUG080127-twgosc");
+	}
+
+	int getNumInputs() {
+		return 2;
+		
+	}
+	int getNumOutputs() {
+		return 2;
+		
+	}
+	int getInputRate(int channel) {
+		int rate;
+		switch (channel) {
+			case 0: {
+				rate = 1;
+				break;
+			}
+			case 1: {
+				rate = 1;
+				break;
+			}
+			default: {
+				rate = -1;
+				break;
+			}
+			
+		}
+		return rate;
+		
+	}
+	int getOutputRate(int channel) {
+		int rate;
+		switch (channel) {
+			case 0: {
+				rate = 1;
+				break;
+			}
+			case 1: {
+				rate = 1;
+				break;
+			}
+			default: {
+				rate = -1;
+				break;
+			}
+			
+		}
+		return rate;
+		
+	}
+	
+	public void classInit(int samplingFreq) {
+		
+	}
+	
+	public void instanceConstants(int samplingFreq) {
+		fSamplingFreq = samplingFreq;
+		fConst0 = (6.28318548f / (float)java.lang.Math.min(192000.0f, (float)java.lang.Math.max(1.0f, (float)fSamplingFreq)));
+		
+	}
+	
+	public void instanceResetUserInterface() {
+		fVslider0 = (float)440.0f;
+		
+	}
+	
+	public void instanceClear() {
+		for (int l0 = 0; (l0 < 2); l0 = (l0 + 1)) {
+			fVec0[l0] = 0.0f;
+			
+		}
+		
+	}
+	
+	public void init(int samplingFreq) {
+		classInit(samplingFreq);
+		instanceInit(samplingFreq);
+	}
+	
+	public void instanceInit(int samplingFreq) {
+		instanceConstants(samplingFreq);
+		instanceResetUserInterface();
+		instanceClear();
+	}
+	
+	public void buildUserInterface(UI ui_interface) {
+		ui_interface.openVerticalBox("BUG080127-twgosc");
+		ui_interface.addVerticalSlider("_freq", new FaustVarAccess() {
+				public String getId() { return "fVslider0"; }
+				public void set(float val) { fVslider0 = val; }
+				public float get() { return (float)fVslider0; }
+			}
+			, 440.0f, 10.0f, 20000.0f, 1.0f);
+		ui_interface.closeBox();
+		
+	}
+	
+	public void compute(int count, float[][] inputs, float[][] outputs) {
+		float[] input0 = inputs[0];
+		float[] input1 = inputs[1];
+		float[] output0 = outputs[0];
+		float[] output1 = outputs[1];
+		float fSlow0 = (float)java.lang.Math.cos((fConst0 * fVslider0));
+		float fSlow1 = (float)java.lang.Math.sqrt(((1.0f - fSlow0) / (fSlow0 + 1.0f)));
+		for (int i = 0; (i < count); i = (i + 1)) {
+			fVec0[0] = fSlow1;
+			output0[i] = (fSlow1 * input0[i]);
+			output1[i] = (input1[i] * (fSlow1 - fVec0[1]));
+			fVec0[1] = fVec0[0];
+			
+		}
+		
+	}
+	
+};
+

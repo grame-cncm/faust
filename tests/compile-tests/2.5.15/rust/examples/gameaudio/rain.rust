@@ -1,0 +1,156 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fHslider0: f32,
+	iRec0: [i32;2],
+	fVec0: [f32;2],
+	fHslider1: f32,
+	fVec1: [f32;2],
+	fSamplingFreq: i32,
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fHslider0: 0.0,
+			iRec0: [0;2],
+			fVec0: [0.0;2],
+			fHslider1: 0.0,
+			fVec1: [0.0;2],
+			fSamplingFreq: 0,
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("name", "rain");
+		m.declare("noises.lib/name", "Faust Noise Generator Library");
+		m.declare("noises.lib/version", "0.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		0
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 0.5;
+		self.fHslider1 = 300.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.iRec0[l0 as usize] = 0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fVec0[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fVec1[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("rain");
+		ui_interface.addHorizontalSlider("density", &mut self.fHslider1, 300.0, 0.0, 1000.0, 1.0);
+		ui_interface.addHorizontalSlider("volume", &mut self.fHslider0, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fHslider0 as f32);
+		let mut fSlow1: f32 = (0.00100000005 * (self.fHslider1 as f32));
+		let mut i: i32 = 0;
+		loop {
+			let mut iTemp0: i32 = (1103515245 * (self.iRec0[1] + 12345));
+			self.iRec0[0] = (1103515245 * (iTemp0 + 12345));
+			let mut iRec1: i32 = iTemp0;
+			let mut fTemp1: f32 = (4.65661287e-10 * (self.iRec0[0] as f32));
+			self.fVec0[0] = fTemp1;
+			outputs[0][i as usize] = ((fSlow0 * (self.fVec0[1] * (((f32::abs(fTemp1) < fSlow1) as i32) as f32))) as f32);
+			let mut fTemp2: f32 = (4.65661287e-10 * (iRec1 as f32));
+			self.fVec1[0] = fTemp2;
+			outputs[1][i as usize] = ((fSlow0 * (self.fVec1[1] * (((f32::abs(fTemp2) < fSlow1) as i32) as f32))) as f32);
+			self.iRec0[1] = self.iRec0[0];
+			self.fVec0[1] = self.fVec0[0];
+			self.fVec1[1] = self.fVec1[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

@@ -1,0 +1,140 @@
+/* ------------------------------------------------------------
+name: "test15"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 0;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 16 >> 2] = (samplingFreq | 0);
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 0 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 16 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var output0 = 0;
+		var output1 = 0;
+		var i = 0;
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[dsp + 0 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 0 + (1 << 2) >> 2]) + -0.00224000006);
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(HEAPF[dsp + 0 + (1 << 2) >> 2]) + 0.110880002));
+			HEAPF[dsp + 8 + (0 << 2) >> 2] = +(+(+(HEAPF[dsp + 0 + (1 << 2) >> 2]) + +(HEAPF[dsp + 8 + (1 << 2) >> 2])) + 0.110880002);
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 8 + (1 << 2) >> 2]));
+			HEAPF[dsp + 0 + (1 << 2) >> 2] = +(HEAPF[dsp + 0 + (0 << 2) >> 2]);
+			HEAPF[dsp + 8 + (1 << 2) >> 2] = +(HEAPF[dsp + 8 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 20;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"test15\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"name\":\"test15\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"test15\",\"items\":[]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("name", "test15");
+}
+

@@ -1,0 +1,373 @@
+/* ------------------------------------------------------------
+name: "moogVCF"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var sqrtf = foreign.sqrt;
+	var tanf = foreign.tan;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 24 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 28 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 24 >> 2] | 0))))));
+		HEAPF[dsp + 32 >> 2] = +(6.28318548 / +(HEAPF[dsp + 28 >> 2]));
+		HEAPF[dsp + 92 >> 2] = +(3.14159274 / +(HEAPF[dsp + 28 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 4 >> 2] = 5.;
+		HEAPF[dsp + 16 >> 2] = 0.;
+		HEAPF[dsp + 20 >> 2] = 0.899999976;
+		HEAPF[dsp + 36 >> 2] = 25.;
+		HEAPF[dsp + 88 >> 2] = 0.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		var l7 = 0;
+		var l8 = 0;
+		var l9 = 0;
+		var l10 = 0;
+		var l11 = 0;
+		var l12 = 0;
+		var l13 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 40 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 48 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 56 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 2) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 64 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 2) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 72 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l6 = 0; (((l6 | 0) < 2) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 80 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l7 = 0; (((l7 | 0) < 2) | 0); l7 = (((l7 | 0) + 1) | 0)) {
+			HEAPF[dsp + 96 + ((l7 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l8 = 0; (((l8 | 0) < 3) | 0); l8 = (((l8 | 0) + 1) | 0)) {
+			HEAPF[dsp + 104 + ((l8 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l9 = 0; (((l9 | 0) < 3) | 0); l9 = (((l9 | 0) + 1) | 0)) {
+			HEAPF[dsp + 116 + ((l9 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l10 = 0; (((l10 | 0) < 2) | 0); l10 = (((l10 | 0) + 1) | 0)) {
+			HEAPF[dsp + 128 + ((l10 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l11 = 0; (((l11 | 0) < 2) | 0); l11 = (((l11 | 0) + 1) | 0)) {
+			HEAPF[dsp + 136 + ((l11 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l12 = 0; (((l12 | 0) < 2) | 0); l12 = (((l12 | 0) + 1) | 0)) {
+			HEAPF[dsp + 144 + ((l12 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l13 = 0; (((l13 | 0) < 2) | 0); l13 = (((l13 | 0) + 1) | 0)) {
+			HEAPF[dsp + 152 + ((l13 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 24 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var iSlow0 = 0;
+		var fSlow1 = 0.;
+		var iSlow2 = 0;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var iSlow6 = 0;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var fSlow11 = 0.;
+		var fSlow12 = 0.;
+		var fSlow13 = 0.;
+		var fSlow14 = 0.;
+		var fSlow15 = 0.;
+		var fSlow16 = 0.;
+		var fSlow17 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var fTemp4 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		var fTemp10 = 0.;
+		var fTemp11 = 0.;
+		var fTemp12 = 0.;
+		var fTemp13 = 0.;
+		var fTemp14 = 0.;
+		var fTemp15 = 0.;
+		var fTemp16 = 0.;
+		var fTemp17 = 0.;
+		var fTemp18 = 0.;
+		var fTemp19 = 0.;
+		var fTemp20 = 0.;
+		var fTemp21 = 0.;
+		var fRec11 = 0.;
+		var fTemp22 = 0.;
+		var fTemp23 = 0.;
+		var fTemp24 = 0.;
+		var fTemp25 = 0.;
+		var fTemp26 = 0.;
+		var fTemp27 = 0.;
+		var fTemp28 = 0.;
+		var fTemp29 = 0.;
+		var fTemp30 = 0.;
+		var fTemp31 = 0.;
+		var fTemp32 = 0.;
+		var fTemp33 = 0.;
+		var fTemp34 = 0.;
+		var fRec14 = 0.;
+		var fTemp35 = 0.;
+		var fTemp36 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		iSlow0 = ~~(+(+(HEAPF[dsp + 0 >> 2])));
+		fSlow1 = +(0.00100000005 * +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 4 >> 2]))))));
+		iSlow2 = ~~(+(+(HEAPF[dsp + 16 >> 2])));
+		fSlow3 = +(+(HEAPF[dsp + 20 >> 2]));
+		fSlow4 = +(0. - +(4. * +(max_f(0., +(min_f(+(powf(+(fSlow3), 4.)), 0.999998987))))));
+		fSlow5 = +(0.439999998 * +(powf(2., +(0.0833333358 * +(+(+(HEAPF[dsp + 36 >> 2])) + -49.)))));
+		iSlow6 = ~~(+(+(HEAPF[dsp + 88 >> 2])));
+		fSlow7 = +(min_f(1.41419947, +(1.41421354 * +(fSlow3))));
+		fSlow8 = +(+(fSlow7) * +(+(fSlow7) + 1.41421354));
+		fSlow9 = +(1.41421354 * +(fSlow7));
+		fSlow10 = +(+(fSlow9) + 2.);
+		fSlow11 = +(+(fSlow7) * +(+(fSlow7) + -1.41421354));
+		fSlow12 = +(2. - +(fSlow9));
+		fSlow13 = +(1.99997997 * +(fSlow3));
+		fSlow14 = +(powf(+(1.41419947 * +(fSlow3)), 2.));
+		fSlow15 = +(+(fSlow13) + +(fSlow14));
+		fSlow16 = +(+(fSlow13) + 2.);
+		fSlow17 = +(2. - +(fSlow13));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[dsp + 8 + (0 << 2) >> 2] = +(+(fSlow1) + +(0.999000013 * +(HEAPF[dsp + 8 + (1 << 2) >> 2])));
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			fTemp1 = +((iSlow0 | 0)?0.:+(fTemp0));
+			HEAPF[dsp + 40 + (0 << 2) >> 2] = +(+(fSlow5) + +(0.999000013 * +(HEAPF[dsp + 40 + (1 << 2) >> 2])));
+			fTemp2 = +(+(HEAPF[dsp + 32 >> 2]) * +(HEAPF[dsp + 40 + (0 << 2) >> 2]));
+			fTemp3 = +(1. - +(fTemp2));
+			HEAPF[dsp + 48 + (0 << 2) >> 2] = +(+(+(fSlow4) * +(HEAPF[dsp + 80 + (1 << 2) >> 2])) + +(+(fTemp1) + +(+(fTemp3) * +(HEAPF[dsp + 48 + (1 << 2) >> 2]))));
+			HEAPF[dsp + 56 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 48 + (0 << 2) >> 2]) + +(+(fTemp3) * +(HEAPF[dsp + 56 + (1 << 2) >> 2])));
+			HEAPF[dsp + 64 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 56 + (0 << 2) >> 2]) + +(+(fTemp3) * +(HEAPF[dsp + 64 + (1 << 2) >> 2])));
+			HEAPF[dsp + 72 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 64 + (0 << 2) >> 2]) + +(+(HEAPF[dsp + 72 + (1 << 2) >> 2]) * +(fTemp3)));
+			HEAPF[dsp + 80 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 72 + (0 << 2) >> 2]) * +(powf(+(fTemp2), 4.)));
+			HEAPF[dsp + 96 + (0 << 2) >> 2] = +(+(fSlow5) + +(0.999000013 * +(HEAPF[dsp + 96 + (1 << 2) >> 2])));
+			fTemp4 = +(tanf(+(+(HEAPF[dsp + 92 >> 2]) * +(max_f(20., +(min_f(10000., +(HEAPF[dsp + 96 + (0 << 2) >> 2]))))))));
+			fTemp5 = +(1. / +(fTemp4));
+			fTemp6 = +(1. - +(1. / +(powf(+(fTemp4), 2.))));
+			fTemp7 = +(+(fSlow8) + +(+(+(+(fSlow10) + +(fTemp5)) / +(fTemp4)) + 1.));
+			HEAPF[dsp + 104 + (0 << 2) >> 2] = +(+(fTemp1) - +(+(+(+(HEAPF[dsp + 104 + (2 << 2) >> 2]) * +(+(fSlow8) + +(+(+(+(fTemp5) - +(fSlow10)) / +(fTemp4)) + 1.))) + +(2. * +(+(HEAPF[dsp + 104 + (1 << 2) >> 2]) * +(+(fSlow8) + +(fTemp6))))) / +(fTemp7)));
+			fTemp8 = +(+(fSlow11) + +(+(+(+(fSlow12) + +(fTemp5)) / +(fTemp4)) + 1.));
+			HEAPF[dsp + 116 + (0 << 2) >> 2] = +(+(+(+(HEAPF[dsp + 104 + (2 << 2) >> 2]) + +(+(HEAPF[dsp + 104 + (0 << 2) >> 2]) + +(2. * +(HEAPF[dsp + 104 + (1 << 2) >> 2])))) / +(fTemp7)) - +(+(+(+(HEAPF[dsp + 116 + (2 << 2) >> 2]) * +(+(fSlow11) + +(+(+(+(fTemp5) - +(fSlow12)) / +(fTemp4)) + 1.))) + +(2. * +(+(+(fSlow11) + +(fTemp6)) * +(HEAPF[dsp + 116 + (1 << 2) >> 2])))) / +(fTemp8)));
+			fTemp9 = +(tanf(+(+(HEAPF[dsp + 92 >> 2]) * +(max_f(+(HEAPF[dsp + 96 + (0 << 2) >> 2]), 20.)))));
+			fTemp10 = +(1. / +(fTemp9));
+			fTemp11 = +(+(fSlow15) + +(+(+(+(fSlow16) + +(fTemp10)) / +(fTemp9)) + 1.));
+			fTemp12 = +(+(+(fSlow15) + +(1. - +(+(+(fSlow16) - +(fTemp10)) / +(fTemp9)))) / +(fTemp11));
+			fTemp13 = +(max_f(-0.999899983, +(min_f(0.999899983, +(fTemp12)))));
+			fTemp14 = +(1. - +(powf(+(fTemp13), 2.)));
+			fTemp15 = +(sqrtf(+(max_f(0., +(fTemp14)))));
+			fTemp16 = +(+(+(HEAPF[dsp + 136 + (1 << 2) >> 2]) * +(0. - +(fTemp13))) + +(+(fTemp1) * +(fTemp15)));
+			fTemp17 = +(1. - +(1. / +(powf(+(fTemp9), 2.))));
+			fTemp18 = +(+(fSlow15) + +(fTemp17));
+			fTemp19 = +(max_f(-0.999899983, +(min_f(0.999899983, +(2. * +(+(fTemp18) / +(+(fTemp11) * +(+(fTemp12) + 1.))))))));
+			fTemp20 = +(1. - +(powf(+(fTemp19), 2.)));
+			fTemp21 = +(sqrtf(+(max_f(0., +(fTemp20)))));
+			HEAPF[dsp + 128 + (0 << 2) >> 2] = +(+(+(HEAPF[dsp + 128 + (1 << 2) >> 2]) * +(0. - +(fTemp19))) + +(+(fTemp16) * +(fTemp21)));
+			HEAPF[dsp + 136 + (0 << 2) >> 2] = +(+(+(fTemp16) * +(fTemp19)) + +(+(HEAPF[dsp + 128 + (1 << 2) >> 2]) * +(fTemp21)));
+			fRec11 = +(HEAPF[dsp + 128 + (0 << 2) >> 2]);
+			fTemp22 = +(1. - +(+(fTemp18) / +(fTemp11)));
+			fTemp23 = +(sqrtf(+(fTemp14)));
+			fTemp24 = +(+(+(+(+(fTemp1) * +(fTemp13)) + +(+(HEAPF[dsp + 136 + (1 << 2) >> 2]) * +(fTemp15))) + +(2. * +(+(+(HEAPF[dsp + 136 + (0 << 2) >> 2]) * +(fTemp22)) / +(fTemp23)))) + +(+(+(fRec11) * +(+(1. - +(fTemp12)) - +(2. * +(+(fTemp19) * +(fTemp22))))) / +(+(fTemp23) * +(sqrtf(+(fTemp20))))));
+			fTemp25 = +(+(fSlow14) + +(+(+(+(+(fSlow17) + +(fTemp10)) / +(fTemp9)) + 1.) - +(fSlow13)));
+			fTemp26 = +(+(+(fSlow14) + +(+(+(+(+(fTemp10) - +(fSlow17)) / +(fTemp9)) + 1.) - +(fSlow13))) / +(fTemp25));
+			fTemp27 = +(max_f(-0.999899983, +(min_f(0.999899983, +(fTemp26)))));
+			fTemp28 = +(1. - +(powf(+(fTemp27), 2.)));
+			fTemp29 = +(sqrtf(+(max_f(0., +(fTemp28)))));
+			fTemp30 = +(+(+(HEAPF[dsp + 152 + (1 << 2) >> 2]) * +(0. - +(fTemp27))) + +(+(+(fTemp24) * +(fTemp29)) / +(fTemp11)));
+			fTemp31 = +(+(fSlow14) + +(+(fTemp17) - +(fSlow13)));
+			fTemp32 = +(max_f(-0.999899983, +(min_f(0.999899983, +(2. * +(+(fTemp31) / +(+(fTemp25) * +(+(fTemp26) + 1.))))))));
+			fTemp33 = +(1. - +(powf(+(fTemp32), 2.)));
+			fTemp34 = +(sqrtf(+(max_f(0., +(fTemp33)))));
+			HEAPF[dsp + 144 + (0 << 2) >> 2] = +(+(+(HEAPF[dsp + 144 + (1 << 2) >> 2]) * +(0. - +(fTemp32))) + +(+(fTemp30) * +(fTemp34)));
+			HEAPF[dsp + 152 + (0 << 2) >> 2] = +(+(+(fTemp30) * +(fTemp32)) + +(+(HEAPF[dsp + 144 + (1 << 2) >> 2]) * +(fTemp34)));
+			fRec14 = +(HEAPF[dsp + 144 + (0 << 2) >> 2]);
+			fTemp35 = +(1. - +(+(fTemp31) / +(fTemp25)));
+			fTemp36 = +(sqrtf(+(fTemp28)));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+((iSlow0 | 0)?+(fTemp0):+(+(HEAPF[dsp + 8 + (0 << 2) >> 2]) * +((iSlow2 | 0)?+((iSlow6 | 0)?+(+(+(+(+(+(+(fTemp24) * +(fTemp27)) / +(fTemp11)) + +(+(HEAPF[dsp + 152 + (1 << 2) >> 2]) * +(fTemp29))) + +(2. * +(+(+(HEAPF[dsp + 152 + (0 << 2) >> 2]) * +(fTemp35)) / +(fTemp36)))) + +(+(+(fRec14) * +(+(1. - +(fTemp26)) - +(2. * +(+(fTemp32) * +(fTemp35))))) / +(+(fTemp36) * +(sqrtf(+(fTemp33)))))) / +(fTemp25)):+(+(+(HEAPF[dsp + 116 + (2 << 2) >> 2]) + +(+(HEAPF[dsp + 116 + (0 << 2) >> 2]) + +(2. * +(HEAPF[dsp + 116 + (1 << 2) >> 2])))) / +(fTemp8))):+(HEAPF[dsp + 80 + (0 << 2) >> 2])))));
+			HEAPF[dsp + 8 + (1 << 2) >> 2] = +(HEAPF[dsp + 8 + (0 << 2) >> 2]);
+			HEAPF[dsp + 40 + (1 << 2) >> 2] = +(HEAPF[dsp + 40 + (0 << 2) >> 2]);
+			HEAPF[dsp + 48 + (1 << 2) >> 2] = +(HEAPF[dsp + 48 + (0 << 2) >> 2]);
+			HEAPF[dsp + 56 + (1 << 2) >> 2] = +(HEAPF[dsp + 56 + (0 << 2) >> 2]);
+			HEAPF[dsp + 64 + (1 << 2) >> 2] = +(HEAPF[dsp + 64 + (0 << 2) >> 2]);
+			HEAPF[dsp + 72 + (1 << 2) >> 2] = +(HEAPF[dsp + 72 + (0 << 2) >> 2]);
+			HEAPF[dsp + 80 + (1 << 2) >> 2] = +(HEAPF[dsp + 80 + (0 << 2) >> 2]);
+			HEAPF[dsp + 96 + (1 << 2) >> 2] = +(HEAPF[dsp + 96 + (0 << 2) >> 2]);
+			HEAPF[dsp + 104 + (2 << 2) >> 2] = +(HEAPF[dsp + 104 + (1 << 2) >> 2]);
+			HEAPF[dsp + 104 + (1 << 2) >> 2] = +(HEAPF[dsp + 104 + (0 << 2) >> 2]);
+			HEAPF[dsp + 116 + (2 << 2) >> 2] = +(HEAPF[dsp + 116 + (1 << 2) >> 2]);
+			HEAPF[dsp + 116 + (1 << 2) >> 2] = +(HEAPF[dsp + 116 + (0 << 2) >> 2]);
+			HEAPF[dsp + 128 + (1 << 2) >> 2] = +(HEAPF[dsp + 128 + (0 << 2) >> 2]);
+			HEAPF[dsp + 136 + (1 << 2) >> 2] = +(HEAPF[dsp + 136 + (0 << 2) >> 2]);
+			HEAPF[dsp + 144 + (1 << 2) >> 2] = +(HEAPF[dsp + 144 + (0 << 2) >> 2]);
+			HEAPF[dsp + 152 + (1 << 2) >> 2] = +(HEAPF[dsp + 152 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 160;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Bypass"] = 0;
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Use_Biquads"] = 16;
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Normalized_Ladders"] = 88;
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/VCF_Output_Level"] = 4;
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/Corner_Resonance"] = 20;
+	pathTable["/MOOG_VCF_(Voltage_Controlled_Filter)/Corner_Frequency"] = 36;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"moogVCF\",\"inputs\":\"1\",\"outputs\":\"1\",\"meta\":[{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"description\":\"Exercise and compare three Moog VCF implementations\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"moogVCF\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"vaeffects.lib/name\":\"Faust Virtual Analog Filter Effect Library\"},{\"vaeffects.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"hgroup\",\"label\":\"MOOG VCF (Voltage Controlled Filter)\",\"meta\":[{\"tooltip\":\"See Faust's   vaeffects.lib for info and references\"}],\"items\":[{\"type\":\"hgroup\",\"label\":\"0x00\",\"meta\":[{\"0\":\"\"}],\"items\":[{\"type\":\"checkbox\",\"label\":\"Bypass\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Bypass\",\"meta\":[{\"0\":\"\"},{\"tooltip\":\"When this is checked, the Moog VCF   has no effect\"}]},{\"type\":\"checkbox\",\"label\":\"Use Biquads\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Use_Biquads\",\"meta\":[{\"1\":\"\"},{\"tooltip\":\"Select moog_vcf_2b (two-biquad)   implementation, instead of the default moog_vcf (analog style) implementation\"}]},{\"type\":\"checkbox\",\"label\":\"Normalized Ladders\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/0x00/Normalized_Ladders\",\"meta\":[{\"2\":\"\"},{\"tooltip\":\"If using biquads, make   them normalized ladders (moog_vcf_2bn)\"}]}]},{\"type\":\"hslider\",\"label\":\"Corner Frequency\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/Corner_Frequency\",\"meta\":[{\"1\":\"\"},{\"tooltip\":\"The VCF resonates   at the corner frequency (specified in PianoKey (PK) units, with A440 = 49 PK).   The VCF response is flat below the corner frequency, and rolls off -24 dB per   octave above.\"},{\"unit\":\"PK\"}],\"init\":\"25\",\"min\":\"1\",\"max\":\"88\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"Corner Resonance\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/Corner_Resonance\",\"meta\":[{\"2\":\"\"},{\"style\":\"knob\"},{\"tooltip\":\"Amount of   resonance near VCF corner frequency (specified between 0 and 1)\"}],\"init\":\"0.9\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"VCF Output Level\",\"address\":\"/MOOG_VCF_(Voltage_Controlled_Filter)/VCF_Output_Level\",\"meta\":[{\"3\":\"\"},{\"style\":\"knob\"},{\"tooltip\":\"output level in decibels\"},{\"unit\":\"dB\"}],\"init\":\"5\",\"min\":\"-60\",\"max\":\"20\",\"step\":\"0.1\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("description", "Exercise and compare three Moog VCF implementations");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "moogVCF");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("vaeffects.lib/name", "Faust Virtual Analog Filter Effect Library");
+	m.declare("vaeffects.lib/version", "0.0");
+}
+

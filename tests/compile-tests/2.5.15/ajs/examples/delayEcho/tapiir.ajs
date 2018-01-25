@@ -1,0 +1,546 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "tapiir"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 4194352 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 4194356 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 4194352 >> 2] | 0))))));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 1.;
+		HEAPF[dsp + 4 >> 2] = 0.;
+		HEAPF[dsp + 8 >> 2] = 1.;
+		HEAPF[dsp + 12 >> 2] = 0.;
+		HEAPF[dsp + 16 >> 2] = 0.;
+		HEAPF[dsp + 20 >> 2] = 0.;
+		HEAPF[dsp + 24 >> 2] = 0.;
+		HEAPF[dsp + 28 >> 2] = 0.;
+		HEAPF[dsp + 32 >> 2] = 0.;
+		HEAPF[dsp + 36 >> 2] = 1.;
+		HEAPF[dsp + 40 >> 2] = 1.;
+		HEAPF[dsp + 4194360 >> 2] = 0.;
+		HEAPF[dsp + 4194372 >> 2] = 1.;
+		HEAPF[dsp + 4194376 >> 2] = 0.;
+		HEAPF[dsp + 4194380 >> 2] = 0.;
+		HEAPF[dsp + 4194384 >> 2] = 0.;
+		HEAPF[dsp + 4194388 >> 2] = 0.;
+		HEAPF[dsp + 4194392 >> 2] = 0.;
+		HEAPF[dsp + 4194396 >> 2] = 0.;
+		HEAPF[dsp + 4194400 >> 2] = 1.;
+		HEAPF[dsp + 4194404 >> 2] = 1.;
+		HEAPF[dsp + 8388712 >> 2] = 0.;
+		HEAPF[dsp + 8388724 >> 2] = 1.;
+		HEAPF[dsp + 8388728 >> 2] = 0.;
+		HEAPF[dsp + 8388732 >> 2] = 0.;
+		HEAPF[dsp + 8388736 >> 2] = 0.;
+		HEAPF[dsp + 8388740 >> 2] = 0.;
+		HEAPF[dsp + 8388744 >> 2] = 0.;
+		HEAPF[dsp + 8388748 >> 2] = 0.;
+		HEAPF[dsp + 8388752 >> 2] = 1.;
+		HEAPF[dsp + 8388756 >> 2] = 1.;
+		HEAPF[dsp + 12583064 >> 2] = 0.;
+		HEAPF[dsp + 12583076 >> 2] = 1.;
+		HEAPF[dsp + 12583080 >> 2] = 0.;
+		HEAPF[dsp + 12583084 >> 2] = 0.;
+		HEAPF[dsp + 12583088 >> 2] = 0.;
+		HEAPF[dsp + 12583092 >> 2] = 0.;
+		HEAPF[dsp + 12583096 >> 2] = 0.;
+		HEAPF[dsp + 12583100 >> 2] = 0.;
+		HEAPF[dsp + 12583104 >> 2] = 1.;
+		HEAPF[dsp + 12583108 >> 2] = 1.;
+		HEAPF[dsp + 16777416 >> 2] = 0.;
+		HEAPF[dsp + 16777428 >> 2] = 1.;
+		HEAPF[dsp + 16777432 >> 2] = 0.;
+		HEAPF[dsp + 16777436 >> 2] = 0.;
+		HEAPF[dsp + 16777440 >> 2] = 0.;
+		HEAPF[dsp + 16777444 >> 2] = 0.;
+		HEAPF[dsp + 16777448 >> 2] = 0.;
+		HEAPF[dsp + 16777452 >> 2] = 0.;
+		HEAPF[dsp + 16777456 >> 2] = 1.;
+		HEAPF[dsp + 16777460 >> 2] = 1.;
+		HEAPF[dsp + 20971768 >> 2] = 0.;
+		HEAPF[dsp + 20971780 >> 2] = 1.;
+		HEAPF[dsp + 20971784 >> 2] = 0.;
+		HEAPF[dsp + 20971788 >> 2] = 0.;
+		HEAPF[dsp + 20971792 >> 2] = 0.;
+		HEAPF[dsp + 20971796 >> 2] = 0.;
+		HEAPF[dsp + 20971800 >> 2] = 0.;
+		HEAPF[dsp + 20971804 >> 2] = 0.;
+		HEAPF[dsp + 20971808 >> 2] = 1.;
+		HEAPF[dsp + 20971812 >> 2] = 1.;
+		HEAPF[dsp + 25166120 >> 2] = 0.;
+		HEAPF[dsp + 25166132 >> 2] = 0.;
+		HEAPF[dsp + 25166136 >> 2] = 0.;
+		HEAPF[dsp + 25166140 >> 2] = 0.;
+		HEAPF[dsp + 25166144 >> 2] = 0.;
+		HEAPF[dsp + 25166148 >> 2] = 0.;
+		HEAPF[dsp + 25166152 >> 2] = 1.;
+		HEAPF[dsp + 25166156 >> 2] = 1.;
+		HEAPF[dsp + 25166160 >> 2] = 1.;
+		HEAPF[dsp + 25166164 >> 2] = 0.;
+		HEAPF[dsp + 25166168 >> 2] = 0.;
+		HEAPF[dsp + 25166172 >> 2] = 0.;
+		HEAPF[dsp + 25166176 >> 2] = 0.;
+		HEAPF[dsp + 25166180 >> 2] = 0.;
+		HEAPF[dsp + 25166184 >> 2] = 0.;
+		HEAPF[dsp + 25166188 >> 2] = 1.;
+		HEAPF[dsp + 25166192 >> 2] = 1.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		var l7 = 0;
+		var l8 = 0;
+		var l9 = 0;
+		var l10 = 0;
+		var l11 = 0;
+		HEAP32[dsp + 44 >> 2] = 0;
+		for (l0 = 0; (((l0 | 0) < 1048576) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 48 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 4194364 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 1048576) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 4194408 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8388716 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 1048576) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8388760 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 2) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 12583068 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l6 = 0; (((l6 | 0) < 1048576) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 12583112 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l7 = 0; (((l7 | 0) < 2) | 0); l7 = (((l7 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16777420 + ((l7 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l8 = 0; (((l8 | 0) < 1048576) | 0); l8 = (((l8 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16777464 + ((l8 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l9 = 0; (((l9 | 0) < 2) | 0); l9 = (((l9 | 0) + 1) | 0)) {
+			HEAPF[dsp + 20971772 + ((l9 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l10 = 0; (((l10 | 0) < 1048576) | 0); l10 = (((l10 | 0) + 1) | 0)) {
+			HEAPF[dsp + 20971816 + ((l10 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l11 = 0; (((l11 | 0) < 2) | 0); l11 = (((l11 | 0) + 1) | 0)) {
+			HEAPF[dsp + 25166124 + ((l11 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 4194352 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var input1 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var iSlow11 = 0;
+		var fSlow12 = 0.;
+		var fSlow13 = 0.;
+		var fSlow14 = 0.;
+		var fSlow15 = 0.;
+		var fSlow16 = 0.;
+		var fSlow17 = 0.;
+		var fSlow18 = 0.;
+		var fSlow19 = 0.;
+		var fSlow20 = 0.;
+		var iSlow21 = 0;
+		var fSlow22 = 0.;
+		var fSlow23 = 0.;
+		var fSlow24 = 0.;
+		var fSlow25 = 0.;
+		var fSlow26 = 0.;
+		var fSlow27 = 0.;
+		var fSlow28 = 0.;
+		var fSlow29 = 0.;
+		var fSlow30 = 0.;
+		var iSlow31 = 0;
+		var fSlow32 = 0.;
+		var fSlow33 = 0.;
+		var fSlow34 = 0.;
+		var fSlow35 = 0.;
+		var fSlow36 = 0.;
+		var fSlow37 = 0.;
+		var fSlow38 = 0.;
+		var fSlow39 = 0.;
+		var fSlow40 = 0.;
+		var iSlow41 = 0;
+		var fSlow42 = 0.;
+		var fSlow43 = 0.;
+		var fSlow44 = 0.;
+		var fSlow45 = 0.;
+		var fSlow46 = 0.;
+		var fSlow47 = 0.;
+		var fSlow48 = 0.;
+		var fSlow49 = 0.;
+		var fSlow50 = 0.;
+		var iSlow51 = 0;
+		var fSlow52 = 0.;
+		var fSlow53 = 0.;
+		var fSlow54 = 0.;
+		var fSlow55 = 0.;
+		var fSlow56 = 0.;
+		var fSlow57 = 0.;
+		var fSlow58 = 0.;
+		var fSlow59 = 0.;
+		var fSlow60 = 0.;
+		var iSlow61 = 0;
+		var fSlow62 = 0.;
+		var fSlow63 = 0.;
+		var fSlow64 = 0.;
+		var fSlow65 = 0.;
+		var fSlow66 = 0.;
+		var fSlow67 = 0.;
+		var fSlow68 = 0.;
+		var fSlow69 = 0.;
+		var fSlow70 = 0.;
+		var fSlow71 = 0.;
+		var fSlow72 = 0.;
+		var fSlow73 = 0.;
+		var fSlow74 = 0.;
+		var fSlow75 = 0.;
+		var fSlow76 = 0.;
+		var fSlow77 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		input1 = (HEAP32[inputs + (1 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		fSlow0 = +(+(HEAPF[dsp + 0 >> 2]));
+		fSlow1 = +(+(HEAPF[dsp + 4 >> 2]));
+		fSlow2 = +(+(HEAPF[dsp + 8 >> 2]));
+		fSlow3 = +(+(HEAPF[dsp + 12 >> 2]));
+		fSlow4 = +(+(HEAPF[dsp + 16 >> 2]));
+		fSlow5 = +(+(HEAPF[dsp + 20 >> 2]));
+		fSlow6 = +(+(HEAPF[dsp + 24 >> 2]));
+		fSlow7 = +(+(HEAPF[dsp + 28 >> 2]));
+		fSlow8 = +(+(HEAPF[dsp + 32 >> 2]));
+		fSlow9 = +(+(HEAPF[dsp + 36 >> 2]));
+		fSlow10 = +(+(HEAPF[dsp + 40 >> 2]));
+		iSlow11 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 4194360 >> 2]))))))));
+		fSlow12 = +(+(HEAPF[dsp + 4194372 >> 2]));
+		fSlow13 = +(+(HEAPF[dsp + 4194376 >> 2]));
+		fSlow14 = +(+(HEAPF[dsp + 4194380 >> 2]));
+		fSlow15 = +(+(HEAPF[dsp + 4194384 >> 2]));
+		fSlow16 = +(+(HEAPF[dsp + 4194388 >> 2]));
+		fSlow17 = +(+(HEAPF[dsp + 4194392 >> 2]));
+		fSlow18 = +(+(HEAPF[dsp + 4194396 >> 2]));
+		fSlow19 = +(+(HEAPF[dsp + 4194400 >> 2]));
+		fSlow20 = +(+(HEAPF[dsp + 4194404 >> 2]));
+		iSlow21 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 8388712 >> 2]))))))));
+		fSlow22 = +(+(HEAPF[dsp + 8388724 >> 2]));
+		fSlow23 = +(+(HEAPF[dsp + 8388728 >> 2]));
+		fSlow24 = +(+(HEAPF[dsp + 8388732 >> 2]));
+		fSlow25 = +(+(HEAPF[dsp + 8388736 >> 2]));
+		fSlow26 = +(+(HEAPF[dsp + 8388740 >> 2]));
+		fSlow27 = +(+(HEAPF[dsp + 8388744 >> 2]));
+		fSlow28 = +(+(HEAPF[dsp + 8388748 >> 2]));
+		fSlow29 = +(+(HEAPF[dsp + 8388752 >> 2]));
+		fSlow30 = +(+(HEAPF[dsp + 8388756 >> 2]));
+		iSlow31 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 12583064 >> 2]))))))));
+		fSlow32 = +(+(HEAPF[dsp + 12583076 >> 2]));
+		fSlow33 = +(+(HEAPF[dsp + 12583080 >> 2]));
+		fSlow34 = +(+(HEAPF[dsp + 12583084 >> 2]));
+		fSlow35 = +(+(HEAPF[dsp + 12583088 >> 2]));
+		fSlow36 = +(+(HEAPF[dsp + 12583092 >> 2]));
+		fSlow37 = +(+(HEAPF[dsp + 12583096 >> 2]));
+		fSlow38 = +(+(HEAPF[dsp + 12583100 >> 2]));
+		fSlow39 = +(+(HEAPF[dsp + 12583104 >> 2]));
+		fSlow40 = +(+(HEAPF[dsp + 12583108 >> 2]));
+		iSlow41 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 16777416 >> 2]))))))));
+		fSlow42 = +(+(HEAPF[dsp + 16777428 >> 2]));
+		fSlow43 = +(+(HEAPF[dsp + 16777432 >> 2]));
+		fSlow44 = +(+(HEAPF[dsp + 16777436 >> 2]));
+		fSlow45 = +(+(HEAPF[dsp + 16777440 >> 2]));
+		fSlow46 = +(+(HEAPF[dsp + 16777444 >> 2]));
+		fSlow47 = +(+(HEAPF[dsp + 16777448 >> 2]));
+		fSlow48 = +(+(HEAPF[dsp + 16777452 >> 2]));
+		fSlow49 = +(+(HEAPF[dsp + 16777456 >> 2]));
+		fSlow50 = +(+(HEAPF[dsp + 16777460 >> 2]));
+		iSlow51 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 20971768 >> 2]))))))));
+		fSlow52 = +(+(HEAPF[dsp + 20971780 >> 2]));
+		fSlow53 = +(+(HEAPF[dsp + 20971784 >> 2]));
+		fSlow54 = +(+(HEAPF[dsp + 20971788 >> 2]));
+		fSlow55 = +(+(HEAPF[dsp + 20971792 >> 2]));
+		fSlow56 = +(+(HEAPF[dsp + 20971796 >> 2]));
+		fSlow57 = +(+(HEAPF[dsp + 20971800 >> 2]));
+		fSlow58 = +(+(HEAPF[dsp + 20971804 >> 2]));
+		fSlow59 = +(+(HEAPF[dsp + 20971808 >> 2]));
+		fSlow60 = +(+(HEAPF[dsp + 20971812 >> 2]));
+		iSlow61 = ~~(+(min_f(524288., +(max_f(0., +(+(HEAPF[dsp + 4194356 >> 2]) * +(+(HEAPF[dsp + 25166120 >> 2]))))))));
+		fSlow62 = +(+(HEAPF[dsp + 25166132 >> 2]));
+		fSlow63 = +(+(HEAPF[dsp + 25166136 >> 2]));
+		fSlow64 = +(+(HEAPF[dsp + 25166140 >> 2]));
+		fSlow65 = +(+(HEAPF[dsp + 25166144 >> 2]));
+		fSlow66 = +(+(HEAPF[dsp + 25166148 >> 2]));
+		fSlow67 = +(+(HEAPF[dsp + 25166152 >> 2]));
+		fSlow68 = +(+(HEAPF[dsp + 25166156 >> 2]));
+		fSlow69 = +(+(HEAPF[dsp + 25166160 >> 2]));
+		fSlow70 = +(+(HEAPF[dsp + 25166164 >> 2]));
+		fSlow71 = +(+(HEAPF[dsp + 25166168 >> 2]));
+		fSlow72 = +(+(HEAPF[dsp + 25166172 >> 2]));
+		fSlow73 = +(+(HEAPF[dsp + 25166176 >> 2]));
+		fSlow74 = +(+(HEAPF[dsp + 25166180 >> 2]));
+		fSlow75 = +(+(HEAPF[dsp + 25166184 >> 2]));
+		fSlow76 = +(+(HEAPF[dsp + 25166188 >> 2]));
+		fSlow77 = +(+(HEAPF[dsp + 25166192 >> 2]));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			fTemp1 = +(+(HEAPF[input1 + ((i | 0) << 2) >> 2]));
+			HEAPF[dsp + 48 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow2) * +(+(+(+(+(+(+(+(+(fSlow3) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow4) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow5) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow6) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow7) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow8) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow9) * +(fTemp0))) + +(+(fSlow10) * +(fTemp1))));
+			HEAPF[dsp + 4194364 + (0 << 2) >> 2] = +(HEAPF[dsp + 48 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow11 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[dsp + 4194408 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow12) * +(+(+(+(+(+(+(+(+(fSlow13) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow14) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow15) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow16) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow17) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow18) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow19) * +(fTemp0))) + +(+(fSlow20) * +(fTemp1))));
+			HEAPF[dsp + 8388716 + (0 << 2) >> 2] = +(HEAPF[dsp + 4194408 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow21 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[dsp + 8388760 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow22) * +(+(+(+(+(+(+(+(+(fSlow23) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow24) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow25) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow26) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow27) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow28) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow29) * +(fTemp0))) + +(+(fSlow30) * +(fTemp1))));
+			HEAPF[dsp + 12583068 + (0 << 2) >> 2] = +(HEAPF[dsp + 8388760 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow31 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[dsp + 12583112 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow32) * +(+(+(+(+(+(+(+(+(fSlow33) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow34) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow35) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow36) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow37) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow38) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow39) * +(fTemp0))) + +(+(fSlow40) * +(fTemp1))));
+			HEAPF[dsp + 16777420 + (0 << 2) >> 2] = +(HEAPF[dsp + 12583112 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow41 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[dsp + 16777464 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow42) * +(+(+(+(+(+(+(+(+(fSlow43) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow44) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow45) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow46) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow47) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow48) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow49) * +(fTemp0))) + +(+(fSlow50) * +(fTemp1))));
+			HEAPF[dsp + 20971772 + (0 << 2) >> 2] = +(HEAPF[dsp + 16777464 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow51 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[dsp + 20971816 + ((((HEAP32[dsp + 44 >> 2] | 0) & 1048575) | 0) << 2) >> 2] = +(+(fSlow52) * +(+(+(+(+(+(+(+(+(fSlow53) * +(HEAPF[dsp + 4194364 + (1 << 2) >> 2])) + +(+(fSlow54) * +(HEAPF[dsp + 8388716 + (1 << 2) >> 2]))) + +(+(fSlow55) * +(HEAPF[dsp + 12583068 + (1 << 2) >> 2]))) + +(+(fSlow56) * +(HEAPF[dsp + 16777420 + (1 << 2) >> 2]))) + +(+(fSlow57) * +(HEAPF[dsp + 20971772 + (1 << 2) >> 2]))) + +(+(fSlow58) * +(HEAPF[dsp + 25166124 + (1 << 2) >> 2]))) + +(+(fSlow59) * +(fTemp0))) + +(+(fSlow60) * +(fTemp1))));
+			HEAPF[dsp + 25166124 + (0 << 2) >> 2] = +(HEAPF[dsp + 20971816 + ((((((HEAP32[dsp + 44 >> 2] | 0) - (iSlow61 | 0)) | 0) & 1048575) | 0) << 2) >> 2]);
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(fSlow0) * +(+(+(+(+(+(+(+(+(fSlow1) * +(HEAPF[dsp + 4194364 + (0 << 2) >> 2])) + +(+(fSlow62) * +(HEAPF[dsp + 8388716 + (0 << 2) >> 2]))) + +(+(fSlow63) * +(HEAPF[dsp + 12583068 + (0 << 2) >> 2]))) + +(+(fSlow64) * +(HEAPF[dsp + 16777420 + (0 << 2) >> 2]))) + +(+(fSlow65) * +(HEAPF[dsp + 20971772 + (0 << 2) >> 2]))) + +(+(fSlow66) * +(HEAPF[dsp + 25166124 + (0 << 2) >> 2]))) + +(+(fSlow67) * +(fTemp0))) + +(+(fSlow68) * +(fTemp1)))));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(+(fSlow69) * +(+(+(+(+(+(+(+(+(fSlow70) * +(HEAPF[dsp + 4194364 + (0 << 2) >> 2])) + +(+(fSlow71) * +(HEAPF[dsp + 8388716 + (0 << 2) >> 2]))) + +(+(fSlow72) * +(HEAPF[dsp + 12583068 + (0 << 2) >> 2]))) + +(+(fSlow73) * +(HEAPF[dsp + 16777420 + (0 << 2) >> 2]))) + +(+(fSlow74) * +(HEAPF[dsp + 20971772 + (0 << 2) >> 2]))) + +(+(fSlow75) * +(HEAPF[dsp + 25166124 + (0 << 2) >> 2]))) + +(+(fSlow76) * +(fTemp0))) + +(+(fSlow77) * +(fTemp1)))));
+			HEAP32[dsp + 44 >> 2] = (((HEAP32[dsp + 44 >> 2] | 0) + 1) | 0);
+			HEAPF[dsp + 4194364 + (1 << 2) >> 2] = +(HEAPF[dsp + 4194364 + (0 << 2) >> 2]);
+			HEAPF[dsp + 8388716 + (1 << 2) >> 2] = +(HEAPF[dsp + 8388716 + (0 << 2) >> 2]);
+			HEAPF[dsp + 12583068 + (1 << 2) >> 2] = +(HEAPF[dsp + 12583068 + (0 << 2) >> 2]);
+			HEAPF[dsp + 16777420 + (1 << 2) >> 2] = +(HEAPF[dsp + 16777420 + (0 << 2) >> 2]);
+			HEAPF[dsp + 20971772 + (1 << 2) >> 2] = +(HEAPF[dsp + 20971772 + (0 << 2) >> 2]);
+			HEAPF[dsp + 25166124 + (1 << 2) >> 2] = +(HEAPF[dsp + 25166124 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 25166196;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/Tapiir/outputs/output_0/gain"] = 0;
+	pathTable["/Tapiir/outputs/output_0/tap_0"] = 4;
+	pathTable["/Tapiir/0x00/Tap_0/input_1"] = 40;
+	pathTable["/Tapiir/0x00/Tap_0/delay_(sec)"] = 4194360;
+	pathTable["/Tapiir/0x00/Tap_1/gain"] = 4194372;
+	pathTable["/Tapiir/0x00/Tap_1/tap_0"] = 4194376;
+	pathTable["/Tapiir/0x00/Tap_1/tap_1"] = 4194380;
+	pathTable["/Tapiir/0x00/Tap_1/tap_2"] = 4194384;
+	pathTable["/Tapiir/0x00/Tap_1/tap_3"] = 4194388;
+	pathTable["/Tapiir/0x00/Tap_1/tap_4"] = 4194392;
+	pathTable["/Tapiir/0x00/Tap_1/tap_5"] = 4194396;
+	pathTable["/Tapiir/0x00/Tap_1/input_0"] = 4194400;
+	pathTable["/Tapiir/0x00/Tap_0/gain"] = 8;
+	pathTable["/Tapiir/0x00/Tap_1/input_1"] = 4194404;
+	pathTable["/Tapiir/0x00/Tap_1/delay_(sec)"] = 8388712;
+	pathTable["/Tapiir/0x00/Tap_2/gain"] = 8388724;
+	pathTable["/Tapiir/0x00/Tap_2/tap_0"] = 8388728;
+	pathTable["/Tapiir/0x00/Tap_2/tap_1"] = 8388732;
+	pathTable["/Tapiir/0x00/Tap_2/tap_2"] = 8388736;
+	pathTable["/Tapiir/0x00/Tap_2/tap_3"] = 8388740;
+	pathTable["/Tapiir/0x00/Tap_2/tap_4"] = 8388744;
+	pathTable["/Tapiir/0x00/Tap_2/tap_5"] = 8388748;
+	pathTable["/Tapiir/0x00/Tap_2/input_0"] = 8388752;
+	pathTable["/Tapiir/0x00/Tap_0/tap_0"] = 12;
+	pathTable["/Tapiir/0x00/Tap_2/input_1"] = 8388756;
+	pathTable["/Tapiir/0x00/Tap_2/delay_(sec)"] = 12583064;
+	pathTable["/Tapiir/0x00/Tap_3/gain"] = 12583076;
+	pathTable["/Tapiir/0x00/Tap_3/tap_0"] = 12583080;
+	pathTable["/Tapiir/0x00/Tap_3/tap_1"] = 12583084;
+	pathTable["/Tapiir/0x00/Tap_3/tap_2"] = 12583088;
+	pathTable["/Tapiir/0x00/Tap_3/tap_3"] = 12583092;
+	pathTable["/Tapiir/0x00/Tap_3/tap_4"] = 12583096;
+	pathTable["/Tapiir/0x00/Tap_3/tap_5"] = 12583100;
+	pathTable["/Tapiir/0x00/Tap_3/input_0"] = 12583104;
+	pathTable["/Tapiir/0x00/Tap_0/tap_1"] = 16;
+	pathTable["/Tapiir/0x00/Tap_3/input_1"] = 12583108;
+	pathTable["/Tapiir/0x00/Tap_3/delay_(sec)"] = 16777416;
+	pathTable["/Tapiir/0x00/Tap_4/gain"] = 16777428;
+	pathTable["/Tapiir/0x00/Tap_4/tap_0"] = 16777432;
+	pathTable["/Tapiir/0x00/Tap_4/tap_1"] = 16777436;
+	pathTable["/Tapiir/0x00/Tap_4/tap_2"] = 16777440;
+	pathTable["/Tapiir/0x00/Tap_4/tap_3"] = 16777444;
+	pathTable["/Tapiir/0x00/Tap_4/tap_4"] = 16777448;
+	pathTable["/Tapiir/0x00/Tap_4/tap_5"] = 16777452;
+	pathTable["/Tapiir/0x00/Tap_4/input_0"] = 16777456;
+	pathTable["/Tapiir/0x00/Tap_0/tap_2"] = 20;
+	pathTable["/Tapiir/0x00/Tap_4/input_1"] = 16777460;
+	pathTable["/Tapiir/0x00/Tap_4/delay_(sec)"] = 20971768;
+	pathTable["/Tapiir/0x00/Tap_5/gain"] = 20971780;
+	pathTable["/Tapiir/0x00/Tap_5/tap_0"] = 20971784;
+	pathTable["/Tapiir/0x00/Tap_5/tap_1"] = 20971788;
+	pathTable["/Tapiir/0x00/Tap_5/tap_2"] = 20971792;
+	pathTable["/Tapiir/0x00/Tap_5/tap_3"] = 20971796;
+	pathTable["/Tapiir/0x00/Tap_5/tap_4"] = 20971800;
+	pathTable["/Tapiir/0x00/Tap_5/tap_5"] = 20971804;
+	pathTable["/Tapiir/0x00/Tap_5/input_0"] = 20971808;
+	pathTable["/Tapiir/0x00/Tap_0/tap_3"] = 24;
+	pathTable["/Tapiir/0x00/Tap_5/input_1"] = 20971812;
+	pathTable["/Tapiir/0x00/Tap_5/delay_(sec)"] = 25166120;
+	pathTable["/Tapiir/outputs/output_0/tap_1"] = 25166132;
+	pathTable["/Tapiir/outputs/output_0/tap_2"] = 25166136;
+	pathTable["/Tapiir/outputs/output_0/tap_3"] = 25166140;
+	pathTable["/Tapiir/outputs/output_0/tap_4"] = 25166144;
+	pathTable["/Tapiir/outputs/output_0/tap_5"] = 25166148;
+	pathTable["/Tapiir/outputs/output_0/input_0"] = 25166152;
+	pathTable["/Tapiir/outputs/output_0/input_1"] = 25166156;
+	pathTable["/Tapiir/outputs/output_1/gain"] = 25166160;
+	pathTable["/Tapiir/0x00/Tap_0/tap_4"] = 28;
+	pathTable["/Tapiir/outputs/output_1/tap_0"] = 25166164;
+	pathTable["/Tapiir/outputs/output_1/tap_1"] = 25166168;
+	pathTable["/Tapiir/outputs/output_1/tap_2"] = 25166172;
+	pathTable["/Tapiir/outputs/output_1/tap_3"] = 25166176;
+	pathTable["/Tapiir/outputs/output_1/tap_4"] = 25166180;
+	pathTable["/Tapiir/outputs/output_1/tap_5"] = 25166184;
+	pathTable["/Tapiir/outputs/output_1/input_0"] = 25166188;
+	pathTable["/Tapiir/outputs/output_1/input_1"] = 25166192;
+	pathTable["/Tapiir/0x00/Tap_0/tap_5"] = 32;
+	pathTable["/Tapiir/0x00/Tap_0/input_0"] = 36;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"tapiir\",\"inputs\":\"2\",\"outputs\":\"2\",\"meta\":[{\"author\":\"Grame\"},{\"copyright\":\"(c)GRAME 2006\"},{\"delays.lib/name\":\"Faust Delay Library\"},{\"delays.lib/version\":\"0.0\"},{\"license\":\"BSD\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"tapiir\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"Tapiir\",\"items\":[{\"type\":\"tgroup\",\"label\":\"0x00\",\"items\":[{\"type\":\"hgroup\",\"label\":\"Tap 0\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_0/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_0/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_0/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_0/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_0/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_0/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_0/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_0/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_0/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_0/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Tap 1\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_1/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_1/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_1/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_1/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_1/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_1/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_1/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_1/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_1/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_1/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Tap 2\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_2/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_2/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_2/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_2/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_2/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_2/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_2/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_2/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_2/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_2/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Tap 3\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_3/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_3/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_3/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_3/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_3/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_3/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_3/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_3/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_3/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_3/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Tap 4\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_4/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_4/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_4/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_4/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_4/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_4/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_4/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_4/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_4/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_4/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Tap 5\",\"items\":[{\"type\":\"vslider\",\"label\":\"delay (sec)\",\"address\":\"/Tapiir/0x00/Tap_5/delay_(sec)\",\"init\":\"0\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.01\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/0x00/Tap_5/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/0x00/Tap_5/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/0x00/Tap_5/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/0x00/Tap_5/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/0x00/Tap_5/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/0x00/Tap_5/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/0x00/Tap_5/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/0x00/Tap_5/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/0x00/Tap_5/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]}]},{\"type\":\"vgroup\",\"label\":\"outputs\",\"items\":[{\"type\":\"hgroup\",\"label\":\"output 0\",\"items\":[{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/outputs/output_0/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/outputs/output_0/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/outputs/output_0/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/outputs/output_0/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/outputs/output_0/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/outputs/output_0/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/outputs/output_0/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/outputs/output_0/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/outputs/output_0/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"output 1\",\"items\":[{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Tapiir/outputs/output_1/gain\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 0\",\"address\":\"/Tapiir/outputs/output_1/input_0\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"input 1\",\"address\":\"/Tapiir/outputs/output_1/input_1\",\"init\":\"1\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 0\",\"address\":\"/Tapiir/outputs/output_1/tap_0\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 1\",\"address\":\"/Tapiir/outputs/output_1/tap_1\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 2\",\"address\":\"/Tapiir/outputs/output_1/tap_2\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 3\",\"address\":\"/Tapiir/outputs/output_1/tap_3\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 4\",\"address\":\"/Tapiir/outputs/output_1/tap_4\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"tap 5\",\"address\":\"/Tapiir/outputs/output_1/tap_5\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "Grame");
+	m.declare("copyright", "(c)GRAME 2006");
+	m.declare("delays.lib/name", "Faust Delay Library");
+	m.declare("delays.lib/version", "0.0");
+	m.declare("license", "BSD");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "tapiir");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("version", "1.0");
+}
+

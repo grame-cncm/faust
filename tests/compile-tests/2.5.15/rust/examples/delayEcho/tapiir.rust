@@ -1,0 +1,664 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fVslider0: f32,
+	fVslider1: f32,
+	fVslider2: f32,
+	fVslider3: f32,
+	fVslider4: f32,
+	fVslider5: f32,
+	fVslider6: f32,
+	fVslider7: f32,
+	fVslider8: f32,
+	fVslider9: f32,
+	fVslider10: f32,
+	IOTA: i32,
+	fVec0: [f32;1048576],
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fVslider11: f32,
+	fRec0: [f32;2],
+	fVslider12: f32,
+	fVslider13: f32,
+	fVslider14: f32,
+	fVslider15: f32,
+	fVslider16: f32,
+	fVslider17: f32,
+	fVslider18: f32,
+	fVslider19: f32,
+	fVslider20: f32,
+	fVec1: [f32;1048576],
+	fVslider21: f32,
+	fRec1: [f32;2],
+	fVslider22: f32,
+	fVslider23: f32,
+	fVslider24: f32,
+	fVslider25: f32,
+	fVslider26: f32,
+	fVslider27: f32,
+	fVslider28: f32,
+	fVslider29: f32,
+	fVslider30: f32,
+	fVec2: [f32;1048576],
+	fVslider31: f32,
+	fRec2: [f32;2],
+	fVslider32: f32,
+	fVslider33: f32,
+	fVslider34: f32,
+	fVslider35: f32,
+	fVslider36: f32,
+	fVslider37: f32,
+	fVslider38: f32,
+	fVslider39: f32,
+	fVslider40: f32,
+	fVec3: [f32;1048576],
+	fVslider41: f32,
+	fRec3: [f32;2],
+	fVslider42: f32,
+	fVslider43: f32,
+	fVslider44: f32,
+	fVslider45: f32,
+	fVslider46: f32,
+	fVslider47: f32,
+	fVslider48: f32,
+	fVslider49: f32,
+	fVslider50: f32,
+	fVec4: [f32;1048576],
+	fVslider51: f32,
+	fRec4: [f32;2],
+	fVslider52: f32,
+	fVslider53: f32,
+	fVslider54: f32,
+	fVslider55: f32,
+	fVslider56: f32,
+	fVslider57: f32,
+	fVslider58: f32,
+	fVslider59: f32,
+	fVslider60: f32,
+	fVec5: [f32;1048576],
+	fVslider61: f32,
+	fRec5: [f32;2],
+	fVslider62: f32,
+	fVslider63: f32,
+	fVslider64: f32,
+	fVslider65: f32,
+	fVslider66: f32,
+	fVslider67: f32,
+	fVslider68: f32,
+	fVslider69: f32,
+	fVslider70: f32,
+	fVslider71: f32,
+	fVslider72: f32,
+	fVslider73: f32,
+	fVslider74: f32,
+	fVslider75: f32,
+	fVslider76: f32,
+	fVslider77: f32,
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fVslider0: 0.0,
+			fVslider1: 0.0,
+			fVslider2: 0.0,
+			fVslider3: 0.0,
+			fVslider4: 0.0,
+			fVslider5: 0.0,
+			fVslider6: 0.0,
+			fVslider7: 0.0,
+			fVslider8: 0.0,
+			fVslider9: 0.0,
+			fVslider10: 0.0,
+			IOTA: 0,
+			fVec0: [0.0;1048576],
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fVslider11: 0.0,
+			fRec0: [0.0;2],
+			fVslider12: 0.0,
+			fVslider13: 0.0,
+			fVslider14: 0.0,
+			fVslider15: 0.0,
+			fVslider16: 0.0,
+			fVslider17: 0.0,
+			fVslider18: 0.0,
+			fVslider19: 0.0,
+			fVslider20: 0.0,
+			fVec1: [0.0;1048576],
+			fVslider21: 0.0,
+			fRec1: [0.0;2],
+			fVslider22: 0.0,
+			fVslider23: 0.0,
+			fVslider24: 0.0,
+			fVslider25: 0.0,
+			fVslider26: 0.0,
+			fVslider27: 0.0,
+			fVslider28: 0.0,
+			fVslider29: 0.0,
+			fVslider30: 0.0,
+			fVec2: [0.0;1048576],
+			fVslider31: 0.0,
+			fRec2: [0.0;2],
+			fVslider32: 0.0,
+			fVslider33: 0.0,
+			fVslider34: 0.0,
+			fVslider35: 0.0,
+			fVslider36: 0.0,
+			fVslider37: 0.0,
+			fVslider38: 0.0,
+			fVslider39: 0.0,
+			fVslider40: 0.0,
+			fVec3: [0.0;1048576],
+			fVslider41: 0.0,
+			fRec3: [0.0;2],
+			fVslider42: 0.0,
+			fVslider43: 0.0,
+			fVslider44: 0.0,
+			fVslider45: 0.0,
+			fVslider46: 0.0,
+			fVslider47: 0.0,
+			fVslider48: 0.0,
+			fVslider49: 0.0,
+			fVslider50: 0.0,
+			fVec4: [0.0;1048576],
+			fVslider51: 0.0,
+			fRec4: [0.0;2],
+			fVslider52: 0.0,
+			fVslider53: 0.0,
+			fVslider54: 0.0,
+			fVslider55: 0.0,
+			fVslider56: 0.0,
+			fVslider57: 0.0,
+			fVslider58: 0.0,
+			fVslider59: 0.0,
+			fVslider60: 0.0,
+			fVec5: [0.0;1048576],
+			fVslider61: 0.0,
+			fRec5: [0.0;2],
+			fVslider62: 0.0,
+			fVslider63: 0.0,
+			fVslider64: 0.0,
+			fVslider65: 0.0,
+			fVslider66: 0.0,
+			fVslider67: 0.0,
+			fVslider68: 0.0,
+			fVslider69: 0.0,
+			fVslider70: 0.0,
+			fVslider71: 0.0,
+			fVslider72: 0.0,
+			fVslider73: 0.0,
+			fVslider74: 0.0,
+			fVslider75: 0.0,
+			fVslider76: 0.0,
+			fVslider77: 0.0,
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("author", "Grame");
+		m.declare("copyright", "(c)GRAME 2006");
+		m.declare("delays.lib/name", "Faust Delay Library");
+		m.declare("delays.lib/version", "0.0");
+		m.declare("license", "BSD");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "tapiir");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("version", "1.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fVslider0 = 1.0;
+		self.fVslider1 = 0.0;
+		self.fVslider2 = 1.0;
+		self.fVslider3 = 0.0;
+		self.fVslider4 = 0.0;
+		self.fVslider5 = 0.0;
+		self.fVslider6 = 0.0;
+		self.fVslider7 = 0.0;
+		self.fVslider8 = 0.0;
+		self.fVslider9 = 1.0;
+		self.fVslider10 = 1.0;
+		self.fVslider11 = 0.0;
+		self.fVslider12 = 1.0;
+		self.fVslider13 = 0.0;
+		self.fVslider14 = 0.0;
+		self.fVslider15 = 0.0;
+		self.fVslider16 = 0.0;
+		self.fVslider17 = 0.0;
+		self.fVslider18 = 0.0;
+		self.fVslider19 = 1.0;
+		self.fVslider20 = 1.0;
+		self.fVslider21 = 0.0;
+		self.fVslider22 = 1.0;
+		self.fVslider23 = 0.0;
+		self.fVslider24 = 0.0;
+		self.fVslider25 = 0.0;
+		self.fVslider26 = 0.0;
+		self.fVslider27 = 0.0;
+		self.fVslider28 = 0.0;
+		self.fVslider29 = 1.0;
+		self.fVslider30 = 1.0;
+		self.fVslider31 = 0.0;
+		self.fVslider32 = 1.0;
+		self.fVslider33 = 0.0;
+		self.fVslider34 = 0.0;
+		self.fVslider35 = 0.0;
+		self.fVslider36 = 0.0;
+		self.fVslider37 = 0.0;
+		self.fVslider38 = 0.0;
+		self.fVslider39 = 1.0;
+		self.fVslider40 = 1.0;
+		self.fVslider41 = 0.0;
+		self.fVslider42 = 1.0;
+		self.fVslider43 = 0.0;
+		self.fVslider44 = 0.0;
+		self.fVslider45 = 0.0;
+		self.fVslider46 = 0.0;
+		self.fVslider47 = 0.0;
+		self.fVslider48 = 0.0;
+		self.fVslider49 = 1.0;
+		self.fVslider50 = 1.0;
+		self.fVslider51 = 0.0;
+		self.fVslider52 = 1.0;
+		self.fVslider53 = 0.0;
+		self.fVslider54 = 0.0;
+		self.fVslider55 = 0.0;
+		self.fVslider56 = 0.0;
+		self.fVslider57 = 0.0;
+		self.fVslider58 = 0.0;
+		self.fVslider59 = 1.0;
+		self.fVslider60 = 1.0;
+		self.fVslider61 = 0.0;
+		self.fVslider62 = 0.0;
+		self.fVslider63 = 0.0;
+		self.fVslider64 = 0.0;
+		self.fVslider65 = 0.0;
+		self.fVslider66 = 0.0;
+		self.fVslider67 = 1.0;
+		self.fVslider68 = 1.0;
+		self.fVslider69 = 1.0;
+		self.fVslider70 = 0.0;
+		self.fVslider71 = 0.0;
+		self.fVslider72 = 0.0;
+		self.fVslider73 = 0.0;
+		self.fVslider74 = 0.0;
+		self.fVslider75 = 0.0;
+		self.fVslider76 = 1.0;
+		self.fVslider77 = 1.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		self.IOTA = 0;
+		let mut l0: i32 = 0;
+		loop {
+			self.fVec0[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 1048576) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fRec0[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fVec1[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 1048576) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec1[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		let mut l4: i32 = 0;
+		loop {
+			self.fVec2[l4 as usize] = 0.0;
+			l4 = (l4 + 1);
+			if (l4 < 1048576) { continue; } else { break; }
+		}
+		let mut l5: i32 = 0;
+		loop {
+			self.fRec2[l5 as usize] = 0.0;
+			l5 = (l5 + 1);
+			if (l5 < 2) { continue; } else { break; }
+		}
+		let mut l6: i32 = 0;
+		loop {
+			self.fVec3[l6 as usize] = 0.0;
+			l6 = (l6 + 1);
+			if (l6 < 1048576) { continue; } else { break; }
+		}
+		let mut l7: i32 = 0;
+		loop {
+			self.fRec3[l7 as usize] = 0.0;
+			l7 = (l7 + 1);
+			if (l7 < 2) { continue; } else { break; }
+		}
+		let mut l8: i32 = 0;
+		loop {
+			self.fVec4[l8 as usize] = 0.0;
+			l8 = (l8 + 1);
+			if (l8 < 1048576) { continue; } else { break; }
+		}
+		let mut l9: i32 = 0;
+		loop {
+			self.fRec4[l9 as usize] = 0.0;
+			l9 = (l9 + 1);
+			if (l9 < 2) { continue; } else { break; }
+		}
+		let mut l10: i32 = 0;
+		loop {
+			self.fVec5[l10 as usize] = 0.0;
+			l10 = (l10 + 1);
+			if (l10 < 1048576) { continue; } else { break; }
+		}
+		let mut l11: i32 = 0;
+		loop {
+			self.fRec5[l11 as usize] = 0.0;
+			l11 = (l11 + 1);
+			if (l11 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32)));
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("Tapiir");
+		ui_interface.openTabBox("0x00");
+		ui_interface.openHorizontalBox("Tap 0");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider11, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider2, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider9, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider10, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider3, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider4, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider5, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider6, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider7, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider8, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Tap 1");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider21, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider12, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider19, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider20, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider13, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider14, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider15, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider16, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider17, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider18, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Tap 2");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider31, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider22, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider29, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider30, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider23, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider24, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider25, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider26, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider27, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider28, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Tap 3");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider41, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider32, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider39, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider40, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider33, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider34, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider35, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider36, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider37, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider38, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Tap 4");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider51, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider42, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider49, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider50, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider43, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider44, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider45, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider46, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider47, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider48, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("Tap 5");
+		ui_interface.addVerticalSlider("delay (sec)", &mut self.fVslider61, 0.0, 0.0, 5.0, 0.01);
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider52, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider59, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider60, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider53, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider54, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider55, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider56, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider57, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider58, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		ui_interface.openVerticalBox("outputs");
+		ui_interface.openHorizontalBox("output 0");
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider0, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider67, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider68, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider1, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider62, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider63, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider64, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider65, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider66, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.openHorizontalBox("output 1");
+		ui_interface.addVerticalSlider("gain", &mut self.fVslider69, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 0", &mut self.fVslider76, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("input 1", &mut self.fVslider77, 1.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 0", &mut self.fVslider70, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 1", &mut self.fVslider71, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 2", &mut self.fVslider72, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 3", &mut self.fVslider73, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 4", &mut self.fVslider74, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.addVerticalSlider("tap 5", &mut self.fVslider75, 0.0, 0.0, 1.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fVslider0 as f32);
+		let mut fSlow1: f32 = (self.fVslider1 as f32);
+		let mut fSlow2: f32 = (self.fVslider2 as f32);
+		let mut fSlow3: f32 = (self.fVslider3 as f32);
+		let mut fSlow4: f32 = (self.fVslider4 as f32);
+		let mut fSlow5: f32 = (self.fVslider5 as f32);
+		let mut fSlow6: f32 = (self.fVslider6 as f32);
+		let mut fSlow7: f32 = (self.fVslider7 as f32);
+		let mut fSlow8: f32 = (self.fVslider8 as f32);
+		let mut fSlow9: f32 = (self.fVslider9 as f32);
+		let mut fSlow10: f32 = (self.fVslider10 as f32);
+		let mut iSlow11: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider11 as f32)))) as i32);
+		let mut fSlow12: f32 = (self.fVslider12 as f32);
+		let mut fSlow13: f32 = (self.fVslider13 as f32);
+		let mut fSlow14: f32 = (self.fVslider14 as f32);
+		let mut fSlow15: f32 = (self.fVslider15 as f32);
+		let mut fSlow16: f32 = (self.fVslider16 as f32);
+		let mut fSlow17: f32 = (self.fVslider17 as f32);
+		let mut fSlow18: f32 = (self.fVslider18 as f32);
+		let mut fSlow19: f32 = (self.fVslider19 as f32);
+		let mut fSlow20: f32 = (self.fVslider20 as f32);
+		let mut iSlow21: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider21 as f32)))) as i32);
+		let mut fSlow22: f32 = (self.fVslider22 as f32);
+		let mut fSlow23: f32 = (self.fVslider23 as f32);
+		let mut fSlow24: f32 = (self.fVslider24 as f32);
+		let mut fSlow25: f32 = (self.fVslider25 as f32);
+		let mut fSlow26: f32 = (self.fVslider26 as f32);
+		let mut fSlow27: f32 = (self.fVslider27 as f32);
+		let mut fSlow28: f32 = (self.fVslider28 as f32);
+		let mut fSlow29: f32 = (self.fVslider29 as f32);
+		let mut fSlow30: f32 = (self.fVslider30 as f32);
+		let mut iSlow31: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider31 as f32)))) as i32);
+		let mut fSlow32: f32 = (self.fVslider32 as f32);
+		let mut fSlow33: f32 = (self.fVslider33 as f32);
+		let mut fSlow34: f32 = (self.fVslider34 as f32);
+		let mut fSlow35: f32 = (self.fVslider35 as f32);
+		let mut fSlow36: f32 = (self.fVslider36 as f32);
+		let mut fSlow37: f32 = (self.fVslider37 as f32);
+		let mut fSlow38: f32 = (self.fVslider38 as f32);
+		let mut fSlow39: f32 = (self.fVslider39 as f32);
+		let mut fSlow40: f32 = (self.fVslider40 as f32);
+		let mut iSlow41: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider41 as f32)))) as i32);
+		let mut fSlow42: f32 = (self.fVslider42 as f32);
+		let mut fSlow43: f32 = (self.fVslider43 as f32);
+		let mut fSlow44: f32 = (self.fVslider44 as f32);
+		let mut fSlow45: f32 = (self.fVslider45 as f32);
+		let mut fSlow46: f32 = (self.fVslider46 as f32);
+		let mut fSlow47: f32 = (self.fVslider47 as f32);
+		let mut fSlow48: f32 = (self.fVslider48 as f32);
+		let mut fSlow49: f32 = (self.fVslider49 as f32);
+		let mut fSlow50: f32 = (self.fVslider50 as f32);
+		let mut iSlow51: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider51 as f32)))) as i32);
+		let mut fSlow52: f32 = (self.fVslider52 as f32);
+		let mut fSlow53: f32 = (self.fVslider53 as f32);
+		let mut fSlow54: f32 = (self.fVslider54 as f32);
+		let mut fSlow55: f32 = (self.fVslider55 as f32);
+		let mut fSlow56: f32 = (self.fVslider56 as f32);
+		let mut fSlow57: f32 = (self.fVslider57 as f32);
+		let mut fSlow58: f32 = (self.fVslider58 as f32);
+		let mut fSlow59: f32 = (self.fVslider59 as f32);
+		let mut fSlow60: f32 = (self.fVslider60 as f32);
+		let mut iSlow61: i32 = (f32::min(524288.0, f32::max(0.0, (self.fConst0 * (self.fVslider61 as f32)))) as i32);
+		let mut fSlow62: f32 = (self.fVslider62 as f32);
+		let mut fSlow63: f32 = (self.fVslider63 as f32);
+		let mut fSlow64: f32 = (self.fVslider64 as f32);
+		let mut fSlow65: f32 = (self.fVslider65 as f32);
+		let mut fSlow66: f32 = (self.fVslider66 as f32);
+		let mut fSlow67: f32 = (self.fVslider67 as f32);
+		let mut fSlow68: f32 = (self.fVslider68 as f32);
+		let mut fSlow69: f32 = (self.fVslider69 as f32);
+		let mut fSlow70: f32 = (self.fVslider70 as f32);
+		let mut fSlow71: f32 = (self.fVslider71 as f32);
+		let mut fSlow72: f32 = (self.fVslider72 as f32);
+		let mut fSlow73: f32 = (self.fVslider73 as f32);
+		let mut fSlow74: f32 = (self.fVslider74 as f32);
+		let mut fSlow75: f32 = (self.fVslider75 as f32);
+		let mut fSlow76: f32 = (self.fVslider76 as f32);
+		let mut fSlow77: f32 = (self.fVslider77 as f32);
+		let mut i: i32 = 0;
+		loop {
+			let mut fTemp0: f32 = (inputs[0][i as usize] as f32);
+			let mut fTemp1: f32 = (inputs[1][i as usize] as f32);
+			self.fVec0[(self.IOTA & 1048575) as usize] = (fSlow2 * ((((((((fSlow3 * self.fRec0[1]) + (fSlow4 * self.fRec1[1])) + (fSlow5 * self.fRec2[1])) + (fSlow6 * self.fRec3[1])) + (fSlow7 * self.fRec4[1])) + (fSlow8 * self.fRec5[1])) + (fSlow9 * fTemp0)) + (fSlow10 * fTemp1)));
+			self.fRec0[0] = self.fVec0[((self.IOTA - iSlow11) & 1048575) as usize];
+			self.fVec1[(self.IOTA & 1048575) as usize] = (fSlow12 * ((((((((fSlow13 * self.fRec0[1]) + (fSlow14 * self.fRec1[1])) + (fSlow15 * self.fRec2[1])) + (fSlow16 * self.fRec3[1])) + (fSlow17 * self.fRec4[1])) + (fSlow18 * self.fRec5[1])) + (fSlow19 * fTemp0)) + (fSlow20 * fTemp1)));
+			self.fRec1[0] = self.fVec1[((self.IOTA - iSlow21) & 1048575) as usize];
+			self.fVec2[(self.IOTA & 1048575) as usize] = (fSlow22 * ((((((((fSlow23 * self.fRec0[1]) + (fSlow24 * self.fRec1[1])) + (fSlow25 * self.fRec2[1])) + (fSlow26 * self.fRec3[1])) + (fSlow27 * self.fRec4[1])) + (fSlow28 * self.fRec5[1])) + (fSlow29 * fTemp0)) + (fSlow30 * fTemp1)));
+			self.fRec2[0] = self.fVec2[((self.IOTA - iSlow31) & 1048575) as usize];
+			self.fVec3[(self.IOTA & 1048575) as usize] = (fSlow32 * ((((((((fSlow33 * self.fRec0[1]) + (fSlow34 * self.fRec1[1])) + (fSlow35 * self.fRec2[1])) + (fSlow36 * self.fRec3[1])) + (fSlow37 * self.fRec4[1])) + (fSlow38 * self.fRec5[1])) + (fSlow39 * fTemp0)) + (fSlow40 * fTemp1)));
+			self.fRec3[0] = self.fVec3[((self.IOTA - iSlow41) & 1048575) as usize];
+			self.fVec4[(self.IOTA & 1048575) as usize] = (fSlow42 * ((((((((fSlow43 * self.fRec0[1]) + (fSlow44 * self.fRec1[1])) + (fSlow45 * self.fRec2[1])) + (fSlow46 * self.fRec3[1])) + (fSlow47 * self.fRec4[1])) + (fSlow48 * self.fRec5[1])) + (fSlow49 * fTemp0)) + (fSlow50 * fTemp1)));
+			self.fRec4[0] = self.fVec4[((self.IOTA - iSlow51) & 1048575) as usize];
+			self.fVec5[(self.IOTA & 1048575) as usize] = (fSlow52 * ((((((((fSlow53 * self.fRec0[1]) + (fSlow54 * self.fRec1[1])) + (fSlow55 * self.fRec2[1])) + (fSlow56 * self.fRec3[1])) + (fSlow57 * self.fRec4[1])) + (fSlow58 * self.fRec5[1])) + (fSlow59 * fTemp0)) + (fSlow60 * fTemp1)));
+			self.fRec5[0] = self.fVec5[((self.IOTA - iSlow61) & 1048575) as usize];
+			outputs[0][i as usize] = ((fSlow0 * ((((((((fSlow1 * self.fRec0[0]) + (fSlow62 * self.fRec1[0])) + (fSlow63 * self.fRec2[0])) + (fSlow64 * self.fRec3[0])) + (fSlow65 * self.fRec4[0])) + (fSlow66 * self.fRec5[0])) + (fSlow67 * fTemp0)) + (fSlow68 * fTemp1))) as f32);
+			outputs[1][i as usize] = ((fSlow69 * ((((((((fSlow70 * self.fRec0[0]) + (fSlow71 * self.fRec1[0])) + (fSlow72 * self.fRec2[0])) + (fSlow73 * self.fRec3[0])) + (fSlow74 * self.fRec4[0])) + (fSlow75 * self.fRec5[0])) + (fSlow76 * fTemp0)) + (fSlow77 * fTemp1))) as f32);
+			self.IOTA = (self.IOTA + 1);
+			self.fRec0[1] = self.fRec0[0];
+			self.fRec1[1] = self.fRec1[0];
+			self.fRec2[1] = self.fRec2[0];
+			self.fRec3[1] = self.fRec3[0];
+			self.fRec4[1] = self.fRec4[0];
+			self.fRec5[1] = self.fRec5[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

@@ -1,0 +1,250 @@
+/* ------------------------------------------------------------
+name: "frog"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var expf = foreign.exp;
+	var fabsf = foreign.abs;
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var tanf = foreign.tan;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 0;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 0 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 4 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 0 >> 2] | 0))))));
+		HEAPF[dsp + 8 >> 2] = +(expf(+(0. - +(100. / +(HEAPF[dsp + 4 >> 2])))));
+		HEAPF[dsp + 12 >> 2] = +(1. - +(HEAPF[dsp + 8 >> 2]));
+		HEAPF[dsp + 36 >> 2] = +(1. / +(HEAPF[dsp + 4 >> 2]));
+		HEAPF[dsp + 60 >> 2] = +(3.14159274 / +(HEAPF[dsp + 4 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 16 >> 2] = 0.;
+		HEAPF[dsp + 40 >> 2] = 0.;
+		HEAPF[dsp + 64 >> 2] = 2500.;
+		HEAPF[dsp + 76 >> 2] = 0.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 20 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 28 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 44 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 52 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 2) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 68 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 2) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 80 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l6 = 0; (((l6 | 0) < 3) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 88 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 0 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var output0 = 0;
+		var output1 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var iSlow3 = 0;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var i = 0;
+		var iTemp0 = 0;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var iTemp4 = 0;
+		var fRec3 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		fSlow0 = +(+(HEAPF[dsp + 16 >> 2]));
+		fSlow1 = +(+(HEAPF[dsp + 12 >> 2]) * +(fSlow0));
+		fSlow2 = +(+(99. * +(+(HEAPF[dsp + 40 >> 2]))) + 1.);
+		iSlow3 = ((+(fSlow0) == 0.) | 0);
+		fSlow4 = +(0.00100000005 * +(+(HEAPF[dsp + 64 >> 2])));
+		fSlow5 = +(0.00100000005 * +(+(39. * +(1. - +(+(HEAPF[dsp + 76 >> 2])))) + 1.));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[dsp + 20 + (0 << 2) >> 2] = +(fSlow0);
+			HEAPF[dsp + 28 + (0 << 2) >> 2] = +(+(fSlow1) + +(+(HEAPF[dsp + 8 >> 2]) * +(HEAPF[dsp + 28 + (1 << 2) >> 2])));
+			iTemp0 = ((((+(fSlow0) == +(HEAPF[dsp + 20 + (1 << 2) >> 2])) | 0) | (iSlow3 | 0)) | 0);
+			HEAPF[dsp + 44 + (0 << 2) >> 2] = +(+(+(fSlow2) * +(1. - +(0.999000013 * +((iTemp0 | 0))))) + +(0.999000013 * +(+((iTemp0 | 0)) * +(HEAPF[dsp + 44 + (1 << 2) >> 2]))));
+			fTemp1 = +(max_f(1.00000001e-07, +(fabsf(+(HEAPF[dsp + 44 + (0 << 2) >> 2])))));
+			fTemp2 = +(+(HEAPF[dsp + 52 + (1 << 2) >> 2]) + +(+(HEAPF[dsp + 36 >> 2]) * +(fTemp1)));
+			fTemp3 = +(+(fTemp2) + -1.);
+			iTemp4 = ((+(fTemp3) < 0.) | 0);
+			HEAPF[dsp + 52 + (0 << 2) >> 2] = +((iTemp4 | 0)?+(fTemp2):+(fTemp3));
+			fRec3 = +((iTemp4 | 0)?+(fTemp2):+(+(fTemp2) + +(+(1. - +(+(HEAPF[dsp + 4 >> 2]) / +(fTemp1))) * +(fTemp3))));
+			HEAPF[dsp + 68 + (0 << 2) >> 2] = +(+(fSlow4) + +(0.999000013 * +(HEAPF[dsp + 68 + (1 << 2) >> 2])));
+			fTemp5 = +(tanf(+(+(HEAPF[dsp + 60 >> 2]) * +(HEAPF[dsp + 68 + (0 << 2) >> 2]))));
+			fTemp6 = +(1. / +(fTemp5));
+			HEAPF[dsp + 80 + (0 << 2) >> 2] = +(+(fSlow5) + +(0.999000013 * +(HEAPF[dsp + 80 + (1 << 2) >> 2])));
+			fTemp7 = +(1. / +(HEAPF[dsp + 80 + (0 << 2) >> 2]));
+			fTemp8 = +(+(+(+(fTemp6) + +(fTemp7)) / +(fTemp5)) + 1.);
+			HEAPF[dsp + 88 + (0 << 2) >> 2] = +(+(0.5 * +(+(HEAPF[dsp + 28 + (0 << 2) >> 2]) * +(+(2. * +(fRec3)) + -1.))) - +(+(+(+(HEAPF[dsp + 88 + (2 << 2) >> 2]) * +(+(+(+(fTemp6) - +(fTemp7)) / +(fTemp5)) + 1.)) + +(2. * +(+(HEAPF[dsp + 88 + (1 << 2) >> 2]) * +(1. - +(1. / +(powf(+(fTemp5), 2.))))))) / +(fTemp8)));
+			fTemp9 = +(+(+(HEAPF[dsp + 88 + (2 << 2) >> 2]) + +(+(HEAPF[dsp + 88 + (0 << 2) >> 2]) + +(2. * +(HEAPF[dsp + 88 + (1 << 2) >> 2])))) / +(fTemp8));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(fTemp9));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(fTemp9));
+			HEAPF[dsp + 20 + (1 << 2) >> 2] = +(HEAPF[dsp + 20 + (0 << 2) >> 2]);
+			HEAPF[dsp + 28 + (1 << 2) >> 2] = +(HEAPF[dsp + 28 + (0 << 2) >> 2]);
+			HEAPF[dsp + 44 + (1 << 2) >> 2] = +(HEAPF[dsp + 44 + (0 << 2) >> 2]);
+			HEAPF[dsp + 52 + (1 << 2) >> 2] = +(HEAPF[dsp + 52 + (0 << 2) >> 2]);
+			HEAPF[dsp + 68 + (1 << 2) >> 2] = +(HEAPF[dsp + 68 + (0 << 2) >> 2]);
+			HEAPF[dsp + 80 + (1 << 2) >> 2] = +(HEAPF[dsp + 80 + (0 << 2) >> 2]);
+			HEAPF[dsp + 88 + (2 << 2) >> 2] = +(HEAPF[dsp + 88 + (1 << 2) >> 2]);
+			HEAPF[dsp + 88 + (1 << 2) >> 2] = +(HEAPF[dsp + 88 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 100;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/frog/gate"] = 16;
+	pathTable["/frog/x"] = 40;
+	pathTable["/frog/cutoff"] = 64;
+	pathTable["/frog/y"] = 76;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"frog\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"envelopes.lib/author\":\"GRAME\"},{\"envelopes.lib/copyright\":\"GRAME\"},{\"envelopes.lib/license\":\"LGPL with exception\"},{\"envelopes.lib/name\":\"Faust Envelope Library\"},{\"envelopes.lib/version\":\"0.0\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"interface\":\"SmartKeyboard{  'Number of Keyboards':'1',  'Keyboard 0 - Number of Keys':'1',  'Keyboard 0 - Piano Keyboard':'0',  'Keyboard 0 - Static Mode':'1',  'Keyboard 0 - Send X':'1',  'Keyboard 0 - Send Y':'1' }\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"frog\"},{\"oscillators.lib/name\":\"Faust Oscillator Library\"},{\"oscillators.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"synths.lib/name\":\"Faust Synthesizer Library\"},{\"synths.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"frog\",\"items\":[{\"type\":\"hslider\",\"label\":\"cutoff\",\"address\":\"/frog/cutoff\",\"meta\":[{\"acc\":\"0 0 -10 0 10\"}],\"init\":\"2500\",\"min\":\"50\",\"max\":\"5000\",\"step\":\"0.01\"},{\"type\":\"button\",\"label\":\"gate\",\"address\":\"/frog/gate\"},{\"type\":\"hslider\",\"label\":\"x\",\"address\":\"/frog/x\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"y\",\"address\":\"/frog/y\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("envelopes.lib/author", "GRAME");
+	m.declare("envelopes.lib/copyright", "GRAME");
+	m.declare("envelopes.lib/license", "LGPL with exception");
+	m.declare("envelopes.lib/name", "Faust Envelope Library");
+	m.declare("envelopes.lib/version", "0.0");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("interface", "SmartKeyboard{  'Number of Keyboards':'1',  'Keyboard 0 - Number of Keys':'1',  'Keyboard 0 - Piano Keyboard':'0',  'Keyboard 0 - Static Mode':'1',  'Keyboard 0 - Send X':'1',  'Keyboard 0 - Send Y':'1' }");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "frog");
+	m.declare("oscillators.lib/name", "Faust Oscillator Library");
+	m.declare("oscillators.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("synths.lib/name", "Faust Synthesizer Library");
+	m.declare("synths.lib/version", "0.0");
+}
+

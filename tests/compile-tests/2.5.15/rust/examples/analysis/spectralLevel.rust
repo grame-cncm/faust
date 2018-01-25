@@ -1,0 +1,2948 @@
+
+pub fn mydsp_faustpower2_f(value: f32) -> f32 {
+	(value * value)
+}
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fHslider0: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fConst1: f32,
+	fHslider1: f32,
+	fConst2: f32,
+	fConst3: f32,
+	fConst4: f32,
+	fConst5: f32,
+	fConst6: f32,
+	fConst7: f32,
+	fConst8: f32,
+	fConst9: f32,
+	fConst10: f32,
+	fConst11: f32,
+	fConst12: f32,
+	fConst13: f32,
+	fConst14: f32,
+	fConst15: f32,
+	fConst16: f32,
+	fRec3: [f32;3],
+	fConst17: f32,
+	fConst18: f32,
+	fConst19: f32,
+	fRec2: [f32;3],
+	fConst20: f32,
+	fConst21: f32,
+	fConst22: f32,
+	fRec1: [f32;3],
+	fConst23: f32,
+	fRec0: [f32;2],
+	fVbargraph0: f32,
+	fConst24: f32,
+	fConst25: f32,
+	fConst26: f32,
+	fConst27: f32,
+	fConst28: f32,
+	fConst29: f32,
+	fConst30: f32,
+	fConst31: f32,
+	fConst32: f32,
+	fConst33: f32,
+	fConst34: f32,
+	fConst35: f32,
+	fConst36: f32,
+	fConst37: f32,
+	fConst38: f32,
+	fConst39: f32,
+	fConst40: f32,
+	fConst41: f32,
+	fConst42: f32,
+	fConst43: f32,
+	fConst44: f32,
+	fRec10: [f32;3],
+	fConst45: f32,
+	fConst46: f32,
+	fConst47: f32,
+	fRec9: [f32;3],
+	fConst48: f32,
+	fConst49: f32,
+	fConst50: f32,
+	fRec8: [f32;3],
+	fConst51: f32,
+	fConst52: f32,
+	fConst53: f32,
+	fConst54: f32,
+	fRec7: [f32;3],
+	fConst55: f32,
+	fConst56: f32,
+	fConst57: f32,
+	fRec6: [f32;3],
+	fConst58: f32,
+	fConst59: f32,
+	fConst60: f32,
+	fRec5: [f32;3],
+	fConst61: f32,
+	fRec4: [f32;2],
+	fVbargraph1: f32,
+	fConst62: f32,
+	fConst63: f32,
+	fConst64: f32,
+	fConst65: f32,
+	fConst66: f32,
+	fConst67: f32,
+	fConst68: f32,
+	fConst69: f32,
+	fConst70: f32,
+	fConst71: f32,
+	fConst72: f32,
+	fConst73: f32,
+	fConst74: f32,
+	fConst75: f32,
+	fConst76: f32,
+	fConst77: f32,
+	fConst78: f32,
+	fConst79: f32,
+	fConst80: f32,
+	fConst81: f32,
+	fConst82: f32,
+	fRec17: [f32;3],
+	fConst83: f32,
+	fConst84: f32,
+	fConst85: f32,
+	fRec16: [f32;3],
+	fConst86: f32,
+	fConst87: f32,
+	fConst88: f32,
+	fRec15: [f32;3],
+	fConst89: f32,
+	fConst90: f32,
+	fConst91: f32,
+	fConst92: f32,
+	fRec14: [f32;3],
+	fConst93: f32,
+	fConst94: f32,
+	fConst95: f32,
+	fRec13: [f32;3],
+	fConst96: f32,
+	fConst97: f32,
+	fConst98: f32,
+	fRec12: [f32;3],
+	fConst99: f32,
+	fRec11: [f32;2],
+	fVbargraph2: f32,
+	fConst100: f32,
+	fConst101: f32,
+	fConst102: f32,
+	fConst103: f32,
+	fConst104: f32,
+	fConst105: f32,
+	fConst106: f32,
+	fConst107: f32,
+	fConst108: f32,
+	fConst109: f32,
+	fConst110: f32,
+	fConst111: f32,
+	fConst112: f32,
+	fConst113: f32,
+	fConst114: f32,
+	fConst115: f32,
+	fConst116: f32,
+	fConst117: f32,
+	fConst118: f32,
+	fConst119: f32,
+	fConst120: f32,
+	fRec24: [f32;3],
+	fConst121: f32,
+	fConst122: f32,
+	fConst123: f32,
+	fRec23: [f32;3],
+	fConst124: f32,
+	fConst125: f32,
+	fConst126: f32,
+	fRec22: [f32;3],
+	fConst127: f32,
+	fConst128: f32,
+	fConst129: f32,
+	fConst130: f32,
+	fRec21: [f32;3],
+	fConst131: f32,
+	fConst132: f32,
+	fConst133: f32,
+	fRec20: [f32;3],
+	fConst134: f32,
+	fConst135: f32,
+	fConst136: f32,
+	fRec19: [f32;3],
+	fConst137: f32,
+	fRec18: [f32;2],
+	fVbargraph3: f32,
+	fConst138: f32,
+	fConst139: f32,
+	fConst140: f32,
+	fConst141: f32,
+	fConst142: f32,
+	fConst143: f32,
+	fConst144: f32,
+	fConst145: f32,
+	fConst146: f32,
+	fConst147: f32,
+	fConst148: f32,
+	fConst149: f32,
+	fConst150: f32,
+	fConst151: f32,
+	fConst152: f32,
+	fConst153: f32,
+	fConst154: f32,
+	fConst155: f32,
+	fConst156: f32,
+	fConst157: f32,
+	fConst158: f32,
+	fRec31: [f32;3],
+	fConst159: f32,
+	fConst160: f32,
+	fConst161: f32,
+	fRec30: [f32;3],
+	fConst162: f32,
+	fConst163: f32,
+	fConst164: f32,
+	fRec29: [f32;3],
+	fConst165: f32,
+	fConst166: f32,
+	fConst167: f32,
+	fConst168: f32,
+	fRec28: [f32;3],
+	fConst169: f32,
+	fConst170: f32,
+	fConst171: f32,
+	fRec27: [f32;3],
+	fConst172: f32,
+	fConst173: f32,
+	fConst174: f32,
+	fRec26: [f32;3],
+	fConst175: f32,
+	fRec25: [f32;2],
+	fVbargraph4: f32,
+	fConst176: f32,
+	fConst177: f32,
+	fConst178: f32,
+	fConst179: f32,
+	fConst180: f32,
+	fConst181: f32,
+	fConst182: f32,
+	fConst183: f32,
+	fConst184: f32,
+	fConst185: f32,
+	fConst186: f32,
+	fConst187: f32,
+	fConst188: f32,
+	fConst189: f32,
+	fConst190: f32,
+	fConst191: f32,
+	fConst192: f32,
+	fConst193: f32,
+	fConst194: f32,
+	fConst195: f32,
+	fConst196: f32,
+	fRec38: [f32;3],
+	fConst197: f32,
+	fConst198: f32,
+	fConst199: f32,
+	fRec37: [f32;3],
+	fConst200: f32,
+	fConst201: f32,
+	fConst202: f32,
+	fRec36: [f32;3],
+	fConst203: f32,
+	fConst204: f32,
+	fConst205: f32,
+	fConst206: f32,
+	fRec35: [f32;3],
+	fConst207: f32,
+	fConst208: f32,
+	fConst209: f32,
+	fRec34: [f32;3],
+	fConst210: f32,
+	fConst211: f32,
+	fConst212: f32,
+	fRec33: [f32;3],
+	fConst213: f32,
+	fRec32: [f32;2],
+	fVbargraph5: f32,
+	fConst214: f32,
+	fConst215: f32,
+	fConst216: f32,
+	fConst217: f32,
+	fConst218: f32,
+	fConst219: f32,
+	fConst220: f32,
+	fConst221: f32,
+	fConst222: f32,
+	fConst223: f32,
+	fConst224: f32,
+	fConst225: f32,
+	fConst226: f32,
+	fConst227: f32,
+	fConst228: f32,
+	fConst229: f32,
+	fConst230: f32,
+	fConst231: f32,
+	fConst232: f32,
+	fConst233: f32,
+	fConst234: f32,
+	fRec45: [f32;3],
+	fConst235: f32,
+	fConst236: f32,
+	fConst237: f32,
+	fRec44: [f32;3],
+	fConst238: f32,
+	fConst239: f32,
+	fConst240: f32,
+	fRec43: [f32;3],
+	fConst241: f32,
+	fConst242: f32,
+	fConst243: f32,
+	fConst244: f32,
+	fRec42: [f32;3],
+	fConst245: f32,
+	fConst246: f32,
+	fConst247: f32,
+	fRec41: [f32;3],
+	fConst248: f32,
+	fConst249: f32,
+	fConst250: f32,
+	fRec40: [f32;3],
+	fConst251: f32,
+	fRec39: [f32;2],
+	fVbargraph6: f32,
+	fConst252: f32,
+	fConst253: f32,
+	fConst254: f32,
+	fConst255: f32,
+	fConst256: f32,
+	fConst257: f32,
+	fConst258: f32,
+	fConst259: f32,
+	fConst260: f32,
+	fConst261: f32,
+	fConst262: f32,
+	fConst263: f32,
+	fConst264: f32,
+	fConst265: f32,
+	fConst266: f32,
+	fConst267: f32,
+	fConst268: f32,
+	fConst269: f32,
+	fConst270: f32,
+	fConst271: f32,
+	fConst272: f32,
+	fRec52: [f32;3],
+	fConst273: f32,
+	fConst274: f32,
+	fConst275: f32,
+	fRec51: [f32;3],
+	fConst276: f32,
+	fConst277: f32,
+	fConst278: f32,
+	fRec50: [f32;3],
+	fConst279: f32,
+	fConst280: f32,
+	fConst281: f32,
+	fConst282: f32,
+	fRec49: [f32;3],
+	fConst283: f32,
+	fConst284: f32,
+	fConst285: f32,
+	fRec48: [f32;3],
+	fConst286: f32,
+	fConst287: f32,
+	fConst288: f32,
+	fRec47: [f32;3],
+	fConst289: f32,
+	fRec46: [f32;2],
+	fVbargraph7: f32,
+	fConst290: f32,
+	fConst291: f32,
+	fConst292: f32,
+	fConst293: f32,
+	fConst294: f32,
+	fConst295: f32,
+	fConst296: f32,
+	fConst297: f32,
+	fConst298: f32,
+	fConst299: f32,
+	fConst300: f32,
+	fConst301: f32,
+	fConst302: f32,
+	fConst303: f32,
+	fConst304: f32,
+	fConst305: f32,
+	fConst306: f32,
+	fConst307: f32,
+	fConst308: f32,
+	fConst309: f32,
+	fConst310: f32,
+	fRec59: [f32;3],
+	fConst311: f32,
+	fConst312: f32,
+	fConst313: f32,
+	fRec58: [f32;3],
+	fConst314: f32,
+	fConst315: f32,
+	fConst316: f32,
+	fRec57: [f32;3],
+	fConst317: f32,
+	fConst318: f32,
+	fConst319: f32,
+	fConst320: f32,
+	fRec56: [f32;3],
+	fConst321: f32,
+	fConst322: f32,
+	fConst323: f32,
+	fRec55: [f32;3],
+	fConst324: f32,
+	fConst325: f32,
+	fConst326: f32,
+	fRec54: [f32;3],
+	fConst327: f32,
+	fRec53: [f32;2],
+	fVbargraph8: f32,
+	fConst328: f32,
+	fConst329: f32,
+	fConst330: f32,
+	fConst331: f32,
+	fConst332: f32,
+	fConst333: f32,
+	fConst334: f32,
+	fConst335: f32,
+	fConst336: f32,
+	fConst337: f32,
+	fConst338: f32,
+	fConst339: f32,
+	fConst340: f32,
+	fConst341: f32,
+	fConst342: f32,
+	fConst343: f32,
+	fConst344: f32,
+	fConst345: f32,
+	fConst346: f32,
+	fConst347: f32,
+	fConst348: f32,
+	fRec66: [f32;3],
+	fConst349: f32,
+	fConst350: f32,
+	fConst351: f32,
+	fRec65: [f32;3],
+	fConst352: f32,
+	fConst353: f32,
+	fConst354: f32,
+	fRec64: [f32;3],
+	fConst355: f32,
+	fConst356: f32,
+	fConst357: f32,
+	fConst358: f32,
+	fRec63: [f32;3],
+	fConst359: f32,
+	fConst360: f32,
+	fConst361: f32,
+	fRec62: [f32;3],
+	fConst362: f32,
+	fConst363: f32,
+	fConst364: f32,
+	fRec61: [f32;3],
+	fConst365: f32,
+	fRec60: [f32;2],
+	fVbargraph9: f32,
+	fConst366: f32,
+	fConst367: f32,
+	fConst368: f32,
+	fConst369: f32,
+	fConst370: f32,
+	fConst371: f32,
+	fConst372: f32,
+	fConst373: f32,
+	fConst374: f32,
+	fConst375: f32,
+	fConst376: f32,
+	fConst377: f32,
+	fConst378: f32,
+	fConst379: f32,
+	fConst380: f32,
+	fConst381: f32,
+	fConst382: f32,
+	fConst383: f32,
+	fConst384: f32,
+	fConst385: f32,
+	fConst386: f32,
+	fRec73: [f32;3],
+	fConst387: f32,
+	fConst388: f32,
+	fConst389: f32,
+	fRec72: [f32;3],
+	fConst390: f32,
+	fConst391: f32,
+	fConst392: f32,
+	fRec71: [f32;3],
+	fConst393: f32,
+	fConst394: f32,
+	fConst395: f32,
+	fConst396: f32,
+	fRec70: [f32;3],
+	fConst397: f32,
+	fConst398: f32,
+	fConst399: f32,
+	fRec69: [f32;3],
+	fConst400: f32,
+	fConst401: f32,
+	fConst402: f32,
+	fRec68: [f32;3],
+	fConst403: f32,
+	fRec67: [f32;2],
+	fVbargraph10: f32,
+	fConst404: f32,
+	fConst405: f32,
+	fConst406: f32,
+	fConst407: f32,
+	fConst408: f32,
+	fConst409: f32,
+	fConst410: f32,
+	fConst411: f32,
+	fConst412: f32,
+	fConst413: f32,
+	fConst414: f32,
+	fConst415: f32,
+	fConst416: f32,
+	fConst417: f32,
+	fConst418: f32,
+	fConst419: f32,
+	fConst420: f32,
+	fConst421: f32,
+	fConst422: f32,
+	fConst423: f32,
+	fConst424: f32,
+	fRec80: [f32;3],
+	fConst425: f32,
+	fConst426: f32,
+	fConst427: f32,
+	fRec79: [f32;3],
+	fConst428: f32,
+	fConst429: f32,
+	fConst430: f32,
+	fRec78: [f32;3],
+	fConst431: f32,
+	fConst432: f32,
+	fConst433: f32,
+	fConst434: f32,
+	fRec77: [f32;3],
+	fConst435: f32,
+	fConst436: f32,
+	fConst437: f32,
+	fRec76: [f32;3],
+	fConst438: f32,
+	fConst439: f32,
+	fConst440: f32,
+	fRec75: [f32;3],
+	fConst441: f32,
+	fRec74: [f32;2],
+	fVbargraph11: f32,
+	fConst442: f32,
+	fConst443: f32,
+	fConst444: f32,
+	fConst445: f32,
+	fConst446: f32,
+	fConst447: f32,
+	fConst448: f32,
+	fConst449: f32,
+	fConst450: f32,
+	fConst451: f32,
+	fConst452: f32,
+	fConst453: f32,
+	fConst454: f32,
+	fConst455: f32,
+	fConst456: f32,
+	fConst457: f32,
+	fConst458: f32,
+	fConst459: f32,
+	fConst460: f32,
+	fConst461: f32,
+	fConst462: f32,
+	fRec87: [f32;3],
+	fConst463: f32,
+	fConst464: f32,
+	fConst465: f32,
+	fRec86: [f32;3],
+	fConst466: f32,
+	fConst467: f32,
+	fConst468: f32,
+	fRec85: [f32;3],
+	fConst469: f32,
+	fConst470: f32,
+	fConst471: f32,
+	fConst472: f32,
+	fRec84: [f32;3],
+	fConst473: f32,
+	fConst474: f32,
+	fConst475: f32,
+	fRec83: [f32;3],
+	fConst476: f32,
+	fConst477: f32,
+	fConst478: f32,
+	fRec82: [f32;3],
+	fConst479: f32,
+	fRec81: [f32;2],
+	fVbargraph12: f32,
+	fConst480: f32,
+	fConst481: f32,
+	fConst482: f32,
+	fConst483: f32,
+	fConst484: f32,
+	fConst485: f32,
+	fConst486: f32,
+	fConst487: f32,
+	fConst488: f32,
+	fConst489: f32,
+	fConst490: f32,
+	fConst491: f32,
+	fConst492: f32,
+	fConst493: f32,
+	fConst494: f32,
+	fConst495: f32,
+	fConst496: f32,
+	fConst497: f32,
+	fConst498: f32,
+	fConst499: f32,
+	fConst500: f32,
+	fRec94: [f32;3],
+	fConst501: f32,
+	fConst502: f32,
+	fConst503: f32,
+	fRec93: [f32;3],
+	fConst504: f32,
+	fConst505: f32,
+	fConst506: f32,
+	fRec92: [f32;3],
+	fConst507: f32,
+	fConst508: f32,
+	fConst509: f32,
+	fConst510: f32,
+	fRec91: [f32;3],
+	fConst511: f32,
+	fConst512: f32,
+	fConst513: f32,
+	fRec90: [f32;3],
+	fConst514: f32,
+	fConst515: f32,
+	fConst516: f32,
+	fRec89: [f32;3],
+	fConst517: f32,
+	fRec88: [f32;2],
+	fVbargraph13: f32,
+	fConst518: f32,
+	fConst519: f32,
+	fConst520: f32,
+	fConst521: f32,
+	fConst522: f32,
+	fConst523: f32,
+	fConst524: f32,
+	fConst525: f32,
+	fConst526: f32,
+	fRec98: [f32;3],
+	fConst527: f32,
+	fConst528: f32,
+	fConst529: f32,
+	fRec97: [f32;3],
+	fConst530: f32,
+	fConst531: f32,
+	fConst532: f32,
+	fRec96: [f32;3],
+	fConst533: f32,
+	fRec95: [f32;2],
+	fVbargraph14: f32,
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fHslider0: 0.0,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fConst1: 0.0,
+			fHslider1: 0.0,
+			fConst2: 0.0,
+			fConst3: 0.0,
+			fConst4: 0.0,
+			fConst5: 0.0,
+			fConst6: 0.0,
+			fConst7: 0.0,
+			fConst8: 0.0,
+			fConst9: 0.0,
+			fConst10: 0.0,
+			fConst11: 0.0,
+			fConst12: 0.0,
+			fConst13: 0.0,
+			fConst14: 0.0,
+			fConst15: 0.0,
+			fConst16: 0.0,
+			fRec3: [0.0;3],
+			fConst17: 0.0,
+			fConst18: 0.0,
+			fConst19: 0.0,
+			fRec2: [0.0;3],
+			fConst20: 0.0,
+			fConst21: 0.0,
+			fConst22: 0.0,
+			fRec1: [0.0;3],
+			fConst23: 0.0,
+			fRec0: [0.0;2],
+			fVbargraph0: 0.0,
+			fConst24: 0.0,
+			fConst25: 0.0,
+			fConst26: 0.0,
+			fConst27: 0.0,
+			fConst28: 0.0,
+			fConst29: 0.0,
+			fConst30: 0.0,
+			fConst31: 0.0,
+			fConst32: 0.0,
+			fConst33: 0.0,
+			fConst34: 0.0,
+			fConst35: 0.0,
+			fConst36: 0.0,
+			fConst37: 0.0,
+			fConst38: 0.0,
+			fConst39: 0.0,
+			fConst40: 0.0,
+			fConst41: 0.0,
+			fConst42: 0.0,
+			fConst43: 0.0,
+			fConst44: 0.0,
+			fRec10: [0.0;3],
+			fConst45: 0.0,
+			fConst46: 0.0,
+			fConst47: 0.0,
+			fRec9: [0.0;3],
+			fConst48: 0.0,
+			fConst49: 0.0,
+			fConst50: 0.0,
+			fRec8: [0.0;3],
+			fConst51: 0.0,
+			fConst52: 0.0,
+			fConst53: 0.0,
+			fConst54: 0.0,
+			fRec7: [0.0;3],
+			fConst55: 0.0,
+			fConst56: 0.0,
+			fConst57: 0.0,
+			fRec6: [0.0;3],
+			fConst58: 0.0,
+			fConst59: 0.0,
+			fConst60: 0.0,
+			fRec5: [0.0;3],
+			fConst61: 0.0,
+			fRec4: [0.0;2],
+			fVbargraph1: 0.0,
+			fConst62: 0.0,
+			fConst63: 0.0,
+			fConst64: 0.0,
+			fConst65: 0.0,
+			fConst66: 0.0,
+			fConst67: 0.0,
+			fConst68: 0.0,
+			fConst69: 0.0,
+			fConst70: 0.0,
+			fConst71: 0.0,
+			fConst72: 0.0,
+			fConst73: 0.0,
+			fConst74: 0.0,
+			fConst75: 0.0,
+			fConst76: 0.0,
+			fConst77: 0.0,
+			fConst78: 0.0,
+			fConst79: 0.0,
+			fConst80: 0.0,
+			fConst81: 0.0,
+			fConst82: 0.0,
+			fRec17: [0.0;3],
+			fConst83: 0.0,
+			fConst84: 0.0,
+			fConst85: 0.0,
+			fRec16: [0.0;3],
+			fConst86: 0.0,
+			fConst87: 0.0,
+			fConst88: 0.0,
+			fRec15: [0.0;3],
+			fConst89: 0.0,
+			fConst90: 0.0,
+			fConst91: 0.0,
+			fConst92: 0.0,
+			fRec14: [0.0;3],
+			fConst93: 0.0,
+			fConst94: 0.0,
+			fConst95: 0.0,
+			fRec13: [0.0;3],
+			fConst96: 0.0,
+			fConst97: 0.0,
+			fConst98: 0.0,
+			fRec12: [0.0;3],
+			fConst99: 0.0,
+			fRec11: [0.0;2],
+			fVbargraph2: 0.0,
+			fConst100: 0.0,
+			fConst101: 0.0,
+			fConst102: 0.0,
+			fConst103: 0.0,
+			fConst104: 0.0,
+			fConst105: 0.0,
+			fConst106: 0.0,
+			fConst107: 0.0,
+			fConst108: 0.0,
+			fConst109: 0.0,
+			fConst110: 0.0,
+			fConst111: 0.0,
+			fConst112: 0.0,
+			fConst113: 0.0,
+			fConst114: 0.0,
+			fConst115: 0.0,
+			fConst116: 0.0,
+			fConst117: 0.0,
+			fConst118: 0.0,
+			fConst119: 0.0,
+			fConst120: 0.0,
+			fRec24: [0.0;3],
+			fConst121: 0.0,
+			fConst122: 0.0,
+			fConst123: 0.0,
+			fRec23: [0.0;3],
+			fConst124: 0.0,
+			fConst125: 0.0,
+			fConst126: 0.0,
+			fRec22: [0.0;3],
+			fConst127: 0.0,
+			fConst128: 0.0,
+			fConst129: 0.0,
+			fConst130: 0.0,
+			fRec21: [0.0;3],
+			fConst131: 0.0,
+			fConst132: 0.0,
+			fConst133: 0.0,
+			fRec20: [0.0;3],
+			fConst134: 0.0,
+			fConst135: 0.0,
+			fConst136: 0.0,
+			fRec19: [0.0;3],
+			fConst137: 0.0,
+			fRec18: [0.0;2],
+			fVbargraph3: 0.0,
+			fConst138: 0.0,
+			fConst139: 0.0,
+			fConst140: 0.0,
+			fConst141: 0.0,
+			fConst142: 0.0,
+			fConst143: 0.0,
+			fConst144: 0.0,
+			fConst145: 0.0,
+			fConst146: 0.0,
+			fConst147: 0.0,
+			fConst148: 0.0,
+			fConst149: 0.0,
+			fConst150: 0.0,
+			fConst151: 0.0,
+			fConst152: 0.0,
+			fConst153: 0.0,
+			fConst154: 0.0,
+			fConst155: 0.0,
+			fConst156: 0.0,
+			fConst157: 0.0,
+			fConst158: 0.0,
+			fRec31: [0.0;3],
+			fConst159: 0.0,
+			fConst160: 0.0,
+			fConst161: 0.0,
+			fRec30: [0.0;3],
+			fConst162: 0.0,
+			fConst163: 0.0,
+			fConst164: 0.0,
+			fRec29: [0.0;3],
+			fConst165: 0.0,
+			fConst166: 0.0,
+			fConst167: 0.0,
+			fConst168: 0.0,
+			fRec28: [0.0;3],
+			fConst169: 0.0,
+			fConst170: 0.0,
+			fConst171: 0.0,
+			fRec27: [0.0;3],
+			fConst172: 0.0,
+			fConst173: 0.0,
+			fConst174: 0.0,
+			fRec26: [0.0;3],
+			fConst175: 0.0,
+			fRec25: [0.0;2],
+			fVbargraph4: 0.0,
+			fConst176: 0.0,
+			fConst177: 0.0,
+			fConst178: 0.0,
+			fConst179: 0.0,
+			fConst180: 0.0,
+			fConst181: 0.0,
+			fConst182: 0.0,
+			fConst183: 0.0,
+			fConst184: 0.0,
+			fConst185: 0.0,
+			fConst186: 0.0,
+			fConst187: 0.0,
+			fConst188: 0.0,
+			fConst189: 0.0,
+			fConst190: 0.0,
+			fConst191: 0.0,
+			fConst192: 0.0,
+			fConst193: 0.0,
+			fConst194: 0.0,
+			fConst195: 0.0,
+			fConst196: 0.0,
+			fRec38: [0.0;3],
+			fConst197: 0.0,
+			fConst198: 0.0,
+			fConst199: 0.0,
+			fRec37: [0.0;3],
+			fConst200: 0.0,
+			fConst201: 0.0,
+			fConst202: 0.0,
+			fRec36: [0.0;3],
+			fConst203: 0.0,
+			fConst204: 0.0,
+			fConst205: 0.0,
+			fConst206: 0.0,
+			fRec35: [0.0;3],
+			fConst207: 0.0,
+			fConst208: 0.0,
+			fConst209: 0.0,
+			fRec34: [0.0;3],
+			fConst210: 0.0,
+			fConst211: 0.0,
+			fConst212: 0.0,
+			fRec33: [0.0;3],
+			fConst213: 0.0,
+			fRec32: [0.0;2],
+			fVbargraph5: 0.0,
+			fConst214: 0.0,
+			fConst215: 0.0,
+			fConst216: 0.0,
+			fConst217: 0.0,
+			fConst218: 0.0,
+			fConst219: 0.0,
+			fConst220: 0.0,
+			fConst221: 0.0,
+			fConst222: 0.0,
+			fConst223: 0.0,
+			fConst224: 0.0,
+			fConst225: 0.0,
+			fConst226: 0.0,
+			fConst227: 0.0,
+			fConst228: 0.0,
+			fConst229: 0.0,
+			fConst230: 0.0,
+			fConst231: 0.0,
+			fConst232: 0.0,
+			fConst233: 0.0,
+			fConst234: 0.0,
+			fRec45: [0.0;3],
+			fConst235: 0.0,
+			fConst236: 0.0,
+			fConst237: 0.0,
+			fRec44: [0.0;3],
+			fConst238: 0.0,
+			fConst239: 0.0,
+			fConst240: 0.0,
+			fRec43: [0.0;3],
+			fConst241: 0.0,
+			fConst242: 0.0,
+			fConst243: 0.0,
+			fConst244: 0.0,
+			fRec42: [0.0;3],
+			fConst245: 0.0,
+			fConst246: 0.0,
+			fConst247: 0.0,
+			fRec41: [0.0;3],
+			fConst248: 0.0,
+			fConst249: 0.0,
+			fConst250: 0.0,
+			fRec40: [0.0;3],
+			fConst251: 0.0,
+			fRec39: [0.0;2],
+			fVbargraph6: 0.0,
+			fConst252: 0.0,
+			fConst253: 0.0,
+			fConst254: 0.0,
+			fConst255: 0.0,
+			fConst256: 0.0,
+			fConst257: 0.0,
+			fConst258: 0.0,
+			fConst259: 0.0,
+			fConst260: 0.0,
+			fConst261: 0.0,
+			fConst262: 0.0,
+			fConst263: 0.0,
+			fConst264: 0.0,
+			fConst265: 0.0,
+			fConst266: 0.0,
+			fConst267: 0.0,
+			fConst268: 0.0,
+			fConst269: 0.0,
+			fConst270: 0.0,
+			fConst271: 0.0,
+			fConst272: 0.0,
+			fRec52: [0.0;3],
+			fConst273: 0.0,
+			fConst274: 0.0,
+			fConst275: 0.0,
+			fRec51: [0.0;3],
+			fConst276: 0.0,
+			fConst277: 0.0,
+			fConst278: 0.0,
+			fRec50: [0.0;3],
+			fConst279: 0.0,
+			fConst280: 0.0,
+			fConst281: 0.0,
+			fConst282: 0.0,
+			fRec49: [0.0;3],
+			fConst283: 0.0,
+			fConst284: 0.0,
+			fConst285: 0.0,
+			fRec48: [0.0;3],
+			fConst286: 0.0,
+			fConst287: 0.0,
+			fConst288: 0.0,
+			fRec47: [0.0;3],
+			fConst289: 0.0,
+			fRec46: [0.0;2],
+			fVbargraph7: 0.0,
+			fConst290: 0.0,
+			fConst291: 0.0,
+			fConst292: 0.0,
+			fConst293: 0.0,
+			fConst294: 0.0,
+			fConst295: 0.0,
+			fConst296: 0.0,
+			fConst297: 0.0,
+			fConst298: 0.0,
+			fConst299: 0.0,
+			fConst300: 0.0,
+			fConst301: 0.0,
+			fConst302: 0.0,
+			fConst303: 0.0,
+			fConst304: 0.0,
+			fConst305: 0.0,
+			fConst306: 0.0,
+			fConst307: 0.0,
+			fConst308: 0.0,
+			fConst309: 0.0,
+			fConst310: 0.0,
+			fRec59: [0.0;3],
+			fConst311: 0.0,
+			fConst312: 0.0,
+			fConst313: 0.0,
+			fRec58: [0.0;3],
+			fConst314: 0.0,
+			fConst315: 0.0,
+			fConst316: 0.0,
+			fRec57: [0.0;3],
+			fConst317: 0.0,
+			fConst318: 0.0,
+			fConst319: 0.0,
+			fConst320: 0.0,
+			fRec56: [0.0;3],
+			fConst321: 0.0,
+			fConst322: 0.0,
+			fConst323: 0.0,
+			fRec55: [0.0;3],
+			fConst324: 0.0,
+			fConst325: 0.0,
+			fConst326: 0.0,
+			fRec54: [0.0;3],
+			fConst327: 0.0,
+			fRec53: [0.0;2],
+			fVbargraph8: 0.0,
+			fConst328: 0.0,
+			fConst329: 0.0,
+			fConst330: 0.0,
+			fConst331: 0.0,
+			fConst332: 0.0,
+			fConst333: 0.0,
+			fConst334: 0.0,
+			fConst335: 0.0,
+			fConst336: 0.0,
+			fConst337: 0.0,
+			fConst338: 0.0,
+			fConst339: 0.0,
+			fConst340: 0.0,
+			fConst341: 0.0,
+			fConst342: 0.0,
+			fConst343: 0.0,
+			fConst344: 0.0,
+			fConst345: 0.0,
+			fConst346: 0.0,
+			fConst347: 0.0,
+			fConst348: 0.0,
+			fRec66: [0.0;3],
+			fConst349: 0.0,
+			fConst350: 0.0,
+			fConst351: 0.0,
+			fRec65: [0.0;3],
+			fConst352: 0.0,
+			fConst353: 0.0,
+			fConst354: 0.0,
+			fRec64: [0.0;3],
+			fConst355: 0.0,
+			fConst356: 0.0,
+			fConst357: 0.0,
+			fConst358: 0.0,
+			fRec63: [0.0;3],
+			fConst359: 0.0,
+			fConst360: 0.0,
+			fConst361: 0.0,
+			fRec62: [0.0;3],
+			fConst362: 0.0,
+			fConst363: 0.0,
+			fConst364: 0.0,
+			fRec61: [0.0;3],
+			fConst365: 0.0,
+			fRec60: [0.0;2],
+			fVbargraph9: 0.0,
+			fConst366: 0.0,
+			fConst367: 0.0,
+			fConst368: 0.0,
+			fConst369: 0.0,
+			fConst370: 0.0,
+			fConst371: 0.0,
+			fConst372: 0.0,
+			fConst373: 0.0,
+			fConst374: 0.0,
+			fConst375: 0.0,
+			fConst376: 0.0,
+			fConst377: 0.0,
+			fConst378: 0.0,
+			fConst379: 0.0,
+			fConst380: 0.0,
+			fConst381: 0.0,
+			fConst382: 0.0,
+			fConst383: 0.0,
+			fConst384: 0.0,
+			fConst385: 0.0,
+			fConst386: 0.0,
+			fRec73: [0.0;3],
+			fConst387: 0.0,
+			fConst388: 0.0,
+			fConst389: 0.0,
+			fRec72: [0.0;3],
+			fConst390: 0.0,
+			fConst391: 0.0,
+			fConst392: 0.0,
+			fRec71: [0.0;3],
+			fConst393: 0.0,
+			fConst394: 0.0,
+			fConst395: 0.0,
+			fConst396: 0.0,
+			fRec70: [0.0;3],
+			fConst397: 0.0,
+			fConst398: 0.0,
+			fConst399: 0.0,
+			fRec69: [0.0;3],
+			fConst400: 0.0,
+			fConst401: 0.0,
+			fConst402: 0.0,
+			fRec68: [0.0;3],
+			fConst403: 0.0,
+			fRec67: [0.0;2],
+			fVbargraph10: 0.0,
+			fConst404: 0.0,
+			fConst405: 0.0,
+			fConst406: 0.0,
+			fConst407: 0.0,
+			fConst408: 0.0,
+			fConst409: 0.0,
+			fConst410: 0.0,
+			fConst411: 0.0,
+			fConst412: 0.0,
+			fConst413: 0.0,
+			fConst414: 0.0,
+			fConst415: 0.0,
+			fConst416: 0.0,
+			fConst417: 0.0,
+			fConst418: 0.0,
+			fConst419: 0.0,
+			fConst420: 0.0,
+			fConst421: 0.0,
+			fConst422: 0.0,
+			fConst423: 0.0,
+			fConst424: 0.0,
+			fRec80: [0.0;3],
+			fConst425: 0.0,
+			fConst426: 0.0,
+			fConst427: 0.0,
+			fRec79: [0.0;3],
+			fConst428: 0.0,
+			fConst429: 0.0,
+			fConst430: 0.0,
+			fRec78: [0.0;3],
+			fConst431: 0.0,
+			fConst432: 0.0,
+			fConst433: 0.0,
+			fConst434: 0.0,
+			fRec77: [0.0;3],
+			fConst435: 0.0,
+			fConst436: 0.0,
+			fConst437: 0.0,
+			fRec76: [0.0;3],
+			fConst438: 0.0,
+			fConst439: 0.0,
+			fConst440: 0.0,
+			fRec75: [0.0;3],
+			fConst441: 0.0,
+			fRec74: [0.0;2],
+			fVbargraph11: 0.0,
+			fConst442: 0.0,
+			fConst443: 0.0,
+			fConst444: 0.0,
+			fConst445: 0.0,
+			fConst446: 0.0,
+			fConst447: 0.0,
+			fConst448: 0.0,
+			fConst449: 0.0,
+			fConst450: 0.0,
+			fConst451: 0.0,
+			fConst452: 0.0,
+			fConst453: 0.0,
+			fConst454: 0.0,
+			fConst455: 0.0,
+			fConst456: 0.0,
+			fConst457: 0.0,
+			fConst458: 0.0,
+			fConst459: 0.0,
+			fConst460: 0.0,
+			fConst461: 0.0,
+			fConst462: 0.0,
+			fRec87: [0.0;3],
+			fConst463: 0.0,
+			fConst464: 0.0,
+			fConst465: 0.0,
+			fRec86: [0.0;3],
+			fConst466: 0.0,
+			fConst467: 0.0,
+			fConst468: 0.0,
+			fRec85: [0.0;3],
+			fConst469: 0.0,
+			fConst470: 0.0,
+			fConst471: 0.0,
+			fConst472: 0.0,
+			fRec84: [0.0;3],
+			fConst473: 0.0,
+			fConst474: 0.0,
+			fConst475: 0.0,
+			fRec83: [0.0;3],
+			fConst476: 0.0,
+			fConst477: 0.0,
+			fConst478: 0.0,
+			fRec82: [0.0;3],
+			fConst479: 0.0,
+			fRec81: [0.0;2],
+			fVbargraph12: 0.0,
+			fConst480: 0.0,
+			fConst481: 0.0,
+			fConst482: 0.0,
+			fConst483: 0.0,
+			fConst484: 0.0,
+			fConst485: 0.0,
+			fConst486: 0.0,
+			fConst487: 0.0,
+			fConst488: 0.0,
+			fConst489: 0.0,
+			fConst490: 0.0,
+			fConst491: 0.0,
+			fConst492: 0.0,
+			fConst493: 0.0,
+			fConst494: 0.0,
+			fConst495: 0.0,
+			fConst496: 0.0,
+			fConst497: 0.0,
+			fConst498: 0.0,
+			fConst499: 0.0,
+			fConst500: 0.0,
+			fRec94: [0.0;3],
+			fConst501: 0.0,
+			fConst502: 0.0,
+			fConst503: 0.0,
+			fRec93: [0.0;3],
+			fConst504: 0.0,
+			fConst505: 0.0,
+			fConst506: 0.0,
+			fRec92: [0.0;3],
+			fConst507: 0.0,
+			fConst508: 0.0,
+			fConst509: 0.0,
+			fConst510: 0.0,
+			fRec91: [0.0;3],
+			fConst511: 0.0,
+			fConst512: 0.0,
+			fConst513: 0.0,
+			fRec90: [0.0;3],
+			fConst514: 0.0,
+			fConst515: 0.0,
+			fConst516: 0.0,
+			fRec89: [0.0;3],
+			fConst517: 0.0,
+			fRec88: [0.0;2],
+			fVbargraph13: 0.0,
+			fConst518: 0.0,
+			fConst519: 0.0,
+			fConst520: 0.0,
+			fConst521: 0.0,
+			fConst522: 0.0,
+			fConst523: 0.0,
+			fConst524: 0.0,
+			fConst525: 0.0,
+			fConst526: 0.0,
+			fRec98: [0.0;3],
+			fConst527: 0.0,
+			fConst528: 0.0,
+			fConst529: 0.0,
+			fRec97: [0.0;3],
+			fConst530: 0.0,
+			fConst531: 0.0,
+			fConst532: 0.0,
+			fRec96: [0.0;3],
+			fConst533: 0.0,
+			fRec95: [0.0;2],
+			fVbargraph14: 0.0,
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("analyzers.lib/name", "Faust Analyzer Library");
+		m.declare("analyzers.lib/version", "0.0");
+		m.declare("author", "JOS, revised by RM");
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("description", "Demonstrates mth_octave_spectral_level in a standalone GUI.");
+		m.declare("filters.lib/name", "Faust Filters Library");
+		m.declare("filters.lib/version", "0.0");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "spectralLevel");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("version", "0.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		1
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		1
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 50.0;
+		self.fHslider1 = 100.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.fRec3[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 3) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fRec2[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 3) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec1[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 3) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec0[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		let mut l4: i32 = 0;
+		loop {
+			self.fRec10[l4 as usize] = 0.0;
+			l4 = (l4 + 1);
+			if (l4 < 3) { continue; } else { break; }
+		}
+		let mut l5: i32 = 0;
+		loop {
+			self.fRec9[l5 as usize] = 0.0;
+			l5 = (l5 + 1);
+			if (l5 < 3) { continue; } else { break; }
+		}
+		let mut l6: i32 = 0;
+		loop {
+			self.fRec8[l6 as usize] = 0.0;
+			l6 = (l6 + 1);
+			if (l6 < 3) { continue; } else { break; }
+		}
+		let mut l7: i32 = 0;
+		loop {
+			self.fRec7[l7 as usize] = 0.0;
+			l7 = (l7 + 1);
+			if (l7 < 3) { continue; } else { break; }
+		}
+		let mut l8: i32 = 0;
+		loop {
+			self.fRec6[l8 as usize] = 0.0;
+			l8 = (l8 + 1);
+			if (l8 < 3) { continue; } else { break; }
+		}
+		let mut l9: i32 = 0;
+		loop {
+			self.fRec5[l9 as usize] = 0.0;
+			l9 = (l9 + 1);
+			if (l9 < 3) { continue; } else { break; }
+		}
+		let mut l10: i32 = 0;
+		loop {
+			self.fRec4[l10 as usize] = 0.0;
+			l10 = (l10 + 1);
+			if (l10 < 2) { continue; } else { break; }
+		}
+		let mut l11: i32 = 0;
+		loop {
+			self.fRec17[l11 as usize] = 0.0;
+			l11 = (l11 + 1);
+			if (l11 < 3) { continue; } else { break; }
+		}
+		let mut l12: i32 = 0;
+		loop {
+			self.fRec16[l12 as usize] = 0.0;
+			l12 = (l12 + 1);
+			if (l12 < 3) { continue; } else { break; }
+		}
+		let mut l13: i32 = 0;
+		loop {
+			self.fRec15[l13 as usize] = 0.0;
+			l13 = (l13 + 1);
+			if (l13 < 3) { continue; } else { break; }
+		}
+		let mut l14: i32 = 0;
+		loop {
+			self.fRec14[l14 as usize] = 0.0;
+			l14 = (l14 + 1);
+			if (l14 < 3) { continue; } else { break; }
+		}
+		let mut l15: i32 = 0;
+		loop {
+			self.fRec13[l15 as usize] = 0.0;
+			l15 = (l15 + 1);
+			if (l15 < 3) { continue; } else { break; }
+		}
+		let mut l16: i32 = 0;
+		loop {
+			self.fRec12[l16 as usize] = 0.0;
+			l16 = (l16 + 1);
+			if (l16 < 3) { continue; } else { break; }
+		}
+		let mut l17: i32 = 0;
+		loop {
+			self.fRec11[l17 as usize] = 0.0;
+			l17 = (l17 + 1);
+			if (l17 < 2) { continue; } else { break; }
+		}
+		let mut l18: i32 = 0;
+		loop {
+			self.fRec24[l18 as usize] = 0.0;
+			l18 = (l18 + 1);
+			if (l18 < 3) { continue; } else { break; }
+		}
+		let mut l19: i32 = 0;
+		loop {
+			self.fRec23[l19 as usize] = 0.0;
+			l19 = (l19 + 1);
+			if (l19 < 3) { continue; } else { break; }
+		}
+		let mut l20: i32 = 0;
+		loop {
+			self.fRec22[l20 as usize] = 0.0;
+			l20 = (l20 + 1);
+			if (l20 < 3) { continue; } else { break; }
+		}
+		let mut l21: i32 = 0;
+		loop {
+			self.fRec21[l21 as usize] = 0.0;
+			l21 = (l21 + 1);
+			if (l21 < 3) { continue; } else { break; }
+		}
+		let mut l22: i32 = 0;
+		loop {
+			self.fRec20[l22 as usize] = 0.0;
+			l22 = (l22 + 1);
+			if (l22 < 3) { continue; } else { break; }
+		}
+		let mut l23: i32 = 0;
+		loop {
+			self.fRec19[l23 as usize] = 0.0;
+			l23 = (l23 + 1);
+			if (l23 < 3) { continue; } else { break; }
+		}
+		let mut l24: i32 = 0;
+		loop {
+			self.fRec18[l24 as usize] = 0.0;
+			l24 = (l24 + 1);
+			if (l24 < 2) { continue; } else { break; }
+		}
+		let mut l25: i32 = 0;
+		loop {
+			self.fRec31[l25 as usize] = 0.0;
+			l25 = (l25 + 1);
+			if (l25 < 3) { continue; } else { break; }
+		}
+		let mut l26: i32 = 0;
+		loop {
+			self.fRec30[l26 as usize] = 0.0;
+			l26 = (l26 + 1);
+			if (l26 < 3) { continue; } else { break; }
+		}
+		let mut l27: i32 = 0;
+		loop {
+			self.fRec29[l27 as usize] = 0.0;
+			l27 = (l27 + 1);
+			if (l27 < 3) { continue; } else { break; }
+		}
+		let mut l28: i32 = 0;
+		loop {
+			self.fRec28[l28 as usize] = 0.0;
+			l28 = (l28 + 1);
+			if (l28 < 3) { continue; } else { break; }
+		}
+		let mut l29: i32 = 0;
+		loop {
+			self.fRec27[l29 as usize] = 0.0;
+			l29 = (l29 + 1);
+			if (l29 < 3) { continue; } else { break; }
+		}
+		let mut l30: i32 = 0;
+		loop {
+			self.fRec26[l30 as usize] = 0.0;
+			l30 = (l30 + 1);
+			if (l30 < 3) { continue; } else { break; }
+		}
+		let mut l31: i32 = 0;
+		loop {
+			self.fRec25[l31 as usize] = 0.0;
+			l31 = (l31 + 1);
+			if (l31 < 2) { continue; } else { break; }
+		}
+		let mut l32: i32 = 0;
+		loop {
+			self.fRec38[l32 as usize] = 0.0;
+			l32 = (l32 + 1);
+			if (l32 < 3) { continue; } else { break; }
+		}
+		let mut l33: i32 = 0;
+		loop {
+			self.fRec37[l33 as usize] = 0.0;
+			l33 = (l33 + 1);
+			if (l33 < 3) { continue; } else { break; }
+		}
+		let mut l34: i32 = 0;
+		loop {
+			self.fRec36[l34 as usize] = 0.0;
+			l34 = (l34 + 1);
+			if (l34 < 3) { continue; } else { break; }
+		}
+		let mut l35: i32 = 0;
+		loop {
+			self.fRec35[l35 as usize] = 0.0;
+			l35 = (l35 + 1);
+			if (l35 < 3) { continue; } else { break; }
+		}
+		let mut l36: i32 = 0;
+		loop {
+			self.fRec34[l36 as usize] = 0.0;
+			l36 = (l36 + 1);
+			if (l36 < 3) { continue; } else { break; }
+		}
+		let mut l37: i32 = 0;
+		loop {
+			self.fRec33[l37 as usize] = 0.0;
+			l37 = (l37 + 1);
+			if (l37 < 3) { continue; } else { break; }
+		}
+		let mut l38: i32 = 0;
+		loop {
+			self.fRec32[l38 as usize] = 0.0;
+			l38 = (l38 + 1);
+			if (l38 < 2) { continue; } else { break; }
+		}
+		let mut l39: i32 = 0;
+		loop {
+			self.fRec45[l39 as usize] = 0.0;
+			l39 = (l39 + 1);
+			if (l39 < 3) { continue; } else { break; }
+		}
+		let mut l40: i32 = 0;
+		loop {
+			self.fRec44[l40 as usize] = 0.0;
+			l40 = (l40 + 1);
+			if (l40 < 3) { continue; } else { break; }
+		}
+		let mut l41: i32 = 0;
+		loop {
+			self.fRec43[l41 as usize] = 0.0;
+			l41 = (l41 + 1);
+			if (l41 < 3) { continue; } else { break; }
+		}
+		let mut l42: i32 = 0;
+		loop {
+			self.fRec42[l42 as usize] = 0.0;
+			l42 = (l42 + 1);
+			if (l42 < 3) { continue; } else { break; }
+		}
+		let mut l43: i32 = 0;
+		loop {
+			self.fRec41[l43 as usize] = 0.0;
+			l43 = (l43 + 1);
+			if (l43 < 3) { continue; } else { break; }
+		}
+		let mut l44: i32 = 0;
+		loop {
+			self.fRec40[l44 as usize] = 0.0;
+			l44 = (l44 + 1);
+			if (l44 < 3) { continue; } else { break; }
+		}
+		let mut l45: i32 = 0;
+		loop {
+			self.fRec39[l45 as usize] = 0.0;
+			l45 = (l45 + 1);
+			if (l45 < 2) { continue; } else { break; }
+		}
+		let mut l46: i32 = 0;
+		loop {
+			self.fRec52[l46 as usize] = 0.0;
+			l46 = (l46 + 1);
+			if (l46 < 3) { continue; } else { break; }
+		}
+		let mut l47: i32 = 0;
+		loop {
+			self.fRec51[l47 as usize] = 0.0;
+			l47 = (l47 + 1);
+			if (l47 < 3) { continue; } else { break; }
+		}
+		let mut l48: i32 = 0;
+		loop {
+			self.fRec50[l48 as usize] = 0.0;
+			l48 = (l48 + 1);
+			if (l48 < 3) { continue; } else { break; }
+		}
+		let mut l49: i32 = 0;
+		loop {
+			self.fRec49[l49 as usize] = 0.0;
+			l49 = (l49 + 1);
+			if (l49 < 3) { continue; } else { break; }
+		}
+		let mut l50: i32 = 0;
+		loop {
+			self.fRec48[l50 as usize] = 0.0;
+			l50 = (l50 + 1);
+			if (l50 < 3) { continue; } else { break; }
+		}
+		let mut l51: i32 = 0;
+		loop {
+			self.fRec47[l51 as usize] = 0.0;
+			l51 = (l51 + 1);
+			if (l51 < 3) { continue; } else { break; }
+		}
+		let mut l52: i32 = 0;
+		loop {
+			self.fRec46[l52 as usize] = 0.0;
+			l52 = (l52 + 1);
+			if (l52 < 2) { continue; } else { break; }
+		}
+		let mut l53: i32 = 0;
+		loop {
+			self.fRec59[l53 as usize] = 0.0;
+			l53 = (l53 + 1);
+			if (l53 < 3) { continue; } else { break; }
+		}
+		let mut l54: i32 = 0;
+		loop {
+			self.fRec58[l54 as usize] = 0.0;
+			l54 = (l54 + 1);
+			if (l54 < 3) { continue; } else { break; }
+		}
+		let mut l55: i32 = 0;
+		loop {
+			self.fRec57[l55 as usize] = 0.0;
+			l55 = (l55 + 1);
+			if (l55 < 3) { continue; } else { break; }
+		}
+		let mut l56: i32 = 0;
+		loop {
+			self.fRec56[l56 as usize] = 0.0;
+			l56 = (l56 + 1);
+			if (l56 < 3) { continue; } else { break; }
+		}
+		let mut l57: i32 = 0;
+		loop {
+			self.fRec55[l57 as usize] = 0.0;
+			l57 = (l57 + 1);
+			if (l57 < 3) { continue; } else { break; }
+		}
+		let mut l58: i32 = 0;
+		loop {
+			self.fRec54[l58 as usize] = 0.0;
+			l58 = (l58 + 1);
+			if (l58 < 3) { continue; } else { break; }
+		}
+		let mut l59: i32 = 0;
+		loop {
+			self.fRec53[l59 as usize] = 0.0;
+			l59 = (l59 + 1);
+			if (l59 < 2) { continue; } else { break; }
+		}
+		let mut l60: i32 = 0;
+		loop {
+			self.fRec66[l60 as usize] = 0.0;
+			l60 = (l60 + 1);
+			if (l60 < 3) { continue; } else { break; }
+		}
+		let mut l61: i32 = 0;
+		loop {
+			self.fRec65[l61 as usize] = 0.0;
+			l61 = (l61 + 1);
+			if (l61 < 3) { continue; } else { break; }
+		}
+		let mut l62: i32 = 0;
+		loop {
+			self.fRec64[l62 as usize] = 0.0;
+			l62 = (l62 + 1);
+			if (l62 < 3) { continue; } else { break; }
+		}
+		let mut l63: i32 = 0;
+		loop {
+			self.fRec63[l63 as usize] = 0.0;
+			l63 = (l63 + 1);
+			if (l63 < 3) { continue; } else { break; }
+		}
+		let mut l64: i32 = 0;
+		loop {
+			self.fRec62[l64 as usize] = 0.0;
+			l64 = (l64 + 1);
+			if (l64 < 3) { continue; } else { break; }
+		}
+		let mut l65: i32 = 0;
+		loop {
+			self.fRec61[l65 as usize] = 0.0;
+			l65 = (l65 + 1);
+			if (l65 < 3) { continue; } else { break; }
+		}
+		let mut l66: i32 = 0;
+		loop {
+			self.fRec60[l66 as usize] = 0.0;
+			l66 = (l66 + 1);
+			if (l66 < 2) { continue; } else { break; }
+		}
+		let mut l67: i32 = 0;
+		loop {
+			self.fRec73[l67 as usize] = 0.0;
+			l67 = (l67 + 1);
+			if (l67 < 3) { continue; } else { break; }
+		}
+		let mut l68: i32 = 0;
+		loop {
+			self.fRec72[l68 as usize] = 0.0;
+			l68 = (l68 + 1);
+			if (l68 < 3) { continue; } else { break; }
+		}
+		let mut l69: i32 = 0;
+		loop {
+			self.fRec71[l69 as usize] = 0.0;
+			l69 = (l69 + 1);
+			if (l69 < 3) { continue; } else { break; }
+		}
+		let mut l70: i32 = 0;
+		loop {
+			self.fRec70[l70 as usize] = 0.0;
+			l70 = (l70 + 1);
+			if (l70 < 3) { continue; } else { break; }
+		}
+		let mut l71: i32 = 0;
+		loop {
+			self.fRec69[l71 as usize] = 0.0;
+			l71 = (l71 + 1);
+			if (l71 < 3) { continue; } else { break; }
+		}
+		let mut l72: i32 = 0;
+		loop {
+			self.fRec68[l72 as usize] = 0.0;
+			l72 = (l72 + 1);
+			if (l72 < 3) { continue; } else { break; }
+		}
+		let mut l73: i32 = 0;
+		loop {
+			self.fRec67[l73 as usize] = 0.0;
+			l73 = (l73 + 1);
+			if (l73 < 2) { continue; } else { break; }
+		}
+		let mut l74: i32 = 0;
+		loop {
+			self.fRec80[l74 as usize] = 0.0;
+			l74 = (l74 + 1);
+			if (l74 < 3) { continue; } else { break; }
+		}
+		let mut l75: i32 = 0;
+		loop {
+			self.fRec79[l75 as usize] = 0.0;
+			l75 = (l75 + 1);
+			if (l75 < 3) { continue; } else { break; }
+		}
+		let mut l76: i32 = 0;
+		loop {
+			self.fRec78[l76 as usize] = 0.0;
+			l76 = (l76 + 1);
+			if (l76 < 3) { continue; } else { break; }
+		}
+		let mut l77: i32 = 0;
+		loop {
+			self.fRec77[l77 as usize] = 0.0;
+			l77 = (l77 + 1);
+			if (l77 < 3) { continue; } else { break; }
+		}
+		let mut l78: i32 = 0;
+		loop {
+			self.fRec76[l78 as usize] = 0.0;
+			l78 = (l78 + 1);
+			if (l78 < 3) { continue; } else { break; }
+		}
+		let mut l79: i32 = 0;
+		loop {
+			self.fRec75[l79 as usize] = 0.0;
+			l79 = (l79 + 1);
+			if (l79 < 3) { continue; } else { break; }
+		}
+		let mut l80: i32 = 0;
+		loop {
+			self.fRec74[l80 as usize] = 0.0;
+			l80 = (l80 + 1);
+			if (l80 < 2) { continue; } else { break; }
+		}
+		let mut l81: i32 = 0;
+		loop {
+			self.fRec87[l81 as usize] = 0.0;
+			l81 = (l81 + 1);
+			if (l81 < 3) { continue; } else { break; }
+		}
+		let mut l82: i32 = 0;
+		loop {
+			self.fRec86[l82 as usize] = 0.0;
+			l82 = (l82 + 1);
+			if (l82 < 3) { continue; } else { break; }
+		}
+		let mut l83: i32 = 0;
+		loop {
+			self.fRec85[l83 as usize] = 0.0;
+			l83 = (l83 + 1);
+			if (l83 < 3) { continue; } else { break; }
+		}
+		let mut l84: i32 = 0;
+		loop {
+			self.fRec84[l84 as usize] = 0.0;
+			l84 = (l84 + 1);
+			if (l84 < 3) { continue; } else { break; }
+		}
+		let mut l85: i32 = 0;
+		loop {
+			self.fRec83[l85 as usize] = 0.0;
+			l85 = (l85 + 1);
+			if (l85 < 3) { continue; } else { break; }
+		}
+		let mut l86: i32 = 0;
+		loop {
+			self.fRec82[l86 as usize] = 0.0;
+			l86 = (l86 + 1);
+			if (l86 < 3) { continue; } else { break; }
+		}
+		let mut l87: i32 = 0;
+		loop {
+			self.fRec81[l87 as usize] = 0.0;
+			l87 = (l87 + 1);
+			if (l87 < 2) { continue; } else { break; }
+		}
+		let mut l88: i32 = 0;
+		loop {
+			self.fRec94[l88 as usize] = 0.0;
+			l88 = (l88 + 1);
+			if (l88 < 3) { continue; } else { break; }
+		}
+		let mut l89: i32 = 0;
+		loop {
+			self.fRec93[l89 as usize] = 0.0;
+			l89 = (l89 + 1);
+			if (l89 < 3) { continue; } else { break; }
+		}
+		let mut l90: i32 = 0;
+		loop {
+			self.fRec92[l90 as usize] = 0.0;
+			l90 = (l90 + 1);
+			if (l90 < 3) { continue; } else { break; }
+		}
+		let mut l91: i32 = 0;
+		loop {
+			self.fRec91[l91 as usize] = 0.0;
+			l91 = (l91 + 1);
+			if (l91 < 3) { continue; } else { break; }
+		}
+		let mut l92: i32 = 0;
+		loop {
+			self.fRec90[l92 as usize] = 0.0;
+			l92 = (l92 + 1);
+			if (l92 < 3) { continue; } else { break; }
+		}
+		let mut l93: i32 = 0;
+		loop {
+			self.fRec89[l93 as usize] = 0.0;
+			l93 = (l93 + 1);
+			if (l93 < 3) { continue; } else { break; }
+		}
+		let mut l94: i32 = 0;
+		loop {
+			self.fRec88[l94 as usize] = 0.0;
+			l94 = (l94 + 1);
+			if (l94 < 2) { continue; } else { break; }
+		}
+		let mut l95: i32 = 0;
+		loop {
+			self.fRec98[l95 as usize] = 0.0;
+			l95 = (l95 + 1);
+			if (l95 < 3) { continue; } else { break; }
+		}
+		let mut l96: i32 = 0;
+		loop {
+			self.fRec97[l96 as usize] = 0.0;
+			l96 = (l96 + 1);
+			if (l96 < 3) { continue; } else { break; }
+		}
+		let mut l97: i32 = 0;
+		loop {
+			self.fRec96[l97 as usize] = 0.0;
+			l97 = (l97 + 1);
+			if (l97 < 3) { continue; } else { break; }
+		}
+		let mut l98: i32 = 0;
+		loop {
+			self.fRec95[l98 as usize] = 0.0;
+			l98 = (l98 + 1);
+			if (l98 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32)));
+		self.fConst1 = (1000.0 / self.fConst0);
+		self.fConst2 = f32::tan((50265.4844 / self.fConst0));
+		self.fConst3 = (1.0 / self.fConst2);
+		self.fConst4 = (1.0 / (((self.fConst3 + 0.157482162) / self.fConst2) + 0.935140193));
+		self.fConst5 = mydsp_faustpower2_f(self.fConst2);
+		self.fConst6 = (50.0638084 / self.fConst5);
+		self.fConst7 = (2.0 * (0.935140193 - self.fConst6));
+		self.fConst8 = (1.0 / (((self.fConst3 + 0.743130445) / self.fConst2) + 1.4500711));
+		self.fConst9 = (11.0520525 / self.fConst5);
+		self.fConst10 = (2.0 * (1.4500711 - self.fConst9));
+		self.fConst11 = (1.0 / (((self.fConst3 + 3.18972731) / self.fConst2) + 4.07678175));
+		self.fConst12 = (0.00176617282 / self.fConst5);
+		self.fConst13 = (2.0 * (0.000407678192 - self.fConst12));
+		self.fConst14 = (((self.fConst3 + -3.18972731) / self.fConst2) + 4.07678175);
+		self.fConst15 = (1.0 / self.fConst5);
+		self.fConst16 = (2.0 * (4.07678175 - self.fConst15));
+		self.fConst17 = (self.fConst12 + 0.000407678192);
+		self.fConst18 = (((self.fConst3 + -0.743130445) / self.fConst2) + 1.4500711);
+		self.fConst19 = (2.0 * (1.4500711 - self.fConst15));
+		self.fConst20 = (self.fConst9 + 1.4500711);
+		self.fConst21 = (((self.fConst3 + -0.157482162) / self.fConst2) + 0.935140193);
+		self.fConst22 = (2.0 * (0.935140193 - self.fConst15));
+		self.fConst23 = (self.fConst6 + 0.935140193);
+		self.fConst24 = f32::tan((31665.2695 / self.fConst0));
+		self.fConst25 = (1.0 / self.fConst24);
+		self.fConst26 = (1.0 / (((self.fConst25 + 0.157482162) / self.fConst24) + 0.935140193));
+		self.fConst27 = mydsp_faustpower2_f(self.fConst24);
+		self.fConst28 = (50.0638084 / self.fConst27);
+		self.fConst29 = (2.0 * (0.935140193 - self.fConst28));
+		self.fConst30 = (1.0 / (((self.fConst25 + 0.743130445) / self.fConst24) + 1.4500711));
+		self.fConst31 = (11.0520525 / self.fConst27);
+		self.fConst32 = (2.0 * (1.4500711 - self.fConst31));
+		self.fConst33 = (1.0 / (((self.fConst25 + 3.18972731) / self.fConst24) + 4.07678175));
+		self.fConst34 = (0.00176617282 / self.fConst27);
+		self.fConst35 = (2.0 * (0.000407678192 - self.fConst34));
+		self.fConst36 = (1.0 / (((self.fConst3 + 0.168404877) / self.fConst2) + 1.06935835));
+		self.fConst37 = (2.0 * (53.5361519 - self.fConst15));
+		self.fConst38 = (1.0 / (((self.fConst3 + 0.51247865) / self.fConst2) + 0.689621389));
+		self.fConst39 = (2.0 * (7.62173128 - self.fConst15));
+		self.fConst40 = (1.0 / (((self.fConst3 + 0.782413065) / self.fConst2) + 0.245291501));
+		self.fConst41 = (9.99999975e-05 / self.fConst5);
+		self.fConst42 = (2.0 * (0.000433227193 - self.fConst41));
+		self.fConst43 = (((self.fConst3 + -0.782413065) / self.fConst2) + 0.245291501);
+		self.fConst44 = (2.0 * (0.245291501 - self.fConst15));
+		self.fConst45 = (self.fConst41 + 0.000433227193);
+		self.fConst46 = (((self.fConst3 + -0.51247865) / self.fConst2) + 0.689621389);
+		self.fConst47 = (2.0 * (0.689621389 - self.fConst15));
+		self.fConst48 = (self.fConst15 + 7.62173128);
+		self.fConst49 = (((self.fConst3 + -0.168404877) / self.fConst2) + 1.06935835);
+		self.fConst50 = (2.0 * (1.06935835 - self.fConst15));
+		self.fConst51 = (self.fConst15 + 53.5361519);
+		self.fConst52 = (((self.fConst25 + -3.18972731) / self.fConst24) + 4.07678175);
+		self.fConst53 = (1.0 / self.fConst27);
+		self.fConst54 = (2.0 * (4.07678175 - self.fConst53));
+		self.fConst55 = (self.fConst34 + 0.000407678192);
+		self.fConst56 = (((self.fConst25 + -0.743130445) / self.fConst24) + 1.4500711);
+		self.fConst57 = (2.0 * (1.4500711 - self.fConst53));
+		self.fConst58 = (self.fConst31 + 1.4500711);
+		self.fConst59 = (((self.fConst25 + -0.157482162) / self.fConst24) + 0.935140193);
+		self.fConst60 = (2.0 * (0.935140193 - self.fConst53));
+		self.fConst61 = (self.fConst28 + 0.935140193);
+		self.fConst62 = f32::tan((19947.8691 / self.fConst0));
+		self.fConst63 = (1.0 / self.fConst62);
+		self.fConst64 = (1.0 / (((self.fConst63 + 0.157482162) / self.fConst62) + 0.935140193));
+		self.fConst65 = mydsp_faustpower2_f(self.fConst62);
+		self.fConst66 = (50.0638084 / self.fConst65);
+		self.fConst67 = (2.0 * (0.935140193 - self.fConst66));
+		self.fConst68 = (1.0 / (((self.fConst63 + 0.743130445) / self.fConst62) + 1.4500711));
+		self.fConst69 = (11.0520525 / self.fConst65);
+		self.fConst70 = (2.0 * (1.4500711 - self.fConst69));
+		self.fConst71 = (1.0 / (((self.fConst63 + 3.18972731) / self.fConst62) + 4.07678175));
+		self.fConst72 = (0.00176617282 / self.fConst65);
+		self.fConst73 = (2.0 * (0.000407678192 - self.fConst72));
+		self.fConst74 = (1.0 / (((self.fConst25 + 0.168404877) / self.fConst24) + 1.06935835));
+		self.fConst75 = (2.0 * (53.5361519 - self.fConst53));
+		self.fConst76 = (1.0 / (((self.fConst25 + 0.51247865) / self.fConst24) + 0.689621389));
+		self.fConst77 = (2.0 * (7.62173128 - self.fConst53));
+		self.fConst78 = (1.0 / (((self.fConst25 + 0.782413065) / self.fConst24) + 0.245291501));
+		self.fConst79 = (9.99999975e-05 / self.fConst27);
+		self.fConst80 = (2.0 * (0.000433227193 - self.fConst79));
+		self.fConst81 = (((self.fConst25 + -0.782413065) / self.fConst24) + 0.245291501);
+		self.fConst82 = (2.0 * (0.245291501 - self.fConst53));
+		self.fConst83 = (self.fConst79 + 0.000433227193);
+		self.fConst84 = (((self.fConst25 + -0.51247865) / self.fConst24) + 0.689621389);
+		self.fConst85 = (2.0 * (0.689621389 - self.fConst53));
+		self.fConst86 = (self.fConst53 + 7.62173128);
+		self.fConst87 = (((self.fConst25 + -0.168404877) / self.fConst24) + 1.06935835);
+		self.fConst88 = (2.0 * (1.06935835 - self.fConst53));
+		self.fConst89 = (self.fConst53 + 53.5361519);
+		self.fConst90 = (((self.fConst63 + -3.18972731) / self.fConst62) + 4.07678175);
+		self.fConst91 = (1.0 / self.fConst65);
+		self.fConst92 = (2.0 * (4.07678175 - self.fConst91));
+		self.fConst93 = (self.fConst72 + 0.000407678192);
+		self.fConst94 = (((self.fConst63 + -0.743130445) / self.fConst62) + 1.4500711);
+		self.fConst95 = (2.0 * (1.4500711 - self.fConst91));
+		self.fConst96 = (self.fConst69 + 1.4500711);
+		self.fConst97 = (((self.fConst63 + -0.157482162) / self.fConst62) + 0.935140193);
+		self.fConst98 = (2.0 * (0.935140193 - self.fConst91));
+		self.fConst99 = (self.fConst66 + 0.935140193);
+		self.fConst100 = f32::tan((12566.3711 / self.fConst0));
+		self.fConst101 = (1.0 / self.fConst100);
+		self.fConst102 = (1.0 / (((self.fConst101 + 0.157482162) / self.fConst100) + 0.935140193));
+		self.fConst103 = mydsp_faustpower2_f(self.fConst100);
+		self.fConst104 = (50.0638084 / self.fConst103);
+		self.fConst105 = (2.0 * (0.935140193 - self.fConst104));
+		self.fConst106 = (1.0 / (((self.fConst101 + 0.743130445) / self.fConst100) + 1.4500711));
+		self.fConst107 = (11.0520525 / self.fConst103);
+		self.fConst108 = (2.0 * (1.4500711 - self.fConst107));
+		self.fConst109 = (1.0 / (((self.fConst101 + 3.18972731) / self.fConst100) + 4.07678175));
+		self.fConst110 = (0.00176617282 / self.fConst103);
+		self.fConst111 = (2.0 * (0.000407678192 - self.fConst110));
+		self.fConst112 = (1.0 / (((self.fConst63 + 0.168404877) / self.fConst62) + 1.06935835));
+		self.fConst113 = (2.0 * (53.5361519 - self.fConst91));
+		self.fConst114 = (1.0 / (((self.fConst63 + 0.51247865) / self.fConst62) + 0.689621389));
+		self.fConst115 = (2.0 * (7.62173128 - self.fConst91));
+		self.fConst116 = (1.0 / (((self.fConst63 + 0.782413065) / self.fConst62) + 0.245291501));
+		self.fConst117 = (9.99999975e-05 / self.fConst65);
+		self.fConst118 = (2.0 * (0.000433227193 - self.fConst117));
+		self.fConst119 = (((self.fConst63 + -0.782413065) / self.fConst62) + 0.245291501);
+		self.fConst120 = (2.0 * (0.245291501 - self.fConst91));
+		self.fConst121 = (self.fConst117 + 0.000433227193);
+		self.fConst122 = (((self.fConst63 + -0.51247865) / self.fConst62) + 0.689621389);
+		self.fConst123 = (2.0 * (0.689621389 - self.fConst91));
+		self.fConst124 = (self.fConst91 + 7.62173128);
+		self.fConst125 = (((self.fConst63 + -0.168404877) / self.fConst62) + 1.06935835);
+		self.fConst126 = (2.0 * (1.06935835 - self.fConst91));
+		self.fConst127 = (self.fConst91 + 53.5361519);
+		self.fConst128 = (((self.fConst101 + -3.18972731) / self.fConst100) + 4.07678175);
+		self.fConst129 = (1.0 / self.fConst103);
+		self.fConst130 = (2.0 * (4.07678175 - self.fConst129));
+		self.fConst131 = (self.fConst110 + 0.000407678192);
+		self.fConst132 = (((self.fConst101 + -0.743130445) / self.fConst100) + 1.4500711);
+		self.fConst133 = (2.0 * (1.4500711 - self.fConst129));
+		self.fConst134 = (self.fConst107 + 1.4500711);
+		self.fConst135 = (((self.fConst101 + -0.157482162) / self.fConst100) + 0.935140193);
+		self.fConst136 = (2.0 * (0.935140193 - self.fConst129));
+		self.fConst137 = (self.fConst104 + 0.935140193);
+		self.fConst138 = f32::tan((7916.31738 / self.fConst0));
+		self.fConst139 = (1.0 / self.fConst138);
+		self.fConst140 = (1.0 / (((self.fConst139 + 0.157482162) / self.fConst138) + 0.935140193));
+		self.fConst141 = mydsp_faustpower2_f(self.fConst138);
+		self.fConst142 = (50.0638084 / self.fConst141);
+		self.fConst143 = (2.0 * (0.935140193 - self.fConst142));
+		self.fConst144 = (1.0 / (((self.fConst139 + 0.743130445) / self.fConst138) + 1.4500711));
+		self.fConst145 = (11.0520525 / self.fConst141);
+		self.fConst146 = (2.0 * (1.4500711 - self.fConst145));
+		self.fConst147 = (1.0 / (((self.fConst139 + 3.18972731) / self.fConst138) + 4.07678175));
+		self.fConst148 = (0.00176617282 / self.fConst141);
+		self.fConst149 = (2.0 * (0.000407678192 - self.fConst148));
+		self.fConst150 = (1.0 / (((self.fConst101 + 0.168404877) / self.fConst100) + 1.06935835));
+		self.fConst151 = (2.0 * (53.5361519 - self.fConst129));
+		self.fConst152 = (1.0 / (((self.fConst101 + 0.51247865) / self.fConst100) + 0.689621389));
+		self.fConst153 = (2.0 * (7.62173128 - self.fConst129));
+		self.fConst154 = (1.0 / (((self.fConst101 + 0.782413065) / self.fConst100) + 0.245291501));
+		self.fConst155 = (9.99999975e-05 / self.fConst103);
+		self.fConst156 = (2.0 * (0.000433227193 - self.fConst155));
+		self.fConst157 = (((self.fConst101 + -0.782413065) / self.fConst100) + 0.245291501);
+		self.fConst158 = (2.0 * (0.245291501 - self.fConst129));
+		self.fConst159 = (self.fConst155 + 0.000433227193);
+		self.fConst160 = (((self.fConst101 + -0.51247865) / self.fConst100) + 0.689621389);
+		self.fConst161 = (2.0 * (0.689621389 - self.fConst129));
+		self.fConst162 = (self.fConst129 + 7.62173128);
+		self.fConst163 = (((self.fConst101 + -0.168404877) / self.fConst100) + 1.06935835);
+		self.fConst164 = (2.0 * (1.06935835 - self.fConst129));
+		self.fConst165 = (self.fConst129 + 53.5361519);
+		self.fConst166 = (((self.fConst139 + -3.18972731) / self.fConst138) + 4.07678175);
+		self.fConst167 = (1.0 / self.fConst141);
+		self.fConst168 = (2.0 * (4.07678175 - self.fConst167));
+		self.fConst169 = (self.fConst148 + 0.000407678192);
+		self.fConst170 = (((self.fConst139 + -0.743130445) / self.fConst138) + 1.4500711);
+		self.fConst171 = (2.0 * (1.4500711 - self.fConst167));
+		self.fConst172 = (self.fConst145 + 1.4500711);
+		self.fConst173 = (((self.fConst139 + -0.157482162) / self.fConst138) + 0.935140193);
+		self.fConst174 = (2.0 * (0.935140193 - self.fConst167));
+		self.fConst175 = (self.fConst142 + 0.935140193);
+		self.fConst176 = f32::tan((4986.96729 / self.fConst0));
+		self.fConst177 = (1.0 / self.fConst176);
+		self.fConst178 = (1.0 / (((self.fConst177 + 0.157482162) / self.fConst176) + 0.935140193));
+		self.fConst179 = mydsp_faustpower2_f(self.fConst176);
+		self.fConst180 = (50.0638084 / self.fConst179);
+		self.fConst181 = (2.0 * (0.935140193 - self.fConst180));
+		self.fConst182 = (1.0 / (((self.fConst177 + 0.743130445) / self.fConst176) + 1.4500711));
+		self.fConst183 = (11.0520525 / self.fConst179);
+		self.fConst184 = (2.0 * (1.4500711 - self.fConst183));
+		self.fConst185 = (1.0 / (((self.fConst177 + 3.18972731) / self.fConst176) + 4.07678175));
+		self.fConst186 = (0.00176617282 / self.fConst179);
+		self.fConst187 = (2.0 * (0.000407678192 - self.fConst186));
+		self.fConst188 = (1.0 / (((self.fConst139 + 0.168404877) / self.fConst138) + 1.06935835));
+		self.fConst189 = (2.0 * (53.5361519 - self.fConst167));
+		self.fConst190 = (1.0 / (((self.fConst139 + 0.51247865) / self.fConst138) + 0.689621389));
+		self.fConst191 = (2.0 * (7.62173128 - self.fConst167));
+		self.fConst192 = (1.0 / (((self.fConst139 + 0.782413065) / self.fConst138) + 0.245291501));
+		self.fConst193 = (9.99999975e-05 / self.fConst141);
+		self.fConst194 = (2.0 * (0.000433227193 - self.fConst193));
+		self.fConst195 = (((self.fConst139 + -0.782413065) / self.fConst138) + 0.245291501);
+		self.fConst196 = (2.0 * (0.245291501 - self.fConst167));
+		self.fConst197 = (self.fConst193 + 0.000433227193);
+		self.fConst198 = (((self.fConst139 + -0.51247865) / self.fConst138) + 0.689621389);
+		self.fConst199 = (2.0 * (0.689621389 - self.fConst167));
+		self.fConst200 = (self.fConst167 + 7.62173128);
+		self.fConst201 = (((self.fConst139 + -0.168404877) / self.fConst138) + 1.06935835);
+		self.fConst202 = (2.0 * (1.06935835 - self.fConst167));
+		self.fConst203 = (self.fConst167 + 53.5361519);
+		self.fConst204 = (((self.fConst177 + -3.18972731) / self.fConst176) + 4.07678175);
+		self.fConst205 = (1.0 / self.fConst179);
+		self.fConst206 = (2.0 * (4.07678175 - self.fConst205));
+		self.fConst207 = (self.fConst186 + 0.000407678192);
+		self.fConst208 = (((self.fConst177 + -0.743130445) / self.fConst176) + 1.4500711);
+		self.fConst209 = (2.0 * (1.4500711 - self.fConst205));
+		self.fConst210 = (self.fConst183 + 1.4500711);
+		self.fConst211 = (((self.fConst177 + -0.157482162) / self.fConst176) + 0.935140193);
+		self.fConst212 = (2.0 * (0.935140193 - self.fConst205));
+		self.fConst213 = (self.fConst180 + 0.935140193);
+		self.fConst214 = f32::tan((3141.59277 / self.fConst0));
+		self.fConst215 = (1.0 / self.fConst214);
+		self.fConst216 = (1.0 / (((self.fConst215 + 0.157482162) / self.fConst214) + 0.935140193));
+		self.fConst217 = mydsp_faustpower2_f(self.fConst214);
+		self.fConst218 = (50.0638084 / self.fConst217);
+		self.fConst219 = (2.0 * (0.935140193 - self.fConst218));
+		self.fConst220 = (1.0 / (((self.fConst215 + 0.743130445) / self.fConst214) + 1.4500711));
+		self.fConst221 = (11.0520525 / self.fConst217);
+		self.fConst222 = (2.0 * (1.4500711 - self.fConst221));
+		self.fConst223 = (1.0 / (((self.fConst215 + 3.18972731) / self.fConst214) + 4.07678175));
+		self.fConst224 = (0.00176617282 / self.fConst217);
+		self.fConst225 = (2.0 * (0.000407678192 - self.fConst224));
+		self.fConst226 = (1.0 / (((self.fConst177 + 0.168404877) / self.fConst176) + 1.06935835));
+		self.fConst227 = (2.0 * (53.5361519 - self.fConst205));
+		self.fConst228 = (1.0 / (((self.fConst177 + 0.51247865) / self.fConst176) + 0.689621389));
+		self.fConst229 = (2.0 * (7.62173128 - self.fConst205));
+		self.fConst230 = (1.0 / (((self.fConst177 + 0.782413065) / self.fConst176) + 0.245291501));
+		self.fConst231 = (9.99999975e-05 / self.fConst179);
+		self.fConst232 = (2.0 * (0.000433227193 - self.fConst231));
+		self.fConst233 = (((self.fConst177 + -0.782413065) / self.fConst176) + 0.245291501);
+		self.fConst234 = (2.0 * (0.245291501 - self.fConst205));
+		self.fConst235 = (self.fConst231 + 0.000433227193);
+		self.fConst236 = (((self.fConst177 + -0.51247865) / self.fConst176) + 0.689621389);
+		self.fConst237 = (2.0 * (0.689621389 - self.fConst205));
+		self.fConst238 = (self.fConst205 + 7.62173128);
+		self.fConst239 = (((self.fConst177 + -0.168404877) / self.fConst176) + 1.06935835);
+		self.fConst240 = (2.0 * (1.06935835 - self.fConst205));
+		self.fConst241 = (self.fConst205 + 53.5361519);
+		self.fConst242 = (((self.fConst215 + -3.18972731) / self.fConst214) + 4.07678175);
+		self.fConst243 = (1.0 / self.fConst217);
+		self.fConst244 = (2.0 * (4.07678175 - self.fConst243));
+		self.fConst245 = (self.fConst224 + 0.000407678192);
+		self.fConst246 = (((self.fConst215 + -0.743130445) / self.fConst214) + 1.4500711);
+		self.fConst247 = (2.0 * (1.4500711 - self.fConst243));
+		self.fConst248 = (self.fConst221 + 1.4500711);
+		self.fConst249 = (((self.fConst215 + -0.157482162) / self.fConst214) + 0.935140193);
+		self.fConst250 = (2.0 * (0.935140193 - self.fConst243));
+		self.fConst251 = (self.fConst218 + 0.935140193);
+		self.fConst252 = f32::tan((1979.07935 / self.fConst0));
+		self.fConst253 = (1.0 / self.fConst252);
+		self.fConst254 = (1.0 / (((self.fConst253 + 0.157482162) / self.fConst252) + 0.935140193));
+		self.fConst255 = mydsp_faustpower2_f(self.fConst252);
+		self.fConst256 = (50.0638084 / self.fConst255);
+		self.fConst257 = (2.0 * (0.935140193 - self.fConst256));
+		self.fConst258 = (1.0 / (((self.fConst253 + 0.743130445) / self.fConst252) + 1.4500711));
+		self.fConst259 = (11.0520525 / self.fConst255);
+		self.fConst260 = (2.0 * (1.4500711 - self.fConst259));
+		self.fConst261 = (1.0 / (((self.fConst253 + 3.18972731) / self.fConst252) + 4.07678175));
+		self.fConst262 = (0.00176617282 / self.fConst255);
+		self.fConst263 = (2.0 * (0.000407678192 - self.fConst262));
+		self.fConst264 = (1.0 / (((self.fConst215 + 0.168404877) / self.fConst214) + 1.06935835));
+		self.fConst265 = (2.0 * (53.5361519 - self.fConst243));
+		self.fConst266 = (1.0 / (((self.fConst215 + 0.51247865) / self.fConst214) + 0.689621389));
+		self.fConst267 = (2.0 * (7.62173128 - self.fConst243));
+		self.fConst268 = (1.0 / (((self.fConst215 + 0.782413065) / self.fConst214) + 0.245291501));
+		self.fConst269 = (9.99999975e-05 / self.fConst217);
+		self.fConst270 = (2.0 * (0.000433227193 - self.fConst269));
+		self.fConst271 = (((self.fConst215 + -0.782413065) / self.fConst214) + 0.245291501);
+		self.fConst272 = (2.0 * (0.245291501 - self.fConst243));
+		self.fConst273 = (self.fConst269 + 0.000433227193);
+		self.fConst274 = (((self.fConst215 + -0.51247865) / self.fConst214) + 0.689621389);
+		self.fConst275 = (2.0 * (0.689621389 - self.fConst243));
+		self.fConst276 = (self.fConst243 + 7.62173128);
+		self.fConst277 = (((self.fConst215 + -0.168404877) / self.fConst214) + 1.06935835);
+		self.fConst278 = (2.0 * (1.06935835 - self.fConst243));
+		self.fConst279 = (self.fConst243 + 53.5361519);
+		self.fConst280 = (((self.fConst253 + -3.18972731) / self.fConst252) + 4.07678175);
+		self.fConst281 = (1.0 / self.fConst255);
+		self.fConst282 = (2.0 * (4.07678175 - self.fConst281));
+		self.fConst283 = (self.fConst262 + 0.000407678192);
+		self.fConst284 = (((self.fConst253 + -0.743130445) / self.fConst252) + 1.4500711);
+		self.fConst285 = (2.0 * (1.4500711 - self.fConst281));
+		self.fConst286 = (self.fConst259 + 1.4500711);
+		self.fConst287 = (((self.fConst253 + -0.157482162) / self.fConst252) + 0.935140193);
+		self.fConst288 = (2.0 * (0.935140193 - self.fConst281));
+		self.fConst289 = (self.fConst256 + 0.935140193);
+		self.fConst290 = f32::tan((1246.74182 / self.fConst0));
+		self.fConst291 = (1.0 / self.fConst290);
+		self.fConst292 = (1.0 / (((self.fConst291 + 0.157482162) / self.fConst290) + 0.935140193));
+		self.fConst293 = mydsp_faustpower2_f(self.fConst290);
+		self.fConst294 = (50.0638084 / self.fConst293);
+		self.fConst295 = (2.0 * (0.935140193 - self.fConst294));
+		self.fConst296 = (1.0 / (((self.fConst291 + 0.743130445) / self.fConst290) + 1.4500711));
+		self.fConst297 = (11.0520525 / self.fConst293);
+		self.fConst298 = (2.0 * (1.4500711 - self.fConst297));
+		self.fConst299 = (1.0 / (((self.fConst291 + 3.18972731) / self.fConst290) + 4.07678175));
+		self.fConst300 = (0.00176617282 / self.fConst293);
+		self.fConst301 = (2.0 * (0.000407678192 - self.fConst300));
+		self.fConst302 = (1.0 / (((self.fConst253 + 0.168404877) / self.fConst252) + 1.06935835));
+		self.fConst303 = (2.0 * (53.5361519 - self.fConst281));
+		self.fConst304 = (1.0 / (((self.fConst253 + 0.51247865) / self.fConst252) + 0.689621389));
+		self.fConst305 = (2.0 * (7.62173128 - self.fConst281));
+		self.fConst306 = (1.0 / (((self.fConst253 + 0.782413065) / self.fConst252) + 0.245291501));
+		self.fConst307 = (9.99999975e-05 / self.fConst255);
+		self.fConst308 = (2.0 * (0.000433227193 - self.fConst307));
+		self.fConst309 = (((self.fConst253 + -0.782413065) / self.fConst252) + 0.245291501);
+		self.fConst310 = (2.0 * (0.245291501 - self.fConst281));
+		self.fConst311 = (self.fConst307 + 0.000433227193);
+		self.fConst312 = (((self.fConst253 + -0.51247865) / self.fConst252) + 0.689621389);
+		self.fConst313 = (2.0 * (0.689621389 - self.fConst281));
+		self.fConst314 = (self.fConst281 + 7.62173128);
+		self.fConst315 = (((self.fConst253 + -0.168404877) / self.fConst252) + 1.06935835);
+		self.fConst316 = (2.0 * (1.06935835 - self.fConst281));
+		self.fConst317 = (self.fConst281 + 53.5361519);
+		self.fConst318 = (((self.fConst291 + -3.18972731) / self.fConst290) + 4.07678175);
+		self.fConst319 = (1.0 / self.fConst293);
+		self.fConst320 = (2.0 * (4.07678175 - self.fConst319));
+		self.fConst321 = (self.fConst300 + 0.000407678192);
+		self.fConst322 = (((self.fConst291 + -0.743130445) / self.fConst290) + 1.4500711);
+		self.fConst323 = (2.0 * (1.4500711 - self.fConst319));
+		self.fConst324 = (self.fConst297 + 1.4500711);
+		self.fConst325 = (((self.fConst291 + -0.157482162) / self.fConst290) + 0.935140193);
+		self.fConst326 = (2.0 * (0.935140193 - self.fConst319));
+		self.fConst327 = (self.fConst294 + 0.935140193);
+		self.fConst328 = f32::tan((785.398193 / self.fConst0));
+		self.fConst329 = (1.0 / self.fConst328);
+		self.fConst330 = (1.0 / (((self.fConst329 + 0.157482162) / self.fConst328) + 0.935140193));
+		self.fConst331 = mydsp_faustpower2_f(self.fConst328);
+		self.fConst332 = (50.0638084 / self.fConst331);
+		self.fConst333 = (2.0 * (0.935140193 - self.fConst332));
+		self.fConst334 = (1.0 / (((self.fConst329 + 0.743130445) / self.fConst328) + 1.4500711));
+		self.fConst335 = (11.0520525 / self.fConst331);
+		self.fConst336 = (2.0 * (1.4500711 - self.fConst335));
+		self.fConst337 = (1.0 / (((self.fConst329 + 3.18972731) / self.fConst328) + 4.07678175));
+		self.fConst338 = (0.00176617282 / self.fConst331);
+		self.fConst339 = (2.0 * (0.000407678192 - self.fConst338));
+		self.fConst340 = (1.0 / (((self.fConst291 + 0.168404877) / self.fConst290) + 1.06935835));
+		self.fConst341 = (2.0 * (53.5361519 - self.fConst319));
+		self.fConst342 = (1.0 / (((self.fConst291 + 0.51247865) / self.fConst290) + 0.689621389));
+		self.fConst343 = (2.0 * (7.62173128 - self.fConst319));
+		self.fConst344 = (1.0 / (((self.fConst291 + 0.782413065) / self.fConst290) + 0.245291501));
+		self.fConst345 = (9.99999975e-05 / self.fConst293);
+		self.fConst346 = (2.0 * (0.000433227193 - self.fConst345));
+		self.fConst347 = (((self.fConst291 + -0.782413065) / self.fConst290) + 0.245291501);
+		self.fConst348 = (2.0 * (0.245291501 - self.fConst319));
+		self.fConst349 = (self.fConst345 + 0.000433227193);
+		self.fConst350 = (((self.fConst291 + -0.51247865) / self.fConst290) + 0.689621389);
+		self.fConst351 = (2.0 * (0.689621389 - self.fConst319));
+		self.fConst352 = (self.fConst319 + 7.62173128);
+		self.fConst353 = (((self.fConst291 + -0.168404877) / self.fConst290) + 1.06935835);
+		self.fConst354 = (2.0 * (1.06935835 - self.fConst319));
+		self.fConst355 = (self.fConst319 + 53.5361519);
+		self.fConst356 = (((self.fConst329 + -3.18972731) / self.fConst328) + 4.07678175);
+		self.fConst357 = (1.0 / self.fConst331);
+		self.fConst358 = (2.0 * (4.07678175 - self.fConst357));
+		self.fConst359 = (self.fConst338 + 0.000407678192);
+		self.fConst360 = (((self.fConst329 + -0.743130445) / self.fConst328) + 1.4500711);
+		self.fConst361 = (2.0 * (1.4500711 - self.fConst357));
+		self.fConst362 = (self.fConst335 + 1.4500711);
+		self.fConst363 = (((self.fConst329 + -0.157482162) / self.fConst328) + 0.935140193);
+		self.fConst364 = (2.0 * (0.935140193 - self.fConst357));
+		self.fConst365 = (self.fConst332 + 0.935140193);
+		self.fConst366 = f32::tan((494.769836 / self.fConst0));
+		self.fConst367 = (1.0 / self.fConst366);
+		self.fConst368 = (1.0 / (((self.fConst367 + 0.157482162) / self.fConst366) + 0.935140193));
+		self.fConst369 = mydsp_faustpower2_f(self.fConst366);
+		self.fConst370 = (50.0638084 / self.fConst369);
+		self.fConst371 = (2.0 * (0.935140193 - self.fConst370));
+		self.fConst372 = (1.0 / (((self.fConst367 + 0.743130445) / self.fConst366) + 1.4500711));
+		self.fConst373 = (11.0520525 / self.fConst369);
+		self.fConst374 = (2.0 * (1.4500711 - self.fConst373));
+		self.fConst375 = (1.0 / (((self.fConst367 + 3.18972731) / self.fConst366) + 4.07678175));
+		self.fConst376 = (0.00176617282 / self.fConst369);
+		self.fConst377 = (2.0 * (0.000407678192 - self.fConst376));
+		self.fConst378 = (1.0 / (((self.fConst329 + 0.168404877) / self.fConst328) + 1.06935835));
+		self.fConst379 = (2.0 * (53.5361519 - self.fConst357));
+		self.fConst380 = (1.0 / (((self.fConst329 + 0.51247865) / self.fConst328) + 0.689621389));
+		self.fConst381 = (2.0 * (7.62173128 - self.fConst357));
+		self.fConst382 = (1.0 / (((self.fConst329 + 0.782413065) / self.fConst328) + 0.245291501));
+		self.fConst383 = (9.99999975e-05 / self.fConst331);
+		self.fConst384 = (2.0 * (0.000433227193 - self.fConst383));
+		self.fConst385 = (((self.fConst329 + -0.782413065) / self.fConst328) + 0.245291501);
+		self.fConst386 = (2.0 * (0.245291501 - self.fConst357));
+		self.fConst387 = (self.fConst383 + 0.000433227193);
+		self.fConst388 = (((self.fConst329 + -0.51247865) / self.fConst328) + 0.689621389);
+		self.fConst389 = (2.0 * (0.689621389 - self.fConst357));
+		self.fConst390 = (self.fConst357 + 7.62173128);
+		self.fConst391 = (((self.fConst329 + -0.168404877) / self.fConst328) + 1.06935835);
+		self.fConst392 = (2.0 * (1.06935835 - self.fConst357));
+		self.fConst393 = (self.fConst357 + 53.5361519);
+		self.fConst394 = (((self.fConst367 + -3.18972731) / self.fConst366) + 4.07678175);
+		self.fConst395 = (1.0 / self.fConst369);
+		self.fConst396 = (2.0 * (4.07678175 - self.fConst395));
+		self.fConst397 = (self.fConst376 + 0.000407678192);
+		self.fConst398 = (((self.fConst367 + -0.743130445) / self.fConst366) + 1.4500711);
+		self.fConst399 = (2.0 * (1.4500711 - self.fConst395));
+		self.fConst400 = (self.fConst373 + 1.4500711);
+		self.fConst401 = (((self.fConst367 + -0.157482162) / self.fConst366) + 0.935140193);
+		self.fConst402 = (2.0 * (0.935140193 - self.fConst395));
+		self.fConst403 = (self.fConst370 + 0.935140193);
+		self.fConst404 = f32::tan((311.685455 / self.fConst0));
+		self.fConst405 = (1.0 / self.fConst404);
+		self.fConst406 = (1.0 / (((self.fConst405 + 0.157482162) / self.fConst404) + 0.935140193));
+		self.fConst407 = mydsp_faustpower2_f(self.fConst404);
+		self.fConst408 = (50.0638084 / self.fConst407);
+		self.fConst409 = (2.0 * (0.935140193 - self.fConst408));
+		self.fConst410 = (1.0 / (((self.fConst405 + 0.743130445) / self.fConst404) + 1.4500711));
+		self.fConst411 = (11.0520525 / self.fConst407);
+		self.fConst412 = (2.0 * (1.4500711 - self.fConst411));
+		self.fConst413 = (1.0 / (((self.fConst405 + 3.18972731) / self.fConst404) + 4.07678175));
+		self.fConst414 = (0.00176617282 / self.fConst407);
+		self.fConst415 = (2.0 * (0.000407678192 - self.fConst414));
+		self.fConst416 = (1.0 / (((self.fConst367 + 0.168404877) / self.fConst366) + 1.06935835));
+		self.fConst417 = (2.0 * (53.5361519 - self.fConst395));
+		self.fConst418 = (1.0 / (((self.fConst367 + 0.51247865) / self.fConst366) + 0.689621389));
+		self.fConst419 = (2.0 * (7.62173128 - self.fConst395));
+		self.fConst420 = (1.0 / (((self.fConst367 + 0.782413065) / self.fConst366) + 0.245291501));
+		self.fConst421 = (9.99999975e-05 / self.fConst369);
+		self.fConst422 = (2.0 * (0.000433227193 - self.fConst421));
+		self.fConst423 = (((self.fConst367 + -0.782413065) / self.fConst366) + 0.245291501);
+		self.fConst424 = (2.0 * (0.245291501 - self.fConst395));
+		self.fConst425 = (self.fConst421 + 0.000433227193);
+		self.fConst426 = (((self.fConst367 + -0.51247865) / self.fConst366) + 0.689621389);
+		self.fConst427 = (2.0 * (0.689621389 - self.fConst395));
+		self.fConst428 = (self.fConst395 + 7.62173128);
+		self.fConst429 = (((self.fConst367 + -0.168404877) / self.fConst366) + 1.06935835);
+		self.fConst430 = (2.0 * (1.06935835 - self.fConst395));
+		self.fConst431 = (self.fConst395 + 53.5361519);
+		self.fConst432 = (((self.fConst405 + -3.18972731) / self.fConst404) + 4.07678175);
+		self.fConst433 = (1.0 / self.fConst407);
+		self.fConst434 = (2.0 * (4.07678175 - self.fConst433));
+		self.fConst435 = (self.fConst414 + 0.000407678192);
+		self.fConst436 = (((self.fConst405 + -0.743130445) / self.fConst404) + 1.4500711);
+		self.fConst437 = (2.0 * (1.4500711 - self.fConst433));
+		self.fConst438 = (self.fConst411 + 1.4500711);
+		self.fConst439 = (((self.fConst405 + -0.157482162) / self.fConst404) + 0.935140193);
+		self.fConst440 = (2.0 * (0.935140193 - self.fConst433));
+		self.fConst441 = (self.fConst408 + 0.935140193);
+		self.fConst442 = f32::tan((196.349548 / self.fConst0));
+		self.fConst443 = (1.0 / self.fConst442);
+		self.fConst444 = (1.0 / (((self.fConst443 + 0.157482162) / self.fConst442) + 0.935140193));
+		self.fConst445 = mydsp_faustpower2_f(self.fConst442);
+		self.fConst446 = (50.0638084 / self.fConst445);
+		self.fConst447 = (2.0 * (0.935140193 - self.fConst446));
+		self.fConst448 = (1.0 / (((self.fConst443 + 0.743130445) / self.fConst442) + 1.4500711));
+		self.fConst449 = (11.0520525 / self.fConst445);
+		self.fConst450 = (2.0 * (1.4500711 - self.fConst449));
+		self.fConst451 = (1.0 / (((self.fConst443 + 3.18972731) / self.fConst442) + 4.07678175));
+		self.fConst452 = (0.00176617282 / self.fConst445);
+		self.fConst453 = (2.0 * (0.000407678192 - self.fConst452));
+		self.fConst454 = (1.0 / (((self.fConst405 + 0.168404877) / self.fConst404) + 1.06935835));
+		self.fConst455 = (2.0 * (53.5361519 - self.fConst433));
+		self.fConst456 = (1.0 / (((self.fConst405 + 0.51247865) / self.fConst404) + 0.689621389));
+		self.fConst457 = (2.0 * (7.62173128 - self.fConst433));
+		self.fConst458 = (1.0 / (((self.fConst405 + 0.782413065) / self.fConst404) + 0.245291501));
+		self.fConst459 = (9.99999975e-05 / self.fConst407);
+		self.fConst460 = (2.0 * (0.000433227193 - self.fConst459));
+		self.fConst461 = (((self.fConst405 + -0.782413065) / self.fConst404) + 0.245291501);
+		self.fConst462 = (2.0 * (0.245291501 - self.fConst433));
+		self.fConst463 = (self.fConst459 + 0.000433227193);
+		self.fConst464 = (((self.fConst405 + -0.51247865) / self.fConst404) + 0.689621389);
+		self.fConst465 = (2.0 * (0.689621389 - self.fConst433));
+		self.fConst466 = (self.fConst433 + 7.62173128);
+		self.fConst467 = (((self.fConst405 + -0.168404877) / self.fConst404) + 1.06935835);
+		self.fConst468 = (2.0 * (1.06935835 - self.fConst433));
+		self.fConst469 = (self.fConst433 + 53.5361519);
+		self.fConst470 = (((self.fConst443 + -3.18972731) / self.fConst442) + 4.07678175);
+		self.fConst471 = (1.0 / self.fConst445);
+		self.fConst472 = (2.0 * (4.07678175 - self.fConst471));
+		self.fConst473 = (self.fConst452 + 0.000407678192);
+		self.fConst474 = (((self.fConst443 + -0.743130445) / self.fConst442) + 1.4500711);
+		self.fConst475 = (2.0 * (1.4500711 - self.fConst471));
+		self.fConst476 = (self.fConst449 + 1.4500711);
+		self.fConst477 = (((self.fConst443 + -0.157482162) / self.fConst442) + 0.935140193);
+		self.fConst478 = (2.0 * (0.935140193 - self.fConst471));
+		self.fConst479 = (self.fConst446 + 0.935140193);
+		self.fConst480 = f32::tan((123.692459 / self.fConst0));
+		self.fConst481 = (1.0 / self.fConst480);
+		self.fConst482 = (1.0 / (((self.fConst481 + 0.157482162) / self.fConst480) + 0.935140193));
+		self.fConst483 = mydsp_faustpower2_f(self.fConst480);
+		self.fConst484 = (50.0638084 / self.fConst483);
+		self.fConst485 = (2.0 * (0.935140193 - self.fConst484));
+		self.fConst486 = (1.0 / (((self.fConst481 + 0.743130445) / self.fConst480) + 1.4500711));
+		self.fConst487 = (11.0520525 / self.fConst483);
+		self.fConst488 = (2.0 * (1.4500711 - self.fConst487));
+		self.fConst489 = (1.0 / (((self.fConst481 + 3.18972731) / self.fConst480) + 4.07678175));
+		self.fConst490 = (0.00176617282 / self.fConst483);
+		self.fConst491 = (2.0 * (0.000407678192 - self.fConst490));
+		self.fConst492 = (1.0 / (((self.fConst443 + 0.168404877) / self.fConst442) + 1.06935835));
+		self.fConst493 = (2.0 * (53.5361519 - self.fConst471));
+		self.fConst494 = (1.0 / (((self.fConst443 + 0.51247865) / self.fConst442) + 0.689621389));
+		self.fConst495 = (2.0 * (7.62173128 - self.fConst471));
+		self.fConst496 = (1.0 / (((self.fConst443 + 0.782413065) / self.fConst442) + 0.245291501));
+		self.fConst497 = (9.99999975e-05 / self.fConst445);
+		self.fConst498 = (2.0 * (0.000433227193 - self.fConst497));
+		self.fConst499 = (((self.fConst443 + -0.782413065) / self.fConst442) + 0.245291501);
+		self.fConst500 = (2.0 * (0.245291501 - self.fConst471));
+		self.fConst501 = (self.fConst497 + 0.000433227193);
+		self.fConst502 = (((self.fConst443 + -0.51247865) / self.fConst442) + 0.689621389);
+		self.fConst503 = (2.0 * (0.689621389 - self.fConst471));
+		self.fConst504 = (self.fConst471 + 7.62173128);
+		self.fConst505 = (((self.fConst443 + -0.168404877) / self.fConst442) + 1.06935835);
+		self.fConst506 = (2.0 * (1.06935835 - self.fConst471));
+		self.fConst507 = (self.fConst471 + 53.5361519);
+		self.fConst508 = (((self.fConst481 + -3.18972731) / self.fConst480) + 4.07678175);
+		self.fConst509 = (1.0 / self.fConst483);
+		self.fConst510 = (2.0 * (4.07678175 - self.fConst509));
+		self.fConst511 = (self.fConst490 + 0.000407678192);
+		self.fConst512 = (((self.fConst481 + -0.743130445) / self.fConst480) + 1.4500711);
+		self.fConst513 = (2.0 * (1.4500711 - self.fConst509));
+		self.fConst514 = (self.fConst487 + 1.4500711);
+		self.fConst515 = (((self.fConst481 + -0.157482162) / self.fConst480) + 0.935140193);
+		self.fConst516 = (2.0 * (0.935140193 - self.fConst509));
+		self.fConst517 = (self.fConst484 + 0.935140193);
+		self.fConst518 = (1.0 / (((self.fConst481 + 0.168404877) / self.fConst480) + 1.06935835));
+		self.fConst519 = (2.0 * (53.5361519 - self.fConst509));
+		self.fConst520 = (1.0 / (((self.fConst481 + 0.51247865) / self.fConst480) + 0.689621389));
+		self.fConst521 = (2.0 * (7.62173128 - self.fConst509));
+		self.fConst522 = (1.0 / (((self.fConst481 + 0.782413065) / self.fConst480) + 0.245291501));
+		self.fConst523 = (9.99999975e-05 / self.fConst483);
+		self.fConst524 = (2.0 * (0.000433227193 - self.fConst523));
+		self.fConst525 = (((self.fConst481 + -0.782413065) / self.fConst480) + 0.245291501);
+		self.fConst526 = (2.0 * (0.245291501 - self.fConst509));
+		self.fConst527 = (self.fConst523 + 0.000433227193);
+		self.fConst528 = (((self.fConst481 + -0.51247865) / self.fConst480) + 0.689621389);
+		self.fConst529 = (2.0 * (0.689621389 - self.fConst509));
+		self.fConst530 = (self.fConst509 + 7.62173128);
+		self.fConst531 = (((self.fConst481 + -0.168404877) / self.fConst480) + 1.06935835);
+		self.fConst532 = (2.0 * (1.06935835 - self.fConst509));
+		self.fConst533 = (self.fConst509 + 53.5361519);
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("spectralLevel");
+		ui_interface.declare(&mut self.fDummy, "0", "");
+		ui_interface.declare(&mut self.fDummy, "tooltip", "See Faust's filters.lib for documentation and references");
+		ui_interface.openHorizontalBox("CONSTANT-Q SPECTRUM ANALYZER (6E), 15 bands spanning    LP, 9 octaves below 16000 Hz, HP");
+		ui_interface.declare(&mut self.fVbargraph14, "0", "");
+		ui_interface.declare(&mut self.fVbargraph14, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph14, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c761a3360", &mut self.fVbargraph14, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph13, "1", "");
+		ui_interface.declare(&mut self.fVbargraph13, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph13, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c76191d70", &mut self.fVbargraph13, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph12, "2", "");
+		ui_interface.declare(&mut self.fVbargraph12, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph12, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7616ff90", &mut self.fVbargraph12, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph11, "3", "");
+		ui_interface.declare(&mut self.fVbargraph11, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph11, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7614e1b0", &mut self.fVbargraph11, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph10, "4", "");
+		ui_interface.declare(&mut self.fVbargraph10, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph10, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7612c3d0", &mut self.fVbargraph10, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph9, "5", "");
+		ui_interface.declare(&mut self.fVbargraph9, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph9, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7610a5f0", &mut self.fVbargraph9, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph8, "6", "");
+		ui_interface.declare(&mut self.fVbargraph8, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph8, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c760e4890", &mut self.fVbargraph8, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph7, "7", "");
+		ui_interface.declare(&mut self.fVbargraph7, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph7, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c760c2ab0", &mut self.fVbargraph7, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph6, "8", "");
+		ui_interface.declare(&mut self.fVbargraph6, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph6, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c760a0cd0", &mut self.fVbargraph6, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph5, "9", "");
+		ui_interface.declare(&mut self.fVbargraph5, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph5, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7607eef0", &mut self.fVbargraph5, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph4, "10", "");
+		ui_interface.declare(&mut self.fVbargraph4, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph4, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7605d110", &mut self.fVbargraph4, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph3, "11", "");
+		ui_interface.declare(&mut self.fVbargraph3, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph3, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c7603b330", &mut self.fVbargraph3, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph2, "12", "");
+		ui_interface.declare(&mut self.fVbargraph2, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph2, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c76019550", &mut self.fVbargraph2, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph1, "13", "");
+		ui_interface.declare(&mut self.fVbargraph1, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph1, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c731f37f0", &mut self.fVbargraph1, -50.0, 10.0);
+		ui_interface.declare(&mut self.fVbargraph0, "14", "");
+		ui_interface.declare(&mut self.fVbargraph0, "tooltip", "Spectral Band Level in dB");
+		ui_interface.declare(&mut self.fVbargraph0, "unit", "dB");
+		ui_interface.addVerticalBargraph("0x7f9c731d0840", &mut self.fVbargraph0, -50.0, 10.0);
+		ui_interface.closeBox();
+		ui_interface.declare(&mut self.fDummy, "1", "");
+		ui_interface.openHorizontalBox("SPECTRUM ANALYZER CONTROLS");
+		ui_interface.declare(&mut self.fHslider1, "0", "");
+		ui_interface.declare(&mut self.fHslider1, "scale", "log");
+		ui_interface.declare(&mut self.fHslider1, "tooltip", "band-level averaging time in milliseconds");
+		ui_interface.declare(&mut self.fHslider1, "unit", "ms");
+		ui_interface.addHorizontalSlider("Level Averaging Time", &mut self.fHslider1, 100.0, 1.0, 10000.0, 1.0);
+		ui_interface.declare(&mut self.fHslider0, "1", "");
+		ui_interface.declare(&mut self.fHslider0, "tooltip", "Level offset in decibels");
+		ui_interface.declare(&mut self.fHslider0, "unit", "dB");
+		ui_interface.addHorizontalSlider("Level dB Offset", &mut self.fHslider0, 50.0, -50.0, 100.0, 1.0);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fHslider0 as f32);
+		let mut fSlow1: f32 = f32::exp((0.0 - (self.fConst1 / (self.fHslider1 as f32))));
+		let mut fSlow2: f32 = (1.0 - fSlow1);
+		let mut i: i32 = 0;
+		loop {
+			let mut fTemp0: f32 = (inputs[0][i as usize] as f32);
+			self.fRec3[0] = (fTemp0 - (self.fConst11 * ((self.fConst14 * self.fRec3[2]) + (self.fConst16 * self.fRec3[1]))));
+			self.fRec2[0] = ((self.fConst11 * (((self.fConst13 * self.fRec3[1]) + (self.fConst17 * self.fRec3[0])) + (self.fConst17 * self.fRec3[2]))) - (self.fConst8 * ((self.fConst18 * self.fRec2[2]) + (self.fConst19 * self.fRec2[1]))));
+			self.fRec1[0] = ((self.fConst8 * (((self.fConst10 * self.fRec2[1]) + (self.fConst20 * self.fRec2[0])) + (self.fConst20 * self.fRec2[2]))) - (self.fConst4 * ((self.fConst21 * self.fRec1[2]) + (self.fConst22 * self.fRec1[1]))));
+			self.fRec0[0] = ((fSlow1 * self.fRec0[1]) + (fSlow2 * f32::abs((self.fConst4 * (((self.fConst7 * self.fRec1[1]) + (self.fConst23 * self.fRec1[0])) + (self.fConst23 * self.fRec1[2]))))));
+			self.fVbargraph0 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec0[0])))) as f32);
+			self.fRec10[0] = (fTemp0 - (self.fConst40 * ((self.fConst43 * self.fRec10[2]) + (self.fConst44 * self.fRec10[1]))));
+			self.fRec9[0] = ((self.fConst40 * (((self.fConst42 * self.fRec10[1]) + (self.fConst45 * self.fRec10[0])) + (self.fConst45 * self.fRec10[2]))) - (self.fConst38 * ((self.fConst46 * self.fRec9[2]) + (self.fConst47 * self.fRec9[1]))));
+			self.fRec8[0] = ((self.fConst38 * (((self.fConst39 * self.fRec9[1]) + (self.fConst48 * self.fRec9[0])) + (self.fConst48 * self.fRec9[2]))) - (self.fConst36 * ((self.fConst49 * self.fRec8[2]) + (self.fConst50 * self.fRec8[1]))));
+			let mut fTemp1: f32 = (self.fConst36 * (((self.fConst37 * self.fRec8[1]) + (self.fConst51 * self.fRec8[0])) + (self.fConst51 * self.fRec8[2])));
+			self.fRec7[0] = (fTemp1 - (self.fConst33 * ((self.fConst52 * self.fRec7[2]) + (self.fConst54 * self.fRec7[1]))));
+			self.fRec6[0] = ((self.fConst33 * (((self.fConst35 * self.fRec7[1]) + (self.fConst55 * self.fRec7[0])) + (self.fConst55 * self.fRec7[2]))) - (self.fConst30 * ((self.fConst56 * self.fRec6[2]) + (self.fConst57 * self.fRec6[1]))));
+			self.fRec5[0] = ((self.fConst30 * (((self.fConst32 * self.fRec6[1]) + (self.fConst58 * self.fRec6[0])) + (self.fConst58 * self.fRec6[2]))) - (self.fConst26 * ((self.fConst59 * self.fRec5[2]) + (self.fConst60 * self.fRec5[1]))));
+			self.fRec4[0] = ((fSlow1 * self.fRec4[1]) + (fSlow2 * f32::abs((self.fConst26 * (((self.fConst29 * self.fRec5[1]) + (self.fConst61 * self.fRec5[0])) + (self.fConst61 * self.fRec5[2]))))));
+			self.fVbargraph1 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec4[0])))) as f32);
+			self.fRec17[0] = (fTemp1 - (self.fConst78 * ((self.fConst81 * self.fRec17[2]) + (self.fConst82 * self.fRec17[1]))));
+			self.fRec16[0] = ((self.fConst78 * (((self.fConst80 * self.fRec17[1]) + (self.fConst83 * self.fRec17[0])) + (self.fConst83 * self.fRec17[2]))) - (self.fConst76 * ((self.fConst84 * self.fRec16[2]) + (self.fConst85 * self.fRec16[1]))));
+			self.fRec15[0] = ((self.fConst76 * (((self.fConst77 * self.fRec16[1]) + (self.fConst86 * self.fRec16[0])) + (self.fConst86 * self.fRec16[2]))) - (self.fConst74 * ((self.fConst87 * self.fRec15[2]) + (self.fConst88 * self.fRec15[1]))));
+			let mut fTemp2: f32 = (self.fConst74 * (((self.fConst75 * self.fRec15[1]) + (self.fConst89 * self.fRec15[0])) + (self.fConst89 * self.fRec15[2])));
+			self.fRec14[0] = (fTemp2 - (self.fConst71 * ((self.fConst90 * self.fRec14[2]) + (self.fConst92 * self.fRec14[1]))));
+			self.fRec13[0] = ((self.fConst71 * (((self.fConst73 * self.fRec14[1]) + (self.fConst93 * self.fRec14[0])) + (self.fConst93 * self.fRec14[2]))) - (self.fConst68 * ((self.fConst94 * self.fRec13[2]) + (self.fConst95 * self.fRec13[1]))));
+			self.fRec12[0] = ((self.fConst68 * (((self.fConst70 * self.fRec13[1]) + (self.fConst96 * self.fRec13[0])) + (self.fConst96 * self.fRec13[2]))) - (self.fConst64 * ((self.fConst97 * self.fRec12[2]) + (self.fConst98 * self.fRec12[1]))));
+			self.fRec11[0] = ((fSlow1 * self.fRec11[1]) + (fSlow2 * f32::abs((self.fConst64 * (((self.fConst67 * self.fRec12[1]) + (self.fConst99 * self.fRec12[0])) + (self.fConst99 * self.fRec12[2]))))));
+			self.fVbargraph2 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec11[0])))) as f32);
+			self.fRec24[0] = (fTemp2 - (self.fConst116 * ((self.fConst119 * self.fRec24[2]) + (self.fConst120 * self.fRec24[1]))));
+			self.fRec23[0] = ((self.fConst116 * (((self.fConst118 * self.fRec24[1]) + (self.fConst121 * self.fRec24[0])) + (self.fConst121 * self.fRec24[2]))) - (self.fConst114 * ((self.fConst122 * self.fRec23[2]) + (self.fConst123 * self.fRec23[1]))));
+			self.fRec22[0] = ((self.fConst114 * (((self.fConst115 * self.fRec23[1]) + (self.fConst124 * self.fRec23[0])) + (self.fConst124 * self.fRec23[2]))) - (self.fConst112 * ((self.fConst125 * self.fRec22[2]) + (self.fConst126 * self.fRec22[1]))));
+			let mut fTemp3: f32 = (self.fConst112 * (((self.fConst113 * self.fRec22[1]) + (self.fConst127 * self.fRec22[0])) + (self.fConst127 * self.fRec22[2])));
+			self.fRec21[0] = (fTemp3 - (self.fConst109 * ((self.fConst128 * self.fRec21[2]) + (self.fConst130 * self.fRec21[1]))));
+			self.fRec20[0] = ((self.fConst109 * (((self.fConst111 * self.fRec21[1]) + (self.fConst131 * self.fRec21[0])) + (self.fConst131 * self.fRec21[2]))) - (self.fConst106 * ((self.fConst132 * self.fRec20[2]) + (self.fConst133 * self.fRec20[1]))));
+			self.fRec19[0] = ((self.fConst106 * (((self.fConst108 * self.fRec20[1]) + (self.fConst134 * self.fRec20[0])) + (self.fConst134 * self.fRec20[2]))) - (self.fConst102 * ((self.fConst135 * self.fRec19[2]) + (self.fConst136 * self.fRec19[1]))));
+			self.fRec18[0] = ((fSlow1 * self.fRec18[1]) + (fSlow2 * f32::abs((self.fConst102 * (((self.fConst105 * self.fRec19[1]) + (self.fConst137 * self.fRec19[0])) + (self.fConst137 * self.fRec19[2]))))));
+			self.fVbargraph3 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec18[0])))) as f32);
+			self.fRec31[0] = (fTemp3 - (self.fConst154 * ((self.fConst157 * self.fRec31[2]) + (self.fConst158 * self.fRec31[1]))));
+			self.fRec30[0] = ((self.fConst154 * (((self.fConst156 * self.fRec31[1]) + (self.fConst159 * self.fRec31[0])) + (self.fConst159 * self.fRec31[2]))) - (self.fConst152 * ((self.fConst160 * self.fRec30[2]) + (self.fConst161 * self.fRec30[1]))));
+			self.fRec29[0] = ((self.fConst152 * (((self.fConst153 * self.fRec30[1]) + (self.fConst162 * self.fRec30[0])) + (self.fConst162 * self.fRec30[2]))) - (self.fConst150 * ((self.fConst163 * self.fRec29[2]) + (self.fConst164 * self.fRec29[1]))));
+			let mut fTemp4: f32 = (self.fConst150 * (((self.fConst151 * self.fRec29[1]) + (self.fConst165 * self.fRec29[0])) + (self.fConst165 * self.fRec29[2])));
+			self.fRec28[0] = (fTemp4 - (self.fConst147 * ((self.fConst166 * self.fRec28[2]) + (self.fConst168 * self.fRec28[1]))));
+			self.fRec27[0] = ((self.fConst147 * (((self.fConst149 * self.fRec28[1]) + (self.fConst169 * self.fRec28[0])) + (self.fConst169 * self.fRec28[2]))) - (self.fConst144 * ((self.fConst170 * self.fRec27[2]) + (self.fConst171 * self.fRec27[1]))));
+			self.fRec26[0] = ((self.fConst144 * (((self.fConst146 * self.fRec27[1]) + (self.fConst172 * self.fRec27[0])) + (self.fConst172 * self.fRec27[2]))) - (self.fConst140 * ((self.fConst173 * self.fRec26[2]) + (self.fConst174 * self.fRec26[1]))));
+			self.fRec25[0] = ((fSlow1 * self.fRec25[1]) + (fSlow2 * f32::abs((self.fConst140 * (((self.fConst143 * self.fRec26[1]) + (self.fConst175 * self.fRec26[0])) + (self.fConst175 * self.fRec26[2]))))));
+			self.fVbargraph4 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec25[0])))) as f32);
+			self.fRec38[0] = (fTemp4 - (self.fConst192 * ((self.fConst195 * self.fRec38[2]) + (self.fConst196 * self.fRec38[1]))));
+			self.fRec37[0] = ((self.fConst192 * (((self.fConst194 * self.fRec38[1]) + (self.fConst197 * self.fRec38[0])) + (self.fConst197 * self.fRec38[2]))) - (self.fConst190 * ((self.fConst198 * self.fRec37[2]) + (self.fConst199 * self.fRec37[1]))));
+			self.fRec36[0] = ((self.fConst190 * (((self.fConst191 * self.fRec37[1]) + (self.fConst200 * self.fRec37[0])) + (self.fConst200 * self.fRec37[2]))) - (self.fConst188 * ((self.fConst201 * self.fRec36[2]) + (self.fConst202 * self.fRec36[1]))));
+			let mut fTemp5: f32 = (self.fConst188 * (((self.fConst189 * self.fRec36[1]) + (self.fConst203 * self.fRec36[0])) + (self.fConst203 * self.fRec36[2])));
+			self.fRec35[0] = (fTemp5 - (self.fConst185 * ((self.fConst204 * self.fRec35[2]) + (self.fConst206 * self.fRec35[1]))));
+			self.fRec34[0] = ((self.fConst185 * (((self.fConst187 * self.fRec35[1]) + (self.fConst207 * self.fRec35[0])) + (self.fConst207 * self.fRec35[2]))) - (self.fConst182 * ((self.fConst208 * self.fRec34[2]) + (self.fConst209 * self.fRec34[1]))));
+			self.fRec33[0] = ((self.fConst182 * (((self.fConst184 * self.fRec34[1]) + (self.fConst210 * self.fRec34[0])) + (self.fConst210 * self.fRec34[2]))) - (self.fConst178 * ((self.fConst211 * self.fRec33[2]) + (self.fConst212 * self.fRec33[1]))));
+			self.fRec32[0] = ((fSlow1 * self.fRec32[1]) + (fSlow2 * f32::abs((self.fConst178 * (((self.fConst181 * self.fRec33[1]) + (self.fConst213 * self.fRec33[0])) + (self.fConst213 * self.fRec33[2]))))));
+			self.fVbargraph5 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec32[0])))) as f32);
+			self.fRec45[0] = (fTemp5 - (self.fConst230 * ((self.fConst233 * self.fRec45[2]) + (self.fConst234 * self.fRec45[1]))));
+			self.fRec44[0] = ((self.fConst230 * (((self.fConst232 * self.fRec45[1]) + (self.fConst235 * self.fRec45[0])) + (self.fConst235 * self.fRec45[2]))) - (self.fConst228 * ((self.fConst236 * self.fRec44[2]) + (self.fConst237 * self.fRec44[1]))));
+			self.fRec43[0] = ((self.fConst228 * (((self.fConst229 * self.fRec44[1]) + (self.fConst238 * self.fRec44[0])) + (self.fConst238 * self.fRec44[2]))) - (self.fConst226 * ((self.fConst239 * self.fRec43[2]) + (self.fConst240 * self.fRec43[1]))));
+			let mut fTemp6: f32 = (self.fConst226 * (((self.fConst227 * self.fRec43[1]) + (self.fConst241 * self.fRec43[0])) + (self.fConst241 * self.fRec43[2])));
+			self.fRec42[0] = (fTemp6 - (self.fConst223 * ((self.fConst242 * self.fRec42[2]) + (self.fConst244 * self.fRec42[1]))));
+			self.fRec41[0] = ((self.fConst223 * (((self.fConst225 * self.fRec42[1]) + (self.fConst245 * self.fRec42[0])) + (self.fConst245 * self.fRec42[2]))) - (self.fConst220 * ((self.fConst246 * self.fRec41[2]) + (self.fConst247 * self.fRec41[1]))));
+			self.fRec40[0] = ((self.fConst220 * (((self.fConst222 * self.fRec41[1]) + (self.fConst248 * self.fRec41[0])) + (self.fConst248 * self.fRec41[2]))) - (self.fConst216 * ((self.fConst249 * self.fRec40[2]) + (self.fConst250 * self.fRec40[1]))));
+			self.fRec39[0] = ((fSlow1 * self.fRec39[1]) + (fSlow2 * f32::abs((self.fConst216 * (((self.fConst219 * self.fRec40[1]) + (self.fConst251 * self.fRec40[0])) + (self.fConst251 * self.fRec40[2]))))));
+			self.fVbargraph6 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec39[0])))) as f32);
+			self.fRec52[0] = (fTemp6 - (self.fConst268 * ((self.fConst271 * self.fRec52[2]) + (self.fConst272 * self.fRec52[1]))));
+			self.fRec51[0] = ((self.fConst268 * (((self.fConst270 * self.fRec52[1]) + (self.fConst273 * self.fRec52[0])) + (self.fConst273 * self.fRec52[2]))) - (self.fConst266 * ((self.fConst274 * self.fRec51[2]) + (self.fConst275 * self.fRec51[1]))));
+			self.fRec50[0] = ((self.fConst266 * (((self.fConst267 * self.fRec51[1]) + (self.fConst276 * self.fRec51[0])) + (self.fConst276 * self.fRec51[2]))) - (self.fConst264 * ((self.fConst277 * self.fRec50[2]) + (self.fConst278 * self.fRec50[1]))));
+			let mut fTemp7: f32 = (self.fConst264 * (((self.fConst265 * self.fRec50[1]) + (self.fConst279 * self.fRec50[0])) + (self.fConst279 * self.fRec50[2])));
+			self.fRec49[0] = (fTemp7 - (self.fConst261 * ((self.fConst280 * self.fRec49[2]) + (self.fConst282 * self.fRec49[1]))));
+			self.fRec48[0] = ((self.fConst261 * (((self.fConst263 * self.fRec49[1]) + (self.fConst283 * self.fRec49[0])) + (self.fConst283 * self.fRec49[2]))) - (self.fConst258 * ((self.fConst284 * self.fRec48[2]) + (self.fConst285 * self.fRec48[1]))));
+			self.fRec47[0] = ((self.fConst258 * (((self.fConst260 * self.fRec48[1]) + (self.fConst286 * self.fRec48[0])) + (self.fConst286 * self.fRec48[2]))) - (self.fConst254 * ((self.fConst287 * self.fRec47[2]) + (self.fConst288 * self.fRec47[1]))));
+			self.fRec46[0] = ((fSlow1 * self.fRec46[1]) + (fSlow2 * f32::abs((self.fConst254 * (((self.fConst257 * self.fRec47[1]) + (self.fConst289 * self.fRec47[0])) + (self.fConst289 * self.fRec47[2]))))));
+			self.fVbargraph7 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec46[0])))) as f32);
+			self.fRec59[0] = (fTemp7 - (self.fConst306 * ((self.fConst309 * self.fRec59[2]) + (self.fConst310 * self.fRec59[1]))));
+			self.fRec58[0] = ((self.fConst306 * (((self.fConst308 * self.fRec59[1]) + (self.fConst311 * self.fRec59[0])) + (self.fConst311 * self.fRec59[2]))) - (self.fConst304 * ((self.fConst312 * self.fRec58[2]) + (self.fConst313 * self.fRec58[1]))));
+			self.fRec57[0] = ((self.fConst304 * (((self.fConst305 * self.fRec58[1]) + (self.fConst314 * self.fRec58[0])) + (self.fConst314 * self.fRec58[2]))) - (self.fConst302 * ((self.fConst315 * self.fRec57[2]) + (self.fConst316 * self.fRec57[1]))));
+			let mut fTemp8: f32 = (self.fConst302 * (((self.fConst303 * self.fRec57[1]) + (self.fConst317 * self.fRec57[0])) + (self.fConst317 * self.fRec57[2])));
+			self.fRec56[0] = (fTemp8 - (self.fConst299 * ((self.fConst318 * self.fRec56[2]) + (self.fConst320 * self.fRec56[1]))));
+			self.fRec55[0] = ((self.fConst299 * (((self.fConst301 * self.fRec56[1]) + (self.fConst321 * self.fRec56[0])) + (self.fConst321 * self.fRec56[2]))) - (self.fConst296 * ((self.fConst322 * self.fRec55[2]) + (self.fConst323 * self.fRec55[1]))));
+			self.fRec54[0] = ((self.fConst296 * (((self.fConst298 * self.fRec55[1]) + (self.fConst324 * self.fRec55[0])) + (self.fConst324 * self.fRec55[2]))) - (self.fConst292 * ((self.fConst325 * self.fRec54[2]) + (self.fConst326 * self.fRec54[1]))));
+			self.fRec53[0] = ((fSlow1 * self.fRec53[1]) + (fSlow2 * f32::abs((self.fConst292 * (((self.fConst295 * self.fRec54[1]) + (self.fConst327 * self.fRec54[0])) + (self.fConst327 * self.fRec54[2]))))));
+			self.fVbargraph8 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec53[0])))) as f32);
+			self.fRec66[0] = (fTemp8 - (self.fConst344 * ((self.fConst347 * self.fRec66[2]) + (self.fConst348 * self.fRec66[1]))));
+			self.fRec65[0] = ((self.fConst344 * (((self.fConst346 * self.fRec66[1]) + (self.fConst349 * self.fRec66[0])) + (self.fConst349 * self.fRec66[2]))) - (self.fConst342 * ((self.fConst350 * self.fRec65[2]) + (self.fConst351 * self.fRec65[1]))));
+			self.fRec64[0] = ((self.fConst342 * (((self.fConst343 * self.fRec65[1]) + (self.fConst352 * self.fRec65[0])) + (self.fConst352 * self.fRec65[2]))) - (self.fConst340 * ((self.fConst353 * self.fRec64[2]) + (self.fConst354 * self.fRec64[1]))));
+			let mut fTemp9: f32 = (self.fConst340 * (((self.fConst341 * self.fRec64[1]) + (self.fConst355 * self.fRec64[0])) + (self.fConst355 * self.fRec64[2])));
+			self.fRec63[0] = (fTemp9 - (self.fConst337 * ((self.fConst356 * self.fRec63[2]) + (self.fConst358 * self.fRec63[1]))));
+			self.fRec62[0] = ((self.fConst337 * (((self.fConst339 * self.fRec63[1]) + (self.fConst359 * self.fRec63[0])) + (self.fConst359 * self.fRec63[2]))) - (self.fConst334 * ((self.fConst360 * self.fRec62[2]) + (self.fConst361 * self.fRec62[1]))));
+			self.fRec61[0] = ((self.fConst334 * (((self.fConst336 * self.fRec62[1]) + (self.fConst362 * self.fRec62[0])) + (self.fConst362 * self.fRec62[2]))) - (self.fConst330 * ((self.fConst363 * self.fRec61[2]) + (self.fConst364 * self.fRec61[1]))));
+			self.fRec60[0] = ((fSlow1 * self.fRec60[1]) + (fSlow2 * f32::abs((self.fConst330 * (((self.fConst333 * self.fRec61[1]) + (self.fConst365 * self.fRec61[0])) + (self.fConst365 * self.fRec61[2]))))));
+			self.fVbargraph9 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec60[0])))) as f32);
+			self.fRec73[0] = (fTemp9 - (self.fConst382 * ((self.fConst385 * self.fRec73[2]) + (self.fConst386 * self.fRec73[1]))));
+			self.fRec72[0] = ((self.fConst382 * (((self.fConst384 * self.fRec73[1]) + (self.fConst387 * self.fRec73[0])) + (self.fConst387 * self.fRec73[2]))) - (self.fConst380 * ((self.fConst388 * self.fRec72[2]) + (self.fConst389 * self.fRec72[1]))));
+			self.fRec71[0] = ((self.fConst380 * (((self.fConst381 * self.fRec72[1]) + (self.fConst390 * self.fRec72[0])) + (self.fConst390 * self.fRec72[2]))) - (self.fConst378 * ((self.fConst391 * self.fRec71[2]) + (self.fConst392 * self.fRec71[1]))));
+			let mut fTemp10: f32 = (self.fConst378 * (((self.fConst379 * self.fRec71[1]) + (self.fConst393 * self.fRec71[0])) + (self.fConst393 * self.fRec71[2])));
+			self.fRec70[0] = (fTemp10 - (self.fConst375 * ((self.fConst394 * self.fRec70[2]) + (self.fConst396 * self.fRec70[1]))));
+			self.fRec69[0] = ((self.fConst375 * (((self.fConst377 * self.fRec70[1]) + (self.fConst397 * self.fRec70[0])) + (self.fConst397 * self.fRec70[2]))) - (self.fConst372 * ((self.fConst398 * self.fRec69[2]) + (self.fConst399 * self.fRec69[1]))));
+			self.fRec68[0] = ((self.fConst372 * (((self.fConst374 * self.fRec69[1]) + (self.fConst400 * self.fRec69[0])) + (self.fConst400 * self.fRec69[2]))) - (self.fConst368 * ((self.fConst401 * self.fRec68[2]) + (self.fConst402 * self.fRec68[1]))));
+			self.fRec67[0] = ((fSlow1 * self.fRec67[1]) + (fSlow2 * f32::abs((self.fConst368 * (((self.fConst371 * self.fRec68[1]) + (self.fConst403 * self.fRec68[0])) + (self.fConst403 * self.fRec68[2]))))));
+			self.fVbargraph10 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec67[0])))) as f32);
+			self.fRec80[0] = (fTemp10 - (self.fConst420 * ((self.fConst423 * self.fRec80[2]) + (self.fConst424 * self.fRec80[1]))));
+			self.fRec79[0] = ((self.fConst420 * (((self.fConst422 * self.fRec80[1]) + (self.fConst425 * self.fRec80[0])) + (self.fConst425 * self.fRec80[2]))) - (self.fConst418 * ((self.fConst426 * self.fRec79[2]) + (self.fConst427 * self.fRec79[1]))));
+			self.fRec78[0] = ((self.fConst418 * (((self.fConst419 * self.fRec79[1]) + (self.fConst428 * self.fRec79[0])) + (self.fConst428 * self.fRec79[2]))) - (self.fConst416 * ((self.fConst429 * self.fRec78[2]) + (self.fConst430 * self.fRec78[1]))));
+			let mut fTemp11: f32 = (self.fConst416 * (((self.fConst417 * self.fRec78[1]) + (self.fConst431 * self.fRec78[0])) + (self.fConst431 * self.fRec78[2])));
+			self.fRec77[0] = (fTemp11 - (self.fConst413 * ((self.fConst432 * self.fRec77[2]) + (self.fConst434 * self.fRec77[1]))));
+			self.fRec76[0] = ((self.fConst413 * (((self.fConst415 * self.fRec77[1]) + (self.fConst435 * self.fRec77[0])) + (self.fConst435 * self.fRec77[2]))) - (self.fConst410 * ((self.fConst436 * self.fRec76[2]) + (self.fConst437 * self.fRec76[1]))));
+			self.fRec75[0] = ((self.fConst410 * (((self.fConst412 * self.fRec76[1]) + (self.fConst438 * self.fRec76[0])) + (self.fConst438 * self.fRec76[2]))) - (self.fConst406 * ((self.fConst439 * self.fRec75[2]) + (self.fConst440 * self.fRec75[1]))));
+			self.fRec74[0] = ((fSlow1 * self.fRec74[1]) + (fSlow2 * f32::abs((self.fConst406 * (((self.fConst409 * self.fRec75[1]) + (self.fConst441 * self.fRec75[0])) + (self.fConst441 * self.fRec75[2]))))));
+			self.fVbargraph11 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec74[0])))) as f32);
+			self.fRec87[0] = (fTemp11 - (self.fConst458 * ((self.fConst461 * self.fRec87[2]) + (self.fConst462 * self.fRec87[1]))));
+			self.fRec86[0] = ((self.fConst458 * (((self.fConst460 * self.fRec87[1]) + (self.fConst463 * self.fRec87[0])) + (self.fConst463 * self.fRec87[2]))) - (self.fConst456 * ((self.fConst464 * self.fRec86[2]) + (self.fConst465 * self.fRec86[1]))));
+			self.fRec85[0] = ((self.fConst456 * (((self.fConst457 * self.fRec86[1]) + (self.fConst466 * self.fRec86[0])) + (self.fConst466 * self.fRec86[2]))) - (self.fConst454 * ((self.fConst467 * self.fRec85[2]) + (self.fConst468 * self.fRec85[1]))));
+			let mut fTemp12: f32 = (self.fConst454 * (((self.fConst455 * self.fRec85[1]) + (self.fConst469 * self.fRec85[0])) + (self.fConst469 * self.fRec85[2])));
+			self.fRec84[0] = (fTemp12 - (self.fConst451 * ((self.fConst470 * self.fRec84[2]) + (self.fConst472 * self.fRec84[1]))));
+			self.fRec83[0] = ((self.fConst451 * (((self.fConst453 * self.fRec84[1]) + (self.fConst473 * self.fRec84[0])) + (self.fConst473 * self.fRec84[2]))) - (self.fConst448 * ((self.fConst474 * self.fRec83[2]) + (self.fConst475 * self.fRec83[1]))));
+			self.fRec82[0] = ((self.fConst448 * (((self.fConst450 * self.fRec83[1]) + (self.fConst476 * self.fRec83[0])) + (self.fConst476 * self.fRec83[2]))) - (self.fConst444 * ((self.fConst477 * self.fRec82[2]) + (self.fConst478 * self.fRec82[1]))));
+			self.fRec81[0] = ((fSlow1 * self.fRec81[1]) + (fSlow2 * f32::abs((self.fConst444 * (((self.fConst447 * self.fRec82[1]) + (self.fConst479 * self.fRec82[0])) + (self.fConst479 * self.fRec82[2]))))));
+			self.fVbargraph12 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec81[0])))) as f32);
+			self.fRec94[0] = (fTemp12 - (self.fConst496 * ((self.fConst499 * self.fRec94[2]) + (self.fConst500 * self.fRec94[1]))));
+			self.fRec93[0] = ((self.fConst496 * (((self.fConst498 * self.fRec94[1]) + (self.fConst501 * self.fRec94[0])) + (self.fConst501 * self.fRec94[2]))) - (self.fConst494 * ((self.fConst502 * self.fRec93[2]) + (self.fConst503 * self.fRec93[1]))));
+			self.fRec92[0] = ((self.fConst494 * (((self.fConst495 * self.fRec93[1]) + (self.fConst504 * self.fRec93[0])) + (self.fConst504 * self.fRec93[2]))) - (self.fConst492 * ((self.fConst505 * self.fRec92[2]) + (self.fConst506 * self.fRec92[1]))));
+			let mut fTemp13: f32 = (self.fConst492 * (((self.fConst493 * self.fRec92[1]) + (self.fConst507 * self.fRec92[0])) + (self.fConst507 * self.fRec92[2])));
+			self.fRec91[0] = (fTemp13 - (self.fConst489 * ((self.fConst508 * self.fRec91[2]) + (self.fConst510 * self.fRec91[1]))));
+			self.fRec90[0] = ((self.fConst489 * (((self.fConst491 * self.fRec91[1]) + (self.fConst511 * self.fRec91[0])) + (self.fConst511 * self.fRec91[2]))) - (self.fConst486 * ((self.fConst512 * self.fRec90[2]) + (self.fConst513 * self.fRec90[1]))));
+			self.fRec89[0] = ((self.fConst486 * (((self.fConst488 * self.fRec90[1]) + (self.fConst514 * self.fRec90[0])) + (self.fConst514 * self.fRec90[2]))) - (self.fConst482 * ((self.fConst515 * self.fRec89[2]) + (self.fConst516 * self.fRec89[1]))));
+			self.fRec88[0] = ((fSlow1 * self.fRec88[1]) + (fSlow2 * f32::abs((self.fConst482 * (((self.fConst485 * self.fRec89[1]) + (self.fConst517 * self.fRec89[0])) + (self.fConst517 * self.fRec89[2]))))));
+			self.fVbargraph13 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec88[0])))) as f32);
+			self.fRec98[0] = (fTemp13 - (self.fConst522 * ((self.fConst525 * self.fRec98[2]) + (self.fConst526 * self.fRec98[1]))));
+			self.fRec97[0] = ((self.fConst522 * (((self.fConst524 * self.fRec98[1]) + (self.fConst527 * self.fRec98[0])) + (self.fConst527 * self.fRec98[2]))) - (self.fConst520 * ((self.fConst528 * self.fRec97[2]) + (self.fConst529 * self.fRec97[1]))));
+			self.fRec96[0] = ((self.fConst520 * (((self.fConst521 * self.fRec97[1]) + (self.fConst530 * self.fRec97[0])) + (self.fConst530 * self.fRec97[2]))) - (self.fConst518 * ((self.fConst531 * self.fRec96[2]) + (self.fConst532 * self.fRec96[1]))));
+			self.fRec95[0] = ((fSlow1 * self.fRec95[1]) + (fSlow2 * f32::abs((self.fConst518 * (((self.fConst519 * self.fRec96[1]) + (self.fConst533 * self.fRec96[0])) + (self.fConst533 * self.fRec96[2]))))));
+			self.fVbargraph14 = ((fSlow0 + (20.0 * f32::log10(f32::max(1.00000001e-07, self.fRec95[0])))) as f32);
+			outputs[0][i as usize] = (fTemp0 as f32);
+			self.fRec3[2] = self.fRec3[1];
+			self.fRec3[1] = self.fRec3[0];
+			self.fRec2[2] = self.fRec2[1];
+			self.fRec2[1] = self.fRec2[0];
+			self.fRec1[2] = self.fRec1[1];
+			self.fRec1[1] = self.fRec1[0];
+			self.fRec0[1] = self.fRec0[0];
+			self.fRec10[2] = self.fRec10[1];
+			self.fRec10[1] = self.fRec10[0];
+			self.fRec9[2] = self.fRec9[1];
+			self.fRec9[1] = self.fRec9[0];
+			self.fRec8[2] = self.fRec8[1];
+			self.fRec8[1] = self.fRec8[0];
+			self.fRec7[2] = self.fRec7[1];
+			self.fRec7[1] = self.fRec7[0];
+			self.fRec6[2] = self.fRec6[1];
+			self.fRec6[1] = self.fRec6[0];
+			self.fRec5[2] = self.fRec5[1];
+			self.fRec5[1] = self.fRec5[0];
+			self.fRec4[1] = self.fRec4[0];
+			self.fRec17[2] = self.fRec17[1];
+			self.fRec17[1] = self.fRec17[0];
+			self.fRec16[2] = self.fRec16[1];
+			self.fRec16[1] = self.fRec16[0];
+			self.fRec15[2] = self.fRec15[1];
+			self.fRec15[1] = self.fRec15[0];
+			self.fRec14[2] = self.fRec14[1];
+			self.fRec14[1] = self.fRec14[0];
+			self.fRec13[2] = self.fRec13[1];
+			self.fRec13[1] = self.fRec13[0];
+			self.fRec12[2] = self.fRec12[1];
+			self.fRec12[1] = self.fRec12[0];
+			self.fRec11[1] = self.fRec11[0];
+			self.fRec24[2] = self.fRec24[1];
+			self.fRec24[1] = self.fRec24[0];
+			self.fRec23[2] = self.fRec23[1];
+			self.fRec23[1] = self.fRec23[0];
+			self.fRec22[2] = self.fRec22[1];
+			self.fRec22[1] = self.fRec22[0];
+			self.fRec21[2] = self.fRec21[1];
+			self.fRec21[1] = self.fRec21[0];
+			self.fRec20[2] = self.fRec20[1];
+			self.fRec20[1] = self.fRec20[0];
+			self.fRec19[2] = self.fRec19[1];
+			self.fRec19[1] = self.fRec19[0];
+			self.fRec18[1] = self.fRec18[0];
+			self.fRec31[2] = self.fRec31[1];
+			self.fRec31[1] = self.fRec31[0];
+			self.fRec30[2] = self.fRec30[1];
+			self.fRec30[1] = self.fRec30[0];
+			self.fRec29[2] = self.fRec29[1];
+			self.fRec29[1] = self.fRec29[0];
+			self.fRec28[2] = self.fRec28[1];
+			self.fRec28[1] = self.fRec28[0];
+			self.fRec27[2] = self.fRec27[1];
+			self.fRec27[1] = self.fRec27[0];
+			self.fRec26[2] = self.fRec26[1];
+			self.fRec26[1] = self.fRec26[0];
+			self.fRec25[1] = self.fRec25[0];
+			self.fRec38[2] = self.fRec38[1];
+			self.fRec38[1] = self.fRec38[0];
+			self.fRec37[2] = self.fRec37[1];
+			self.fRec37[1] = self.fRec37[0];
+			self.fRec36[2] = self.fRec36[1];
+			self.fRec36[1] = self.fRec36[0];
+			self.fRec35[2] = self.fRec35[1];
+			self.fRec35[1] = self.fRec35[0];
+			self.fRec34[2] = self.fRec34[1];
+			self.fRec34[1] = self.fRec34[0];
+			self.fRec33[2] = self.fRec33[1];
+			self.fRec33[1] = self.fRec33[0];
+			self.fRec32[1] = self.fRec32[0];
+			self.fRec45[2] = self.fRec45[1];
+			self.fRec45[1] = self.fRec45[0];
+			self.fRec44[2] = self.fRec44[1];
+			self.fRec44[1] = self.fRec44[0];
+			self.fRec43[2] = self.fRec43[1];
+			self.fRec43[1] = self.fRec43[0];
+			self.fRec42[2] = self.fRec42[1];
+			self.fRec42[1] = self.fRec42[0];
+			self.fRec41[2] = self.fRec41[1];
+			self.fRec41[1] = self.fRec41[0];
+			self.fRec40[2] = self.fRec40[1];
+			self.fRec40[1] = self.fRec40[0];
+			self.fRec39[1] = self.fRec39[0];
+			self.fRec52[2] = self.fRec52[1];
+			self.fRec52[1] = self.fRec52[0];
+			self.fRec51[2] = self.fRec51[1];
+			self.fRec51[1] = self.fRec51[0];
+			self.fRec50[2] = self.fRec50[1];
+			self.fRec50[1] = self.fRec50[0];
+			self.fRec49[2] = self.fRec49[1];
+			self.fRec49[1] = self.fRec49[0];
+			self.fRec48[2] = self.fRec48[1];
+			self.fRec48[1] = self.fRec48[0];
+			self.fRec47[2] = self.fRec47[1];
+			self.fRec47[1] = self.fRec47[0];
+			self.fRec46[1] = self.fRec46[0];
+			self.fRec59[2] = self.fRec59[1];
+			self.fRec59[1] = self.fRec59[0];
+			self.fRec58[2] = self.fRec58[1];
+			self.fRec58[1] = self.fRec58[0];
+			self.fRec57[2] = self.fRec57[1];
+			self.fRec57[1] = self.fRec57[0];
+			self.fRec56[2] = self.fRec56[1];
+			self.fRec56[1] = self.fRec56[0];
+			self.fRec55[2] = self.fRec55[1];
+			self.fRec55[1] = self.fRec55[0];
+			self.fRec54[2] = self.fRec54[1];
+			self.fRec54[1] = self.fRec54[0];
+			self.fRec53[1] = self.fRec53[0];
+			self.fRec66[2] = self.fRec66[1];
+			self.fRec66[1] = self.fRec66[0];
+			self.fRec65[2] = self.fRec65[1];
+			self.fRec65[1] = self.fRec65[0];
+			self.fRec64[2] = self.fRec64[1];
+			self.fRec64[1] = self.fRec64[0];
+			self.fRec63[2] = self.fRec63[1];
+			self.fRec63[1] = self.fRec63[0];
+			self.fRec62[2] = self.fRec62[1];
+			self.fRec62[1] = self.fRec62[0];
+			self.fRec61[2] = self.fRec61[1];
+			self.fRec61[1] = self.fRec61[0];
+			self.fRec60[1] = self.fRec60[0];
+			self.fRec73[2] = self.fRec73[1];
+			self.fRec73[1] = self.fRec73[0];
+			self.fRec72[2] = self.fRec72[1];
+			self.fRec72[1] = self.fRec72[0];
+			self.fRec71[2] = self.fRec71[1];
+			self.fRec71[1] = self.fRec71[0];
+			self.fRec70[2] = self.fRec70[1];
+			self.fRec70[1] = self.fRec70[0];
+			self.fRec69[2] = self.fRec69[1];
+			self.fRec69[1] = self.fRec69[0];
+			self.fRec68[2] = self.fRec68[1];
+			self.fRec68[1] = self.fRec68[0];
+			self.fRec67[1] = self.fRec67[0];
+			self.fRec80[2] = self.fRec80[1];
+			self.fRec80[1] = self.fRec80[0];
+			self.fRec79[2] = self.fRec79[1];
+			self.fRec79[1] = self.fRec79[0];
+			self.fRec78[2] = self.fRec78[1];
+			self.fRec78[1] = self.fRec78[0];
+			self.fRec77[2] = self.fRec77[1];
+			self.fRec77[1] = self.fRec77[0];
+			self.fRec76[2] = self.fRec76[1];
+			self.fRec76[1] = self.fRec76[0];
+			self.fRec75[2] = self.fRec75[1];
+			self.fRec75[1] = self.fRec75[0];
+			self.fRec74[1] = self.fRec74[0];
+			self.fRec87[2] = self.fRec87[1];
+			self.fRec87[1] = self.fRec87[0];
+			self.fRec86[2] = self.fRec86[1];
+			self.fRec86[1] = self.fRec86[0];
+			self.fRec85[2] = self.fRec85[1];
+			self.fRec85[1] = self.fRec85[0];
+			self.fRec84[2] = self.fRec84[1];
+			self.fRec84[1] = self.fRec84[0];
+			self.fRec83[2] = self.fRec83[1];
+			self.fRec83[1] = self.fRec83[0];
+			self.fRec82[2] = self.fRec82[1];
+			self.fRec82[1] = self.fRec82[0];
+			self.fRec81[1] = self.fRec81[0];
+			self.fRec94[2] = self.fRec94[1];
+			self.fRec94[1] = self.fRec94[0];
+			self.fRec93[2] = self.fRec93[1];
+			self.fRec93[1] = self.fRec93[0];
+			self.fRec92[2] = self.fRec92[1];
+			self.fRec92[1] = self.fRec92[0];
+			self.fRec91[2] = self.fRec91[1];
+			self.fRec91[1] = self.fRec91[0];
+			self.fRec90[2] = self.fRec90[1];
+			self.fRec90[1] = self.fRec90[0];
+			self.fRec89[2] = self.fRec89[1];
+			self.fRec89[1] = self.fRec89[0];
+			self.fRec88[1] = self.fRec88[0];
+			self.fRec98[2] = self.fRec98[1];
+			self.fRec98[1] = self.fRec98[0];
+			self.fRec97[2] = self.fRec97[1];
+			self.fRec97[1] = self.fRec97[0];
+			self.fRec96[2] = self.fRec96[1];
+			self.fRec96[1] = self.fRec96[0];
+			self.fRec95[1] = self.fRec95[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

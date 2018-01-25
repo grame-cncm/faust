@@ -1,0 +1,149 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fVslider0: f32,
+	fVec0: [f32;2],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fVslider0: 0.0,
+			fVec0: [0.0;2],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("math.lib/author", "GRAME");
+		m.declare("math.lib/copyright", "GRAME");
+		m.declare("math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m.declare("math.lib/license", "LGPL with exception");
+		m.declare("math.lib/name", "Math Library");
+		m.declare("math.lib/version", "1.0");
+		m.declare("music.lib/author", "GRAME");
+		m.declare("music.lib/copyright", "GRAME");
+		m.declare("music.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+		m.declare("music.lib/license", "LGPL with exception");
+		m.declare("music.lib/name", "Music Library");
+		m.declare("music.lib/version", "1.0");
+		m.declare("name", "BUG080127-twgosc");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fVslider0 = 440.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.fVec0[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = (6.28318548 / f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32))));
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("BUG080127-twgosc");
+		ui_interface.addVerticalSlider("_freq", &mut self.fVslider0, 440.0, 10.0, 20000.0, 1.0);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = f32::cos((self.fConst0 * (self.fVslider0 as f32)));
+		let mut fSlow1: f32 = f32::sqrt(((1.0 - fSlow0) / (fSlow0 + 1.0)));
+		let mut i: i32 = 0;
+		loop {
+			self.fVec0[0] = fSlow1;
+			outputs[0][i as usize] = ((fSlow1 * (inputs[0][i as usize] as f32)) as f32);
+			outputs[1][i as usize] = (((inputs[1][i as usize] as f32) * (fSlow1 - self.fVec0[1])) as f32);
+			self.fVec0[1] = self.fVec0[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

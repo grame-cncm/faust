@@ -1,0 +1,160 @@
+/* ------------------------------------------------------------
+name: "path2"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 4;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 4;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 20 >> 2] = (samplingFreq | 0);
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 4 >> 2] = 0.;
+		HEAPF[dsp + 8 >> 2] = 0.;
+		HEAPF[dsp + 12 >> 2] = 0.;
+		HEAPF[dsp + 16 >> 2] = 0.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 20 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var input1 = 0;
+		var input2 = 0;
+		var input3 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var output2 = 0;
+		var output3 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var i = 0;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		input1 = (HEAP32[inputs + (1 << 2) >> 2] | 0);
+		input2 = (HEAP32[inputs + (2 << 2) >> 2] | 0);
+		input3 = (HEAP32[inputs + (3 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		output2 = (HEAP32[outputs + (2 << 2) >> 2] | 0);
+		output3 = (HEAP32[outputs + (3 << 2) >> 2] | 0);
+		fSlow0 = +(+(HEAPF[dsp + 4 >> 2]));
+		fSlow1 = +(+(+(HEAPF[dsp + 0 >> 2])) * +(fSlow0));
+		fSlow2 = +(+(fSlow0) * +(+(HEAPF[dsp + 8 >> 2])));
+		fSlow3 = +(+(fSlow0) * +(+(HEAPF[dsp + 12 >> 2])));
+		fSlow4 = +(+(fSlow0) * +(+(HEAPF[dsp + 16 >> 2])));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(fSlow1) * +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]))));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(+(fSlow2) * +(+(HEAPF[input1 + ((i | 0) << 2) >> 2]))));
+			HEAPF[output2 + ((i | 0) << 2) >> 2] = +(+(+(fSlow3) * +(+(HEAPF[input2 + ((i | 0) << 2) >> 2]))));
+			HEAPF[output3 + ((i | 0) << 2) >> 2] = +(+(+(fSlow4) * +(+(HEAPF[input3 + ((i | 0) << 2) >> 2]))));
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 24;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/toto/foo_0/slid"] = 0;
+	pathTable["/toto/common"] = 4;
+	pathTable["/toto/foo_1/slid"] = 8;
+	pathTable["/toto/foo_2/slid"] = 12;
+	pathTable["/toto/foo_3/slid"] = 16;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"path2\",\"inputs\":\"4\",\"outputs\":\"4\",\"meta\":[{\"name\":\"path2\"}],\"ui\":[{\"type\":\"tgroup\",\"label\":\"toto\",\"items\":[{\"type\":\"hslider\",\"label\":\"common\",\"address\":\"/toto/common\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"},{\"type\":\"vgroup\",\"label\":\"foo 0\",\"items\":[{\"type\":\"hslider\",\"label\":\"slid\",\"address\":\"/toto/foo_0/slid\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"foo 1\",\"items\":[{\"type\":\"hslider\",\"label\":\"slid\",\"address\":\"/toto/foo_1/slid\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"foo 2\",\"items\":[{\"type\":\"hslider\",\"label\":\"slid\",\"address\":\"/toto/foo_2/slid\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"foo 3\",\"items\":[{\"type\":\"hslider\",\"label\":\"slid\",\"address\":\"/toto/foo_3/slid\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.1\"}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("name", "path2");
+}
+

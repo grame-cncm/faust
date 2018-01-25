@@ -1,0 +1,193 @@
+/* ------------------------------------------------------------
+author: "Vincent Rateau, GRAME"
+license: "GPL v3"
+name: "midiTester"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 124 >> 2] = (samplingFreq | 0);
+		HEAP32[dsp + 120 >> 2] = 0;
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 8 >> 2] = 0.;
+		HEAPF[dsp + 16 >> 2] = 0.;
+		HEAPF[dsp + 24 >> 2] = 60.;
+		HEAPF[dsp + 32 >> 2] = 0.;
+		HEAPF[dsp + 40 >> 2] = 60.;
+		HEAPF[dsp + 48 >> 2] = 0.;
+		HEAPF[dsp + 56 >> 2] = 60.;
+		HEAPF[dsp + 64 >> 2] = 0.;
+		HEAPF[dsp + 68 >> 2] = 0.;
+		HEAPF[dsp + 72 >> 2] = 0.;
+		HEAPF[dsp + 80 >> 2] = 60.;
+		HEAPF[dsp + 88 >> 2] = 0.;
+		HEAPF[dsp + 96 >> 2] = 60.;
+		HEAPF[dsp + 104 >> 2] = 60.;
+		HEAPF[dsp + 112 >> 2] = 0.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 124 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var i = 0;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		HEAPF[dsp + 4 >> 2] = +(+(+(HEAPF[dsp + 0 >> 2])));
+		HEAPF[dsp + 12 >> 2] = +(+(+(HEAPF[dsp + 8 >> 2])));
+		HEAPF[dsp + 20 >> 2] = +(+(+(HEAPF[dsp + 16 >> 2])));
+		HEAPF[dsp + 28 >> 2] = +(+(+(HEAPF[dsp + 24 >> 2])));
+		HEAPF[dsp + 36 >> 2] = +(+(+(HEAPF[dsp + 32 >> 2])));
+		HEAPF[dsp + 44 >> 2] = +(+(+(HEAPF[dsp + 40 >> 2])));
+		HEAPF[dsp + 52 >> 2] = +(+(+(HEAPF[dsp + 48 >> 2])));
+		HEAPF[dsp + 60 >> 2] = +(+(+(HEAPF[dsp + 56 >> 2])));
+		HEAPF[dsp + 76 >> 2] = +(+(+(HEAPF[dsp + 72 >> 2])));
+		HEAPF[dsp + 84 >> 2] = +(+(+(HEAPF[dsp + 80 >> 2])));
+		HEAPF[dsp + 92 >> 2] = +(+(+(HEAPF[dsp + 88 >> 2])));
+		HEAPF[dsp + 100 >> 2] = +(+(+(HEAPF[dsp + 96 >> 2])));
+		HEAPF[dsp + 108 >> 2] = +(+(+(HEAPF[dsp + 104 >> 2])));
+		HEAPF[dsp + 116 >> 2] = +(+(+(HEAPF[dsp + 112 >> 2])));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +((HEAP32[dsp + 120 >> 2] | 0));
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 128;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Bool_IN"] = 0;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Bool_IN_(Note_100)"] = 16;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Bool_IN_(PC_100)"] = 32;
+	pathTable["/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Bool_IN_(Note_100)"] = 48;
+	pathTable["/FAUST_MIDI_TESTER/0x00/MIDI_SYNC_(IN)/MIDI_START/STOP"] = 64;
+	pathTable["/FAUST_MIDI_TESTER/0x00/MIDI_SYNC_(IN)/MIDI_clock_signal"] = 68;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Bool_IN_(Note_100)"] = 72;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Bool_IN_(Note_100)"] = 88;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Bool_IN_(Ctrl_100)"] = 112;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Bool_OUT"] = 4;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Value_OUT"] = 12;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Bool_OUT_(Note_101)"] = 92;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Value_OUT_(Note_51)"] = 100;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Value_OUT_(Ctrl_51)"] = 108;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Bool_OUT_(Ctrl_101)"] = 116;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Bool_OUT_(Note_101)"] = 20;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Value_OUT_(Note_51)"] = 28;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Bool_OUT_(PC_101)"] = 36;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Value_OUT_(PC_51)"] = 44;
+	pathTable["/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Bool_OUT_(Note_101)"] = 52;
+	pathTable["/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Value_OUT_(Note_51)"] = 60;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Bool_OUT_(Note_101)"] = 76;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Value_OUT_(Note_51)"] = 84;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Value_IN"] = 8;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Value_IN_(Note_50)"] = 24;
+	pathTable["/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Value_IN_(PC_50)"] = 40;
+	pathTable["/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Value_IN_(Note_50)"] = 56;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Value_IN_(Note_50)"] = 80;
+	pathTable["/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Value_IN_(Note_50)"] = 96;
+	pathTable["/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Value_IN_(Ctrl_50)"] = 104;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"midiTester\",\"inputs\":\"1\",\"outputs\":\"1\",\"meta\":[{\"author\":\"Vincent Rateau, GRAME\"},{\"license\":\"GPL v3\"},{\"name\":\"midiTester\"},{\"reference\":\"www.sonejo.net\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"FAUST MIDI TESTER\",\"items\":[{\"type\":\"hgroup\",\"label\":\"0x00\",\"meta\":[{\"1\":\"\"}],\"items\":[{\"type\":\"vgroup\",\"label\":\"CTRL IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"Ctrl Bool IN (Ctrl 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Bool_IN_(Ctrl_100)\",\"meta\":[{\"midi\":\"ctrl 100\"}]},{\"type\":\"hbargraph\",\"label\":\"Ctrl Bool OUT (Ctrl 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Bool_OUT_(Ctrl_101)\",\"meta\":[{\"midi\":\"ctrl 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"Ctrl Value IN (Ctrl 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Value_IN_(Ctrl_50)\",\"meta\":[{\"midi\":\"ctrl 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"Ctrl Value OUT (Ctrl 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CTRL_IN/OUT/Ctrl_Value_OUT_(Ctrl_51)\",\"meta\":[{\"midi\":\"ctrl 51\"}],\"min\":\"0\",\"max\":\"127\"}]},{\"type\":\"vgroup\",\"label\":\"MIDI SYNC (IN)\",\"items\":[{\"type\":\"checkbox\",\"label\":\"MIDI START/STOP\",\"address\":\"/FAUST_MIDI_TESTER/0x00/MIDI_SYNC_(IN)/MIDI_START/STOP\",\"meta\":[{\"midi\":\"start\"},{\"midi\":\"stop\"}]},{\"type\":\"checkbox\",\"label\":\"MIDI clock signal\",\"address\":\"/FAUST_MIDI_TESTER/0x00/MIDI_SYNC_(IN)/MIDI_clock_signal\",\"meta\":[{\"midi\":\"clock\"}]}]},{\"type\":\"vgroup\",\"label\":\"NOTE OFF IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"NoteOff Bool IN (Note 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Bool_IN_(Note_100)\",\"meta\":[{\"midi\":\"keyoff 100\"}]},{\"type\":\"hbargraph\",\"label\":\"NoteOff Bool OUT (Note 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Bool_OUT_(Note_101)\",\"meta\":[{\"midi\":\"keyoff 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"NoteOff Value IN (Note 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Value_IN_(Note_50)\",\"meta\":[{\"midi\":\"keyoff 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"NoteOff Value OUT (Note 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_OFF_IN/OUT/NoteOff_Value_OUT_(Note_51)\",\"meta\":[{\"midi\":\"keyoff 51\"}],\"min\":\"0\",\"max\":\"127\"}]},{\"type\":\"vgroup\",\"label\":\"NOTE ON IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"NoteOn Bool IN (Note 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Bool_IN_(Note_100)\",\"meta\":[{\"midi\":\"keyon 100\"}]},{\"type\":\"hbargraph\",\"label\":\"NoteOn Bool OUT (Note 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Bool_OUT_(Note_101)\",\"meta\":[{\"midi\":\"keyon 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"NoteOn Value IN (Note 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Value_IN_(Note_50)\",\"meta\":[{\"midi\":\"keyon 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"NoteOn Value OUT (Note 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/NOTE_ON_IN/OUT/NoteOn_Value_OUT_(Note_51)\",\"meta\":[{\"midi\":\"keyon 51\"}],\"min\":\"0\",\"max\":\"127\"}]}]},{\"type\":\"hgroup\",\"label\":\"0x00\",\"meta\":[{\"2\":\"\"}],\"items\":[{\"type\":\"vgroup\",\"label\":\"CHANNEL AFTERTOUCH (CHAT) IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"Note CHAT Bool IN (Note 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Bool_IN_(Note_100)\",\"meta\":[{\"midi\":\"chanpress 100\"}]},{\"type\":\"hbargraph\",\"label\":\"Note CHAT Bool OUT (Note 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Bool_OUT_(Note_101)\",\"meta\":[{\"midi\":\"chanpress 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"Note CHAT Value IN (Note 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Value_IN_(Note_50)\",\"meta\":[{\"midi\":\"chanpress 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"Note CHAT Value OUT (Note 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/CHANNEL_AFTERTOUCH_(CHAT)_IN/OUT/Note_CHAT_Value_OUT_(Note_51)\",\"meta\":[{\"midi\":\"chanpress 51\"}],\"min\":\"0\",\"max\":\"127\"}]},{\"type\":\"vgroup\",\"label\":\"KEY AFTERTOUCH (KAT) IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"Note KAT Bool IN (Note 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Bool_IN_(Note_100)\",\"meta\":[{\"midi\":\"keypress 100\"}]},{\"type\":\"hbargraph\",\"label\":\"Note KAT Bool OUT (Note 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Bool_OUT_(Note_101)\",\"meta\":[{\"midi\":\"keypress 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"Note KAT Value IN (Note 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Value_IN_(Note_50)\",\"meta\":[{\"midi\":\"keypress 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"Note KAT Value OUT (Note 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/KEY_AFTERTOUCH_(KAT)_IN/OUT/Note_KAT_Value_OUT_(Note_51)\",\"meta\":[{\"midi\":\"keypress 51\"}],\"min\":\"0\",\"max\":\"127\"}]},{\"type\":\"vgroup\",\"label\":\"PITCHWHEEL IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"Pitchwheel Bool IN\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Bool_IN\",\"meta\":[{\"midi\":\"pitchwheel\"}]},{\"type\":\"hbargraph\",\"label\":\"Pitchwheel Bool OUT\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Bool_OUT\",\"meta\":[{\"midi\":\"pitchwheel\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"Pitchwheel Value IN\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Value_IN\",\"meta\":[{\"midi\":\"pitchwheel\"}],\"init\":\"0\",\"min\":\"-8192\",\"max\":\"8191\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"Pitchwheel Value OUT\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PITCHWHEEL_IN/OUT/Pitchwheel_Value_OUT\",\"meta\":[{\"midi\":\"pitchwheel\"}],\"min\":\"-8192\",\"max\":\"8191\"}]},{\"type\":\"vgroup\",\"label\":\"PROGRAM CHANGE (PC) IN/OUT\",\"items\":[{\"type\":\"checkbox\",\"label\":\"ProgramChange Bool IN (PC 100)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Bool_IN_(PC_100)\",\"meta\":[{\"midi\":\"pgm 100\"}]},{\"type\":\"hbargraph\",\"label\":\"ProgramChange Bool OUT (PC 101)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Bool_OUT_(PC_101)\",\"meta\":[{\"midi\":\"pgm 101\"}],\"min\":\"0\",\"max\":\"1\"},{\"type\":\"hslider\",\"label\":\"ProgramChange Value IN (PC 50)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Value_IN_(PC_50)\",\"meta\":[{\"midi\":\"pgm 50\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"1\"},{\"type\":\"hbargraph\",\"label\":\"ProgramChange Value OUT (PC 51)\",\"address\":\"/FAUST_MIDI_TESTER/0x00/PROGRAM_CHANGE_(PC)_IN/OUT/ProgramChange_Value_OUT_(PC_51)\",\"meta\":[{\"midi\":\"pgm 51\"}],\"min\":\"0\",\"max\":\"127\"}]}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "Vincent Rateau, GRAME");
+	m.declare("license", "GPL v3");
+	m.declare("name", "midiTester");
+	m.declare("reference", "www.sonejo.net");
+	m.declare("version", "1.0");
+}
+

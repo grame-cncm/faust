@@ -1,0 +1,366 @@
+/* ------------------------------------------------------------
+author: "O. Guillerminet"
+copyright: "(c) O. Guillerminet 2012"
+license: "BSD"
+name: "UITester"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 6;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 34;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 136 >> 2] = (samplingFreq | 0);
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 4 >> 2] = 0.;
+		HEAPF[dsp + 8 >> 2] = 60.;
+		HEAPF[dsp + 12 >> 2] = 60.;
+		HEAPF[dsp + 16 >> 2] = 60.;
+		HEAPF[dsp + 20 >> 2] = 60.;
+		HEAPF[dsp + 24 >> 2] = 60.;
+		HEAPF[dsp + 28 >> 2] = 60.;
+		HEAPF[dsp + 32 >> 2] = 60.;
+		HEAPF[dsp + 36 >> 2] = 60.;
+		HEAPF[dsp + 40 >> 2] = 0.;
+		HEAPF[dsp + 44 >> 2] = 60.;
+		HEAPF[dsp + 48 >> 2] = 60.;
+		HEAPF[dsp + 52 >> 2] = 60.;
+		HEAPF[dsp + 56 >> 2] = 60.;
+		HEAPF[dsp + 60 >> 2] = 60.;
+		HEAPF[dsp + 68 >> 2] = 60.;
+		HEAPF[dsp + 72 >> 2] = 60.;
+		HEAPF[dsp + 76 >> 2] = 60.;
+		HEAPF[dsp + 80 >> 2] = 60.;
+		HEAPF[dsp + 88 >> 2] = 60.;
+		HEAPF[dsp + 92 >> 2] = 60.;
+		HEAPF[dsp + 96 >> 2] = 60.;
+		HEAPF[dsp + 100 >> 2] = 60.;
+		HEAPF[dsp + 112 >> 2] = 60.;
+		HEAPF[dsp + 116 >> 2] = 0.;
+		HEAPF[dsp + 120 >> 2] = 60.;
+		HEAPF[dsp + 124 >> 2] = 60.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 136 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var input1 = 0;
+		var input2 = 0;
+		var input3 = 0;
+		var input4 = 0;
+		var input5 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var output2 = 0;
+		var output3 = 0;
+		var output4 = 0;
+		var output5 = 0;
+		var output6 = 0;
+		var output7 = 0;
+		var output8 = 0;
+		var output9 = 0;
+		var output10 = 0;
+		var output11 = 0;
+		var output12 = 0;
+		var output13 = 0;
+		var output14 = 0;
+		var output15 = 0;
+		var output16 = 0;
+		var output17 = 0;
+		var output18 = 0;
+		var output19 = 0;
+		var output20 = 0;
+		var output21 = 0;
+		var output22 = 0;
+		var output23 = 0;
+		var output24 = 0;
+		var output25 = 0;
+		var output26 = 0;
+		var output27 = 0;
+		var output28 = 0;
+		var output29 = 0;
+		var output30 = 0;
+		var output31 = 0;
+		var output32 = 0;
+		var output33 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var fSlow11 = 0.;
+		var fSlow12 = 0.;
+		var fSlow13 = 0.;
+		var fSlow14 = 0.;
+		var fSlow15 = 0.;
+		var fSlow16 = 0.;
+		var fSlow17 = 0.;
+		var fSlow18 = 0.;
+		var fSlow19 = 0.;
+		var fSlow20 = 0.;
+		var fSlow21 = 0.;
+		var fSlow22 = 0.;
+		var fSlow23 = 0.;
+		var fSlow24 = 0.;
+		var fSlow25 = 0.;
+		var fSlow26 = 0.;
+		var fSlow27 = 0.;
+		var i = 0;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		input1 = (HEAP32[inputs + (1 << 2) >> 2] | 0);
+		input2 = (HEAP32[inputs + (2 << 2) >> 2] | 0);
+		input3 = (HEAP32[inputs + (3 << 2) >> 2] | 0);
+		input4 = (HEAP32[inputs + (4 << 2) >> 2] | 0);
+		input5 = (HEAP32[inputs + (5 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		output2 = (HEAP32[outputs + (2 << 2) >> 2] | 0);
+		output3 = (HEAP32[outputs + (3 << 2) >> 2] | 0);
+		output4 = (HEAP32[outputs + (4 << 2) >> 2] | 0);
+		output5 = (HEAP32[outputs + (5 << 2) >> 2] | 0);
+		output6 = (HEAP32[outputs + (6 << 2) >> 2] | 0);
+		output7 = (HEAP32[outputs + (7 << 2) >> 2] | 0);
+		output8 = (HEAP32[outputs + (8 << 2) >> 2] | 0);
+		output9 = (HEAP32[outputs + (9 << 2) >> 2] | 0);
+		output10 = (HEAP32[outputs + (10 << 2) >> 2] | 0);
+		output11 = (HEAP32[outputs + (11 << 2) >> 2] | 0);
+		output12 = (HEAP32[outputs + (12 << 2) >> 2] | 0);
+		output13 = (HEAP32[outputs + (13 << 2) >> 2] | 0);
+		output14 = (HEAP32[outputs + (14 << 2) >> 2] | 0);
+		output15 = (HEAP32[outputs + (15 << 2) >> 2] | 0);
+		output16 = (HEAP32[outputs + (16 << 2) >> 2] | 0);
+		output17 = (HEAP32[outputs + (17 << 2) >> 2] | 0);
+		output18 = (HEAP32[outputs + (18 << 2) >> 2] | 0);
+		output19 = (HEAP32[outputs + (19 << 2) >> 2] | 0);
+		output20 = (HEAP32[outputs + (20 << 2) >> 2] | 0);
+		output21 = (HEAP32[outputs + (21 << 2) >> 2] | 0);
+		output22 = (HEAP32[outputs + (22 << 2) >> 2] | 0);
+		output23 = (HEAP32[outputs + (23 << 2) >> 2] | 0);
+		output24 = (HEAP32[outputs + (24 << 2) >> 2] | 0);
+		output25 = (HEAP32[outputs + (25 << 2) >> 2] | 0);
+		output26 = (HEAP32[outputs + (26 << 2) >> 2] | 0);
+		output27 = (HEAP32[outputs + (27 << 2) >> 2] | 0);
+		output28 = (HEAP32[outputs + (28 << 2) >> 2] | 0);
+		output29 = (HEAP32[outputs + (29 << 2) >> 2] | 0);
+		output30 = (HEAP32[outputs + (30 << 2) >> 2] | 0);
+		output31 = (HEAP32[outputs + (31 << 2) >> 2] | 0);
+		output32 = (HEAP32[outputs + (32 << 2) >> 2] | 0);
+		output33 = (HEAP32[outputs + (33 << 2) >> 2] | 0);
+		fSlow0 = +(+(HEAPF[dsp + 0 >> 2]));
+		fSlow1 = +(+(HEAPF[dsp + 4 >> 2]));
+		fSlow2 = +(+(HEAPF[dsp + 8 >> 2]));
+		fSlow3 = +(+(HEAPF[dsp + 12 >> 2]));
+		fSlow4 = +(+(HEAPF[dsp + 16 >> 2]));
+		fSlow5 = +(+(HEAPF[dsp + 20 >> 2]));
+		fSlow6 = +(+(HEAPF[dsp + 24 >> 2]));
+		fSlow7 = +(+(HEAPF[dsp + 28 >> 2]));
+		fSlow8 = +(+(HEAPF[dsp + 32 >> 2]));
+		fSlow9 = +(+(HEAPF[dsp + 36 >> 2]));
+		fSlow10 = +(+(HEAPF[dsp + 40 >> 2]));
+		fSlow11 = +(+(HEAPF[dsp + 44 >> 2]));
+		fSlow12 = +(+(HEAPF[dsp + 48 >> 2]));
+		fSlow13 = +(+(HEAPF[dsp + 52 >> 2]));
+		fSlow14 = +(+(HEAPF[dsp + 56 >> 2]));
+		fSlow15 = +(+(HEAPF[dsp + 60 >> 2]));
+		fSlow16 = +(+(HEAPF[dsp + 68 >> 2]));
+		fSlow17 = +(+(HEAPF[dsp + 72 >> 2]));
+		fSlow18 = +(+(HEAPF[dsp + 76 >> 2]));
+		fSlow19 = +(+(HEAPF[dsp + 80 >> 2]));
+		fSlow20 = +(+(HEAPF[dsp + 88 >> 2]));
+		fSlow21 = +(+(HEAPF[dsp + 92 >> 2]));
+		fSlow22 = +(+(HEAPF[dsp + 96 >> 2]));
+		fSlow23 = +(+(HEAPF[dsp + 100 >> 2]));
+		fSlow24 = +(+(HEAPF[dsp + 112 >> 2]));
+		fSlow25 = +(+(HEAPF[dsp + 116 >> 2]));
+		fSlow26 = +(+(HEAPF[dsp + 120 >> 2]));
+		fSlow27 = +(+(HEAPF[dsp + 124 >> 2]));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(fSlow0));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(fSlow1));
+			HEAPF[output2 + ((i | 0) << 2) >> 2] = +(+(fSlow2));
+			HEAPF[output3 + ((i | 0) << 2) >> 2] = +(+(fSlow3));
+			HEAPF[output4 + ((i | 0) << 2) >> 2] = +(+(fSlow4));
+			HEAPF[output5 + ((i | 0) << 2) >> 2] = +(+(fSlow5));
+			HEAPF[output6 + ((i | 0) << 2) >> 2] = +(+(fSlow6));
+			HEAPF[output7 + ((i | 0) << 2) >> 2] = +(+(fSlow7));
+			HEAPF[output8 + ((i | 0) << 2) >> 2] = +(+(fSlow8));
+			HEAPF[output9 + ((i | 0) << 2) >> 2] = +(+(fSlow9));
+			HEAPF[output10 + ((i | 0) << 2) >> 2] = +(+(fSlow10));
+			HEAPF[output11 + ((i | 0) << 2) >> 2] = +(+(fSlow11));
+			HEAPF[output12 + ((i | 0) << 2) >> 2] = +(+(fSlow12));
+			HEAPF[output13 + ((i | 0) << 2) >> 2] = +(+(fSlow13));
+			HEAPF[output14 + ((i | 0) << 2) >> 2] = +(+(fSlow14));
+			HEAPF[output15 + ((i | 0) << 2) >> 2] = +(+(fSlow15));
+			HEAPF[dsp + 64 >> 2] = +(+(+(HEAPF[input0 + ((i | 0) << 2) >> 2])));
+			HEAPF[output16 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 64 >> 2]));
+			HEAPF[output17 + ((i | 0) << 2) >> 2] = +(+(fSlow16));
+			HEAPF[output18 + ((i | 0) << 2) >> 2] = +(+(fSlow17));
+			HEAPF[output19 + ((i | 0) << 2) >> 2] = +(+(fSlow18));
+			HEAPF[output20 + ((i | 0) << 2) >> 2] = +(+(fSlow19));
+			HEAPF[dsp + 84 >> 2] = +(+(+(HEAPF[input1 + ((i | 0) << 2) >> 2])));
+			HEAPF[output21 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 84 >> 2]));
+			HEAPF[output22 + ((i | 0) << 2) >> 2] = +(+(fSlow20));
+			HEAPF[output23 + ((i | 0) << 2) >> 2] = +(+(fSlow21));
+			HEAPF[output24 + ((i | 0) << 2) >> 2] = +(+(fSlow22));
+			HEAPF[output25 + ((i | 0) << 2) >> 2] = +(+(fSlow23));
+			HEAPF[dsp + 104 >> 2] = +(+(+(HEAPF[input2 + ((i | 0) << 2) >> 2])));
+			HEAPF[output26 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 104 >> 2]));
+			HEAPF[dsp + 108 >> 2] = +(+(+(HEAPF[input3 + ((i | 0) << 2) >> 2])));
+			HEAPF[output27 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 108 >> 2]));
+			HEAPF[output28 + ((i | 0) << 2) >> 2] = +(+(fSlow24));
+			HEAPF[output29 + ((i | 0) << 2) >> 2] = +(+(fSlow25));
+			HEAPF[output30 + ((i | 0) << 2) >> 2] = +(+(fSlow26));
+			HEAPF[output31 + ((i | 0) << 2) >> 2] = +(+(fSlow27));
+			HEAPF[dsp + 128 >> 2] = +(+(+(HEAPF[input4 + ((i | 0) << 2) >> 2])));
+			HEAPF[output32 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 128 >> 2]));
+			HEAPF[dsp + 132 >> 2] = +(+(+(HEAPF[input5 + ((i | 0) << 2) >> 2])));
+			HEAPF[output33 + ((i | 0) << 2) >> 2] = +(+(HEAPF[dsp + 132 >> 2]));
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 140;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/grp_1/vmisc/button"] = 40;
+	pathTable["/grp_1/hmisc/button"] = 116;
+	pathTable["/grp_1/vbox/check1"] = 0;
+	pathTable["/grp_1/vbox/check2"] = 4;
+	pathTable["/grp_1/vbox/knob0"] = 8;
+	pathTable["/grp_1/vmisc/small_box_1/num1"] = 60;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_2/num2"] = 80;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_3/num3"] = 100;
+	pathTable["/grp_1/hmisc/num"] = 124;
+	pathTable["/grp_1/vmisc/hbar"] = 108;
+	pathTable["/grp_1/hmisc/hbar"] = 132;
+	pathTable["/grp_1/vmisc/hslider"] = 44;
+	pathTable["/grp_1/hmisc/hslider"] = 120;
+	pathTable["/grp_1/vmisc/small_box_1/vbar1"] = 64;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_2/vbar2"] = 84;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_3/vbar3"] = 104;
+	pathTable["/grp_1/hmisc/vbar"] = 128;
+	pathTable["/grp_1/sliders/vslider1"] = 12;
+	pathTable["/grp_1/sliders/vslider2"] = 16;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_2/vslider7"] = 68;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_2/vslider8"] = 72;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_2/knob5"] = 76;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_3/vslider9"] = 88;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_3/vslider10"] = 92;
+	pathTable["/grp_1/vmisc/sub_box_1/small_box_3/knob6"] = 96;
+	pathTable["/grp_1/hmisc/vslider4"] = 112;
+	pathTable["/grp_1/sliders/vslider3"] = 20;
+	pathTable["/grp_1/knobs/knob1"] = 24;
+	pathTable["/grp_1/knobs/knob2"] = 28;
+	pathTable["/grp_1/knobs/knob3"] = 32;
+	pathTable["/grp_1/vmisc/vslider4"] = 36;
+	pathTable["/grp_1/vmisc/small_box_1/vslider5"] = 48;
+	pathTable["/grp_1/vmisc/small_box_1/vslider6"] = 52;
+	pathTable["/grp_1/vmisc/small_box_1/knob4"] = 56;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"UITester\",\"inputs\":\"6\",\"outputs\":\"34\",\"meta\":[{\"author\":\"O. Guillerminet\"},{\"copyright\":\"(c) O. Guillerminet 2012\"},{\"license\":\"BSD\"},{\"name\":\"UITester\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"tgroup\",\"label\":\"grp 1\",\"items\":[{\"type\":\"hgroup\",\"label\":\"hmisc\",\"items\":[{\"type\":\"button\",\"label\":\"button\",\"address\":\"/grp_1/hmisc/button\"},{\"type\":\"hbargraph\",\"label\":\"hbar\",\"address\":\"/grp_1/hmisc/hbar\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"hslider\",\"label\":\"hslider\",\"address\":\"/grp_1/hmisc/hslider\",\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"num\",\"address\":\"/grp_1/hmisc/num\",\"meta\":[{\"unit\":\"f\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vbargraph\",\"label\":\"vbar\",\"address\":\"/grp_1/hmisc/vbar\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"vslider\",\"label\":\"vslider4\",\"address\":\"/grp_1/hmisc/vslider4\",\"meta\":[{\"unit\":\"f\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"knobs\",\"items\":[{\"type\":\"vslider\",\"label\":\"knob1\",\"address\":\"/grp_1/knobs/knob1\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"knob2\",\"address\":\"/grp_1/knobs/knob2\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"knob3\",\"address\":\"/grp_1/knobs/knob3\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"sliders\",\"items\":[{\"type\":\"vslider\",\"label\":\"vslider1\",\"address\":\"/grp_1/sliders/vslider1\",\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"vslider2\",\"address\":\"/grp_1/sliders/vslider2\",\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"vslider3\",\"address\":\"/grp_1/sliders/vslider3\",\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"vbox\",\"items\":[{\"type\":\"checkbox\",\"label\":\"check1\",\"address\":\"/grp_1/vbox/check1\"},{\"type\":\"checkbox\",\"label\":\"check2\",\"address\":\"/grp_1/vbox/check2\"},{\"type\":\"nentry\",\"label\":\"knob0\",\"address\":\"/grp_1/vbox/knob0\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"vmisc\",\"items\":[{\"type\":\"button\",\"label\":\"button\",\"address\":\"/grp_1/vmisc/button\"},{\"type\":\"hbargraph\",\"label\":\"hbar\",\"address\":\"/grp_1/vmisc/hbar\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"hslider\",\"label\":\"hslider\",\"address\":\"/grp_1/vmisc/hslider\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"hgroup\",\"label\":\"small box 1\",\"items\":[{\"type\":\"vslider\",\"label\":\"knob4\",\"address\":\"/grp_1/vmisc/small_box_1/knob4\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"num1\",\"address\":\"/grp_1/vmisc/small_box_1/num1\",\"meta\":[{\"unit\":\"f\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vbargraph\",\"label\":\"vbar1\",\"address\":\"/grp_1/vmisc/small_box_1/vbar1\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"vslider\",\"label\":\"vslider5\",\"address\":\"/grp_1/vmisc/small_box_1/vslider5\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"vslider6\",\"address\":\"/grp_1/vmisc/small_box_1/vslider6\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"sub box 1\",\"items\":[{\"type\":\"hgroup\",\"label\":\"small box 2\",\"items\":[{\"type\":\"vslider\",\"label\":\"knob5\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_2/knob5\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"num2\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_2/num2\",\"meta\":[{\"unit\":\"f\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vbargraph\",\"label\":\"vbar2\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_2/vbar2\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"vslider\",\"label\":\"vslider7\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_2/vslider7\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"vslider8\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_2/vslider8\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"small box 3\",\"items\":[{\"type\":\"vslider\",\"label\":\"knob6\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_3/knob6\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"num3\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_3/num3\",\"meta\":[{\"unit\":\"f\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vbargraph\",\"label\":\"vbar3\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_3/vbar3\",\"min\":\"0\",\"max\":\"127\"},{\"type\":\"vslider\",\"label\":\"vslider10\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_3/vslider10\",\"meta\":[{\"unit\":\"m\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"vslider9\",\"address\":\"/grp_1/vmisc/sub_box_1/small_box_3/vslider9\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]}]},{\"type\":\"vslider\",\"label\":\"vslider4\",\"address\":\"/grp_1/vmisc/vslider4\",\"meta\":[{\"unit\":\"Hz\"}],\"init\":\"60\",\"min\":\"0\",\"max\":\"127\",\"step\":\"0.1\"}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "O. Guillerminet");
+	m.declare("copyright", "(c) O. Guillerminet 2012");
+	m.declare("license", "BSD");
+	m.declare("name", "UITester");
+	m.declare("version", "1.0");
+}
+

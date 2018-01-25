@@ -1,0 +1,226 @@
+/* ------------------------------------------------------------
+name: "test11"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: c, -scal -ftz 0
+------------------------------------------------------------ */
+
+#ifndef  __mydsp_H__
+#define  __mydsp_H__
+
+
+typedef struct Soundfile Soundfile;
+
+#include "gui/CInterface.h"
+
+#ifndef max
+// define min and max (the result doesn't matter)
+#define max(a,b) (a)
+#define min(a,b) (b)
+#endif
+
+#ifndef FAUSTFLOAT
+#define FAUSTFLOAT float
+#endif 
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <math.h>
+#include <stdlib.h>
+
+
+#ifndef FAUSTCLASS 
+#define FAUSTCLASS mydsp
+#endif
+#ifdef __APPLE__ 
+#define exp10f __exp10f
+#define exp10 __exp10
+#endif
+
+typedef struct {
+	
+	int IOTA;
+	float fVec0[32];
+	float fRec0[2];
+	float fVec1[32];
+	float fRec1[2];
+	int fSamplingFreq;
+	
+} mydsp;
+
+mydsp* newmydsp() { 
+	mydsp* dsp = (mydsp*)malloc(sizeof(mydsp));
+	return dsp;
+}
+
+void deletemydsp(mydsp* dsp) { 
+	free(dsp);
+}
+
+void metadatamydsp(MetaGlue* m) { 
+	m->declare(m->metaInterface, "math.lib/author", "GRAME");
+	m->declare(m->metaInterface, "math.lib/copyright", "GRAME");
+	m->declare(m->metaInterface, "math.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+	m->declare(m->metaInterface, "math.lib/license", "LGPL with exception");
+	m->declare(m->metaInterface, "math.lib/name", "Math Library");
+	m->declare(m->metaInterface, "math.lib/version", "1.0");
+	m->declare(m->metaInterface, "music.lib/author", "GRAME");
+	m->declare(m->metaInterface, "music.lib/copyright", "GRAME");
+	m->declare(m->metaInterface, "music.lib/deprecated", "This library is deprecated and is not maintained anymore. It will be removed in August 2017.");
+	m->declare(m->metaInterface, "music.lib/license", "LGPL with exception");
+	m->declare(m->metaInterface, "music.lib/name", "Music Library");
+	m->declare(m->metaInterface, "music.lib/version", "1.0");
+	m->declare(m->metaInterface, "name", "test11");
+}
+
+int getSampleRatemydsp(mydsp* dsp) { return dsp->fSamplingFreq; }
+
+int getNumInputsmydsp(mydsp* dsp) {
+	return 1;
+	
+}
+int getNumOutputsmydsp(mydsp* dsp) {
+	return 2;
+	
+}
+int getInputRatemydsp(mydsp* dsp, int channel) {
+	int rate;
+	switch (channel) {
+		case 0: {
+			rate = 1;
+			break;
+		}
+		default: {
+			rate = -1;
+			break;
+		}
+		
+	}
+	return rate;
+	
+}
+int getOutputRatemydsp(mydsp* dsp, int channel) {
+	int rate;
+	switch (channel) {
+		case 0: {
+			rate = 1;
+			break;
+		}
+		case 1: {
+			rate = 1;
+			break;
+		}
+		default: {
+			rate = -1;
+			break;
+		}
+		
+	}
+	return rate;
+	
+}
+
+void classInitmydsp(int samplingFreq) {
+	
+}
+
+void instanceResetUserInterfacemydsp(mydsp* dsp) {
+	
+}
+
+void instanceClearmydsp(mydsp* dsp) {
+	dsp->IOTA = 0;
+	/* C99 loop */
+	{
+		int l0;
+		for (l0 = 0; (l0 < 32); l0 = (l0 + 1)) {
+			dsp->fVec0[l0] = 0.0f;
+			
+		}
+		
+	}
+	/* C99 loop */
+	{
+		int l1;
+		for (l1 = 0; (l1 < 2); l1 = (l1 + 1)) {
+			dsp->fRec0[l1] = 0.0f;
+			
+		}
+		
+	}
+	/* C99 loop */
+	{
+		int l2;
+		for (l2 = 0; (l2 < 32); l2 = (l2 + 1)) {
+			dsp->fVec1[l2] = 0.0f;
+			
+		}
+		
+	}
+	/* C99 loop */
+	{
+		int l3;
+		for (l3 = 0; (l3 < 2); l3 = (l3 + 1)) {
+			dsp->fRec1[l3] = 0.0f;
+			
+		}
+		
+	}
+	
+}
+
+void instanceConstantsmydsp(mydsp* dsp, int samplingFreq) {
+	dsp->fSamplingFreq = samplingFreq;
+	
+}
+
+void instanceInitmydsp(mydsp* dsp, int samplingFreq) {
+	instanceConstantsmydsp(dsp, samplingFreq);
+	instanceResetUserInterfacemydsp(dsp);
+	instanceClearmydsp(dsp);
+}
+
+void initmydsp(mydsp* dsp, int samplingFreq) {
+	classInitmydsp(samplingFreq);
+	instanceInitmydsp(dsp, samplingFreq);
+}
+
+void buildUserInterfacemydsp(mydsp* dsp, UIGlue* ui_interface) {
+	ui_interface->openVerticalBox(ui_interface->uiInterface, "test11");
+	ui_interface->closeBox(ui_interface->uiInterface);
+	
+}
+
+void computemydsp(mydsp* dsp, int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
+	FAUSTFLOAT* input0 = inputs[0];
+	FAUSTFLOAT* output0 = outputs[0];
+	FAUSTFLOAT* output1 = outputs[1];
+	/* C99 loop */
+	{
+		int i;
+		for (i = 0; (i < count); i = (i + 1)) {
+			float fTemp0 = (float)input0[i];
+			dsp->fVec0[(dsp->IOTA & 31)] = (fTemp0 + dsp->fRec0[1]);
+			dsp->fRec0[0] = dsp->fVec0[((dsp->IOTA - 30) & 31)];
+			output0[i] = (FAUSTFLOAT)dsp->fRec0[0];
+			dsp->fVec1[(dsp->IOTA & 31)] = (fTemp0 + dsp->fRec1[1]);
+			dsp->fRec1[0] = dsp->fVec1[((dsp->IOTA - 20) & 31)];
+			output1[i] = (FAUSTFLOAT)dsp->fRec1[0];
+			dsp->IOTA = (dsp->IOTA + 1);
+			dsp->fRec0[1] = dsp->fRec0[0];
+			dsp->fRec1[1] = dsp->fRec1[0];
+			
+		}
+		
+	}
+	
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
+#endif

@@ -1,0 +1,492 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "multibandFilter"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var tanf = foreign.tan;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 0 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 4 >> 2] = +(3.14159274 / +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 0 >> 2] | 0)))))));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 8 >> 2] = 10000.;
+		HEAPF[dsp + 12 >> 2] = 0.;
+		HEAPF[dsp + 16 >> 2] = 50.;
+		HEAPF[dsp + 20 >> 2] = 9000.;
+		HEAPF[dsp + 24 >> 2] = 0.;
+		HEAPF[dsp + 28 >> 2] = 50.;
+		HEAPF[dsp + 32 >> 2] = 8000.;
+		HEAPF[dsp + 36 >> 2] = 0.;
+		HEAPF[dsp + 40 >> 2] = 50.;
+		HEAPF[dsp + 44 >> 2] = 7000.;
+		HEAPF[dsp + 48 >> 2] = 0.;
+		HEAPF[dsp + 52 >> 2] = 50.;
+		HEAPF[dsp + 56 >> 2] = 6000.;
+		HEAPF[dsp + 60 >> 2] = 0.;
+		HEAPF[dsp + 64 >> 2] = 50.;
+		HEAPF[dsp + 68 >> 2] = 5000.;
+		HEAPF[dsp + 72 >> 2] = 0.;
+		HEAPF[dsp + 76 >> 2] = 50.;
+		HEAPF[dsp + 80 >> 2] = 4000.;
+		HEAPF[dsp + 84 >> 2] = 0.;
+		HEAPF[dsp + 88 >> 2] = 50.;
+		HEAPF[dsp + 92 >> 2] = 3000.;
+		HEAPF[dsp + 96 >> 2] = 0.;
+		HEAPF[dsp + 100 >> 2] = 50.;
+		HEAPF[dsp + 104 >> 2] = 2000.;
+		HEAPF[dsp + 108 >> 2] = 0.;
+		HEAPF[dsp + 112 >> 2] = 50.;
+		HEAPF[dsp + 116 >> 2] = 1000.;
+		HEAPF[dsp + 120 >> 2] = 0.;
+		HEAPF[dsp + 124 >> 2] = 50.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		var l7 = 0;
+		var l8 = 0;
+		var l9 = 0;
+		for (l0 = 0; (((l0 | 0) < 3) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 128 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 3) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 140 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 3) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 152 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 3) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 164 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 3) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 176 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 3) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 188 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l6 = 0; (((l6 | 0) < 3) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 200 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l7 = 0; (((l7 | 0) < 3) | 0); l7 = (((l7 | 0) + 1) | 0)) {
+			HEAPF[dsp + 212 + ((l7 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l8 = 0; (((l8 | 0) < 3) | 0); l8 = (((l8 | 0) + 1) | 0)) {
+			HEAPF[dsp + 224 + ((l8 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l9 = 0; (((l9 | 0) < 3) | 0); l9 = (((l9 | 0) + 1) | 0)) {
+			HEAPF[dsp + 236 + ((l9 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 0 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var fSlow11 = 0.;
+		var fSlow12 = 0.;
+		var fSlow13 = 0.;
+		var fSlow14 = 0.;
+		var fSlow15 = 0.;
+		var fSlow16 = 0.;
+		var fSlow17 = 0.;
+		var fSlow18 = 0.;
+		var fSlow19 = 0.;
+		var fSlow20 = 0.;
+		var fSlow21 = 0.;
+		var fSlow22 = 0.;
+		var fSlow23 = 0.;
+		var fSlow24 = 0.;
+		var fSlow25 = 0.;
+		var fSlow26 = 0.;
+		var fSlow27 = 0.;
+		var fSlow28 = 0.;
+		var fSlow29 = 0.;
+		var fSlow30 = 0.;
+		var fSlow31 = 0.;
+		var fSlow32 = 0.;
+		var fSlow33 = 0.;
+		var fSlow34 = 0.;
+		var fSlow35 = 0.;
+		var fSlow36 = 0.;
+		var fSlow37 = 0.;
+		var fSlow38 = 0.;
+		var fSlow39 = 0.;
+		var fSlow40 = 0.;
+		var fSlow41 = 0.;
+		var fSlow42 = 0.;
+		var fSlow43 = 0.;
+		var fSlow44 = 0.;
+		var fSlow45 = 0.;
+		var fSlow46 = 0.;
+		var fSlow47 = 0.;
+		var fSlow48 = 0.;
+		var fSlow49 = 0.;
+		var fSlow50 = 0.;
+		var fSlow51 = 0.;
+		var fSlow52 = 0.;
+		var fSlow53 = 0.;
+		var fSlow54 = 0.;
+		var fSlow55 = 0.;
+		var fSlow56 = 0.;
+		var fSlow57 = 0.;
+		var fSlow58 = 0.;
+		var fSlow59 = 0.;
+		var fSlow60 = 0.;
+		var fSlow61 = 0.;
+		var fSlow62 = 0.;
+		var fSlow63 = 0.;
+		var fSlow64 = 0.;
+		var fSlow65 = 0.;
+		var fSlow66 = 0.;
+		var fSlow67 = 0.;
+		var fSlow68 = 0.;
+		var fSlow69 = 0.;
+		var fSlow70 = 0.;
+		var fSlow71 = 0.;
+		var fSlow72 = 0.;
+		var fSlow73 = 0.;
+		var fSlow74 = 0.;
+		var fSlow75 = 0.;
+		var fSlow76 = 0.;
+		var fSlow77 = 0.;
+		var fSlow78 = 0.;
+		var fSlow79 = 0.;
+		var fSlow80 = 0.;
+		var fSlow81 = 0.;
+		var fSlow82 = 0.;
+		var fSlow83 = 0.;
+		var fSlow84 = 0.;
+		var fSlow85 = 0.;
+		var fSlow86 = 0.;
+		var fSlow87 = 0.;
+		var fSlow88 = 0.;
+		var fSlow89 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var fTemp4 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		fSlow0 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 8 >> 2])))));
+		fSlow1 = +(+(HEAPF[dsp + 16 >> 2]));
+		fSlow2 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 12 >> 2])))))) / +(fSlow1));
+		fSlow3 = +(1. / +(+(+(fSlow0) * +(+(fSlow0) + +(fSlow2))) + 1.));
+		fSlow4 = +(2. * +(+(powf(+(fSlow0), 2.)) + -1.));
+		fSlow5 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 20 >> 2])))));
+		fSlow6 = +(+(HEAPF[dsp + 28 >> 2]));
+		fSlow7 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 24 >> 2])))))) / +(fSlow6));
+		fSlow8 = +(1. / +(+(+(fSlow5) * +(+(fSlow5) + +(fSlow7))) + 1.));
+		fSlow9 = +(2. * +(+(powf(+(fSlow5), 2.)) + -1.));
+		fSlow10 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 32 >> 2])))));
+		fSlow11 = +(+(HEAPF[dsp + 40 >> 2]));
+		fSlow12 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 36 >> 2])))))) / +(fSlow11));
+		fSlow13 = +(1. / +(+(+(fSlow10) * +(+(fSlow10) + +(fSlow12))) + 1.));
+		fSlow14 = +(2. * +(+(powf(+(fSlow10), 2.)) + -1.));
+		fSlow15 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 44 >> 2])))));
+		fSlow16 = +(+(HEAPF[dsp + 52 >> 2]));
+		fSlow17 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 48 >> 2])))))) / +(fSlow16));
+		fSlow18 = +(1. / +(+(+(fSlow15) * +(+(fSlow15) + +(fSlow17))) + 1.));
+		fSlow19 = +(2. * +(+(powf(+(fSlow15), 2.)) + -1.));
+		fSlow20 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 56 >> 2])))));
+		fSlow21 = +(+(HEAPF[dsp + 64 >> 2]));
+		fSlow22 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 60 >> 2])))))) / +(fSlow21));
+		fSlow23 = +(1. / +(+(+(fSlow20) * +(+(fSlow20) + +(fSlow22))) + 1.));
+		fSlow24 = +(2. * +(+(powf(+(fSlow20), 2.)) + -1.));
+		fSlow25 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 68 >> 2])))));
+		fSlow26 = +(+(HEAPF[dsp + 76 >> 2]));
+		fSlow27 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 72 >> 2])))))) / +(fSlow26));
+		fSlow28 = +(1. / +(+(+(fSlow25) * +(+(fSlow25) + +(fSlow27))) + 1.));
+		fSlow29 = +(2. * +(+(powf(+(fSlow25), 2.)) + -1.));
+		fSlow30 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 80 >> 2])))));
+		fSlow31 = +(+(HEAPF[dsp + 88 >> 2]));
+		fSlow32 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 84 >> 2])))))) / +(fSlow31));
+		fSlow33 = +(1. / +(+(+(fSlow30) * +(+(fSlow30) + +(fSlow32))) + 1.));
+		fSlow34 = +(2. * +(+(powf(+(fSlow30), 2.)) + -1.));
+		fSlow35 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 92 >> 2])))));
+		fSlow36 = +(+(HEAPF[dsp + 100 >> 2]));
+		fSlow37 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 96 >> 2])))))) / +(fSlow36));
+		fSlow38 = +(1. / +(+(+(fSlow35) * +(+(fSlow35) + +(fSlow37))) + 1.));
+		fSlow39 = +(2. * +(+(powf(+(fSlow35), 2.)) + -1.));
+		fSlow40 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 104 >> 2])))));
+		fSlow41 = +(+(HEAPF[dsp + 112 >> 2]));
+		fSlow42 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 108 >> 2])))))) / +(fSlow41));
+		fSlow43 = +(1. / +(+(+(fSlow40) * +(+(fSlow40) + +(fSlow42))) + 1.));
+		fSlow44 = +(2. * +(+(powf(+(fSlow40), 2.)) + -1.));
+		fSlow45 = +(tanf(+(+(HEAPF[dsp + 4 >> 2]) * +(+(HEAPF[dsp + 116 >> 2])))));
+		fSlow46 = +(+(HEAPF[dsp + 124 >> 2]));
+		fSlow47 = +(+(powf(10., +(0.0500000007 * +(0. - +(+(HEAPF[dsp + 120 >> 2])))))) / +(fSlow46));
+		fSlow48 = +(1. / +(+(+(fSlow45) * +(+(fSlow45) + +(fSlow47))) + 1.));
+		fSlow49 = +(2. * +(+(powf(+(fSlow45), 2.)) + -1.));
+		fSlow50 = +(+(+(fSlow45) * +(+(fSlow45) - +(fSlow47))) + 1.);
+		fSlow51 = +(1. / +(fSlow46));
+		fSlow52 = +(+(+(fSlow45) * +(+(fSlow45) + +(fSlow51))) + 1.);
+		fSlow53 = +(1. - +(+(fSlow45) * +(+(fSlow51) - +(fSlow45))));
+		fSlow54 = +(+(+(fSlow40) * +(+(fSlow40) - +(fSlow42))) + 1.);
+		fSlow55 = +(1. / +(fSlow41));
+		fSlow56 = +(+(+(fSlow40) * +(+(fSlow40) + +(fSlow55))) + 1.);
+		fSlow57 = +(1. - +(+(fSlow40) * +(+(fSlow55) - +(fSlow40))));
+		fSlow58 = +(+(+(fSlow35) * +(+(fSlow35) - +(fSlow37))) + 1.);
+		fSlow59 = +(1. / +(fSlow36));
+		fSlow60 = +(+(+(fSlow35) * +(+(fSlow35) + +(fSlow59))) + 1.);
+		fSlow61 = +(1. - +(+(fSlow35) * +(+(fSlow59) - +(fSlow35))));
+		fSlow62 = +(+(+(fSlow30) * +(+(fSlow30) - +(fSlow32))) + 1.);
+		fSlow63 = +(1. / +(fSlow31));
+		fSlow64 = +(+(+(fSlow30) * +(+(fSlow30) + +(fSlow63))) + 1.);
+		fSlow65 = +(1. - +(+(fSlow30) * +(+(fSlow63) - +(fSlow30))));
+		fSlow66 = +(+(+(fSlow25) * +(+(fSlow25) - +(fSlow27))) + 1.);
+		fSlow67 = +(1. / +(fSlow26));
+		fSlow68 = +(+(+(fSlow25) * +(+(fSlow25) + +(fSlow67))) + 1.);
+		fSlow69 = +(1. - +(+(fSlow25) * +(+(fSlow67) - +(fSlow25))));
+		fSlow70 = +(+(+(fSlow20) * +(+(fSlow20) - +(fSlow22))) + 1.);
+		fSlow71 = +(1. / +(fSlow21));
+		fSlow72 = +(+(+(fSlow20) * +(+(fSlow20) + +(fSlow71))) + 1.);
+		fSlow73 = +(1. - +(+(fSlow20) * +(+(fSlow71) - +(fSlow20))));
+		fSlow74 = +(+(+(fSlow15) * +(+(fSlow15) - +(fSlow17))) + 1.);
+		fSlow75 = +(1. / +(fSlow16));
+		fSlow76 = +(+(+(fSlow15) * +(+(fSlow15) + +(fSlow75))) + 1.);
+		fSlow77 = +(1. - +(+(fSlow15) * +(+(fSlow75) - +(fSlow15))));
+		fSlow78 = +(+(+(fSlow10) * +(+(fSlow10) - +(fSlow12))) + 1.);
+		fSlow79 = +(1. / +(fSlow11));
+		fSlow80 = +(+(+(fSlow10) * +(+(fSlow10) + +(fSlow79))) + 1.);
+		fSlow81 = +(1. - +(+(fSlow10) * +(+(fSlow79) - +(fSlow10))));
+		fSlow82 = +(+(+(fSlow5) * +(+(fSlow5) - +(fSlow7))) + 1.);
+		fSlow83 = +(1. / +(fSlow6));
+		fSlow84 = +(+(+(fSlow5) * +(+(fSlow5) + +(fSlow83))) + 1.);
+		fSlow85 = +(1. - +(+(fSlow5) * +(+(fSlow83) - +(fSlow5))));
+		fSlow86 = +(+(+(fSlow0) * +(+(fSlow0) - +(fSlow2))) + 1.);
+		fSlow87 = +(1. / +(fSlow1));
+		fSlow88 = +(+(+(fSlow0) * +(+(fSlow0) + +(fSlow87))) + 1.);
+		fSlow89 = +(1. - +(+(fSlow0) * +(+(fSlow87) - +(fSlow0))));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(fSlow49) * +(HEAPF[dsp + 128 + (1 << 2) >> 2]));
+			HEAPF[dsp + 128 + (0 << 2) >> 2] = +(+(+(HEAPF[input0 + ((i | 0) << 2) >> 2])) - +(+(fSlow48) * +(+(+(fSlow50) * +(HEAPF[dsp + 128 + (2 << 2) >> 2])) + +(fTemp0))));
+			fTemp1 = +(+(fSlow44) * +(HEAPF[dsp + 140 + (1 << 2) >> 2]));
+			HEAPF[dsp + 140 + (0 << 2) >> 2] = +(+(+(fSlow48) * +(+(+(fTemp0) + +(+(fSlow52) * +(HEAPF[dsp + 128 + (0 << 2) >> 2]))) + +(+(fSlow53) * +(HEAPF[dsp + 128 + (2 << 2) >> 2])))) - +(+(fSlow43) * +(+(+(fSlow54) * +(HEAPF[dsp + 140 + (2 << 2) >> 2])) + +(fTemp1))));
+			fTemp2 = +(+(fSlow39) * +(HEAPF[dsp + 152 + (1 << 2) >> 2]));
+			HEAPF[dsp + 152 + (0 << 2) >> 2] = +(+(+(fSlow43) * +(+(+(fTemp1) + +(+(fSlow56) * +(HEAPF[dsp + 140 + (0 << 2) >> 2]))) + +(+(fSlow57) * +(HEAPF[dsp + 140 + (2 << 2) >> 2])))) - +(+(fSlow38) * +(+(+(fSlow58) * +(HEAPF[dsp + 152 + (2 << 2) >> 2])) + +(fTemp2))));
+			fTemp3 = +(+(fSlow34) * +(HEAPF[dsp + 164 + (1 << 2) >> 2]));
+			HEAPF[dsp + 164 + (0 << 2) >> 2] = +(+(+(fSlow38) * +(+(+(fTemp2) + +(+(fSlow60) * +(HEAPF[dsp + 152 + (0 << 2) >> 2]))) + +(+(fSlow61) * +(HEAPF[dsp + 152 + (2 << 2) >> 2])))) - +(+(fSlow33) * +(+(+(fSlow62) * +(HEAPF[dsp + 164 + (2 << 2) >> 2])) + +(fTemp3))));
+			fTemp4 = +(+(fSlow29) * +(HEAPF[dsp + 176 + (1 << 2) >> 2]));
+			HEAPF[dsp + 176 + (0 << 2) >> 2] = +(+(+(fSlow33) * +(+(+(fTemp3) + +(+(fSlow64) * +(HEAPF[dsp + 164 + (0 << 2) >> 2]))) + +(+(fSlow65) * +(HEAPF[dsp + 164 + (2 << 2) >> 2])))) - +(+(fSlow28) * +(+(+(fSlow66) * +(HEAPF[dsp + 176 + (2 << 2) >> 2])) + +(fTemp4))));
+			fTemp5 = +(+(fSlow24) * +(HEAPF[dsp + 188 + (1 << 2) >> 2]));
+			HEAPF[dsp + 188 + (0 << 2) >> 2] = +(+(+(fSlow28) * +(+(+(fTemp4) + +(+(fSlow68) * +(HEAPF[dsp + 176 + (0 << 2) >> 2]))) + +(+(fSlow69) * +(HEAPF[dsp + 176 + (2 << 2) >> 2])))) - +(+(fSlow23) * +(+(+(fSlow70) * +(HEAPF[dsp + 188 + (2 << 2) >> 2])) + +(fTemp5))));
+			fTemp6 = +(+(fSlow19) * +(HEAPF[dsp + 200 + (1 << 2) >> 2]));
+			HEAPF[dsp + 200 + (0 << 2) >> 2] = +(+(+(fSlow23) * +(+(+(fTemp5) + +(+(fSlow72) * +(HEAPF[dsp + 188 + (0 << 2) >> 2]))) + +(+(fSlow73) * +(HEAPF[dsp + 188 + (2 << 2) >> 2])))) - +(+(fSlow18) * +(+(+(fSlow74) * +(HEAPF[dsp + 200 + (2 << 2) >> 2])) + +(fTemp6))));
+			fTemp7 = +(+(fSlow14) * +(HEAPF[dsp + 212 + (1 << 2) >> 2]));
+			HEAPF[dsp + 212 + (0 << 2) >> 2] = +(+(+(fSlow18) * +(+(+(fTemp6) + +(+(fSlow76) * +(HEAPF[dsp + 200 + (0 << 2) >> 2]))) + +(+(fSlow77) * +(HEAPF[dsp + 200 + (2 << 2) >> 2])))) - +(+(fSlow13) * +(+(+(fSlow78) * +(HEAPF[dsp + 212 + (2 << 2) >> 2])) + +(fTemp7))));
+			fTemp8 = +(+(fSlow9) * +(HEAPF[dsp + 224 + (1 << 2) >> 2]));
+			HEAPF[dsp + 224 + (0 << 2) >> 2] = +(+(+(fSlow13) * +(+(+(fTemp7) + +(+(fSlow80) * +(HEAPF[dsp + 212 + (0 << 2) >> 2]))) + +(+(fSlow81) * +(HEAPF[dsp + 212 + (2 << 2) >> 2])))) - +(+(fSlow8) * +(+(+(fSlow82) * +(HEAPF[dsp + 224 + (2 << 2) >> 2])) + +(fTemp8))));
+			fTemp9 = +(+(fSlow4) * +(HEAPF[dsp + 236 + (1 << 2) >> 2]));
+			HEAPF[dsp + 236 + (0 << 2) >> 2] = +(+(+(fSlow8) * +(+(+(fTemp8) + +(+(fSlow84) * +(HEAPF[dsp + 224 + (0 << 2) >> 2]))) + +(+(fSlow85) * +(HEAPF[dsp + 224 + (2 << 2) >> 2])))) - +(+(fSlow3) * +(+(+(fSlow86) * +(HEAPF[dsp + 236 + (2 << 2) >> 2])) + +(fTemp9))));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(fSlow3) * +(+(+(fTemp9) + +(+(fSlow88) * +(HEAPF[dsp + 236 + (0 << 2) >> 2]))) + +(+(fSlow89) * +(HEAPF[dsp + 236 + (2 << 2) >> 2])))));
+			HEAPF[dsp + 128 + (2 << 2) >> 2] = +(HEAPF[dsp + 128 + (1 << 2) >> 2]);
+			HEAPF[dsp + 128 + (1 << 2) >> 2] = +(HEAPF[dsp + 128 + (0 << 2) >> 2]);
+			HEAPF[dsp + 140 + (2 << 2) >> 2] = +(HEAPF[dsp + 140 + (1 << 2) >> 2]);
+			HEAPF[dsp + 140 + (1 << 2) >> 2] = +(HEAPF[dsp + 140 + (0 << 2) >> 2]);
+			HEAPF[dsp + 152 + (2 << 2) >> 2] = +(HEAPF[dsp + 152 + (1 << 2) >> 2]);
+			HEAPF[dsp + 152 + (1 << 2) >> 2] = +(HEAPF[dsp + 152 + (0 << 2) >> 2]);
+			HEAPF[dsp + 164 + (2 << 2) >> 2] = +(HEAPF[dsp + 164 + (1 << 2) >> 2]);
+			HEAPF[dsp + 164 + (1 << 2) >> 2] = +(HEAPF[dsp + 164 + (0 << 2) >> 2]);
+			HEAPF[dsp + 176 + (2 << 2) >> 2] = +(HEAPF[dsp + 176 + (1 << 2) >> 2]);
+			HEAPF[dsp + 176 + (1 << 2) >> 2] = +(HEAPF[dsp + 176 + (0 << 2) >> 2]);
+			HEAPF[dsp + 188 + (2 << 2) >> 2] = +(HEAPF[dsp + 188 + (1 << 2) >> 2]);
+			HEAPF[dsp + 188 + (1 << 2) >> 2] = +(HEAPF[dsp + 188 + (0 << 2) >> 2]);
+			HEAPF[dsp + 200 + (2 << 2) >> 2] = +(HEAPF[dsp + 200 + (1 << 2) >> 2]);
+			HEAPF[dsp + 200 + (1 << 2) >> 2] = +(HEAPF[dsp + 200 + (0 << 2) >> 2]);
+			HEAPF[dsp + 212 + (2 << 2) >> 2] = +(HEAPF[dsp + 212 + (1 << 2) >> 2]);
+			HEAPF[dsp + 212 + (1 << 2) >> 2] = +(HEAPF[dsp + 212 + (0 << 2) >> 2]);
+			HEAPF[dsp + 224 + (2 << 2) >> 2] = +(HEAPF[dsp + 224 + (1 << 2) >> 2]);
+			HEAPF[dsp + 224 + (1 << 2) >> 2] = +(HEAPF[dsp + 224 + (0 << 2) >> 2]);
+			HEAPF[dsp + 236 + (2 << 2) >> 2] = +(HEAPF[dsp + 236 + (1 << 2) >> 2]);
+			HEAPF[dsp + 236 + (1 << 2) >> 2] = +(HEAPF[dsp + 236 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 248;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/Multi_Band_Filter/peak_9/freq"] = 8;
+	pathTable["/Multi_Band_Filter/peak_9/Q_factor"] = 16;
+	pathTable["/Multi_Band_Filter/peak_4/freq"] = 68;
+	pathTable["/Multi_Band_Filter/peak_4/Q_factor"] = 76;
+	pathTable["/Multi_Band_Filter/peak_3/freq"] = 80;
+	pathTable["/Multi_Band_Filter/peak_3/Q_factor"] = 88;
+	pathTable["/Multi_Band_Filter/peak_2/freq"] = 92;
+	pathTable["/Multi_Band_Filter/peak_2/Q_factor"] = 100;
+	pathTable["/Multi_Band_Filter/peak_1/freq"] = 104;
+	pathTable["/Multi_Band_Filter/peak_1/Q_factor"] = 112;
+	pathTable["/Multi_Band_Filter/peak_0/freq"] = 116;
+	pathTable["/Multi_Band_Filter/peak_0/Q_factor"] = 124;
+	pathTable["/Multi_Band_Filter/peak_8/freq"] = 20;
+	pathTable["/Multi_Band_Filter/peak_8/Q_factor"] = 28;
+	pathTable["/Multi_Band_Filter/peak_7/freq"] = 32;
+	pathTable["/Multi_Band_Filter/peak_7/Q_factor"] = 40;
+	pathTable["/Multi_Band_Filter/peak_6/freq"] = 44;
+	pathTable["/Multi_Band_Filter/peak_6/Q_factor"] = 52;
+	pathTable["/Multi_Band_Filter/peak_5/freq"] = 56;
+	pathTable["/Multi_Band_Filter/peak_5/Q_factor"] = 64;
+	pathTable["/Multi_Band_Filter/peak_9/gain"] = 12;
+	pathTable["/Multi_Band_Filter/peak_8/gain"] = 24;
+	pathTable["/Multi_Band_Filter/peak_7/gain"] = 36;
+	pathTable["/Multi_Band_Filter/peak_6/gain"] = 48;
+	pathTable["/Multi_Band_Filter/peak_5/gain"] = 60;
+	pathTable["/Multi_Band_Filter/peak_4/gain"] = 72;
+	pathTable["/Multi_Band_Filter/peak_3/gain"] = 84;
+	pathTable["/Multi_Band_Filter/peak_2/gain"] = 96;
+	pathTable["/Multi_Band_Filter/peak_1/gain"] = 108;
+	pathTable["/Multi_Band_Filter/peak_0/gain"] = 120;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"multibandFilter\",\"inputs\":\"1\",\"outputs\":\"1\",\"meta\":[{\"author\":\"Grame\"},{\"bandfilter.dsp/author\":\"Grame\"},{\"bandfilter.dsp/copyright\":\"(c)GRAME 2006\"},{\"bandfilter.dsp/license\":\"BSD\"},{\"bandfilter.dsp/name\":\"bandFilter\"},{\"bandfilter.dsp/version\":\"1.0\"},{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"copyright\":\"(c)GRAME 2006\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"license\":\"BSD\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"multibandFilter\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"hgroup\",\"label\":\"Multi Band Filter\",\"items\":[{\"type\":\"vgroup\",\"label\":\"peak 0\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_0/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_0/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"1000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_0/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 1\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_1/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_1/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"2000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_1/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 2\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_2/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_2/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"3000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_2/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 3\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_3/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_3/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"4000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_3/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 4\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_4/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_4/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"5000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_4/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 5\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_5/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_5/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"6000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_5/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 6\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_6/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_6/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"7000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_6/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 7\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_7/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_7/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"8000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_7/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 8\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_8/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_8/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"9000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_8/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]},{\"type\":\"vgroup\",\"label\":\"peak 9\",\"items\":[{\"type\":\"nentry\",\"label\":\"Q factor\",\"address\":\"/Multi_Band_Filter/peak_9/Q_factor\",\"meta\":[{\"style\":\"knob\"}],\"init\":\"50\",\"min\":\"0.1\",\"max\":\"100\",\"step\":\"0.1\"},{\"type\":\"nentry\",\"label\":\"freq\",\"address\":\"/Multi_Band_Filter/peak_9/freq\",\"meta\":[{\"style\":\"knob\"},{\"unit\":\"Hz\"}],\"init\":\"10000\",\"min\":\"20\",\"max\":\"20000\",\"step\":\"1\"},{\"type\":\"vslider\",\"label\":\"gain\",\"address\":\"/Multi_Band_Filter/peak_9/gain\",\"meta\":[{\"unit\":\"dB\"}],\"init\":\"0\",\"min\":\"-50\",\"max\":\"50\",\"step\":\"0.1\"}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "Grame");
+	m.declare("bandfilter.dsp/author", "Grame");
+	m.declare("bandfilter.dsp/copyright", "(c)GRAME 2006");
+	m.declare("bandfilter.dsp/license", "BSD");
+	m.declare("bandfilter.dsp/name", "bandFilter");
+	m.declare("bandfilter.dsp/version", "1.0");
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("copyright", "(c)GRAME 2006");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("license", "BSD");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "multibandFilter");
+	m.declare("version", "1.0");
+}
+

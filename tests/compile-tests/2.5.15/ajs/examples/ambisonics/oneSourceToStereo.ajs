@@ -1,0 +1,322 @@
+/* ------------------------------------------------------------
+author: "CICM"
+copyright: "(c)CICM 2013"
+license: "BSD"
+name: "oneSourceToStereo"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var cosf = foreign.cos;
+	var expf = foreign.exp;
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var sinf = foreign.sin;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 1;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 0 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 4 >> 2] = +(expf(+(0. - +(50. / +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 0 >> 2] | 0))))))))));
+		HEAPF[dsp + 8 >> 2] = +(1. - +(HEAPF[dsp + 4 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 12 >> 2] = 0.;
+		HEAPF[dsp + 24 >> 2] = 1.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 28 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 0 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var iTemp1 = 0;
+		var iTemp2 = 0;
+		var fTemp3 = 0.;
+		var fTemp4 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		var fTemp10 = 0.;
+		var fTemp11 = 0.;
+		var fTemp12 = 0.;
+		var fTemp13 = 0.;
+		var fTemp14 = 0.;
+		var fTemp15 = 0.;
+		var fTemp16 = 0.;
+		var fTemp17 = 0.;
+		var fTemp18 = 0.;
+		var fTemp19 = 0.;
+		var fTemp20 = 0.;
+		var fTemp21 = 0.;
+		var fTemp22 = 0.;
+		var fTemp23 = 0.;
+		var fTemp24 = 0.;
+		var fTemp25 = 0.;
+		var fTemp26 = 0.;
+		var fTemp27 = 0.;
+		var fTemp28 = 0.;
+		var fTemp29 = 0.;
+		var fTemp30 = 0.;
+		var fTemp31 = 0.;
+		var fTemp32 = 0.;
+		var fTemp33 = 0.;
+		var fTemp34 = 0.;
+		var fTemp35 = 0.;
+		var fTemp36 = 0.;
+		var fTemp37 = 0.;
+		var fTemp38 = 0.;
+		var fTemp39 = 0.;
+		var fTemp40 = 0.;
+		var fTemp41 = 0.;
+		var fTemp42 = 0.;
+		var fTemp43 = 0.;
+		var fTemp44 = 0.;
+		var fTemp45 = 0.;
+		var fTemp46 = 0.;
+		var fTemp47 = 0.;
+		var fTemp48 = 0.;
+		var fTemp49 = 0.;
+		var fTemp50 = 0.;
+		var fTemp51 = 0.;
+		var fTemp52 = 0.;
+		var fTemp53 = 0.;
+		var fTemp54 = 0.;
+		var fTemp55 = 0.;
+		var fTemp56 = 0.;
+		var fTemp57 = 0.;
+		var fTemp58 = 0.;
+		var fTemp59 = 0.;
+		var fTemp60 = 0.;
+		var fTemp61 = 0.;
+		var fTemp62 = 0.;
+		var fTemp63 = 0.;
+		var fTemp64 = 0.;
+		var fTemp65 = 0.;
+		var fTemp66 = 0.;
+		var fTemp67 = 0.;
+		var fTemp68 = 0.;
+		var fTemp69 = 0.;
+		var fTemp70 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		fSlow0 = +(+(HEAPF[dsp + 8 >> 2]) * +(+(HEAPF[dsp + 12 >> 2])));
+		fSlow1 = +(+(HEAPF[dsp + 8 >> 2]) * +(+(HEAPF[dsp + 24 >> 2])));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			HEAPF[dsp + 16 + (0 << 2) >> 2] = +(+(fSlow0) + +(+(HEAPF[dsp + 4 >> 2]) * +(HEAPF[dsp + 16 + (1 << 2) >> 2])));
+			HEAPF[dsp + 28 + (0 << 2) >> 2] = +(+(fSlow1) + +(+(HEAPF[dsp + 4 >> 2]) * +(HEAPF[dsp + 28 + (1 << 2) >> 2])));
+			iTemp1 = ((+(HEAPF[dsp + 28 + (0 << 2) >> 2]) > 1.) | 0);
+			iTemp2 = ((+(HEAPF[dsp + 28 + (0 << 2) >> 2]) < 1.) | 0);
+			fTemp3 = +(+((iTemp1 | 0)) + +(+(HEAPF[dsp + 28 + (0 << 2) >> 2]) * +((iTemp2 | 0))));
+			fTemp4 = +(3. * +(fTemp3));
+			fTemp5 = +(+(3. * +(+(+(fTemp3) * +(((+(fTemp4) > 0.) | 0))) * +(((+(fTemp4) <= 1.) | 0)))) + +(((+(fTemp4) > 1.) | 0)));
+			fTemp6 = +(+(sinf(+(HEAPF[dsp + 16 + (0 << 2) >> 2]))) * +(fTemp5));
+			fTemp7 = +(+(fTemp5) * +(cosf(+(HEAPF[dsp + 16 + (0 << 2) >> 2]))));
+			fTemp8 = +(2. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp9 = +(2.07944155 * +(fTemp3));
+			fTemp10 = +(+(fTemp9) + -0.693147182);
+			fTemp11 = +(2.46630335 * +(fTemp10));
+			fTemp12 = +(+(2.46630335 * +(+(+(fTemp10) * +(((+(fTemp11) > 0.) | 0))) * +(((+(fTemp11) <= 1.) | 0)))) + +(((+(fTemp11) > 1.) | 0)));
+			fTemp13 = +(+(sinf(+(fTemp8))) * +(fTemp12));
+			fTemp14 = +(+(cosf(+(fTemp8))) * +(fTemp12));
+			fTemp15 = +(3. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp16 = +(+(fTemp9) + -1.09861231);
+			fTemp17 = +(3.47605944 * +(fTemp16));
+			fTemp18 = +(+(3.47605944 * +(+(+(fTemp16) * +(((+(fTemp17) > 0.) | 0))) * +(((+(fTemp17) <= 1.) | 0)))) + +(((+(fTemp17) > 1.) | 0)));
+			fTemp19 = +(+(sinf(+(fTemp15))) * +(fTemp18));
+			fTemp20 = +(+(cosf(+(fTemp15))) * +(fTemp18));
+			fTemp21 = +(4. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp22 = +(+(fTemp9) + -1.38629436);
+			fTemp23 = +(4.48142004 * +(fTemp22));
+			fTemp24 = +(+(4.48142004 * +(+(+(fTemp22) * +(((+(fTemp23) > 0.) | 0))) * +(((+(fTemp23) <= 1.) | 0)))) + +(((+(fTemp23) > 1.) | 0)));
+			fTemp25 = +(0.0141414143 * +(+(sinf(+(fTemp21))) * +(fTemp24)));
+			fTemp26 = +(5. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp27 = +(+(fTemp9) + -1.60943794);
+			fTemp28 = +(5.48481512 * +(fTemp27));
+			fTemp29 = +(+(5.48481512 * +(+(+(fTemp27) * +(((+(fTemp28) > 0.) | 0))) * +(((+(fTemp28) <= 1.) | 0)))) + +(((+(fTemp28) > 1.) | 0)));
+			fTemp30 = +(+(sinf(+(fTemp26))) * +(fTemp29));
+			fTemp31 = +(0.0032662407 * +(fTemp30));
+			fTemp32 = +(+(cosf(+(fTemp26))) * +(fTemp29));
+			fTemp33 = +(6. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp34 = +(+(fTemp9) + -1.79175949);
+			fTemp35 = +(6.48715925 * +(fTemp34));
+			fTemp36 = +(+(6.48715925 * +(+(+(fTemp34) * +(((+(fTemp35) > 0.) | 0))) * +(((+(fTemp35) <= 1.) | 0)))) + +(((+(fTemp35) > 1.) | 0)));
+			fTemp37 = +(+(sinf(+(fTemp33))) * +(fTemp36));
+			fTemp38 = +(+(cosf(+(fTemp33))) * +(fTemp36));
+			fTemp39 = +(7. * +(HEAPF[dsp + 16 + (0 << 2) >> 2]));
+			fTemp40 = +(+(fTemp9) + -1.9459101);
+			fTemp41 = +(7.48887587 * +(fTemp40));
+			fTemp42 = +(+(7.48887587 * +(+(+(fTemp40) * +(((+(fTemp41) > 0.) | 0))) * +(((+(fTemp41) <= 1.) | 0)))) + +(((+(fTemp41) > 1.) | 0)));
+			fTemp43 = +(+(sinf(+(fTemp39))) * +(fTemp42));
+			fTemp44 = +(+(cosf(+(fTemp39))) * +(fTemp42));
+			fTemp45 = +(+(+(+(+(+(+(+(+(+(+(+(+(0.0666666701 - +(0.044646401 * +(fTemp6))) + +(0.107785948 * +(fTemp7))) - +(0.0549971946 * +(fTemp13))) + +(0.0549971946 * +(fTemp14))) - +(0.035928648 * +(fTemp19))) + +(0.0148821333 * +(fTemp20))) - +(fTemp25)) - +(fTemp31)) - +(0.00135292124 * +(fTemp32))) - +(0.00123955461 * +(fTemp37))) - +(0.00123955461 * +(fTemp38))) - +(0.0010134154 * +(fTemp43))) - +(0.00244660117 * +(fTemp44)));
+			fTemp46 = +(0.0777777806 * +(fTemp14));
+			fTemp47 = +(0.0141414143 * +(+(cosf(+(fTemp21))) * +(fTemp24)));
+			fTemp48 = +(0.00175299495 * +(fTemp38));
+			fTemp49 = +(0.707106769 * +(+(+(+(+(+(+(+(0.116666667 * +(fTemp7)) + 0.0666666701) + +(fTemp46)) + +(0.0388888903 * +(fTemp20))) + +(fTemp47)) + +(0.00353535358 * +(fTemp32))) + +(fTemp48)) + +(0.00264818221 * +(fTemp44))));
+			fTemp50 = +(0.107785948 * +(fTemp7));
+			fTemp51 = +(0.0549971946 * +(fTemp13));
+			fTemp52 = +(0.0549971946 * +(fTemp14));
+			fTemp53 = +(0.00123955461 * +(fTemp37));
+			fTemp54 = +(0.00123955461 * +(fTemp38));
+			fTemp55 = +(+(+(+(+(+(+(+(fTemp25) + +(+(+(+(+(+(+(0.044646401 * +(fTemp6)) + 0.0666666701) + +(fTemp50)) + +(fTemp51)) + +(fTemp52)) + +(0.035928648 * +(fTemp19))) + +(0.0148821333 * +(fTemp20)))) + +(0.0032662407 * +(fTemp30))) - +(0.00135292124 * +(fTemp32))) + +(fTemp53)) - +(fTemp54)) + +(0.0010134154 * +(fTemp43))) - +(0.00244660117 * +(fTemp44)));
+			fTemp56 = +(0.0824957937 * +(fTemp6));
+			fTemp57 = +(0.0777777806 * +(fTemp13));
+			fTemp58 = +(0.00175299495 * +(fTemp37));
+			fTemp59 = +(+(0.107785948 * +(fTemp6)) + 0.0666666701);
+			fTemp60 = +(0.0549971946 * +(fTemp14));
+			fTemp61 = +(0.116666667 * +(fTemp6));
+			fTemp62 = +(0.0388888903 * +(fTemp19));
+			fTemp63 = +(0.00353535358 * +(fTemp30));
+			fTemp64 = +(0.00264818221 * +(fTemp43));
+			fTemp65 = +(0.0824957937 * +(fTemp7));
+			fTemp66 = +(0.035928648 * +(fTemp19));
+			fTemp67 = +(+(2.07944155 * +(1. - +(fTemp3))) + 1.);
+			fTemp68 = +(+((iTemp2 | 0)) + +(+(powf(+(HEAPF[dsp + 28 + (0 << 2) >> 2]), 2.)) * +((iTemp1 | 0))));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(+(+(fTemp0) * +(+(0.195090324 * +(fTemp45)) + +(+(+(+(+(+(+(+(fTemp49) + +(0.980785251 * +(fTemp55))) + +(0.987688363 * +(+(0.00187254755 * +(fTemp44)) + +(+(+(+(+(+(+(+(+(+(+(fTemp56) + 0.0666666701) + +(0.0824957937 * +(fTemp7))) + +(fTemp57)) + +(0.0274985973 * +(fTemp19))) - +(0.0274985973 * +(fTemp20))) - +(fTemp47)) - +(0.00249987235 * +(fTemp30))) - +(0.00249987235 * +(fTemp32))) - +(fTemp58)) - +(0.00187254755 * +(fTemp43)))))) + +(0.923879504 * +(+(+(+(fTemp54) + +(+(fTemp53) + +(+(+(+(+(+(+(+(+(fTemp59) + +(0.044646401 * +(fTemp7))) + +(0.0549971946 * +(fTemp13))) - +(fTemp60)) - +(0.0148821333 * +(fTemp19))) - +(0.035928648 * +(fTemp20))) - +(fTemp25)) - +(0.00135292124 * +(fTemp30))) + +(0.0032662407 * +(fTemp32))))) + +(0.00244660117 * +(fTemp43))) - +(0.0010134154 * +(fTemp44))))) + +(0.809017003 * +(+(+(+(+(fTemp47) + +(+(+(+(fTemp61) + 0.0666666701) - +(fTemp46)) - +(fTemp62))) + +(fTemp63)) - +(fTemp48)) - +(fTemp64)))) + +(0.649448037 * +(+(+(+(+(+(+(+(fTemp25) + +(+(+(+(+(+(fTemp59) - +(0.044646401 * +(fTemp7))) - +(fTemp51)) - +(0.0549971946 * +(fTemp14))) - +(0.0148821333 * +(fTemp19))) + +(0.035928648 * +(fTemp20)))) - +(0.00135292124 * +(fTemp30))) - +(0.0032662407 * +(fTemp32))) - +(0.00123955461 * +(fTemp37))) + +(0.00123955461 * +(fTemp38))) + +(0.00244660117 * +(fTemp43))) + +(0.0010134154 * +(fTemp44))))) + +(0.453990489 * +(+(+(+(fTemp58) + +(+(+(+(+(+(0.0274985973 * +(fTemp19)) + +(+(+(+(0.0824957937 * +(fTemp6)) + 0.0666666701) - +(fTemp65)) - +(fTemp57))) + +(0.0274985973 * +(fTemp20))) - +(fTemp47)) - +(0.00249987235 * +(fTemp30))) + +(0.00249987235 * +(fTemp32)))) - +(0.00187254755 * +(fTemp43))) - +(0.00187254755 * +(fTemp44))))) + +(0.233445361 * +(+(+(+(+(+(+(+(+(+(+(fTemp60) + +(+(+(+(0.044646401 * +(fTemp6)) + 0.0666666701) - +(fTemp50)) - +(0.0549971946 * +(fTemp13)))) + +(fTemp66)) - +(0.0148821333 * +(fTemp20))) - +(fTemp25)) + +(fTemp31)) + +(0.00135292124 * +(fTemp32))) - +(0.00123955461 * +(fTemp37))) - +(0.00123955461 * +(fTemp38))) + +(0.0010134154 * +(fTemp43))) + +(0.00244660117 * +(fTemp44))))))) * +(fTemp67)) / +(fTemp68)));
+			fTemp69 = +(0.00249987235 * +(fTemp30));
+			fTemp70 = +(0.0032662407 * +(fTemp32));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(+(+(+(fTemp0) * +(+(+(+(+(+(+(+(+(0.195090324 * +(fTemp55)) + +(fTemp49)) + +(0.233445361 * +(+(+(+(+(+(+(+(+(+(+(+(+(0.0666666701 - +(0.044646401 * +(fTemp6))) - +(fTemp50)) + +(fTemp51)) + +(fTemp52)) - +(fTemp66)) - +(0.0148821333 * +(fTemp20))) + +(fTemp25)) - +(0.0032662407 * +(fTemp30))) + +(0.00135292124 * +(fTemp32))) + +(0.00123955461 * +(fTemp37))) - +(0.00123955461 * +(fTemp38))) - +(0.0010134154 * +(fTemp43))) + +(0.00244660117 * +(fTemp44))))) + +(0.453990489 * +(+(+(+(+(+(+(+(+(+(+(0.0666666701 - +(fTemp56)) - +(0.0824957937 * +(fTemp7))) + +(fTemp57)) - +(0.0274985973 * +(fTemp19))) + +(0.0274985973 * +(fTemp20))) - +(fTemp47)) + +(fTemp69)) + +(0.00249987235 * +(fTemp32))) - +(fTemp58)) + +(0.00187254755 * +(fTemp43))) - +(0.00187254755 * +(fTemp44))))) + +(0.649448037 * +(+(+(+(+(+(+(+(+(+(0.0148821333 * +(fTemp19)) + +(+(+(+(0.0666666701 - +(0.107785948 * +(fTemp6))) - +(0.044646401 * +(fTemp7))) + +(0.0549971946 * +(fTemp13))) - +(0.0549971946 * +(fTemp14)))) + +(0.035928648 * +(fTemp20))) - +(fTemp25)) + +(0.00135292124 * +(fTemp30))) - +(fTemp70)) + +(0.00123955461 * +(fTemp37))) + +(0.00123955461 * +(fTemp38))) - +(0.00244660117 * +(fTemp43))) + +(0.0010134154 * +(fTemp44))))) + +(0.809017003 * +(+(+(+(+(+(+(0.0666666701 - +(fTemp61)) - +(fTemp46)) + +(fTemp62)) + +(fTemp47)) - +(fTemp63)) - +(fTemp48)) + +(fTemp64)))) + +(0.923879504 * +(+(+(+(+(+(fTemp70) + +(+(+(+(+(+(+(+(0.0666666701 - +(0.107785948 * +(fTemp6))) + +(0.044646401 * +(fTemp7))) - +(0.0549971946 * +(fTemp13))) - +(0.0549971946 * +(fTemp14))) + +(0.0148821333 * +(fTemp19))) - +(0.035928648 * +(fTemp20))) + +(fTemp25)) + +(0.00135292124 * +(fTemp30)))) - +(0.00123955461 * +(fTemp37))) + +(0.00123955461 * +(fTemp38))) - +(0.00244660117 * +(fTemp43))) - +(0.0010134154 * +(fTemp44))))) + +(0.987688363 * +(+(+(+(+(+(fTemp69) + +(+(+(+(+(+(0.0666666701 - +(0.0824957937 * +(fTemp6))) + +(fTemp65)) - +(fTemp57)) - +(0.0274985973 * +(fTemp19))) - +(0.0274985973 * +(fTemp20))) - +(fTemp47))) - +(0.00249987235 * +(fTemp32))) + +(fTemp58)) + +(0.00187254755 * +(fTemp43))) + +(0.00187254755 * +(fTemp44))))) + +(0.980785251 * +(fTemp45)))) * +(fTemp67)) / +(fTemp68)));
+			HEAPF[dsp + 16 + (1 << 2) >> 2] = +(HEAPF[dsp + 16 + (0 << 2) >> 2]);
+			HEAPF[dsp + 28 + (1 << 2) >> 2] = +(HEAPF[dsp + 28 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 36;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/oneSourceToStereo/Angle"] = 12;
+	pathTable["/oneSourceToStereo/Radius"] = 24;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"oneSourceToStereo\",\"inputs\":\"1\",\"outputs\":\"2\",\"meta\":[{\"author\":\"CICM\"},{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"copyright\":\"(c)CICM 2013\"},{\"hoa.lib/author\":\"Pierre Guillot\"},{\"hoa.lib/copyright\":\"2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8\"},{\"hoa.lib/name\":\"High Order Ambisonics library\"},{\"license\":\"BSD\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"oneSourceToStereo\"},{\"routes.lib/name\":\"Faust Signal Routing Library\"},{\"routes.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"oneSourceToStereo\",\"items\":[{\"type\":\"hslider\",\"label\":\"Angle\",\"address\":\"/oneSourceToStereo/Angle\",\"init\":\"0\",\"min\":\"-6.28319\",\"max\":\"6.28319\",\"step\":\"0.001\"},{\"type\":\"hslider\",\"label\":\"Radius\",\"address\":\"/oneSourceToStereo/Radius\",\"init\":\"1\",\"min\":\"0\",\"max\":\"5\",\"step\":\"0.001\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "CICM");
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("copyright", "(c)CICM 2013");
+	m.declare("hoa.lib/author", "Pierre Guillot");
+	m.declare("hoa.lib/copyright", "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8");
+	m.declare("hoa.lib/name", "High Order Ambisonics library");
+	m.declare("license", "BSD");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "oneSourceToStereo");
+	m.declare("routes.lib/name", "Faust Signal Routing Library");
+	m.declare("routes.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("version", "1.0");
+}
+

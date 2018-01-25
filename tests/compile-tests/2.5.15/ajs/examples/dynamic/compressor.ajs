@@ -1,0 +1,252 @@
+/* ------------------------------------------------------------
+author: "JOS, revised by RM"
+name: "compressor"
+version: "0.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var expf = foreign.exp;
+	var fabsf = foreign.abs;
+	var max_f = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 8 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 12 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 8 >> 2] | 0))))));
+		HEAPF[dsp + 16 >> 2] = +(2. / +(HEAPF[dsp + 12 >> 2]));
+		HEAPF[dsp + 20 >> 2] = +(1. / +(HEAPF[dsp + 12 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.;
+		HEAPF[dsp + 4 >> 2] = 40.;
+		HEAPF[dsp + 24 >> 2] = 50.;
+		HEAPF[dsp + 28 >> 2] = 5.;
+		HEAPF[dsp + 32 >> 2] = 500.;
+		HEAPF[dsp + 52 >> 2] = -30.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 36 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 44 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 56 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 64 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 2) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 72 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 2) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 80 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 8 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var input1 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var iSlow0 = 0;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var fTemp4 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		var fTemp10 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		input1 = (HEAP32[inputs + (1 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		iSlow0 = ~~(+(+(HEAPF[dsp + 0 >> 2])));
+		fSlow1 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 4 >> 2])))));
+		fSlow2 = +(max_f(+(HEAPF[dsp + 20 >> 2]), +(0.00100000005 * +(+(HEAPF[dsp + 24 >> 2])))));
+		fSlow3 = +(expf(+(0. - +(+(HEAPF[dsp + 16 >> 2]) / +(fSlow2)))));
+		fSlow4 = +(+(+(1. / +(+(HEAPF[dsp + 28 >> 2]))) + -1.) * +(1. - +(fSlow3)));
+		fSlow5 = +(expf(+(0. - +(+(HEAPF[dsp + 20 >> 2]) / +(fSlow2)))));
+		fSlow6 = +(expf(+(0. - +(+(HEAPF[dsp + 20 >> 2]) / +(max_f(+(HEAPF[dsp + 20 >> 2]), +(0.00100000005 * +(+(HEAPF[dsp + 32 >> 2])))))))));
+		fSlow7 = +(+(HEAPF[dsp + 52 >> 2]));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			fTemp1 = +((iSlow0 | 0)?0.:+(fTemp0));
+			fTemp2 = +(+(HEAPF[input1 + ((i | 0) << 2) >> 2]));
+			fTemp3 = +((iSlow0 | 0)?0.:+(fTemp2));
+			fTemp4 = +(fabsf(+(+(fabsf(+(fTemp1))) + +(fabsf(+(fTemp3))))));
+			fTemp5 = +(((+(HEAPF[dsp + 44 + (1 << 2) >> 2]) > +(fTemp4)) | 0)?+(fSlow6):+(fSlow5));
+			HEAPF[dsp + 36 + (0 << 2) >> 2] = +(+(+(HEAPF[dsp + 36 + (1 << 2) >> 2]) * +(fTemp5)) + +(+(fTemp4) * +(1. - +(fTemp5))));
+			HEAPF[dsp + 44 + (0 << 2) >> 2] = +(HEAPF[dsp + 36 + (0 << 2) >> 2]);
+			HEAPF[dsp + 56 + (0 << 2) >> 2] = +(+(+(fSlow3) * +(HEAPF[dsp + 56 + (1 << 2) >> 2])) + +(+(fSlow4) * +(max_f(+(+(20. * +(log10f(+(HEAPF[dsp + 44 + (0 << 2) >> 2])))) - +(fSlow7)), 0.))));
+			fTemp6 = +(powf(10., +(0.0500000007 * +(HEAPF[dsp + 56 + (0 << 2) >> 2]))));
+			fTemp7 = +(+(fTemp1) * +(fTemp6));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+((iSlow0 | 0)?+(fTemp0):+(+(fSlow1) * +(fTemp7))));
+			fTemp8 = +(+(fTemp3) * +(fTemp6));
+			fTemp9 = +(fabsf(+(+(fabsf(+(fTemp7))) + +(fabsf(+(fTemp8))))));
+			fTemp10 = +(((+(HEAPF[dsp + 72 + (1 << 2) >> 2]) > +(fTemp9)) | 0)?+(fSlow6):+(fSlow5));
+			HEAPF[dsp + 64 + (0 << 2) >> 2] = +(+(+(HEAPF[dsp + 64 + (1 << 2) >> 2]) * +(fTemp10)) + +(+(fTemp9) * +(1. - +(fTemp10))));
+			HEAPF[dsp + 72 + (0 << 2) >> 2] = +(HEAPF[dsp + 64 + (0 << 2) >> 2]);
+			HEAPF[dsp + 80 + (0 << 2) >> 2] = +(+(+(fSlow3) * +(HEAPF[dsp + 80 + (1 << 2) >> 2])) + +(+(fSlow4) * +(max_f(+(+(20. * +(log10f(+(HEAPF[dsp + 72 + (0 << 2) >> 2])))) - +(fSlow7)), 0.))));
+			HEAPF[dsp + 88 >> 2] = +(+(20. * +(log10f(+(powf(10., +(0.0500000007 * +(HEAPF[dsp + 80 + (0 << 2) >> 2]))))))));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+((iSlow0 | 0)?+(fTemp2):+(+(fSlow1) * +(fTemp8))));
+			HEAPF[dsp + 36 + (1 << 2) >> 2] = +(HEAPF[dsp + 36 + (0 << 2) >> 2]);
+			HEAPF[dsp + 44 + (1 << 2) >> 2] = +(HEAPF[dsp + 44 + (0 << 2) >> 2]);
+			HEAPF[dsp + 56 + (1 << 2) >> 2] = +(HEAPF[dsp + 56 + (0 << 2) >> 2]);
+			HEAPF[dsp + 64 + (1 << 2) >> 2] = +(HEAPF[dsp + 64 + (0 << 2) >> 2]);
+			HEAPF[dsp + 72 + (1 << 2) >> 2] = +(HEAPF[dsp + 72 + (0 << 2) >> 2]);
+			HEAPF[dsp + 80 + (1 << 2) >> 2] = +(HEAPF[dsp + 80 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 92;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/COMPRESSOR/0x00/Bypass"] = 0;
+	pathTable["/COMPRESSOR/0x00/Compressor_Gain"] = 88;
+	pathTable["/COMPRESSOR/Makeup_Gain"] = 4;
+	pathTable["/COMPRESSOR/0x00/Compression_Response/Attack_____tooltip:_Time_constant_in_ms_(1/e_smoothing_time)_for_the_compression_gain__to_approach_(exponentially)_a_new_lower_target_level_(the_compression__`kicking_in')]"] = 24;
+	pathTable["/COMPRESSOR/0x00/Compression_Control/Ratio"] = 28;
+	pathTable["/COMPRESSOR/0x00/Compression_Response/Release"] = 32;
+	pathTable["/COMPRESSOR/0x00/Compression_Control/Threshold"] = 52;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"compressor\",\"inputs\":\"2\",\"outputs\":\"2\",\"meta\":[{\"analyzers.lib/name\":\"Faust Analyzer Library\"},{\"analyzers.lib/version\":\"0.0\"},{\"author\":\"JOS, revised by RM\"},{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"compressors.lib/name\":\"Faust Compressor Effect Library\"},{\"compressors.lib/version\":\"0.0\"},{\"description\":\"Compressor demo application\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"compressor\"},{\"routes.lib/name\":\"Faust Signal Routing Library\"},{\"routes.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"},{\"version\":\"0.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"COMPRESSOR\",\"meta\":[{\"tooltip\":\"Reference:   http://en.wikipedia.org/wiki/Dynamic_range_compression\"}],\"items\":[{\"type\":\"hgroup\",\"label\":\"0x00\",\"meta\":[{\"0\":\"\"}],\"items\":[{\"type\":\"checkbox\",\"label\":\"Bypass\",\"address\":\"/COMPRESSOR/0x00/Bypass\",\"meta\":[{\"0\":\"\"},{\"tooltip\":\"When this is checked, the compressor   has no effect\"}]},{\"type\":\"hbargraph\",\"label\":\"Compressor Gain\",\"address\":\"/COMPRESSOR/0x00/Compressor_Gain\",\"meta\":[{\"1\":\"\"},{\"tooltip\":\"Current gain of  the compressor in dB\"},{\"unit\":\"dB\"}],\"min\":\"-50\",\"max\":\"10\"}]},{\"type\":\"hgroup\",\"label\":\"0x00\",\"meta\":[{\"1\":\"\"}],\"items\":[{\"type\":\"hgroup\",\"label\":\"Compression Control\",\"meta\":[{\"3\":\"\"}],\"items\":[{\"type\":\"hslider\",\"label\":\"Ratio\",\"address\":\"/COMPRESSOR/0x00/Compression_Control/Ratio\",\"meta\":[{\"0\":\"\"},{\"style\":\"knob\"},{\"tooltip\":\"A compression Ratio of N means that for each N dB increase in input  signal level above Threshold, the output level goes up 1 dB\"}],\"init\":\"5\",\"min\":\"1\",\"max\":\"20\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"Threshold\",\"address\":\"/COMPRESSOR/0x00/Compression_Control/Threshold\",\"meta\":[{\"1\":\"\"},{\"style\":\"knob\"},{\"tooltip\":\"When the signal level exceeds the Threshold (in dB), its level  is compressed according to the Ratio\"},{\"unit\":\"dB\"}],\"init\":\"-30\",\"min\":\"-100\",\"max\":\"10\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Compression Response\",\"meta\":[{\"4\":\"\"}],\"items\":[{\"type\":\"hslider\",\"label\":\"Attack     tooltip: Time constant in ms (1/e smoothing time) for the compression gain  to approach (exponentially) a new lower target level (the compression  `kicking in')]\",\"address\":\"/COMPRESSOR/0x00/Compression_Response/Attack_____tooltip:_Time_constant_in_ms_(1/e_smoothing_time)_for_the_compression_gain__to_approach_(exponentially)_a_new_lower_target_level_(the_compression__`kicking_in')]\",\"meta\":[{\"1\":\"\"},{\"scale\":\"log\"},{\"style\":\"knob\"},{\"unit\":\"ms\"}],\"init\":\"50\",\"min\":\"1\",\"max\":\"1000\",\"step\":\"0.1\"},{\"type\":\"hslider\",\"label\":\"Release\",\"address\":\"/COMPRESSOR/0x00/Compression_Response/Release\",\"meta\":[{\"2\":\"\"},{\"scale\":\"log\"},{\"style\":\"knob\"},{\"tooltip\":\"Time constant in ms (1/e smoothing time) for the compression gain  to approach (exponentially) a new higher target level (the compression  'releasing')\"},{\"unit\":\"ms\"}],\"init\":\"500\",\"min\":\"1\",\"max\":\"1000\",\"step\":\"0.1\"}]}]},{\"type\":\"hslider\",\"label\":\"Makeup Gain\",\"address\":\"/COMPRESSOR/Makeup_Gain\",\"meta\":[{\"5\":\"\"},{\"tooltip\":\"The compressed-signal output level is increased by this amount  (in dB) to make up for the level lost due to compression\"},{\"unit\":\"dB\"}],\"init\":\"40\",\"min\":\"-96\",\"max\":\"96\",\"step\":\"0.1\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("analyzers.lib/name", "Faust Analyzer Library");
+	m.declare("analyzers.lib/version", "0.0");
+	m.declare("author", "JOS, revised by RM");
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("compressors.lib/name", "Faust Compressor Effect Library");
+	m.declare("compressors.lib/version", "0.0");
+	m.declare("description", "Compressor demo application");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "compressor");
+	m.declare("routes.lib/name", "Faust Signal Routing Library");
+	m.declare("routes.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+	m.declare("version", "0.0");
+}
+

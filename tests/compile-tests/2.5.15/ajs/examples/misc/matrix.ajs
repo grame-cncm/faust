@@ -1,0 +1,443 @@
+/* ------------------------------------------------------------
+author: "Grame"
+copyright: "(c)GRAME 2006"
+license: "BSD"
+name: "matrix"
+version: "1.0"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var powf = foreign.pow;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 8;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 8;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 256 >> 2] = (samplingFreq | 0);
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = -10.;
+		HEAPF[dsp + 4 >> 2] = -10.;
+		HEAPF[dsp + 8 >> 2] = -10.;
+		HEAPF[dsp + 12 >> 2] = -10.;
+		HEAPF[dsp + 16 >> 2] = -10.;
+		HEAPF[dsp + 20 >> 2] = -10.;
+		HEAPF[dsp + 24 >> 2] = -10.;
+		HEAPF[dsp + 28 >> 2] = -10.;
+		HEAPF[dsp + 32 >> 2] = -10.;
+		HEAPF[dsp + 36 >> 2] = -10.;
+		HEAPF[dsp + 40 >> 2] = -10.;
+		HEAPF[dsp + 44 >> 2] = -10.;
+		HEAPF[dsp + 48 >> 2] = -10.;
+		HEAPF[dsp + 52 >> 2] = -10.;
+		HEAPF[dsp + 56 >> 2] = -10.;
+		HEAPF[dsp + 60 >> 2] = -10.;
+		HEAPF[dsp + 64 >> 2] = -10.;
+		HEAPF[dsp + 68 >> 2] = -10.;
+		HEAPF[dsp + 72 >> 2] = -10.;
+		HEAPF[dsp + 76 >> 2] = -10.;
+		HEAPF[dsp + 80 >> 2] = -10.;
+		HEAPF[dsp + 84 >> 2] = -10.;
+		HEAPF[dsp + 88 >> 2] = -10.;
+		HEAPF[dsp + 92 >> 2] = -10.;
+		HEAPF[dsp + 96 >> 2] = -10.;
+		HEAPF[dsp + 100 >> 2] = -10.;
+		HEAPF[dsp + 104 >> 2] = -10.;
+		HEAPF[dsp + 108 >> 2] = -10.;
+		HEAPF[dsp + 112 >> 2] = -10.;
+		HEAPF[dsp + 116 >> 2] = -10.;
+		HEAPF[dsp + 120 >> 2] = -10.;
+		HEAPF[dsp + 124 >> 2] = -10.;
+		HEAPF[dsp + 128 >> 2] = -10.;
+		HEAPF[dsp + 132 >> 2] = -10.;
+		HEAPF[dsp + 136 >> 2] = -10.;
+		HEAPF[dsp + 140 >> 2] = -10.;
+		HEAPF[dsp + 144 >> 2] = -10.;
+		HEAPF[dsp + 148 >> 2] = -10.;
+		HEAPF[dsp + 152 >> 2] = -10.;
+		HEAPF[dsp + 156 >> 2] = -10.;
+		HEAPF[dsp + 160 >> 2] = -10.;
+		HEAPF[dsp + 164 >> 2] = -10.;
+		HEAPF[dsp + 168 >> 2] = -10.;
+		HEAPF[dsp + 172 >> 2] = -10.;
+		HEAPF[dsp + 176 >> 2] = -10.;
+		HEAPF[dsp + 180 >> 2] = -10.;
+		HEAPF[dsp + 184 >> 2] = -10.;
+		HEAPF[dsp + 188 >> 2] = -10.;
+		HEAPF[dsp + 192 >> 2] = -10.;
+		HEAPF[dsp + 196 >> 2] = -10.;
+		HEAPF[dsp + 200 >> 2] = -10.;
+		HEAPF[dsp + 204 >> 2] = -10.;
+		HEAPF[dsp + 208 >> 2] = -10.;
+		HEAPF[dsp + 212 >> 2] = -10.;
+		HEAPF[dsp + 216 >> 2] = -10.;
+		HEAPF[dsp + 220 >> 2] = -10.;
+		HEAPF[dsp + 224 >> 2] = -10.;
+		HEAPF[dsp + 228 >> 2] = -10.;
+		HEAPF[dsp + 232 >> 2] = -10.;
+		HEAPF[dsp + 236 >> 2] = -10.;
+		HEAPF[dsp + 240 >> 2] = -10.;
+		HEAPF[dsp + 244 >> 2] = -10.;
+		HEAPF[dsp + 248 >> 2] = -10.;
+		HEAPF[dsp + 252 >> 2] = -10.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 256 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var input0 = 0;
+		var input1 = 0;
+		var input2 = 0;
+		var input3 = 0;
+		var input4 = 0;
+		var input5 = 0;
+		var input6 = 0;
+		var input7 = 0;
+		var output0 = 0;
+		var output1 = 0;
+		var output2 = 0;
+		var output3 = 0;
+		var output4 = 0;
+		var output5 = 0;
+		var output6 = 0;
+		var output7 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var fSlow4 = 0.;
+		var fSlow5 = 0.;
+		var fSlow6 = 0.;
+		var fSlow7 = 0.;
+		var fSlow8 = 0.;
+		var fSlow9 = 0.;
+		var fSlow10 = 0.;
+		var fSlow11 = 0.;
+		var fSlow12 = 0.;
+		var fSlow13 = 0.;
+		var fSlow14 = 0.;
+		var fSlow15 = 0.;
+		var fSlow16 = 0.;
+		var fSlow17 = 0.;
+		var fSlow18 = 0.;
+		var fSlow19 = 0.;
+		var fSlow20 = 0.;
+		var fSlow21 = 0.;
+		var fSlow22 = 0.;
+		var fSlow23 = 0.;
+		var fSlow24 = 0.;
+		var fSlow25 = 0.;
+		var fSlow26 = 0.;
+		var fSlow27 = 0.;
+		var fSlow28 = 0.;
+		var fSlow29 = 0.;
+		var fSlow30 = 0.;
+		var fSlow31 = 0.;
+		var fSlow32 = 0.;
+		var fSlow33 = 0.;
+		var fSlow34 = 0.;
+		var fSlow35 = 0.;
+		var fSlow36 = 0.;
+		var fSlow37 = 0.;
+		var fSlow38 = 0.;
+		var fSlow39 = 0.;
+		var fSlow40 = 0.;
+		var fSlow41 = 0.;
+		var fSlow42 = 0.;
+		var fSlow43 = 0.;
+		var fSlow44 = 0.;
+		var fSlow45 = 0.;
+		var fSlow46 = 0.;
+		var fSlow47 = 0.;
+		var fSlow48 = 0.;
+		var fSlow49 = 0.;
+		var fSlow50 = 0.;
+		var fSlow51 = 0.;
+		var fSlow52 = 0.;
+		var fSlow53 = 0.;
+		var fSlow54 = 0.;
+		var fSlow55 = 0.;
+		var fSlow56 = 0.;
+		var fSlow57 = 0.;
+		var fSlow58 = 0.;
+		var fSlow59 = 0.;
+		var fSlow60 = 0.;
+		var fSlow61 = 0.;
+		var fSlow62 = 0.;
+		var fSlow63 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var fTemp4 = 0.;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		input0 = (HEAP32[inputs + (0 << 2) >> 2] | 0);
+		input1 = (HEAP32[inputs + (1 << 2) >> 2] | 0);
+		input2 = (HEAP32[inputs + (2 << 2) >> 2] | 0);
+		input3 = (HEAP32[inputs + (3 << 2) >> 2] | 0);
+		input4 = (HEAP32[inputs + (4 << 2) >> 2] | 0);
+		input5 = (HEAP32[inputs + (5 << 2) >> 2] | 0);
+		input6 = (HEAP32[inputs + (6 << 2) >> 2] | 0);
+		input7 = (HEAP32[inputs + (7 << 2) >> 2] | 0);
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		output2 = (HEAP32[outputs + (2 << 2) >> 2] | 0);
+		output3 = (HEAP32[outputs + (3 << 2) >> 2] | 0);
+		output4 = (HEAP32[outputs + (4 << 2) >> 2] | 0);
+		output5 = (HEAP32[outputs + (5 << 2) >> 2] | 0);
+		output6 = (HEAP32[outputs + (6 << 2) >> 2] | 0);
+		output7 = (HEAP32[outputs + (7 << 2) >> 2] | 0);
+		fSlow0 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 0 >> 2])))));
+		fSlow1 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 4 >> 2])))));
+		fSlow2 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 8 >> 2])))));
+		fSlow3 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 12 >> 2])))));
+		fSlow4 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 16 >> 2])))));
+		fSlow5 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 20 >> 2])))));
+		fSlow6 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 24 >> 2])))));
+		fSlow7 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 28 >> 2])))));
+		fSlow8 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 32 >> 2])))));
+		fSlow9 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 36 >> 2])))));
+		fSlow10 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 40 >> 2])))));
+		fSlow11 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 44 >> 2])))));
+		fSlow12 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 48 >> 2])))));
+		fSlow13 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 52 >> 2])))));
+		fSlow14 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 56 >> 2])))));
+		fSlow15 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 60 >> 2])))));
+		fSlow16 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 64 >> 2])))));
+		fSlow17 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 68 >> 2])))));
+		fSlow18 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 72 >> 2])))));
+		fSlow19 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 76 >> 2])))));
+		fSlow20 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 80 >> 2])))));
+		fSlow21 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 84 >> 2])))));
+		fSlow22 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 88 >> 2])))));
+		fSlow23 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 92 >> 2])))));
+		fSlow24 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 96 >> 2])))));
+		fSlow25 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 100 >> 2])))));
+		fSlow26 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 104 >> 2])))));
+		fSlow27 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 108 >> 2])))));
+		fSlow28 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 112 >> 2])))));
+		fSlow29 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 116 >> 2])))));
+		fSlow30 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 120 >> 2])))));
+		fSlow31 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 124 >> 2])))));
+		fSlow32 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 128 >> 2])))));
+		fSlow33 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 132 >> 2])))));
+		fSlow34 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 136 >> 2])))));
+		fSlow35 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 140 >> 2])))));
+		fSlow36 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 144 >> 2])))));
+		fSlow37 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 148 >> 2])))));
+		fSlow38 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 152 >> 2])))));
+		fSlow39 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 156 >> 2])))));
+		fSlow40 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 160 >> 2])))));
+		fSlow41 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 164 >> 2])))));
+		fSlow42 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 168 >> 2])))));
+		fSlow43 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 172 >> 2])))));
+		fSlow44 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 176 >> 2])))));
+		fSlow45 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 180 >> 2])))));
+		fSlow46 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 184 >> 2])))));
+		fSlow47 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 188 >> 2])))));
+		fSlow48 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 192 >> 2])))));
+		fSlow49 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 196 >> 2])))));
+		fSlow50 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 200 >> 2])))));
+		fSlow51 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 204 >> 2])))));
+		fSlow52 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 208 >> 2])))));
+		fSlow53 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 212 >> 2])))));
+		fSlow54 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 216 >> 2])))));
+		fSlow55 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 220 >> 2])))));
+		fSlow56 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 224 >> 2])))));
+		fSlow57 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 228 >> 2])))));
+		fSlow58 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 232 >> 2])))));
+		fSlow59 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 236 >> 2])))));
+		fSlow60 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 240 >> 2])))));
+		fSlow61 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 244 >> 2])))));
+		fSlow62 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 248 >> 2])))));
+		fSlow63 = +(powf(10., +(0.0500000007 * +(+(HEAPF[dsp + 252 >> 2])))));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			fTemp0 = +(+(HEAPF[input0 + ((i | 0) << 2) >> 2]));
+			fTemp1 = +(+(HEAPF[input1 + ((i | 0) << 2) >> 2]));
+			fTemp2 = +(+(HEAPF[input2 + ((i | 0) << 2) >> 2]));
+			fTemp3 = +(+(HEAPF[input3 + ((i | 0) << 2) >> 2]));
+			fTemp4 = +(+(HEAPF[input4 + ((i | 0) << 2) >> 2]));
+			fTemp5 = +(+(HEAPF[input5 + ((i | 0) << 2) >> 2]));
+			fTemp6 = +(+(HEAPF[input6 + ((i | 0) << 2) >> 2]));
+			fTemp7 = +(+(HEAPF[input7 + ((i | 0) << 2) >> 2]));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow0) * +(fTemp0)) + +(+(fSlow1) * +(fTemp1))) + +(+(fSlow2) * +(fTemp2))) + +(+(fSlow3) * +(fTemp3))) + +(+(fSlow4) * +(fTemp4))) + +(+(fSlow5) * +(fTemp5))) + +(+(fSlow6) * +(fTemp6))) + +(+(fSlow7) * +(fTemp7))));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow8) * +(fTemp0)) + +(+(fSlow9) * +(fTemp1))) + +(+(fSlow10) * +(fTemp2))) + +(+(fSlow11) * +(fTemp3))) + +(+(fSlow12) * +(fTemp4))) + +(+(fSlow13) * +(fTemp5))) + +(+(fSlow14) * +(fTemp6))) + +(+(fSlow15) * +(fTemp7))));
+			HEAPF[output2 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow16) * +(fTemp0)) + +(+(fSlow17) * +(fTemp1))) + +(+(fSlow18) * +(fTemp2))) + +(+(fSlow19) * +(fTemp3))) + +(+(fSlow20) * +(fTemp4))) + +(+(fSlow21) * +(fTemp5))) + +(+(fSlow22) * +(fTemp6))) + +(+(fSlow23) * +(fTemp7))));
+			HEAPF[output3 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow24) * +(fTemp0)) + +(+(fSlow25) * +(fTemp1))) + +(+(fSlow26) * +(fTemp2))) + +(+(fSlow27) * +(fTemp3))) + +(+(fSlow28) * +(fTemp4))) + +(+(fSlow29) * +(fTemp5))) + +(+(fSlow30) * +(fTemp6))) + +(+(fSlow31) * +(fTemp7))));
+			HEAPF[output4 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow32) * +(fTemp0)) + +(+(fSlow33) * +(fTemp1))) + +(+(fSlow34) * +(fTemp2))) + +(+(fSlow35) * +(fTemp3))) + +(+(fSlow36) * +(fTemp4))) + +(+(fSlow37) * +(fTemp5))) + +(+(fSlow38) * +(fTemp6))) + +(+(fSlow39) * +(fTemp7))));
+			HEAPF[output5 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow40) * +(fTemp0)) + +(+(fSlow41) * +(fTemp1))) + +(+(fSlow42) * +(fTemp2))) + +(+(fSlow43) * +(fTemp3))) + +(+(fSlow44) * +(fTemp4))) + +(+(fSlow45) * +(fTemp5))) + +(+(fSlow46) * +(fTemp6))) + +(+(fSlow47) * +(fTemp7))));
+			HEAPF[output6 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow48) * +(fTemp0)) + +(+(fSlow49) * +(fTemp1))) + +(+(fSlow50) * +(fTemp2))) + +(+(fSlow51) * +(fTemp3))) + +(+(fSlow52) * +(fTemp4))) + +(+(fSlow53) * +(fTemp5))) + +(+(fSlow54) * +(fTemp6))) + +(+(fSlow55) * +(fTemp7))));
+			HEAPF[output7 + ((i | 0) << 2) >> 2] = +(+(+(+(+(+(+(+(+(+(fSlow56) * +(fTemp0)) + +(+(fSlow57) * +(fTemp1))) + +(+(fSlow58) * +(fTemp2))) + +(+(fSlow59) * +(fTemp3))) + +(+(fSlow60) * +(fTemp4))) + +(+(fSlow61) * +(fTemp5))) + +(+(fSlow62) * +(fTemp6))) + +(+(fSlow63) * +(fTemp7))));
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 260;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/Matrix_8_x_8/Output_0/Input_0"] = 0;
+	pathTable["/Matrix_8_x_8/Output_0/Input_1"] = 4;
+	pathTable["/Matrix_8_x_8/Output_1/Input_2"] = 40;
+	pathTable["/Matrix_8_x_8/Output_1/Input_3"] = 44;
+	pathTable["/Matrix_8_x_8/Output_1/Input_4"] = 48;
+	pathTable["/Matrix_8_x_8/Output_1/Input_5"] = 52;
+	pathTable["/Matrix_8_x_8/Output_1/Input_6"] = 56;
+	pathTable["/Matrix_8_x_8/Output_1/Input_7"] = 60;
+	pathTable["/Matrix_8_x_8/Output_2/Input_0"] = 64;
+	pathTable["/Matrix_8_x_8/Output_2/Input_1"] = 68;
+	pathTable["/Matrix_8_x_8/Output_2/Input_2"] = 72;
+	pathTable["/Matrix_8_x_8/Output_2/Input_3"] = 76;
+	pathTable["/Matrix_8_x_8/Output_0/Input_2"] = 8;
+	pathTable["/Matrix_8_x_8/Output_2/Input_4"] = 80;
+	pathTable["/Matrix_8_x_8/Output_2/Input_5"] = 84;
+	pathTable["/Matrix_8_x_8/Output_2/Input_6"] = 88;
+	pathTable["/Matrix_8_x_8/Output_2/Input_7"] = 92;
+	pathTable["/Matrix_8_x_8/Output_3/Input_0"] = 96;
+	pathTable["/Matrix_8_x_8/Output_3/Input_1"] = 100;
+	pathTable["/Matrix_8_x_8/Output_3/Input_2"] = 104;
+	pathTable["/Matrix_8_x_8/Output_3/Input_3"] = 108;
+	pathTable["/Matrix_8_x_8/Output_3/Input_4"] = 112;
+	pathTable["/Matrix_8_x_8/Output_3/Input_5"] = 116;
+	pathTable["/Matrix_8_x_8/Output_0/Input_3"] = 12;
+	pathTable["/Matrix_8_x_8/Output_3/Input_6"] = 120;
+	pathTable["/Matrix_8_x_8/Output_3/Input_7"] = 124;
+	pathTable["/Matrix_8_x_8/Output_4/Input_0"] = 128;
+	pathTable["/Matrix_8_x_8/Output_4/Input_1"] = 132;
+	pathTable["/Matrix_8_x_8/Output_4/Input_2"] = 136;
+	pathTable["/Matrix_8_x_8/Output_4/Input_3"] = 140;
+	pathTable["/Matrix_8_x_8/Output_4/Input_4"] = 144;
+	pathTable["/Matrix_8_x_8/Output_4/Input_5"] = 148;
+	pathTable["/Matrix_8_x_8/Output_4/Input_6"] = 152;
+	pathTable["/Matrix_8_x_8/Output_4/Input_7"] = 156;
+	pathTable["/Matrix_8_x_8/Output_0/Input_4"] = 16;
+	pathTable["/Matrix_8_x_8/Output_5/Input_0"] = 160;
+	pathTable["/Matrix_8_x_8/Output_5/Input_1"] = 164;
+	pathTable["/Matrix_8_x_8/Output_5/Input_2"] = 168;
+	pathTable["/Matrix_8_x_8/Output_5/Input_3"] = 172;
+	pathTable["/Matrix_8_x_8/Output_5/Input_4"] = 176;
+	pathTable["/Matrix_8_x_8/Output_5/Input_5"] = 180;
+	pathTable["/Matrix_8_x_8/Output_5/Input_6"] = 184;
+	pathTable["/Matrix_8_x_8/Output_5/Input_7"] = 188;
+	pathTable["/Matrix_8_x_8/Output_6/Input_0"] = 192;
+	pathTable["/Matrix_8_x_8/Output_6/Input_1"] = 196;
+	pathTable["/Matrix_8_x_8/Output_0/Input_5"] = 20;
+	pathTable["/Matrix_8_x_8/Output_6/Input_2"] = 200;
+	pathTable["/Matrix_8_x_8/Output_6/Input_3"] = 204;
+	pathTable["/Matrix_8_x_8/Output_6/Input_4"] = 208;
+	pathTable["/Matrix_8_x_8/Output_6/Input_5"] = 212;
+	pathTable["/Matrix_8_x_8/Output_6/Input_6"] = 216;
+	pathTable["/Matrix_8_x_8/Output_6/Input_7"] = 220;
+	pathTable["/Matrix_8_x_8/Output_7/Input_0"] = 224;
+	pathTable["/Matrix_8_x_8/Output_7/Input_1"] = 228;
+	pathTable["/Matrix_8_x_8/Output_7/Input_2"] = 232;
+	pathTable["/Matrix_8_x_8/Output_7/Input_3"] = 236;
+	pathTable["/Matrix_8_x_8/Output_0/Input_6"] = 24;
+	pathTable["/Matrix_8_x_8/Output_7/Input_4"] = 240;
+	pathTable["/Matrix_8_x_8/Output_7/Input_5"] = 244;
+	pathTable["/Matrix_8_x_8/Output_7/Input_6"] = 248;
+	pathTable["/Matrix_8_x_8/Output_7/Input_7"] = 252;
+	pathTable["/Matrix_8_x_8/Output_0/Input_7"] = 28;
+	pathTable["/Matrix_8_x_8/Output_1/Input_0"] = 32;
+	pathTable["/Matrix_8_x_8/Output_1/Input_1"] = 36;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"matrix\",\"inputs\":\"8\",\"outputs\":\"8\",\"meta\":[{\"author\":\"Grame\"},{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"copyright\":\"(c)GRAME 2006\"},{\"license\":\"BSD\"},{\"name\":\"matrix\"},{\"version\":\"1.0\"}],\"ui\":[{\"type\":\"tgroup\",\"label\":\"Matrix 8 x 8\",\"items\":[{\"type\":\"hgroup\",\"label\":\"Output 0\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_0/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_0/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_0/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_0/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_0/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_0/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_0/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_0/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 1\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_1/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_1/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_1/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_1/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_1/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_1/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_1/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_1/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 2\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_2/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_2/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_2/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_2/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_2/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_2/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_2/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_2/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 3\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_3/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_3/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_3/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_3/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_3/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_3/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_3/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_3/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 4\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_4/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_4/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_4/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_4/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_4/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_4/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_4/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_4/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 5\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_5/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_5/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_5/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_5/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_5/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_5/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_5/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_5/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 6\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_6/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_6/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_6/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_6/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_6/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_6/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_6/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_6/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]},{\"type\":\"hgroup\",\"label\":\"Output 7\",\"items\":[{\"type\":\"vslider\",\"label\":\"Input 0\",\"address\":\"/Matrix_8_x_8/Output_7/Input_0\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 1\",\"address\":\"/Matrix_8_x_8/Output_7/Input_1\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 2\",\"address\":\"/Matrix_8_x_8/Output_7/Input_2\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 3\",\"address\":\"/Matrix_8_x_8/Output_7/Input_3\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 4\",\"address\":\"/Matrix_8_x_8/Output_7/Input_4\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 5\",\"address\":\"/Matrix_8_x_8/Output_7/Input_5\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 6\",\"address\":\"/Matrix_8_x_8/Output_7/Input_6\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"},{\"type\":\"vslider\",\"label\":\"Input 7\",\"address\":\"/Matrix_8_x_8/Output_7/Input_7\",\"init\":\"-10\",\"min\":\"-96\",\"max\":\"4\",\"step\":\"0.1\"}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("author", "Grame");
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("copyright", "(c)GRAME 2006");
+	m.declare("license", "BSD");
+	m.declare("name", "matrix");
+	m.declare("version", "1.0");
+}
+

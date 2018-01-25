@@ -1,0 +1,241 @@
+
+pub fn mydsp_faustpower2_f(value: f32) -> f32 {
+	(value * value)
+}
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fConst1: f32,
+	fHslider0: f32,
+	fRec0: [f32;2],
+	fHslider1: f32,
+	fRec1: [f32;2],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fConst1: 0.0,
+			fHslider0: 0.0,
+			fRec0: [0.0;2],
+			fHslider1: 0.0,
+			fRec1: [0.0;2],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("author", "CICM");
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("copyright", "(c)CICM 2013");
+		m.declare("hoa.lib/author", "Pierre Guillot");
+		m.declare("hoa.lib/copyright", "2012-2013 Guillot, Paris, Colafrancesco, CICM labex art H2H, U. Paris 8");
+		m.declare("hoa.lib/name", "High Order Ambisonics library");
+		m.declare("license", "BSD");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "oneSourceToStereo");
+		m.declare("routes.lib/name", "Faust Signal Routing Library");
+		m.declare("routes.lib/version", "0.0");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("version", "1.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		1
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 1.0;
+		self.fHslider1 = 0.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.fRec0[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fRec1[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = f32::exp((0.0 - (50.0 / f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32))))));
+		self.fConst1 = (1.0 - self.fConst0);
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("oneSourceToStereo");
+		ui_interface.addHorizontalSlider("Angle", &mut self.fHslider1, 0.0, -6.2831853071795862, 6.2831853071795862, 0.001);
+		ui_interface.addHorizontalSlider("Radius", &mut self.fHslider0, 1.0, 0.0, 5.0, 0.001);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fConst1 * (self.fHslider0 as f32));
+		let mut fSlow1: f32 = (self.fConst1 * (self.fHslider1 as f32));
+		let mut i: i32 = 0;
+		loop {
+			self.fRec0[0] = (fSlow0 + (self.fConst0 * self.fRec0[1]));
+			let mut iTemp0: i32 = ((self.fRec0[0] > 1.0) as i32);
+			let mut iTemp1: i32 = ((self.fRec0[0] < 1.0) as i32);
+			let mut fTemp2: f32 = ((iTemp0 as f32) + (self.fRec0[0] * (iTemp1 as f32)));
+			let mut fTemp3: f32 = ((inputs[0][i as usize] as f32) * ((2.07944155 * (1.0 - fTemp2)) + 1.0));
+			let mut fTemp4: f32 = (3.0 * fTemp2);
+			let mut fTemp5: f32 = ((3.0 * ((fTemp2 * (((fTemp4 > 0.0) as i32) as f32)) * (((fTemp4 <= 1.0) as i32) as f32))) + (((fTemp4 > 1.0) as i32) as f32));
+			self.fRec1[0] = (fSlow1 + (self.fConst0 * self.fRec1[1]));
+			let mut fTemp6: f32 = (fTemp5 * f32::cos(self.fRec1[0]));
+			let mut fTemp7: f32 = (2.0 * self.fRec1[0]);
+			let mut fTemp8: f32 = (2.07944155 * fTemp2);
+			let mut fTemp9: f32 = (fTemp8 + -0.693147182);
+			let mut fTemp10: f32 = (2.46630335 * fTemp9);
+			let mut fTemp11: f32 = ((2.46630335 * ((fTemp9 * (((fTemp10 > 0.0) as i32) as f32)) * (((fTemp10 <= 1.0) as i32) as f32))) + (((fTemp10 > 1.0) as i32) as f32));
+			let mut fTemp12: f32 = (f32::cos(fTemp7) * fTemp11);
+			let mut fTemp13: f32 = (0.0777777806 * fTemp12);
+			let mut fTemp14: f32 = (3.0 * self.fRec1[0]);
+			let mut fTemp15: f32 = (fTemp8 + -1.09861231);
+			let mut fTemp16: f32 = (3.47605944 * fTemp15);
+			let mut fTemp17: f32 = ((3.47605944 * ((fTemp15 * (((fTemp16 > 0.0) as i32) as f32)) * (((fTemp16 <= 1.0) as i32) as f32))) + (((fTemp16 > 1.0) as i32) as f32));
+			let mut fTemp18: f32 = (f32::cos(fTemp14) * fTemp17);
+			let mut fTemp19: f32 = (4.0 * self.fRec1[0]);
+			let mut fTemp20: f32 = (fTemp8 + -1.38629436);
+			let mut fTemp21: f32 = (4.48142004 * fTemp20);
+			let mut fTemp22: f32 = ((4.48142004 * ((fTemp20 * (((fTemp21 > 0.0) as i32) as f32)) * (((fTemp21 <= 1.0) as i32) as f32))) + (((fTemp21 > 1.0) as i32) as f32));
+			let mut fTemp23: f32 = (0.0141414143 * (f32::cos(fTemp19) * fTemp22));
+			let mut fTemp24: f32 = (5.0 * self.fRec1[0]);
+			let mut fTemp25: f32 = (fTemp8 + -1.60943794);
+			let mut fTemp26: f32 = (5.48481512 * fTemp25);
+			let mut fTemp27: f32 = ((5.48481512 * ((fTemp25 * (((fTemp26 > 0.0) as i32) as f32)) * (((fTemp26 <= 1.0) as i32) as f32))) + (((fTemp26 > 1.0) as i32) as f32));
+			let mut fTemp28: f32 = (f32::cos(fTemp24) * fTemp27);
+			let mut fTemp29: f32 = (6.0 * self.fRec1[0]);
+			let mut fTemp30: f32 = (fTemp8 + -1.79175949);
+			let mut fTemp31: f32 = (6.48715925 * fTemp30);
+			let mut fTemp32: f32 = ((6.48715925 * ((fTemp30 * (((fTemp31 > 0.0) as i32) as f32)) * (((fTemp31 <= 1.0) as i32) as f32))) + (((fTemp31 > 1.0) as i32) as f32));
+			let mut fTemp33: f32 = (f32::cos(fTemp29) * fTemp32);
+			let mut fTemp34: f32 = (0.00175299495 * fTemp33);
+			let mut fTemp35: f32 = (7.0 * self.fRec1[0]);
+			let mut fTemp36: f32 = (fTemp8 + -1.9459101);
+			let mut fTemp37: f32 = (7.48887587 * fTemp36);
+			let mut fTemp38: f32 = ((7.48887587 * ((fTemp36 * (((fTemp37 > 0.0) as i32) as f32)) * (((fTemp37 <= 1.0) as i32) as f32))) + (((fTemp37 > 1.0) as i32) as f32));
+			let mut fTemp39: f32 = (f32::cos(fTemp35) * fTemp38);
+			let mut fTemp40: f32 = (0.707106769 * ((((((((0.116666667 * fTemp6) + 0.0666666701) + fTemp13) + (0.0388888903 * fTemp18)) + fTemp23) + (0.00353535358 * fTemp28)) + fTemp34) + (0.00264818221 * fTemp39)));
+			let mut fTemp41: f32 = (0.0141414143 * (f32::sin(fTemp19) * fTemp22));
+			let mut fTemp42: f32 = (f32::sin(self.fRec1[0]) * fTemp5);
+			let mut fTemp43: f32 = (0.107785948 * fTemp6);
+			let mut fTemp44: f32 = (f32::sin(fTemp7) * fTemp11);
+			let mut fTemp45: f32 = (0.0549971946 * fTemp44);
+			let mut fTemp46: f32 = (0.0549971946 * fTemp12);
+			let mut fTemp47: f32 = (f32::sin(fTemp14) * fTemp17);
+			let mut fTemp48: f32 = (f32::sin(fTemp24) * fTemp27);
+			let mut fTemp49: f32 = (f32::sin(fTemp29) * fTemp32);
+			let mut fTemp50: f32 = (0.00123955461 * fTemp49);
+			let mut fTemp51: f32 = (0.00123955461 * fTemp33);
+			let mut fTemp52: f32 = (f32::sin(fTemp35) * fTemp38);
+			let mut fTemp53: f32 = (((((((fTemp41 + (((((((0.044646401 * fTemp42) + 0.0666666701) + fTemp43) + fTemp45) + fTemp46) + (0.035928648 * fTemp47)) + (0.0148821333 * fTemp18))) + (0.0032662407 * fTemp48)) - (0.00135292124 * fTemp28)) + fTemp50) - fTemp51) + (0.0010134154 * fTemp52)) - (0.00244660117 * fTemp39));
+			let mut fTemp54: f32 = (0.0824957937 * fTemp42);
+			let mut fTemp55: f32 = (0.0777777806 * fTemp44);
+			let mut fTemp56: f32 = (0.00175299495 * fTemp49);
+			let mut fTemp57: f32 = ((0.107785948 * fTemp42) + 0.0666666701);
+			let mut fTemp58: f32 = (0.0549971946 * fTemp12);
+			let mut fTemp59: f32 = (0.116666667 * fTemp42);
+			let mut fTemp60: f32 = (0.0388888903 * fTemp47);
+			let mut fTemp61: f32 = (0.00353535358 * fTemp48);
+			let mut fTemp62: f32 = (0.00264818221 * fTemp52);
+			let mut fTemp63: f32 = (0.0824957937 * fTemp6);
+			let mut fTemp64: f32 = (0.035928648 * fTemp47);
+			let mut fTemp65: f32 = (0.0032662407 * fTemp48);
+			let mut fTemp66: f32 = (((((((((0.0148821333 * fTemp18) + (((((0.0666666701 - (0.044646401 * fTemp42)) + (0.107785948 * fTemp6)) - (0.0549971946 * fTemp44)) + (0.0549971946 * fTemp12)) - (0.035928648 * fTemp47))) - fTemp41) - fTemp65) - (0.00135292124 * fTemp28)) - (0.00123955461 * fTemp49)) - (0.00123955461 * fTemp33)) - (0.0010134154 * fTemp52)) - (0.00244660117 * fTemp39));
+			let mut fTemp67: f32 = ((iTemp1 as f32) + (mydsp_faustpower2_f(self.fRec0[0]) * (iTemp0 as f32)));
+			outputs[0][i as usize] = (((fTemp3 * ((((((((fTemp40 + (0.980785251 * fTemp53)) + (0.987688363 * ((0.00187254755 * fTemp39) + ((((((((((fTemp54 + 0.0666666701) + (0.0824957937 * fTemp6)) + fTemp55) + (0.0274985973 * fTemp47)) - (0.0274985973 * fTemp18)) - fTemp23) - (0.00249987235 * fTemp48)) - (0.00249987235 * fTemp28)) - fTemp56) - (0.00187254755 * fTemp52))))) + (0.923879504 * (((fTemp51 + (fTemp50 + ((((((((fTemp57 + (0.044646401 * fTemp6)) + (0.0549971946 * fTemp44)) - fTemp58) - (0.0148821333 * fTemp47)) - (0.035928648 * fTemp18)) - fTemp41) - (0.00135292124 * fTemp48)) + (0.0032662407 * fTemp28)))) + (0.00244660117 * fTemp52)) - (0.0010134154 * fTemp39)))) + (0.809017003 * ((((fTemp23 + (((fTemp59 + 0.0666666701) - fTemp13) - fTemp60)) + fTemp61) - fTemp34) - fTemp62))) + (0.649448037 * (((((((fTemp41 + (((((fTemp57 - (0.044646401 * fTemp6)) - fTemp45) - (0.0549971946 * fTemp12)) - (0.0148821333 * fTemp47)) + (0.035928648 * fTemp18))) - (0.00135292124 * fTemp48)) - (0.0032662407 * fTemp28)) - (0.00123955461 * fTemp49)) + (0.00123955461 * fTemp33)) + (0.00244660117 * fTemp52)) + (0.0010134154 * fTemp39)))) + (0.453990489 * (((fTemp56 + ((((((0.0274985973 * fTemp47) + ((((0.0824957937 * fTemp42) + 0.0666666701) - fTemp63) - fTemp55)) + (0.0274985973 * fTemp18)) - fTemp23) - (0.00249987235 * fTemp48)) + (0.00249987235 * fTemp28))) - (0.00187254755 * fTemp52)) - (0.00187254755 * fTemp39)))) + (0.233445361 * ((((((((((fTemp58 + ((((0.044646401 * fTemp42) + 0.0666666701) - fTemp43) - (0.0549971946 * fTemp44))) + fTemp64) - (0.0148821333 * fTemp18)) - fTemp41) + fTemp65) + (0.00135292124 * fTemp28)) - (0.00123955461 * fTemp49)) - (0.00123955461 * fTemp33)) + (0.0010134154 * fTemp52)) + (0.00244660117 * fTemp39)))) + (0.195090324 * fTemp66))) / fTemp67) as f32);
+			let mut fTemp68: f32 = (0.00249987235 * fTemp48);
+			let mut fTemp69: f32 = (0.0032662407 * fTemp28);
+			outputs[1][i as usize] = (((fTemp3 * ((((((((fTemp40 + (0.195090324 * fTemp53)) + (0.233445361 * (((((((fTemp41 + (((fTemp46 + (fTemp45 + ((0.0666666701 - (0.044646401 * fTemp42)) - fTemp43))) - fTemp64) - (0.0148821333 * fTemp18))) - (0.0032662407 * fTemp48)) + (0.00135292124 * fTemp28)) + (0.00123955461 * fTemp49)) - (0.00123955461 * fTemp33)) - (0.0010134154 * fTemp52)) + (0.00244660117 * fTemp39)))) + (0.453990489 * (((((((((fTemp55 + ((0.0666666701 - fTemp54) - (0.0824957937 * fTemp6))) - (0.0274985973 * fTemp47)) + (0.0274985973 * fTemp18)) - fTemp23) + fTemp68) + (0.00249987235 * fTemp28)) - fTemp56) + (0.00187254755 * fTemp52)) - (0.00187254755 * fTemp39)))) + (0.649448037 * ((((((((((((0.0549971946 * fTemp44) + ((0.0666666701 - (0.107785948 * fTemp42)) - (0.044646401 * fTemp6))) - (0.0549971946 * fTemp12)) + (0.0148821333 * fTemp47)) + (0.035928648 * fTemp18)) - fTemp41) + (0.00135292124 * fTemp48)) - fTemp69) + (0.00123955461 * fTemp49)) + (0.00123955461 * fTemp33)) - (0.00244660117 * fTemp52)) + (0.0010134154 * fTemp39)))) + (0.809017003 * (fTemp62 + (((fTemp23 + (fTemp60 + ((0.0666666701 - fTemp59) - fTemp13))) - fTemp61) - fTemp34)))) + (0.923879504 * (((((fTemp69 + ((fTemp41 + ((((((0.0666666701 - (0.107785948 * fTemp42)) + (0.044646401 * fTemp6)) - (0.0549971946 * fTemp44)) - (0.0549971946 * fTemp12)) + (0.0148821333 * fTemp47)) - (0.035928648 * fTemp18))) + (0.00135292124 * fTemp48))) - (0.00123955461 * fTemp49)) + (0.00123955461 * fTemp33)) - (0.00244660117 * fTemp52)) - (0.0010134154 * fTemp39)))) + (0.987688363 * (((fTemp56 + ((fTemp68 + (((((fTemp63 + (0.0666666701 - (0.0824957937 * fTemp42))) - fTemp55) - (0.0274985973 * fTemp47)) - (0.0274985973 * fTemp18)) - fTemp23)) - (0.00249987235 * fTemp28))) + (0.00187254755 * fTemp52)) + (0.00187254755 * fTemp39)))) + (0.980785251 * fTemp66))) / fTemp67) as f32);
+			self.fRec0[1] = self.fRec0[0];
+			self.fRec1[1] = self.fRec1[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

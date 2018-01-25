@@ -1,0 +1,311 @@
+/* ------------------------------------------------------------
+copyright: "(c)Romain Michon, CCRMA (Stanford University), GRAME"
+license: "MIT"
+name: "KarplusStrong"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var floorf = foreign.floor;
+	var max_f = foreign.max;
+	var max_i = foreign.max;
+	var min_f = foreign.min;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 0;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 8208 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 8212 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 8208 >> 2] | 0))))));
+		HEAPF[dsp + 8216 >> 2] = +(0.00882352982 * +(HEAPF[dsp + 8212 >> 2]));
+		HEAPF[dsp + 8220 >> 2] = +(0.00147058826 * +(HEAPF[dsp + 8212 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 0 >> 2] = 0.00999999978;
+		HEAPF[dsp + 8224 >> 2] = 440.;
+		HEAPF[dsp + 8228 >> 2] = 1.;
+		HEAPF[dsp + 8232 >> 2] = 0.;
+		HEAPF[dsp + 8236 >> 2] = 0.;
+		HEAPF[dsp + 8256 >> 2] = 0.800000012;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		var l7 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAPF[dsp + 4 + ((l0 | 0) << 2) >> 2] = 0.;
+			
+		}
+		HEAP32[dsp + 12 >> 2] = 0;
+		for (l1 = 0; (((l1 | 0) < 2048) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8240 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8248 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 2048) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8260 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 2) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16452 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l6 = 0; (((l6 | 0) < 3) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16460 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l7 = 0; (((l7 | 0) < 3) | 0); l7 = (((l7 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16472 + ((l7 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 8208 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var output0 = 0;
+		var output1 = 0;
+		var fSlow0 = 0.;
+		var fSlow1 = 0.;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var iSlow4 = 0;
+		var fSlow5 = 0.;
+		var i = 0;
+		var fTemp0 = 0.;
+		var iTemp1 = 0;
+		var fTemp2 = 0.;
+		var fTemp3 = 0.;
+		var iTemp4 = 0;
+		var iTemp5 = 0;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		var fTemp10 = 0.;
+		var fTemp11 = 0.;
+		var fTemp12 = 0.;
+		var fTemp13 = 0.;
+		var fTemp14 = 0.;
+		var fTemp15 = 0.;
+		var iTemp16 = 0;
+		var fTemp17 = 0.;
+		var fTemp18 = 0.;
+		var iTemp19 = 0;
+		var fTemp20 = 0.;
+		var fTemp21 = 0.;
+		var fTemp22 = 0.;
+		var fTemp23 = 0.;
+		var iTemp24 = 0;
+		var fTemp25 = 0.;
+		var fTemp26 = 0.;
+		var iTemp27 = 0;
+		var fRec8 = 0.;
+		var fTemp28 = 0.;
+		var fTemp29 = 0.;
+		var fTemp30 = 0.;
+		var fTemp31 = 0.;
+		var fRec9 = 0.;
+		var fRec10 = 0.;
+		var fRec4 = 0.;
+		var fRec5 = 0.;
+		var fRec6 = 0.;
+		var fRec2 = 0.;
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		fSlow0 = +(0.00100000005 * +(+(HEAPF[dsp + 0 >> 2])));
+		fSlow1 = +(340. / +(+(HEAPF[dsp + 8224 >> 2])));
+		fSlow2 = +(+(HEAPF[dsp + 8228 >> 2]));
+		fSlow3 = +(min_f(1., +(+(+(HEAPF[dsp + 8232 >> 2])) + +(+(HEAPF[dsp + 8236 >> 2])))));
+		iSlow4 = ((+(fSlow3) == 0.) | 0);
+		fSlow5 = +(+(HEAPF[dsp + 8256 >> 2]));
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAPF[dsp + 4 + (0 << 2) >> 2] = +(+(fSlow0) + +(0.999000013 * +(HEAPF[dsp + 4 + (1 << 2) >> 2])));
+			fTemp0 = +(0.5 * +(+(+(HEAPF[dsp + 16472 + (1 << 2) >> 2]) + +(HEAPF[dsp + 16472 + (2 << 2) >> 2])) * +(+(0.200000003 * +(1. - +(HEAPF[dsp + 4 + (0 << 2) >> 2]))) + 0.800000012)));
+			HEAPF[dsp + 16 + ((((HEAP32[dsp + 12 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp0);
+			HEAPF[dsp + 8240 + (0 << 2) >> 2] = +(fSlow3);
+			iTemp1 = ((((+(fSlow3) == +(HEAPF[dsp + 8240 + (1 << 2) >> 2])) | 0) | (iSlow4 | 0)) | 0);
+			HEAPF[dsp + 8248 + (0 << 2) >> 2] = +(+(+(fSlow2) * +(1. - +(0.999000013 * +((iTemp1 | 0))))) + +(0.999000013 * +(+((iTemp1 | 0)) * +(HEAPF[dsp + 8248 + (1 << 2) >> 2]))));
+			fTemp2 = +(+(HEAPF[dsp + 8220 >> 2]) * +(+(+(fSlow1) / +(HEAPF[dsp + 8248 + (0 << 2) >> 2])) + -0.0500000007));
+			fTemp3 = +(+(fTemp2) + -1.49999499);
+			iTemp4 = ~~(+(fTemp3));
+			iTemp5 = ((~~(+(min_f(+(HEAPF[dsp + 8216 >> 2]), +(((max_i(0, ~~((iTemp4 | 0)))) | 0))))) + 1) | 0);
+			fTemp6 = +(floorf(+(fTemp3)));
+			fTemp7 = +(+(fTemp2) + +(-1. - +(fTemp6)));
+			fTemp8 = +(0. - +(fTemp7));
+			fTemp9 = +(+(fTemp2) + +(-2. - +(fTemp6)));
+			fTemp10 = +(0. - +(0.5 * +(fTemp9)));
+			fTemp11 = +(+(fTemp2) + +(-3. - +(fTemp6)));
+			fTemp12 = +(0. - +(0.333333343 * +(fTemp11)));
+			fTemp13 = +(+(fTemp2) + +(-4. - +(fTemp6)));
+			fTemp14 = +(0. - +(0.25 * +(fTemp13)));
+			fTemp15 = +(+(fTemp2) - +(fTemp6));
+			iTemp16 = ((~~(+(min_f(+(HEAPF[dsp + 8216 >> 2]), +(((max_i(0, ~~((((iTemp4 | 0) + 2) | 0)))) | 0))))) + 1) | 0);
+			fTemp17 = +(0. - +(fTemp11));
+			fTemp18 = +(0. - +(0.5 * +(fTemp13)));
+			iTemp19 = ((~~(+(min_f(+(HEAPF[dsp + 8216 >> 2]), +(((max_i(0, ~~((((iTemp4 | 0) + 1) | 0)))) | 0))))) + 1) | 0);
+			fTemp20 = +(0. - +(fTemp9));
+			fTemp21 = +(0. - +(0.5 * +(fTemp11)));
+			fTemp22 = +(0. - +(0.333333343 * +(fTemp13)));
+			fTemp23 = +(+(fTemp7) * +(fTemp9));
+			iTemp24 = ((~~(+(min_f(+(HEAPF[dsp + 8216 >> 2]), +(((max_i(0, ~~((((iTemp4 | 0) + 3) | 0)))) | 0))))) + 1) | 0);
+			fTemp25 = +(0. - +(fTemp13));
+			fTemp26 = +(+(fTemp23) * +(fTemp11));
+			iTemp27 = ((~~(+(min_f(+(HEAPF[dsp + 8216 >> 2]), +(((max_i(0, ~~((((iTemp4 | 0) + 4) | 0)))) | 0))))) + 1) | 0);
+			fRec8 = +(+(+(+(+(+(HEAPF[dsp + 16 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp5 | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp8)) * +(fTemp10)) * +(fTemp12)) * +(fTemp14)) + +(+(fTemp15) * +(+(+(+(0.5 * +(+(+(+(fTemp7) * +(HEAPF[dsp + 16 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp16 | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp17)) * +(fTemp18))) + +(+(+(+(HEAPF[dsp + 16 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp19 | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp20)) * +(fTemp21)) * +(fTemp22))) + +(0.166666672 * +(+(+(fTemp23) * +(HEAPF[dsp + 16 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp24 | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp25)))) + +(0.0416666679 * +(+(fTemp26) * +(HEAPF[dsp + 16 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp27 | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			fTemp28 = +(+(fSlow5) * +(((+(+(fSlow3) - +(HEAPF[dsp + 8240 + (1 << 2) >> 2])) > 0.) | 0)));
+			fTemp29 = +(+(HEAPF[dsp + 16460 + (2 << 2) >> 2]) + +(fTemp28));
+			HEAPF[dsp + 8260 + ((((HEAP32[dsp + 12 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp29);
+			fTemp30 = +(+(+(+(+(fTemp8) * +(fTemp10)) * +(fTemp12)) * +(fTemp14)) * +(HEAPF[dsp + 8260 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp5 | 0)) | 0) & 2047) | 0) << 2) >> 2]));
+			fTemp31 = +(+(fTemp15) * +(+(+(0.166666672 * +(+(+(fTemp23) * +(fTemp25)) * +(HEAPF[dsp + 8260 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp24 | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(fTemp20) * +(fTemp21)) * +(fTemp22)) * +(HEAPF[dsp + 8260 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp19 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp7) * +(fTemp17)) * +(fTemp18)) * +(HEAPF[dsp + 8260 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp16 | 0)) | 0) & 2047) | 0) << 2) >> 2]))))) + +(0.0416666679 * +(+(fTemp26) * +(HEAPF[dsp + 8260 + ((((((HEAP32[dsp + 12 >> 2] | 0) - (iTemp27 | 0)) | 0) & 2047) | 0) << 2) >> 2])))));
+			fRec9 = +(+(fTemp30) + +(fTemp31));
+			fRec10 = +(+(+(fTemp0) + +(fTemp30)) + +(fTemp31));
+			HEAPF[dsp + 16452 + (0 << 2) >> 2] = +(fRec8);
+			fRec4 = +(+(fTemp28) + +(HEAPF[dsp + 16452 + (1 << 2) >> 2]));
+			fRec5 = +(fRec9);
+			fRec6 = +(fRec10);
+			HEAPF[dsp + 16460 + (0 << 2) >> 2] = +(fRec4);
+			HEAPF[dsp + 16472 + (0 << 2) >> 2] = +(fRec5);
+			fRec2 = +(fRec6);
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(fRec2));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(fRec2));
+			HEAPF[dsp + 4 + (1 << 2) >> 2] = +(HEAPF[dsp + 4 + (0 << 2) >> 2]);
+			HEAP32[dsp + 12 >> 2] = (((HEAP32[dsp + 12 >> 2] | 0) + 1) | 0);
+			HEAPF[dsp + 8240 + (1 << 2) >> 2] = +(HEAPF[dsp + 8240 + (0 << 2) >> 2]);
+			HEAPF[dsp + 8248 + (1 << 2) >> 2] = +(HEAPF[dsp + 8248 + (0 << 2) >> 2]);
+			HEAPF[dsp + 16452 + (1 << 2) >> 2] = +(HEAPF[dsp + 16452 + (0 << 2) >> 2]);
+			HEAPF[dsp + 16460 + (2 << 2) >> 2] = +(HEAPF[dsp + 16460 + (1 << 2) >> 2]);
+			HEAPF[dsp + 16460 + (1 << 2) >> 2] = +(HEAPF[dsp + 16460 + (0 << 2) >> 2]);
+			HEAPF[dsp + 16472 + (2 << 2) >> 2] = +(HEAPF[dsp + 16472 + (1 << 2) >> 2]);
+			HEAPF[dsp + 16472 + (1 << 2) >> 2] = +(HEAPF[dsp + 16472 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 16484;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/karplus/gate"] = 8232;
+	pathTable["/karplus/params/damping"] = 0;
+	pathTable["/karplus/params/freq"] = 8224;
+	pathTable["/karplus/params/bend"] = 8228;
+	pathTable["/karplus/params/sustain"] = 8236;
+	pathTable["/karplus/params/gain"] = 8256;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"KarplusStrong\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"basics.lib/name\":\"Faust Basic Element Library\"},{\"basics.lib/version\":\"0.0\"},{\"copyright\":\"(c)Romain Michon, CCRMA (Stanford University), GRAME\"},{\"delays.lib/name\":\"Faust Delay Library\"},{\"delays.lib/version\":\"0.0\"},{\"description\":\"Simple call of the Karplus-Strong model for the Faust physical modeling library\"},{\"license\":\"MIT\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"KarplusStrong\"},{\"routes.lib/name\":\"Faust Signal Routing Library\"},{\"routes.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"karplus\",\"items\":[{\"type\":\"hgroup\",\"label\":\"params\",\"meta\":[{\"0\":\"\"}],\"items\":[{\"type\":\"hslider\",\"label\":\"freq\",\"address\":\"/karplus/params/freq\",\"meta\":[{\"0\":\"\"},{\"style\":\"knob\"}],\"init\":\"440\",\"min\":\"50\",\"max\":\"1000\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"bend\",\"address\":\"/karplus/params/bend\",\"meta\":[{\"1\":\"\"},{\"hidden\":\"1\"},{\"midi\":\"pitchwheel\"},{\"style\":\"knob\"}],\"init\":\"1\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"damping\",\"address\":\"/karplus/params/damping\",\"meta\":[{\"1\":\"\"},{\"midi\":\"ctrl 1\"},{\"style\":\"knob\"}],\"init\":\"0.01\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"gain\",\"address\":\"/karplus/params/gain\",\"meta\":[{\"2\":\"\"},{\"style\":\"knob\"}],\"init\":\"0.8\",\"min\":\"0\",\"max\":\"1\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"sustain\",\"address\":\"/karplus/params/sustain\",\"meta\":[{\"3\":\"\"},{\"hidden\":\"1\"},{\"midi\":\"ctrl 64\"},{\"style\":\"knob\"}],\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"1\"}]},{\"type\":\"button\",\"label\":\"gate\",\"address\":\"/karplus/gate\",\"meta\":[{\"1\":\"\"}]}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("basics.lib/name", "Faust Basic Element Library");
+	m.declare("basics.lib/version", "0.0");
+	m.declare("copyright", "(c)Romain Michon, CCRMA (Stanford University), GRAME");
+	m.declare("delays.lib/name", "Faust Delay Library");
+	m.declare("delays.lib/version", "0.0");
+	m.declare("description", "Simple call of the Karplus-Strong model for the Faust physical modeling library");
+	m.declare("license", "MIT");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "KarplusStrong");
+	m.declare("routes.lib/name", "Faust Signal Routing Library");
+	m.declare("routes.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+}
+

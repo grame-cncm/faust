@@ -1,0 +1,206 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fHslider0: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fHslider1: f32,
+	IOTA: i32,
+	fRec0: [f32;131072],
+	fRec1: [f32;131072],
+	fRec2: [f32;131072],
+	fRec3: [f32;131072],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fHslider0: 0.0,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fHslider1: 0.0,
+			IOTA: 0,
+			fRec0: [0.0;131072],
+			fRec1: [0.0;131072],
+			fRec2: [0.0;131072],
+			fRec3: [0.0;131072],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("author", "Grame");
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("copyright", "(c)GRAME 2007");
+		m.declare("delays.lib/name", "Faust Delay Library");
+		m.declare("delays.lib/version", "0.0");
+		m.declare("license", "BSD");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("misceffects.lib/name", "Faust Math Library");
+		m.declare("misceffects.lib/version", "2.0");
+		m.declare("name", "quadEcho");
+		m.declare("version", "1.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		4
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		4
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			2 => {
+				rate = 1;
+				
+			},
+			3 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			2 => {
+				rate = 1;
+				
+			},
+			3 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 0.0;
+		self.fHslider1 = 0.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		self.IOTA = 0;
+		let mut l0: i32 = 0;
+		loop {
+			self.fRec0[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 131072) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fRec1[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 131072) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec2[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 131072) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec3[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 131072) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = (0.00100000005 * f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32))));
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("stereo echo");
+		ui_interface.openVerticalBox("echo  1000");
+		ui_interface.addHorizontalSlider("feedback", &mut self.fHslider0, 0.0, 0.0, 100.0, 0.10000000000000001);
+		ui_interface.addHorizontalSlider("millisecond", &mut self.fHslider1, 0.0, 0.0, 1000.0, 0.10000000000000001);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (0.00999999978 * (self.fHslider0 as f32));
+		let mut iSlow1: i32 = (std::cmp::min(65536, std::cmp::max(0, (((self.fConst0 * (self.fHslider1 as f32)) as i32) + -1))) + 1);
+		let mut i: i32 = 0;
+		loop {
+			self.fRec0[(self.IOTA & 131071) as usize] = ((inputs[0][i as usize] as f32) + (fSlow0 * self.fRec0[((self.IOTA - iSlow1) & 131071) as usize]));
+			outputs[0][i as usize] = (self.fRec0[((self.IOTA - 0) & 131071) as usize] as f32);
+			self.fRec1[(self.IOTA & 131071) as usize] = ((inputs[1][i as usize] as f32) + (fSlow0 * self.fRec1[((self.IOTA - iSlow1) & 131071) as usize]));
+			outputs[1][i as usize] = (self.fRec1[((self.IOTA - 0) & 131071) as usize] as f32);
+			self.fRec2[(self.IOTA & 131071) as usize] = ((inputs[2][i as usize] as f32) + (fSlow0 * self.fRec2[((self.IOTA - iSlow1) & 131071) as usize]));
+			outputs[2][i as usize] = (self.fRec2[((self.IOTA - 0) & 131071) as usize] as f32);
+			self.fRec3[(self.IOTA & 131071) as usize] = ((inputs[3][i as usize] as f32) + (fSlow0 * self.fRec3[((self.IOTA - iSlow1) & 131071) as usize]));
+			outputs[3][i as usize] = (self.fRec3[((self.IOTA - 0) & 131071) as usize] as f32);
+			self.IOTA = (self.IOTA + 1);
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

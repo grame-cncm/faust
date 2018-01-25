@@ -1,0 +1,455 @@
+
+pub fn mydsp_faustpower2_f(value: f32) -> f32 {
+	(value * value)
+}
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	iRec6: [i32;2],
+	fHslider0: f32,
+	iVec0: [i32;2],
+	fRec14: [f32;2],
+	fRec13: [f32;2],
+	fRec15: [f32;2],
+	fHslider1: f32,
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fConst1: f32,
+	fHslider2: f32,
+	fRec20: [f32;2],
+	fRec21: [f32;2],
+	fHslider3: f32,
+	fRec22: [f32;2],
+	fHslider4: f32,
+	fConst2: f32,
+	fHslider5: f32,
+	iRec24: [i32;2],
+	fRec23: [f32;3],
+	fConst3: f32,
+	fHslider6: f32,
+	fRec25: [f32;2],
+	fHslider7: f32,
+	fRec26: [f32;2],
+	fRec19: [f32;3],
+	fVec1: [f32;2],
+	fRec18: [f32;2],
+	IOTA: i32,
+	fRec16: [f32;2048],
+	fConst4: f32,
+	fConst5: f32,
+	fVec2: [f32;2],
+	fRec11: [f32;2],
+	fRec2: [f32;2048],
+	fRec0: [f32;2],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			iRec6: [0;2],
+			fHslider0: 0.0,
+			iVec0: [0;2],
+			fRec14: [0.0;2],
+			fRec13: [0.0;2],
+			fRec15: [0.0;2],
+			fHslider1: 0.0,
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fConst1: 0.0,
+			fHslider2: 0.0,
+			fRec20: [0.0;2],
+			fRec21: [0.0;2],
+			fHslider3: 0.0,
+			fRec22: [0.0;2],
+			fHslider4: 0.0,
+			fConst2: 0.0,
+			fHslider5: 0.0,
+			iRec24: [0;2],
+			fRec23: [0.0;3],
+			fConst3: 0.0,
+			fHslider6: 0.0,
+			fRec25: [0.0;2],
+			fHslider7: 0.0,
+			fRec26: [0.0;2],
+			fRec19: [0.0;3],
+			fVec1: [0.0;2],
+			fRec18: [0.0;2],
+			IOTA: 0,
+			fRec16: [0.0;2048],
+			fConst4: 0.0,
+			fConst5: 0.0,
+			fVec2: [0.0;2],
+			fRec11: [0.0;2],
+			fRec2: [0.0;2048],
+			fRec0: [0.0;2],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("copyright", "(c)Romain Michon, CCRMA (Stanford University), GRAME");
+		m.declare("delays.lib/name", "Faust Delay Library");
+		m.declare("delays.lib/version", "0.0");
+		m.declare("description", "Simple brass instrument physical model with physical parameters.");
+		m.declare("filters.lib/name", "Faust Filters Library");
+		m.declare("filters.lib/version", "0.0");
+		m.declare("license", "MIT");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "Brass");
+		m.declare("noises.lib/name", "Faust Noise Generator Library");
+		m.declare("noises.lib/version", "0.0");
+		m.declare("oscillators.lib/name", "Faust Oscillator Library");
+		m.declare("oscillators.lib/version", "0.0");
+		m.declare("routes.lib/name", "Faust Signal Routing Library");
+		m.declare("routes.lib/version", "0.0");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		0
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 0.5;
+		self.fHslider1 = 0.25;
+		self.fHslider2 = 5.0;
+		self.fHslider3 = 0.0;
+		self.fHslider4 = 0.100000001;
+		self.fHslider5 = 2000.0;
+		self.fHslider6 = 0.5;
+		self.fHslider7 = 0.5;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.iRec6[l0 as usize] = 0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.iVec0[l1 as usize] = 0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec14[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 2) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec13[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		let mut l4: i32 = 0;
+		loop {
+			self.fRec15[l4 as usize] = 0.0;
+			l4 = (l4 + 1);
+			if (l4 < 2) { continue; } else { break; }
+		}
+		let mut l5: i32 = 0;
+		loop {
+			self.fRec20[l5 as usize] = 0.0;
+			l5 = (l5 + 1);
+			if (l5 < 2) { continue; } else { break; }
+		}
+		let mut l6: i32 = 0;
+		loop {
+			self.fRec21[l6 as usize] = 0.0;
+			l6 = (l6 + 1);
+			if (l6 < 2) { continue; } else { break; }
+		}
+		let mut l7: i32 = 0;
+		loop {
+			self.fRec22[l7 as usize] = 0.0;
+			l7 = (l7 + 1);
+			if (l7 < 2) { continue; } else { break; }
+		}
+		let mut l8: i32 = 0;
+		loop {
+			self.iRec24[l8 as usize] = 0;
+			l8 = (l8 + 1);
+			if (l8 < 2) { continue; } else { break; }
+		}
+		let mut l9: i32 = 0;
+		loop {
+			self.fRec23[l9 as usize] = 0.0;
+			l9 = (l9 + 1);
+			if (l9 < 3) { continue; } else { break; }
+		}
+		let mut l10: i32 = 0;
+		loop {
+			self.fRec25[l10 as usize] = 0.0;
+			l10 = (l10 + 1);
+			if (l10 < 2) { continue; } else { break; }
+		}
+		let mut l11: i32 = 0;
+		loop {
+			self.fRec26[l11 as usize] = 0.0;
+			l11 = (l11 + 1);
+			if (l11 < 2) { continue; } else { break; }
+		}
+		let mut l12: i32 = 0;
+		loop {
+			self.fRec19[l12 as usize] = 0.0;
+			l12 = (l12 + 1);
+			if (l12 < 3) { continue; } else { break; }
+		}
+		let mut l13: i32 = 0;
+		loop {
+			self.fVec1[l13 as usize] = 0.0;
+			l13 = (l13 + 1);
+			if (l13 < 2) { continue; } else { break; }
+		}
+		let mut l14: i32 = 0;
+		loop {
+			self.fRec18[l14 as usize] = 0.0;
+			l14 = (l14 + 1);
+			if (l14 < 2) { continue; } else { break; }
+		}
+		self.IOTA = 0;
+		let mut l15: i32 = 0;
+		loop {
+			self.fRec16[l15 as usize] = 0.0;
+			l15 = (l15 + 1);
+			if (l15 < 2048) { continue; } else { break; }
+		}
+		let mut l16: i32 = 0;
+		loop {
+			self.fVec2[l16 as usize] = 0.0;
+			l16 = (l16 + 1);
+			if (l16 < 2) { continue; } else { break; }
+		}
+		let mut l17: i32 = 0;
+		loop {
+			self.fRec11[l17 as usize] = 0.0;
+			l17 = (l17 + 1);
+			if (l17 < 2) { continue; } else { break; }
+		}
+		let mut l18: i32 = 0;
+		loop {
+			self.fRec2[l18 as usize] = 0.0;
+			l18 = (l18 + 1);
+			if (l18 < 2048) { continue; } else { break; }
+		}
+		let mut l19: i32 = 0;
+		loop {
+			self.fRec0[l19 as usize] = 0.0;
+			l19 = (l19 + 1);
+			if (l19 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32)));
+		self.fConst1 = (6.28318548 / self.fConst0);
+		self.fConst2 = (3.14159274 / self.fConst0);
+		self.fConst3 = (2136.28296 / self.fConst0);
+		self.fConst4 = (0.00882352982 * self.fConst0);
+		self.fConst5 = (0.00147058826 * self.fConst0);
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openHorizontalBox("brass");
+		ui_interface.openVerticalBox("blower");
+		ui_interface.declare(&mut self.fHslider3, "0", "");
+		ui_interface.addHorizontalSlider("pressure", &mut self.fHslider3, 0.0, 0.0, 1.0, 0.01);
+		ui_interface.declare(&mut self.fHslider4, "1", "");
+		ui_interface.addHorizontalSlider("breathGain", &mut self.fHslider4, 0.10000000000000001, 0.0, 1.0, 0.01);
+		ui_interface.declare(&mut self.fHslider5, "2", "");
+		ui_interface.addHorizontalSlider("breathCutoff", &mut self.fHslider5, 2000.0, 20.0, 20000.0, 0.10000000000000001);
+		ui_interface.declare(&mut self.fHslider2, "3", "");
+		ui_interface.addHorizontalSlider("vibratoFreq", &mut self.fHslider2, 5.0, 0.10000000000000001, 10.0, 0.10000000000000001);
+		ui_interface.declare(&mut self.fHslider1, "4", "");
+		ui_interface.addHorizontalSlider("vibratoGain", &mut self.fHslider1, 0.25, 0.0, 1.0, 0.01);
+		ui_interface.closeBox();
+		ui_interface.openVerticalBox("brassModel");
+		ui_interface.declare(&mut self.fHslider7, "1", "");
+		ui_interface.addHorizontalSlider("tubeLength", &mut self.fHslider7, 0.5, 0.01, 2.5, 0.01);
+		ui_interface.declare(&mut self.fHslider6, "2", "");
+		ui_interface.addHorizontalSlider("lipsTension", &mut self.fHslider6, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.declare(&mut self.fHslider0, "3", "");
+		ui_interface.addHorizontalSlider("mute", &mut self.fHslider0, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.closeBox();
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (0.00100000005 * (self.fHslider0 as f32));
+		let mut fSlow1: f32 = (0.0299999993 * (self.fHslider1 as f32));
+		let mut fSlow2: f32 = (self.fConst1 * (self.fHslider2 as f32));
+		let mut fSlow3: f32 = f32::sin(fSlow2);
+		let mut fSlow4: f32 = f32::cos(fSlow2);
+		let mut fSlow5: f32 = (0.0 - fSlow3);
+		let mut fSlow6: f32 = (0.00100000005 * (self.fHslider3 as f32));
+		let mut fSlow7: f32 = f32::tan((self.fConst2 * (self.fHslider5 as f32)));
+		let mut fSlow8: f32 = (1.0 / fSlow7);
+		let mut fSlow9: f32 = (((fSlow8 + 1.41421354) / fSlow7) + 1.0);
+		let mut fSlow10: f32 = (0.0500000007 * ((self.fHslider4 as f32) / fSlow9));
+		let mut fSlow11: f32 = (1.0 / fSlow9);
+		let mut fSlow12: f32 = (((fSlow8 + -1.41421354) / fSlow7) + 1.0);
+		let mut fSlow13: f32 = (2.0 * (1.0 - (1.0 / mydsp_faustpower2_f(fSlow7))));
+		let mut fSlow14: f32 = (0.00100000005 * (self.fHslider6 as f32));
+		let mut fSlow15: f32 = (0.00100000005 * (self.fHslider7 as f32));
+		let mut i: i32 = 0;
+		loop {
+			self.iRec6[0] = 0;
+			self.iVec0[0] = 1;
+			self.fRec14[0] = (fSlow0 + (0.999000013 * self.fRec14[1]));
+			self.fRec13[0] = ((self.fRec14[0] * self.fRec13[1]) + ((1.0 - self.fRec14[0]) * self.fRec11[1]));
+			let mut fRec10: f32 = (self.fRec13[0] + (self.iRec6[1] as f32));
+			self.fRec15[0] = self.fRec0[1];
+			self.fRec20[0] = ((fSlow3 * self.fRec21[1]) + (fSlow4 * self.fRec20[1]));
+			self.fRec21[0] = (((fSlow4 * self.fRec21[1]) + (fSlow5 * self.fRec20[1])) + ((1 - self.iVec0[1]) as f32));
+			self.fRec22[0] = (fSlow6 + (0.999000013 * self.fRec22[1]));
+			self.iRec24[0] = ((1103515245 * self.iRec24[1]) + 12345);
+			self.fRec23[0] = ((4.65661287e-10 * (self.iRec24[0] as f32)) - (fSlow11 * ((fSlow12 * self.fRec23[2]) + (fSlow13 * self.fRec23[1]))));
+			let mut fTemp0: f32 = ((fSlow1 * self.fRec20[0]) + (self.fRec22[0] * ((fSlow10 * (self.fRec23[2] + (self.fRec23[0] + (2.0 * self.fRec23[1])))) + 1.0)));
+			self.fRec25[0] = (fSlow14 + (0.999000013 * self.fRec25[1]));
+			self.fRec26[0] = (fSlow15 + (0.999000013 * self.fRec26[1]));
+			self.fRec19[0] = ((0.0299999993 * ((0.300000012 * fTemp0) - (0.850000024 * self.fRec15[1]))) - ((self.fRec19[1] * (0.0 - (1.99399996 * f32::cos((self.fConst3 * (f32::powf(4.0, ((2.0 * self.fRec25[0]) + -1.0)) / self.fRec26[0])))))) + (0.994009018 * self.fRec19[2])));
+			let mut fTemp1: f32 = f32::max(-1.0, f32::min(1.0, mydsp_faustpower2_f(self.fRec19[0])));
+			let mut fTemp2: f32 = (0.850000024 * (self.fRec15[1] * (1.0 - fTemp1)));
+			let mut fTemp3: f32 = (0.300000012 * (fTemp0 * fTemp1));
+			self.fVec1[0] = (fTemp3 + fTemp2);
+			self.fRec18[0] = ((fTemp2 + ((0.995000005 * self.fRec18[1]) + fTemp3)) - self.fVec1[1]);
+			self.fRec16[(self.IOTA & 2047) as usize] = self.fRec18[0];
+			let mut iRec17: i32 = 0;
+			let mut fTemp4: f32 = (self.fConst5 * self.fRec26[0]);
+			let mut fTemp5: f32 = (fTemp4 + -1.49999499);
+			let mut iTemp6: i32 = (fTemp5 as i32);
+			let mut iTemp7: i32 = ((f32::min(self.fConst4, (std::cmp::max(0, iTemp6) as f32)) as i32) + 1);
+			let mut fTemp8: f32 = f32::floor(fTemp5);
+			let mut fTemp9: f32 = (fTemp4 + (-1.0 - fTemp8));
+			let mut fTemp10: f32 = (0.0 - fTemp9);
+			let mut fTemp11: f32 = (fTemp4 + (-2.0 - fTemp8));
+			let mut fTemp12: f32 = (0.0 - (0.5 * fTemp11));
+			let mut fTemp13: f32 = (fTemp4 + (-3.0 - fTemp8));
+			let mut fTemp14: f32 = (0.0 - (0.333333343 * fTemp13));
+			let mut fTemp15: f32 = (fTemp4 + (-4.0 - fTemp8));
+			let mut fTemp16: f32 = (0.0 - (0.25 * fTemp15));
+			let mut fTemp17: f32 = (fTemp4 - fTemp8);
+			let mut iTemp18: i32 = ((f32::min(self.fConst4, (std::cmp::max(0, (iTemp6 + 2)) as f32)) as i32) + 1);
+			let mut fTemp19: f32 = (0.0 - fTemp13);
+			let mut fTemp20: f32 = (0.0 - (0.5 * fTemp15));
+			let mut iTemp21: i32 = ((f32::min(self.fConst4, (std::cmp::max(0, (iTemp6 + 1)) as f32)) as i32) + 1);
+			let mut fTemp22: f32 = (0.0 - fTemp11);
+			let mut fTemp23: f32 = (0.0 - (0.5 * fTemp13));
+			let mut fTemp24: f32 = (0.0 - (0.333333343 * fTemp15));
+			let mut fTemp25: f32 = (fTemp9 * fTemp11);
+			let mut iTemp26: i32 = ((f32::min(self.fConst4, (std::cmp::max(0, (iTemp6 + 3)) as f32)) as i32) + 1);
+			let mut fTemp27: f32 = (0.0 - fTemp15);
+			let mut fTemp28: f32 = (fTemp25 * fTemp13);
+			let mut iTemp29: i32 = ((f32::min(self.fConst4, (std::cmp::max(0, (iTemp6 + 4)) as f32)) as i32) + 1);
+			self.fVec2[0] = (((((self.fRec16[((self.IOTA - iTemp7) & 2047) as usize] * fTemp10) * fTemp12) * fTemp14) * fTemp16) + (fTemp17 * ((((0.5 * (((fTemp9 * self.fRec16[((self.IOTA - iTemp18) & 2047) as usize]) * fTemp19) * fTemp20)) + (((self.fRec16[((self.IOTA - iTemp21) & 2047) as usize] * fTemp22) * fTemp23) * fTemp24)) + (0.166666672 * ((fTemp25 * self.fRec16[((self.IOTA - iTemp26) & 2047) as usize]) * fTemp27))) + (0.0416666679 * (fTemp28 * self.fRec16[((self.IOTA - iTemp29) & 2047) as usize])))));
+			self.fRec11[0] = self.fVec2[1];
+			let mut iRec12: i32 = iRec17;
+			let mut fRec7: f32 = fRec10;
+			let mut fRec8: f32 = self.fRec11[0];
+			let mut fRec9: f32 = (self.fRec11[0] + (iRec12 as f32));
+			self.fRec2[(self.IOTA & 2047) as usize] = fRec7;
+			let mut fRec3: f32 = (((((fTemp10 * fTemp12) * fTemp14) * fTemp16) * self.fRec2[((self.IOTA - iTemp7) & 2047) as usize]) + (fTemp17 * (((0.166666672 * ((fTemp25 * fTemp27) * self.fRec2[((self.IOTA - iTemp26) & 2047) as usize])) + ((((fTemp22 * fTemp23) * fTemp24) * self.fRec2[((self.IOTA - iTemp21) & 2047) as usize]) + (0.5 * (((fTemp9 * fTemp19) * fTemp20) * self.fRec2[((self.IOTA - iTemp18) & 2047) as usize])))) + (0.0416666679 * (fTemp28 * self.fRec2[((self.IOTA - iTemp29) & 2047) as usize])))));
+			let mut fRec4: f32 = fRec8;
+			let mut fRec5: f32 = fRec9;
+			self.fRec0[0] = fRec3;
+			let mut fRec1: f32 = fRec5;
+			outputs[0][i as usize] = (fRec1 as f32);
+			outputs[1][i as usize] = (fRec1 as f32);
+			self.iRec6[1] = self.iRec6[0];
+			self.iVec0[1] = self.iVec0[0];
+			self.fRec14[1] = self.fRec14[0];
+			self.fRec13[1] = self.fRec13[0];
+			self.fRec15[1] = self.fRec15[0];
+			self.fRec20[1] = self.fRec20[0];
+			self.fRec21[1] = self.fRec21[0];
+			self.fRec22[1] = self.fRec22[0];
+			self.iRec24[1] = self.iRec24[0];
+			self.fRec23[2] = self.fRec23[1];
+			self.fRec23[1] = self.fRec23[0];
+			self.fRec25[1] = self.fRec25[0];
+			self.fRec26[1] = self.fRec26[0];
+			self.fRec19[2] = self.fRec19[1];
+			self.fRec19[1] = self.fRec19[0];
+			self.fVec1[1] = self.fVec1[0];
+			self.fRec18[1] = self.fRec18[0];
+			self.IOTA = (self.IOTA + 1);
+			self.fVec2[1] = self.fVec2[0];
+			self.fRec11[1] = self.fRec11[0];
+			self.fRec0[1] = self.fRec0[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

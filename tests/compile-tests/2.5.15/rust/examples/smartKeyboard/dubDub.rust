@@ -1,0 +1,273 @@
+
+pub fn mydsp_faustpower2_f(value: f32) -> f32 {
+	(value * value)
+}
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	fHslider0: f32,
+	fRec0: [f32;2],
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fConst1: f32,
+	fConst2: f32,
+	fButton0: f32,
+	fVec0: [f32;2],
+	fRec2: [f32;2],
+	fConst3: f32,
+	fHslider1: f32,
+	fRec5: [f32;2],
+	fRec3: [f32;2],
+	fConst4: f32,
+	fHslider2: f32,
+	fConst5: f32,
+	fHslider3: f32,
+	fVec1: [f32;2],
+	fRec6: [f32;2],
+	fRec1: [f32;3],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			fHslider0: 0.0,
+			fRec0: [0.0;2],
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fConst1: 0.0,
+			fConst2: 0.0,
+			fButton0: 0.0,
+			fVec0: [0.0;2],
+			fRec2: [0.0;2],
+			fConst3: 0.0,
+			fHslider1: 0.0,
+			fRec5: [0.0;2],
+			fRec3: [0.0;2],
+			fConst4: 0.0,
+			fHslider2: 0.0,
+			fConst5: 0.0,
+			fHslider3: 0.0,
+			fVec1: [0.0;2],
+			fRec6: [0.0;2],
+			fRec1: [0.0;3],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("envelopes.lib/author", "GRAME");
+		m.declare("envelopes.lib/copyright", "GRAME");
+		m.declare("envelopes.lib/license", "LGPL with exception");
+		m.declare("envelopes.lib/name", "Faust Envelope Library");
+		m.declare("envelopes.lib/version", "0.0");
+		m.declare("filters.lib/name", "Faust Filters Library");
+		m.declare("filters.lib/version", "0.0");
+		m.declare("interface", "SmartKeyboard{  'Number of Keyboards':'1',  'Keyboard 0 - Number of Keys':'1',  'Keyboard 0 - Piano Keyboard':'0',  'Keyboard 0 - Static Mode':'1',  'Keyboard 0 - Send X':'1',  'Keyboard 0 - Send Y':'1' }");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "dubDub");
+		m.declare("oscillators.lib/name", "Faust Oscillator Library");
+		m.declare("oscillators.lib/version", "0.0");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("synths.lib/name", "Faust Synthesizer Library");
+		m.declare("synths.lib/version", "0.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		0
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 0.5;
+		self.fButton0 = 0.0;
+		self.fHslider1 = 0.0;
+		self.fHslider2 = 0.0;
+		self.fHslider3 = 9.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.fRec0[l0 as usize] = 0.0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fVec0[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec2[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 2) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec5[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		let mut l4: i32 = 0;
+		loop {
+			self.fRec3[l4 as usize] = 0.0;
+			l4 = (l4 + 1);
+			if (l4 < 2) { continue; } else { break; }
+		}
+		let mut l5: i32 = 0;
+		loop {
+			self.fVec1[l5 as usize] = 0.0;
+			l5 = (l5 + 1);
+			if (l5 < 2) { continue; } else { break; }
+		}
+		let mut l6: i32 = 0;
+		loop {
+			self.fRec6[l6 as usize] = 0.0;
+			l6 = (l6 + 1);
+			if (l6 < 2) { continue; } else { break; }
+		}
+		let mut l7: i32 = 0;
+		loop {
+			self.fRec1[l7 as usize] = 0.0;
+			l7 = (l7 + 1);
+			if (l7 < 3) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32)));
+		self.fConst1 = f32::exp((0.0 - (100.0 / self.fConst0)));
+		self.fConst2 = (1.0 - self.fConst1);
+		self.fConst3 = (1.0 / self.fConst0);
+		self.fConst4 = (3.14159274 / self.fConst0);
+		self.fConst5 = (1.0 / self.fConst0);
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("dubDub");
+		ui_interface.declare(&mut self.fHslider0, "acc", "1 0 -10 0 10");
+		ui_interface.addHorizontalSlider("gain", &mut self.fHslider0, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.addButton("gate", &mut self.fButton0);
+		ui_interface.declare(&mut self.fHslider3, "acc", "0 0 -10 0 10");
+		ui_interface.addHorizontalSlider("modFeq", &mut self.fHslider3, 9.0, 0.5, 18.0, 0.01);
+		ui_interface.addHorizontalSlider("x", &mut self.fHslider1, 0.0, 0.0, 1.0, 0.01);
+		ui_interface.addHorizontalSlider("y", &mut self.fHslider2, 0.0, 0.0, 1.0, 0.01);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (0.00100000005 * mydsp_faustpower2_f((self.fHslider0 as f32)));
+		let mut fSlow1: f32 = (self.fButton0 as f32);
+		let mut fSlow2: f32 = (self.fConst2 * fSlow1);
+		let mut iSlow3: i32 = ((fSlow1 == 0.0) as i32);
+		let mut fSlow4: f32 = ((420.0 * (self.fHslider1 as f32)) + 80.0);
+		let mut fSlow5: f32 = (1.0 - (self.fHslider2 as f32));
+		let mut fSlow6: f32 = (self.fHslider3 as f32);
+		let mut i: i32 = 0;
+		loop {
+			self.fRec0[0] = (fSlow0 + (0.999000013 * self.fRec0[1]));
+			self.fVec0[0] = fSlow1;
+			self.fRec2[0] = (fSlow2 + (self.fConst1 * self.fRec2[1]));
+			let mut iTemp0: i32 = (((fSlow1 == self.fVec0[1]) as i32) | iSlow3);
+			self.fRec5[0] = ((0.999000013 * (self.fRec5[1] * (iTemp0 as f32))) + (fSlow4 * (1.0 - (0.999000013 * (iTemp0 as f32)))));
+			let mut fTemp1: f32 = f32::max(1.00000001e-07, f32::abs(self.fRec5[0]));
+			let mut fTemp2: f32 = (self.fRec3[1] + (self.fConst3 * fTemp1));
+			let mut fTemp3: f32 = (fTemp2 + -1.0);
+			let mut iTemp4: i32 = ((fTemp3 < 0.0) as i32);
+			self.fRec3[0] = if (iTemp4 as i32 == 1) { fTemp2 } else { fTemp3 };
+			let mut fRec4: f32 = if (iTemp4 as i32 == 1) { fTemp2 } else { (fTemp2 + ((1.0 - (self.fConst0 / fTemp1)) * fTemp3)) };
+			self.fVec1[0] = fSlow6;
+			let mut fTemp5: f32 = (self.fRec6[1] + (self.fConst5 * self.fVec1[1]));
+			self.fRec6[0] = (fTemp5 - f32::floor(fTemp5));
+			let mut fTemp6: f32 = f32::tan((self.fConst4 * ((4950.0 * (1.0 - (fSlow5 * (1.0 - f32::abs(((2.0 * self.fRec6[0]) + -1.0)))))) + 50.0)));
+			let mut fTemp7: f32 = (1.0 / fTemp6);
+			let mut fTemp8: f32 = (((fTemp7 + 0.125) / fTemp6) + 1.0);
+			self.fRec1[0] = ((0.5 * (self.fRec2[0] * ((2.0 * fRec4) + -1.0))) - (((self.fRec1[2] * (((fTemp7 + -0.125) / fTemp6) + 1.0)) + (2.0 * (self.fRec1[1] * (1.0 - (1.0 / mydsp_faustpower2_f(fTemp6)))))) / fTemp8));
+			let mut fTemp9: f32 = ((self.fRec0[0] * (self.fRec1[2] + (self.fRec1[0] + (2.0 * self.fRec1[1])))) / fTemp8);
+			outputs[0][i as usize] = (fTemp9 as f32);
+			outputs[1][i as usize] = (fTemp9 as f32);
+			self.fRec0[1] = self.fRec0[0];
+			self.fVec0[1] = self.fVec0[0];
+			self.fRec2[1] = self.fRec2[0];
+			self.fRec5[1] = self.fRec5[0];
+			self.fRec3[1] = self.fRec3[0];
+			self.fVec1[1] = self.fVec1[0];
+			self.fRec6[1] = self.fRec6[0];
+			self.fRec1[2] = self.fRec1[1];
+			self.fRec1[1] = self.fRec1[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

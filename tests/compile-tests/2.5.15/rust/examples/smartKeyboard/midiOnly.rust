@@ -1,0 +1,288 @@
+
+
+
+pub struct mydsp {
+	
+	fDummy: f32,
+	iVec0: [i32;2],
+	fSamplingFreq: i32,
+	fConst0: f32,
+	fHslider0: f32,
+	fButton0: f32,
+	fHslider1: f32,
+	fVec1: [f32;2],
+	fHslider2: f32,
+	fRec2: [f32;2],
+	fHslider3: f32,
+	fRec5: [f32;2],
+	fRec3: [f32;2],
+	fRec4: [f32;2],
+	fHslider4: f32,
+	fRec6: [f32;2],
+	fHslider5: f32,
+	fRec7: [f32;2],
+	fRec0: [f32;2],
+	fRec1: [f32;2],
+	fRec8: [f32;2],
+	
+}
+
+impl mydsp {
+		
+	pub fn new() -> mydsp { 
+		mydsp {
+			fDummy: 0 as f32,
+			iVec0: [0;2],
+			fSamplingFreq: 0,
+			fConst0: 0.0,
+			fHslider0: 0.0,
+			fButton0: 0.0,
+			fHslider1: 0.0,
+			fVec1: [0.0;2],
+			fHslider2: 0.0,
+			fRec2: [0.0;2],
+			fHslider3: 0.0,
+			fRec5: [0.0;2],
+			fRec3: [0.0;2],
+			fRec4: [0.0;2],
+			fHslider4: 0.0,
+			fRec6: [0.0;2],
+			fHslider5: 0.0,
+			fRec7: [0.0;2],
+			fRec0: [0.0;2],
+			fRec1: [0.0;2],
+			fRec8: [0.0;2],
+		}
+	}
+	
+	pub fn metadata(&mut self, m: &mut Meta) { 
+		m.declare("basics.lib/name", "Faust Basic Element Library");
+		m.declare("basics.lib/version", "0.0");
+		m.declare("filters.lib/name", "Faust Filters Library");
+		m.declare("filters.lib/version", "0.0");
+		m.declare("interface", "SmartKeyboard{  'Number of Keyboards':'1',  'Keyboard 0 - Number of Keys':'2',  'Keyboard 0 - Send Freq':'0',  'Keyboard 0 - Piano Keyboard':'0',  'Keyboard 0 - Static Mode':'1',  'Keyboard 0 - Send Key X':'1',  'Keyboard 0 - Key 0 - Label':'Mod Index',  'Keyboard 0 - Key 1 - Label':'Mod Freq' }");
+		m.declare("maths.lib/author", "GRAME");
+		m.declare("maths.lib/copyright", "GRAME");
+		m.declare("maths.lib/license", "LGPL with exception");
+		m.declare("maths.lib/name", "Faust Math Library");
+		m.declare("maths.lib/version", "2.1");
+		m.declare("name", "midiOnly");
+		m.declare("oscillators.lib/name", "Faust Oscillator Library");
+		m.declare("oscillators.lib/version", "0.0");
+		m.declare("signals.lib/name", "Faust Signal Routing Library");
+		m.declare("signals.lib/version", "0.0");
+		m.declare("synths.lib/name", "Faust Synthesizer Library");
+		m.declare("synths.lib/version", "0.0");
+	}
+
+	pub fn getSampleRate(&mut self) -> i32 {
+		self.fSamplingFreq
+	}
+	pub fn getNumInputs(&mut self) -> i32 {
+		0
+	}
+	pub fn getNumOutputs(&mut self) -> i32 {
+		2
+	}
+	pub fn getInputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	pub fn getOutputRate(&mut self, channel: i32) -> i32 {
+		let mut rate: i32;
+		match (channel) {
+			0 => {
+				rate = 1;
+				
+			},
+			1 => {
+				rate = 1;
+				
+			},
+			_ => {
+				rate = -1;
+				
+			},
+			
+		} 
+		rate
+	}
+	
+	pub fn classInit(samplingFreq: i32) {
+		
+	}
+	
+	pub fn instanceResetUserInterface(&mut self) {
+		self.fHslider0 = 300.0;
+		self.fButton0 = 0.0;
+		self.fHslider1 = 0.0;
+		self.fHslider2 = 1.0;
+		self.fHslider3 = 0.5;
+		self.fHslider4 = 0.5;
+		self.fHslider5 = 1.0;
+		
+	}
+	
+	pub fn instanceClear(&mut self) {
+		let mut l0: i32 = 0;
+		loop {
+			self.iVec0[l0 as usize] = 0;
+			l0 = (l0 + 1);
+			if (l0 < 2) { continue; } else { break; }
+		}
+		let mut l1: i32 = 0;
+		loop {
+			self.fVec1[l1 as usize] = 0.0;
+			l1 = (l1 + 1);
+			if (l1 < 2) { continue; } else { break; }
+		}
+		let mut l2: i32 = 0;
+		loop {
+			self.fRec2[l2 as usize] = 0.0;
+			l2 = (l2 + 1);
+			if (l2 < 2) { continue; } else { break; }
+		}
+		let mut l3: i32 = 0;
+		loop {
+			self.fRec5[l3 as usize] = 0.0;
+			l3 = (l3 + 1);
+			if (l3 < 2) { continue; } else { break; }
+		}
+		let mut l4: i32 = 0;
+		loop {
+			self.fRec3[l4 as usize] = 0.0;
+			l4 = (l4 + 1);
+			if (l4 < 2) { continue; } else { break; }
+		}
+		let mut l5: i32 = 0;
+		loop {
+			self.fRec4[l5 as usize] = 0.0;
+			l5 = (l5 + 1);
+			if (l5 < 2) { continue; } else { break; }
+		}
+		let mut l6: i32 = 0;
+		loop {
+			self.fRec6[l6 as usize] = 0.0;
+			l6 = (l6 + 1);
+			if (l6 < 2) { continue; } else { break; }
+		}
+		let mut l7: i32 = 0;
+		loop {
+			self.fRec7[l7 as usize] = 0.0;
+			l7 = (l7 + 1);
+			if (l7 < 2) { continue; } else { break; }
+		}
+		let mut l8: i32 = 0;
+		loop {
+			self.fRec0[l8 as usize] = 0.0;
+			l8 = (l8 + 1);
+			if (l8 < 2) { continue; } else { break; }
+		}
+		let mut l9: i32 = 0;
+		loop {
+			self.fRec1[l9 as usize] = 0.0;
+			l9 = (l9 + 1);
+			if (l9 < 2) { continue; } else { break; }
+		}
+		let mut l10: i32 = 0;
+		loop {
+			self.fRec8[l10 as usize] = 0.0;
+			l10 = (l10 + 1);
+			if (l10 < 2) { continue; } else { break; }
+		}
+		
+	}
+	
+	pub fn instanceConstants(&mut self, samplingFreq: i32) {
+		self.fSamplingFreq = samplingFreq;
+		self.fConst0 = (6.28318548 / f32::min(192000.0, f32::max(1.0, (self.fSamplingFreq as f32))));
+		
+	}
+	
+	pub fn instanceInit(&mut self, samplingFreq: i32) {
+		self.instanceConstants(samplingFreq);
+		self.instanceResetUserInterface();
+		self.instanceClear();
+	}
+	
+	pub fn init(&mut self, samplingFreq: i32) {
+		mydsp::classInit(samplingFreq);
+		self.instanceInit(samplingFreq);
+	}
+	
+	pub fn buildUserInterface(&mut self, ui_interface: &mut UI<f32>) {
+		ui_interface.openVerticalBox("midiOnly");
+		ui_interface.declare(&mut self.fHslider2, "midi", "pitchwheel");
+		ui_interface.addHorizontalSlider("bend", &mut self.fHslider2, 1.0, 0.0, 10.0, 0.01);
+		ui_interface.addHorizontalSlider("freq", &mut self.fHslider0, 300.0, 50.0, 2000.0, 0.01);
+		ui_interface.addHorizontalSlider("gain", &mut self.fHslider5, 1.0, 0.0, 1.0, 0.01);
+		ui_interface.addButton("gate", &mut self.fButton0);
+		ui_interface.declare(&mut self.fHslider4, "midi", "ctrl 1");
+		ui_interface.addHorizontalSlider("kb0k0x", &mut self.fHslider4, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.declare(&mut self.fHslider3, "midi", "ctrl 1");
+		ui_interface.addHorizontalSlider("kb0k1x", &mut self.fHslider3, 0.5, 0.0, 1.0, 0.01);
+		ui_interface.declare(&mut self.fHslider1, "midi", "ctrl 64");
+		ui_interface.addHorizontalSlider("sustain", &mut self.fHslider1, 0.0, 0.0, 1.0, 1.0);
+		ui_interface.closeBox();
+		
+	}
+	
+	pub fn compute(&mut self, count: i32, inputs: &[&[f32]], outputs: &mut[&mut[f32]]) {
+		let mut fSlow0: f32 = (self.fHslider0 as f32);
+		let mut fSlow1: f32 = f32::min(1.0, ((self.fButton0 as f32) + (self.fHslider1 as f32)));
+		let mut iSlow2: i32 = ((fSlow1 == 0.0) as i32);
+		let mut fSlow3: f32 = (self.fHslider2 as f32);
+		let mut fSlow4: f32 = (self.fConst0 * fSlow0);
+		let mut fSlow5: f32 = (0.00100000005 * (self.fHslider3 as f32));
+		let mut fSlow6: f32 = (0.00100000005 * (self.fHslider4 as f32));
+		let mut fSlow7: f32 = (0.00100000005 * (fSlow1 * (self.fHslider5 as f32)));
+		let mut i: i32 = 0;
+		loop {
+			self.iVec0[0] = 1;
+			self.fVec1[0] = fSlow1;
+			let mut iTemp0: i32 = (((fSlow1 == self.fVec1[1]) as i32) | iSlow2);
+			self.fRec2[0] = ((0.999000013 * (self.fRec2[1] * (iTemp0 as f32))) + (fSlow3 * (1.0 - (0.999000013 * (iTemp0 as f32)))));
+			self.fRec5[0] = (fSlow5 + (0.999000013 * self.fRec5[1]));
+			let mut fTemp1: f32 = (fSlow4 * (self.fRec2[0] * (self.fRec5[0] + 1.0)));
+			let mut fTemp2: f32 = f32::sin(fTemp1);
+			let mut fTemp3: f32 = f32::cos(fTemp1);
+			self.fRec3[0] = ((self.fRec4[1] * fTemp2) + (self.fRec3[1] * fTemp3));
+			let mut iTemp4: i32 = (1 - self.iVec0[1]);
+			self.fRec4[0] = (((self.fRec4[1] * fTemp3) + (self.fRec3[1] * (0.0 - fTemp2))) + (iTemp4 as f32));
+			self.fRec6[0] = (fSlow6 + (0.999000013 * self.fRec6[1]));
+			self.fRec7[0] = (fSlow7 + (0.999000013 * self.fRec7[1]));
+			let mut fTemp5: f32 = (self.fConst0 * ((fSlow0 * self.fRec2[0]) + (1000.0 * ((self.fRec3[0] * self.fRec6[0]) * self.fRec7[0]))));
+			let mut fTemp6: f32 = f32::sin(fTemp5);
+			let mut fTemp7: f32 = f32::cos(fTemp5);
+			self.fRec0[0] = ((self.fRec1[1] * fTemp6) + (self.fRec0[1] * fTemp7));
+			self.fRec1[0] = (((self.fRec1[1] * fTemp7) + (self.fRec0[1] * (0.0 - fTemp6))) + (iTemp4 as f32));
+			self.fRec8[0] = (fSlow7 + (0.999000013 * self.fRec8[1]));
+			let mut fTemp8: f32 = (self.fRec0[0] * self.fRec8[0]);
+			outputs[0][i as usize] = (fTemp8 as f32);
+			outputs[1][i as usize] = (fTemp8 as f32);
+			self.iVec0[1] = self.iVec0[0];
+			self.fVec1[1] = self.fVec1[0];
+			self.fRec2[1] = self.fRec2[0];
+			self.fRec5[1] = self.fRec5[0];
+			self.fRec3[1] = self.fRec3[0];
+			self.fRec4[1] = self.fRec4[0];
+			self.fRec6[1] = self.fRec6[0];
+			self.fRec7[1] = self.fRec7[0];
+			self.fRec0[1] = self.fRec0[0];
+			self.fRec1[1] = self.fRec1[0];
+			self.fRec8[1] = self.fRec8[0];
+			i = (i + 1);
+			if (i < count) { continue; } else { break; }
+		}
+		
+	}
+
+}
+

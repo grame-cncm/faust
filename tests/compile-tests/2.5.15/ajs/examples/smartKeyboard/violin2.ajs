@@ -1,0 +1,1231 @@
+/* ------------------------------------------------------------
+name: "violin2"
+Code generated with Faust 2.5.15 (https://faust.grame.fr)
+Compilation options: ajs, -scal -ftz 0
+------------------------------------------------------------ */
+
+
+function mydspModule(global, foreign, buffer) {
+	
+	'use asm';
+	
+	var HEAP32 = new global.Int32Array(buffer);
+	var HEAPF = new global.Float32Array(buffer);
+	
+	var imul = foreign.imul;
+	var log = foreign.log;
+	var round = foreign.round;
+	
+	var fabsf = foreign.abs;
+	var floorf = foreign.floor;
+	var max_f = foreign.max;
+	var max_i = foreign.max;
+	var min_f = foreign.min;
+	var powf = foreign.pow;
+	var tanf = foreign.tan;
+	function fmodf(x, y) { x = +x; y = +y; return +(x % y); }
+	function log10f(a) { a = +a; return +(+log(a) / +log(10.)); }
+	function remainderf(x, y) { x = +x; y = +y; return +(x - +round(x/y) * y); }
+	
+	function getNumInputs(dsp) {
+		dsp = dsp | 0;
+		return 0;
+	}
+	
+	function getNumOutputs(dsp) {
+		dsp = dsp | 0;
+		return 2;
+	}
+	
+	function classInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		
+	}
+	
+	function instanceConstants(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		HEAP32[dsp + 8 >> 2] = (samplingFreq | 0);
+		HEAPF[dsp + 12 >> 2] = +(min_f(192000., +(max_f(1., +((HEAP32[dsp + 8 >> 2] | 0))))));
+		HEAPF[dsp + 16 >> 2] = +(tanf(+(1570.79639 / +(HEAPF[dsp + 12 >> 2]))));
+		HEAPF[dsp + 20 >> 2] = +(1. / +(HEAPF[dsp + 16 >> 2]));
+		HEAPF[dsp + 24 >> 2] = +(1. / +(+(+(+(HEAPF[dsp + 20 >> 2]) + 0.5) / +(HEAPF[dsp + 16 >> 2])) + 1.));
+		HEAPF[dsp + 28 >> 2] = +(0.00882352982 * +(HEAPF[dsp + 12 >> 2]));
+		HEAPF[dsp + 32 >> 2] = +(0.000441176468 * +(HEAPF[dsp + 12 >> 2]));
+		HEAPF[dsp + 8296 >> 2] = +(0.0010294118 * +(HEAPF[dsp + 12 >> 2]));
+		HEAPF[dsp + 24716 >> 2] = +(+(+(+(HEAPF[dsp + 20 >> 2]) + -0.5) / +(HEAPF[dsp + 16 >> 2])) + 1.);
+		HEAPF[dsp + 24720 >> 2] = +(2. * +(1. - +(1. / +(powf(+(HEAPF[dsp + 16 >> 2]), 2.)))));
+		HEAPF[dsp + 24736 >> 2] = +(0. - +(HEAPF[dsp + 20 >> 2]));
+		
+	}
+	
+	function instanceResetUserInterface(dsp) {
+		dsp = dsp | 0;
+		HEAPF[dsp + 36 >> 2] = 220.;
+		HEAPF[dsp + 40 >> 2] = 1.;
+		HEAPF[dsp + 60 >> 2] = 0.;
+		HEAPF[dsp + 64 >> 2] = 0.;
+		HEAPF[dsp + 32956 >> 2] = 330.;
+		HEAPF[dsp + 32960 >> 2] = 1.;
+		HEAPF[dsp + 32980 >> 2] = 0.;
+		HEAPF[dsp + 65836 >> 2] = 440.;
+		HEAPF[dsp + 65840 >> 2] = 1.;
+		HEAPF[dsp + 65860 >> 2] = 0.;
+		HEAPF[dsp + 98716 >> 2] = 550.;
+		HEAPF[dsp + 98720 >> 2] = 1.;
+		HEAPF[dsp + 98740 >> 2] = 0.;
+		
+	}
+	
+	function instanceClear(dsp) {
+		dsp = dsp | 0;
+		var l0 = 0;
+		var l1 = 0;
+		var l2 = 0;
+		var l3 = 0;
+		var l4 = 0;
+		var l5 = 0;
+		var l6 = 0;
+		var l7 = 0;
+		var l8 = 0;
+		var l9 = 0;
+		var l10 = 0;
+		var l11 = 0;
+		var l12 = 0;
+		var l13 = 0;
+		var l14 = 0;
+		var l15 = 0;
+		var l16 = 0;
+		var l17 = 0;
+		var l18 = 0;
+		var l19 = 0;
+		var l20 = 0;
+		var l21 = 0;
+		var l22 = 0;
+		var l23 = 0;
+		var l24 = 0;
+		var l25 = 0;
+		var l26 = 0;
+		var l27 = 0;
+		var l28 = 0;
+		var l29 = 0;
+		var l30 = 0;
+		var l31 = 0;
+		var l32 = 0;
+		var l33 = 0;
+		var l34 = 0;
+		var l35 = 0;
+		var l36 = 0;
+		var l37 = 0;
+		var l38 = 0;
+		var l39 = 0;
+		var l40 = 0;
+		var l41 = 0;
+		var l42 = 0;
+		var l43 = 0;
+		var l44 = 0;
+		var l45 = 0;
+		var l46 = 0;
+		var l47 = 0;
+		var l48 = 0;
+		var l49 = 0;
+		var l50 = 0;
+		var l51 = 0;
+		var l52 = 0;
+		var l53 = 0;
+		var l54 = 0;
+		var l55 = 0;
+		var l56 = 0;
+		var l57 = 0;
+		for (l0 = 0; (((l0 | 0) < 2) | 0); l0 = (((l0 | 0) + 1) | 0)) {
+			HEAP32[dsp + 0 + ((l0 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l1 = 0; (((l1 | 0) < 2) | 0); l1 = (((l1 | 0) + 1) | 0)) {
+			HEAPF[dsp + 44 + ((l1 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l2 = 0; (((l2 | 0) < 2) | 0); l2 = (((l2 | 0) + 1) | 0)) {
+			HEAPF[dsp + 52 + ((l2 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l3 = 0; (((l3 | 0) < 2) | 0); l3 = (((l3 | 0) + 1) | 0)) {
+			HEAPF[dsp + 68 + ((l3 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l4 = 0; (((l4 | 0) < 2) | 0); l4 = (((l4 | 0) + 1) | 0)) {
+			HEAPF[dsp + 76 + ((l4 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l5 = 0; (((l5 | 0) < 4) | 0); l5 = (((l5 | 0) + 1) | 0)) {
+			HEAPF[dsp + 84 + ((l5 | 0) << 2) >> 2] = 0.;
+			
+		}
+		HEAP32[dsp + 100 >> 2] = 0;
+		for (l6 = 0; (((l6 | 0) < 2048) | 0); l6 = (((l6 | 0) + 1) | 0)) {
+			HEAPF[dsp + 104 + ((l6 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l7 = 0; (((l7 | 0) < 2) | 0); l7 = (((l7 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8300 + ((l7 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l8 = 0; (((l8 | 0) < 2048) | 0); l8 = (((l8 | 0) + 1) | 0)) {
+			HEAPF[dsp + 8308 + ((l8 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l9 = 0; (((l9 | 0) < 2048) | 0); l9 = (((l9 | 0) + 1) | 0)) {
+			HEAPF[dsp + 16500 + ((l9 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l10 = 0; (((l10 | 0) < 2) | 0); l10 = (((l10 | 0) + 1) | 0)) {
+			HEAPF[dsp + 24692 + ((l10 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l11 = 0; (((l11 | 0) < 4) | 0); l11 = (((l11 | 0) + 1) | 0)) {
+			HEAPF[dsp + 24700 + ((l11 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l12 = 0; (((l12 | 0) < 3) | 0); l12 = (((l12 | 0) + 1) | 0)) {
+			HEAPF[dsp + 24724 + ((l12 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l13 = 0; (((l13 | 0) < 2) | 0); l13 = (((l13 | 0) + 1) | 0)) {
+			HEAP32[dsp + 24740 + ((l13 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l14 = 0; (((l14 | 0) < 2048) | 0); l14 = (((l14 | 0) + 1) | 0)) {
+			HEAPF[dsp + 24748 + ((l14 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l15 = 0; (((l15 | 0) < 2) | 0); l15 = (((l15 | 0) + 1) | 0)) {
+			HEAPF[dsp + 32940 + ((l15 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l16 = 0; (((l16 | 0) < 2) | 0); l16 = (((l16 | 0) + 1) | 0)) {
+			HEAP32[dsp + 32948 + ((l16 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l17 = 0; (((l17 | 0) < 2) | 0); l17 = (((l17 | 0) + 1) | 0)) {
+			HEAPF[dsp + 32964 + ((l17 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l18 = 0; (((l18 | 0) < 2) | 0); l18 = (((l18 | 0) + 1) | 0)) {
+			HEAPF[dsp + 32972 + ((l18 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l19 = 0; (((l19 | 0) < 4) | 0); l19 = (((l19 | 0) + 1) | 0)) {
+			HEAPF[dsp + 32984 + ((l19 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l20 = 0; (((l20 | 0) < 2048) | 0); l20 = (((l20 | 0) + 1) | 0)) {
+			HEAPF[dsp + 33000 + ((l20 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l21 = 0; (((l21 | 0) < 2) | 0); l21 = (((l21 | 0) + 1) | 0)) {
+			HEAPF[dsp + 41192 + ((l21 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l22 = 0; (((l22 | 0) < 2048) | 0); l22 = (((l22 | 0) + 1) | 0)) {
+			HEAPF[dsp + 41200 + ((l22 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l23 = 0; (((l23 | 0) < 2048) | 0); l23 = (((l23 | 0) + 1) | 0)) {
+			HEAPF[dsp + 49392 + ((l23 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l24 = 0; (((l24 | 0) < 2) | 0); l24 = (((l24 | 0) + 1) | 0)) {
+			HEAPF[dsp + 57584 + ((l24 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l25 = 0; (((l25 | 0) < 4) | 0); l25 = (((l25 | 0) + 1) | 0)) {
+			HEAPF[dsp + 57592 + ((l25 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l26 = 0; (((l26 | 0) < 3) | 0); l26 = (((l26 | 0) + 1) | 0)) {
+			HEAPF[dsp + 57608 + ((l26 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l27 = 0; (((l27 | 0) < 2) | 0); l27 = (((l27 | 0) + 1) | 0)) {
+			HEAP32[dsp + 57620 + ((l27 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l28 = 0; (((l28 | 0) < 2048) | 0); l28 = (((l28 | 0) + 1) | 0)) {
+			HEAPF[dsp + 57628 + ((l28 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l29 = 0; (((l29 | 0) < 2) | 0); l29 = (((l29 | 0) + 1) | 0)) {
+			HEAPF[dsp + 65820 + ((l29 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l30 = 0; (((l30 | 0) < 2) | 0); l30 = (((l30 | 0) + 1) | 0)) {
+			HEAP32[dsp + 65828 + ((l30 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l31 = 0; (((l31 | 0) < 2) | 0); l31 = (((l31 | 0) + 1) | 0)) {
+			HEAPF[dsp + 65844 + ((l31 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l32 = 0; (((l32 | 0) < 2) | 0); l32 = (((l32 | 0) + 1) | 0)) {
+			HEAPF[dsp + 65852 + ((l32 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l33 = 0; (((l33 | 0) < 4) | 0); l33 = (((l33 | 0) + 1) | 0)) {
+			HEAPF[dsp + 65864 + ((l33 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l34 = 0; (((l34 | 0) < 2048) | 0); l34 = (((l34 | 0) + 1) | 0)) {
+			HEAPF[dsp + 65880 + ((l34 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l35 = 0; (((l35 | 0) < 2) | 0); l35 = (((l35 | 0) + 1) | 0)) {
+			HEAPF[dsp + 74072 + ((l35 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l36 = 0; (((l36 | 0) < 2048) | 0); l36 = (((l36 | 0) + 1) | 0)) {
+			HEAPF[dsp + 74080 + ((l36 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l37 = 0; (((l37 | 0) < 2048) | 0); l37 = (((l37 | 0) + 1) | 0)) {
+			HEAPF[dsp + 82272 + ((l37 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l38 = 0; (((l38 | 0) < 2) | 0); l38 = (((l38 | 0) + 1) | 0)) {
+			HEAPF[dsp + 90464 + ((l38 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l39 = 0; (((l39 | 0) < 4) | 0); l39 = (((l39 | 0) + 1) | 0)) {
+			HEAPF[dsp + 90472 + ((l39 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l40 = 0; (((l40 | 0) < 3) | 0); l40 = (((l40 | 0) + 1) | 0)) {
+			HEAPF[dsp + 90488 + ((l40 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l41 = 0; (((l41 | 0) < 2) | 0); l41 = (((l41 | 0) + 1) | 0)) {
+			HEAP32[dsp + 90500 + ((l41 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l42 = 0; (((l42 | 0) < 2048) | 0); l42 = (((l42 | 0) + 1) | 0)) {
+			HEAPF[dsp + 90508 + ((l42 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l43 = 0; (((l43 | 0) < 2) | 0); l43 = (((l43 | 0) + 1) | 0)) {
+			HEAPF[dsp + 98700 + ((l43 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l44 = 0; (((l44 | 0) < 2) | 0); l44 = (((l44 | 0) + 1) | 0)) {
+			HEAP32[dsp + 98708 + ((l44 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l45 = 0; (((l45 | 0) < 2) | 0); l45 = (((l45 | 0) + 1) | 0)) {
+			HEAPF[dsp + 98724 + ((l45 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l46 = 0; (((l46 | 0) < 2) | 0); l46 = (((l46 | 0) + 1) | 0)) {
+			HEAPF[dsp + 98732 + ((l46 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l47 = 0; (((l47 | 0) < 4) | 0); l47 = (((l47 | 0) + 1) | 0)) {
+			HEAPF[dsp + 98744 + ((l47 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l48 = 0; (((l48 | 0) < 2048) | 0); l48 = (((l48 | 0) + 1) | 0)) {
+			HEAPF[dsp + 98760 + ((l48 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l49 = 0; (((l49 | 0) < 2) | 0); l49 = (((l49 | 0) + 1) | 0)) {
+			HEAPF[dsp + 106952 + ((l49 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l50 = 0; (((l50 | 0) < 2048) | 0); l50 = (((l50 | 0) + 1) | 0)) {
+			HEAPF[dsp + 106960 + ((l50 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l51 = 0; (((l51 | 0) < 2048) | 0); l51 = (((l51 | 0) + 1) | 0)) {
+			HEAPF[dsp + 115152 + ((l51 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l52 = 0; (((l52 | 0) < 2) | 0); l52 = (((l52 | 0) + 1) | 0)) {
+			HEAPF[dsp + 123344 + ((l52 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l53 = 0; (((l53 | 0) < 4) | 0); l53 = (((l53 | 0) + 1) | 0)) {
+			HEAPF[dsp + 123352 + ((l53 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l54 = 0; (((l54 | 0) < 3) | 0); l54 = (((l54 | 0) + 1) | 0)) {
+			HEAPF[dsp + 123368 + ((l54 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l55 = 0; (((l55 | 0) < 2) | 0); l55 = (((l55 | 0) + 1) | 0)) {
+			HEAP32[dsp + 123380 + ((l55 | 0) << 2) >> 2] = 0;
+			
+		}
+		for (l56 = 0; (((l56 | 0) < 2048) | 0); l56 = (((l56 | 0) + 1) | 0)) {
+			HEAPF[dsp + 123388 + ((l56 | 0) << 2) >> 2] = 0.;
+			
+		}
+		for (l57 = 0; (((l57 | 0) < 2) | 0); l57 = (((l57 | 0) + 1) | 0)) {
+			HEAPF[dsp + 131580 + ((l57 | 0) << 2) >> 2] = 0.;
+			
+		}
+		
+	}
+	
+	function init(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		classInit(dsp, samplingFreq);
+		instanceInit(dsp, samplingFreq);
+	}
+	
+	function instanceInit(dsp, samplingFreq) {
+		dsp = dsp | 0;
+		samplingFreq = samplingFreq | 0;
+		instanceConstants(dsp, samplingFreq);
+		instanceResetUserInterface(dsp);
+		instanceClear(dsp);
+	}
+	
+	function getSampleRate(dsp) {
+		dsp = dsp | 0;
+		return HEAP32[dsp + 8 >> 2] | 0;
+	}
+	
+	function setParamValue(dsp, offset, value) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		value = +value;
+		HEAPF[dsp + offset >> 2] = value;
+	}
+	
+	function getParamValue(dsp, offset) {
+		dsp = dsp | 0;
+		offset = offset | 0;
+		return +(HEAPF[dsp + offset >> 2]);
+	}
+	
+	function compute(dsp, count, inputs, outputs) {
+		dsp = dsp | 0;
+		count = count | 0;
+		inputs = inputs | 0;
+		outputs = outputs | 0;
+		var output0 = 0;
+		var output1 = 0;
+		var fSlow0 = 0.;
+		var iSlow1 = 0;
+		var fSlow2 = 0.;
+		var fSlow3 = 0.;
+		var iSlow4 = 0;
+		var fSlow5 = 0.;
+		var iSlow6 = 0;
+		var fSlow7 = 0.;
+		var iSlow8 = 0;
+		var i = 0;
+		var iRec11 = 0;
+		var fRec15 = 0.;
+		var fTemp0 = 0.;
+		var fTemp1 = 0.;
+		var fTemp2 = 0.;
+		var iTemp3 = 0;
+		var iTemp4 = 0;
+		var fTemp5 = 0.;
+		var fTemp6 = 0.;
+		var fTemp7 = 0.;
+		var fTemp8 = 0.;
+		var fTemp9 = 0.;
+		var fTemp10 = 0.;
+		var fTemp11 = 0.;
+		var fTemp12 = 0.;
+		var fTemp13 = 0.;
+		var fTemp14 = 0.;
+		var iTemp15 = 0;
+		var fTemp16 = 0.;
+		var fTemp17 = 0.;
+		var iTemp18 = 0;
+		var fTemp19 = 0.;
+		var fTemp20 = 0.;
+		var fTemp21 = 0.;
+		var fTemp22 = 0.;
+		var iTemp23 = 0;
+		var fTemp24 = 0.;
+		var fTemp25 = 0.;
+		var iTemp26 = 0;
+		var iRec31 = 0;
+		var fTemp27 = 0.;
+		var fTemp28 = 0.;
+		var iTemp29 = 0;
+		var iTemp30 = 0;
+		var fTemp31 = 0.;
+		var fTemp32 = 0.;
+		var fTemp33 = 0.;
+		var fTemp34 = 0.;
+		var fTemp35 = 0.;
+		var fTemp36 = 0.;
+		var fTemp37 = 0.;
+		var fTemp38 = 0.;
+		var fTemp39 = 0.;
+		var fTemp40 = 0.;
+		var iTemp41 = 0;
+		var fTemp42 = 0.;
+		var fTemp43 = 0.;
+		var iTemp44 = 0;
+		var fTemp45 = 0.;
+		var fTemp46 = 0.;
+		var fTemp47 = 0.;
+		var fTemp48 = 0.;
+		var iTemp49 = 0;
+		var fTemp50 = 0.;
+		var fTemp51 = 0.;
+		var iTemp52 = 0;
+		var fTemp53 = 0.;
+		var fTemp54 = 0.;
+		var fRec23 = 0.;
+		var fTemp55 = 0.;
+		var fRec24 = 0.;
+		var iRec25 = 0;
+		var fRec19 = 0.;
+		var iRec21 = 0;
+		var iRec17 = 0;
+		var fTemp56 = 0.;
+		var fRec12 = 0.;
+		var fRec13 = 0.;
+		var fRec7 = 0.;
+		var fRec8 = 0.;
+		var fRec9 = 0.;
+		var fRec3 = 0.;
+		var fRec4 = 0.;
+		var fRec5 = 0.;
+		var fRec1 = 0.;
+		var iRec43 = 0;
+		var fRec47 = 0.;
+		var fTemp57 = 0.;
+		var fTemp58 = 0.;
+		var fTemp59 = 0.;
+		var iTemp60 = 0;
+		var iTemp61 = 0;
+		var fTemp62 = 0.;
+		var fTemp63 = 0.;
+		var fTemp64 = 0.;
+		var fTemp65 = 0.;
+		var fTemp66 = 0.;
+		var fTemp67 = 0.;
+		var fTemp68 = 0.;
+		var fTemp69 = 0.;
+		var fTemp70 = 0.;
+		var fTemp71 = 0.;
+		var iTemp72 = 0;
+		var fTemp73 = 0.;
+		var fTemp74 = 0.;
+		var iTemp75 = 0;
+		var fTemp76 = 0.;
+		var fTemp77 = 0.;
+		var fTemp78 = 0.;
+		var fTemp79 = 0.;
+		var iTemp80 = 0;
+		var fTemp81 = 0.;
+		var fTemp82 = 0.;
+		var iTemp83 = 0;
+		var iRec61 = 0;
+		var fTemp84 = 0.;
+		var fTemp85 = 0.;
+		var iTemp86 = 0;
+		var iTemp87 = 0;
+		var fTemp88 = 0.;
+		var fTemp89 = 0.;
+		var fTemp90 = 0.;
+		var fTemp91 = 0.;
+		var fTemp92 = 0.;
+		var fTemp93 = 0.;
+		var fTemp94 = 0.;
+		var fTemp95 = 0.;
+		var fTemp96 = 0.;
+		var fTemp97 = 0.;
+		var iTemp98 = 0;
+		var fTemp99 = 0.;
+		var fTemp100 = 0.;
+		var iTemp101 = 0;
+		var fTemp102 = 0.;
+		var fTemp103 = 0.;
+		var fTemp104 = 0.;
+		var fTemp105 = 0.;
+		var iTemp106 = 0;
+		var fTemp107 = 0.;
+		var fTemp108 = 0.;
+		var iTemp109 = 0;
+		var fTemp110 = 0.;
+		var fTemp111 = 0.;
+		var fRec55 = 0.;
+		var fTemp112 = 0.;
+		var fRec56 = 0.;
+		var iRec57 = 0;
+		var fRec51 = 0.;
+		var iRec53 = 0;
+		var iRec49 = 0;
+		var fTemp113 = 0.;
+		var fRec44 = 0.;
+		var fRec45 = 0.;
+		var fRec39 = 0.;
+		var fRec40 = 0.;
+		var fRec41 = 0.;
+		var fRec35 = 0.;
+		var fRec36 = 0.;
+		var fRec37 = 0.;
+		var fRec33 = 0.;
+		var iRec73 = 0;
+		var fRec77 = 0.;
+		var fTemp114 = 0.;
+		var fTemp115 = 0.;
+		var fTemp116 = 0.;
+		var iTemp117 = 0;
+		var iTemp118 = 0;
+		var fTemp119 = 0.;
+		var fTemp120 = 0.;
+		var fTemp121 = 0.;
+		var fTemp122 = 0.;
+		var fTemp123 = 0.;
+		var fTemp124 = 0.;
+		var fTemp125 = 0.;
+		var fTemp126 = 0.;
+		var fTemp127 = 0.;
+		var fTemp128 = 0.;
+		var iTemp129 = 0;
+		var fTemp130 = 0.;
+		var fTemp131 = 0.;
+		var iTemp132 = 0;
+		var fTemp133 = 0.;
+		var fTemp134 = 0.;
+		var fTemp135 = 0.;
+		var fTemp136 = 0.;
+		var iTemp137 = 0;
+		var fTemp138 = 0.;
+		var fTemp139 = 0.;
+		var iTemp140 = 0;
+		var iRec91 = 0;
+		var fTemp141 = 0.;
+		var fTemp142 = 0.;
+		var iTemp143 = 0;
+		var iTemp144 = 0;
+		var fTemp145 = 0.;
+		var fTemp146 = 0.;
+		var fTemp147 = 0.;
+		var fTemp148 = 0.;
+		var fTemp149 = 0.;
+		var fTemp150 = 0.;
+		var fTemp151 = 0.;
+		var fTemp152 = 0.;
+		var fTemp153 = 0.;
+		var fTemp154 = 0.;
+		var iTemp155 = 0;
+		var fTemp156 = 0.;
+		var fTemp157 = 0.;
+		var iTemp158 = 0;
+		var fTemp159 = 0.;
+		var fTemp160 = 0.;
+		var fTemp161 = 0.;
+		var fTemp162 = 0.;
+		var iTemp163 = 0;
+		var fTemp164 = 0.;
+		var fTemp165 = 0.;
+		var iTemp166 = 0;
+		var fTemp167 = 0.;
+		var fTemp168 = 0.;
+		var fRec85 = 0.;
+		var fTemp169 = 0.;
+		var fRec86 = 0.;
+		var iRec87 = 0;
+		var fRec81 = 0.;
+		var iRec83 = 0;
+		var iRec79 = 0;
+		var fTemp170 = 0.;
+		var fRec74 = 0.;
+		var fRec75 = 0.;
+		var fRec69 = 0.;
+		var fRec70 = 0.;
+		var fRec71 = 0.;
+		var fRec65 = 0.;
+		var fRec66 = 0.;
+		var fRec67 = 0.;
+		var fRec63 = 0.;
+		var iRec103 = 0;
+		var fRec107 = 0.;
+		var fTemp171 = 0.;
+		var fTemp172 = 0.;
+		var fTemp173 = 0.;
+		var iTemp174 = 0;
+		var iTemp175 = 0;
+		var fTemp176 = 0.;
+		var fTemp177 = 0.;
+		var fTemp178 = 0.;
+		var fTemp179 = 0.;
+		var fTemp180 = 0.;
+		var fTemp181 = 0.;
+		var fTemp182 = 0.;
+		var fTemp183 = 0.;
+		var fTemp184 = 0.;
+		var fTemp185 = 0.;
+		var iTemp186 = 0;
+		var fTemp187 = 0.;
+		var fTemp188 = 0.;
+		var iTemp189 = 0;
+		var fTemp190 = 0.;
+		var fTemp191 = 0.;
+		var fTemp192 = 0.;
+		var fTemp193 = 0.;
+		var iTemp194 = 0;
+		var fTemp195 = 0.;
+		var fTemp196 = 0.;
+		var iTemp197 = 0;
+		var iRec121 = 0;
+		var fTemp198 = 0.;
+		var fTemp199 = 0.;
+		var iTemp200 = 0;
+		var iTemp201 = 0;
+		var fTemp202 = 0.;
+		var fTemp203 = 0.;
+		var fTemp204 = 0.;
+		var fTemp205 = 0.;
+		var fTemp206 = 0.;
+		var fTemp207 = 0.;
+		var fTemp208 = 0.;
+		var fTemp209 = 0.;
+		var fTemp210 = 0.;
+		var fTemp211 = 0.;
+		var iTemp212 = 0;
+		var fTemp213 = 0.;
+		var fTemp214 = 0.;
+		var iTemp215 = 0;
+		var fTemp216 = 0.;
+		var fTemp217 = 0.;
+		var fTemp218 = 0.;
+		var fTemp219 = 0.;
+		var iTemp220 = 0;
+		var fTemp221 = 0.;
+		var fTemp222 = 0.;
+		var iTemp223 = 0;
+		var fTemp224 = 0.;
+		var fTemp225 = 0.;
+		var fRec115 = 0.;
+		var fTemp226 = 0.;
+		var fRec116 = 0.;
+		var iRec117 = 0;
+		var fRec111 = 0.;
+		var iRec113 = 0;
+		var iRec109 = 0;
+		var fTemp227 = 0.;
+		var fRec104 = 0.;
+		var fRec105 = 0.;
+		var fRec99 = 0.;
+		var fRec100 = 0.;
+		var fRec101 = 0.;
+		var fRec95 = 0.;
+		var fRec96 = 0.;
+		var fRec97 = 0.;
+		var fRec93 = 0.;
+		var fTemp228 = 0.;
+		var j0 = 3;
+		var j1 = 3;
+		var j2 = 3;
+		var j3 = 3;
+		var j4 = 3;
+		var j5 = 3;
+		var j6 = 3;
+		var j7 = 3;
+		output0 = (HEAP32[outputs + (0 << 2) >> 2] | 0);
+		output1 = (HEAP32[outputs + (1 << 2) >> 2] | 0);
+		fSlow0 = +(0.340000004 / +(+(+(HEAPF[dsp + 36 >> 2])) * +(+(HEAPF[dsp + 40 >> 2]))));
+		iSlow1 = ((~~(+(+(HEAPF[dsp + 60 >> 2]))) > 0) | 0);
+		fSlow2 = +(0.00100000005 * +(+(HEAPF[dsp + 64 >> 2])));
+		fSlow3 = +(0.340000004 / +(+(+(HEAPF[dsp + 32956 >> 2])) * +(+(HEAPF[dsp + 32960 >> 2]))));
+		iSlow4 = ((~~(+(+(HEAPF[dsp + 32980 >> 2]))) > 0) | 0);
+		fSlow5 = +(0.340000004 / +(+(+(HEAPF[dsp + 65836 >> 2])) * +(+(HEAPF[dsp + 65840 >> 2]))));
+		iSlow6 = ((~~(+(+(HEAPF[dsp + 65860 >> 2]))) > 0) | 0);
+		fSlow7 = +(0.340000004 / +(+(+(HEAPF[dsp + 98716 >> 2])) * +(+(HEAPF[dsp + 98720 >> 2]))));
+		iSlow8 = ((~~(+(+(HEAPF[dsp + 98740 >> 2]))) > 0) | 0);
+		for (i = 0; (((i | 0) < (count | 0)) | 0); i = (((i | 0) + 1) | 0)) {
+			HEAP32[dsp + 0 + (0 << 2) >> 2] = 0;
+			iRec11 = (HEAP32[dsp + 0 + (1 << 2) >> 2] | 0);
+			fRec15 = +(+((HEAP32[dsp + 24740 + (1 << 2) >> 2] | 0)) - +(0.989264667 * +(+(0.600000024 * +(HEAPF[dsp + 24700 + (2 << 2) >> 2])) + +(0.200000003 * +(+(HEAPF[dsp + 24700 + (1 << 2) >> 2]) + +(HEAPF[dsp + 24700 + (3 << 2) >> 2]))))));
+			HEAPF[dsp + 44 + (0 << 2) >> 2] = +(+(fSlow0) + +(0.999000013 * +(HEAPF[dsp + 44 + (1 << 2) >> 2])));
+			fTemp0 = +(+(HEAPF[dsp + 44 + (0 << 2) >> 2]) + -0.0799999982);
+			fTemp1 = +(+(HEAPF[dsp + 32 >> 2]) * +(fTemp0));
+			fTemp2 = +(+(fTemp1) + -1.49999499);
+			iTemp3 = ~~(+(fTemp2));
+			iTemp4 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp3 | 0))) | 0)))));
+			fTemp5 = +(floorf(+(fTemp2)));
+			fTemp6 = +(+(fTemp1) + +(-1. - +(fTemp5)));
+			fTemp7 = +(0. - +(fTemp6));
+			fTemp8 = +(+(fTemp1) + +(-2. - +(fTemp5)));
+			fTemp9 = +(0. - +(0.5 * +(fTemp8)));
+			fTemp10 = +(+(fTemp1) + +(-3. - +(fTemp5)));
+			fTemp11 = +(0. - +(0.333333343 * +(fTemp10)));
+			fTemp12 = +(+(fTemp1) + +(-4. - +(fTemp5)));
+			fTemp13 = +(0. - +(0.25 * +(fTemp12)));
+			fTemp14 = +(+(fTemp1) - +(fTemp5));
+			iTemp15 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp3 | 0) + 2) | 0))) | 0)))));
+			fTemp16 = +(0. - +(fTemp10));
+			fTemp17 = +(0. - +(0.5 * +(fTemp12)));
+			iTemp18 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp3 | 0) + 1) | 0))) | 0)))));
+			fTemp19 = +(0. - +(fTemp8));
+			fTemp20 = +(0. - +(0.5 * +(fTemp10)));
+			fTemp21 = +(0. - +(0.333333343 * +(fTemp12)));
+			fTemp22 = +(+(fTemp6) * +(fTemp8));
+			iTemp23 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp3 | 0) + 3) | 0))) | 0)))));
+			fTemp24 = +(0. - +(fTemp12));
+			fTemp25 = +(+(fTemp22) * +(fTemp10));
+			iTemp26 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp3 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 52 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 24748 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp4 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp7)) * +(fTemp9)) * +(fTemp11)) * +(fTemp13)) + +(+(fTemp14) * +(+(+(+(0.5 * +(+(+(+(fTemp6) * +(HEAPF[dsp + 24748 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp15 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp16)) * +(fTemp17))) + +(+(+(+(HEAPF[dsp + 24748 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp18 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp19)) * +(fTemp20)) * +(fTemp21))) + +(0.166666672 * +(+(+(fTemp22) * +(HEAPF[dsp + 24748 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp23 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp24)))) + +(0.0416666679 * +(+(fTemp25) * +(HEAPF[dsp + 24748 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp26 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 68 + (0 << 2) >> 2] = +(+(fSlow2) + +(0.999000013 * +(HEAPF[dsp + 68 + (1 << 2) >> 2])));
+			HEAPF[dsp + 76 + (0 << 2) >> 2] = +(+(0.999000013 * +(HEAPF[dsp + 76 + (1 << 2) >> 2])) + +(0.00100000005 * +(min_f(1., +(3000. * +(fabsf(+(+(HEAPF[dsp + 68 + (0 << 2) >> 2]) - +(HEAPF[dsp + 68 + (1 << 2) >> 2])))))))));
+			HEAPF[dsp + 84 + (0 << 2) >> 2] = +(HEAPF[dsp + 32940 + (1 << 2) >> 2]);
+			HEAPF[dsp + 104 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(0. - +(0.99880147 * +(+(0.800000012 * +(HEAPF[dsp + 84 + (2 << 2) >> 2])) + +(0.100000001 * +(+(HEAPF[dsp + 84 + (1 << 2) >> 2]) + +(HEAPF[dsp + 84 + (3 << 2) >> 2]))))));
+			iRec31 = 0;
+			fTemp27 = +(+(HEAPF[dsp + 8296 >> 2]) * +(fTemp0));
+			fTemp28 = +(+(fTemp27) + -1.49999499);
+			iTemp29 = ~~(+(fTemp28));
+			iTemp30 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp29 | 0))) | 0)))));
+			fTemp31 = +(floorf(+(fTemp28)));
+			fTemp32 = +(+(fTemp27) + +(-1. - +(fTemp31)));
+			fTemp33 = +(0. - +(fTemp32));
+			fTemp34 = +(+(fTemp27) + +(-2. - +(fTemp31)));
+			fTemp35 = +(0. - +(0.5 * +(fTemp34)));
+			fTemp36 = +(+(fTemp27) + +(-3. - +(fTemp31)));
+			fTemp37 = +(0. - +(0.333333343 * +(fTemp36)));
+			fTemp38 = +(+(fTemp27) + +(-4. - +(fTemp31)));
+			fTemp39 = +(0. - +(0.25 * +(fTemp38)));
+			fTemp40 = +(+(fTemp27) - +(fTemp31));
+			iTemp41 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp29 | 0) + 2) | 0))) | 0)))));
+			fTemp42 = +(0. - +(fTemp36));
+			fTemp43 = +(0. - +(0.5 * +(fTemp38)));
+			iTemp44 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp29 | 0) + 1) | 0))) | 0)))));
+			fTemp45 = +(0. - +(fTemp34));
+			fTemp46 = +(0. - +(0.5 * +(fTemp36)));
+			fTemp47 = +(0. - +(0.333333343 * +(fTemp38)));
+			fTemp48 = +(+(fTemp32) * +(fTemp34));
+			iTemp49 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp29 | 0) + 3) | 0))) | 0)))));
+			fTemp50 = +(0. - +(fTemp38));
+			fTemp51 = +(+(fTemp48) * +(fTemp36));
+			iTemp52 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp29 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 8300 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 104 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp30 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp33)) * +(fTemp35)) * +(fTemp37)) * +(fTemp39)) + +(+(fTemp40) * +(+(+(+(0.5 * +(+(+(+(fTemp32) * +(HEAPF[dsp + 104 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp41 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp42)) * +(fTemp43))) + +(+(+(+(HEAPF[dsp + 104 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp44 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp45)) * +(fTemp46)) * +(fTemp47))) + +(0.166666672 * +(+(+(fTemp48) * +(HEAPF[dsp + 104 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp49 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp50)))) + +(0.0416666679 * +(+(fTemp51) * +(HEAPF[dsp + 104 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp52 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			fTemp53 = +(+(+((iSlow1 | 0)) * +(HEAPF[dsp + 76 + (0 << 2) >> 2])) - +(+(HEAPF[dsp + 52 + (1 << 2) >> 2]) + +(HEAPF[dsp + 8300 + (1 << 2) >> 2])));
+			fTemp54 = +(+(fTemp53) * +(min_f(1., +(1. / +(powf(+(+(fabsf(+(3. * +(fTemp53)))) + 0.75), 4.))))));
+			fRec23 = +(+(HEAPF[dsp + 52 + (1 << 2) >> 2]) + +(fTemp54));
+			fTemp55 = +(+(HEAPF[dsp + 8300 + (1 << 2) >> 2]) + +(fTemp54));
+			HEAPF[dsp + 8308 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp55);
+			fRec24 = +(+(+(+(+(+(fTemp7) * +(fTemp9)) * +(fTemp11)) * +(fTemp13)) * +(HEAPF[dsp + 8308 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp4 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp14) * +(+(0.0416666679 * +(+(fTemp25) * +(HEAPF[dsp + 8308 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp26 | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(+(fTemp19) * +(fTemp20)) * +(fTemp21)) * +(HEAPF[dsp + 8308 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp18 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp6) * +(fTemp16)) * +(fTemp17)) * +(HEAPF[dsp + 8308 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp15 | 0)) | 0) & 2047) | 0) << 2) >> 2])))) + +(0.166666672 * +(+(+(fTemp22) * +(fTemp24)) * +(HEAPF[dsp + 8308 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp23 | 0)) | 0) & 2047) | 0) << 2) >> 2])))))));
+			iRec25 = (iRec31 | 0);
+			HEAPF[dsp + 16500 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec23);
+			fRec19 = +(+(+(+(+(+(fTemp33) * +(fTemp35)) * +(fTemp37)) * +(fTemp39)) * +(HEAPF[dsp + 16500 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp30 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp40) * +(+(+(0.166666672 * +(+(+(fTemp48) * +(fTemp50)) * +(HEAPF[dsp + 16500 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp49 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(fTemp45) * +(fTemp46)) * +(fTemp47)) * +(HEAPF[dsp + 16500 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp44 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp32) * +(fTemp42)) * +(fTemp43)) * +(HEAPF[dsp + 16500 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp41 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))) + +(0.0416666679 * +(+(fTemp51) * +(HEAPF[dsp + 16500 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp52 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 24692 + (0 << 2) >> 2] = +(fRec24);
+			iRec21 = (iRec25 | 0);
+			HEAPF[dsp + 24700 + (0 << 2) >> 2] = +(HEAPF[dsp + 24692 + (1 << 2) >> 2]);
+			iRec17 = (iRec21 | 0);
+			HEAPF[dsp + 24724 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 24700 + (1 << 2) >> 2]) - +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 24716 >> 2]) * +(HEAPF[dsp + 24724 + (2 << 2) >> 2])) + +(+(HEAPF[dsp + 24720 >> 2]) * +(HEAPF[dsp + 24724 + (1 << 2) >> 2])))));
+			fTemp56 = +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 20 >> 2]) * +(HEAPF[dsp + 24724 + (0 << 2) >> 2])) + +(+(HEAPF[dsp + 24736 >> 2]) * +(HEAPF[dsp + 24724 + (2 << 2) >> 2]))));
+			fRec12 = +(fTemp56);
+			fRec13 = +(+((iRec17 | 0)) + +(fTemp56));
+			HEAP32[dsp + 24740 + (0 << 2) >> 2] = (iRec11 | 0);
+			fRec7 = +(fRec15);
+			fRec8 = +(fRec12);
+			fRec9 = +(fRec13);
+			HEAPF[dsp + 24748 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec7);
+			fRec3 = +(fRec19);
+			fRec4 = +(fRec8);
+			fRec5 = +(fRec9);
+			HEAPF[dsp + 32940 + (0 << 2) >> 2] = +(fRec3);
+			fRec1 = +(fRec5);
+			HEAP32[dsp + 32948 + (0 << 2) >> 2] = 0;
+			iRec43 = (HEAP32[dsp + 32948 + (1 << 2) >> 2] | 0);
+			fRec47 = +(+((HEAP32[dsp + 57620 + (1 << 2) >> 2] | 0)) - +(0.989264667 * +(+(0.600000024 * +(HEAPF[dsp + 57592 + (2 << 2) >> 2])) + +(0.200000003 * +(+(HEAPF[dsp + 57592 + (1 << 2) >> 2]) + +(HEAPF[dsp + 57592 + (3 << 2) >> 2]))))));
+			HEAPF[dsp + 32964 + (0 << 2) >> 2] = +(+(fSlow3) + +(0.999000013 * +(HEAPF[dsp + 32964 + (1 << 2) >> 2])));
+			fTemp57 = +(+(HEAPF[dsp + 32964 + (0 << 2) >> 2]) + -0.0799999982);
+			fTemp58 = +(+(HEAPF[dsp + 32 >> 2]) * +(fTemp57));
+			fTemp59 = +(+(fTemp58) + -1.49999499);
+			iTemp60 = ~~(+(fTemp59));
+			iTemp61 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp60 | 0))) | 0)))));
+			fTemp62 = +(floorf(+(fTemp59)));
+			fTemp63 = +(+(fTemp58) + +(-1. - +(fTemp62)));
+			fTemp64 = +(0. - +(fTemp63));
+			fTemp65 = +(+(fTemp58) + +(-2. - +(fTemp62)));
+			fTemp66 = +(0. - +(0.5 * +(fTemp65)));
+			fTemp67 = +(+(fTemp58) + +(-3. - +(fTemp62)));
+			fTemp68 = +(0. - +(0.333333343 * +(fTemp67)));
+			fTemp69 = +(+(fTemp58) + +(-4. - +(fTemp62)));
+			fTemp70 = +(0. - +(0.25 * +(fTemp69)));
+			fTemp71 = +(+(fTemp58) - +(fTemp62));
+			iTemp72 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp60 | 0) + 2) | 0))) | 0)))));
+			fTemp73 = +(0. - +(fTemp67));
+			fTemp74 = +(0. - +(0.5 * +(fTemp69)));
+			iTemp75 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp60 | 0) + 1) | 0))) | 0)))));
+			fTemp76 = +(0. - +(fTemp65));
+			fTemp77 = +(0. - +(0.5 * +(fTemp67)));
+			fTemp78 = +(0. - +(0.333333343 * +(fTemp69)));
+			fTemp79 = +(+(fTemp63) * +(fTemp65));
+			iTemp80 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp60 | 0) + 3) | 0))) | 0)))));
+			fTemp81 = +(0. - +(fTemp69));
+			fTemp82 = +(+(fTemp79) * +(fTemp67));
+			iTemp83 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp60 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 32972 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 57628 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp61 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp64)) * +(fTemp66)) * +(fTemp68)) * +(fTemp70)) + +(+(fTemp71) * +(+(+(+(0.5 * +(+(+(+(fTemp63) * +(HEAPF[dsp + 57628 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp72 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp73)) * +(fTemp74))) + +(+(+(+(HEAPF[dsp + 57628 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp75 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp76)) * +(fTemp77)) * +(fTemp78))) + +(0.166666672 * +(+(+(fTemp79) * +(HEAPF[dsp + 57628 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp80 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp81)))) + +(0.0416666679 * +(+(fTemp82) * +(HEAPF[dsp + 57628 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp83 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 32984 + (0 << 2) >> 2] = +(HEAPF[dsp + 65820 + (1 << 2) >> 2]);
+			HEAPF[dsp + 33000 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(0. - +(0.99880147 * +(+(0.800000012 * +(HEAPF[dsp + 32984 + (2 << 2) >> 2])) + +(0.100000001 * +(+(HEAPF[dsp + 32984 + (1 << 2) >> 2]) + +(HEAPF[dsp + 32984 + (3 << 2) >> 2]))))));
+			iRec61 = 0;
+			fTemp84 = +(+(HEAPF[dsp + 8296 >> 2]) * +(fTemp57));
+			fTemp85 = +(+(fTemp84) + -1.49999499);
+			iTemp86 = ~~(+(fTemp85));
+			iTemp87 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp86 | 0))) | 0)))));
+			fTemp88 = +(floorf(+(fTemp85)));
+			fTemp89 = +(+(fTemp84) + +(-1. - +(fTemp88)));
+			fTemp90 = +(0. - +(fTemp89));
+			fTemp91 = +(+(fTemp84) + +(-2. - +(fTemp88)));
+			fTemp92 = +(0. - +(0.5 * +(fTemp91)));
+			fTemp93 = +(+(fTemp84) + +(-3. - +(fTemp88)));
+			fTemp94 = +(0. - +(0.333333343 * +(fTemp93)));
+			fTemp95 = +(+(fTemp84) + +(-4. - +(fTemp88)));
+			fTemp96 = +(0. - +(0.25 * +(fTemp95)));
+			fTemp97 = +(+(fTemp84) - +(fTemp88));
+			iTemp98 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp86 | 0) + 2) | 0))) | 0)))));
+			fTemp99 = +(0. - +(fTemp93));
+			fTemp100 = +(0. - +(0.5 * +(fTemp95)));
+			iTemp101 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp86 | 0) + 1) | 0))) | 0)))));
+			fTemp102 = +(0. - +(fTemp91));
+			fTemp103 = +(0. - +(0.5 * +(fTemp93)));
+			fTemp104 = +(0. - +(0.333333343 * +(fTemp95)));
+			fTemp105 = +(+(fTemp89) * +(fTemp91));
+			iTemp106 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp86 | 0) + 3) | 0))) | 0)))));
+			fTemp107 = +(0. - +(fTemp95));
+			fTemp108 = +(+(fTemp105) * +(fTemp93));
+			iTemp109 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp86 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 41192 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 33000 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp87 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp90)) * +(fTemp92)) * +(fTemp94)) * +(fTemp96)) + +(+(fTemp97) * +(+(+(+(0.5 * +(+(+(+(fTemp89) * +(HEAPF[dsp + 33000 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp98 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp99)) * +(fTemp100))) + +(+(+(+(HEAPF[dsp + 33000 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp101 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp102)) * +(fTemp103)) * +(fTemp104))) + +(0.166666672 * +(+(+(fTemp105) * +(HEAPF[dsp + 33000 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp106 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp107)))) + +(0.0416666679 * +(+(fTemp108) * +(HEAPF[dsp + 33000 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp109 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			fTemp110 = +(+(+((iSlow4 | 0)) * +(HEAPF[dsp + 76 + (0 << 2) >> 2])) - +(+(HEAPF[dsp + 32972 + (1 << 2) >> 2]) + +(HEAPF[dsp + 41192 + (1 << 2) >> 2])));
+			fTemp111 = +(+(fTemp110) * +(min_f(1., +(1. / +(powf(+(+(fabsf(+(3. * +(fTemp110)))) + 0.75), 4.))))));
+			fRec55 = +(+(HEAPF[dsp + 32972 + (1 << 2) >> 2]) + +(fTemp111));
+			fTemp112 = +(+(HEAPF[dsp + 41192 + (1 << 2) >> 2]) + +(fTemp111));
+			HEAPF[dsp + 41200 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp112);
+			fRec56 = +(+(+(+(+(+(fTemp64) * +(fTemp66)) * +(fTemp68)) * +(fTemp70)) * +(HEAPF[dsp + 41200 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp61 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp71) * +(+(0.0416666679 * +(+(fTemp82) * +(HEAPF[dsp + 41200 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp83 | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(+(fTemp76) * +(fTemp77)) * +(fTemp78)) * +(HEAPF[dsp + 41200 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp75 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp63) * +(fTemp73)) * +(fTemp74)) * +(HEAPF[dsp + 41200 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp72 | 0)) | 0) & 2047) | 0) << 2) >> 2])))) + +(0.166666672 * +(+(+(fTemp79) * +(fTemp81)) * +(HEAPF[dsp + 41200 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp80 | 0)) | 0) & 2047) | 0) << 2) >> 2])))))));
+			iRec57 = (iRec61 | 0);
+			HEAPF[dsp + 49392 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec55);
+			fRec51 = +(+(+(+(+(+(fTemp90) * +(fTemp92)) * +(fTemp94)) * +(fTemp96)) * +(HEAPF[dsp + 49392 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp87 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp97) * +(+(+(0.166666672 * +(+(+(fTemp105) * +(fTemp107)) * +(HEAPF[dsp + 49392 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp106 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(fTemp102) * +(fTemp103)) * +(fTemp104)) * +(HEAPF[dsp + 49392 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp101 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp89) * +(fTemp99)) * +(fTemp100)) * +(HEAPF[dsp + 49392 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp98 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))) + +(0.0416666679 * +(+(fTemp108) * +(HEAPF[dsp + 49392 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp109 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 57584 + (0 << 2) >> 2] = +(fRec56);
+			iRec53 = (iRec57 | 0);
+			HEAPF[dsp + 57592 + (0 << 2) >> 2] = +(HEAPF[dsp + 57584 + (1 << 2) >> 2]);
+			iRec49 = (iRec53 | 0);
+			HEAPF[dsp + 57608 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 57592 + (1 << 2) >> 2]) - +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 24720 >> 2]) * +(HEAPF[dsp + 57608 + (1 << 2) >> 2])) + +(+(HEAPF[dsp + 24716 >> 2]) * +(HEAPF[dsp + 57608 + (2 << 2) >> 2])))));
+			fTemp113 = +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 20 >> 2]) * +(HEAPF[dsp + 57608 + (0 << 2) >> 2])) + +(+(HEAPF[dsp + 24736 >> 2]) * +(HEAPF[dsp + 57608 + (2 << 2) >> 2]))));
+			fRec44 = +(fTemp113);
+			fRec45 = +(+((iRec49 | 0)) + +(fTemp113));
+			HEAP32[dsp + 57620 + (0 << 2) >> 2] = (iRec43 | 0);
+			fRec39 = +(fRec47);
+			fRec40 = +(fRec44);
+			fRec41 = +(fRec45);
+			HEAPF[dsp + 57628 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec39);
+			fRec35 = +(fRec51);
+			fRec36 = +(fRec40);
+			fRec37 = +(fRec41);
+			HEAPF[dsp + 65820 + (0 << 2) >> 2] = +(fRec35);
+			fRec33 = +(fRec37);
+			HEAP32[dsp + 65828 + (0 << 2) >> 2] = 0;
+			iRec73 = (HEAP32[dsp + 65828 + (1 << 2) >> 2] | 0);
+			fRec77 = +(+((HEAP32[dsp + 90500 + (1 << 2) >> 2] | 0)) - +(0.989264667 * +(+(0.600000024 * +(HEAPF[dsp + 90472 + (2 << 2) >> 2])) + +(0.200000003 * +(+(HEAPF[dsp + 90472 + (1 << 2) >> 2]) + +(HEAPF[dsp + 90472 + (3 << 2) >> 2]))))));
+			HEAPF[dsp + 65844 + (0 << 2) >> 2] = +(+(fSlow5) + +(0.999000013 * +(HEAPF[dsp + 65844 + (1 << 2) >> 2])));
+			fTemp114 = +(+(HEAPF[dsp + 65844 + (0 << 2) >> 2]) + -0.0799999982);
+			fTemp115 = +(+(HEAPF[dsp + 32 >> 2]) * +(fTemp114));
+			fTemp116 = +(+(fTemp115) + -1.49999499);
+			iTemp117 = ~~(+(fTemp116));
+			iTemp118 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp117 | 0))) | 0)))));
+			fTemp119 = +(floorf(+(fTemp116)));
+			fTemp120 = +(+(fTemp115) + +(-1. - +(fTemp119)));
+			fTemp121 = +(0. - +(fTemp120));
+			fTemp122 = +(+(fTemp115) + +(-2. - +(fTemp119)));
+			fTemp123 = +(0. - +(0.5 * +(fTemp122)));
+			fTemp124 = +(+(fTemp115) + +(-3. - +(fTemp119)));
+			fTemp125 = +(0. - +(0.333333343 * +(fTemp124)));
+			fTemp126 = +(+(fTemp115) + +(-4. - +(fTemp119)));
+			fTemp127 = +(0. - +(0.25 * +(fTemp126)));
+			fTemp128 = +(+(fTemp115) - +(fTemp119));
+			iTemp129 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp117 | 0) + 2) | 0))) | 0)))));
+			fTemp130 = +(0. - +(fTemp124));
+			fTemp131 = +(0. - +(0.5 * +(fTemp126)));
+			iTemp132 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp117 | 0) + 1) | 0))) | 0)))));
+			fTemp133 = +(0. - +(fTemp122));
+			fTemp134 = +(0. - +(0.5 * +(fTemp124)));
+			fTemp135 = +(0. - +(0.333333343 * +(fTemp126)));
+			fTemp136 = +(+(fTemp120) * +(fTemp122));
+			iTemp137 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp117 | 0) + 3) | 0))) | 0)))));
+			fTemp138 = +(0. - +(fTemp126));
+			fTemp139 = +(+(fTemp136) * +(fTemp124));
+			iTemp140 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp117 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 65852 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 90508 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp118 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp121)) * +(fTemp123)) * +(fTemp125)) * +(fTemp127)) + +(+(fTemp128) * +(+(+(+(0.5 * +(+(+(+(fTemp120) * +(HEAPF[dsp + 90508 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp129 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp130)) * +(fTemp131))) + +(+(+(+(HEAPF[dsp + 90508 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp132 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp133)) * +(fTemp134)) * +(fTemp135))) + +(0.166666672 * +(+(+(fTemp136) * +(HEAPF[dsp + 90508 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp137 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp138)))) + +(0.0416666679 * +(+(fTemp139) * +(HEAPF[dsp + 90508 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp140 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 65864 + (0 << 2) >> 2] = +(HEAPF[dsp + 98700 + (1 << 2) >> 2]);
+			HEAPF[dsp + 65880 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(0. - +(0.99880147 * +(+(0.800000012 * +(HEAPF[dsp + 65864 + (2 << 2) >> 2])) + +(0.100000001 * +(+(HEAPF[dsp + 65864 + (1 << 2) >> 2]) + +(HEAPF[dsp + 65864 + (3 << 2) >> 2]))))));
+			iRec91 = 0;
+			fTemp141 = +(+(HEAPF[dsp + 8296 >> 2]) * +(fTemp114));
+			fTemp142 = +(+(fTemp141) + -1.49999499);
+			iTemp143 = ~~(+(fTemp142));
+			iTemp144 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp143 | 0))) | 0)))));
+			fTemp145 = +(floorf(+(fTemp142)));
+			fTemp146 = +(+(fTemp141) + +(-1. - +(fTemp145)));
+			fTemp147 = +(0. - +(fTemp146));
+			fTemp148 = +(+(fTemp141) + +(-2. - +(fTemp145)));
+			fTemp149 = +(0. - +(0.5 * +(fTemp148)));
+			fTemp150 = +(+(fTemp141) + +(-3. - +(fTemp145)));
+			fTemp151 = +(0. - +(0.333333343 * +(fTemp150)));
+			fTemp152 = +(+(fTemp141) + +(-4. - +(fTemp145)));
+			fTemp153 = +(0. - +(0.25 * +(fTemp152)));
+			fTemp154 = +(+(fTemp141) - +(fTemp145));
+			iTemp155 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp143 | 0) + 2) | 0))) | 0)))));
+			fTemp156 = +(0. - +(fTemp150));
+			fTemp157 = +(0. - +(0.5 * +(fTemp152)));
+			iTemp158 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp143 | 0) + 1) | 0))) | 0)))));
+			fTemp159 = +(0. - +(fTemp148));
+			fTemp160 = +(0. - +(0.5 * +(fTemp150)));
+			fTemp161 = +(0. - +(0.333333343 * +(fTemp152)));
+			fTemp162 = +(+(fTemp146) * +(fTemp148));
+			iTemp163 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp143 | 0) + 3) | 0))) | 0)))));
+			fTemp164 = +(0. - +(fTemp152));
+			fTemp165 = +(+(fTemp162) * +(fTemp150));
+			iTemp166 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp143 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 74072 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 65880 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp144 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp147)) * +(fTemp149)) * +(fTemp151)) * +(fTemp153)) + +(+(fTemp154) * +(+(+(+(0.5 * +(+(+(+(fTemp146) * +(HEAPF[dsp + 65880 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp155 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp156)) * +(fTemp157))) + +(+(+(+(HEAPF[dsp + 65880 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp158 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp159)) * +(fTemp160)) * +(fTemp161))) + +(0.166666672 * +(+(+(fTemp162) * +(HEAPF[dsp + 65880 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp163 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp164)))) + +(0.0416666679 * +(+(fTemp165) * +(HEAPF[dsp + 65880 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp166 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			fTemp167 = +(+(+((iSlow6 | 0)) * +(HEAPF[dsp + 76 + (0 << 2) >> 2])) - +(+(HEAPF[dsp + 65852 + (1 << 2) >> 2]) + +(HEAPF[dsp + 74072 + (1 << 2) >> 2])));
+			fTemp168 = +(+(fTemp167) * +(min_f(1., +(1. / +(powf(+(+(fabsf(+(3. * +(fTemp167)))) + 0.75), 4.))))));
+			fRec85 = +(+(HEAPF[dsp + 65852 + (1 << 2) >> 2]) + +(fTemp168));
+			fTemp169 = +(+(HEAPF[dsp + 74072 + (1 << 2) >> 2]) + +(fTemp168));
+			HEAPF[dsp + 74080 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp169);
+			fRec86 = +(+(+(+(+(+(fTemp121) * +(fTemp123)) * +(fTemp125)) * +(fTemp127)) * +(HEAPF[dsp + 74080 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp118 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp128) * +(+(0.0416666679 * +(+(fTemp139) * +(HEAPF[dsp + 74080 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp140 | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(+(fTemp133) * +(fTemp134)) * +(fTemp135)) * +(HEAPF[dsp + 74080 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp132 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp120) * +(fTemp130)) * +(fTemp131)) * +(HEAPF[dsp + 74080 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp129 | 0)) | 0) & 2047) | 0) << 2) >> 2])))) + +(0.166666672 * +(+(+(fTemp136) * +(fTemp138)) * +(HEAPF[dsp + 74080 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp137 | 0)) | 0) & 2047) | 0) << 2) >> 2])))))));
+			iRec87 = (iRec91 | 0);
+			HEAPF[dsp + 82272 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec85);
+			fRec81 = +(+(+(+(+(+(fTemp147) * +(fTemp149)) * +(fTemp151)) * +(fTemp153)) * +(HEAPF[dsp + 82272 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp144 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp154) * +(+(+(0.166666672 * +(+(+(fTemp162) * +(fTemp164)) * +(HEAPF[dsp + 82272 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp163 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(fTemp159) * +(fTemp160)) * +(fTemp161)) * +(HEAPF[dsp + 82272 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp158 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp146) * +(fTemp156)) * +(fTemp157)) * +(HEAPF[dsp + 82272 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp155 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))) + +(0.0416666679 * +(+(fTemp165) * +(HEAPF[dsp + 82272 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp166 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 90464 + (0 << 2) >> 2] = +(fRec86);
+			iRec83 = (iRec87 | 0);
+			HEAPF[dsp + 90472 + (0 << 2) >> 2] = +(HEAPF[dsp + 90464 + (1 << 2) >> 2]);
+			iRec79 = (iRec83 | 0);
+			HEAPF[dsp + 90488 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 90472 + (1 << 2) >> 2]) - +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 24720 >> 2]) * +(HEAPF[dsp + 90488 + (1 << 2) >> 2])) + +(+(HEAPF[dsp + 24716 >> 2]) * +(HEAPF[dsp + 90488 + (2 << 2) >> 2])))));
+			fTemp170 = +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 20 >> 2]) * +(HEAPF[dsp + 90488 + (0 << 2) >> 2])) + +(+(HEAPF[dsp + 24736 >> 2]) * +(HEAPF[dsp + 90488 + (2 << 2) >> 2]))));
+			fRec74 = +(fTemp170);
+			fRec75 = +(+((iRec79 | 0)) + +(fTemp170));
+			HEAP32[dsp + 90500 + (0 << 2) >> 2] = (iRec73 | 0);
+			fRec69 = +(fRec77);
+			fRec70 = +(fRec74);
+			fRec71 = +(fRec75);
+			HEAPF[dsp + 90508 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec69);
+			fRec65 = +(fRec81);
+			fRec66 = +(fRec70);
+			fRec67 = +(fRec71);
+			HEAPF[dsp + 98700 + (0 << 2) >> 2] = +(fRec65);
+			fRec63 = +(fRec67);
+			HEAP32[dsp + 98708 + (0 << 2) >> 2] = 0;
+			iRec103 = (HEAP32[dsp + 98708 + (1 << 2) >> 2] | 0);
+			fRec107 = +(+((HEAP32[dsp + 123380 + (1 << 2) >> 2] | 0)) - +(0.989264667 * +(+(0.600000024 * +(HEAPF[dsp + 123352 + (2 << 2) >> 2])) + +(0.200000003 * +(+(HEAPF[dsp + 123352 + (1 << 2) >> 2]) + +(HEAPF[dsp + 123352 + (3 << 2) >> 2]))))));
+			HEAPF[dsp + 98724 + (0 << 2) >> 2] = +(+(fSlow7) + +(0.999000013 * +(HEAPF[dsp + 98724 + (1 << 2) >> 2])));
+			fTemp171 = +(+(HEAPF[dsp + 98724 + (0 << 2) >> 2]) + -0.0799999982);
+			fTemp172 = +(+(HEAPF[dsp + 32 >> 2]) * +(fTemp171));
+			fTemp173 = +(+(fTemp172) + -1.49999499);
+			iTemp174 = ~~(+(fTemp173));
+			iTemp175 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp174 | 0))) | 0)))));
+			fTemp176 = +(floorf(+(fTemp173)));
+			fTemp177 = +(+(fTemp172) + +(-1. - +(fTemp176)));
+			fTemp178 = +(0. - +(fTemp177));
+			fTemp179 = +(+(fTemp172) + +(-2. - +(fTemp176)));
+			fTemp180 = +(0. - +(0.5 * +(fTemp179)));
+			fTemp181 = +(+(fTemp172) + +(-3. - +(fTemp176)));
+			fTemp182 = +(0. - +(0.333333343 * +(fTemp181)));
+			fTemp183 = +(+(fTemp172) + +(-4. - +(fTemp176)));
+			fTemp184 = +(0. - +(0.25 * +(fTemp183)));
+			fTemp185 = +(+(fTemp172) - +(fTemp176));
+			iTemp186 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp174 | 0) + 2) | 0))) | 0)))));
+			fTemp187 = +(0. - +(fTemp181));
+			fTemp188 = +(0. - +(0.5 * +(fTemp183)));
+			iTemp189 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp174 | 0) + 1) | 0))) | 0)))));
+			fTemp190 = +(0. - +(fTemp179));
+			fTemp191 = +(0. - +(0.5 * +(fTemp181)));
+			fTemp192 = +(0. - +(0.333333343 * +(fTemp183)));
+			fTemp193 = +(+(fTemp177) * +(fTemp179));
+			iTemp194 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp174 | 0) + 3) | 0))) | 0)))));
+			fTemp195 = +(0. - +(fTemp183));
+			fTemp196 = +(+(fTemp193) * +(fTemp181));
+			iTemp197 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp174 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 98732 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 123388 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp175 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp178)) * +(fTemp180)) * +(fTemp182)) * +(fTemp184)) + +(+(fTemp185) * +(+(+(+(0.5 * +(+(+(+(fTemp177) * +(HEAPF[dsp + 123388 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp186 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp187)) * +(fTemp188))) + +(+(+(+(HEAPF[dsp + 123388 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp189 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp190)) * +(fTemp191)) * +(fTemp192))) + +(0.166666672 * +(+(+(fTemp193) * +(HEAPF[dsp + 123388 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp194 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp195)))) + +(0.0416666679 * +(+(fTemp196) * +(HEAPF[dsp + 123388 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp197 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 98744 + (0 << 2) >> 2] = +(HEAPF[dsp + 131580 + (1 << 2) >> 2]);
+			HEAPF[dsp + 98760 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(0. - +(0.99880147 * +(+(0.800000012 * +(HEAPF[dsp + 98744 + (2 << 2) >> 2])) + +(0.100000001 * +(+(HEAPF[dsp + 98744 + (1 << 2) >> 2]) + +(HEAPF[dsp + 98744 + (3 << 2) >> 2]))))));
+			iRec121 = 0;
+			fTemp198 = +(+(HEAPF[dsp + 8296 >> 2]) * +(fTemp171));
+			fTemp199 = +(+(fTemp198) + -1.49999499);
+			iTemp200 = ~~(+(fTemp199));
+			iTemp201 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (iTemp200 | 0))) | 0)))));
+			fTemp202 = +(floorf(+(fTemp199)));
+			fTemp203 = +(+(fTemp198) + +(-1. - +(fTemp202)));
+			fTemp204 = +(0. - +(fTemp203));
+			fTemp205 = +(+(fTemp198) + +(-2. - +(fTemp202)));
+			fTemp206 = +(0. - +(0.5 * +(fTemp205)));
+			fTemp207 = +(+(fTemp198) + +(-3. - +(fTemp202)));
+			fTemp208 = +(0. - +(0.333333343 * +(fTemp207)));
+			fTemp209 = +(+(fTemp198) + +(-4. - +(fTemp202)));
+			fTemp210 = +(0. - +(0.25 * +(fTemp209)));
+			fTemp211 = +(+(fTemp198) - +(fTemp202));
+			iTemp212 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp200 | 0) + 2) | 0))) | 0)))));
+			fTemp213 = +(0. - +(fTemp207));
+			fTemp214 = +(0. - +(0.5 * +(fTemp209)));
+			iTemp215 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp200 | 0) + 1) | 0))) | 0)))));
+			fTemp216 = +(0. - +(fTemp205));
+			fTemp217 = +(0. - +(0.5 * +(fTemp207)));
+			fTemp218 = +(0. - +(0.333333343 * +(fTemp209)));
+			fTemp219 = +(+(fTemp203) * +(fTemp205));
+			iTemp220 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp200 | 0) + 3) | 0))) | 0)))));
+			fTemp221 = +(0. - +(fTemp209));
+			fTemp222 = +(+(fTemp219) * +(fTemp207));
+			iTemp223 = ~~(+(min_f(+(HEAPF[dsp + 28 >> 2]), +(((max_i(0, (((iTemp200 | 0) + 4) | 0))) | 0)))));
+			HEAPF[dsp + 106952 + (0 << 2) >> 2] = +(+(+(+(+(+(HEAPF[dsp + 98760 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp201 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp204)) * +(fTemp206)) * +(fTemp208)) * +(fTemp210)) + +(+(fTemp211) * +(+(+(+(0.5 * +(+(+(+(fTemp203) * +(HEAPF[dsp + 98760 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp212 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp213)) * +(fTemp214))) + +(+(+(+(HEAPF[dsp + 98760 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp215 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]) * +(fTemp216)) * +(fTemp217)) * +(fTemp218))) + +(0.166666672 * +(+(+(fTemp219) * +(HEAPF[dsp + 98760 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp220 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2])) * +(fTemp221)))) + +(0.0416666679 * +(+(fTemp222) * +(HEAPF[dsp + 98760 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp223 | 0) + 2) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			fTemp224 = +(+(+((iSlow8 | 0)) * +(HEAPF[dsp + 76 + (0 << 2) >> 2])) - +(+(HEAPF[dsp + 98732 + (1 << 2) >> 2]) + +(HEAPF[dsp + 106952 + (1 << 2) >> 2])));
+			fTemp225 = +(+(fTemp224) * +(min_f(1., +(1. / +(powf(+(+(fabsf(+(3. * +(fTemp224)))) + 0.75), 4.))))));
+			fRec115 = +(+(HEAPF[dsp + 98732 + (1 << 2) >> 2]) + +(fTemp225));
+			fTemp226 = +(+(HEAPF[dsp + 106952 + (1 << 2) >> 2]) + +(fTemp225));
+			HEAPF[dsp + 106960 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fTemp226);
+			fRec116 = +(+(+(+(+(+(fTemp178) * +(fTemp180)) * +(fTemp182)) * +(fTemp184)) * +(HEAPF[dsp + 106960 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp175 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp185) * +(+(0.0416666679 * +(+(fTemp196) * +(HEAPF[dsp + 106960 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp197 | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(+(fTemp190) * +(fTemp191)) * +(fTemp192)) * +(HEAPF[dsp + 106960 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp189 | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp177) * +(fTemp187)) * +(fTemp188)) * +(HEAPF[dsp + 106960 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp186 | 0)) | 0) & 2047) | 0) << 2) >> 2])))) + +(0.166666672 * +(+(+(fTemp193) * +(fTemp195)) * +(HEAPF[dsp + 106960 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (iTemp194 | 0)) | 0) & 2047) | 0) << 2) >> 2])))))));
+			iRec117 = (iRec121 | 0);
+			HEAPF[dsp + 115152 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec115);
+			fRec111 = +(+(+(+(+(+(fTemp204) * +(fTemp206)) * +(fTemp208)) * +(fTemp210)) * +(HEAPF[dsp + 115152 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp201 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(+(fTemp211) * +(+(+(0.166666672 * +(+(+(fTemp219) * +(fTemp221)) * +(HEAPF[dsp + 115152 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp220 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))) + +(+(+(+(+(fTemp216) * +(fTemp217)) * +(fTemp218)) * +(HEAPF[dsp + 115152 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp215 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2])) + +(0.5 * +(+(+(+(fTemp203) * +(fTemp213)) * +(fTemp214)) * +(HEAPF[dsp + 115152 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp212 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))) + +(0.0416666679 * +(+(fTemp222) * +(HEAPF[dsp + 115152 + ((((((HEAP32[dsp + 100 >> 2] | 0) - (((iTemp223 | 0) + 1) | 0)) | 0) & 2047) | 0) << 2) >> 2]))))));
+			HEAPF[dsp + 123344 + (0 << 2) >> 2] = +(fRec116);
+			iRec113 = (iRec117 | 0);
+			HEAPF[dsp + 123352 + (0 << 2) >> 2] = +(HEAPF[dsp + 123344 + (1 << 2) >> 2]);
+			iRec109 = (iRec113 | 0);
+			HEAPF[dsp + 123368 + (0 << 2) >> 2] = +(+(HEAPF[dsp + 123352 + (1 << 2) >> 2]) - +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 24720 >> 2]) * +(HEAPF[dsp + 123368 + (1 << 2) >> 2])) + +(+(HEAPF[dsp + 24716 >> 2]) * +(HEAPF[dsp + 123368 + (2 << 2) >> 2])))));
+			fTemp227 = +(+(HEAPF[dsp + 24 >> 2]) * +(+(+(HEAPF[dsp + 20 >> 2]) * +(HEAPF[dsp + 123368 + (0 << 2) >> 2])) + +(+(HEAPF[dsp + 24736 >> 2]) * +(HEAPF[dsp + 123368 + (2 << 2) >> 2]))));
+			fRec104 = +(fTemp227);
+			fRec105 = +(+((iRec109 | 0)) + +(fTemp227));
+			HEAP32[dsp + 123380 + (0 << 2) >> 2] = (iRec103 | 0);
+			fRec99 = +(fRec107);
+			fRec100 = +(fRec104);
+			fRec101 = +(fRec105);
+			HEAPF[dsp + 123388 + ((((HEAP32[dsp + 100 >> 2] | 0) & 2047) | 0) << 2) >> 2] = +(fRec99);
+			fRec95 = +(fRec111);
+			fRec96 = +(fRec100);
+			fRec97 = +(fRec101);
+			HEAPF[dsp + 131580 + (0 << 2) >> 2] = +(fRec95);
+			fRec93 = +(fRec97);
+			fTemp228 = +(+(+(+(fRec1) + +(fRec33)) + +(fRec63)) + +(fRec93));
+			HEAPF[output0 + ((i | 0) << 2) >> 2] = +(+(fTemp228));
+			HEAPF[output1 + ((i | 0) << 2) >> 2] = +(+(fTemp228));
+			HEAP32[dsp + 0 + (1 << 2) >> 2] = (HEAP32[dsp + 0 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 44 + (1 << 2) >> 2] = +(HEAPF[dsp + 44 + (0 << 2) >> 2]);
+			HEAPF[dsp + 52 + (1 << 2) >> 2] = +(HEAPF[dsp + 52 + (0 << 2) >> 2]);
+			HEAPF[dsp + 68 + (1 << 2) >> 2] = +(HEAPF[dsp + 68 + (0 << 2) >> 2]);
+			HEAPF[dsp + 76 + (1 << 2) >> 2] = +(HEAPF[dsp + 76 + (0 << 2) >> 2]);
+			for (j0 = 3; (((j0 | 0) > 0) | 0); j0 = (((j0 | 0) - 1) | 0)) {
+				HEAPF[dsp + 84 + ((j0 | 0) << 2) >> 2] = +(HEAPF[dsp + 84 + ((((j0 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAP32[dsp + 100 >> 2] = (((HEAP32[dsp + 100 >> 2] | 0) + 1) | 0);
+			HEAPF[dsp + 8300 + (1 << 2) >> 2] = +(HEAPF[dsp + 8300 + (0 << 2) >> 2]);
+			HEAPF[dsp + 24692 + (1 << 2) >> 2] = +(HEAPF[dsp + 24692 + (0 << 2) >> 2]);
+			for (j1 = 3; (((j1 | 0) > 0) | 0); j1 = (((j1 | 0) - 1) | 0)) {
+				HEAPF[dsp + 24700 + ((j1 | 0) << 2) >> 2] = +(HEAPF[dsp + 24700 + ((((j1 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 24724 + (2 << 2) >> 2] = +(HEAPF[dsp + 24724 + (1 << 2) >> 2]);
+			HEAPF[dsp + 24724 + (1 << 2) >> 2] = +(HEAPF[dsp + 24724 + (0 << 2) >> 2]);
+			HEAP32[dsp + 24740 + (1 << 2) >> 2] = (HEAP32[dsp + 24740 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 32940 + (1 << 2) >> 2] = +(HEAPF[dsp + 32940 + (0 << 2) >> 2]);
+			HEAP32[dsp + 32948 + (1 << 2) >> 2] = (HEAP32[dsp + 32948 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 32964 + (1 << 2) >> 2] = +(HEAPF[dsp + 32964 + (0 << 2) >> 2]);
+			HEAPF[dsp + 32972 + (1 << 2) >> 2] = +(HEAPF[dsp + 32972 + (0 << 2) >> 2]);
+			for (j2 = 3; (((j2 | 0) > 0) | 0); j2 = (((j2 | 0) - 1) | 0)) {
+				HEAPF[dsp + 32984 + ((j2 | 0) << 2) >> 2] = +(HEAPF[dsp + 32984 + ((((j2 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 41192 + (1 << 2) >> 2] = +(HEAPF[dsp + 41192 + (0 << 2) >> 2]);
+			HEAPF[dsp + 57584 + (1 << 2) >> 2] = +(HEAPF[dsp + 57584 + (0 << 2) >> 2]);
+			for (j3 = 3; (((j3 | 0) > 0) | 0); j3 = (((j3 | 0) - 1) | 0)) {
+				HEAPF[dsp + 57592 + ((j3 | 0) << 2) >> 2] = +(HEAPF[dsp + 57592 + ((((j3 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 57608 + (2 << 2) >> 2] = +(HEAPF[dsp + 57608 + (1 << 2) >> 2]);
+			HEAPF[dsp + 57608 + (1 << 2) >> 2] = +(HEAPF[dsp + 57608 + (0 << 2) >> 2]);
+			HEAP32[dsp + 57620 + (1 << 2) >> 2] = (HEAP32[dsp + 57620 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 65820 + (1 << 2) >> 2] = +(HEAPF[dsp + 65820 + (0 << 2) >> 2]);
+			HEAP32[dsp + 65828 + (1 << 2) >> 2] = (HEAP32[dsp + 65828 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 65844 + (1 << 2) >> 2] = +(HEAPF[dsp + 65844 + (0 << 2) >> 2]);
+			HEAPF[dsp + 65852 + (1 << 2) >> 2] = +(HEAPF[dsp + 65852 + (0 << 2) >> 2]);
+			for (j4 = 3; (((j4 | 0) > 0) | 0); j4 = (((j4 | 0) - 1) | 0)) {
+				HEAPF[dsp + 65864 + ((j4 | 0) << 2) >> 2] = +(HEAPF[dsp + 65864 + ((((j4 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 74072 + (1 << 2) >> 2] = +(HEAPF[dsp + 74072 + (0 << 2) >> 2]);
+			HEAPF[dsp + 90464 + (1 << 2) >> 2] = +(HEAPF[dsp + 90464 + (0 << 2) >> 2]);
+			for (j5 = 3; (((j5 | 0) > 0) | 0); j5 = (((j5 | 0) - 1) | 0)) {
+				HEAPF[dsp + 90472 + ((j5 | 0) << 2) >> 2] = +(HEAPF[dsp + 90472 + ((((j5 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 90488 + (2 << 2) >> 2] = +(HEAPF[dsp + 90488 + (1 << 2) >> 2]);
+			HEAPF[dsp + 90488 + (1 << 2) >> 2] = +(HEAPF[dsp + 90488 + (0 << 2) >> 2]);
+			HEAP32[dsp + 90500 + (1 << 2) >> 2] = (HEAP32[dsp + 90500 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 98700 + (1 << 2) >> 2] = +(HEAPF[dsp + 98700 + (0 << 2) >> 2]);
+			HEAP32[dsp + 98708 + (1 << 2) >> 2] = (HEAP32[dsp + 98708 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 98724 + (1 << 2) >> 2] = +(HEAPF[dsp + 98724 + (0 << 2) >> 2]);
+			HEAPF[dsp + 98732 + (1 << 2) >> 2] = +(HEAPF[dsp + 98732 + (0 << 2) >> 2]);
+			for (j6 = 3; (((j6 | 0) > 0) | 0); j6 = (((j6 | 0) - 1) | 0)) {
+				HEAPF[dsp + 98744 + ((j6 | 0) << 2) >> 2] = +(HEAPF[dsp + 98744 + ((((j6 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 106952 + (1 << 2) >> 2] = +(HEAPF[dsp + 106952 + (0 << 2) >> 2]);
+			HEAPF[dsp + 123344 + (1 << 2) >> 2] = +(HEAPF[dsp + 123344 + (0 << 2) >> 2]);
+			for (j7 = 3; (((j7 | 0) > 0) | 0); j7 = (((j7 | 0) - 1) | 0)) {
+				HEAPF[dsp + 123352 + ((j7 | 0) << 2) >> 2] = +(HEAPF[dsp + 123352 + ((((j7 | 0) - 1) | 0) << 2) >> 2]);
+				
+			}
+			HEAPF[dsp + 123368 + (2 << 2) >> 2] = +(HEAPF[dsp + 123368 + (1 << 2) >> 2]);
+			HEAPF[dsp + 123368 + (1 << 2) >> 2] = +(HEAPF[dsp + 123368 + (0 << 2) >> 2]);
+			HEAP32[dsp + 123380 + (1 << 2) >> 2] = (HEAP32[dsp + 123380 + (0 << 2) >> 2] | 0);
+			HEAPF[dsp + 131580 + (1 << 2) >> 2] = +(HEAPF[dsp + 131580 + (0 << 2) >> 2]);
+			
+		}
+		
+	}
+	
+	return { getNumInputs : getNumInputs, getNumOutputs : getNumOutputs, classInit : classInit, instanceInit : instanceInit, instanceConstants : instanceConstants, instanceResetUserInterface : instanceResetUserInterface, instanceClear : instanceClear, init : init, getSampleRate : getSampleRate, setParamValue : setParamValue, getParamValue : getParamValue, compute : compute };
+}
+
+function getSizemydsp() {
+	return 131588;
+}
+
+function getPathTablemydsp() {
+	var pathTable = [];
+	pathTable["/violin2/kb0freq"] = 36;
+	pathTable["/violin2/kb0bend"] = 40;
+	pathTable["/violin2/kb3freq"] = 98716;
+	pathTable["/violin2/kb3bend"] = 98720;
+	pathTable["/violin2/kb3fingers"] = 98740;
+	pathTable["/violin2/kb0fingers"] = 60;
+	pathTable["/violin2/y"] = 64;
+	pathTable["/violin2/kb1freq"] = 32956;
+	pathTable["/violin2/kb1bend"] = 32960;
+	pathTable["/violin2/kb1fingers"] = 32980;
+	pathTable["/violin2/kb2freq"] = 65836;
+	pathTable["/violin2/kb2bend"] = 65840;
+	pathTable["/violin2/kb2fingers"] = 65860;
+	return pathTable;
+}
+
+function getJSONmydsp() {
+	return "{\"name\":\"violin2\",\"inputs\":\"0\",\"outputs\":\"2\",\"meta\":[{\"delays.lib/name\":\"Faust Delay Library\"},{\"delays.lib/version\":\"0.0\"},{\"filters.lib/name\":\"Faust Filters Library\"},{\"filters.lib/version\":\"0.0\"},{\"interface\":\"SmartKeyboard{  'Number of Keyboards':'4',  'Max Keyboard Polyphony':'0',  'Rounding Mode':'2',  'Send Fingers Count':'1',  'Keyboard 0 - Number of Keys':'12',  'Keyboard 1 - Number of Keys':'12',  'Keyboard 2 - Number of Keys':'12',  'Keyboard 3 - Number of Keys':'12',  'Keyboard 0 - Lowest Key':'55',  'Keyboard 1 - Lowest Key':'62',  'Keyboard 2 - Lowest Key':'69',  'Keyboard 3 - Lowest Key':'76',  'Keyboard 0 - Send Keyboard Freq':'1',  'Keyboard 1 - Send Keyboard Freq':'1',  'Keyboard 2 - Send Keyboard Freq':'1',  'Keyboard 3 - Send Keyboard Freq':'1',  'Keyboard 0 - Send Y':'1',  'Keyboard 1 - Send Y':'1',  'Keyboard 2 - Send Y':'1',  'Keyboard 3 - Send Y':'1' }\"},{\"maths.lib/author\":\"GRAME\"},{\"maths.lib/copyright\":\"GRAME\"},{\"maths.lib/license\":\"LGPL with exception\"},{\"maths.lib/name\":\"Faust Math Library\"},{\"maths.lib/version\":\"2.1\"},{\"name\":\"violin2\"},{\"routes.lib/name\":\"Faust Signal Routing Library\"},{\"routes.lib/version\":\"0.0\"},{\"signals.lib/name\":\"Faust Signal Routing Library\"},{\"signals.lib/version\":\"0.0\"}],\"ui\":[{\"type\":\"vgroup\",\"label\":\"violin2\",\"items\":[{\"type\":\"hslider\",\"label\":\"kb0bend\",\"address\":\"/violin2/kb0bend\",\"init\":\"1\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb0fingers\",\"address\":\"/violin2/kb0fingers\",\"init\":\"0\",\"min\":\"0\",\"max\":\"10\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"kb0freq\",\"address\":\"/violin2/kb0freq\",\"init\":\"220\",\"min\":\"20\",\"max\":\"10000\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb1bend\",\"address\":\"/violin2/kb1bend\",\"init\":\"1\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb1fingers\",\"address\":\"/violin2/kb1fingers\",\"init\":\"0\",\"min\":\"0\",\"max\":\"10\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"kb1freq\",\"address\":\"/violin2/kb1freq\",\"init\":\"330\",\"min\":\"20\",\"max\":\"10000\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb2bend\",\"address\":\"/violin2/kb2bend\",\"init\":\"1\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb2fingers\",\"address\":\"/violin2/kb2fingers\",\"init\":\"0\",\"min\":\"0\",\"max\":\"10\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"kb2freq\",\"address\":\"/violin2/kb2freq\",\"init\":\"440\",\"min\":\"20\",\"max\":\"10000\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb3bend\",\"address\":\"/violin2/kb3bend\",\"init\":\"1\",\"min\":\"0\",\"max\":\"10\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"kb3fingers\",\"address\":\"/violin2/kb3fingers\",\"init\":\"0\",\"min\":\"0\",\"max\":\"10\",\"step\":\"1\"},{\"type\":\"hslider\",\"label\":\"kb3freq\",\"address\":\"/violin2/kb3freq\",\"init\":\"550\",\"min\":\"20\",\"max\":\"10000\",\"step\":\"0.01\"},{\"type\":\"hslider\",\"label\":\"y\",\"address\":\"/violin2/y\",\"init\":\"0\",\"min\":\"0\",\"max\":\"1\",\"step\":\"1\"}]}]}";
+}
+
+function metadatamydsp(m) {
+	m.declare("delays.lib/name", "Faust Delay Library");
+	m.declare("delays.lib/version", "0.0");
+	m.declare("filters.lib/name", "Faust Filters Library");
+	m.declare("filters.lib/version", "0.0");
+	m.declare("interface", "SmartKeyboard{  'Number of Keyboards':'4',  'Max Keyboard Polyphony':'0',  'Rounding Mode':'2',  'Send Fingers Count':'1',  'Keyboard 0 - Number of Keys':'12',  'Keyboard 1 - Number of Keys':'12',  'Keyboard 2 - Number of Keys':'12',  'Keyboard 3 - Number of Keys':'12',  'Keyboard 0 - Lowest Key':'55',  'Keyboard 1 - Lowest Key':'62',  'Keyboard 2 - Lowest Key':'69',  'Keyboard 3 - Lowest Key':'76',  'Keyboard 0 - Send Keyboard Freq':'1',  'Keyboard 1 - Send Keyboard Freq':'1',  'Keyboard 2 - Send Keyboard Freq':'1',  'Keyboard 3 - Send Keyboard Freq':'1',  'Keyboard 0 - Send Y':'1',  'Keyboard 1 - Send Y':'1',  'Keyboard 2 - Send Y':'1',  'Keyboard 3 - Send Y':'1' }");
+	m.declare("maths.lib/author", "GRAME");
+	m.declare("maths.lib/copyright", "GRAME");
+	m.declare("maths.lib/license", "LGPL with exception");
+	m.declare("maths.lib/name", "Faust Math Library");
+	m.declare("maths.lib/version", "2.1");
+	m.declare("name", "violin2");
+	m.declare("routes.lib/name", "Faust Signal Routing Library");
+	m.declare("routes.lib/version", "0.0");
+	m.declare("signals.lib/name", "Faust Signal Routing Library");
+	m.declare("signals.lib/version", "0.0");
+}
+
