@@ -173,6 +173,7 @@ install :
 	# install faust itself
 	mkdir -p $(prefix)/bin/
 	mkdir -p $(prefix)/lib/
+	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
@@ -196,7 +197,6 @@ install :
 	cp architecture/*.cpp $(prefix)/share/faust/
 	cp architecture/*.java $(prefix)/share/faust/
 	cp architecture/*.js $(prefix)/share/faust/
-	cp architecture/*.a $(prefix)/share/faust/
 	cp libraries/old/*.lib $(prefix)/share/faust/
 	cp libraries/*.lib $(prefix)/share/faust/
 
@@ -210,28 +210,39 @@ install :
 	rm -rf $(prefix)/share/faust/iOS
 	cp -r architecture/iOS $(prefix)/share/faust/
 	cp -r architecture/osclib $(prefix)/share/faust
+	# remove object files and libraries in the copied osclib folder
+	$(MAKE) -C $(prefix)/share/faust/osclib clean
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
+	cp architecture/ios-libsndfile.a $(prefix)/lib/faust
+
 	# install smartKeyboard
 	rm -rf $(prefix)/share/faust/smartKeyboard
 	cp -r architecture/smartKeyboard $(prefix)/share/faust/
+
 	# install Juce
 	rm -rf $(prefix)/share/faust/juce
 	cp -r architecture/juce $(prefix)/share/faust/
+
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
+
 	# install Android
 	rm -rf $(prefix)/share/faust/android
 	cp -r architecture/android $(prefix)/share/faust/
+
 	# install APIs
 	rm -rf $(prefix)/share/faust/api/
 	cp -r architecture/api $(prefix)/share/faust/
+
 	# install nodejs
 	rm -rf $(prefix)/share/faust/nodejs/
 	cp -r architecture/nodejs $(prefix)/share/faust/
+
 	# install Max/MSP
 	rm -rf $(prefix)/share/faust/max-msp/
 	cp -r architecture/max-msp $(prefix)/share/faust/
+
 	#install unity
 	rm -rf $(prefix)/share/faust/unity
 	cp -r architecture/unity $(prefix)/share/faust/
@@ -296,6 +307,7 @@ uninstall :
 	rm -f $(prefix)/bin/sound2faust$(EXE)
 	rm -f $(prefix)/bin/faustbench
 	rm -f $(prefix)/share/man/man1/faust.1
+	rm -f $(prefix)/lib/faust/ios-libsndfile.a
 
 # make a faust distribution tarball
 dist = faust-$(version)
