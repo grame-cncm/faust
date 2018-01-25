@@ -54,7 +54,5 @@ branches:
 
 script: 
   - make light CXX=$COMPILER -j4 && make
-  - cp compiler/generator/llvm/llvm-dsp.h architecture/faust/dsp/llvm-dsp.h 
-  - ls -l architecture/faust/dsp
   - make -C tests/impulse-tests travis -j 4
 
