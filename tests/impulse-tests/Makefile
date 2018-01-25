@@ -13,7 +13,7 @@ else
 endif
 
 MAKE ?= make
-GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
 outdir ?= float
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
@@ -24,7 +24,7 @@ dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir) 
 
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
 

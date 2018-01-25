@@ -13,7 +13,7 @@ else
 endif
 
 refdir := reference
-GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
 lang ?= cpp
 arch ?= ./archs/impulsearch.cpp
 FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
@@ -36,7 +36,7 @@ listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(d
 
 #.DELETE_ON_ERROR: $(cppfiles)
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
 

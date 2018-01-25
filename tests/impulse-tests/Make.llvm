@@ -21,7 +21,6 @@ FAUSTOPTIONS ?=
 dspfiles := $(wildcard dsp/*.dsp)
 listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
 SRCDIR := tools
 
 

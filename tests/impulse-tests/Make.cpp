@@ -12,7 +12,7 @@ else
  COMPARE := ./filesCompare
 endif
 
-GCCOPTIONS := -O3 -I../../architectures -Iarchs -pthread -std=c++11
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
 outdir ?= cpp/double
 lang ?= cpp
 ext  ?= cpp
@@ -32,7 +32,7 @@ listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir)
 listintermediate = $(dspfiles:dsp/%.dsp=ir/$1/%) $(dspfiles:dsp/%.dsp=ir/$1/%.cpp) 
 
 
-TOOLSOPTIONS := -std=c++11 -O3 -I../../architectures
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
 
