@@ -62,7 +62,7 @@ ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
 filesCompare:
-	make tools
+	make filesCompare
 
 #########################################################################
 # rules 
