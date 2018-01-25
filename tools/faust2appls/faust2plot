@@ -30,6 +30,15 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2plot [-n <num] [-s <num>] [-r <num>] <file.dsp>"
+        echo "Use '-n' to set the number of generated samples (default is 16)"
+        echo "Use '-s' to shift output signal at sample <num>"
+        echo "Use '-r' to set the sampling rate (default is 44100)"
+        exit
+    fi
+
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"

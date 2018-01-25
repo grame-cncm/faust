@@ -35,8 +35,12 @@ faust filetype file
     augroup END
 
 6) EMACS
-An EMACS Faust mode is provided by Juan Gabriel Alzate Romero at https://github.com/rukano/emacs-faust-mode
+copy file faust-mode.el into /usr/share/emacs/site-lisp and add the following lines to your .emacs:
 
+(require 'faust-mode)
+(setq auto-mode-alist (cons '("\\.dsp$" . faust-mode) auto-mode-alist))
+
+NB: This is the latest version of emacs-faust-mode created by Juan Gabriel Alzate Romero, cf. https://github.com/agraef/emacs-faust-mode.
 
 7) NANO
 copy file faust.nanorc into folder /usr/share/nano/

@@ -102,16 +102,20 @@ LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp
 LIBEXPORT void generateCSHA1(const char* data, char* key);
     
 /**
- * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, 
- * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode, 
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
+ * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode,
  * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
  *
  * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
  *
  * @param ptr - the pointer to be deleted.
  */
-//LIBEXPORT void freeCMemory(void* ptr);
-
+#ifdef EMCC
+extern "C" void freeCMemory(void* ptr);
+#else
+extern "C" LIBEXPORT void freeCMemory(void* ptr);
+#endif
+    
 #ifdef __cplusplus
 }
 #endif

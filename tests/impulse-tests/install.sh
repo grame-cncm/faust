@@ -8,6 +8,8 @@
 #                                                                   #
 #####################################################################
 
+cp controlTools.h /usr/local/share/faust/
+
 g++ -std=c++11 -O3 filesCompare.cpp -o filesCompare
 g++ -std=c++11 -O3 impulsearch3.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -I/opt/local/include -o impulseinterp
 g++ -std=c++11 -O3 impulsearch4.cpp -lfaust `llvm-config --ldflags --libs all --system-libs` -I/opt/local/include -o impulsellvm
@@ -38,7 +40,6 @@ cp impulsellvm /usr/local/bin/
 
 cp filesCompare /usr/local/bin/
 
-cp controlTools.h /usr/local/share/faust/
 cp impulsearch.cpp /usr/local/share/faust/
 cp impulsearch1.cpp /usr/local/share/faust/
 cp impulsearch2.cpp /usr/local/share/faust/
