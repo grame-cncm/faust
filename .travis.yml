@@ -5,14 +5,14 @@ language: cpp
 
 matrix:
   include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.9
-      env: COMPILER=g++-4.9
+#    - compiler: gcc
+#      addons:
+#        apt:
+#          sources:
+#            - ubuntu-toolchain-r-test
+#          packages:
+#            - g++-4.9
+#      env: COMPILER=g++-4.9
     - compiler: gcc
       addons:
         apt:
@@ -57,6 +57,6 @@ script:
   - env
   - grep ^processor /proc/cpuinfo
   - echo CPU $CPU
-#  - make light CXX=$COMPILER -j4 && make
-#  - make -C tests/impulse-tests travis -j 4
+  - make light CXX=$COMPILER -j4 && make TASKS=$CPU
+  - make -C tests/impulse-tests travis -j $CPU
 
