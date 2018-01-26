@@ -3440,7 +3440,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
               factory.polyphony.push(polyphony);
               // Create audio node
               faust.createPolyDSPWorkletInstanceAux(factory, context, polyphony, callback);
-              })
+         })
         .catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); alert(error); });
        	
     } else {
