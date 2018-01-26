@@ -52,6 +52,56 @@ inline std::string pathToContent(const std::string& path)
     return result;
 }
 
+
+/**
+ * Polyphonic DSP with an integrated effect.
+ */
+class dsp_poly_effect : public dsp_poly {
+    
+    private:
+    
+        dsp_poly* fPolyDSP;
+    
+    public:
+    
+        dsp_poly_effect(dsp_poly* dsp1, dsp* dsp2)
+            :fPolyDSP(dsp1), dsp_poly(dsp2)
+        {}
+        
+        MapUI* keyOn(int channel, int pitch, int velocity)
+        {
+            return fPolyDSP->keyOn(channel, pitch, velocity);
+        }
+        void keyOff(int channel, int pitch, int velocity)
+        {
+            fPolyDSP->keyOff(channel, pitch, velocity);
+        }
+        void keyPress(int channel, int pitch, int press)
+        {
+            fPolyDSP->keyPress(channel, pitch, press);
+        }
+        void chanPress(int channel, int press)
+        {
+            fPolyDSP->chanPress(channel, press);
+        }
+        void ctrlChange(int channel, int ctrl, int value)
+        {
+            fPolyDSP->ctrlChange(channel, ctrl, value);
+        }
+        void ctrlChange14bits(int channel, int ctrl, int value)
+        {
+            fPolyDSP->ctrlChange14bits(channel, ctrl, value);
+        }
+        void pitchWheel(int channel, int wheel)
+        {
+            fPolyDSP->pitchWheel(channel, wheel);
+        }
+        void progChange(int channel, int pgm)
+        {
+            fPolyDSP->progChange(channel, pgm);
+        }
+};
+
 /**
  * Polyphonic DSP factory class. Helper code to support polyphonic DSP source with an integrated effect.
  */
@@ -84,6 +134,7 @@ struct dsp_poly_factory : public dsp_factory {
         if (fProcessFactory) {
             fEffectFactory = createDSPFactoryFromString(name_app, code_effect.str(), argc, argv, target, error_msg);
         } else {
+            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
             throw std::bad_alloc();
         }
     }
@@ -115,20 +166,14 @@ struct dsp_poly_factory : public dsp_factory {
      * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
      *                a given control on all voices, assuming GUI::updateAllGuis() is called.
      *                If false, all voices can be individually controlled.
-     * @param poly_dsp - the address of the polyphonic mydsp_poly which will be internal set
      */
-    dsp* createPolyDSPInstance(int nvoices, bool control, bool group, mydsp_poly** poly_dsp)
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group)
     {
-        if (nvoices == 1) {
-            *poly_dsp = nullptr;
-            return fProcessFactory->createDSPInstance();
+        dsp_poly* dsp_poly = new mydsp_poly(fProcessFactory->createDSPInstance(), nvoices, control, group);
+        if (fEffectFactory) {
+            return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, fEffectFactory->createDSPInstance()));
         } else {
-            *poly_dsp = new mydsp_poly(fProcessFactory->createDSPInstance(), nvoices, control, group);
-            if (fEffectFactory) {
-                return new dsp_sequencer(*poly_dsp, fEffectFactory->createDSPInstance());
-            } else {
-                return *poly_dsp;
-            }
+            return new dsp_poly_effect(dsp_poly, dsp_poly);
         }
     }
     
