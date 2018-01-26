@@ -46,7 +46,6 @@ before_install:
 
 env:
   - LLVM_CONFIG=llvm-config-3.8
-  - CPU=$(grep ^processor /proc/cpuinfo | wc -l)
   
 branches:
   only:
@@ -54,9 +53,6 @@ branches:
   - master
 
 script: 
-  - env
-  - grep ^processor /proc/cpuinfo
-  - echo CPU $CPU
-  - make light CXX=$COMPILER -j4 && make TASKS=$CPU
-  - make -C tests/impulse-tests travis -j $CPU
+  - make light CXX=$COMPILER -j4 && make TASKS=2
+  - make -C tests/impulse-tests travis -j 2
 
