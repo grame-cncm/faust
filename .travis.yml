@@ -55,6 +55,5 @@ branches:
 script: 
   - make light CXX=$COMPILER -j4 && make
   - make -C tests/impulse-tests filesCompare
-  - ls -l tests/impulse-tests
-  - make -C tests/impulse-tests travis
+  - make -C tests/impulse-tests travis -j 4
 
