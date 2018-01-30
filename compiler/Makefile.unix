@@ -256,7 +256,7 @@ wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '
 light : OPT = -O3
 light : CC = cc
 light : CXX = c++
-light : CXXFLAGS = -std=c++11 -DC_BUILD -DCPP_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses -I../architecture $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
+light : CXXFLAGS = -std=c++11 -DC_BUILD -DCPP_BUILD -DWASM_BUILD -DOCPP_BUILD  $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses -I../architecture $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"' 
 light : faustlight
 
 libfaust.js : $(common_objects) $(object_ba_asmjs)
@@ -310,11 +310,11 @@ else
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(backend_objects) main-exe.o `$(LLVM_CONFIG) --ldflags` $(LLVMLIBS) $(CLANGLIBS) -o faust
 endif
 
-faustlight : $(common_objects) $(ba_c) $(ba_cpp) main-exe.o
+faustlight : $(common_objects) $(ba_c) $(ba_cpp) $(ba_wasm) main-exe.o
 ifneq ($(findstring MINGW32, $(system)),)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main-exe.o $(LIBS) -lpthread -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) $(ba_wasm) main-exe.o $(LIBS) -lpthread -o faust
 else
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) main-exe.o -pthread -o faust
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(common_objects) $(ba_c) $(ba_cpp) $(ba_wasm) main-exe.o -pthread -o faust
 endif
 
 ifeq ($(system), Darwin)

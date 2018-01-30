@@ -97,7 +97,7 @@ static void importDocStrings(const string& filename)
 			case ':':
 				text = "";
 				getKey(s, key, pt1);
-				if (pt1==string::npos) continue;
+				if (pt1 == string::npos) continue;
 				break;
 			case '\"':
 				pt1 = 0;
