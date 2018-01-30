@@ -669,7 +669,7 @@ static bool processCmdline(int argc, const char* argv[])
 static void printVersion()
 {
 	cout << "FAUST : " << makeBackendsString() << ", Version " << FAUSTVERSION << "\n";
-	cout << "Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
+	cout << "Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 }
 
 static void printHelp()
