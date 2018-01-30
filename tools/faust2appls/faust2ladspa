@@ -65,8 +65,6 @@ for p in $@; do
 	fi
 done
 
-
-
 #-------------------------------------------------------------------
 # Check darwin specifics
 #
@@ -76,10 +74,6 @@ else
 	SPEC="-fPIC -shared"
 fi
 
-
-
-
-	
 #-------------------------------------------------------------------
 # compile the *.dsp files as ladspa plugins
 #
@@ -100,7 +94,6 @@ for f in $FILES; do
 	# collect binary file name for FaustGIDE
 	BINARIES="$BINARIES$dst;"
 done
-
 
 echo $BINARIES
 

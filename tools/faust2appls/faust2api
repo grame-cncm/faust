@@ -296,7 +296,8 @@ if [ "$BUILD" = "1" ]; then
         echo "Compile the ${FILE%.dsp} binary"
         # compile c++ to binary
         (
-            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
+            #$CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack sndfile` -o ${FILE%.dsp}
+            $CXX $CXXFLAGS $APIFOLDER/DspFaust.cpp -lOSCFaust `pkg-config --cflags --static --libs jack` -o ${FILE%.dsp}
         ) > /dev/null || exit 1
         exit 0
     fi
@@ -337,7 +338,7 @@ if [ $NODOC -eq 0 ]; then
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -o "$PPBINARY"
+		$CXX $CXXFLAGS "$PPFILE" `pkg-config --cflags --static --libs sndfile` -lpthread -o "$PPBINARY"
 	) > /dev/null || exit 1
 	rm "$PPFILE" || exit 1
 

@@ -4,6 +4,10 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            
+        <!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-01-27 -->
+        <meta http-equiv="origin-trial" data-feature="AudioWorklet" data-expires="2018-01-27" content="ArOoNTa+dX8OXYD95xliibaCxzUTBxilqcXLAxKOXxf/qU2n09ry4XqX4ShkkqKgfzwwuSE2I7GqxGqvVi9aewwAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MTcwMjQ1OTl9">
+            
         <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700|Roboto:300,400" rel="stylesheet">
 
         <style type="text/css">
@@ -724,7 +728,7 @@
 
                     xmlhttp.onreadystatechange = function() {
                         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-                            dsp_code = "process = vgroup(\"" + filename + "\", environment{" + xmlhttp.responseText + "}.process);";
+                            dsp_code = xmlhttp.responseText;
                             callback();
                         }
                     }
@@ -743,7 +747,6 @@
 
                     // CASE 2 : THE DROPPED OBJECT IS SOME FAUST CODE
                     if (dsp_code) {
-                        dsp_code = "process = vgroup(\"" + "TEXT" + "\", environment{" + dsp_code + "}.process);";
                         callback();
                     }
                     // CASE 3 : THE DROPPED OBJECT IS A FILE CONTAINING SOME FAUST CODE
@@ -770,7 +773,7 @@
                             }
 
                             reader.onloadend = function(e) {
-                                dsp_code = "process = vgroup(\"" + filename + "\",environment{" + reader.result + "}.process);";
+                                dsp_code = reader.result;
                                 callback();
                             };
                         }
@@ -788,6 +791,25 @@
                     && (json.indexOf("/gain") !== -1)
                     && (json.indexOf("/gate") !== -1))) {
                     alert("Faust DSP code is not Polyphonic, it will probably not work correctly in this mode...")
+                }
+            }
+            
+            function deleteDSP()
+            {
+                if (DSP) {
+                    if (audio_input) {
+                        audio_input.disconnect(DSP);
+                    }
+                    DSP.disconnect(audio_context.destination);
+                    if (isPoly) {
+                        faust.deletePolyDSPInstance(DSP);
+                    } else {
+                        faust.deleteDSPInstance(DSP);
+                    }
+                    _f4u$t.hard_delete(faust_svg);
+                    
+                    DSP = null;
+                    faust_svg = null;
                 }
             }
             
@@ -812,7 +834,7 @@
                 DSP.setOutputParamHandler(output_handler);
                 console.log(DSP.getNumInputs());
                 console.log(DSP.getNumOutputs());
-                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                 DSP.connect(audio_context.destination);
                 
                 loadDSPState();
@@ -840,7 +862,7 @@
                 DSP.setOutputParamHandler(output_handler);
                 console.log(DSP.getNumInputs());
                 console.log(DSP.getNumOutputs());
-                DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+                //DSP.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
                 DSP.connect(audio_context.destination);
                 
                 loadDSPState();
@@ -874,20 +896,7 @@
                     return;
                 }
 
-                // If needed, deactivate running DSP
-                if (DSP) {
-                    if (audio_input) {
-                        audio_input.disconnect(DSP);
-                    }
-                    DSP.disconnect(audio_context.destination);
-                    if (isPoly) {
-                        faust.deletePolyDSPInstance(DSP);
-                    } else {
-                        faust.deleteDSPInstance(DSP);
-                    }
-                    DSP = null;
-                    _f4u$t.hard_delete(faust_svg);
-                }
+                deleteDSP();
 
                 // Prepare argv list
                 var argv = [];
@@ -969,7 +978,7 @@
             // Init page
             initPage();
 
-            // Save DSP state to local storage
+            // Timer to save page and DSP state to local storage
             setInterval(function() { savePageState(); if (DSP) { saveDSPState(); }}, 1000);
             
             // 'faust_module' global is defined in webaudio-wasm-wrapper.js file, 'onRuntimeInitialized' will be called when code is ready

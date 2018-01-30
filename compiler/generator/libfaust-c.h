@@ -22,7 +22,13 @@
 #ifndef LIBFAUST_C_H
 #define LIBFAUST_C_H
 
-#include <string>
+#include <string.h>
+
+#ifdef _WIN32
+#define LIBEXPORT __declspec(dllexport)
+#else
+#define LIBEXPORT
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,10 +45,10 @@ extern "C" {
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-const char* expandCDSPFromFile(const char* filename, 
-                                int argc, const char* argv[],
-                                char* sha_key,
-                                char* error_msg);
+LIBEXPORT const char* expandCDSPFromFile(const char* filename, 
+                                    int argc, const char* argv[],
+                                    char* sha_key,
+                                    char* error_msg);
 
 /**
  * Expand a DSP source code into a self-contained DSP where all library import have been inlined starting from a string.
@@ -55,11 +61,11 @@ const char* expandCDSPFromFile(const char* filename,
  *
  * @return the expanded DSP or a NULL string in case of failure (to be deleted by the caller using freeCMemory)
  */
-const char* expandCDSPFromString(const char* name_app, 
-                                const char* dsp_content,
-                                int argc, const char* argv[], 
-                                char* sha_key,
-                                char* error_msg);
+LIBEXPORT const char* expandCDSPFromString(const char* name_app,
+                                        const char* dsp_content,
+                                        int argc, const char* argv[], 
+                                        char* sha_key,
+                                        char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a filename.
@@ -71,7 +77,7 @@ const char* expandCDSPFromString(const char* name_app,
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
+LIBEXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg);
 
 /**
  * Generate additional file (other backends, SVG, XML, JSON...) starting from a string.
@@ -83,7 +89,7 @@ bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[
  *
  * @return the expanded DSP or a empty string in case of failure
  */
-bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
+LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg);
 
     
 /**
@@ -93,19 +99,23 @@ bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, 
  * @param key - a 64 characters buffer to be filled with the computed key
  *
  */
-void generateCSHA1(const char* data, char* key);
+LIBEXPORT void generateCSHA1(const char* data, char* key);
     
 /**
- * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey, 
- * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode, 
+ * The free function to be used on memory returned by getCDSPMachineTarget, getCName, getCSHAKey,
+ * getCDSPCode, getCLibraryList, getAllCDSPFactories, writeCDSPFactoryToBitcode,
  * writeCDSPFactoryToIR, writeCDSPFactoryToMachine,expandCDSPFromString and expandCDSPFromFile.
  *
  * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
  *
  * @param ptr - the pointer to be deleted.
  */
-void freeCMemory(void* ptr);
-
+#ifdef EMCC
+extern "C" void freeCMemory(void* ptr);
+#else
+extern "C" LIBEXPORT void freeCMemory(void* ptr);
+#endif
+    
 #ifdef __cplusplus
 }
 #endif

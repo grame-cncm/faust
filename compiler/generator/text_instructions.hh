@@ -198,7 +198,7 @@ class TextInstVisitor : public InstVisitor {
             *fOut << ")";
         }
 
-        virtual void visit(CastInst* inst) { faustassert(false); }
+        virtual void visit(::CastInst* inst) { faustassert(false); }
         
         virtual string generateFunName(const string& name)
         {   
@@ -226,7 +226,7 @@ class TextInstVisitor : public InstVisitor {
         {
             *fOut << "(";
             list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
+            size_t size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << fTypeManager->generateType((*it));
                 if (i < size - 1) *fOut << ", ";

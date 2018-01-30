@@ -18,7 +18,6 @@ for p in $@; do
 	fi
 done
 
-
 for f in $FILES; do
     faust -vec -tg $f -o /dev/null || exit
 	dot -T$FORMAT $f.dot -o $f.graph.$FORMAT || exit

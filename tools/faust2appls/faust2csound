@@ -32,7 +32,6 @@ else
     EXT=".so"
 fi
 
-
 for p in $@; do
 	if [ "$p" = -icc ]; then
 		CXX=icpc
@@ -64,7 +63,6 @@ for p in $@; do
 	    OPTIONS="$OPTIONS $p"        
 	fi
 done
-
 
 #-------------------------------------------------------------------
 # compile the *.dsp files

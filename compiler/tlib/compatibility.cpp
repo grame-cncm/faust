@@ -19,17 +19,21 @@
  ************************************************************************
  ************************************************************************/
  
-#include "compatibility.hh"
-#include "math.h"
 #include <string>
 #include <stdint.h>
+#include <stdlib.h> 
+
+#include "compatibility.hh"
+#include "math.h"
+
 
 #if defined(__MINGW32__) || defined (_WIN32)
 // Simulate some Unix fonctions on Windows
+#include <time.h>
 
 #if !defined(INT) & !defined(FLOAT)
 #include <windows.h>
-#include <Winsock2.h>
+//#include <Winsock2.h>
 #else
 #include <io.h>
 #endif

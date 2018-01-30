@@ -213,7 +213,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
 
         // Put loop in new function
         LoopCloneVisitor cloner(fAddedVarTable);
-        BlockInst* function_code = dynamic_cast<BlockInst*>(block->clone(&cloner));
+        BlockInst* function_code = static_cast<BlockInst*>(block->clone(&cloner));
         //BlockInst* function_code = InstBuilder::genBlockInst();
 
         // Add a Ret (void) instruction
@@ -340,7 +340,7 @@ struct StackVariableRemover : public DispatchVisitor {
 
         // Clone the code of each loop, "linked" Declare/Store/Load are transformed : DeclareInst -> DropInst, StoreInst -> DropInst, LoadInst -> direct access to stored value
         LoadStoreCloneVisitor remover(fLinkTable);
-        fResultLoop = dynamic_cast<ForLoopInst*>(loop->clone(&remover));
+        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
     }
 
 };
@@ -394,7 +394,7 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
         loop->accept(&marker);
 
         BasicCloneVisitor remover;
-        fResultLoop = dynamic_cast<ForLoopInst*>(loop->clone(&remover));
+        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
     }
 
     LLVMStackVariableRemover()
@@ -409,7 +409,7 @@ struct LLVMStackVariableRemover : public DispatchVisitor {
     void Finish(ForLoopInst* loop)
     {
         BasicCloneVisitor remover;
-        fResultLoop = dynamic_cast<ForLoopInst*>(loop->clone(&remover));
+        fResultLoop = static_cast<ForLoopInst*>(loop->clone(&remover));
     }
 };
 
@@ -493,8 +493,8 @@ struct SeqLoopBuilder : public DispatchVisitor {
 
         // Clone the code of each loop, "linked" Store/Load are transformed : StoreInst -> DropInst, LoadInst -> direct access to stored value
         LoadStoreCloneVisitor remover(fLinkTable);
-        fResultLoop = dynamic_cast<ForLoopInst*>(loop1->clone(&remover));
-        ForLoopInst* loop3 = dynamic_cast<ForLoopInst*>(loop2->clone(&remover));
+        fResultLoop = static_cast<ForLoopInst*>(loop1->clone(&remover));
+        ForLoopInst* loop3 = static_cast<ForLoopInst*>(loop2->clone(&remover));
 
         faustassert(fResultLoop);
         faustassert(loop3);

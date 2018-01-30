@@ -21,6 +21,7 @@
 
 #include "global.hh"
 #include "loop.hh"
+#include "Text.hh"
 
 /*
 SL : 28/09/17

@@ -29,6 +29,10 @@
 
 using namespace std;
 
+#ifdef WIN32
+#pragma warning (disable : 4244)
+#endif
+
 /*
  FIR visitor to prepare the JSON representation.
 */

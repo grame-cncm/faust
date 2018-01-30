@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
     DSP.buildUserInterface(interface);
 
     interface->addOption("-s", &fStartAtSample, 0, 0.0, 100000000.0);
-        interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
+    interface->addOption("-n", &fnbsamples, 16, 0.0, 100000000.0);
     interface->addOption("-r", &srate, 44100.0, 1.0, 100000000.0);
 
     // init signal processor and the user interface values:
@@ -94,12 +94,12 @@ int main(int argc, char *argv[])
     // skip <start> samples
     int start = int(fStartAtSample);
     while (start > kFrames) {
-      DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
-      inchan.zero();
-      start -= kFrames;
+        DSP.compute(kFrames, inchan.buffers(), outchan.buffers());
+        inchan.zero();
+        start -= kFrames;
     }
     if (start > 0) {
-      DSP.compute(start, inchan.buffers(), outchan.buffers());
+        DSP.compute(start, inchan.buffers(), outchan.buffers());
     }
     // end skip
 

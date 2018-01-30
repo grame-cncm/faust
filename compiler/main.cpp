@@ -19,6 +19,14 @@
  ************************************************************************
  ************************************************************************/
 
+#ifdef FAUST_LIB
+// 'libfaust' compiler uses an empty 'alarm' function
+unsigned faust_alarm(unsigned seconds)
+{
+    return 0;
+}
+#else
+
 #include <iostream>
 #include "compatibility.hh"
 #include "dsp_factory.hh"
@@ -43,3 +51,5 @@ int main(int argc, const char* argv[])
         return 1;
     }
 }
+
+#endif

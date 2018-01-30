@@ -14,6 +14,7 @@ EMCC="false"
 POLY="false"
 OPT="false"
 EXPORT="false"
+EFFECT=""
 WORKLET="false"
 WASM=
 
@@ -41,10 +42,15 @@ fi
 # existing *.dsp files          -> FILES
 #
 
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
+
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2webaudiowasm [-poly] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
+        echo "faust2webaudiowasm [-poly] [-effect auto|<effect.dsp>] [-links] [-opt] [-worklet] [-emcc] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-links' to add links to source code and SVG diagrams in the generated HTML file"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
@@ -65,6 +71,9 @@ for p in $@; do
         EXPORT="true"
     elif [ $p = "-poly" ]; then
         POLY="true"
+    elif [ $p = "-effect" ]; then
+        shift
+        EFFECT=$1
     elif [ $p = "-opt" ]; then
         OPT="true"
     elif [ $p = "-worklet" ]; then
@@ -78,6 +87,9 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+
+shift
+
 done
 
 echo "Compiling with :" $OPTIONS
@@ -142,6 +154,25 @@ for f in $FILES; do
         faust $SVG -a $FAUSTLIB/webaudio/$CODE_WRAPPER1 -i -uim -cn $name $OPTIONS $f -o $name.cpp || exit
     else
         faust -lang $WASM $SVG $OPTIONS -cn $name $f -o $name.wasm || exit
+
+        # possibly compile effect
+        if [ "$EFFECT" = "auto" ]; then
+            cat > $name"_effect".dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$f").process, library("$f").effect) : library("$f").effect;
+EndOfCode
+            faust -lang $WASM $OPTIONS -cn effect $name"_effect".dsp -o $name"_effect".wasm || exit 
+            rm $name"_effect".dsp
+        elif [ "$EFFECT" != "" ]; then
+            faust -lang $WASM $OPTIONS -cn effect $EFFECT -o $name"_effect".wasm || exit
+        fi
+
         # wasm ==> wasm optimizations
         if [ $OPT = "true" ]; then
             echo "Optimize wasm module"
@@ -168,12 +199,22 @@ for f in $FILES; do
     echo "<html>" > $name-temp2.html
     echo "<head>" >> $name-temp2.html
     echo "<meta charset=\"UTF-8\">" >> $name-temp2.html
+
+    # add AudioWorklet Origin Trial for Chrome
+    echo "<!-- Origin Trial Token, feature = AudioWorklet, origin = https://faust.grame.fr, expires = 2018-01-27 --> <meta http-equiv=\"origin-trial\" data-feature=\"AudioWorklet\" data-expires=\"2018-01-27\" content=\"ArOoNTa+dX8OXYD95xliibaCxzUTBxilqcXLAxKOXxf/qU2n09ry4XqX4ShkkqKgfzwwuSE2I7GqxGqvVi9aewwAAABUeyJvcmlnaW4iOiJodHRwczovL2ZhdXN0LmdyYW1lLmZyOjQ0MyIsImZlYXR1cmUiOiJBdWRpb1dvcmtsZXQiLCJleHBpcnkiOjE1MTcwMjQ1OTl9\">" >> $name-temp2.html
+
     echo "<style type=\"text/css\">" >> $name-temp2.html
     cat $FAUSTLIB/js/stylesheet.js >> $name-temp2.html
     echo "</style>" >> $name-temp2.html
     echo "<script type=\"text/javascript\">" >> $name-temp2.html
     cat $FAUSTLIB/js/jsscripts.js >> $name-temp2.html
     if [ $EMCC != "true" ]; then
+
+        if [ "$EFFECT" != "" ]; then
+            cat $name"_effect".js >> $name.js
+            rm $name"_effect".js
+        fi
+
         if [ $WORKLET = "true" ]; then
             cp $name.js $name-processor.js
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name-processor.js
@@ -181,6 +222,7 @@ for f in $FILES; do
         else
             sed -e "s/mydsp/"$name"/g" $FAUSTLIB/webaudio/$CODE_WRAPPER1 >> $name.js
         fi
+
     fi
     sed -e "s/mydsp/"$name"/g" $name.js >> $name-temp2.html
     echo "</script>" >> $name-temp2.html
@@ -201,6 +243,7 @@ for f in $FILES; do
     if [ $WORKLET = "true" ]; then
         BINARIES="$BINARIES$name.html;$name-processor.js;"
         rm $name.wasm
+        rm -f $name"_effect".wasm
     else
         BINARIES="$BINARIES$name.html;$name.wasm;"
     fi

@@ -323,7 +323,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
             // Prototype
             *fOut << "DeclareFunInst(";
-            int size = inst->fType->fArgsTypes.size(), i = 0;
+            size_t size = inst->fType->fArgsTypes.size(), i = 0;
             *fOut << generateType(inst->fType->fResult, "\"" + fun_name + "\"");
             if (size > 0) { // Has more arguments...
                 *fOut << ", ";
@@ -532,7 +532,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             *fOut << "\"" <<inst->fName << "\"";
             list<ValueInst*>::const_iterator it;
 
-            int size = inst->fArgs.size(), i = 0;
+            size_t size = inst->fArgs.size(), i = 0;
             if (size > 0) *fOut << ", ";
             for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                 // Compile argument

@@ -47,9 +47,9 @@ INCLUDES_DIR="-I$LINUX_KERNEL_INSTALL_DIR/include/"
 
 for p in $@; do
     if [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
+	 	OSCDEFS="-DOSCCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lOSCFaust -loscpack"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
+	 	HTTPDEFS="-DHTTPCTRL -L$LINUX_KERNEL_INSTALL_DIR/lib/ -lHTTPDFaust -lmicrohttpd"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then

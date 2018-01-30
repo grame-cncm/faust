@@ -31,7 +31,7 @@
 #include "doc.hh"
 #include "global.hh"
 
-static void				initDocAutodocKeySet();
+static void initDocAutodocKeySet();
 
 /*****************************************************************************
 						Public functions
@@ -155,8 +155,8 @@ void initDocAutodoc()
 /** 
  * Initialize gGlobal->gDocAutodocKeySet, a set containing all the keywords.
  */
-static void initDocAutodocKeySet() {
-	
+static void initDocAutodocKeySet()
+{
 	gGlobal->gDocAutodocKeySet.insert("thisdoc");
 
 	gGlobal->gDocAutodocKeySet.insert("autoeqntitle");
@@ -179,13 +179,14 @@ static void initDocAutodocKeySet() {
 /** 
  * Simple trace function.
  */
-static void printDocAutodocStringMapContent() {
+static void printDocAutodocStringMapContent()
+{
 	bool trace = false;
-	if(trace) {
+	if (trace) {
 		cout << "gGlobal->gDocAutodocStringMap.size() = " << gGlobal->gDocAutodocStringMap.size() << endl;
 		map<string,string>::iterator it;
 		int i = 1;
-		for(it = gGlobal->gDocAutodocStringMap.begin(); it!=gGlobal->gDocAutodocStringMap.end(); ++it)
+		for (it = gGlobal->gDocAutodocStringMap.begin(); it!=gGlobal->gDocAutodocStringMap.end(); ++it)
 			cout << i++ << ".\tgGlobal->gDocNoticeStringMap[" << it->first << "] \t= '" << it->second << "'" << endl;
 	}
 }

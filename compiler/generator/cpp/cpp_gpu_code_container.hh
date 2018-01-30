@@ -126,6 +126,8 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
         // Control fields are preceded with "control->"
         // Non-control fields are preceded with "dsp->"
         struct KernelInstVisitor : public CPPInstVisitor {
+			
+			using CPPInstVisitor::visit;
 
             map < string, string> fFunctionTable;
             KernelInstVisitor(std::ostream* out, int tab)
@@ -223,7 +225,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
                     (*it)->accept(this);
                     *fOut << "->" << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                     list<ValueInst*>::const_iterator it1;
-                    int size = inst->fArgs.size() - 1, i = 0;
+                    size_t size = inst->fArgs.size() - 1, i = 0;
                     for (it1 = ++it; it1 != inst->fArgs.end(); it1++, i++) {
                         // Compile argument
                         (*it1)->accept(this);
@@ -233,7 +235,7 @@ class CPPGPUCodeContainer : public CPPCodeContainer {
               } else {
                     *fOut << ((fFunctionTable.find(inst->fName) != fFunctionTable.end()) ? fFunctionTable[inst->fName] : inst->fName) << "(";
                     list<ValueInst*>::const_iterator it;
-                    int size = inst->fArgs.size(), i = 0;
+                    size_t size = inst->fArgs.size(), i = 0;
                     for (it = inst->fArgs.begin(); it != inst->fArgs.end(); it++, i++) {
                         // Compile argument
                         (*it)->accept(this);
@@ -345,6 +347,7 @@ class CPPOpenCLCodeContainer : public CPPGPUCodeContainer {
 
         // Add __local keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
+			using KernelInstVisitor::visit;
 
             // Code will be generated as a string
             virtual void tab1(int n, ostream& fout)
@@ -438,6 +441,7 @@ class CPPCUDACodeContainer : public CPPGPUCodeContainer {
 
         // Add __shared__ keyword for stack variables
         struct BlockKernelInstVisitor : public KernelInstVisitor {
+			using KernelInstVisitor::visit;
 
             BlockKernelInstVisitor(std::ostream* out, int tab)
                 :KernelInstVisitor(out, tab)

@@ -69,7 +69,7 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block);
 
     BasicCloneVisitor cloner;
-    return dynamic_cast<ForLoopInst*>(loop->clone(&cloner));
+    return static_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
 struct VectorCloneVisitor : public BasicCloneVisitor {
@@ -199,7 +199,7 @@ void CodeLoop::generateDAGVectorLoop(BlockInst* block, DeclareVarInst* count, bo
         StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), size));
 
         VectorCloneVisitor vector_cloner(size);
-        BlockInst* cloned = dynamic_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
+        BlockInst* cloned = static_cast<BlockInst*>(fComputeInst->clone(&vector_cloner));
 
         block->pushBackInst(InstBuilder::genLabelInst("/* Compute code */"));
         if (omp) {

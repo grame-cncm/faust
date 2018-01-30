@@ -119,7 +119,7 @@ class interpreter_dsp_factory : public dsp_factory {
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
- * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
+ * @return a DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
 interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
 
@@ -134,7 +134,7 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
+ * @return a DSP factory on success, otherwise a null pointer.
  */
 interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
                                                            int argc, const char* argv[], 
@@ -152,7 +152,7 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  * @param argv - the array of parameters
  * @param error_msg - the error string to be filled
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
+ * @return a DSP factory on success, otherwise a null pointer.
  */ 
 interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
                                                             const std::string& dsp_content,

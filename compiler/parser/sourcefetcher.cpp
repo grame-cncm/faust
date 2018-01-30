@@ -42,6 +42,9 @@
 #define read(s, buf, len) recv(s, buf, (int)(len), 0)
 #define rindex strchr
 #define herror perror
+
+#pragma warning(disable: 4996)
+
 #endif
 #include "compatibility.hh"
 #include "sourcefetcher.hh"

@@ -30,8 +30,8 @@ namespace FaustUtilities_MODEL {
 			if (!FaustUI.fJSONParser(ref fJSON, out fUI)) { // Parses the JSON file
       			UnityEngine.Debug.LogError("Error JSON Parser");
 			}
-			param = fUI.getUI(0).setNumParams(param); // Sets the parameter number
-			_dsp = (FaustPlugin_MODEL) target; // Sets which component will be edited in the inspector
+			param = fUI.getUI(0).setNumParams(param);   // Sets the parameter number
+			_dsp = (FaustPlugin_MODEL) target;          // Sets which component will be edited in the inspector
 		}
 
 		// @brief Method called when you click on the inspector
@@ -75,7 +75,7 @@ namespace FaustUtilities_MODEL {
 		private void progressBar(float value, Group item) {
 			EditorGUILayout.Space();
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0X00 is erased
+			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			Rect rect = GUILayoutUtility.GetRect(18, 18, "TextField");
@@ -85,13 +85,13 @@ namespace FaustUtilities_MODEL {
 			EditorGUILayout.Space();
 		}
 
-		/* @brief Method to dipslay a horizontal slider
+		/* @brief Method to display an horizontal slider
         * @param value Current value of the param in the dsp
         * @param item Which item is displayed
         * @return the new value of the param */
 		private float hSlider(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0X00 is erased
+			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			float newvalue = EditorGUILayout.Slider(new GUIContent(item.label, helpBox(item)), value, item.min, item.max);
@@ -100,13 +100,13 @@ namespace FaustUtilities_MODEL {
 			return newvalue;
 		}
 
-		/* @brief Method to dipslay a numerical entry
+		/* @brief Method to display a numerical entry
         * @param value Current value of the param in the dsp
         * @param item Which item is displayed
         * @return the new value of the entry */
 		private float numEntry(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0X00 is erased
+			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			float newvalue = EditorGUILayout.FloatField(new GUIContent(item.label, helpBox(item)), value);
@@ -115,13 +115,13 @@ namespace FaustUtilities_MODEL {
 			return newvalue;
 		}
 
-		/* @brief Method to dipslay a checkbox
+		/* @brief Method to display a checkbox
         * @param value Current value of the param in the dsp
         * @param item Which item is displayed
         * @return the new value of the param*/
 		private float checkBox(float value, Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0X00 is erased
+			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			// A conversion between bool and float needs to be done (Unity: bool; Faust: float)
@@ -133,13 +133,13 @@ namespace FaustUtilities_MODEL {
 			return newvalue;
 		}
 
-		/* @brief Method to dipslay a button
+		/* @brief Method to display a button
         * @param value Current value of the param in the dsp
         * @param item Which item is displayed
         * @return the new value if the button*/
 		private float button(Group item) {
 			EditorGUILayout.BeginHorizontal();
-			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0X00 is erased
+			if (item.label == "0x00") { // If the name of the parameter haven't been set, the default name 0x00 is erased
 				item.label = "";
 			}
 			if (GUILayout.Button(new GUIContent(item.label, helpBox(item)))) {
@@ -152,7 +152,7 @@ namespace FaustUtilities_MODEL {
 			}
 		}
 
-		/* @brief Method to dipslay a helpbox when the mouse is on the parameter, use the metadata from the json
+		/* @brief Method to display a helpbox when the mouse is on the parameter, use the metadata from the json
         * @param item Which item is displayed
         * @return the string to display*/
 		private string helpBox(Group item) {
@@ -245,10 +245,8 @@ namespace FaustUtilities_MODEL {
 
 		private IntPtr _context;
 
-        #if UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR || UNITY_STANDALONE_LINUX || UNITY_WSA || UNITY_WSA_10_0
+        #if UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR || UNITY_STANDALONE_LINUX || UNITY_WSA || UNITY_WSA_10_0 || UNITY_IOS
         const string _dllName = "PLUGNAME";
-        #elif UNITY_IOS
-        const string _dllName = "__Internal";
         #elif UNITY_ANDROID
         const string _dllName = "ANDROIDPLUGINNAME";
         #else
@@ -357,7 +355,7 @@ namespace FaustUtilities_MODEL {
 			if (parseChar(ref fJSON, '{')) {
 				do {
 					if (parseDQString(ref fJSON, out key) && parseChar(ref fJSON, ':')) {
-						switch (key.ToString()) {
+                        switch (key.ToString()) {
 						case "name":
 							success = parseDQString(ref fJSON, out value);
 							faustUI.name = value.ToString();
@@ -374,16 +372,17 @@ namespace FaustUtilities_MODEL {
 							success = parseGlobalMetaData(ref fJSON);
 							break;
 						case "ui":
-							faustUI.ui = new List < Group > ();
+                     		faustUI.ui = new List < Group > ();
 							int numitems = 0;
 							success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
 							break;
 						default:
-							success = false;
+                            // Unknown items should be parsed
+                            success = parseDQString(ref fJSON, out value);
 							break;
 						}
 					}
-				} while ( parseChar ( ref fJSON , ','));
+				} while (parseChar(ref fJSON, ','));
 			}
 			parseChar(ref fJSON, '}');
 			return success;
@@ -460,7 +459,7 @@ namespace FaustUtilities_MODEL {
 							break;
 						}
 					}
-				} while ( parseChar ( ref s , ','));
+				} while (parseChar(ref s , ','));
 				return parseChar(ref s, ']');
 			} else {
 				return false;
@@ -551,12 +550,12 @@ namespace FaustUtilities_MODEL {
 							} else {
 								return false;
 							}
-						} while ( parseChar ( ref s , ','));
+						} while (parseChar(ref s , ','));
 						parseChar(ref s, '}');
 					} else {
 						return false;
 					}
-				} while ( parseChar ( ref s , ','));
+				} while (parseChar(ref s , ','));
 				return parseChar(ref s, ']');
 			} else {
 				return false;

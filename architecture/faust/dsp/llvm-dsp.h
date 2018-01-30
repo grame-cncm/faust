@@ -133,7 +133,7 @@ std::string getDSPMachineTarget();
  *
  * @param sha_key - the SHA key for an already created factory, kept in the factory cache
  *
- * @return a valid DSP factory if one is associated with the SHA key, otherwise a null pointer.
+ * @return a DSP factory if one is associated with the SHA key, otherwise a null pointer.
  */
 llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
 
@@ -151,12 +151,13 @@ llvm_dsp_factory* getDSPFactoryFromSHAKey(const std::string& sha_key);
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions)
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
+ * @return a DSP factory on success, otherwise a null pointer.
  */ 
 llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename, 
                                            int argc, const char* argv[], 
                                            const std::string& target, 
-                                           std::string& error_msg, int opt_level = -1);
+                                           std::string& error_msg,
+                                           int opt_level = -1);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -173,12 +174,14 @@ llvm_dsp_factory* createDSPFactoryFromFile(const std::string& filename,
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value' 
  * since the maximum value may change with new LLVM versions)
  *
- * @return a valid DSP factory on success, otherwise a null pointer.
+ * @return a DSP factory on success, otherwise a null pointer.
  */ 
-llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, 
+llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
+                                             const std::string& dsp_content,
                                              int argc, const char* argv[], 
                                              const std::string& target, 
-                                             std::string& error_msg, int opt_level = -1);
+                                             std::string& error_msg,
+                                             int opt_level = -1);
 
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 

@@ -67,7 +67,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
 class RustInstVisitor : public TextInstVisitor {
     
     private:
-    
+
         /*
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
@@ -84,6 +84,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
 
     public:
+		using TextInstVisitor::visit;
 
         RustInstVisitor(std::ostream* out, const string& structname, int tab = 0)
             :TextInstVisitor(out, ".", new RustStringTypeManager(FLOATMACRO, "&"), tab)

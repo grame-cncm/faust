@@ -44,7 +44,9 @@
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
+#if SOUNDFILE
 #include "faust/gui/SoundUI.h"
+#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -176,12 +178,12 @@ int main(int argc, char *argv[])
 
     QTGUI interface;
     FUI finterface;
+#if SOUNDFILE
     SoundUI soundinterface;
-    
+    DSP->buildUserInterface(&soundinterface);
+#endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
-    DSP->buildUserInterface(&soundinterface);
-
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);

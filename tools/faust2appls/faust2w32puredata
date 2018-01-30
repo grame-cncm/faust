@@ -21,8 +21,8 @@ CXX="${MINGWPREFIX}g++"
 (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found"; exit 1)
 
 if [ ! -e "${PDW32BINDIR}/pd.dll" ]; then
-  echo "Unable to locate pd.dll: PDW32BINDIR=${PDW32BINDIR}!" 1>&2
-  exit 1
+  	echo "Unable to locate pd.dll: PDW32BINDIR=${PDW32BINDIR}!" 1>&2
+  	exit 1
 fi
 
 #-------------------------------------------------------------------

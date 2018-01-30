@@ -41,7 +41,7 @@ size_t cache_line_size()
 #include <stdlib.h>
 size_t cache_line_size() { return 0; }
 
-#elif defined(_WIN32)
+#elif defined(WIN32)
 
 #include <stdlib.h>
 #include <windows.h>

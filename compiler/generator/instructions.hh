@@ -36,8 +36,10 @@
 #include "binop.hh"
 #include "property.hh"
 #include "Text.hh"
+#include "sigtype.hh"
 #include "garbageable.hh"
 #include "exception.hh"
+#include "instructions_type.hh"
 
 // ============================
 // Generic instruction visitor
@@ -257,18 +259,7 @@ struct CloneVisitor : public virtual Garbageable {
 // Base class for instructions
 // ============================
 
-struct Printable : public virtual Garbageable
-{
-    static std::ostream* fOut;
-
-    int fTab;
-
-    Printable()
-    {}
-    virtual ~Printable()
-    {}
-
-};
+// Printable is defined in instructions_type.h
 
 struct Vectorizable : public virtual Garbageable
 {
@@ -288,6 +279,8 @@ struct StatementInst : public Printable
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual StatementInst* clone(CloneVisitor* cloner) = 0;
+    
+    virtual string getName() { return ""; }
 };
 
 // Results from the compilation
@@ -322,156 +315,9 @@ struct NullInst : public ValueInst
 //  Instruction with a type
 // ==========================
 
-struct Typed : public Printable
-{
-    enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
-                kInt64, kInt64_ptr, kInt64_vec, kInt64_vec_ptr,
-                kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kFloat, kFloatish, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
-                kFloatMacro, kFloatMacro_ptr,
-                kDouble, kDoublish, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
-                kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr, kObj, kObj_ptr, kNoType };
-    
-    static string gTypeString[];
-    
-    Typed()
-    {}
+// Base type is defined in instructions_type.h
 
-    virtual VarType getType() = 0;
-    
-    static int getSizeOf(VarType type)
-    {
-        switch (type) {
-            case kFloat:
-            case kInt32:
-                return 4;
-            case kDouble:
-                return 8;
-            default:
-                // Not supposed to happen
-                cerr << "getSizeOf " << type << endl;
-                faustassert(false);
-                return -1;
-        }
-    }
-  
-    // Returns the pointer type version of a primitive type
-    static VarType getPtrFromType(VarType type)
-    {
-        switch (type) {
-            case kFloatMacro:
-                return kFloatMacro_ptr;
-            case kFloat:
-                return kFloat_ptr;
-            case kFloat_vec:
-                return kFloat_vec_ptr;
-            case kInt32:
-                return kInt32_ptr;
-            case kInt32_vec:
-                return kInt32_vec_ptr;
-            case kDouble:
-                return kDouble_ptr;
-            case kDouble_vec:
-                return kDouble_vec_ptr;
-            case kQuad:
-                return kQuad_ptr;
-            case kBool:
-                return kBool_ptr;
-            case kBool_vec:
-                return kBool_vec_ptr;
-            case kVoid:
-                return kVoid_ptr;
-            case kVoid_ptr:
-                return kVoid_ptr_ptr;
-            default:
-                // Not supposed to happen
-                cerr << "getPtrFromType " << type << endl;
-                faustassert(false);
-                return kVoid;
-        }
-    }
-
-    // Returns the vector type version of a primitive type
-    static VarType getVecFromType(VarType type)
-    {
-        switch (type) {
-            case kFloat:
-                return kFloat_vec;
-            case kInt32:
-                return kInt32_vec;
-            case kDouble:
-                return kDouble_vec;
-            case kBool:
-                return kBool_vec;
-            default:
-                // Not supposed to happen
-                cerr << "getVecFromType " << type << endl;
-                faustassert(false);
-                return kVoid;
-        }
-    }
-
-    // Returns the type version from pointer on a primitive type
-    static VarType getTypeFromPtr(VarType type)
-    {
-        switch (type) {
-            case kFloatMacro_ptr:
-                return kFloatMacro;
-            case kFloat_ptr:
-                return kFloat;
-            case kFloat_vec_ptr:
-                return kFloat_vec;
-            case kInt32_ptr:
-                return kInt32;
-            case kInt32_vec_ptr:
-                return kInt32_vec;
-            case kDouble_ptr:
-                return kDouble;
-            case kQuad_ptr:
-                return kQuad;
-            case kDouble_vec_ptr:
-                return kDouble_vec;
-            case kBool_ptr:
-                return kBool;
-            case kBool_vec_ptr:
-                return kBool_vec;
-            case kVoid_ptr:
-                return kVoid;
-            case kVoid_ptr_ptr:
-                return kVoid_ptr;
-            default:
-                // Not supposed to happen
-                cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
-                faustassert(false);
-                return kVoid;
-        }
-    }
-
-    // Returns the type version from vector on a primitive type
-    static VarType getTypeFromVec(VarType type)
-    {
-        switch (type) {
-            case kFloat_vec:
-                return kFloat;
-            case kInt32_vec:
-                return kInt32;
-            case kDouble_vec:
-                return kDouble;
-            case kBool_vec:
-                return kBool;
-            default:
-                // Not supposed to happen
-                cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
-                faustassert(false);
-                return kVoid;
-        }
-    }
-    
-    virtual int getSize() = 0;
-
-    virtual Typed* clone(CloneVisitor* cloner) = 0;
-};
+Typed::VarType ctType(Type t);
 
 struct BasicTyped : public Typed {
 
@@ -1228,7 +1074,7 @@ struct BlockInst : public StatementInst
         }
     }
     
-    int size() { return fCode.size(); }
+    size_t size() { return fCode.size(); }
 
     bool hasReturn();
     ValueInst* getReturnValue();
@@ -1404,19 +1250,7 @@ struct ForLoopInst : public StatementInst
         fCode->pushBackInst(inst);
     }
     
-    string getLoopName()
-    {
-        DeclareVarInst* loop_decl1 = dynamic_cast<DeclareVarInst*>(fInit);
-        StoreVarInst* loop_decl2 = dynamic_cast<StoreVarInst*>(fInit);
-        if (loop_decl1) {
-            return loop_decl1->getName();
-        } else if (loop_decl2) {
-            return loop_decl2->getName();
-        } else {
-            faustassert(false);
-        }
-        return "";
-    }
+    string getName() { return fInit->getName(); }
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -1465,7 +1299,7 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(DeclareFunInst* inst)
         {
-            return new DeclareFunInst(inst->fName, dynamic_cast<FunTyped*>(inst->fType->clone(this)), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
         virtual StatementInst* visit(DeclareTypeInst* inst)
         {
@@ -1530,14 +1364,14 @@ class BasicCloneVisitor : public CloneVisitor {
         }
         virtual StatementInst* visit(IfInst* inst)
         {
-            return new IfInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fThen->clone(this)), dynamic_cast<BlockInst*>(inst->fElse->clone(this)));
+            return new IfInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fThen->clone(this)), static_cast<BlockInst*>(inst->fElse->clone(this)));
         }
         virtual StatementInst* visit(SwitchInst* inst)
         {
             SwitchInst* cloned = new SwitchInst(inst->fCond->clone(this));
             list<pair <int, BlockInst*> >::const_iterator it;
             for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
-                cloned->addCase((*it).first, dynamic_cast<BlockInst*>(((*it).second)->clone(this)));
+                cloned->addCase((*it).first, static_cast<BlockInst*>(((*it).second)->clone(this)));
             }
             return cloned;
         }
@@ -1545,12 +1379,12 @@ class BasicCloneVisitor : public CloneVisitor {
         // Loop
         virtual StatementInst* visit(ForLoopInst* inst)
         {
-            return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
 
         virtual StatementInst* visit(WhileLoopInst* inst)
         {
-            return new WhileLoopInst(inst->fCond->clone(this), dynamic_cast<BlockInst*>(inst->fCode->clone(this)));
+            return new WhileLoopInst(inst->fCond->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
 
         // Block
@@ -1584,9 +1418,9 @@ class BasicCloneVisitor : public CloneVisitor {
             list<NamedTyped*> cloned;
             list<NamedTyped*>::const_iterator it;
             for (it = typed->fArgsTypes.begin(); it != typed->fArgsTypes.end(); it++) {
-                cloned.push_back(dynamic_cast<NamedTyped*>((*it)->clone(this)));
+                cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
             }
-            return new FunTyped(cloned, dynamic_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
+            return new FunTyped(cloned, static_cast<BasicTyped*>(typed->fResult->clone(this)), typed->fAttribute);
         }
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
@@ -1594,7 +1428,7 @@ class BasicCloneVisitor : public CloneVisitor {
             return new StructTyped(typed->fName, typed->clone(this));
         }
 
-        virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(dynamic_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
+        virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
 
 };
 
@@ -2014,7 +1848,6 @@ struct InstBuilder
         Int32NumInst* int_num = dynamic_cast<Int32NumInst*>(inst);
         FloatNumInst* float_num = dynamic_cast<FloatNumInst*>(inst);
         DoubleNumInst* double_num = dynamic_cast<DoubleNumInst*>(inst);
-      
         BasicTyped* typed = dynamic_cast<BasicTyped*>(typed_ext);
 
         if (!typed) {
@@ -2087,25 +1920,28 @@ struct InstBuilder
 
     // Function management
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new FunCallInst(name, args, false); }
+    { return new FunCallInst(name, args, false); }
     static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new FunCallInst(name, args, method, size); }
+    { return new FunCallInst(name, args, method, size); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
-        { return new DropInst(new FunCallInst(name, args, false)); }
+    { return new DropInst(new FunCallInst(name, args, false)); }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        { return new DropInst(new FunCallInst(name, args, method, size)); }
+    { return new DropInst(new FunCallInst(name, args, method, size)); }
 
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code = new BlockInst())
-        { return new ForLoopInst(init, end, increment, code); }
+    {
+        faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
+        return new ForLoopInst(init, end, increment, code);
+    }
   
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code)
-        { return new WhileLoopInst(cond, code); }
+    { return new WhileLoopInst(cond, code); }
 
     static BlockInst* genBlockInst(const list<StatementInst*>& code)
-        { return new BlockInst(code); }
+    { return new BlockInst(code); }
     static BlockInst* genBlockInst()
-        { return new BlockInst(); }
+    { return new BlockInst(); }
 
     // Types
     static BasicTyped* genBasicTyped(Typed::VarType type); // moved in instructions.cpp

@@ -425,7 +425,7 @@ class CodeContainer : public virtual Garbageable {
             }
         }
         
-        int getSubContainers() { return fSubContainers.size(); }
+        size_t getSubContainers() { return fSubContainers.size(); }
 
         const string& getClassName() { return fKlassName; }
         string getFaustPowerName() { return fKlassName + "_faustpower"; }

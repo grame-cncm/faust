@@ -43,7 +43,6 @@ const char* icast();
 const char* xfloat();
 const char* xcast();
 
-// Sample size in bytes
 inline int audioSampleSize() { return int(pow(2.f, float(gGlobal->gFloatSize + 1))); }
 
 void printfloatdef(std::ostream& fout, bool quad);

@@ -126,7 +126,7 @@ struct TypingVisitor : public InstVisitor {
             }
         }
 
-        virtual void visit(CastInst* inst)
+        virtual void visit(::CastInst* inst)
         {
             fCurType = inst->fType->getType();
         }
@@ -213,7 +213,7 @@ class BasicTypingCloneVisitor : public BasicCloneVisitor {
         }
         
         // Cast
-        virtual ValueInst* visit(CastInst* inst)
+        virtual ValueInst* visit(::CastInst* inst)
         {
             fTypingVisitor.visit(inst);
             return BasicCloneVisitor::visit(inst);

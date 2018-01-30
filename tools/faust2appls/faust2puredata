@@ -30,6 +30,15 @@ done
 
 #PHASE 2 : dispatch command arguments
 for p in $@; do
+
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2puredata [-arch32] [-arch64]  <file.dsp>"
+        echo "Use '-arch32' to compile in 32 bits"
+        echo "Use '-arch64' to compile in 64 bits"
+        echo "Use '-poly' to produce a polyphonic self-contained DSP"
+        exit
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -41,11 +50,11 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-poly" ]; then
-	F2PDPOLY="-n 8"
+		F2PDPOLY="-n 8"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+		PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then

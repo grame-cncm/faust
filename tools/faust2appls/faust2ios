@@ -38,6 +38,7 @@ do
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+    	exit
     fi
 
     if [ "$p" = -icc ]; then

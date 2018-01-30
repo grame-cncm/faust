@@ -30,6 +30,10 @@
 
 using namespace std;
 
+#if defined(WIN32) && !defined(__GNUC__)
+#pragma warning (disable : 4800)
+#endif
+
 ////////////////////////////////////////////////////////////////////////
 /**
  * Signals

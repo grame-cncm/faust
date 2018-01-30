@@ -3,7 +3,7 @@
 #############################################################################################
 #                                                                                           #
 #   Compiles Faust programs to Android, OSX, iOS, Microsoft 32bits and 64 bits libraries    #
-#       suitable for the Unity environment                                                  #
+#   suitable for the Unity environment                                                      #
 #                                                                                           #
 #   (c) Grame, 2017                                                                         #
 #                                                                                           #
@@ -33,7 +33,7 @@ UNPCK="0"
 
 for p in $@; do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2unity [-w32] .. [-android] [-source] <file1.dsp> [<file2.dsp>] .."
+        echo "faust2unity [-w32] .. [-android] [-source] [-unpacked] <file1.dsp> [<file2.dsp>] .."
         echo "Generates a unity package (compressed .unitypackage folder) with all available architecture libraries for faust unity plugin and the C# files required. Use arguments to generate specific architectures"
         echo "Use -w32 to produce a Windows 32 bits library"
         echo "Use -w64 to produce a Windows 64 bits library"
@@ -118,7 +118,7 @@ for p in $FILES; do
 
     # generates c# files
     sed -e "s/MODEL/$NAME/g;s/PLUGNAME/lib$FNAME/g;s/ANDROIDPLUGINNAME/$FNAME/g;s/RELEVANTJSONFILE/$JSON/g;1d" $FAUSTLIB/unity/FaustUtilities_template.cs > $FIN/FaustUtilities_$NAME.cs
-    sed -e "s/MODEL/$NAME/g;s/VARIABLES/$var/g;1d" $FAUSTLIB/UNITY/FaustPlugin_template.cs > $FIN/$FNAME.cs
+    sed -e "s/MODEL/$NAME/g;s/VARIABLES/$var/g;1d" $FAUSTLIB/unity/FaustPlugin_template.cs > $FIN/$FNAME.cs
 
     rm -rf $NAME.json
     rm -rf $f.json

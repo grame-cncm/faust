@@ -14,13 +14,11 @@
 # - breqn, a latex package to break equations;
 # - faust ;-)
 
-
 # Usage.
 print_usage() 
 {
     echo Usage : args of faust2mathviewer should be a \'.dsp\' file, or a list of \'.dsp\' files.
 }
-
 
 # Visit each directory transmited as argument,
 # in order to convert .svg files into pdf.
@@ -45,7 +43,6 @@ convert_svgdirs2pdf()
 	fi
     done
 }
-
 
 #    Main loop of this script :
 # 1. Compile `faust -mdoc` to generate the TeX file and SVG block-diagrams.

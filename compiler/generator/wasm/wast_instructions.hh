@@ -85,6 +85,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         }
     
     public:
+		using TextInstVisitor::visit;
 
         WASTInstVisitor(std::ostream* out, bool fast_memory, int tab = 0)
             :TextInstVisitor(out, ".", tab), WASInst(fast_memory)
@@ -131,7 +132,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         virtual void generateFunDefArgs(DeclareFunInst* inst)
         {
             list<NamedTyped*>::const_iterator it;
-            int size = inst->fType->fArgsTypes.size(), i = 0;
+            size_t size = inst->fType->fArgsTypes.size(), i = 0;
             for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
                 *fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
                 if (i < size - 1) *fOut << " ";
@@ -586,7 +587,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (inst->fCode->size() == 0) return;
             
             // Local variables declaration including the loop counter have been moved outside of the loop
-            string name = inst->getLoopName();
+            string name = inst->getName();
             
             // Init loop counter
             inst->fInit->accept(this);

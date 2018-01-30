@@ -44,12 +44,16 @@ class ClangCodeContainer : public virtual CodeContainer {
         string fTmpFile;
         
         const char* getTempName() 
-        { 
+        {
+            /*
             if (fTmpFile == "") {
                 char path[256];
                 fTmpFile = string(tmpnam(path)) + ".c"; 
             }
             return fTmpFile.c_str(); 
+            */
+            // TODO
+            return "";
         }
     
     public:

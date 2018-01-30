@@ -37,6 +37,7 @@ class CInstVisitor : public TextInstVisitor {
         static map <string, bool> gFunctionSymbolTable;
     
     public:
+		using TextInstVisitor::visit;
 
         CInstVisitor(std::ostream* out, const string& structname, int tab = 0)
             :TextInstVisitor(out, "->", new CStringTypeManager(FLOATMACRO, "*"), tab)

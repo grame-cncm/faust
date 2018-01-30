@@ -32,6 +32,11 @@
 #include "Text.hh"
 #include "libfaust.h"
 #include "libfaust-c.h"
+#include "export.hh"
+
+#ifdef WIN32
+#pragma warning (disable: 4996)
+#endif
 
 using namespace std;
 

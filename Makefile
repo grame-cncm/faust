@@ -1,4 +1,4 @@
-version := 2.5.13
+version := 2.5.17
 
 system	?= $(shell uname -s)
 
@@ -16,6 +16,7 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
+BINLOCATION := compiler
 
 MAKEFILE := Makefile.unix
 
@@ -27,11 +28,11 @@ zname := faust-$(version)
 
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
-all :
+all : updatesubmodules
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
 	$(MAKE) -C architecture/osclib
 
-universal :
+universal : updatesubmodules
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) universal
 	$(MAKE) -C architecture/osclib
 
@@ -86,11 +87,9 @@ light :
 	$(MAKE) -C compiler light -f $(MAKEFILE) prefix=$(prefix)
 
 sound2faust :
-
 	$(MAKE) -C tools/sound2faust
 
 bench :
-
 	$(MAKE) -C tools/benchmark
 
 .PHONY: clean depend install uninstall dist parser help
@@ -111,6 +110,7 @@ help :
 	@echo "make parser : generate the parser from the lex and yacc files"
 	@echo "make clean : remove all object files"
 	@echo "make doc : generate the documentation using doxygen"
+	@echo "make updatesubmodules : update the libraries submodule"
 	@echo "make doclib : generate the documentation of the faust libraries"
 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo "make uninstall : undo what install did"
@@ -137,7 +137,13 @@ depend :
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
-doclib :
+
+# the target 'lib' can be used to init and update the libraries submodule
+updatesubmodules :
+	if test -d .git; then git submodule update --init; fi
+
+
+doclib : updatesubmodules
 	./libraries/generateDoc
 
 man :
@@ -147,19 +153,17 @@ install :
 	# install faust itself
 	mkdir -p $(prefix)/bin/
 	mkdir -p $(prefix)/lib/
+	mkdir -p $(prefix)/lib/faust
 	mkdir -p $(prefix)/include/
 	mkdir -p $(prefix)/include/faust/
 	mkdir -p $(prefix)/include/faust/osc/
 	mkdir -p $(prefix)/include/faust/dsp/
 	mkdir -p $(prefix)/share/faust
-	([ -e compiler/faust ] && install compiler/faust $(prefix)/bin/)  || echo faust not available
-	([ -e compiler/libfaust.$(LIB_EXT) ] && install compiler/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
-	([ -e compiler/libfaust.a ] && install compiler/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
+	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
+	([ -e $(BINLOCATION)/libfaust.$(LIB_EXT) ] && install $(BINLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
+	([ -e $(BINLOCATION)/libfaust.a ] && cp $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/llvm/llvm-dsp.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/llvm/llvm-c-dsp.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/interpreter/interpreter-dsp.h  $(prefix)/include/faust/dsp/
 	cp compiler/generator/wasm/wasm-dsp.h  $(prefix)/include/faust/dsp/
 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
@@ -170,7 +174,6 @@ install :
 	cp architecture/*.cpp $(prefix)/share/faust/
 	cp architecture/*.java $(prefix)/share/faust/
 	cp architecture/*.js $(prefix)/share/faust/
-	cp architecture/*.a $(prefix)/share/faust/
 	cp libraries/old/*.lib $(prefix)/share/faust/
 	cp libraries/*.lib $(prefix)/share/faust/
 
@@ -184,28 +187,39 @@ install :
 	rm -rf $(prefix)/share/faust/iOS
 	cp -r architecture/iOS $(prefix)/share/faust/
 	cp -r architecture/osclib $(prefix)/share/faust
+	# remove object files and libraries in the copied osclib folder
+	$(MAKE) -C $(prefix)/share/faust/osclib clean
 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
+	cp architecture/ios-libsndfile.a $(prefix)/lib/faust
+
 	# install smartKeyboard
 	rm -rf $(prefix)/share/faust/smartKeyboard
 	cp -r architecture/smartKeyboard $(prefix)/share/faust/
+
 	# install Juce
 	rm -rf $(prefix)/share/faust/juce
 	cp -r architecture/juce $(prefix)/share/faust/
+
 	# install AU
 	rm -rf $(prefix)/share/faust/AU/
 	cp -r architecture/AU $(prefix)/share/faust/
+
 	# install Android
 	rm -rf $(prefix)/share/faust/android
 	cp -r architecture/android $(prefix)/share/faust/
+
 	# install APIs
 	rm -rf $(prefix)/share/faust/api/
 	cp -r architecture/api $(prefix)/share/faust/
+
 	# install nodejs
 	rm -rf $(prefix)/share/faust/nodejs/
 	cp -r architecture/nodejs $(prefix)/share/faust/
+
 	# install Max/MSP
 	rm -rf $(prefix)/share/faust/max-msp/
 	cp -r architecture/max-msp $(prefix)/share/faust/
+
 	#install unity
 	rm -rf $(prefix)/share/faust/unity
 	cp -r architecture/unity $(prefix)/share/faust/
@@ -270,10 +284,27 @@ uninstall :
 	rm -f $(prefix)/bin/sound2faust$(EXE)
 	rm -f $(prefix)/bin/faustbench
 	rm -f $(prefix)/share/man/man1/faust.1
+	rm -f $(prefix)/lib/faust/ios-libsndfile.a
 
-# make a faust distribution .zip file
+# make a faust distribution tarball
+dist = faust-$(version)
+submodules = libraries
 dist :
-	git archive --format=tar.gz -o faust-$(version).tgz --prefix=faust-$(version)/ HEAD
+	rm -rf $(dist)
+# Make sure that the submodules are initialized.
+	git submodule update --init
+# Grab the main source.
+	git archive --format=tar.gz --prefix=$(dist)/ HEAD | tar xfz -
+# Grab the submodules.
+	for x in $(submodules); do (cd $(dist) && rm -rf $$x && git -C ../$$x archive --format=tar.gz --prefix=$$x/ HEAD | tar xfz -); done
+# Create the source tarball.
+	tar cfz $(dist).tar.gz $(dist)
+	rm -rf $(dist)
+
+# this does the same, but uses the $(debversion) instead (see below) which
+# includes the actual git revision number and hash (useful for git snapshots)
+dist-snapshot :
+	$(MAKE) dist dist=faust-$(debversion)
 
 log :
 	git log --oneline --date-order --reverse --after={2014-05-19} master >log-$(version)
@@ -314,10 +345,8 @@ debversion = $(version)+git$(shell git log -1 --format=%cd --date=short 2>/dev/n
 # Debian revision number of the package.
 debrevision = 1
 # Source tarball and folder.
-debsrc = faust2_$(debversion).orig.tar.gz
-debdist = faust2-$(debversion)
-
-submodules = libraries
+debsrc = faust_$(debversion).orig.tar.gz
+debdist = faust-$(debversion)
 
 # This is used for automatically generated debian/changelog entries (cf. 'make
 # debchange'). Adjust as needed.
@@ -334,7 +363,7 @@ debchange:
 
 debclean:
 	rm -rf $(debdist)
-	rm -f faust2_$(version)+git* faust2-dbgsym_$(version)+git*
+	rm -f faust_$(version)+git* faust-dbgsym_$(version)+git*
 
 deb: $(debsrc)
 	rm -rf $(debdist)

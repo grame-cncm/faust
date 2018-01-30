@@ -18,7 +18,6 @@ for p in $@; do
 	fi
 done
 
-
 for f in $FILES; do
     faust -sg $f -o /dev/null || exit
 	dot -T$FORMAT $f-sig.dot -o $f.sig.$FORMAT

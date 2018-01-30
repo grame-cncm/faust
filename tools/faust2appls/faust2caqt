@@ -12,7 +12,8 @@
 CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib `pkg-config --cflags --static --libs sndfile` -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+#ARCHLIB="-L/usr/local/lib -L/opt/local/lib `pkg-config --cflags --static --libs sndfile` -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
@@ -27,20 +28,22 @@ EFFECT=""
 NVOICES=-1
 SOUNDFILE=""
 
-while [ $1 ]
+while [ $1 ] 
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-soundfile <path>] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-soundfile <path>] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-debug] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-soundfile <path>' to activate soundfile Player connected to DSP"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-debug' to print all the build steps"
+        exit
     fi
 
     if [ "$p" = -debug ]; then
@@ -124,8 +127,24 @@ for p in $FILES; do
     # compile faust to c++
     
     if [ $POLY = "POLY2" ]; then
-        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_voice.cpp" || exit
-        faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        if [ $EFFECT = "auto" ]; then
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_voice.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
+            rm "$TMP/effect.dsp"
+        else
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_voice.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        fi
     else
         faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     fi

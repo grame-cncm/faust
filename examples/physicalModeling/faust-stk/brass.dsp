@@ -60,7 +60,7 @@ envelopeRelease = hslider("h:Envelopes_and_Vibrato/v:Envelope_Parameters/Envelop
 nlfOrder = 6; 
 
 //attack - sustain - release envelope for nonlinearity (declared in instruments.lib)
-envelopeMod = en.asr(nonLinAttack,100,envelopeRelease,gate);
+envelopeMod = en.asr(nonLinAttack,1,envelopeRelease,gate);
 
 //nonLinearModultor is declared in instruments.lib, it adapts allpassnn from miscfilter.lib 
 //for using it with waveguide instruments
@@ -87,7 +87,7 @@ boreDelay = de.fdelay(4096,slideTarget);
 vibrato = vibratoGain*os.osc(vibratoFreq)*envVibrato(vibratoBegin,vibratoAttack,100,vibratoRelease,gate);
 
 //envelope (Attack / Decay / Sustain / Release), breath pressure and vibrato
-breathPressure = pressure*en.adsr(envelopeAttack,envelopeDecay,100,envelopeRelease,gate) + vibrato;
+breathPressure = pressure*en.adsr(envelopeAttack,envelopeDecay,1,envelopeRelease,gate) + vibrato;
 mouthPressure = 0.3*breathPressure;
 
 //scale the delay feedback

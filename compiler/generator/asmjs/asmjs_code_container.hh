@@ -22,6 +22,10 @@
 #ifndef _ASMJAVASCRIPT_CODE_CONTAINER_H
 #define _ASMJAVASCRIPT_CODE_CONTAINER_H
 
+#ifdef WIN32 
+#pragma warning (disable: 4250)
+#endif
+
 #include "code_container.hh"
 #include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
@@ -29,6 +33,7 @@
 #include "fir_to_fir.hh"
 
 using namespace std;
+
 
 class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
 

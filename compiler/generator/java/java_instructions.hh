@@ -41,6 +41,7 @@ class JAVAInstVisitor : public TextInstVisitor {
         TypingVisitor fTypingVisitor;
    
     public:
+		using TextInstVisitor::visit;
      
         JAVAInstVisitor(std::ostream* out, int tab = 0)
           :TextInstVisitor(out, ".", ifloat(), "[]", tab)

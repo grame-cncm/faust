@@ -29,7 +29,7 @@
 #include "wss_code_container.hh"
 #include "llvm_dsp_aux.hh"
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/Support/FileSystem.h>
     #define sysfs_binary_flag sys::fs::F_None
 #elif defined(LLVM_34)
@@ -38,7 +38,7 @@
     #define sysfs_binary_flag raw_fd_ostream::F_Binary
 #endif
 
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50)
+#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #define STREAM_ERROR std::error_code
 #else
     #define STREAM_ERROR std::string
@@ -50,6 +50,7 @@ using namespace llvm;
 class LLVMCodeContainer : public virtual CodeContainer {
 
     protected:
+		using CodeContainer::generateInstanceInitFun;
 
         // UI structure creation
         llvm::PointerType* fStructDSP;
@@ -99,21 +100,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateBuildUserInterfaceEnd();
     
         void generateGetSize(LlvmValue size);
-
-        void addGenericButton(const string& label, const string& zone, const string& button_type);
-        void addGenericSlider(const string& label,
-                            const string& zone,
-                            float init,
-                            float min,
-                            float max,
-                            float step,
-                            const string& type);
-        void addGenericBargraph(const string& label,
-                                const string& zone,
-                                float min,
-                                float max,
-                                const string& type);
-
+    
         LlvmValue genInt1(int number)
         {
             return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);
@@ -131,7 +118,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
         LlvmValue genFloat(const string& number)
         {
-        #if defined(LLVM_40) || defined(LLVM_50)
+        #if defined(LLVM_60)
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
+        #elif defined(LLVM_40) || defined(LLVM_50)
             return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
         #else
             return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));

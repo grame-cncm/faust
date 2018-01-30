@@ -46,7 +46,9 @@
 #include "faust/gui/faustqt.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
+#ifdef SOUNDFILE
 #include "faust/gui/SoundUI.h"
+#endif
 
 #ifdef IOS
 #include "faust/gui/APIUI.h"
@@ -291,12 +293,15 @@ int main(int argc, char *argv[])
             DSP = new mydsp();
         }
     #else
-        // We possibly have a file... 
+        // We possibly have a file...
+        /*
         try {
             DSP = new dsp_sequencer(new sound_player(stringify_expanded(SOUND_FILE)), new mydsp());
         } catch (...) {
             DSP = new mydsp();
         }
+        */
+        DSP = new mydsp();
     #endif
     }
     
@@ -314,11 +319,12 @@ int main(int argc, char *argv[])
     
     QTGUI interface;
     FUI finterface;
+#ifdef SOUNDFILE
     SoundUI soundinterface;
+    DSP->buildUserInterface(&soundinterface);
+#endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
-    DSP->buildUserInterface(&soundinterface);
-    
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif

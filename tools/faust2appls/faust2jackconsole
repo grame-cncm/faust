@@ -38,7 +38,7 @@ for p in $@; do
         echo "faust2jackconsole [-httpd] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-osc' to activate OSC control"
-    exit
+    	exit
     fi
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
@@ -77,7 +77,8 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

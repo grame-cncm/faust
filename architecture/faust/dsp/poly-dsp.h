@@ -345,10 +345,21 @@ struct dsp_voice_group {
 };
 
 /**
+ * Base class for Polyphonic DSP.
+ */
+class dsp_poly : public decorator_dsp, public midi {
+
+    public:
+    
+        dsp_poly(dsp* dsp):decorator_dsp(dsp)
+        {}
+};
+
+/**
  * Polyphonic DSP : group a set of DSP to be played together or triggered by MIDI.
  */
 
-class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
+class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
     private:
 
@@ -488,7 +499,8 @@ class mydsp_poly : public decorator_dsp, public dsp_voice_group, public midi {
         mydsp_poly(dsp* dsp,
                    int nvoices,
                    bool control = false,
-                   bool group = true):decorator_dsp(dsp), dsp_voice_group(panic, this, control, group)
+                   bool group = true)
+        :dsp_poly(dsp), dsp_voice_group(panic, this, control, group)
         {
             fDate = 0;
 
