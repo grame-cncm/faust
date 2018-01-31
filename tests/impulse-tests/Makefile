@@ -21,7 +21,7 @@ FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
 .PHONY: test reference
 
 dspfiles := $(wildcard dsp/*.dsp)
-mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir) 
+mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 
 
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
@@ -76,24 +76,24 @@ travis:
 #########################################################################
 # c and c++ backends
 cpp:
-	$(MAKE) -f Make.cpp outdir=cpp/float  		lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single"
-	$(MAKE) -f Make.cpp outdir=cpp/float/vec	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -vec"
-	$(MAKE) -f Make.cpp outdir=cpp/float/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -sch"
-	$(MAKE) -f Make.cpp outdir=cpp/float/omp 	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -omp"
 	$(MAKE) -f Make.cpp outdir=cpp/double  	 lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.cpp outdir=cpp/double/vec   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -vec"
 	$(MAKE) -f Make.cpp outdir=cpp/double/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -sch"
 	$(MAKE) -f Make.cpp outdir=cpp/double/omp   lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-double -omp"
+	$(MAKE) -f Make.cpp outdir=cpp/float  		lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single"
+	$(MAKE) -f Make.cpp outdir=cpp/float/vec	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -vec"
+	$(MAKE) -f Make.cpp outdir=cpp/float/sched lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -sch"
+	$(MAKE) -f Make.cpp outdir=cpp/float/omp 	lang=cpp arch=impulsearch.cpp FAUSTOPTIONS="-single -omp"
 
 c:
-	$(MAKE) -f Make.cpp outdir=c/float         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single"
-	$(MAKE) -f Make.cpp outdir=c/float/vec     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -vec"
-	$(MAKE) -f Make.cpp outdir=c/float/sched   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -sch"
-	$(MAKE) -f Make.cpp outdir=c/float/omp     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -omp"
 	$(MAKE) -f Make.cpp outdir=c/double        lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double"
 	$(MAKE) -f Make.cpp outdir=c/double/vec    lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -vec"
 	$(MAKE) -f Make.cpp outdir=c/double/sched  lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -sch"
 	$(MAKE) -f Make.cpp outdir=c/double/omp   	lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-double -omp"
+	$(MAKE) -f Make.cpp outdir=c/float         lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single"
+	$(MAKE) -f Make.cpp outdir=c/float/vec     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -vec"
+	$(MAKE) -f Make.cpp outdir=c/float/sched   lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -sch"
+	$(MAKE) -f Make.cpp outdir=c/float/omp     lang=c arch=impulsearch2.cpp FAUSTOPTIONS="-single -omp"
 
 
 quad:
@@ -114,8 +114,8 @@ mute: ir/mute  $(mutefiles)
 web:
 	$(MAKE) asmjs
 	$(MAKE) wasm
-	
-asmjs:  
+
+asmjs:
 	$(MAKE) -f Make.web asmjs
 	$(MAKE) -f Make.web asmjs outdir=asmjs_inpl FAUSTOPTIONS=-inpl
 
@@ -125,10 +125,10 @@ wasm:
 
 #########################################################################
 # llvm backends
-llvm:  
+llvm:
 	$(MAKE) -f Make.llvm
 	$(MAKE) -f Make.llvm outdir=llvm_inpl FAUSTOPTIONS=-inpl
-	
+
 
 #########################################################################
 # output directories
@@ -137,7 +137,7 @@ ir/mute:
 
 #########################################################################
 # building reference files
-reference: 
+reference:
 	$(MAKE) -f Make.ref
 
 tools: filesCompare impulseinterp impulsellvm
