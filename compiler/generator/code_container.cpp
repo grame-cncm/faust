@@ -71,7 +71,7 @@ void CodeContainer::transformDAG(DispatchVisitor* visitor)
 {
     lclgraph G;
     CodeLoop::sortGraph(fCurLoop, G);
-    for (int l = G.size() - 1; l >= 0; l--) {
+    for (size_t l = G.size() - 1; l >= 0; l--) {
         for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->transform(visitor);
         }
@@ -193,7 +193,7 @@ void CodeContainer::printGraphDotFormat(ostream& fout)
 
     int lnum = 0;       // used for loop numbers
     // for each level of the graph
-    for (int l = G.size() - 1; l >= 0; l--) {
+    for (size_t l = G.size() - 1; l >= 0; l--) {
         // for each task in the level
         for (lclset::const_iterator t = G[l].begin(); t!=G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
@@ -217,7 +217,7 @@ void CodeContainer::computeForwardDAG(lclgraph dag, int& loop_count, vector<int>
 
     int loop_index = START_TASK_MAX; // First index to be used for remaining tasks
 
-    for (int l = dag.size() - 1; l >= 0; l--) {
+    for (size_t l = dag.size() - 1; l >= 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             
             // Setup forward dependancy
@@ -634,7 +634,7 @@ void CodeContainer::generateDAGLoop(BlockInst* block, DeclareVarInst* count)
     } else {
         lclgraph G;
         CodeLoop::sortGraph(fCurLoop, G);
-        for (int l = G.size() - 1; l >= 0; l--) {
+        for (size_t l = G.size() - 1; l >= 0; l--) {
             for (lclset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
                 generateDAGLoopAux(*p, block, count, loop_num++);
             }
