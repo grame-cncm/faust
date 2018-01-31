@@ -4,7 +4,7 @@ project (faust)
 #######################################
 # versions management
 set (VERSION 2.5.17)
-set (SOVERS 1)
+set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 set (SRCDIR ${ROOT}/compiler)
