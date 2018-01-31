@@ -2,8 +2,9 @@ cmake_minimum_required(VERSION 3.4.0)
 project (faust)
 
 #######################################
-# Versions
-set (VERSION 2.5.6)
+# versions management
+set (VERSION 2.5.17)
+set (SOVERS 1)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
 set (SRCDIR ${ROOT}/compiler)
@@ -185,6 +186,10 @@ else()
 		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
 	endif()	
 	set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+	set_target_properties(dynamiclib PROPERTIES 
+		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
+		VERSION ${VERSION}
+		SOVERSION ${SOVERS})
 endif()
 set_target_properties(dynamiclib  staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
 
