@@ -174,11 +174,14 @@ endif()
 
 add_library(dynamiclib SHARED EXCLUDE_FROM_ALL ${SRC} ${HH})
 if (WIN32)
+	enable_language(RC)
 	set_target_properties(dynamiclib PROPERTIES 
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
 		RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
 	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
 	set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
+	target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
+	target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
 else()
 	if (IOS)
 		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust.ios)
