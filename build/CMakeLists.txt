@@ -166,13 +166,13 @@ add_executable(faust ${SRC} ${HH})
 set_target_properties(faust  PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
 
-add_library(staticlib STATIC EXCLUDE_FROM_ALL ${SRC} ${HH})
+add_library(staticlib STATIC ${SRC} ${HH})
 set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 if (APPLE AND IOS)
 	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
 endif()
 
-add_library(dynamiclib SHARED EXCLUDE_FROM_ALL ${SRC} ${HH})
+add_library(dynamiclib SHARED ${SRC} ${HH})
 if (WIN32)
 	enable_language(RC)
 	set_target_properties(dynamiclib PROPERTIES 
@@ -220,10 +220,81 @@ add_subdirectory (osc)
 ####################################
 # install section
 ####################################
+set (ARCHDIR ${ROOT}/architecture)
+set (ARCHINC ${ARCHDIR}/faust)
+set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARCHINC}/midi ${ARCHINC}/unity ${ARCHINC}/vst)
 
-#install ( TARGETS faust staticlib dynamiclib
-#	RUNTIME DESTINATION bin 
-#    LIBRARY DESTINATION lib
-#    ARCHIVE DESTINATION lib 
-#    PUBLIC_HEADER DESTINATION include/faust
-#)
+message ("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
+install ( TARGETS faust staticlib dynamiclib 
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin 
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+)
+####################################
+# install headers
+install (
+    DIRECTORY ${ARCHDIRS} DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN ".DS_Store" EXCLUDE
+    PATTERN "*.o" EXCLUDE
+)
+install (
+    FILES     ${ARCHINC}/misc.h ${ARCHINC}/sound-file.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+install (
+    FILES     ${SRCDIR}/generator/libfaust.h ${SRCDIR}/generator/libfaust-c.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+####################################
+# install shared resources
+install (
+    FILES     ${ROOT}/faust.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+# install faust libraries
+file (GLOB FAUSTDSPLIBS ${ROOT}/libraries/*.lib ${ROOT}/libraries/old/*.lib)
+# install various files from the architecture root folder
+file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c 
+						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js 
+						${ARCHDIR}/*.java ${ARCHDIR}/*.h 
+						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
+install (
+    FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+# install faustbench.cpp ?
+install (
+    FILES     ${ROOT}/tools/benchmark/faustbench.cpp DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+# install folders
+set (ARCHSRC android api AU iOS juce max-msp nodejs osclib smartKeyboard unity webaudio)
+foreach (dir ${ARCHSRC})
+	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
+endforeach()
+set(ARCHFOLDERS ${ARCHFOLDERS} ${ROOT}/tools/benchmark/iOS-bench ${ARCHDIR}/httpdlib/html/js)
+
+install (
+    DIRECTORY ${ARCHFOLDERS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+    FILE_PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+    DIRECTORY_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE
+    	GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+    PATTERN ".DS_Store" EXCLUDE
+    PATTERN "*.o" EXCLUDE
+)
+
+####################################
+# install ios lib
+install (
+    FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+

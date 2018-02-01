@@ -4,44 +4,39 @@
 
 # start to determine the current platform
 TARGET := undefined
-system	:= $(shell uname -s)
+system := $(shell uname -s)
 # normalizes MINGW versions
 system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
 ifeq ($(system), Darwin)
 	TARGET = unix
-	DLIBEXT = dylib
-	SLIBEXT = a
+	PREFIX ?= /usr/local
 else
-ifeq ($(system), MINGW)
+ ifeq ($(system), MINGW)
 	TARGET = windows
-	DLIBEXT = dll
-	SLIBEXT = lib
-else
-ifeq ($(system), Linux)
+ else
+  ifeq ($(system), Linux)
 	TARGET = unix
-	DLIBEXT = so
-	SLIBEXT = a
+	PREFIX ?= /usr/local
+  endif
+ endif
 endif
-endif
-endif
+DESTDIR ?=
+
+
+.PHONY: faust install
 
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
-
 
 #===============================================================
 # output directories
 FAUSTDIR := faustdir
 IOSDIR   := iosdir
 
-.PHONY: faust 
-
 #===============================================================
 # options
 TASKS	?= 4
 BACKENDS?= backends.cmake
-
 EMCC 	?= emcc
-
 
 #===============================================================
 # main target
@@ -57,12 +52,15 @@ help:
 	@echo "Available targets are:"
 	@echo " 'faust' (default): builds the FAUST compiler."
 	@echo " 'staticlib'  : builds the FAUST static library."
-	@echo " 'dynamiclib' : builds the FAUST static library."
+	@echo " 'dynamiclib' : builds the FAUST dynamic library."
 	@echo " 'wasmlib'    : builds the FAUST compiler as a Web Assembly library"
 	@echo " 'asmjslib'   : builds the FAUST compiler as a ASM JS library"
 	@echo " 'ios'        : builds the static lib for iOS (makes use of the ios.cmake backend)"
-	@echo " 'cmake'      : regenerate the Makefile (or platform specific project)"
-	@echo " 'clean'      : clean remove the output of the 'faust' target"
+	@echo " 'all'        : call the faust, staticlib and dynamiclib targets."
+	@echo " 'windows'    : build the faust, staticlib and dynamiclib targets using MSYS Makefiles,"
+	@echo "                see the README.md file for other options."
+	@echo " 'install'    : install ,"
+	@echo " 'clean'      : clean remove the output of the 'all' targets"
 	@echo
 	@echo "Available options:"
 	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '-DCMAKE_BUILD_TYPE=Release'"
@@ -73,13 +71,20 @@ help:
 	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
 	@echo
-	@echo "Utilities:"
-	@echo " 'universal'   : [MacOSX] set the universal binaries option ON."
-	@echo " 'native'      : [MacOSX] set the universal binaries option OFF."
-	@echo " 'verbose'     : turn the verbose makefile option ON."
-	@echo " 'silent'      : turn the verbose makefile option OFF."
+	@echo "Utilities targets:"
+	@echo " 'cmake'      : regenerate the Makefile (or platform specific project)"
+	@echo " 'universal'  : [MacOSX] set the universal binaries option ON."
+	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
+	@echo " 'verbose'    : turn the verbose makefile option ON."
+	@echo " 'silent'     : turn the verbose makefile option OFF."
+	@echo
+	@echo "Installation targets"
+	@echo " 'install'    : install faust to the target directory (default to ,"
 
-
+all:
+	make faust
+	make staticlib
+	make dynamiclib
 
 #===============================================================
 # building universal binaries on macos
@@ -95,7 +100,7 @@ native:
 # building faust on unix like systems
 #===============================================================
 unix: $(FAUSTDIR) $(FAUSTDIR)/Makefile
-	cmake --build $(FAUSTDIR) -- -j $(TASKS)
+	cmake --build $(FAUSTDIR) --target faust -- -j $(TASKS)
 
 staticlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	cmake --build $(FAUSTDIR) --target staticlib  -- -j $(TASKS) 
@@ -159,5 +164,15 @@ asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
 
+
+#===============================================================
+# faust install
+#===============================================================
+install:
+	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(DESTDIR)/$(PREFIX) 
+	cmake --build $(FAUSTDIR) --target install
+
+
+#===============================================================
 undefined:
 	$(error System is undefined, not target available)

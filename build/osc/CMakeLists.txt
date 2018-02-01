@@ -6,7 +6,6 @@ set (TARGET OSCFaust)
 
 #######################################
 # SET MAIN DIRECTORY.
-#set (ROOT ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 set (OSC ${ROOT}/architecture/osclib)
 set (CMAKE_BUILD_TYPE Release)
 
@@ -28,6 +27,8 @@ target_include_directories (${TARGET} PRIVATE
 	${OSC}/faust/src/osc  
 	${OSC}/faust/src/threads  
 	${OSC}/..)
+	
+file (GLOB HEADERS ${OSC}/faust/faust/osc/*.h)
 
 if (WIN32)
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/win32/*.cpp ${OSC}/faust/src/threads/winthreads_impl.cpp)
@@ -37,7 +38,9 @@ else()
 endif()
 target_sources (${TARGET} PRIVATE ${PLATFORM_SRC})
 target_compile_definitions (${TARGET} PRIVATE -DOSC_HOST_BIG_ENDIAN=1)
-set_target_properties(${TARGET} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+set_target_properties(${TARGET} PROPERTIES 
+	PUBLIC_HEADER "${HEADERS}"
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 if (IOS)
 	set_target_properties(${TARGET} PROPERTIES OUTPUT_NAME OSCFaust.ios)
@@ -57,3 +60,11 @@ else()
 	endif()
 endif()	
 
+
+####################################
+# install section
+####################################
+install ( TARGETS OSCFaust
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/osc
+)
