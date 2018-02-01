@@ -243,6 +243,7 @@ asmjs : CXX = emcc
 asmjs : CXXFLAGS = -DEMCC -DASMJS_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 asmjs : libfaust.js libfaustworker.js
 asmjs : EXPORTED="['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']"
+asmjs : EXTRA_EXPORTED="['cwrap','Pointer_stringify','stringToUTF8']"
 
 ## For the Web/WASM, only compile the WASM backend
 wasm : OPT = -O3
@@ -251,6 +252,7 @@ wasm : CXX = emcc
 wasm : CXXFLAGS = -DEMCC -DWASM_BUILD $(OPT) -Wall -Wuninitialized -Wno-overloaded-virtual -Wno-parentheses $(addprefix -I, $(subprojects)) -DINSTALL_PREFIX='"$(prefix)"'
 wasm : libfaust.wasm
 wasm : EXPORTED="['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']"
+wasm : EXTRA_EXPORTED="['cwrap','Pointer_stringify','stringToUTF8']"
 
 ## This target only compiles the C/C++ backends
 light : OPT = -O3
@@ -260,17 +262,17 @@ light : CXXFLAGS = -std=c++11 -DC_BUILD -DCPP_BUILD -DWASM_BUILD -DOCPP_BUILD  $
 light : faustlight
 
 libfaust.js : $(common_objects) $(object_ba_asmjs)
-	$(CXX) $(OPT) --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+	$(CXX) $(OPT) --memory-init-file 0 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED)  -s EXTRA_EXPORTED_RUNTIME_METHODS=$(EXTRA_EXPORTED)\
             $(common_objects) $(object_ba_asmjs) -o libfaust.js
 	cp libfaust.js ../architecture/webaudio
 
 libfaustworker.js : $(common_objects) $(object_ba_asmjs)
-	$(CXX) $(OPT) --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+	$(CXX) $(OPT) --memory-init-file 0 -s BUILD_AS_WORKER=1 -s ASSERTIONS=2 -s TOTAL_MEMORY=134217728 -s DISABLE_EXCEPTION_CATCHING=0 -s EXPORTED_FUNCTIONS=$(EXPORTED)  -s EXTRA_EXPORTED_RUNTIME_METHODS=$(EXTRA_EXPORTED)\
             $(common_objects) $(object_ba_asmjs) -o libfaustworker.js
 	cp libfaustworker.js ../architecture/webaudio
 
 libfaust.wasm : $(common_objects) $(object_ba_wasm)
-	$(CXX) $(OPT) --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) \
+	$(CXX) $(OPT) --memory-init-file 0 -s WASM=1 -s EXPORT_NAME="'FaustModule'" -s MODULARIZE=1 -s ASSERTIONS=1 -s ALLOW_MEMORY_GROWTH=1 -s DISABLE_EXCEPTION_CATCHING=1 -s EXPORTED_FUNCTIONS=$(EXPORTED) -s EXTRA_EXPORTED_RUNTIME_METHODS=$(EXTRA_EXPORTED) \
             $(common_objects) $(object_ba_wasm) -o libfaust-wasm.js
 	cp libfaust-wasm.js libfaust-wasm.wasm ../architecture/webaudio
 
