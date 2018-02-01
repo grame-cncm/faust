@@ -166,12 +166,14 @@ add_executable(faust ${SRC} ${HH})
 set_target_properties(faust  PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
 
+# static faust library
 add_library(staticlib STATIC ${SRC} ${HH})
 set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 if (APPLE AND IOS)
 	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
 endif()
 
+# dynamic faust library
 add_library(dynamiclib SHARED ${SRC} ${HH})
 if (WIN32)
 	enable_language(RC)
@@ -220,17 +222,21 @@ add_subdirectory (osc)
 ####################################
 # install section
 ####################################
+message (STATUS "Install location is ${CMAKE_INSTALL_PREFIX}")
+
 set (ARCHDIR ${ROOT}/architecture)
 set (ARCHINC ${ARCHDIR}/faust)
 set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARCHINC}/midi ${ARCHINC}/unity ${ARCHINC}/vst)
 
-message ("CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}")
+####################################
+# install the faust compiler and libraries
 install ( TARGETS faust staticlib dynamiclib 
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin 
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
+
 ####################################
 # install headers
 install (
@@ -249,6 +255,19 @@ install (
     FILES     ${SRCDIR}/generator/libfaust.h ${SRCDIR}/generator/libfaust-c.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+
+####################################
+# install faust2xxx tools
+file (GLOB FAUST2XXX ${ROOT}/tools/faust2appls/faust2* ${ROOT}/tools/faust2appls/encoderunitypackage ${ROOT}/tools/faust2sc-1.0.0/faust2sc )
+install (
+    FILES     ${FAUST2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+)
+install (
+    FILES     ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_EXECUTE
+)
+
 
 ####################################
 # install shared resources
@@ -270,17 +289,17 @@ install (
 )
 
 # install faustbench.cpp ?
-install (
-    FILES     ${ROOT}/tools/benchmark/faustbench.cpp DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
+# install (
+#     FILES     ${ROOT}/tools/benchmark/faustbench.cpp DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
+#     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+# )
 
 # install folders
 set (ARCHSRC android api AU iOS juce max-msp nodejs osclib smartKeyboard unity webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
-set(ARCHFOLDERS ${ARCHFOLDERS} ${ROOT}/tools/benchmark/iOS-bench ${ARCHDIR}/httpdlib/html/js)
+set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/httpdlib/html/js)
 
 install (
     DIRECTORY ${ARCHFOLDERS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust

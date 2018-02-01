@@ -23,13 +23,13 @@ endif
 DESTDIR ?=
 
 
-.PHONY: faust install
+.PHONY: faust install uninstall osc
 
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 
 #===============================================================
 # output directories
-FAUSTDIR := faustdir
+FAUSTDIR ?= faustdir
 IOSDIR   := iosdir
 
 #===============================================================
@@ -56,14 +56,16 @@ help:
 	@echo " 'wasmlib'    : builds the FAUST compiler as a Web Assembly library"
 	@echo " 'asmjslib'   : builds the FAUST compiler as a ASM JS library"
 	@echo " 'ios'        : builds the static lib for iOS (makes use of the ios.cmake backend)"
-	@echo " 'all'        : call the faust, staticlib and dynamiclib targets."
+	@echo " 'osc'        : builds the static and dynamic Faust OSC libraries"
+	@echo " 'all'        : call the faust, staticlib, dynamiclib and osc targets."
 	@echo " 'windows'    : build the faust, staticlib and dynamiclib targets using MSYS Makefiles,"
 	@echo "                see the README.md file for other options."
 	@echo " 'install'    : install ,"
 	@echo " 'clean'      : clean remove the output of the 'all' targets"
 	@echo
 	@echo "Available options:"
-	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '-DCMAKE_BUILD_TYPE=Release'"
+	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
+	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake. Default to '$(CMAKEOPT)'"
 	@echo "  BACKENDS=<backends>         : see 'Backends' below"
 	@echo "  TASKS=[1-n] : set the number of tasks to run in parallel (default is $(TASKS))"
 	@echo
@@ -78,13 +80,23 @@ help:
 	@echo " 'verbose'    : turn the verbose makefile option ON."
 	@echo " 'silent'     : turn the verbose makefile option OFF."
 	@echo
-	@echo "Installation targets"
-	@echo " 'install'    : install faust to the target directory (default to ,"
+	@echo "Installation targets:"
+	@echo " 'install'    : install faust to the target directory (default to $(DESTDIR)$(PREFIX)),"
+	@echo "Installation options:"
+	@echo " 'DESTDIR'    : the destination directory,"
+	@echo " 'PREFIX'     : the destination directory,"
+	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 
 all:
 	make faust
 	make staticlib
 	make dynamiclib
+	make osc
+
+osc:
+	cmake --build $(FAUSTDIR) --target oscstatic -- -j $(TASKS)
+	cmake --build $(FAUSTDIR) --target oscdynamic -- -j $(TASKS)
+
 
 #===============================================================
 # building universal binaries on macos
@@ -168,10 +180,13 @@ checkemcc:
 #===============================================================
 # faust install
 #===============================================================
+installLog := $(FAUSTDIR)/install_manifest.txt
 install:
-	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(DESTDIR)/$(PREFIX) 
+	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(DESTDIR)$(PREFIX) 
 	cmake --build $(FAUSTDIR) --target install
-
+uninstall: installedfiles = $(shell cat $(installLog))
+uninstall: $(installLog)
+	rm $(installedfiles) $(installLog)
 
 #===============================================================
 undefined:
