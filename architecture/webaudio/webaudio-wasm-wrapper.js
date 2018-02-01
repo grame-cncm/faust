@@ -276,12 +276,14 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
             // Free C allocated wasm module
             faust.freeWasmCModule(module_code_ptr);
             
+            // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
+            argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);
             // Free 'argv' C side array
             for (var i = 0; i < argv_aux.length; i++) {
                 faust_module._free(argv_ptr_buffer[i]);
             }
             faust_module._free(argv_ptr);
-            
+
             return {factory_code: factory_code, helpers_code: helpers_code};
         }
         
@@ -432,6 +434,8 @@ faust.expandDSP = function (code, argv)
     // Free C allocated expanded string
     faust.freeCMemory(expand_dsp_ptr);
     
+    // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
+    argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
         faust_module._free(argv_ptr_buffer[i]);
