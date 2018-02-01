@@ -16,8 +16,10 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
-BINLOCATION := build/bin
-LIBLOCATION := build/lib
+BUILDLOCATION := build
+DEBUGFOLDER := faustdebug
+BINLOCATION := $(BUILDLOCATION)/bin
+LIBLOCATION := $(BUILDLOCATION)/lib
 
 MAKEFILE := Makefile.unix
 
@@ -30,12 +32,12 @@ zname := faust-$(version)
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 all : updatesubmodules
-	$(MAKE) -C build
-	$(MAKE) -C build staticlib
-	$(MAKE) -C architecture/osclib
+	$(MAKE) -C $(BUILDLOCATION)
+#	$(MAKE) -C build staticlib
+#	$(MAKE) -C architecture/osclib
 
 universal :
-	$(MAKE) -C build universal
+	$(MAKE) -C $(BUILDLOCATION) universal
 	$(MAKE) -C architecture/osclib
 	@echo 
 	@echo "### Universal mode is ON"
@@ -44,7 +46,7 @@ universal :
 	 
 
 native :
-	$(MAKE) -C build native
+	$(MAKE) -C $(BUILDLOCATION) native
 	@echo 
 	@echo "### Universal mode is OFF"
 	@echo "### You need to recompile"
@@ -57,12 +59,14 @@ native :
 # NOTE: Once the remote target is readily supported on most platforms, it
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
-world : all sound2faust httpd dynamic
+WORLDTARGETS := all sound2faust httpd dynamic
+world : $(WORLDTARGETS)
 
 dynamic : all httpd
-	$(MAKE) -C build dynamiclib
+	$(MAKE) -C $(BUILDLOCATION) dynamiclib
+	$(MAKE) -C $(BUILDLOCATION) oscdynamic
 	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
-	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
+#	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
 
 benchmark : all
 	$(MAKE) -C tools/benchmark all
@@ -79,29 +83,30 @@ win32 :
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 debug :
-	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) FAUSTDIR=faustdebug CMAKEOPT=-DCMAKE_BUILD_TYPE=Debug
+#	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
 
 plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
 ios :
-	$(MAKE) -C build ios
+	$(MAKE) -C $(BUILDLOCATION) ios
 
 asmjs :
-	$(MAKE) -C build asmjslib
+	$(MAKE) -C $(BUILDLOCATION) asmjslib
 
 wasm :
-	$(MAKE) -C build wasmlib
+	$(MAKE) -C $(BUILDLOCATION) wasmlib
 
 light :
-	$(MAKE) -C build cmake BACKENDS=light.cmake
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=light.cmake
 	@echo 
 	@echo "### Light version of backends is ON"
 	@echo "### You need to recompile"
 	@echo "### Use 'make backends' to revert"
 
 backends :
-	$(MAKE) -C build cmake BACKENDS=backends.cmake
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=backends.cmake
 	@echo 
 	@echo "### Default version of backends is ON"
 	@echo "### You need to recompile"
@@ -115,34 +120,79 @@ bench :
 .PHONY: clean depend install uninstall dist parser help
 
 help :
-	@echo "Usage : 'make; sudo make install'"
-	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
-	@echo "make or make all : compile the Faust compiler and osc support library"
-	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
-	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
-	@echo "make asmjs : compile asmjs libfaust.js"
-	@echo "make wasm : compile wasm libfaust-wasm.js"
-	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
-	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"
-	@echo "make debug : produce a debug version of compiler and libraries"
-	@echo "make sound2faust : compile sound to DSP file converter"
-	@echo "make remote : compile remote components used by FaustLive"
-	@echo "make parser : generate the parser from the lex and yacc files"
-	@echo "make clean : remove all object files"
-	@echo "make doc : generate the documentation using doxygen"
-	@echo "make updatesubmodules : update the libraries submodule"
-	@echo "make doclib : generate the documentation of the faust libraries"
-	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
-	@echo "make uninstall : undo what install did"
-	@echo "make dist : make a Faust distribution as a .zip file"
-	@echo "make log : make a changelog file"
+	@echo "===== Faust main makefile ====="
+	@echo "Available targets"
+	@echo " 'all' (default) : builds the faust compiler, the faust libraries and the faust osc libraries"
+	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
+	@echo " 'asmjs'         : builds the faust asm-js library"
+	@echo " 'wasm'          : builds the faust web assembly library"
+	@echo " 'world'         : call the $(WORLDTARGETS) targets"
+	@echo " 'benchmark'     : builds the benchmark tools (rebuilds all)"
+	@echo " 'httpd'         : builds the libHTTPDFaust.a library"
+	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
+	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
+	@echo " 'bench'         : builds the bench tools (see tools/benchmark)"
+	@echo " 'parser'        : generates the parser from the lex and yacc files"
+	@echo " 'clean'         : remove all object files"
+	@echo 
+	@echo "Backends specific targets:"
+	@echo " 'light'         : switch to light version of the faust backends (c and cpp)"
+	@echo " 'backends'      : switch to regular version of the faust backends (see $(BUILDLOCATION)/backends.cmake)"
+	@echo 
+	@echo "Platform specific targets:"
+	@echo " 'universal'     : [MacOSX] switch to universal binaries mode"
+	@echo " 'native'        : [MacOSX] switch to native mode"
+	@echo " 'win32'         : [linux]  used for win cross-compilation (requires mingw32-binutils package)"
+	@echo " 'ios'           : [iOS] build the faust static library for iOS"
+	@echo 
+	@echo "Utilities targets:"
+	@echo " 'depend'           : generate dependencies for httpdlib"
+	@echo " 'man'              : generate the faust man page"
+	@echo " 'doc'              : generate the documentation using doxygen"
+	@echo " 'doclib'           : generate the documentation of the faust libraries"
+	@echo " 'updatesubmodules' : update the libraries submodule"
+	@echo " 'install'          : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
+	@echo " 'devinstall'       : install the benchmark tools"
+	@echo " 'uninstall'        : undo what install did"
+	@echo " 'dist'             : make a Faust distribution as a .zip file"
+	@echo " 'log'              : make a changelog file"
+	@echo 
+	@echo "Experimental targets:"
+	@echo " 'newinstall'       : cmake based install"
+	@echo " 'newuninstall'     : undo what cmake installed"
+	@echo 
+	@echo "Obsolete targets:"
+	@echo " 'plugin'           : builds the libfaustplugin.a library"
+
+
+# 	@echo "Usage : 'make; sudo make install'"
+# 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
+# 	@echo "make or make all : compile the Faust compiler and osc support library"
+# 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
+# 	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
+# 	@echo "make asmjs : compile asmjs libfaust.js"
+# 	@echo "make wasm : compile wasm libfaust-wasm.js"
+# 	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
+# 	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"
+# 	@echo "make debug : produce a debug version of compiler and libraries"
+# 	@echo "make sound2faust : compile sound to DSP file converter"
+# 	@echo "make remote : compile remote components used by FaustLive"
+# 	@echo "make parser : generate the parser from the lex and yacc files"
+# 	@echo "make clean : remove all object files"
+# 	@echo "make doc : generate the documentation using doxygen"
+# 	@echo "make updatesubmodules : update the libraries submodule"
+# 	@echo "make doclib : generate the documentation of the faust libraries"
+# 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
+# 	@echo "make uninstall : undo what install did"
+# 	@echo "make dist : make a Faust distribution as a .zip file"
+# 	@echo "make log : make a changelog file"
 
 parser :
 	$(MAKE) -C compiler/parser
 
 clean :
 	$(MAKE) -C build clean
-	$(MAKE) -C architecture/osclib clean
+#	$(MAKE) -C architecture/osclib clean
 	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
 	$(MAKE) -C embedded/faustremote clean
@@ -150,8 +200,8 @@ clean :
 	$(MAKE) -C tools/benchmark clean
 
 depend :
-	$(MAKE) -C compiler -f $(MAKEFILE) depend
-	$(MAKE) -C architecture/osclib depend
+#	$(MAKE) -C compiler -f $(MAKEFILE) depend
+#	$(MAKE) -C architecture/osclib depend
 	$(MAKE) -C architecture/httpdlib/src depend
 
 doc :
@@ -168,6 +218,12 @@ doclib : updatesubmodules
 
 man :
 	pandoc --standalone --to man compiler/README.md -o faust.1
+
+newinstall :
+	make -C $(BUILDLOCATION) install DESTDIR=$(DESTDIR) PREFIX=$(PREFIX)
+
+newuninstall :
+	make -C $(BUILDLOCATION) uninstall
 
 install :
 	# install faust itself
@@ -293,6 +349,17 @@ install :
 
 	# install Faust man file
 	([ -e faust.1 ]) && (install -d $(prefix)/share/man/man1/; install faust.1 $(prefix)/share/man/man1) || echo faust.1 not found
+
+
+	# install benchmark tools
+devinstall:
+	rm -rf $(prefix)/share/faust/iOS-bench
+	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
+	cp tools/benchmark/faustbench $(prefix)/bin/
+	cp tools/benchmark/faustbench.cpp $(prefix)/share/faust/
+	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
+	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
+
 
 uninstall :
 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
