@@ -10,48 +10,55 @@ set (SOVERS 1)
 #######################################
 # SET MAIN DIRECTORY.
 set (OSC ${ROOT}/architecture/osclib)
+set (FAUSTOSC ${OSC}/faust/src)
 set (CMAKE_BUILD_TYPE Release)
 
 #######################################
 # collect source files
-FILE(GLOB SRC ${ROOT}/oscpack/osc/*.cpp  
-	${OSC}/faust/src/lib/*.cpp 
-	${OSC}/faust/src/msg/*.cpp 
-	${OSC}/faust/src/nodes/*.cpp 
-	${OSC}/faust/src/osc/*.cpp)
+FILE(GLOB SRC ${OSC}/oscpack/osc/*.cpp  ${OSC}/oscpack/ip/*.cpp  
+	${FAUSTOSC}/*.cpp 
+	${FAUSTOSC}/lib/*.cpp 
+	${FAUSTOSC}/msg/*.cpp 
+	${FAUSTOSC}/nodes/*.cpp 
+	${FAUSTOSC}/osc/*.cpp)
 
-add_library( oscstatic STATIC ${SRC} )
+set( INCLUDE
+	${OSC}/oscpack 
+	${OSC}/faust 
+	${FAUSTOSC} 
+	${FAUSTOSC}/lib 
+	${FAUSTOSC}/osc  
+	${FAUSTOSC}/threads  
+	${OSC}/..)
+
+if (WIN32)
+	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/win32/*.cpp ${OSC}/faust/src/threads/winthreads_impl.cpp)
+else()
+	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/posix/*.cpp ${OSC}/faust/src/threads/pthreads_impl.cpp)
+endif()
+
+
+#######################################
+# add libraries
+add_library( oscstatic STATIC ${SRC} ${PLATFORM_SRC})
+target_include_directories (oscstatic PRIVATE ${INCLUDE} )
 set (TARGETS oscstatic)
 if (NOT IOS)
-	add_library( oscdynamic SHARED ${SRC} )
+	add_library( oscdynamic SHARED ${SRC} ${PLATFORM_SRC} )
+	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} oscdynamic)
 endif()
 
-set_target_properties(${TARGETS} PROPERTIES  INCLUDE_DIRECTORIES
-	${OSC}/oscpack 
-	${OSC}/faust 
-	${OSC}/faust/src 
-	${OSC}/faust/src/lib 
-	${OSC}/faust/src/osc  
-	${OSC}/faust/src/threads  
-	${OSC}/..)
-	
-file (GLOB HEADERS ${OSC}/faust/faust/osc/*.h)
 
-if (WIN32)
-	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/win32/*.cpp ${OSC}/faust/src/threads/winthreads_impl.cpp)
-	target_link_libraries( ${TARGETS} ws2_32 winmm)
-else()
-	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/posix/*.cpp ${OSC}/faust/src/threads/pthreads_impl.cpp)
-endif()
+file (GLOB HEADERS ${OSC}/faust/faust/osc/*.h)
 set_target_properties(${TARGETS} PROPERTIES 
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
-	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
-	SOURCES ${PLATFORM_SRC}
-	)
+	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+
 # public headers are similar for both static and dynamic libs but only attached to the static one
 set_target_properties(oscstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
 	
@@ -65,6 +72,8 @@ else()
 	if (WIN32) 
 		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
 		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
+		target_link_libraries(oscstatic  ws2_32 winmm)
+		target_link_libraries(oscdynamic ws2_32 winmm)
 	else()
 		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
 		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
