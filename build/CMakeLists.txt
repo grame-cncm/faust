@@ -110,7 +110,7 @@ endfunction()
 # LLVM
 if (LLVM_BACKEND )
 	if (WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
-		set (LLVM_CONFIG llvm-config.exe)
+		set (LLVM_CONFIG llvm-config)
 		execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
 		string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
 		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -198,6 +198,7 @@ else()
 endif()
 set_target_properties(dynamiclib  staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
 
+# shared properties
 foreach (TARGET faust staticlib dynamiclib)
 	target_compile_definitions (${TARGET} PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (${TARGET} PRIVATE ${FAUST_INC} ${LLVM_INC})
