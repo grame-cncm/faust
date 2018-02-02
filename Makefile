@@ -123,6 +123,7 @@ help :
 	@echo "===== Faust main makefile ====="
 	@echo "Available targets"
 	@echo " 'all' (default) : builds the faust compiler, the faust libraries and the faust osc libraries"
+	@echo "                   see the build/Makefile for more build options (> make -C build help)"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"
 	@echo " 'wasm'          : builds the faust web assembly library"
