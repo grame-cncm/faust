@@ -4,7 +4,7 @@
 ### Prerequisites
 - you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
 - you must have [LLVM](http://llvm.org/) installed to compile the llvm backend.
-- on Windows, you should have MS [Visual Studio](http://www.microsoft.com/express/) installed. The current Makefile is targetting Visual Studio 14 2015 Win64. See Windows specific notes.
+- on Windows, you have the option to use MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See Windows specific notes.
 
 
 ## Using the Makefile
@@ -32,10 +32,6 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 
 **Warning**: running cmake from the build folder may override the existing Makefile.
 
-
-## Usefull cmake options
-
-- CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
 
 
 ## Compiling on Windows
