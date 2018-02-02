@@ -27,11 +27,15 @@
 	CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "IpEndpointName.h"
 
 #include <stdio.h>
 
+#include "IpEndpointName.h"
 #include "NetworkingUtils.h"
+
+#ifdef WIN32
+#pragma warning (disable: 4996)
+#endif
 
 
 unsigned long IpEndpointName::GetHostByName( const char *s )

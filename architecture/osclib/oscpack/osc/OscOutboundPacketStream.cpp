@@ -35,6 +35,8 @@
 
 #if defined(__WIN32__) || defined(WIN32)
 #include <malloc.h> // for alloca
+
+#pragma warning(disable: 4244 4267 4996)
 #endif
 
 #include "OscHostEndianness.h"

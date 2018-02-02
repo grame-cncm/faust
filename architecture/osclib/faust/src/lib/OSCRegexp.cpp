@@ -53,7 +53,7 @@ std::string OSCRegexp::OSCRe2Re (const char* re)
 //--------------------------------------------------------------------------
 bool OSCRegexp::match (const char* str) const
 {
-	return fRegexp.MatchExact(str);
+	return fRegexp.MatchExact(str) != 0;
 }
 
 }
