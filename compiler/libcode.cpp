@@ -496,6 +496,10 @@ static bool processCmdline(int argc, const char* argv[])
 			gGlobal->gClassName = argv[i+1];
 			i += 2;
 
+		} else if (isCmd(argv[i], "-pn", "--process-name") && (i+1 < argc)) {
+			gGlobal->gProcessName = argv[i+1];
+			i += 2;
+
         } else if (isCmd(argv[i], "-i", "--inline-architecture-files")) {
             gGlobal->gInlineArchSwitch = true;
             i += 1;
@@ -617,7 +621,7 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gInPlace && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'in-place' option can only be used in scalar mode\n");
     }
-    
+
     if (gGlobal->gOutputLang == "ocpp" && gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : 'ocpp' option can only be used in scalar mode\n");
     }
@@ -639,7 +643,7 @@ static bool processCmdline(int argc, const char* argv[])
         error << "ERROR : invalid vector loop size [-vls = "<< gGlobal->gVecLoopSize << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
     }
-    
+
 
     if (gGlobal->gFastMath) {
         if (!(gGlobal->gOutputLang == "c"
@@ -708,6 +712,7 @@ static void printHelp()
     cout << "-a <file> \twrapper architecture file\n";
     cout << "-i \t\t--inline-architecture-files \n";
     cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+    cout << "-pn <name> \t--process-name <name> specify the name of the dsp entry-point instead of process \n";
     cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
     cout << "-o <file> \tC, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output file\n";
@@ -1064,7 +1069,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
     if (gGlobal->gOutputLang == "cllvm") {
 
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-  
+
     #if CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
@@ -1087,7 +1092,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         gGlobal->gAllowForeignFunction = true;  // libc functions will be found by LLVM linker, but not user defined ones...
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-  
+
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
         } else {
@@ -1553,7 +1558,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     if (!gGlobal->gProcessTree) {
         throw faustexception(gGlobal->gErrorMessage);
     }
-   
+
     // Encode compilation options as a 'declare' : has to be located first in the string
     stringstream out;
     out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
