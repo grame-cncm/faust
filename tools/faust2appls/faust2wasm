@@ -204,13 +204,13 @@ EndOfCode
         fi
     fi
 
+    # collect binary file name
     if [ $WORKLET = "true" ]; then
-        # collect binary file name
-        BINARIES="$name.js, $name-processor.js;"
+        BINARIES="$BINARIES$name.js, $name-processor.js;"
         rm $name.wasm
+        rm -f $name"_effect".wasm
     else
-        # collect binary file name
-        BINARIES="$name.js, $name.wasm;"
+        BINARIES="$BINARIES$name.js, $name.wasm;"
     fi
 
 done

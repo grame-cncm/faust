@@ -19,10 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-
 #ifndef _DOCLANG_
 #define _DOCLANG_
-
 
 #include <iostream>
 #include <fstream>
@@ -33,6 +31,5 @@
 using namespace std;
 
 void loadTranslationFile(const string& lang);
-
 
 #endif

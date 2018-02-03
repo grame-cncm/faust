@@ -182,6 +182,11 @@ Utf8.decode = function(strUtf) {
 
 var faust_module = FaustModule(); // Emscripten generated module
 
+faust_module.lengthBytesUTF8 = function(str) 
+{
+	var len=0;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343)u=65536+((u&1023)<<10)|str.charCodeAt(++i)&1023;if(u<=127){++len}else if(u<=2047){len+=2}else if(u<=65535){len+=3}else if(u<=2097151){len+=4}else if(u<=67108863){len+=5}else{len+=6}}return len;
+}
+
 var faust = faust || {};
 
 faust.remap = function(v, mn0, mx0, mn1, mx1)
@@ -271,12 +276,14 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
             // Free C allocated wasm module
             faust.freeWasmCModule(module_code_ptr);
             
+            // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
+            argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);
             // Free 'argv' C side array
             for (var i = 0; i < argv_aux.length; i++) {
                 faust_module._free(argv_ptr_buffer[i]);
             }
             faust_module._free(argv_ptr);
-            
+
             return {factory_code: factory_code, helpers_code: helpers_code};
         }
         
@@ -427,6 +434,8 @@ faust.expandDSP = function (code, argv)
     // Free C allocated expanded string
     faust.freeCMemory(expand_dsp_ptr);
     
+    // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
+    argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
         faust_module._free(argv_ptr_buffer[i]);
@@ -3440,7 +3449,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
               factory.polyphony.push(polyphony);
               // Create audio node
               faust.createPolyDSPWorkletInstanceAux(factory, context, polyphony, callback);
-              })
+         })
         .catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); alert(error); });
        	
     } else {

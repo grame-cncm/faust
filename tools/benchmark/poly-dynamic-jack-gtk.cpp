@@ -101,8 +101,7 @@ int main(int argc, char* argv[])
     }
     
     dsp_poly_factory* factory = nullptr;
-    dsp* DSP = nullptr;
-    mydsp_poly* dsp_poly = nullptr;
+    dsp_poly* DSP = nullptr;
     MidiUI* midiinterface = nullptr;
     httpdUI* httpdinterface = nullptr;
     GUI* oscinterface = nullptr;
@@ -134,6 +133,11 @@ int main(int argc, char* argv[])
     
     argv1[argc1] = 0;  // NULL terminated argv
     
+    if (nvoices == 0) {
+        cout << "Cannot start polyphonic with 0 voice\n";
+        exit(EXIT_FAILURE);
+    }
+    
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
@@ -152,7 +156,7 @@ int main(int argc, char* argv[])
     }
     
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
-    DSP = factory->createPolyDSPInstance(nvoices, true, true, &dsp_poly);
+    DSP = factory->createPolyDSPInstance(nvoices, true, true);
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
@@ -188,7 +192,7 @@ int main(int argc, char* argv[])
         DSP->buildUserInterface(oscinterface);
     }
     rt_midi midi_handler(name);
-    midi_handler.addMidiIn(dsp_poly);
+    midi_handler.addMidiIn(DSP);
     
     if (is_midi) {
         midiinterface = new MidiUI(&midi_handler);
