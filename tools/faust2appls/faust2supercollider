@@ -65,7 +65,7 @@ INCLUDE="-I$SC/plugin_interface/ -I$SC/common/ -I$SC/server/ -I$FAUSTLIB"
 
 if [ $# = 0 ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] [-ks] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
@@ -76,7 +76,9 @@ fi
 # if -d or -debug               -> F2SC_DEBUG
 # if -dm                        -> F2SC_DEBUG_MES
 # if -ks                        -> KEEP_SRC
+# if -noprefix                  -> NO_FAUST_PREFIX
 # if -sd or -synthdef           -> SYNTHDEF
+# if -sn                        -> SUPERNOVA_FLAG
 # existing *.dsp files          -> FILES
 #
 
@@ -95,6 +97,7 @@ F2SC_DEBUG_MES=0
 SUPERNOVA_FLAG=0
 KEEP_SRC=0
 SYNTHDEF=""
+NO_FAUST_PREFIX=0
 
 for p in $@; do
 
@@ -112,6 +115,8 @@ for p in $@; do
         F2SC_DEBUG_MES=1
     elif [ "$p" = -ks ]; then
         KEEP_SRC=1
+    elif [ "$p" = -noprefix ]; then
+        NO_FAUST_PREFIX=1
     elif [ "$p" = -sd ] || [ "$p" = -synthdef ]; then
         SYNTHDEF="--synthdef"
     elif [ "$p" = -sn ] || [ "$p" = -supernova ]; then
@@ -181,9 +186,14 @@ for p in $FILES; do
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile
     (
+	SC_FAUST_PREFIX="Faust"
+	if [ $NO_FAUST_PREFIX = 1 ]; then
+            SC_FAUST_PREFIX=""
+	fi
+
         cd "$TMP"
-        faust2sc --prefix=Faust $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
-        BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP"
+        faust2sc --prefix=$SC_FAUST_PREFIX $SYNTHDEF $f.xml > "${f%.dsp}.sc" 2>$OUTDEV
+        BUILDFLAGS="-O3 $FAUSTTOOLSFLAGS $SCFLAGS -I$CUR $INCLUDE $CXXFLAGS $OMP -DSC_FAUST_PREFIX=\"$SC_FAUST_PREFIX\""
         
         #build for build scsynth
         ${CXX=g++} $BUILDFLAGS -Dmydsp=${f%.dsp} -o ${f%.dsp}.$EXT ${f%.dsp}.cpp
