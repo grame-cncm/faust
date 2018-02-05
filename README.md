@@ -15,7 +15,7 @@ While there are Faust contributors everywhere across the globe, Faust is mainly 
 
 ## Versions and Branches
 
-The Faust distribution can be downloaded on the Faust Github repository: <https://github.com/grame-cncm/faust>. Official releases packages are also available here: <https://sourceforge.net/projects/faudiostream/files/?source=navbar>.
+The Faust distribution can be downloaded on the Faust Github repository: <https://github.com/grame-cncm/faust>. Official releases packages are also available here: <https://github.com/grame-cncm/faust/releases>.
 
 In the following subsections, details about the differences between these 2 versions of Faust are provided as well as information on other branches of the repository.
 

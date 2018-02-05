@@ -91,7 +91,7 @@ static Tree     boxSimplification(Tree box);
  */
 Tree evalprocess (Tree eqlist)
 {
-    Tree b = a2sb(eval(boxIdent("process"), gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
+    Tree b = a2sb(eval(boxIdent(gGlobal->gProcessName.c_str()), gGlobal->nil, pushMultiClosureDefs(eqlist, gGlobal->nil, gGlobal->nil)));
 
     if (gGlobal->gSimplifyDiagrams) {
         b = boxSimplification(b);

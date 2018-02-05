@@ -135,7 +135,7 @@ fi
 
 if [ $F2SC_DEBUG_MES = 1 ]; then
     echo "Activate debug messages in the generated plugin"
-    DNDEBUG=""
+    DNDEBUG="-DF2SC_DEBUG_MES"
 else
     DNDEBUG="-DNDEBUG"
 fi

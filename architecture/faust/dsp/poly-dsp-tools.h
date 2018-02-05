@@ -133,6 +133,10 @@ struct dsp_poly_factory : public dsp_factory {
         fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
         if (fProcessFactory) {
             fEffectFactory = createDSPFactoryFromString(name_app, code_effect.str(), argc, argv, target, error_msg);
+            if (!fEffectFactory) {
+                // The error message is not really needed...
+                error_msg = "";
+            }
         } else {
             std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
             throw std::bad_alloc();
@@ -198,7 +202,7 @@ struct dsp_poly_factory : public dsp_factory {
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
+inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
                                                  const std::string& dsp_content,
                                                  int argc, const char* argv[],
                                                  const std::string& target,
@@ -221,7 +225,7 @@ dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
+inline dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
                                                int argc, const char* argv[],
                                                const std::string& target,
                                                std::string& error_msg,
@@ -241,7 +245,7 @@ dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = -1)
+inline dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = -1)
 {
     std::string process_path = bit_code_path + "_bitcode_process";
     std::string effect_path = bit_code_path + "_bicode_effect";
@@ -264,7 +268,7 @@ dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_
  * @param target - the LLVM machine target (using empty string will takes current machine settings).
  *
  */
-void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::string& bit_code_path)
+inline void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::string& bit_code_path)
 {
     std::string process_path = bit_code_path + "_bitcode_process";
     writeDSPFactoryToBitcodeFile(factory->fProcessFactory, process_path);
@@ -286,7 +290,7 @@ void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::stri
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = -1)
+inline dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = -1)
 {
     std::string process_path = ir_code_path + "_ir_process";
     std::string effect_path = ir_code_path + "_ir_effect";
@@ -309,7 +313,7 @@ dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, 
  * @param target - the LLVM machine target (using empty string will takes current machine settings).
  *
  */
-void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::string& ir_code_path)
+inline void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::string& ir_code_path)
 {
     std::string process_path = ir_code_path + "_ir_process";
     writeDSPFactoryToIRFile(factory->fProcessFactory, process_path);
@@ -331,7 +335,7 @@ void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::string& i
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target)
+inline dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target)
 {
     std::string process_path = machine_code_path + "_machine_process";
     std::string effect_path = machine_code_path + "_machine_effect";
@@ -354,7 +358,7 @@ dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_c
  * @param target - the LLVM machine target (using empty string will takes current machine settings).
  *
  */
-void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const std::string& machine_code_path, const std::string& target)
+inline void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const std::string& machine_code_path, const std::string& target)
 {
     std::string process_path = machine_code_path + "_machine_process";
     writeDSPFactoryToMachineFile(factory->fProcessFactory, process_path, target);
@@ -363,6 +367,18 @@ void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const std::stri
         std::string effect_path = machine_code_path + "_machine_effect";
         writeDSPFactoryToMachineFile(factory->fEffectFactory, effect_path, target);
     }
+}
+
+/**
+ * Get the list of library dependancies of the Faust DSP factory.
+ *
+ * @param factory - the DSP factory
+ *
+ * @return the list as a vector of strings.
+ */
+inline std::vector<std::string> getDSPFactoryLibraryList(dsp_poly_factory* factory)
+{
+    return getDSPFactoryLibraryList(factory->fProcessFactory);
 }
 
 #endif // __poly_dsp_tools__
