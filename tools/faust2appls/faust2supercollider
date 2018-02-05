@@ -147,7 +147,7 @@ fi
 
 if [ "$FILES" = "" ]; then
     echo USAGE:
-    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] file1.dsp [file2.dsp ...]"
+    echo "$0 [-d[ebug]] [-dm] [-icc] [-omp] [-sd] [-ks] [-sn] [-noprefix] file1.dsp [file2.dsp ...]"
     exit 1
 fi
 
