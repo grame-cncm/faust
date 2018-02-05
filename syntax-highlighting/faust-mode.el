@@ -63,19 +63,15 @@
 ;;; Code:
 
 
-;; disabled for now until we have a Faust grammar for SMIE - agraef
-;; (require 'smie)
+(require 'smie)
 
 (defvar ac-sources)
 
 (defconst faust-keywords-statements
-  '("process" "with" "case" "seq" "par" "sum" "prod" "include" "import" "component" "library" "environment" "declare" "define" "undef" "error" "pragma" "ident" "if" "def" "else" "elif" "endif" "line" "warning"))
+  '("process" "with" "letrec" "case" "seq" "par" "sum" "prod" "include" "import" "component" "library" "environment" "declare" "define" "undef" "error" "pragma" "ident" "if" "def" "else" "elif" "endif" "line" "warning"))
 
 (defconst faust-keywords-functions
-  '("mem" "prefix" "int" "float" "rdtable" "rwtable" "select2" "select3" "ffunction" "fconstant" "fvariable" "attach" "acos" "asin" "atan" "atan2" "cos" "sin" "tan" "exp" "log" "log10" "pow" "sqrt" "abs" "min" "max" "fmod" "remainder" "floor" "ceil" "rint"))
-
-(defconst faust-keywords-math
-  '("mem" "prefix" "int" "float" "rdtable" "rwtable" "select2" "select3" "ffunction" "fconstant" "fvariable" "attach" "acos" "asin" "atan" "atan2" "cos" "sin" "tan" "exp" "log" "log10" "pow" "sqrt" "abs" "min" "max" "fmod" "remainder" "floor" "ceil" "rint"))
+  '("mem" "prefix" "int" "float" "rdtable" "rwtable" "select2" "select3" "ffunction" "fconstant" "fvariable" "attach" "acos" "asin" "atan" "atan2" "cos" "sin" "tan" "exp" "log" "log10" "pow" "sqrt" "abs" "min" "max" "fmod" "remainder" "floor" "ceil" "rint" "xor"))
 
 (defconst faust-keywords-ui
   '("button" "checkbox" "vslider" "hslider" "nentry" "vgroup" "hgroup" "tgroup" "vbargraph" "hbargraph"))
@@ -164,15 +160,28 @@
    faust-keywords-lib-vaeffect)
   "All the Faust library function keywords.")
 
+(defvar faust-keywords-misc
+  (append
+   faust-keywords-statements
+   faust-keywords-functions
+   faust-keywords-ui)
+  "Miscellaneous Faust keywords and built-in functions.")
+
+(defvar faust-keywords-all
+  (append
+   faust-keywords-misc
+   faust-keywords-lib)
+  "All Faust keywords and functions.")
+
 (defvar faust-mode-ac-source
-  '((candidates . faust-keywords-lib)))
+  '((candidates . faust-keywords-all)))
 
 (defvar faust-regexp-keywords-function (regexp-opt faust-keywords-functions 'words))
 (defvar faust-regexp-keywords-statement (regexp-opt faust-keywords-statements 'words))
 (defvar faust-regexp-keywords-ui (regexp-opt faust-keywords-ui 'words))
 (defvar faust-regexp-keywords-lib (regexp-opt faust-keywords-lib 'words))
 
-(defconst faust-regexp-faust-operator (rx (any ",:*-+><")))
+(defconst faust-regexp-faust-operator (rx (any ",'@:*/%^-+|&~>=<!")))
 
 (defconst faust-regexp-faust-delimiters (rx (any "{}()[];")))
 
@@ -188,28 +197,156 @@
     (,faust-regexp-faust-delimiters . font-lock-reference-face)
     (,faust-regexp-faust-numbers . font-lock-negation-char-face)))
 
+;; agraef: We derive the syntax table from C mode here since it's much closer
+;; to Faust's lexical syntax than the default syntax table which seems to be
+;; geared more towards Lisp. That way we get comment syntax for free and only
+;; need to fix up \ and ' which are just ordinary punction in Faust.
+(require 'cc-mode)
 (defvar faust-mode-syntax-table
-  (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?/  ". 124b" st)
-    (modify-syntax-entry ?*  ". 23" st)
-    (modify-syntax-entry ?\n "> b" st)
-    (modify-syntax-entry ?\^m "> b" st)
+  (let ((st (make-syntax-table c-mode-syntax-table)))
+    (modify-syntax-entry ?\\ "." st)
+    ;; XXXFIXME: ' should really be punctuation, but for reasons unknown to
+    ;; mankind this completely throws off SMIE's automatic indentation
+    ;; engine. Adding ' to the SMIE grammar or indentation rules doesn't help
+    ;; with that either. We work around this by just declaring ' a prefix
+    ;; character for now (word or symbol constituent works, too, but has other
+    ;; unwanted implications). If anyone has a better idea on how to fix this,
+    ;; please let me know! -agraef
+    (modify-syntax-entry ?\' "'" st)
     st)
   "Syntax table for `faust-mode'.")
+
+;; agraef: Preliminary Faust SMIE support. Due to restrictions in SMIE, the
+;; grammar given here is just a minimal version of the Faust grammar for the
+;; sole purpose of defining proper indentation. We also offer two variables
+;; faust-indent and faust-outdent-blocks which let you customize some aspects
+;; of the indentation, and it's possible to turn off SMIE altogether if it's
+;; not working for you, see below for details.
+
+(defgroup faust nil
+  "Major mode for editing Faust code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
+  :prefix "faust-"
+  :group 'languages)
+
+(defcustom faust-enable-smie t
+  "Whether Faust mode does auto-indentation using SMIE.
+Non-nil means that auto-indentation using SMIE is enabled.
+Please note that this option will only take effect in newly
+created Faust buffers."
+  :type 'boolean
+  :group 'faust)
+
+;; I prefer small indentation levels, so the default indent is 2, but you can
+;; change this by customizing the following variable.
+
+(defcustom faust-indent 2
+  "This variable gives the indentation in Faust mode."
+  :type 'integer
+  :group 'faust)
+
+(make-variable-buffer-local 'faust-indent)
+
+;; Custom indentation of block constructs: `with' and `letrec' are actually
+;; part of the expression syntax, so that they'd be indented like this:
+;;
+;;   lhs = rhs with {
+;;           foo = bar;
+;;         };
+;;
+;; But these constructs are most commonly used with the entire rhs of a
+;; definition, which suggests the following alternative indentation:
+;;
+;;   lhs = rhs with {
+;;     foo = bar;
+;;   };
+;;
+;; I think that this looks better and it also matches the indentation style
+;; used in the Faust Quick Reference, so this is the default right now.
+;; But if you prefer the former style, you can get that by setting the
+;; `faust-outdent-blocks' variable to `nil'. Also note that even if the latter
+;; style is used, you can make sure that a block expression is interpreted as
+;; part of the right-hand side (and indented accordingly) by just enclosing
+;; the entire block expression in parentheses.
+
+(defun faust-make-smie-grammar (outdent-blocks)
+  (smie-prec2->grammar
+   (smie-bnf->prec2
+    `((id)
+      ,(if outdent-blocks
+	   '(def ("declare" id)
+		 (id "=" exp)
+		 (id "=" exp "with" "{" defs "}")
+		 (id "=" exp "letrec" "{" defs "}")
+		 (exp))
+	 '(def ("declare" id)
+	       (id "=" exp)
+	       (exp)))
+      (defs (defs ";" defs) (def))
+      (exp (id)
+	   (id "(" exp ")")
+	   (exp "~" exp)
+	   (exp "," exp)
+	   (exp ":" exp)
+	   (exp "<:" exp) (exp ":>" exp)))
+    '((assoc ";"))
+    '((nonassoc "=") (assoc "~") (assoc ",") (assoc ":") (assoc "<:" ":>")))))
+
+(defcustom faust-outdent-blocks t
+  "Configure indentation of Faust block constructs.
+Non-nil means to indent the `with' and `letrec' constructs
+relative to the definition, not the right-hand side expression.
+
+Please note that this option will only take effect in newly
+created Faust buffers.  To apply the setting to an already
+existing Faust buffer, you have to run \\[faust-smie-reset] in
+that buffer."
+  :type 'boolean
+  :set (lambda (_symbol value)
+	 (setq-default faust-outdent-blocks value)
+	 (setq faust-smie-grammar (faust-make-smie-grammar value)))
+  :group 'faust)
+
+(defvar faust-smie-grammar (faust-make-smie-grammar faust-outdent-blocks))
+
+(defun faust-smie-reset ()
+  "Reset the SMIE setup in the current Faust buffer."
+  (interactive)
+  (when (and (derived-mode-p 'faust-mode) faust-enable-smie)
+    (smie-setup faust-smie-grammar #'faust-smie-rules)))
+
+(defun faust-smie-rules (kind token)
+  (pcase (cons kind token)
+    (`(:elem . basic) faust-indent)
+    (`(:list-intro . ,_) t)
+    (`(,_ . ",") (smie-rule-separator kind))
+    (`(:after . "=") faust-indent)
+    (`(:before . ,(or `"(" `"{" `"["))
+     (if (smie-rule-hanging-p) (smie-rule-parent)))
+    ))
+
+(defvar faust-font-lock-syntactic-keywords
+  '(;; <mdoc> .. </mdoc> sections are treated as comments
+    ("\\(<\\)mdoc>" 1 "!" t) ("</mdoc\\(>\\)" 1 "!" t)))
 
 ;;;###autoload
 (define-derived-mode faust-mode prog-mode
   "Faust"
-  "Major mode for editing
-[Faust](http://faust.grame.fr) (Functional AUdio STream) files.
+  "Major mode for editing Faust code (URL `http://faust.grame.fr').
 
-Syntax highlighting of *all* the Faust commands and operators, as
-well as indentation rules."
+Provides syntax highlighting of Faust keywords and library
+functions, as well as indentation rules. Auto-completion of
+library functions is available if you install and enable the
+`auto-complete' package available from MELPA."
 
   (setq
    comment-start "//"
    comment-end ""
-   font-lock-defaults '(faust-mode-font-lock-keywords))
+   comment-start-skip "\\(//+\\|/\\*+\\)\\s *"
+   font-lock-defaults
+   '(faust-mode-font-lock-keywords
+     nil nil nil nil
+     (font-lock-syntactic-keywords . faust-font-lock-syntactic-keywords)))
 
   (if (boundp 'ac-sources)
       (progn
@@ -217,8 +354,8 @@ well as indentation rules."
         (add-to-list 'ac-sources 'faust-mode-ac-source))
     (message "You really should install and use auto-complete"))
 
-  ;; disabled for now until we have a Faust grammar for SMIE - agraef
-  ;; (smie-setup nil #'ignore)
+  (when faust-enable-smie
+    (smie-setup faust-smie-grammar #'faust-smie-rules))
 
   (set-syntax-table faust-mode-syntax-table))
 
