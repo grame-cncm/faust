@@ -1048,17 +1048,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         dst = new stringstream(stringstream::out|stringstream::binary);
     } else if (gGlobal->gOutputFile != "") {
         outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        /* desactivated for now (creates issue with faust2android on Linux)
-        char* directory = dirname((char*)outpath.c_str());
-        char temp[PATH_MAX+1];
-        char* path = realpath(directory, temp);
-        if (path == 0) {
+        ofstream* fdst = new ofstream(outpath.c_str());
+        if (!fdst->is_open()) {
             stringstream error;
-            error << "ERROR : invalid directory path " << directory << endl;
+            error << "ERROR : file '" << outpath << "' cannot be opened\n";
             throw faustexception(error.str());
+        } else {
+            dst = fdst;
         }
-        */
-        dst = new ofstream(outpath.c_str());
     } else {
         dst = &cout;
     }
@@ -1574,7 +1571,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-static void compileFaustInternal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
+static void compileFaustFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
 
@@ -1688,7 +1685,7 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
     try {
         global::allocate();
-        compileFaustInternal(argc, argv, name, dsp_content, generate);
+        compileFaustFactoryAux(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         factory = gGlobal->gDSPFactory;
     } catch (faustexception& e) {
