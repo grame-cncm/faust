@@ -9,8 +9,7 @@ ifeq ($(system), MINGW)
 else
  FAUST ?= ../../build/bin/faust
 endif
-
-CONTINUE ?= false
+MAKE ?= make
 
 SAMPLESROOT := ../..
 REGRESSION := ..
@@ -41,9 +40,9 @@ GCC ?= gcc
 OPTIONS := -Wno-unused-command-line-argument -I$(FAUSTINC)
 
 all:
-	make examples
-	make regression
-	make gcc
+	$(MAKE) examples
+	$(MAKE) regression
+	$(MAKE) gcc
 
 
 help:
@@ -59,8 +58,6 @@ help:
 	@echo " 'gcc'        : use only the c, cpp and ocpp backends and compiles"
 	@echo "                the C and C++ output"
 	@echo " 'interp'     : compiles using the interpreter backend"
-	@echo "Options:"
-	@echo " CONTINUE=[true | false] : ignore errors when true (default is false)"
 	
 gcc: $(gccexamplesout) $(gccregressionout) $(gccobj)
 examples: $(examplesout) $(gccexamplesout)
@@ -82,112 +79,112 @@ test:
 # rule for cpp output
 $(version)/cpp/%.cpp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ 
 $(version)/cpp/%.cpp: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang cpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ 
 
 #########################################################################
 # rule for ocpp output
 $(version)/o.cpp/%.o.cpp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ 
 $(version)/o.cpp/%.o.cpp: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang ocpp -I $(FAUSTLIBS) -a ./min.cpp $<  -o $@ 
 
 #########################################################################
 # rule for c output
 $(version)/c/%.c: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ 
 $(version)/c/%.c: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang c -I $(FAUSTLIBS) -a ./min.c $<  -o $@ 
 
 #########################################################################
 # rule for js output
 $(version)/js/%.js: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/js/%.js: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang js -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for asmjs output
 $(version)/ajs/%.ajs: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/ajs/%.ajs: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang ajs -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for wasm output
 $(version)/wasm/%.wasm: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/wasm/%.wasm: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang wast/wasm -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for java output
 $(version)/java/%.java: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/java/%.java: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang java -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for fir output
 $(version)/fir/%.fir: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/fir/%.fir: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang fir -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for rust output
 $(version)/rust/%.rust: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/rust/%.rust: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang rust -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for llvm output
 $(version)/llvm/%.llvm: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/llvm/%.llvm: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang llvm -I $(FAUSTLIBS) $<  -o $@ 
 
 #########################################################################
 # rule for interp output
 $(version)/interp/%.itp: $(SAMPLESROOT)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ 
 $(version)/interp/%.itp: $(REGRESSION)/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
-	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ || $(CONTINUE)
+	$(FAUST) -lang interp -I $(FAUSTLIBS) $<  -o $@ 
 
 
 #########################################################################
 # rules for c/c++ compilation
 $(version)/cpp/%.o: $(version)/cpp/%.cpp
 	$(eval tmp := $(patsubst $(version)/cpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
+	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ 
 
 $(version)/o.cpp/%.o.o: $(version)/o.cpp/%.o.cpp
 	$(eval tmp := $(patsubst $(version)/ocpp/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
+	$(CXX) -c $(OPTIONS) -I$(tmp) $< -o $@ 
 
 $(version)/c/%.o: $(version)/c/%.c
 	$(eval tmp := $(patsubst $(version)/c/%, $(SAMPLESROOT)/%, $(<D)))	
-	$(GCC) -c $(OPTIONS) -I$(tmp) $< -o $@ || $(CONTINUE)
+	$(GCC) -c $(OPTIONS) -I$(tmp) $< -o $@ 
