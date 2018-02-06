@@ -289,12 +289,6 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
-# install faustbench.cpp ?
-# install (
-#     FILES     ${ROOT}/tools/benchmark/faustbench.cpp DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
-#     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-# )
-
 # install folders
 set (ARCHSRC android api AU iOS juce max-msp nodejs osclib smartKeyboard unity webaudio)
 foreach (dir ${ARCHSRC})
