@@ -1,0 +1,71 @@
+#
+# Makefile for testing the faust compiler output
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+else
+ FAUST ?= ../../build/bin/faust
+endif
+MAKE ?= make
+
+SAMPLESROOT := ../..
+REGRESSION := ..
+FAUSTLIBS ?= ../../libraries
+
+FAUSTOPTIONS ?= 
+outdir ?= cpp
+lang   ?= cpp
+ext    ?= cpp
+
+version := $(shell $(FAUST) --version | grep Version | sed -e 's/^..*Version //')
+
+dspfiles  = $(shell find $(SAMPLESROOT)/examples -name "*.dsp" | grep -v TODO | grep -v old | grep -v faust-stk)
+regressionfiles = $(shell find $(REGRESSION)/codegen-tests -name "*.dsp")
+
+examplesout 	:= $(dspfiles:$(SAMPLESROOT)/%.dsp=$(version)/$(lang)/%.$(ext))
+regressionout 	:= $(regressionfiles:$(REGRESSION)/%.dsp=$(version)/$(lang)/%.$(ext)))
+
+
+all: $(version)/$(outdir) $(examplesout) $(regressionout)
+
+test:
+	@echo $(regressionout)
+
+help:
+	@echo "-------- FAUST compilation tests --------"
+	@echo "Available targets are:"
+	@echo " 'all' (default): compiles all the dsp found in the examples and regression"
+	@echo "              folders using the $(lang) backend"
+	@echo
+	@echo "Specific targets:"
+	@echo " 'examples'   : use only the examples folder"
+	@echo " 'regression' : use only the regression folder"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir'       : defines output directory  (default is $(outdir))"
+	@echo " 'lang'         : defines the faust backend (default is $(lang))"
+	@echo " 'ext'          : defines the faust compiled file extension (default is $(ext))"
+	@echo " 'FAUSTOPTIONS' : additional faust options (default is empty)"
+
+	
+examples: $(examplesout) $(gccexamplesout)
+regression: $(regressionout) $(gccregressionout)
+
+$(version)/$(outdir):
+	mkdir -p $(version)/$(outdir)
+
+
+#########################################################################
+# generic rule rule for $(lang) output
+$(version)/$(outdir)/%.$(ext): $(SAMPLESROOT)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
+$(version)/$(outdir)/%.$(ext): $(REGRESSION)/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang $(lang) -I $(FAUSTLIBS) $(FAUSTOPTIONS) $<  -o $@ 
+
+
+
