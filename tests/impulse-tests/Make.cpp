@@ -11,6 +11,7 @@ else
  FAUST ?= ../../build/bin/faust
  COMPARE := ./filesCompare
 endif
+MAKE ?= make
 
 GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
 outdir ?= cpp/double
@@ -63,7 +64,7 @@ ir/$(outdir):
 	mkdir -p ir/$(outdir)
 
 filesCompare:
-	make filesCompare
+	$(MAKE) filesCompare
 
 #########################################################################
 # rules 

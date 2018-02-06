@@ -25,6 +25,7 @@ DESTDIR ?=
 
 .PHONY: faust install uninstall osc
 
+MAKE ?= make
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 
 #===============================================================
@@ -41,7 +42,7 @@ EMCC 	?= emcc
 #===============================================================
 # main target
 faust:
-	make $(TARGET)
+	$(MAKE) $(TARGET)
 
 clean:
 	cmake --build $(FAUSTDIR) --target clean
@@ -88,10 +89,10 @@ help:
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 
 all:
-	make faust
-	make staticlib
-	make dynamiclib
-	make osc
+	$(MAKE) faust
+	$(MAKE) staticlib
+	$(MAKE) dynamiclib
+	$(MAKE) osc
 
 osc:
 	cmake --build $(FAUSTDIR) --target oscstatic -- -j $(TASKS)
@@ -166,11 +167,11 @@ windows: $(FAUSTDIR)
 # building faust with emscripten
 #===============================================================
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
-	@make checkemcc
+	@$(MAKE) checkemcc
 	cmake --build $(FAUSTDIR) --target wasmlib -- -j $(TASKS)
 
 asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
-	@make checkemcc
+	@$(MAKE) checkemcc
 	cmake --build $(FAUSTDIR) --target asmjslib -- -j $(TASKS)
 
 checkemcc:

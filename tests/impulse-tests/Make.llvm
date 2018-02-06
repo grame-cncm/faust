@@ -11,6 +11,7 @@ else
  FAUST ?= ../../build/bin/faust
  COMPARE := ./filesCompare
 endif
+MAKE ?= make
 
 outdir ?= llvm
 lang ?= llvm
@@ -51,10 +52,10 @@ ir/$(outdir):
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
-	make filesCompare
+	$(MAKE) filesCompare
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
-	make impulsellvm
+	$(MAKE) impulsellvm
 
 
 #########################################################################

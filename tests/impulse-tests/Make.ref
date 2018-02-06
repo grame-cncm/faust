@@ -11,6 +11,7 @@ else
  FAUST ?= ../../build/bin/faust
  COMPARE := ./filesCompare
 endif
+MAKE ?= make
 
 refdir := reference
 GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
@@ -67,7 +68,7 @@ $(refdir)/sched:
 #########################################################################
 # tools
 filesCompare: $(SRCDIR)/filesCompare.cpp
-	make filesCompare
+	$(MAKE) filesCompare
 
 
 #########################################################################
