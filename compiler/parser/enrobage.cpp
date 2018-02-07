@@ -264,7 +264,7 @@ static bool checkFile(const char* filename)
         return true;
     } else {
         stringstream error;
-        error << "ERROR : cannot open file '" << filename << "' : " << strerror(errno) << endl;
+        error << "ERROR : cannot open file '" << ((filename) ? filename : "null") << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
     }
 }
@@ -283,7 +283,7 @@ bool checkURL(const char* filename)
             return true;
         } else {
             stringstream error;
-            error << "ERROR : unable to access URL '" << filename << "' : " << http_strerror() << endl;
+            error << "ERROR : unable to access URL '" << ((filename) ? filename : "null") << "' : " << http_strerror() << endl;
             throw faustexception(error.str());
         }
     } else {
@@ -310,7 +310,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
         if (!newdir) {
             fclose(f);
             stringstream error;
-            error << "ERROR : getcwd '" << strerror(errno) << endl;
+            error << "ERROR : getcwd : " << strerror(errno) << endl;
             throw faustexception(error.str());
         }
         fullpath = newdir;
@@ -320,7 +320,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
         if (err != 0) {
             fclose(f);
             stringstream error;
-            error << "ERROR : cannot change back directory to '" << olddir << "' : " << strerror(errno) << endl;
+            error << "ERROR : cannot change back directory to '" << ((olddir) ? olddir : "null") << "' : " << strerror(errno) << endl;
             throw faustexception(error.str());
         }
         return f;
@@ -328,7 +328,7 @@ static FILE* fopenAt(string& fullpath, const char* dir, const char* filename)
     err = chdir(olddir);
     if (err != 0) {
         stringstream error;
-        error << "ERROR : cannot change back directory to '" << olddir << "' : " << strerror(errno) << endl;
+        error << "ERROR : cannot change back directory to '" << ((olddir) ? olddir : "null") << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
     }
     return 0;
@@ -371,7 +371,7 @@ static void buildFullPathname(string& fullpath, const char* filename)
         char* newdir = getcwd(old, FAUST_PATH_MAX);
         if (!newdir) {
             stringstream error;
-            error << "ERROR : getcwd '" << strerror(errno) << endl;
+            error << "ERROR : getcwd : " << strerror(errno) << endl;
             throw faustexception(error.str());
         }
         fullpath = newdir;
