@@ -16,9 +16,10 @@ class mydspNode extends AudioWorkletNode {
         var json_object = JSON.parse(getJSONmydsp());
         
         // Setting values for the input, the output and the channel count.
-        options.numberOfInputs = parseInt(json_object.inputs);
-        options.numberOfOutputs = parseInt(json_object.outputs);
-        options.channelCount = 1;
+        options.numberOfInputs = 1;
+        options.numberOfOutputs = 1;
+        options.channelCount = 2;
+        options.channelCountMode = "explicit";
         
         super(context, 'mydsp', options);
         

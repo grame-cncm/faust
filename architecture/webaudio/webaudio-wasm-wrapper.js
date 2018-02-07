@@ -1515,9 +1515,9 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 {
 	// Create a generic AudioWorkletNode
 	var audio_node = new AudioWorkletNode(context, factory.name,
-                                          { numberOfInputs: parseInt(factory.json_object.inputs),
-                                            numberOfOutputs: parseInt(factory.json_object.outputs),
-                                            channelCount: 1,
+                                          { numberOfInputs: 1,
+                                            numberOfOutputs: 1,
+                                            channelCount: 2,
                                             channelCountMode: "explicit" });
     
     // Patch it with additional functions
@@ -3236,9 +3236,9 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
 {
 	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
 	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "_poly",
-                                          { numberOfInputs: parseInt(factory.json_object.inputs),
-                                            numberOfOutputs: parseInt(factory.json_object.outputs),
-                                            channelCount: 1,
+                                          { numberOfInputs: 1,
+                                            numberOfOutputs: 1,
+                                            channelCount: 2,
                                             channelCountMode: "explicit" });
     
     // Patch it with additional functions
