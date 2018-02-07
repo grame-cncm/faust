@@ -35,19 +35,19 @@ SEDFILES = README
 all: faust2pd$(EXE)
 
 examples: faust2pd$(EXE)
-	for x in basic faust synth seqdemo; do make -C examples/$$x all; done
+	for x in basic faust synth seqdemo; do $(MAKE) -C examples/$$x all; done
 
 clean:
 	rm -f faust2pd$(EXE)
-	for x in basic faust synth seqdemo; do make -C examples/$$x clean; done
+	for x in basic faust synth seqdemo; do $(MAKE) -C examples/$$x clean; done
 
 distclean:
 	rm -f faust2pd$(EXE)
-	for x in basic faust synth seqdemo; do make -C examples/$$x distclean; done
+	for x in basic faust synth seqdemo; do $(MAKE) -C examples/$$x distclean; done
 
 realclean:
 	rm -f faust2pd$(EXE)
-	for x in basic faust synth seqdemo; do make -C examples/$$x realclean; done
+	for x in basic faust synth seqdemo; do $(MAKE) -C examples/$$x realclean; done
 
 # as of pure-0.21, we can compile the script to an executable
 faust2pd$(EXE): faust2pd.pure faustxml.pure
@@ -97,7 +97,7 @@ dist:
 
 distcheck: dist
 	tar xfz $(dist).tar.gz
-	cd $(dist) && make all examples && make install install-pd DESTDIR=./BUILD
+	cd $(dist) && $(MAKE) all examples && $(MAKE) install install-pd DESTDIR=./BUILD
 	rm -rf $(dist)
 
 # Debian packaging
