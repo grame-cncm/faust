@@ -236,6 +236,9 @@ faust.createmydsp_poly = function(context, max_polyphony, callback)
 {
     // TODO: handle max_polyphony
     
+    // Resume audio context each time...
+    context.resume();
+    
     // The main global scope
     context.audioWorklet.addModule("mydsp-processor.js")
     .then(function () {

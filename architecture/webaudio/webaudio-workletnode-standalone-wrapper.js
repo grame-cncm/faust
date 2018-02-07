@@ -177,6 +177,9 @@ var faust = faust || {};
 
 faust.createmydsp = function(context, callback)
 {
+    // Resume audio context each time...
+    context.resume();
+    
     // The main global scope
     context.audioWorklet.addModule("mydsp-processor.js")
     .then(function () {
