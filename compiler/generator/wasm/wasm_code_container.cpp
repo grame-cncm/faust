@@ -113,6 +113,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
