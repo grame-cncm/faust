@@ -81,6 +81,7 @@ install:
 	install faust2vsti $(dest)
 	install faust2wasm $(dest)
 	install faust2w32max6 $(dest)
+	install faust2w64max6 $(dest)
 	install faust2w32msp $(dest)
 	install faust2w32puredata $(dest)
 	install faust2w32vst $(dest)
@@ -122,7 +123,7 @@ uninstall:
 	rm -f $(dest)/faust2jackconsole
 	rm -f $(dest)/faust2jackinternal
 	rm -f $(dest)/faust2jackserver
-	rm -f $(dest)/faust2jackrust 
+	rm -f $(dest)/faust2jackrust
 	rm -f $(dest)/faust2jaqt
 	rm -f $(dest)/faust2juce
 	rm -f $(dest)/faust2ladspa
@@ -160,6 +161,7 @@ uninstall:
 	rm -f $(dest)/faust2vsti
 	rm -f $(dest)/faust2wasm
 	rm -f $(dest)/faust2w32max6
+	rm -f $(dest)/faust2w64max6
 	rm -f $(dest)/faust2w32msp
 	rm -f $(dest)/faust2w32puredata
 	rm -f $(dest)/faust2w32vst
