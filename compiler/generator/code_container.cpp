@@ -647,6 +647,7 @@ void CodeContainer::processFIR(void)
     // Possibly add "fSamplingFreq" field
     generateSR();
     
+    // Possibly groups tasks (used by VectorCodeContainer, OpenMPCodeContainer and WSSCodeContainer) 
     if (gGlobal->gGroupTaskSwitch) {
         CodeLoop::computeUseCount(fCurLoop);
         set<CodeLoop*> visited;

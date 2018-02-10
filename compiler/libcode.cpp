@@ -1633,20 +1633,22 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     int numOutputs = gGlobal->gNumOutputs;
 
     if (gGlobal->gExportDSP) {
-        ofstream out(subst("$0_exp.dsp", gGlobal->makeDrawPathNoExt()).c_str());
+        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        ofstream* out = new ofstream(outpath.c_str());
 
         // Encode compilation options as a 'declare' : has to be located first in the string
-        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
+        *out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
-            out << "declare " << "library_path " << '"' << *it << "\";" << endl;
+            *out << "declare " << "library_path " << '"' << *it << "\";" << endl;
         }
 
-        printDeclareHeader(out);
+        printDeclareHeader(*out);
 
-        out << "process = " << boxpp(process) << ';' << endl;
+        *out << "process = " << boxpp(process) << ';' << endl;
+        delete out;
         return;
     }
 
