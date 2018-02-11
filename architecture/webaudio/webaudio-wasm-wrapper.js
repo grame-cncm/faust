@@ -175,7 +175,7 @@ Utf8.decode = function(strUtf) {
 
 /*
  faust2wasm
- Additional code: GRAME 2017
+ Additional code: GRAME 2017-2018
 */
  
 'use strict';
@@ -1521,10 +1521,12 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     
 	// Create a generic AudioWorkletNode
 	var audio_node = new AudioWorkletNode(context, factory.name,
-                                          { numberOfInputs: 1,
-                                            numberOfOutputs: 1,
-                                            channelCount: 2,
-                                            channelCountMode: "explicit" });
+                                          { numberOfInputs: (parseInt(factory.json_object.inputs) > 0) ? 1 : 0,
+                                            numberOfOutputs: (parseInt(factory.json_object.outputs) > 0) ? 1 : 0,
+                                            channelCount: Math.max(1, parseInt(factory.json_object.inputs)),
+                                            outputChannelCount: [parseInt(factory.json_object.outputs)],
+                                            channelCountMode: "explicit",
+                                            channelInterpretation: "speakers" });
     
     // Patch it with additional functions
     audio_node.handleMessage = function(event)
@@ -3248,10 +3250,12 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
     
 	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
 	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "_poly",
-                                          { numberOfInputs: 1,
-                                            numberOfOutputs: 1,
-                                            channelCount: 2,
-                                            channelCountMode: "explicit" });
+                                          { numberOfInputs: (parseInt(factory.json_object.inputs) > 0) ? 1 : 0,
+                                            numberOfOutputs: (parseInt(factory.json_object.outputs) > 0) ? 1 : 0,
+                                            channelCount: Math.max(1, parseInt(factory.json_object.inputs)),
+                                            outputChannelCount: [parseInt(factory.json_object.outputs)],
+                                            channelCountMode: "explicit",
+                                            channelInterpretation: "speakers" });
     
     // Patch it with additional functions
     audio_node.handleMessage = function(event)

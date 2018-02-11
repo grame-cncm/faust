@@ -1,6 +1,6 @@
 /*
  faust2wasm
- Additional code: GRAME 2017
+ Additional code: GRAME 2017-2018
 */
  
 'use strict';
@@ -16,11 +16,13 @@ class mydspNode extends AudioWorkletNode {
         var json_object = JSON.parse(getJSONmydsp());
         
         // Setting values for the input, the output and the channel count.
-        options.numberOfInputs = 1;
-        options.numberOfOutputs = 1;
-        options.channelCount = 2;
+        options.numberOfInputs = (parseInt(json_object.inputs) > 0) ? 1 : 0;
+        options.numberOfOutputs = (parseInt(json_object.outputs) > 0) ? 1 : 0;
+        options.channelCount = Math.max(1, parseInt(json_object.inputs));
+        options.outputChannelCount = [parseInt(json_object.outputs)];
         options.channelCountMode = "explicit";
-        
+        options.channelInterpretation = "speakers";
+       
         super(context, 'mydsp', options);
         
         // JSON parsing functions
