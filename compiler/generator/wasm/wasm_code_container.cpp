@@ -113,10 +113,10 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
 DeclareFunInst* WASMCodeContainer::generateClassInit(const string& name)
 {
     list<NamedTyped*> args;
+    args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
     BlockInst* inlined = inlineSubcontainersFunCalls(fStaticInitInstructions);
-    
     BlockInst* block = MoveVariablesInFront3().getCode(inlined);
     
     // Creates function
@@ -133,7 +133,6 @@ DeclareFunInst* WASMCodeContainer::generateInstanceClear(const string& name, con
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     BlockInst* renamed = DspRenamer().getCode(fClearInstructions);
-    
     BlockInst* block = MoveVariablesInFront3().getCode(renamed);
     
     // Creates function
@@ -150,7 +149,6 @@ DeclareFunInst* WASMCodeContainer::generateInstanceConstants(const string& name,
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
     
     BlockInst* inlined = inlineSubcontainersFunCalls(fInitInstructions);
-    
     BlockInst* block = MoveVariablesInFront3().getCode(inlined);
   
     // Creates function
@@ -167,7 +165,6 @@ DeclareFunInst* WASMCodeContainer::generateInstanceResetUserInterface(const stri
     
     // Rename 'sig' in 'dsp' and remove 'dsp' allocation
     BlockInst* renamed = DspRenamer().getCode(fResetUserInterfaceInstructions);
-    
     BlockInst* block = MoveVariablesInFront3().getCode(renamed);
     
     // Creates function
@@ -193,18 +190,13 @@ DeclareFunInst* WASMCodeContainer::generateInstanceInitFun(const string& name, c
         args.push_back(InstBuilder::genNamedTyped(obj, Typed::kObj_ptr));
     }
     args.push_back(InstBuilder::genNamedTyped("samplingFreq", Typed::kInt32));
-    BlockInst* init_block = InstBuilder::genBlockInst();
     
+    BlockInst* init_block = InstBuilder::genBlockInst();
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fStaticInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fPostInitInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fResetUserInterfaceInstructions));
-
     init_block->pushBackInst(MoveVariablesInFront3().getCode(fClearInstructions));
-
     if (addreturn) { init_block->pushBackInst(InstBuilder::genRetInst()); }
     
     // Creates function

@@ -175,7 +175,7 @@ Utf8.decode = function(strUtf) {
 
 /*
  faust2wasm
- Additional code: GRAME 2017
+ Additional code: GRAME 2017-2018
 */
  
 'use strict';
@@ -619,7 +619,10 @@ faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_ke
  * @param buffer_size - the buffer_size in frames
  * @param callback - a callback taking the created ScriptProcessorNode as parameter, or null in case of error
  */
-faust.createDSPInstance = function (factory, context, buffer_size, callback) {
+faust.createDSPInstance = function (factory, context, buffer_size, callback)
+{
+    // Resume audio context each time...
+    context.resume();
 
     var importObject = {
         env: {
@@ -1513,12 +1516,17 @@ var mydspProcessorString = `
 
 faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 {
+    // Resume audio context each time...
+    context.resume();
+    
 	// Create a generic AudioWorkletNode
 	var audio_node = new AudioWorkletNode(context, factory.name,
-                                          { numberOfInputs: parseInt(factory.json_object.inputs),
-                                            numberOfOutputs: parseInt(factory.json_object.outputs),
-                                            channelCount: 1,
-                                            channelCountMode: "explicit" });
+                                          { numberOfInputs: (parseInt(factory.json_object.inputs) > 0) ? 1 : 0,
+                                            numberOfOutputs: (parseInt(factory.json_object.outputs) > 0) ? 1 : 0,
+                                            channelCount: Math.max(1, parseInt(factory.json_object.inputs)),
+                                            outputChannelCount: [parseInt(factory.json_object.outputs)],
+                                            channelCountMode: "explicit",
+                                            channelInterpretation: "speakers" });
     
     // Patch it with additional functions
     audio_node.handleMessage = function(event)
@@ -1724,6 +1732,9 @@ faust.createMemory = function (factory, buffer_size, polyphony) {
 
 faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_instance, effect_instance, memory, context, buffer_size, polyphony, callback)
 {
+    // Resume audio context each time...
+    context.resume();
+    
     var time2 = performance.now();
     console.log("Instantiation duration : " + (time2 - time1));
     
@@ -3234,12 +3245,17 @@ var mydsp_polyProcessorString = `
 
 faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, callback)
 {
+    // Resume audio context each time...
+    context.resume();
+    
 	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
 	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "_poly",
-                                          { numberOfInputs: parseInt(factory.json_object.inputs),
-                                            numberOfOutputs: parseInt(factory.json_object.outputs),
-                                            channelCount: 1,
-                                            channelCountMode: "explicit" });
+                                          { numberOfInputs: (parseInt(factory.json_object.inputs) > 0) ? 1 : 0,
+                                            numberOfOutputs: (parseInt(factory.json_object.outputs) > 0) ? 1 : 0,
+                                            channelCount: Math.max(1, parseInt(factory.json_object.inputs)),
+                                            outputChannelCount: [parseInt(factory.json_object.outputs)],
+                                            channelCountMode: "explicit",
+                                            channelInterpretation: "speakers" });
     
     // Patch it with additional functions
     audio_node.handleMessage = function(event)

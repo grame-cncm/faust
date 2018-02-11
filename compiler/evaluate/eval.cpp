@@ -274,6 +274,29 @@ static Tree eval (Tree exp, Tree visited, Tree localValEnv)
 }
 
 /**
+ * Check numerical tuple.
+ *
+ * Check if a box is a parallel construction of numbers
+ * @param box the expression to analyse
+ * @param L the resulting flat list of numbers
+ * @return true if box is a parallel construction of numbers
+ */
+static bool isNumericalTuple(Tree box, siglist& L)
+{
+    Tree l,r;
+
+    if (isBoxInt(box) || isBoxReal(box)) {
+        L.push_back(box);
+        return true;
+    } else if (isBoxPar(box, l, r) && isNumericalTuple(l, L)) {
+        return isNumericalTuple(r, L);
+    } else {
+        return false;
+    }
+}
+
+
+/**
  * Eval a block diagram expression.
  *
  * Strict evaluation of a block diagram expression by applying beta reduction.
@@ -317,7 +340,22 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	//---------------------------
 
 	} else if (isBoxSeq(exp, e1, e2)) {
-		return boxSeq(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
+        Tree a1 = eval(e1, visited, localValEnv);
+        Tree a2 = eval(e2, visited, localValEnv);
+        xtended* xxt = (xtended*) getUserData(a2);
+        siglist lsig;
+        // try a numerical simplification of expressions of type 2,3:+
+        if (isNumericalTuple(a1,lsig) && (xxt || isBoxWire(a2) || isBoxPrim1(a2) || isBoxPrim2(a2))) {
+            Tree lres = boxPropagateSig(gGlobal->nil, a2, lsig);
+            if ( isList(lres) && isNil(tl(lres)) ) {
+                Tree r = simplify(hd(lres));
+                if (isNum(r)) {
+                    return r;
+                }
+            }
+        }
+        // no numerical simplification
+        return boxSeq(a1, a2);
 
 	} else if (isBoxPar(exp, e1, e2)) {
 		return boxPar(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
@@ -1002,7 +1040,7 @@ static Tree applyList (Tree fun, Tree larg)
 
 		list2vec(envList, envVect);
         //cerr << "applyList/apply_pattern_matcher(" << automat << "," << state << "," << *hd(larg) << ")" << endl;
-		state2 = apply_pattern_matcher(automat, state, boxSimplification(hd(larg)), result, envVect);
+        state2 = apply_pattern_matcher(automat, state, hd(larg), result, envVect);
         //cerr << "state2 = " << state2 << "; result = " << *result << endl;
 		if (state2 >= 0 && isNil(result)) {
 			// we need to continue the pattern matching
@@ -1308,7 +1346,7 @@ Tree boxSimplification (Tree box)
 
     } else {
 
-        simplified = numericBoxSimplification(a2sb(box));
+        simplified = numericBoxSimplification(box);
 
         // transferts name property if any
         Tree name; if (getDefNameProperty(box, name)) setDefNameProperty(simplified, name);
