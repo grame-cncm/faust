@@ -1,4 +1,4 @@
-version := 2.5.17
+version := 2.5.21
 
 system	?= $(shell uname -s)
 
@@ -95,27 +95,27 @@ bench :
 .PHONY: clean depend install uninstall dist parser help
 
 help :
-	@echo "Usage : 'make; sudo make install'"
-	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
-	@echo "make or make all : compile the Faust compiler and osc support library"
-	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
-	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
-	@echo "make asmjs : compile asmjs libfaust.js"
-	@echo "make wasm : compile wasm libfaust-wasm.js"
-	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
-	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"
-	@echo "make debug : produce a debug version of compiler and libraries"
-	@echo "make sound2faust : compile sound to DSP file converter"
-	@echo "make remote : compile remote components used by FaustLive"
-	@echo "make parser : generate the parser from the lex and yacc files"
-	@echo "make clean : remove all object files"
-	@echo "make doc : generate the documentation using doxygen"
-	@echo "make updatesubmodules : update the libraries submodule"
-	@echo "make doclib : generate the documentation of the faust libraries"
-	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
-	@echo "make uninstall : undo what install did"
-	@echo "make dist : make a Faust distribution as a .zip file"
-	@echo "make log : make a changelog file"
+	@echo "Usage : '$(MAKE); sudo $(MAKE) install'"
+	@echo "For http support : 'make httpd; make; sudo $(MAKE) install' (requires GNU libmicrohttpd)"
+	@echo "$(MAKE) or $(MAKE) all : compile the Faust compiler and osc support library"
+	@echo "$(MAKE) httpd : compile httpdlib (requires GNU libmicrohttpd)"
+	@echo "$(MAKE) dynamic : compile httpd & osc supports as dynamic libraries"
+	@echo "$(MAKE) asmjs : compile asmjs libfaust.js"
+	@echo "$(MAKE) wasm : compile wasm libfaust-wasm.js"
+	@echo "$(MAKE) universal : on OSX, compile 32/64bits version of compiler and libraries"
+	@echo "$(MAKE) light : only compile C/C++ backend (to avoid dependency with LLVM)"
+	@echo "$(MAKE) debug : produce a debug version of compiler and libraries"
+	@echo "$(MAKE) sound2faust : compile sound to DSP file converter"
+	@echo "$(MAKE) remote : compile remote components used by FaustLive"
+	@echo "$(MAKE) parser : generate the parser from the lex and yacc files"
+	@echo "$(MAKE) clean : remove all object files"
+	@echo "$(MAKE) doc : generate the documentation using doxygen"
+	@echo "$(MAKE) updatesubmodules : update the libraries submodule"
+	@echo "$(MAKE) doclib : generate the documentation of the faust libraries"
+	@echo "$(MAKE) install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
+	@echo "$(MAKE) uninstall : undo what install did"
+	@echo "$(MAKE) dist : make a Faust distribution as a .zip file"
+	@echo "$(MAKE) log : make a changelog file"
 
 parser :
 	$(MAKE) -C compiler -f $(MAKEFILE) parser
@@ -251,7 +251,7 @@ install :
 	make -C tools/faust2appls install
 
 	# install sound converter
-	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
+	[ -e tools/sound2faust/sound2faust ] && $(MAKE) -C tools/sound2faust install || echo sound2faust not compiled
 
 	# install faustremote
 	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled

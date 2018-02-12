@@ -19,7 +19,7 @@ endif
 deepclean: cleanglui
 
 cleanglui:
-	cd ../../libraries/glui/glui-2.35/src; make clean; rm lib/libglui.$(DYLIB_EXT)
+	cd ../../libraries/glui/glui-2.35/src; $(MAKE) clean; rm lib/libglui.$(DYLIB_EXT)
 
 endif
 

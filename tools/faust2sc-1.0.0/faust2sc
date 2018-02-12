@@ -311,12 +311,11 @@ module Faust
     def make_class_name(unit_name, prefix)
       # The SuperCollider UGen class name generated here must match 
       # that generated in the Faust architecture file supercollider.cpp
-      if prefix == ""
-        prefix = "Faust"
-      end
       class_name = unit_name
       class_name = class_name.sub(/^#{prefix}/i, '')
-      class_name = prefix + '_' + class_name
+      if prefix != ""
+        class_name = prefix + '_' + class_name
+      end
       cna = class_name.split(/[^0-9a-z]/i)
       cna.each_index { |i| cna[i] = cna[i].encapitalize } # SC name convention
       class_name = cna.join
@@ -472,6 +471,8 @@ EOF
           generate_synthdef(io)
         end
         io.print("\n  name { ^\"#{@class_name}\" }\n")
+        io.print("\n")
+        io.print("\n  info { ^\"Generated with Faust\" }\n")
         io.print("}\n")
       end
       def generate_outputs(io)

@@ -33,10 +33,10 @@
 #include "remainderprim.hh"
 #include "powprim.hh"
 #include "minprim.hh"
-#include "maxprim.hh" 
+#include "maxprim.hh"
 #include "logprim.hh"
 #include "log10prim.hh"
-#include "fmodprim.hh" 
+#include "fmodprim.hh"
 #include "floorprim.hh"
 #include "expprim.hh"
 #include "exp10prim.hh"
@@ -92,7 +92,7 @@ extern const char* yyfilename;
 // CG globals
 list<Garbageable*> global::gObjectTable;
 bool global::gHeapCleanup = false;
-  
+
 /*
 faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation error).
 So we use a lower value here.
@@ -102,14 +102,14 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
-    
+
     EVALPROPERTY = symbol("EvalProperty");
     PMPROPERTYNODE = symbol("PMPROPERTY");
-    
+
     gResult = 0;
     gResult2 = 0;
     gExpandedDefList = 0;
-    
+
     gDetailsSwitch = false;
     gDrawSignals = false;
     gShadowBlur = false;        // note: svg2pdf doesn't like the blur filter
@@ -149,11 +149,12 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gLightMode = false;
 
     gClassName = "mydsp";
- 
+    gProcessName = "process";
+
     gDSPFactory = 0;
-    
+
     gInputString = 0;
-    
+
     // Backend configuration : default values
     gGenerateSelectWithIf = true;
     gAllowForeignFunction = true;
@@ -166,7 +167,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gHasTeeLocal = false;
     gFastMath = false;
     gFastMathLib = "default";
-    
+
     // Fastmath mapping float version
     gFastMathLibTable["acosf"] = "fast_acosf";
     gFastMathLibTable["asinf"] = "fast_asinf";
@@ -188,7 +189,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMathLibTable["sinf"] = "fast_sinf";
     gFastMathLibTable["sqrtf"] = "fast_sqrtf";
     gFastMathLibTable["tanf"] = "fast_tanf";
-    
+
     // Fastmath mapping double version
     gFastMathLibTable["acos"] = "fast_acos";
     gFastMathLibTable["asin"] = "fast_asin";
@@ -210,29 +211,29 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gFastMathLibTable["sin"] = "fast_sin";
     gFastMathLibTable["sqrt"] = "fast_sqrt";
     gFastMathLibTable["tan"] = "fast_tan";
-    
+
     gLstDependenciesSwitch	= true; ///< mdoc listing management.
     gLstMdocTagsSwitch		= true; ///< mdoc listing management.
     gLstDistributedSwitch	= true; ///< mdoc listing management.
-    
+
     gLatexDocSwitch = true;		// Only LaTeX outformat is handled for the moment.
-    
+
     gErrorCount = 0;
-    
+
     gFileNum = 0;
-    
+
     gCountInferences = 0;
     gCountMaximal = 0;
-    
+
     gDummyInput = 10000;
-    
+
     gBoxSlotNumber = 0;
     gMemoryManager = false;
 
 	gOccurrences = 0;
 	gFoldingFlag = false;
 	gDevSuffix = 0;
-    
+
     gAbsPrim = new AbsPrim();
     gAcosPrim = new AcosPrim();
     gTanPrim = new TanPrim();
@@ -255,7 +256,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gAtan2Prim = new Atan2Prim();
     gAsinPrim = new AsinPrim();
     gFtzPrim = new FtzPrim();
-    
+
     BOXIDENT = symbol("BoxIdent");
     BOXCUT = symbol("BoxCut");
     BOXWAVEFORM = symbol("BoxWaveform");
@@ -307,7 +308,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXINPUTS = symbol("BoxInputs");
     BOXOUTPUTS = symbol("BoxOutputs");
     BOXSOUNDFILE = symbol("boxSoundfile");
- 
+
     DOCEQN = symbol("DocEqn");
     DOCDGM = symbol("DocDgm");
     DOCNTC = symbol("DocNtc");
@@ -321,7 +322,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     PATHPARENT = symbol("..");
     PATHCURRENT = symbol(".");
     FFUN = symbol("ForeignFunction");
-    
+
     SIGINPUT = symbol("sigInput");
     SIGOUTPUT = symbol("sigOutput");
     SIGDELAY1 = symbol("sigDelay1");
@@ -364,40 +365,40 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SIMPLETYPE = symbol("SimpleType");
     TABLETYPE = symbol("TableType");
     TUPLETTYPE = symbol("TupletType");
-      
+
     // recursive trees
     DEBRUIJN = symbol("DEBRUIJN");
     DEBRUIJNREF = symbol("DEBRUIJNREF");
     SUBSTITUTE = symbol("SUBSTITUTE");
-  
+
     SYMREC = symbol("SYMREC");
     SYMRECREF = symbol("SYMRECREF");
     SYMLIFTN = symbol("LIFTN");
-    
-    // Use real values 
+
+    // Use real values
     gMachineFloatSize = sizeof(float);
     gMachineInt32Size = sizeof(int);
     gMachineInt64Size = sizeof(long int);
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
     gMachinePtrSize = sizeof(void*);
-    
+
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang = "";
-    
+
 #if ASMJS_BUILD
     gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
 #endif
-    
+
 #if WASM_BUILD
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
 #endif
-    
+
 #if INTERP_BUILD
     gInterpreterVisitor = 0; // Will be (possibly) allocated in Interp backend
 #endif
-    
+
     gHelpSwitch = false;
     gVersionSwitch = false;
     gGraphSwitch = false;
@@ -411,14 +412,14 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gExportDSP = false;
 
     gTimeout = 120;            // time out to abort compiler (in seconds)
-    
+
     // Globals to transfer results in thread based evaluation
     gProcessTree = 0;
     gLsignalsTree = 0;
     gNumInputs = 0;
     gNumOutputs = 0;
     gErrorMessage = "";
-    
+
     // By default use "cpp" output
     gOutputLang = (getenv("FAUST_DEFAULT_BACKEND")) ? string(getenv("FAUST_DEFAULT_BACKEND")) : "cpp";
 }
@@ -431,13 +432,13 @@ void global::init()
     gSymbolicBoxProperty = new property<Tree>();
     gSimplifiedBoxProperty = new property<Tree>();
     gSymListProp = new property<Tree>();
-    
+
     // Essential predefined types
-    
+
     gMemoizedTypes = new property<AudioType*>();
     gAllocationCount = 0;
     gEnableFlag = true;
-  
+
     TINT = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TREAL = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
 
@@ -457,16 +458,16 @@ void global::init()
     INT_TGUI = makeSimpleType(kInt,  kBlock,kExec, kVect, kNum, interval());
 
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
-    
+
     // predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL = symbol("nil");
-    
+
     // predefined nil tree
     nil = tree(NIL);
-    
-    PROCESS = symbol("process"); 
-      
+
+    PROCESS = symbol("process");
+
     BOXTYPEPROP = tree(symbol("boxTypeProp"));
     NUMERICPROPERTY = tree(symbol("NUMERICPROPERTY"));
     DEFLINEPROP = tree(symbol("DefLineProp"));
@@ -484,60 +485,60 @@ void global::init()
     NICKNAMEPROPERTY = tree(symbol("NICKNAMEPROPERTY"));
     BCOMPLEXITY = tree("BCOMPLEXITY");
     LETRECBODY = boxIdent("RECURSIVEBODY");
-    
+
     PROPAGATEPROPERTY = symbol("PropagateProperty");
-    
+
     // yyfilename is defined in errormsg.cpp but must be redefined at each compilation.
     yyfilename = "";
     yyin = 0;
-    
+
     gLatexheaderfilename = "latexheader.tex";
     gDocTextsDefaultFile = "mathdoctexts-default.txt";
-    
+
     // Init type size table
     gTypeSizeMap[Typed::kFloat] = gMachineFloatSize;
     gTypeSizeMap[Typed::kFloat_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kFloat_vec] = gMachineFloatSize * gVecSize;
     gTypeSizeMap[Typed::kFloat_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kInt32] = gMachineInt32Size;
     gTypeSizeMap[Typed::kInt32_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kInt32_vec] = gMachineInt32Size * gVecSize;
     gTypeSizeMap[Typed::kInt32_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kInt64] = gMachineInt64Size;
     gTypeSizeMap[Typed::kInt64_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kInt64_vec] = gMachineInt64Size * gVecSize;
     gTypeSizeMap[Typed::kInt64_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kDouble] = gMachineDoubleSize;
     gTypeSizeMap[Typed::kDouble_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kDouble_vec] = gMachineDoubleSize * gVecSize;
     gTypeSizeMap[Typed::kDouble_vec_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kBool] = gMachineBoolSize;
     gTypeSizeMap[Typed::kBool_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kBool_vec] = gMachineBoolSize * gVecSize;
     gTypeSizeMap[Typed::kBool_vec_ptr] = gMachinePtrSize;
-    
+
     // Takes the type of internal real
     gTypeSizeMap[Typed::kFloatMacro] = gTypeSizeMap[itfloat()];
     gTypeSizeMap[Typed::kFloatMacro_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kVoid_ptr] = gMachinePtrSize;
     gTypeSizeMap[Typed::kVoid_ptr_ptr] = gMachinePtrSize;
-    
+
     gTypeSizeMap[Typed::kObj_ptr] = gMachinePtrSize;
-    
+
     gCurrentLocal = setlocale(LC_ALL, NULL);
     if (gCurrentLocal != NULL) {
         gCurrentLocal = strdup(gCurrentLocal);
     }
-    
-    // Setup standard "C" local 
+
+    // Setup standard "C" local
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
     setlocale(LC_ALL, "C");
-    
+
     // source file injection
     gInjectFlag = false;    // inject an external source file into the architecture file
     gInjectFile  = "";      // instead of a compiled dsp file
@@ -588,7 +589,7 @@ global::~global()
     DeclareVarInst::cleanup();
     setlocale(LC_ALL, gCurrentLocal);
     free(gCurrentLocal);
-    
+
     // Cleanup
 #if C_BUILD
     CInstVisitor::cleanup();
@@ -672,9 +673,9 @@ void Garbageable::cleanup()
 {
     std::list<Garbageable*>::iterator it;
 
-    // Here removing the deleted pointer from the list is pointless 
+    // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
-    
+
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
 	#ifdef _WIN32
@@ -684,7 +685,7 @@ void Garbageable::cleanup()
 		delete(*it);
   	#endif
     }
-    
+
     global::gObjectTable.clear();
 }
 
@@ -698,7 +699,7 @@ void* Garbageable::operator new(size_t size)
 
 void Garbageable::operator delete(void* ptr)
 {
-    // We may have cases when a pointer will be deleted during 
+    // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));
@@ -716,7 +717,7 @@ void* Garbageable::operator new[](size_t size)
 
 void Garbageable::operator delete[](void* ptr)
 {
-    // We may have cases when a pointer will be deleted during 
+    // We may have cases when a pointer will be deleted during
     // a compilation, thus the pointer has to be removed from the list.
     if (!global::gHeapCleanup) {
         global::gObjectTable.remove(static_cast<Garbageable*>(ptr));

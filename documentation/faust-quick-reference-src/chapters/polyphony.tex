@@ -106,5 +106,36 @@ Polyphonic ready  {\it faust2xx} scripts will then compile the polyphonic instru
 \end{center}
 \end{figure}
 
+\subsection{Integrated global output effect}
 
+Starting with the 2.5.17 version, a new convention has been defined to directly integrate a global output effect inside the DSP source code itself. The effect has simply to be declared in a \code{effect =  effect_code;} line in the source. Here is a more complete source code example:
 
+\begin{lstlisting}
+import("stdfaust.lib");
+process = pm.clarinet_ui_MIDI <: _,_;
+effect = dm.freeverb_demo;
+\end{lstlisting}
+
+The architecture script then separate the instrument description itself (the \code{process = ...} definition) from the effect definition (the  \code{effect = ...} definition), possibly adapt the instrument number of outputs to the effect number of inputs, compile each part separately, and combine them with the \code{dsp_sequencer} object.
+
+A new \code{auto} parameter to be used in faust2xx script has been defined, as in the \code{faustcaqt inst.dsp -effect auto} line for example.
+
+\subsection{Integrated global output effect and libfaust}
+
+For developers using the libfaust library, an helper file named \code{faust/dsp/poly-dsp-tools.h} is available. It defines an API to automatically create a polyphonic instrument with an output effect, starting from a DSP source file using the  effect \code{effect = ...} convention. The function \code{createPolyDSPFactoryFromString} or  \\ \code{createPolyDSPFactoryFromFile} must be used to create the polyphonic DSP factory. Next, the \code{createPolyDSPInstance} function creates the polyphonic object (a subclass of \code{dsp_poly} type) to be used like a regular \code{dsp} type object. 
+
+After the DSP factory has been compiled, your application or plugin may want to save/restore it in order to save \faust to LLVM IR compilation or even JIT compilation time at next use. To get the internal factory compiled code, several functions are available:
+
+\begin{itemize}
+\item \code{writePolyDSPFactoryToIRFile} allows to save the polyphonic factory LLVM IR (in textual format) in a file,
+\item \code{writePolyDSPFactoryToBitcodeFile} allows to save the polyphonic factory LLVM IR (in binary format) in a file,
+\item \code{writePolyDSPFactoryToMachineFile} allows to save the polyphonic factory executable machine code in a file.
+\end{itemize}
+
+To re-create a DSP factory from a previously saved code, several functions are available:
+
+\begin{itemize}
+\item \code{readPolyDSPFactoryFromIRFile} allows to create a polyphonic DSP factory from a file containing the LLVM IR (in textual format),
+\item \code{readPolyDSPFactoryFromBitcodeFile} allows to create a polyphonic  factory from a file containing the LLVM IR (in binary format),
+\item \code{readPolyDSPFactoryFromMachineFile} allows to create a polyphonic DSP factory from a file containing the executable machine code.
+\end{itemize}

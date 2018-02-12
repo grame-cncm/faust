@@ -1,0 +1,125 @@
+%---------------------------------------------------
+\chapter{Embedding the \faust  compiler using libfaust} \label{sec:libfaust}
+%---------------------------------------------------
+
+The dynamic compilation chain allows developers to embed the \faust compiler technology directly in their application or plugins. Thanks to the awesome LLVM technology combined with libfaust, the library version of the \faust compiler, \faust DSP programs can directly be compiled and executed on the fly at full speed.
+
+\section{Dynamic compilation chain}
+
+The \faust compiler uses an intermediate FIR representation (\faust Imperative Representation), which can be translated to several output languages. The FIR language describes the computation performed on the samples in a generic manner. It contains primitives to read and write variables and arrays, do arithmetic operations, and define the necessary control structures (for and while loops, if structure etc.). 
+
+To generate various output languages, several backends have been developed: for C, C++, Java, JavaScript, asm.js, and LLVM IR. The native LLVM based compilation chain is particularly interesting: it provides direct compilation of a DSP source into executable code in memory, bypassing the external compiler requirement.
+
+\section{LLVM}
+
+LLVM (formerly Low Level Virtual Machine) is a compiler infrastructure, designed for compile-time, link-time, run-time optimization of programs written in arbitrary programming languages. Executable code is produced dynamically using a {\it Just In Time} compiler from a specific code representation, called LLVM IR. Clang, the LLVM native C/C++/Objective- C compiler is a front-end for LLVM Compiler. It can, for instance, convert a C or C++ source file into LLVM IR code. Domain-specific languages like \faust can easily target the LLVM IR. This has been done by developing an LLVM IR backend in the \faust compiler.
+
+\section{Compiling in memory}
+
+The complete chain goes from the \faust DSP source code, compiled in LLVM IR using the LLVM backend, to finally produce the executable code using the LLVM JIT. All steps take place in memory, getting rid of the classical file based approaches. Pointers to executable functions can be retrieved from the resulting LLVM module and the code directly called with the appropriate parameters.
+
+The \faust compiler has been packaged as an embeddable library called libfaust, published with an associated API that imitates the concept of oriented-object languages, like C++. Given a \faust source code (as a file or a string), calling the \code{createDSPFactoryXXX} function runs the compilation chain (\faust + LLVM JIT) and generates the {\it prototype} of the class, as a \code{llvm\_dsp\_factory} pointer.
+
+\begin{lstlisting}
+class llvm_dsp_factory {
+
+ public: 
+    
+    /* Return Factory name */
+    std::string getName();
+    
+    /* Return Factory LLVM target */
+    std::string getTarget();
+    
+    /* Return Factory SHA key */
+    std::string getSHAKey();
+
+    /* Return Factory expanded DSP code */
+    std::string getDSPCode();
+    
+    /* Create a new DSP instance, to be deleted with C++ 'delete' */
+    llvm_dsp* createDSPInstance();
+
+    /* Set a custom memory manager to be used when creating instances */
+    void setMemoryManager(dsp_memory_manager* manager);
+
+    /* Return the currently set custom memory manager */
+    dsp_memory_manager* getMemoryManager();
+};
+
+\end{lstlisting}
+
+Note that the library keeps an internal cache of all allocated factories so that the compilation of the same DSP code, that is same source code and same set of {\it normalized} (= sorted in a canonical order) compilations options, will return the same (reference counted) factory pointer. You will have to explicitly use \code{deleteDSPFactory} to properly decrement the reference counter when the factory is no more needed. You can get a unique SHA1 key of the created factory using its \code{getSHAKey} method.
+
+Next, the \code{createDSPInstance} function, corresponding to the \code{new className} of C++, instantiates a \code{llvm\_dsp} pointer to be used through its interface, connected to the audio chain and controller interfaces. When finished, use \code{delete} to destroy the dsp instance.
+
+\begin{lstlisting}
+class llvm_dsp : public dsp {
+    
+ public:
+    
+    int getNumInputs();    
+    int getNumOutputs();
+    
+    void buildUserInterface(UI* ui_interface);
+   
+    int getSampleRate();
+    
+    void init(int samplingRate);  
+    void instanceInit(int samplingRate);
+    void instanceConstants(int samplingRate);
+    void instanceResetUserInterface();  
+    void instanceClear();
+    
+    llvm_dsp* clone();
+    
+    void metadata(Meta* m);
+    
+    void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
+};
+\end{lstlisting}
+
+Since \code{llvm\_dsp} is a subclass of the dsp base class, an object of this type can be used with all already available audio and UI classes, in essence reusing all architecture files already developed for the static C++ class compilation scheme (like OSCUI, httpdUI interfaces etc.), look at Developing a new architecture file section.
+
+\section{Saving/restoring the factory}
+
+After the DSP factory has been compiled, your application or plugin may want to save/restore it in order to save \faust to LLVM IR compilation or even JIT compilation time at next use. To get the internal factory compiled code, several functions are available:
+
+\begin{itemize}
+\item  \code{writeDSPFactoryToIR} allows to get the DSP factory LLVM IR (in textual format) as a string, \code{writeDSPFactoryToIRFile} allows to save the DSP factory LLVM IR (in textual format) in a file,
+\item  \code{writeDSPFactoryToBitcode} allows to get the DSP factory LLVM IR (in binary format) as a string, \code{writeDSPFactoryToBitcodeFile} allows to save the DSP factory LLVM IR (in binary format) in a file,
+\item  \code{writeDSPFactoryToMachine} allows to get the DSP factory executable machine code as a string, \code{writeDSPFactoryToMachineFile} allows to save the DSP factory executable machine code in a file.
+\end{itemize}
+
+To re-create a DSP factory from a previously saved code, several functions are available:
+
+\begin{itemize}
+\item \code{readDSPFactoryFromIR} allows to create a DSP factory from a string containing the LLVM IR (in textual format), \code{readDSPFactoryFromIRFile} allows to create a DSP factory from a file containing the LLVM IR (in textual format),
+\item \code{readDSPFactoryFromBitcode} allows to create a DSP factory from a string containing the LLVM IR (in binary format), \code{readDSPFactoryFromBitcodeFile} allows to create a DSP factory from a file containing the LLVM IR (in binary format),
+\item \code{readDSPFactoryFromMachine} allows to create a DSP factory from a string containing the executable machine code, \code{readDSPFactoryFromMachineFile} allows to create a DSP factory from a file containing the executable machine code.
+\end{itemize}
+
+\section{Additional functions}
+
+Some additional functions are available in the libfaust API:
+
+\code{expandDSPFromString/expandDSPFromFile} creates a self-contained DSP source string where all needed librairies have been included. All compilations options are normalized and included as a comment in the expanded string,
+\code{generateAuxFilesFromString/generateAuxFilesFromFile}: from a DSP source string or file, generates auxiliary files: SVG, XML, ps... depending of the argv parameters.
+
+\section{Using the libfaust library}
+
+The libfaust library is part of the \faust tree. You'll have to compile and install it. Then look at the installed \code{faust/dsp/llvm-dsp.h} header for a complete description of the API. Note that \code{faust/dsp/llvm-c-dsp.h} is a pure C version of the same API. The additional functions are available in the \code{faust/dsp/libfaust.h} header and their C version is in \code{faust/dsp/libfaust-c.h}.
+
+\section{Use case examples}
+
+The dynamic compilation chain has been used in several projects:
+
+\begin{itemize}
+\item FaustLive, an integrated IDE for \faust development
+\item Faustgen, an external object for Cycling Max/MSP language
+\item Csound6, see this demo video
+\item LibAudioStream, a framework to manipulate audio ressources through the concept of streams
+\item Oliver Larkin JUCE framework integration and pMix2 project
+\item an experimental version of Antescofo
+\item FaucK: the combination of the Chuck language and \faust 
+\end{itemize}

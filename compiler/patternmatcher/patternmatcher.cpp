@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 /* compiler/patternmatcher/patternmatcher.cpp: implementation of the Faust
    rewriting engine */
 
@@ -166,7 +166,7 @@ struct State : public virtual Garbageable {
 
   State& operator = (const State& state)
   { s = state.s; match_num = state.match_num;
-    rules = state.rules; trans = state.trans; 
+    rules = state.rules; trans = state.trans;
 	return *this;
   }
 
@@ -236,7 +236,7 @@ void Automaton::build(State *st)
   list<Trans>::const_iterator t;
   for (t = st->trans.begin(); t != st->trans.end(); t++) {
     Tree x;
-    double f; 
+    double f;
     int i;
     if (t->is_cst_trans(x) &&
 	(isBoxInt(x, &i) || isBoxReal(x, &f)))
@@ -564,7 +564,7 @@ Automaton *make_pattern_matcher(Tree R)
             if (isCons(rules[ru->r], lhs1, rhs1) &&  isCons(rules[r], lhs2, rhs2)) {
                 cerr << "WARNING : shadowed pattern-matching rule: "
                     << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-                    << " previous rule was: " 
+                    << " previous rule was: "
                     << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
                     << endl;
             } else {
