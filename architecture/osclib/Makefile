@@ -20,7 +20,7 @@ TARGET = libOSCFaust.$(VERSION).$(LIB_EXT)
 LIB_SONAME = libOSCFaust.$(SOVERSION).$(LIB_EXT)
 else
 ARCHFLAGS := 
-ifneq ($(findstring MINGW32, $(system)),)
+ifneq ($(findstring MINGW, $(system)),)
 LIB_EXT = dll
 TARGET = libOSCFaust-$(VERSION).$(LIB_EXT)
 LIB_SONAME = libOSCFaust-$(SOVERSION).$(LIB_EXT)
