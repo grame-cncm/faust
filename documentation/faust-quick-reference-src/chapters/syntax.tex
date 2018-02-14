@@ -1057,9 +1057,9 @@ process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
 \subsection{Soundfiles}
 %--------------------------------------------------------------------------------------------------------------
 
-The soundfile primitive allows to access an externally defined sound resource. A soundfile has one input (the read index in the sound), two fixed outputs (the first one is the sound length in frames, the second one is the sound nominal sample rate) and several more outputs for the sound channels themselves. 
+The soundfile primitive allows to access an externally defined sound resource. A soundfile has one input (the read index in the sound), three fixed outputs (the first one is the sound length in frames, the second one is the sound nominal sample rate, the third one is the sound number of channels) and several more outputs for the sound channels themselves. 
 
-If more outputs than the real number of channels in the sound are used, the sound channels will be automatically duplicated up to the output number (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated twice).
+If more outputs than the actual number of channels in the sound are used, the sound channels will be automatically duplicated up to the output number (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).
 
 If the sound resource cannot be loaded for whatever reason, a default  soundfile with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
 

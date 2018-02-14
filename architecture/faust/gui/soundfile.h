@@ -117,6 +117,7 @@ struct Soundfile {
     
     ~Soundfile()
     {
+        // Free the real channels only
         for (int chan = 0; chan < fChannels; chan++) {
             delete fBuffers[chan];
         }
