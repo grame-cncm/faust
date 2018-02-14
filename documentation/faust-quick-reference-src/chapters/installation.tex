@@ -1,14 +1,14 @@
 \chapter{Compiling and installing \faust}
 
-The \faust source distribution \lstinline'faust-0.10.5.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
+The \faust source distribution \lstinline'faust-2.5.21.tar.gz' can be downloaded from sourceforge (\myurl{http://sourceforge.net/projects/faudiostream/}).
 
 \section{Organization of the distribution}
 The first thing is to decompress the downloaded archive. 
 \begin{lstlisting}
-	tar xzf faust-2.5.17.tar.gz
+	tar xzf faust-2.5.21.tar.gz
 \end{lstlisting}
 
-The resulting  \lstinline'faust-2.5.17/' folder should contain the following elements:
+The resulting  \lstinline'faust-2.5.21/' folder should contain the following elements:
 
 \begin{tabular}{ll}
 	\lstinline'architecture/' 		&\faust libraries and architecture files\\
@@ -26,42 +26,41 @@ The resulting  \lstinline'faust-2.5.17/' folder should contain the following ele
 \section{Compilation}
 \faust has no dependencies outside standard libraries. Therefore the compilation should be straightforward. There is no configuration phase, to compile the \faust compiler simply do :
 \begin{lstlisting}
-	cd faust-2.5.17/
+	cd faust-2.5.21/
 	make
 \end{lstlisting}
 
 If the compilation was successful you can test the compiler before installing it:
 \begin{lstlisting}
-	[cd faust-2.5.17/]
+	[cd faust-2.5.21/]
 	./compiler/faust -v
 \end{lstlisting}
 It should output:
 \begin{lstlisting}
-	FAUST, DSP to C++ compiler, Version 2.5.17
+	FAUST, DSP to C++ compiler, Version 2.5.21
 	Copyright (C) 2002-2018, GRAME - Centre... 
 \end{lstlisting}
 
 Then you can also try to compile one of the examples :
 \begin{lstlisting}
-	[cd faust-2.5.17/]
-	./compiler/faust examples/noise.dsp
+	[cd faust-2.5.21/]
+	./compiler/faust examples/generator/noise.dsp
 \end{lstlisting}
 It should produce some C++ code on the standard output
 
 \section{Installation}
 You can install \faust with:
 \begin{lstlisting}
-	[cd faust-0.10.5/]
+	[cd faust-2.5.21/]
 	sudo make install
 \end{lstlisting}
 or
 \begin{lstlisting}
-	[cd faust-0.10.5/]
+	[cd faust-2.5.21/]
 	su
 	make install
 \end{lstlisting}
 depending on your system.
-
 
 \section{Compilation of the examples}
 Once \faust correctly installed, you can have a look at the provided examples in the \lstinline'examples/' folder. This folder contains a  \lstinline'Makefile' with all the required instructions to build these examples for various \textit{architectures}\marginpar{An architecture file provides the code needed to connect a signal processor to the outside world. It typically defines the audio communications and user interface.}, either standalone audio applications or plugins.

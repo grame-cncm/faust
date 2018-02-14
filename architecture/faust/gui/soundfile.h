@@ -41,15 +41,15 @@
 
 struct Soundfile {
     
-    int length;
-    int rate;
-    int chans;
-    FAUSTFLOAT** channels;
+    int fLength;
+    int fSampleRate;
+    int fChannels;
+    FAUSTFLOAT** fBuffers;
     
     Soundfile(const std::string& name, int max_chan)
     {
-        channels = new FAUSTFLOAT*[max_chan];
-        if (!channels) {
+        fBuffers = new FAUSTFLOAT*[max_chan];
+        if (!fBuffers) {
             throw std::bad_alloc();
         }
      
@@ -60,13 +60,13 @@ struct Soundfile {
         
         if (snd_file) {
             
-            chans = MIN_CHAN(max_chan, snd_info.channels);
-            length = int(snd_info.frames);
-            rate = snd_info.samplerate;
+            fChannels = MIN_CHAN(max_chan, snd_info.channels);
+            fLength = int(snd_info.frames);
+            fSampleRate = snd_info.samplerate;
             
-            for (int chan = 0; chan < chans; chan++) {
-                channels[chan] = new FAUSTFLOAT[snd_info.frames];
-                if (!channels[chan]) {
+            for (int chan = 0; chan < fChannels; chan++) {
+                fBuffers[chan] = new FAUSTFLOAT[snd_info.frames];
+                if (!fBuffers[chan]) {
                     throw std::bad_alloc();
                 }
             }
@@ -77,16 +77,16 @@ struct Soundfile {
             do {
                 nbf = int(sf_readf_double(snd_file, buffer, BUFFER_SIZE));
                 for (int sample = 0; sample < nbf; sample++) {
-                    for (int chan = 0; chan < chans; chan++) {
-                        channels[chan][index + sample] = (FAUSTFLOAT)buffer[sample * snd_info.channels + chan];
+                    for (int chan = 0; chan < fChannels; chan++) {
+                        fBuffers[chan][index + sample] = (FAUSTFLOAT)buffer[sample * snd_info.channels + chan];
                     }
                 }
                 index += nbf;
             } while (nbf == BUFFER_SIZE);
             
             // Share the same buffers for all other channels so that we have max_chan channels available
-            for (int chan = chans; chan < max_chan; chan++) {
-                channels[chan] = channels[chan % snd_info.channels];
+            for (int chan = fChannels; chan < max_chan; chan++) {
+                fBuffers[chan] = fBuffers[chan % snd_info.channels];
             }
       
             sf_close(snd_file);
@@ -97,30 +97,30 @@ struct Soundfile {
                 std::cerr << "Error opening the file : " << name << std::endl;
             }
             
-            chans = 1;
-            length = BUFFER_SIZE;
-            rate = SAMPLE_RATE;
+            fChannels = 1;
+            fLength = BUFFER_SIZE;
+            fSampleRate = SAMPLE_RATE;
             
             // Allocate 1 channel
-            channels[0] = new FAUSTFLOAT[BUFFER_SIZE];
-            if (!channels[0]) {
+            fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
+            if (!fBuffers[0]) {
                 throw std::bad_alloc();
             }
-            memset(channels[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
+            memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
             
             // Share the same buffer for all other channels so that we have max_chan channels available
-            for (int chan = chans; chan < max_chan; chan++) {
-                channels[chan] = channels[0];
+            for (int chan = fChannels; chan < max_chan; chan++) {
+                fBuffers[chan] = fBuffers[0];
             }
         }
     }
     
     ~Soundfile()
     {
-        for (int chan = 0; chan < chans; chan++) {
-            delete channels[chan];
+        for (int chan = 0; chan < fChannels; chan++) {
+            delete fBuffers[chan];
         }
-        delete [] channels;
+        delete [] fBuffers;
     }
     
 };

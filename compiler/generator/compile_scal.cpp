@@ -381,9 +381,9 @@ string ScalarCompiler::generateCode(Tree sig)
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
 
 	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile (sig, label); }
-	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode (sig, subst("$0cache->length", CS(sf))); }
-	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode (sig, subst("$0cache->rate", CS(sf))); }
-	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return generateCacheCode (sig, subst("$0cache->channels[$1][$2]", CS(sf), CS(x), CS(y))); }
+	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode (sig, subst("$0cache->fLength", CS(sf))); }
+	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode (sig, subst("$0cache->fSampleRate", CS(sf))); }
+	else if ( isSigSoundfileChannel(sig,sf,x,y))    { return generateCacheCode (sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y))); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
     else if ( isSigEnable(sig, x, y) )				{ return generateEnable(sig, x, y); }
