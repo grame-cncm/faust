@@ -36,7 +36,6 @@ for f in $FILES; do
 		${CXX=g++} ${CXXFLAGS=-O3 -pthread -std=c++11} $OMP "$name.cpp" -o "$name"
 	) > /dev/null || exit
 
-
 	# run the resulting binary to generate the impulse response
 	./"$name" -n 60000
 
