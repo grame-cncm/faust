@@ -8,7 +8,7 @@ so_looper(s) = float(srate(s))/ma.SR : (+,length(s):fmod)~_ : int : outs(s)
 	with {
 		length(s) = 0 : s : _,cut(outputs(s)-1);
 		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,_,cut(outputs(s)-3);
+		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,_);
@@ -19,7 +19,7 @@ so_player(s, speed, volume) = float(speed*srate(s))/ma.SR : (+,length(s):fmod)~_
 	with {
 		length(s) = 0 : s : _,cut(outputs(s)-1);
 		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,_,cut(outputs(s)-3);
+		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,*(volume));
