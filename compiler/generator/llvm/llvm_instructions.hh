@@ -22,6 +22,10 @@
 #ifndef _LLVM_INSTRUCTIONS_H
 #define _LLVM_INSTRUCTIONS_H
 
+#ifdef WIN32
+#pragma warning (disable: 4624 4291 4141)
+#endif
+
 using namespace std;
 
 #include <string>

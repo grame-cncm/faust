@@ -30,6 +30,10 @@ bool falsePredicate(Node const & a)
 
 static bool noNtrl(const Node& n) { return falsePredicate(n); }
 
+#ifdef WIN32
+#pragma warning (disable: 4291)
+#endif
+
 #if LLVM_BUILD
 
 #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
