@@ -49,6 +49,9 @@ function Heap2Str(buf)
 */
 faust.mydsp = function (dsp_instance, context, buffer_size) {
 
+    // Resume audio context each time...
+    context.resume();
+    
     // Keep JSON parsed object
     var json_object = null;
     try {

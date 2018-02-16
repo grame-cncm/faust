@@ -248,21 +248,24 @@ bool isSigControl (Tree s, Tree& x, Tree& y);
 							 Sounfiles (also UI elements)
 *****************************************************************************/
 /*
-A boxSounfile(label,c) has 1 input channel and c+2 output channels:
+A boxSounfile(label,c) has 1 input channel and c+3 output channels:
     0   sigSoundfileLength(label):  the number of frames of the soundfile (NK)
     1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
-    2.. sigSoundfileChannel(label, c, ridx): the cth channel content (RK ou RS)
+    2   sigSoundfileChannels(label): the number of channels of the file (NK)
+    3.. sigSoundfileBuffer(label, c, ridx): the cth channel content (RK ou RS)
 */
 
 Tree sigSoundfile(Tree label);
 Tree sigSoundfileLength(Tree sf);
 Tree sigSoundfileRate(Tree sf);
-Tree sigSoundfileChannel(Tree sf, Tree chan, Tree ridx);
+Tree sigSoundfileChannels(Tree sf);
+Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree ridx);
 
 bool isSigSoundfile(Tree s, Tree& label);
 bool isSigSoundfileLength(Tree s, Tree& sf);
 bool isSigSoundfileRate(Tree s, Tree& sf);
-bool isSigSoundfileChannel(Tree s, Tree& sf, Tree& chan, Tree& ridx);
+bool isSigSoundfileChannels(Tree s, Tree& sf);
+bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& ridx);
 
 /*****************************************************************************
 							 matrix extension

@@ -43,7 +43,7 @@ for f in $FILES; do
     dirname=$(dirname "$f");
 
     # compile Faust to asm.js
-    faust -e "$f"
+    faust -e "$f" -o $name_exp
     cd $dirname
     faust $OPTIONS -lang ajs -cn $name -a $FAUSTLIB/webaudio/asm-standalone-node-wrapper-double.js $name_exp -o "$name.js" || exit
 

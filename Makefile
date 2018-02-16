@@ -1,11 +1,11 @@
-version := 2.5.17
+version := 2.5.21
 
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 LIB_EXT = dylib
 else
-ifneq ($(findstring MINGW32, $(system)),)
+ifneq ($(findstring MINGW, $(system)),)
 LIB_EXT = dll
 EXE = .exe
 else
@@ -328,7 +328,7 @@ install :
 	make -C tools/faust2appls install
 
 	# install sound converter
-	[ -e tools/sound2faust/sound2faust ] && make -C tools/sound2faust install || echo sound2faust not compiled
+	[ -e tools/sound2faust/sound2faust ] && $(MAKE) -C tools/sound2faust install || echo sound2faust not compiled
 
 	# install faustremote
 	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled

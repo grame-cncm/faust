@@ -135,7 +135,7 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; }
     else if (isBoxSoundfile(t, l, c)) {
         *inum = 1;
-        *onum = 2+tree2int(c);
+        *onum = 3+tree2int(c);
     }
 	else if (isBoxSeq(t, a, b)) {
 		int u,v,x,y;

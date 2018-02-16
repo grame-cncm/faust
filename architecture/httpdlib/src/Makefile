@@ -26,7 +26,7 @@ INSTALL_NAME = -install_name "$(INSTALL_PREFIX)libHTTPDFaust.dylib"
 endif
 else
 ARCHFLAGS := 
-ifneq ($(findstring MINGW32, $(system)),)
+ifneq ($(findstring MINGW, $(system)),)
 LIB_EXT = dll
 else
 CXXFLAGS += -fPIC

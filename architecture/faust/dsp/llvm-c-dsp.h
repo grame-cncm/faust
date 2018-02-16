@@ -83,9 +83,11 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], 
+    llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
+                                                int argc, const char* argv[],
                                                 const char* target, 
-                                                char* error_msg, int opt_level);
+                                                char* error_msg,
+                                                int opt_level);
     
     /**
      * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -104,9 +106,12 @@ extern "C"
      *
      * @return a valid DSP factory on success, otherwise a null pointer.
      */ 
-    llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], 
+    llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
+                                                  const char* dsp_content,
+                                                  int argc, const char* argv[],
                                                   const char* target, 
-                                                  char* error_msg, int opt_level);
+                                                  char* error_msg,
+                                                  int opt_level);
     
     /**
      * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer. 

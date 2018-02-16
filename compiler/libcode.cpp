@@ -1048,17 +1048,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         dst = new stringstream(stringstream::out|stringstream::binary);
     } else if (gGlobal->gOutputFile != "") {
         outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
-        /* desactivated for now (creates issue with faust2android on Linux)
-        char* directory = dirname((char*)outpath.c_str());
-        char temp[PATH_MAX+1];
-        char* path = realpath(directory, temp);
-        if (path == 0) {
+        ofstream* fdst = new ofstream(outpath.c_str());
+        if (!fdst->is_open()) {
             stringstream error;
-            error << "ERROR : invalid directory path " << directory << endl;
+            error << "ERROR : file '" << outpath << "' cannot be opened\n";
             throw faustexception(error.str());
+        } else {
+            dst = fdst;
         }
-        */
-        dst = new ofstream(outpath.c_str());
     } else {
         dst = &cout;
     }
@@ -1574,7 +1571,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     return out.str();
 }
 
-static void compileFaustInternal(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
+static void compileFaustFactoryAux(int argc, const char* argv[], const char* name, const char* dsp_content, bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
 
@@ -1636,20 +1633,22 @@ static void compileFaustInternal(int argc, const char* argv[], const char* name,
     int numOutputs = gGlobal->gNumOutputs;
 
     if (gGlobal->gExportDSP) {
-        ofstream out(subst("$0_exp.dsp", gGlobal->makeDrawPathNoExt()).c_str());
+        string outpath = (gGlobal->gOutputDir != "") ? (gGlobal->gOutputDir + "/" + gGlobal->gOutputFile) : gGlobal->gOutputFile;
+        ofstream* out = new ofstream(outpath.c_str());
 
         // Encode compilation options as a 'declare' : has to be located first in the string
-        out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
+        *out << COMPILATION_OPTIONS << reorganizeCompilationOptions(argc, argv) << ';' << endl;
 
         // Encode all libraries paths as 'declare'
         vector<string> pathnames = gGlobal->gReader.listSrcFiles();
         for (vector<string>::iterator it = pathnames.begin(); it != pathnames.end(); it++) {
-            out << "declare " << "library_path " << '"' << *it << "\";" << endl;
+            *out << "declare " << "library_path " << '"' << *it << "\";" << endl;
         }
 
-        printDeclareHeader(out);
+        printDeclareHeader(*out);
 
-        out << "process = " << boxpp(process) << ';' << endl;
+        *out << "process = " << boxpp(process) << ';' << endl;
+        delete out;
         return;
     }
 
@@ -1688,7 +1687,7 @@ dsp_factory_base* compileFaustFactory(int argc, const char* argv[], const char* 
 
     try {
         global::allocate();
-        compileFaustInternal(argc, argv, name, dsp_content, generate);
+        compileFaustFactoryAux(argc, argv, name, dsp_content, generate);
         error_msg = gGlobal->gErrorMsg;
         factory = gGlobal->gDSPFactory;
     } catch (faustexception& e) {

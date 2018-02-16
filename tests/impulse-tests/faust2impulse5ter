@@ -43,13 +43,13 @@ for f in $FILES; do
     dirname=$(dirname "$f");
 
     # compile Faust to asm.js
-    faust -e "$f"
+    faust -e "$f" -o $name_exp".dsp"
     cp $FAUSTLIB/webaudio/asm-node-wrapper-double.js "${f%.dsp}.js"
 
 	# run the binary to generate the impulse response
     cd $dirname
-    sed -e "s/SOURCE_FILE/"$name_exp"/g" "$name.js"  >> "$name-tmp1.js"
-    sed -e "s/DSP_NAME/"$name"/g" "$name-tmp1.js"  >> "$name-tmp2.js"
+    sed -e "s/SOURCE_FILE/"$name_exp"/g" "$name.js" >> "$name-tmp1.js"
+    sed -e "s/DSP_NAME/"$name"/g" "$name-tmp1.js" >> "$name-tmp2.js"
     node "$name-tmp2.js" || exit
 
     # cleanup

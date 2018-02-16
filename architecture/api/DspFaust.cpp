@@ -138,7 +138,6 @@ DspFaust::DspFaust()
 
 DspFaust::DspFaust(int sample_rate, int buffer_size)
 {
-    
     init(NULL, createDriver(sample_rate, buffer_size));
 }
 

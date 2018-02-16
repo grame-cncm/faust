@@ -58,12 +58,12 @@ struct malloc_memory_manager : public dsp_memory_manager {
     void* allocate(size_t size)
     {
         void* res = malloc(size);
-        //cout << "malloc_manager : " << size << " " << res << endl;
+        cout << "malloc_manager : " << size << " " << res << endl;
         return res;
     }
     virtual void destroy(void* ptr)
     {
-        //cout << "free_manager : " << ptr << endl;
+        cout << "free_manager : " << ptr << endl;
         free(ptr);
     }
     
@@ -133,7 +133,7 @@ int main(int argc, char* argv[])
     
     argv1[argc1] = 0;  // NULL terminated argv
     
-    if (nvoices == 0) {
+    if (nvoices <= 0) {
         cout << "Cannot start polyphonic with 0 voice\n";
         exit(EXIT_FAILURE);
     }
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    //factory->setMemoryManager(&manager);  causes crash in -fm mode
+    //factory->setMemoryManager(&manager);  // causes crash in -fm mode
     DSP = factory->createPolyDSPInstance(nvoices, true, true);
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
