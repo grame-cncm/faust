@@ -55,7 +55,7 @@ public class FaustPlugin_MODEL: MonoBehaviour {
     * @brief And sets the new parameter values changed while in pause mode */
 	private void Awake() {
 		ctx = new Faust_Context(getBufferSize());
-		ctx.Context_init(AudioSettings.outputSampleRate);
+		ctx.context_init(AudioSettings.outputSampleRate);
 		for (int i = 0; i < parameters.Length; i++) {
 			setParameter(i, parameters[i]);
 		}
@@ -64,7 +64,7 @@ public class FaustPlugin_MODEL: MonoBehaviour {
 	/* @brief Fills the Unity audio buffer with the audio datas computed by the plugin
     */
 	private void OnAudioFilterRead(float[] buffer, int numchannels) {
-		ctx.process(buffer, buffer.Length / numchannels);
+		ctx.process(buffer, buffer.Length / numchannels, numchannels);
 	}
 
 	private int getBufferSize() {

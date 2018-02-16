@@ -56,11 +56,11 @@ class unitydsp : public mydsp
         
         ~unitydsp()
         {
-            if (fInputs) delete fInputs;
-            if (fOutputs) delete fOutputs;
+            delete fInputs;
+            delete fOutputs;
         }
         
-        void unityProcess(float* inbuffer, float* outbuffer, unsigned int length, int inchannels, int outchannels)
+        void unityProcess(float* inbuffer, float* outbuffer, int length, int inchannels, int outchannels)
         {
             fInputs->interleavedRead(inbuffer, length, inchannels);
             compute(length, fInputs->buffers(), fOutputs->buffers());
@@ -85,9 +85,9 @@ extern "C"
     
     DllExport void Faust_contextInit(unitydsp* ctx, int sampleRate) { ctx->init(sampleRate); }
 
-    DllExport void Faust_process(unitydsp* ctx, FAUSTFLOAT* inbuffer, FAUSTFLOAT* oubuffer, int nframes)
+    DllExport void Faust_process(unitydsp* ctx, FAUSTFLOAT* inbuffer, FAUSTFLOAT* oubuffer, int nframes, int channels)
     {
-        ctx->unityProcess(inbuffer, oubuffer, (unsigned int) nframes, ctx->getNumInputs(), ctx->getNumOutputs());
+        ctx->unityProcess(inbuffer, oubuffer, nframes, channels, channels);
     }
     
     DllExport void Faust_delete(unitydsp* ctx) { delete ctx; }
