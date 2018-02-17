@@ -73,7 +73,7 @@ public:
 
 inline void stacktrace(int val)
 {
-#ifndef EMCC
+#if !defined(EMCC) && !defined(WIN32)
     void* array[val];
     backtrace_symbols_fd(array, backtrace(array, val), STDERR_FILENO);
 #endif

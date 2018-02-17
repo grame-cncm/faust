@@ -310,7 +310,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
 
 #ifdef WIN32
-    argv[fCompileOptions.size()] = "-l";
+    argv[fCompileOptions.size()] = "-L";
     argv[fCompileOptions.size() + 1] = "llvm_math.ll";
     argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, fOptLevel);

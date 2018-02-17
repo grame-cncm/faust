@@ -64,7 +64,7 @@ for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     NAME=${f%.dsp}
-    FNAME=FaustPlugin_$NAME
+    FNAME=libFaustPlugin_$NAME
     LIBNAME=$FNAME$EXT
 
     SRCDIR=$(dirname "$p")

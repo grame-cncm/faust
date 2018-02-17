@@ -5,7 +5,7 @@ system	?= $(shell uname -s)
 ifeq ($(system), Darwin)
 LIB_EXT = dylib
 else
-ifneq ($(findstring MINGW32, $(system)),)
+ifneq ($(findstring MINGW, $(system)),)
 LIB_EXT = dll
 EXE = .exe
 else

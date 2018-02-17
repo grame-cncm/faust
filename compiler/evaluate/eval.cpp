@@ -851,7 +851,7 @@ static string evalLabel (const char* src, Tree visited, Tree localValEnv)
 static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iteratePar called with 0 iterations", id);
+        evalerror(yyfilename, -1, "iteratePar called with 0 iteration", id);
     }
 
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));
@@ -877,7 +877,7 @@ static Tree iteratePar (Tree id, int num, Tree body, Tree visited, Tree localVal
 static Tree iterateSeq (Tree id, int num, Tree body, Tree visited, Tree localValEnv)
 {
     if (num == 0) {
-        evalerror(yyfilename, -1, "iterateSeq called with 0 iterations", id);
+        evalerror(yyfilename, -1, "iterateSeq called with 0 iteration", id);
     }
 
     Tree res = eval(body, visited, pushValueDef(id, tree(num-1), localValEnv));

@@ -34,7 +34,7 @@ ifeq ($(system), Darwin)
 	ARCHFLAGS := -mmacosx-version-min=10.9  # we only support osx from 10.9 and up 
 else
 	ARCHFLAGS := 
-	ifeq ($(findstring MINGW32, $(system)),)
+	ifeq ($(findstring MINGW, $(system)),)
 		CXXFLAGS += -fPIC
 	endif
 endif
@@ -47,7 +47,7 @@ ifeq ($(MODE), SHARED)
 			INSTALL_NAME = -install_name "$(INSTALL_PREFIX)$(SONAME)"
 		endif
 	else
-		ifneq ($(findstring MINGW32, $(system)),)
+		ifneq ($(findstring MINGW, $(system)),)
 			TARGET=libOSCFaust-$(VERSION).dll
 			SONAME=libOSCFaust-$(SOVERSION).dll
 		else
