@@ -3445,6 +3445,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
         var mydsp_polyProcessorString4 = mydsp_polyProcessorString3.replace(re4, factory.getBase64Code());
         
         var url = null;
+        // Is there is an effect to compile
         if (factory.name_effect) {
             var re5 = /CODE1/g;
             var re6 = /CODE2/g;

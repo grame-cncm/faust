@@ -527,16 +527,14 @@ static void UserInterfaceDescription(Tree box, string& d)
     d = fout.str();
 }
 
-
 /**
  * Generate a 0->1 block schema for a user interface element
  */
-static schema* 	generateUserInterfaceSchema(Tree t)
+static schema* generateUserInterfaceSchema(Tree t)
 {
     string s; UserInterfaceDescription(t,s);
     return makeBlockSchema(0, 1, s, uicolor, "");
 }
-
 
 /**
  * Generate a 1->1 block schema for a user interface bargraph
@@ -552,17 +550,15 @@ static schema* generateBargraphSchema(Tree t)
  */
 static schema* generateSoundfileSchema(Tree t)
 {
-    Tree    label, chan;
+    Tree label, chan;
     if (isBoxSoundfile(t, label, chan)) {
         int n = tree2int(chan);
         string s; UserInterfaceDescription(t,s);
-        return makeBlockSchema(1, 2+n, s, uicolor, "");
+        return makeBlockSchema(1, 3+n, s, uicolor, "");
     } else {
         throw faustexception("Internal error\n");
     }
 }
-
-
 
 /**
  * Generate a 1->0 block schema for an input slot
@@ -574,8 +570,6 @@ static schema* generateInputSlotSchema(Tree a)
 	return makeBlockSchema(1, 0, s.str(), slotcolor, "");
 }
 
-
-
 /**
  * Generate a 0->1 block schema for an output slot
  */
@@ -586,15 +580,13 @@ static schema* generateOutputSlotSchema(Tree a)
 	return makeBlockSchema(0, 1, s.str(), slotcolor, "");
 }
 
-
-
 /**
  * Generate an abstraction schema by placing in sequence
  * the input slots and the body
  */
 static schema* generateAbstractionSchema(schema* x, Tree t)
 {
-	Tree 	a,b;
+	Tree a,b;
 
 	while (isBoxSymbolic(t,a,b)) {
 		x = makeParSchema(x, generateInputSlotSchema(a));
@@ -620,7 +612,6 @@ static schema* addSchemaInputs(int ins, schema* x)
         return makeSeqSchema(y,x);
     }
 }
-
 
 static schema* addSchemaOutputs(int outs, schema* x)
 {
