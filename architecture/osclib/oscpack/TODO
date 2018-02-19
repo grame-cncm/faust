@@ -14,9 +14,6 @@ TODO:
             void Stop();
         };
 
-    - provide some kind of automatic endianness configuration (hopefully there
-        are gcc symbols for this)
-
     - work out a way to make the parsing classes totally safe. at a minimum this
     means adding functions to test for invalid float/doublevalues,
     making sure the iterators never pass the end of the message, ...

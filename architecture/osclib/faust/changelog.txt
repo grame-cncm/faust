@@ -5,7 +5,11 @@ GRAME - Centre national de creation musicale
 http://www.grame.fr
 research@grame.fr
 ====================================================
-Copyright GRAME (c) 2011 - 2015
+Copyright GRAME (c) 2011 - 2018
+
+----------------------------------------------------
+Version 1.00                           [Feb. 19 2018]
+- update to latest oscpack version 1.1.0
 
 ----------------------------------------------------
 Version 0.95                           [May 26 2015]

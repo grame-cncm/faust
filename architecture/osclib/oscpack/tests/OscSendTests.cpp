@@ -1,8 +1,8 @@
 /*
-	oscpack -- Open Sound Control packet manipulation library
-	http://www.audiomulch.com/~rossb/oscpack
+	oscpack -- Open Sound Control (OSC) packet manipulation library
+    http://www.rossbencina.com/code/oscpack
 
-	Copyright (c) 2004-2005 Ross Bencina <rossb@audiomulch.com>
+    Copyright (c) 2004-2013 Ross Bencina <rossb@audiomulch.com>
 
 	Permission is hereby granted, free of charge, to any person obtaining
 	a copy of this software and associated documentation files
@@ -15,10 +15,6 @@
 	The above copyright notice and this permission notice shall be
 	included in all copies or substantial portions of the Software.
 
-	Any person wishing to distribute modifications to the Software is
-	requested to send the modifications to the original developer so that
-	they can be incorporated into the canonical version.
-
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -27,11 +23,28 @@
 	CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+/*
+	The text above constitutes the entire oscpack license; however, 
+	the oscpack developer(s) also make the following non-binding requests:
+
+	Any person wishing to distribute modifications to the Software is
+	requested to send the modifications to the original developer so that
+	they can be incorporated into the canonical version. It is also 
+	requested that these non-binding requests be included whenever the
+	above license is reproduced.
+*/
 #include "OscSendTests.h"
 
+#include <cstdlib>
+#include <cstring>
 #include <iostream>
-#include <string.h>
-#include <stdlib.h>
+
+#if defined(__BORLANDC__) // workaround for BCB4 release build intrinsics bug
+namespace std {
+using ::__strcmp__;  // avoid error: E2316 '__strcmp__' is not a member of 'std'.
+}
+#endif
 
 #include "osc/OscOutboundPacketStream.h"
 
@@ -53,19 +66,22 @@ void RunSendTests( const IpEndpointName& host )
             << true << 23 << (float)3.1415 << "hello" << osc::EndMessage;
     socket.Send( p.Data(), p.Size() );
 
-    // test1 message with too few arguments
+    std::cout << "NOTE: sending /test1 message with too few arguments\n"\
+                    "(expect an exception if receiving with OscReceiveTest)\n\n";
     p.Clear();
     p << osc::BeginMessage( "/test1" )
             << true << osc::EndMessage;
     socket.Send( p.Data(), p.Size() );
 
-    // test1 message with too many arguments
+    std::cout << "NOTE: sending /test1 message with too many arguments\n"\
+                    "(expect an exception if receiving with OscReceiveTest)\n\n";
     p.Clear();
     p << osc::BeginMessage( "/test1" )
             << true << 23 << (float)3.1415 << "hello" << 42 << osc::EndMessage;
     socket.Send( p.Data(), p.Size() );
 
-    // test1 message with wrong argument type
+    std::cout << "NOTE: sending /test1 message with wrong argument type\n"\
+                    "(expect an exception if receiving with OscReceiveTest)\n\n";
     p.Clear();
     p << osc::BeginMessage( "/test1" )
             << true << 1.0 << (float)3.1415 << "hello" << osc::EndMessage;
@@ -185,19 +201,19 @@ void RunSendTests( const IpEndpointName& host )
 
 int main(int argc, char* argv[])
 {
-    if( argc >= 2 && strcmp( argv[1], "-h" ) == 0 ){
+    if( argc >= 2 && std::strcmp( argv[1], "-h" ) == 0 ){
         std::cout << "usage: OscSendTests [hostname [port]]\n";
         return 0;
     }
 
-    char *hostName = "localhost";
+    const char *hostName = "localhost";
     int port = 7000;
     
     if( argc >= 2 )
         hostName = argv[1];
 
     if( argc >= 3 )
-        port = atoi( argv[2] );
+        port = std::atoi( argv[2] );
 
 
 	IpEndpointName host( hostName, port );
@@ -206,7 +222,7 @@ int main(int argc, char* argv[])
 	host.AddressAsString( hostIpAddress );
 
     std::cout << "sending test messages to " << hostName 
-		<< " (" << hostIpAddress << ") on port " << port << "...\n";
+		<< " (" << hostIpAddress << ") on port " << port << "...\n\n";
 
     osc::RunSendTests( host );
 }
