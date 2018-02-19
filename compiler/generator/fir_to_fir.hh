@@ -426,7 +426,7 @@ struct FunctionInliner {
                 } else {
                     BasicCloneVisitor cloner;
                     if (inst->fAddress->getName() == fNamed->fName) {
-                        if (dynamic_cast<SimpleValueInst*>(fArg) || (fOccurence == 1)) {
+                        if (fArg->isSimpleValue() || (fOccurence == 1)) {
                             return fArg->clone(&cloner);
                         } else {
                             // More complex expressions are computed and shared in a new stack variable

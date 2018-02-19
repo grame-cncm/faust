@@ -87,13 +87,11 @@ string ScalarCompiler::getFreshID(const string& prefix)
 						    prepare
 *****************************************************************************/
 
-//extern bool gDumpNorm;
-
 Tree ScalarCompiler::prepare(Tree LS)
 {
     startTiming("ScalarCompiler::prepare");
     //  startTiming("first simplification");
-    //     LS = simplify(LS);
+    //  LS = simplify(LS);
     //  endTiming("first simplification");
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);   	// convert debruijn recursion into symbolic recursion
@@ -115,7 +113,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
-        typeAnnotation(L3);				// Annotate L3 with type information
+    typeAnnotation(L3);				// Annotate L3 with type information
     endTiming("typeAnnotation");
 
     sharingAnalysis(L3);			// annotate L3 with sharing count
@@ -309,9 +307,11 @@ string ScalarCompiler::CS(Tree sig)
 
     if (!getCompiledExpression(sig, code)) {
         // not compiled yet
-/*        if (getRecursivness(sig) != contextRecursivness.get()) {
+        /*
+        if (getRecursivness(sig) != contextRecursivness.get()) {
             contextRecursivness.set(getRecursivness(sig));
-        }*/
+        }
+        */
         code = generateCode(sig);
         setCompiledExpression(sig, code);
     }
@@ -345,46 +345,46 @@ string ScalarCompiler::generateCode(Tree sig)
 	else if ( isSigInt(sig, &i) ) 					{ return generateNumber(sig, T(i)); }
 	else if ( isSigReal(sig, &r) ) 					{ return generateNumber(sig, T(r)); }
     else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
-	else if ( isSigInput(sig, &i) ) 				{ return generateInput 	(sig, T(i)); 			}
-	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput 	(sig, T(i), CS(x));}
+	else if ( isSigInput(sig, &i) ) 				{ return generateInput(sig, T(i)); }
+	else if ( isSigOutput(sig, &i, x) ) 			{ return generateOutput(sig, T(i), CS(x));}
 
-	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay 	(sig, x, y); 			}
-	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix 	(sig, x, y); 			}
-	else if ( isSigIota(sig, x) ) 					{ return generateIota 		(sig, x); 				}
+	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay(sig, x, y); }
+	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix(sig, x, y); }
+	else if ( isSigIota(sig, x) ) 					{ return generateIota(sig, x); }
 
-	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp 	(sig, i, x, y); 		}
-	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun 		(sig, ff, largs); 		}
-    else if ( isSigFConst(sig, type, name, file) )  { return generateFConst(sig, tree2str(file), tree2str(name)); }
+	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp(sig, i, x, y); }
+	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun (sig, ff, largs); }
+    else if ( isSigFConst(sig, type, name, file) )  { return generateFConst(sig, tree2str(file), tree2str(name));}
     else if ( isSigFVar(sig, type, name, file) )    { return generateFVar(sig, tree2str(file), tree2str(name)); }
 
-	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable 	(sig, x, y); 			}
-	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl 	(sig, x, y, z); 		}
-	else if ( isSigRDTbl(sig, x, y) ) 				{ return generateRDTbl 	(sig, x, y); 			}
+	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable(sig, x, y); }
+	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl(sig, x, y, z); }
+	else if ( isSigRDTbl(sig, x, y) ) 				{ return generateRDTbl(sig, x, y); }
 
-	else if ( isSigSelect2(sig, sel, x, y) ) 		{ return generateSelect2 	(sig, sel, x, y); 		}
-	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ return generateSelect3 	(sig, sel, x, y, z); 	}
+	else if ( isSigSelect2(sig, sel, x, y) ) 		{ return generateSelect2(sig, sel, x, y); }
+	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ return generateSelect3(sig, sel, x, y, z); }
 
-	else if ( isSigGen(sig, x) ) 					{ return generateSigGen 	(sig, x); 				}
+	else if ( isSigGen(sig, x) ) 					{ return generateSigGen(sig, x); }
 
-    else if ( isProj(sig, &i, x) )                  { return generateRecProj    (sig, x, i);    }
+    else if ( isProj(sig, &i, x) )                  { return generateRecProj(sig, x, i); }
 
-	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast   (sig, x); 				}
-	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast (sig, x); 				}
+	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast(sig, x); }
+	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast(sig, x); }
 
-	else if ( isSigButton(sig, label) ) 			{ return generateButton   	(sig, label); 			}
-	else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox 	(sig, label); 			}
-	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return generateVSlider 	(sig, label, c,x,y,z); }
-	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider 	(sig, label, c,x,y,z); }
-	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry 	(sig, label, c,x,y,z); }
+	else if ( isSigButton(sig, label) ) 			{ return generateButton(sig, label); }
+	else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox(sig, label); }
+	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return generateVSlider(sig, label, c,x,y,z); }
+	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider(sig, label, c,x,y,z); }
+	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry(sig, label, c,x,y,z); }
 
-	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph 	(sig, label, x, y, CS(z)); }
-	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph 	(sig, label, x, y, CS(z)); }
+	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(sig, label, x, y, CS(z)); }
+	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(sig, label, x, y, CS(z)); }
 
-	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile (sig, label); }
-	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode (sig, subst("$0cache->fLength", CS(sf))); }
-	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode (sig, subst("$0cache->fSampleRate", CS(sf))); }
-    else if ( isSigSoundfileChannels(sig, sf) )     { return generateCacheCode (sig, subst("$0cache->fChannels", CS(sf))); }
-    else if ( isSigSoundfileBuffer(sig,sf,x,y))     { return generateCacheCode (sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y))); }
+	else if ( isSigSoundfile(sig, label) )	        { return generateSoundfile(sig, label); }
+	else if ( isSigSoundfileLength(sig, sf) )	    { return generateCacheCode(sig, subst("$0cache->fLength", CS(sf))); }
+	else if ( isSigSoundfileRate(sig, sf) )	        { return generateCacheCode(sig, subst("$0cache->fSampleRate", CS(sf))); }
+    else if ( isSigSoundfileChannels(sig, sf) )     { return generateCacheCode(sig, subst("$0cache->fChannels", CS(sf))); }
+    else if ( isSigSoundfileBuffer(sig,sf,x,y))     { return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y))); }
 
 	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
     else if ( isSigEnable(sig, x, y) )				{ return generateEnable(sig, x, y); }
@@ -952,8 +952,7 @@ string ScalarCompiler::generateRDTbl(Tree sig, Tree tbl, Tree idx)
 	//return subst("$0[$1]", CS(tEnv, tbl), CS(tEnv, idx));
 
 	//cerr << "generateRDTable " << *sig << endl;
-	// test the special case of a read only table that can be compiled
-	// has a static member
+	// test the special case of a read only table that can be compiled as a static member
 	Tree id, size, content;
 	if(	isSigTable(tbl, id, size, content) ) {
 		string tblname;
