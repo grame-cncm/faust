@@ -59,7 +59,13 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
     RootNode* fRoot;
     bool fInput;  // true for input nodes (slider, button...)
 	
-	bool	store(C val) { *fZone = fMapping.clip(val); return true; }
+	//---------------------------------------------------------------------
+	// Warning !!!
+	// The cast (C *)fZone is necessary because the real size allocated is
+	// only known at execution time. When the library is compiled, fZone is
+	// uniquely defined by FAUSTFLOAT.
+	//---------------------------------------------------------------------
+	bool	store(C val) { *(C *)fZone = fMapping.clip(val); return true; }
 	void	sendOSC() const;
 
 	protected:
