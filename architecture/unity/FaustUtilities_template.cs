@@ -261,7 +261,7 @@ namespace FaustUtilities_MODEL {
 		private static extern void Faust_contextInit(IntPtr ctx, int samplerate);
 
 		[DllImport(_dllName)]
-		private static extern void Faust_process(IntPtr ctx, [In] float[] inbuffer, [Out] float[] outbuffer, int numframes);
+		private static extern void Faust_process(IntPtr ctx, [In] float[] inbuffer, [Out] float[] outbuffer, int numframes, int channels);
 
 		[DllImport(_dllName)]
 		private static extern void Faust_delete(IntPtr ctx);
@@ -295,7 +295,7 @@ namespace FaustUtilities_MODEL {
 			Faust_delete(_context);
 		}
 
-		public void Context_init(int samplerate) {
+		public void context_init(int samplerate) {
 			Faust_contextInit(_context, samplerate);
 		}
 
@@ -311,8 +311,8 @@ namespace FaustUtilities_MODEL {
 			return Faust_getNumOutputChannels(_context);
 		}
 
-		public void process(float[] buffer, int numframes) {
-			Faust_process(_context, buffer, buffer, numframes);
+		public void process(float[] buffer, int numframes, int channels) {
+			Faust_process(_context, buffer, buffer, numframes, channels);
 		}
 
 		public void setParameterValue(int param, float value) {

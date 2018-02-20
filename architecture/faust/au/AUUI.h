@@ -62,7 +62,8 @@ struct auUIObject {
     virtual ~auUIObject()
     {}
     
-    virtual void GetName(char *text) {
+    virtual void GetName(char *text)
+    {
         std::strcpy(text, fLabel.c_str());
     }
     

@@ -293,7 +293,8 @@ void WASTCodeContainer::produceClass()
         path_index_table[(*it).second] = tmp.fOffset;
     }
     
-    JSONInstVisitor json_visitor2("", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
+    // "name", "filename" found in medata
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(), path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
     

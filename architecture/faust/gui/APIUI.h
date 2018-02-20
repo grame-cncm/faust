@@ -352,7 +352,7 @@ class APIUI : public PathBuilder, public Meta, public UI
 		//-------------------------------------------------------------------------------
 		// Simple API part
 		//-------------------------------------------------------------------------------
-		int getParamsCount()				{ return fNumParameters; }
+		int getParamsCount() { return fNumParameters; }
         int getParamIndex(const char* path)
         {
             if (fPathMap.find(path) != fPathMap.end()) {
@@ -363,8 +363,8 @@ class APIUI : public PathBuilder, public Meta, public UI
                 return -1;
             }
         }
-        const char* getParamAddress(int p)	{ return fPaths[p].c_str(); }
-        const char* getParamLabel(int p)	{ return fLabels[p].c_str(); }
+        const char* getParamAddress(int p) { return fPaths[p].c_str(); }
+        const char* getParamLabel(int p) { return fLabels[p].c_str(); }
         std::map<const char*, const char*> getMetadata(int p)
         {
             std::map<const char*, const char*> res;
@@ -380,16 +380,16 @@ class APIUI : public PathBuilder, public Meta, public UI
         {
             return (fMetaData[p].find(key) != fMetaData[p].end()) ? fMetaData[p][key].c_str() : "";
         }
-        FAUSTFLOAT getParamMin(int p)		{ return fMin[p]; }
-        FAUSTFLOAT getParamMax(int p)		{ return fMax[p]; }
-        FAUSTFLOAT getParamStep(int p)		{ return fStep[p]; }
-        FAUSTFLOAT getParamInit(int p)		{ return fInit[p]; }
+        FAUSTFLOAT getParamMin(int p) { return fMin[p]; }
+        FAUSTFLOAT getParamMax(int p) { return fMax[p]; }
+        FAUSTFLOAT getParamStep(int p) { return fStep[p]; }
+        FAUSTFLOAT getParamInit(int p) { return fInit[p]; }
 
-        FAUSTFLOAT* getParamZone(int p)         { return fZone[p]; }
-        FAUSTFLOAT getParamValue(int p)         { return *fZone[p]; }
+        FAUSTFLOAT* getParamZone(int p) { return fZone[p]; }
+        FAUSTFLOAT getParamValue(int p) { return *fZone[p]; }
         void setParamValue(int p, FAUSTFLOAT v) { *fZone[p] = v; }
 
-        double getParamRatio(int p)         { return fConversion[p]->faust2ui(*fZone[p]); }
+        double getParamRatio(int p) { return fConversion[p]->faust2ui(*fZone[p]); }
         void setParamRatio(int p, double r) { *fZone[p] = fConversion[p]->ui2faust(r); }
 
         double value2ratio(int p, double r)	{ return fConversion[p]->faust2ui(r); }

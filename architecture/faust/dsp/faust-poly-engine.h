@@ -315,7 +315,7 @@ class FaustPolyEngine {
          */
         void setParamValue(const char* address, float value)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             if (id >= 0) {
                 fAPIUI.setParamValue(id, value);
                 // In POLY mode, update all voices
@@ -330,7 +330,7 @@ class FaustPolyEngine {
          */
         float getParamValue(const char* address)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             return (id >= 0) ? fAPIUI.getParamValue(id) : 0.f;
         }
     
@@ -424,7 +424,7 @@ class FaustPolyEngine {
          */
         float getParamMin(const char* address)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             return (id >= 0) ? fAPIUI.getParamMin(id) : 0.f;
         }
     
@@ -443,7 +443,7 @@ class FaustPolyEngine {
          */
         float getParamMax(const char* address)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             return (id >= 0) ? fAPIUI.getParamMax(id) : 0.f;
         }
     
@@ -462,7 +462,7 @@ class FaustPolyEngine {
          */
         float getParamInit(const char* address)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             return (id >= 0) ? fAPIUI.getParamInit(id) : 0.f;
         }
     
@@ -481,7 +481,7 @@ class FaustPolyEngine {
          */
         const char* getMetadata(const char* address, const char* key)
         {
-            int id = fAPIUI.getParamIndex(address);
+            int id = (address) ? fAPIUI.getParamIndex(address) : -1;
             return (id >= 0) ? fAPIUI.getMetadata(id, key) : "";
         }
     

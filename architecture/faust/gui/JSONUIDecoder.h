@@ -49,6 +49,7 @@ typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
 struct JSONUIDecoder {
 
     std::string fName;
+    std::string fFileName;
     
     std::map<std::string, std::string> fMetadatas; 
     std::vector<itemInfo*> fUiItems;     
@@ -86,6 +87,13 @@ struct JSONUIDecoder {
             fName = "";
         }
         
+        if (fMetadatas.find("filename") != fMetadatas.end()) {
+            fFileName = fMetadatas["filename"];
+            fMetadatas.erase("filename");
+        } else {
+            fName = "";
+        }
+     
         if (fMetadatas.find("version") != fMetadatas.end()) {
             fVersion = fMetadatas["version"];
             fMetadatas.erase("version");
