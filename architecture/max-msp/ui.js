@@ -186,12 +186,20 @@ faust.ui = function (json, patcher) {
  
     // Create new
     var parsed_json = JSON.parse(json);
-    var dsp_object = patcher.getnamed(parsed_json.name + "~");
-
-    if (dsp_object === patcher.getnamed("null_object")) {
-        post("Error : missing dsp name in the patch, add a 'declare name foo' line with the DSP filename in the DSP source code\n");
+    
+    // Tries to find the compiled object from the "name" field in the JSON
+    var dsp_object1 = patcher.getnamed(parsed_json.name + "~");
+    if (dsp_object1 !== patcher.getnamed("null_object")) {
+        parse_ui(parsed_json.ui, dsp_object1, patcher);
+    } else {
+        // Tries to find the compiled object from the "filename" field in the JSON
+        var dsp_object2 = patcher.getnamed(parsed_json.filename + "~");
+        if (dsp_object2 !== patcher.getnamed("null_object")) {
+            parse_ui(parsed_json.ui, dsp_object2, patcher);
+        } else {
+            post("Error : missing dsp name in the patch\n");
+        }
     }
-    parse_ui(parsed_json.ui, dsp_object, patcher);
 }
 
 function anything()
