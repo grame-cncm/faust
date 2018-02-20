@@ -107,10 +107,8 @@ function (scan_backends TARGET FLAG)
 endfunction()
 
 ####################################
-# LLVM
-if (LLVM_BACKEND )
-	if ((WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC) OR 
-	(NOT COMMAND llvm_map_components_to_libnames))
+# Manual LLVM scan
+macro (llvm_config)
 		set (LLVM_CONFIG llvm-config)
 		execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
 		string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
@@ -125,13 +123,24 @@ if (LLVM_BACKEND )
 		execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
 		string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
 		set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+endmacro()
+
+####################################
+# LLVM
+if (LLVM_BACKEND )
+	if ((WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
+		llvm_config()
 	else()
 		find_package(LLVM REQUIRED CONFIG)
-		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-		# Find the libraries that correspond to the LLVM components that we wish to use
-		llvm_map_components_to_libnames(LLVM_LIBS all)
-		list(REMOVE_ITEM LLVM_LIBS LTO)
+		if (COMMAND llvm_map_components_to_libnames)
+			message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+			message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+			# Find the libraries that correspond to the LLVM components that we wish to use
+			llvm_map_components_to_libnames(LLVM_LIBS all)
+			list(REMOVE_ITEM LLVM_LIBS LTO)
+		else()
+			llvm_config()
+		endif()
 	endif()
 
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
