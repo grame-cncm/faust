@@ -18,6 +18,7 @@ set (CMAKE_CXX_STANDARD 11)
 # Output options
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
+option ( LLVM_CONFIG    "Force use off llvm-config"	off )
 
 #######################################
 # Check output options
@@ -109,26 +110,28 @@ endfunction()
 ####################################
 # Manual LLVM scan
 macro (llvm_config)
-		set (LLVM_CONFIG llvm-config)
-		execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
-		string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+	set (LLVM_CONFIG llvm-config)
+	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
+	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
+	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 
-		execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-		string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-		execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-		string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-		execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-		string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
-		execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-		string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-		set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+	execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
+	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
+	execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
+	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
+	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
+	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
+	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
 endmacro()
 
 ####################################
 # LLVM
 if (LLVM_BACKEND )
 	if ((WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
+		llvm_config()
+	elseif(LLVM_CONFIG)
 		llvm_config()
 	else()
 		find_package(LLVM REQUIRED CONFIG)
