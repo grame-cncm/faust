@@ -883,7 +883,7 @@ extern "C" int main(void)
     dsp_initclass();
     
     post((char*)"Faust DSP object v%s (sample = 32 bits code = 32 bits)", EXTERNAL_VERSION);
-    post((char*)"Copyright (c) 2012-2017 Grame");
+    post((char*)"Copyright (c) 2012-2018 Grame");
     Max_Meta1 meta1;
     tmp_dsp->metadata(&meta1);
     if (meta1.fCount > 0) {

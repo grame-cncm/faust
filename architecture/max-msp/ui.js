@@ -17,7 +17,7 @@ var dsp_ui_table = [];
 
 var faust = faust || {};
 
-faust.ui = function (json, patcher) {
+faust.ui = function (json, name, patcher) {
   
     // inlets and outlets
     var inlets = 1;
@@ -134,6 +134,7 @@ faust.ui = function (json, patcher) {
             thenumberBoxes[numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * numwidgets, 80, 13);
             thenumberBoxes[numwidgets].message('min', parseFloat(item.min));
             thenumberBoxes[numwidgets].message('max', parseFloat(item.max));
+            thenumberBoxes[numwidgets].message(parseFloat(item.init));
                 
             patcher.hiddenconnect(theSliders[numwidgets], 0, thenumberBoxes[numwidgets], 0);
                 
@@ -197,14 +198,20 @@ faust.ui = function (json, patcher) {
         if (dsp_object2 !== patcher.getnamed("null_object")) {
             parse_ui(parsed_json.ui, dsp_object2, patcher);
         } else {
-            post("Error : missing dsp name in the patch\n");
+            // Tries to find the compiled object from the "name" argument (used with faustgen~)
+            var dsp_object = get_dsp_name(patcher, name);
+            if (dsp_object !== patcher.getnamed("null_object")) {
+                parse_ui(parsed_json.ui, dsp_object, patcher);
+            } else {
+                post("Error : missing dsp name in the patch\n");
+            }
         }
     }
 }
 
 function anything()
 {	
-	var args = arrayfromargs(messagename, arguments);
-    dsp_ui_table.push(faust.ui(args[1], this.patcher));
+    var args = arrayfromargs(messagename, arguments);
+    dsp_ui_table.push(faust.ui(args[1], args[2], this.patcher));
 }
 
