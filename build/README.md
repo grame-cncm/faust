@@ -59,6 +59,9 @@ Then you can open the Visual Studio solution located in `your_output_folder` or 
 - you must have `llvm-config` available from the command line.
 - using LLVM 5.0.0 works on every platform, you can get binary distributions from the [LLVM Releases page](http://releases.llvm.org/)
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
+- on Linux and MacOS, cmake assumes that a cmake file is available from the LLVM distribution. Depending on the LLVM version, it may not work properly. In this case, you can force the use of llvm-config with the LLVM_CONFIG option i.e.
+> cd faustdir &&
+cmake .. -DLLVM_CONFIG=on
 
 #### LLVM on windows:
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
