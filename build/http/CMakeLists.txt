@@ -55,6 +55,13 @@ set( INCLUDE
 #######################################
 # libmicrohttpd settings
 if (WIN32)
+	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+		set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
+	else()
+		set (LMHDIR ${ROOT}/windows/libmicrohttpd)
+	endif()
+	set (LMHLIB ${LMHDIR}/libmicrohttpd.lib)
+	set (INCLUDE ${INCLUDE} ${LMHDIR})
 else ()
 	include (FindPkgConfig)
 	if (${PKG_CONFIG_FOUND}) 
@@ -83,24 +90,23 @@ set (TARGETS httpstatic httpdynamic)
 
 file (GLOB HEADERS ${SRCDIR}/msg/include/*.h)
 set_target_properties(${TARGETS} PROPERTIES 
-	COMPILE_FLAGS  "${LMHD_CFLAGS}"
-	LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}"
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 if (WIN32) 
+	target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
+	target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
 	set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
 	set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
-	target_link_libraries(httpstatic  ws2_32)
-	target_link_libraries(httpdynamic ws2_32)
+	target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
+	target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
 else()
-	set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME ${TARGET})
-	set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
+	set_target_properties(${TARGETS} PROPERTIES 
+		OUTPUT_NAME ${TARGET}
+		COMPILE_FLAGS  "${LMHD_CFLAGS}"
+		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
 endif()
-target_link_libraries(httpstatic   microhttpd)
-target_link_libraries(httpdynamic  microhttpd)
-
 
 ####################################
 # install section
