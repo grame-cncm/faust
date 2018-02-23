@@ -27,6 +27,7 @@ set (SOVERS 0)
 # SET MAIN DIRECTORY.
 set (HTTP ${ROOT}/architecture/httpdlib)
 set (SRCDIR ${HTTP}/src)
+set (ARCHDIR ${ROOT}/architecture)
 set (CMAKE_BUILD_TYPE Release)
 
 #######################################
@@ -48,7 +49,8 @@ set( INCLUDE
 	${SRCDIR}/json 
 	${SRCDIR}/lib 
 	${SRCDIR}/msg 
-	${SRCDIR}/nodes)
+	${SRCDIR}/nodes
+	${ARCHDIR})
 
 #######################################
 # libmicrohttpd settings
