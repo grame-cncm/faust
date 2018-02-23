@@ -23,7 +23,7 @@ endif
 DESTDIR ?=
 
 
-.PHONY: faust install uninstall osc
+.PHONY: faust install uninstall osc http
 
 MAKE ?= make
 CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
