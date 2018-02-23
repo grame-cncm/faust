@@ -58,7 +58,8 @@ help:
 	@echo " 'asmjslib'   : builds the FAUST compiler as a ASM JS library"
 	@echo " 'ios'        : builds the static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static and dynamic Faust OSC libraries"
-	@echo " 'all'        : call the faust, staticlib, dynamiclib and osc targets."
+	@echo " 'http'       : builds the static and dynamic Faust HTTPD libraries"
+	@echo " 'all'        : call the faust, staticlib, dynamiclib, osc and http targets."
 	@echo " 'windows'    : build the faust, staticlib and dynamiclib targets using MSYS Makefiles,"
 	@echo "                see the README.md file for other options."
 	@echo " 'install'    : install ,"
@@ -93,10 +94,15 @@ all:
 	$(MAKE) staticlib
 	$(MAKE) dynamiclib
 	$(MAKE) osc
+	$(MAKE) http
 
 osc:
 	cmake --build $(FAUSTDIR) --target oscstatic -- -j $(TASKS)
 	cmake --build $(FAUSTDIR) --target oscdynamic -- -j $(TASKS)
+
+http:
+	cmake --build $(FAUSTDIR) --target httpstatic -- -j $(TASKS)
+	cmake --build $(FAUSTDIR) --target httpdynamic -- -j $(TASKS)
 
 
 #===============================================================

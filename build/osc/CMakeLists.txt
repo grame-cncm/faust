@@ -8,6 +8,15 @@ set (VERSION 1.0.0)
 set (SOVERS 1)
 
 #######################################
+# check for variables that are normally set at upper level
+if (NOT DEFINED LIBDIR)
+	set (LIBDIR lib)
+endif()
+if (NOT DEFINED ROOT)
+	set (ROOT ../..)
+endif()
+
+#######################################
 # SET MAIN DIRECTORY.
 set (OSC ${ROOT}/architecture/osclib)
 set (FAUSTOSC ${OSC}/faust/src)

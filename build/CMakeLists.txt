@@ -244,6 +244,7 @@ elseif(NOT IOS)
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
 add_subdirectory (osc)
+add_subdirectory (http)
 
 
 ####################################

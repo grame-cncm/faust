@@ -4,6 +4,7 @@
 ### Prerequisites
 - you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
 - you must have [LLVM](http://llvm.org/) installed to compile the llvm backend.
+- you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed to compile the http libraries.
 - on Windows, you have the option to use MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See Windows specific notes.
 
 
