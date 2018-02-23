@@ -43,7 +43,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <time.h>
-#define MHD_PLATFORM_H
+//#define MHD_PLATFORM_H
 #ifdef __MINGW32__
 typedef size_t socklen_t;
 #endif
