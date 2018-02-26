@@ -20,6 +20,7 @@ endif()
 # SET MAIN DIRECTORY.
 set (OSC ${ROOT}/architecture/osclib)
 set (FAUSTOSC ${OSC}/faust/src)
+set (FAUSTH ${OSC}/faust/faust)
 set (CMAKE_BUILD_TYPE Release)
 
 #######################################
@@ -112,3 +113,9 @@ install ( TARGETS ${TARGETS}
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/osc
 )
+
+install (
+    FILES     ${FAUSTH}/OSCControler.h ${FAUSTH}/OSCIO.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+

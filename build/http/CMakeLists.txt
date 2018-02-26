@@ -93,7 +93,7 @@ set_target_properties(httpdynamic PROPERTIES
 		SOVERSION ${SOVERS})
 set (TARGETS httpstatic httpdynamic)
 
-file (GLOB HEADERS ${SRCDIR}/msg/include/*.h)
+file (GLOB HEADERS ${SRCDIR}/include/*.h)
 set_target_properties(${TARGETS} PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
@@ -119,7 +119,6 @@ endif()
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
 set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
-
 
 ####################################
 # install section
