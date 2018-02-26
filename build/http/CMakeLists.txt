@@ -117,12 +117,16 @@ else()
 		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
 endif()
 
+# public headers are similar for both static and dynamic libs but only attached to the static one
+set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+
+
 ####################################
 # install section
 ####################################
 install ( TARGETS ${TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/http
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
 )
 
