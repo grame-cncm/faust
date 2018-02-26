@@ -206,7 +206,11 @@ if (WIN32)
 	set_target_properties(dynamiclib PROPERTIES 
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
 		RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
-	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+	if (MSVC)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+	else()
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
+	endif()
 	set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 	target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
 	target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
