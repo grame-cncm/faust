@@ -41,6 +41,9 @@ Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) in
 Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
 > pacman -S mingw-w64-x86_64-gcc
 
+In this case, make sure to uninstall the previous gcc version first:
+> pacman -R gcc
+
 To compile using Visual Studio, you'll have to configure manually your project using a commands prompt (e.g. Windows PowerShell):
 
 `> mkdir your_output_folder`  
