@@ -55,12 +55,17 @@ set( INCLUDE
 #######################################
 # libmicrohttpd settings
 if (WIN32)
-	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+	if (MSVC)
+		if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+			set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
+		else()
+			set (LMHDIR ${ROOT}/windows/libmicrohttpd)
+		endif()
+		set (LMHLIB ${LMHDIR}/libmicrohttpd.lib)
+	else ()  # assume we're using MSYS or MINGW and the arch is 64bits
 		set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
-	else()
-		set (LMHDIR ${ROOT}/windows/libmicrohttpd)
+		set (LMHLIB ${ROOT}/windows/libmicrohttpd/x64/MSYS/libmicrohttpd.lib)
 	endif()
-	set (LMHLIB ${LMHDIR}/libmicrohttpd.lib)
 	set (INCLUDE ${INCLUDE} ${LMHDIR})
 else ()
 	include (FindPkgConfig)
