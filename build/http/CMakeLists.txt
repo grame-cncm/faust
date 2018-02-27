@@ -33,6 +33,7 @@ set (CMAKE_BUILD_TYPE Release)
 #######################################
 # collect source files
 FILE(GLOB SRC 
+	${SRCDIR}/*.cpp 
 	${SRCDIR}/hexa/*.cpp 
 	${SRCDIR}/html/*.cpp 
 	${SRCDIR}/httpd/*.cpp 
