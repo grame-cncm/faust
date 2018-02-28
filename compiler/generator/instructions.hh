@@ -1089,7 +1089,7 @@ struct BlockInst : public StatementInst
         }
     }
     
-    size_t size() { return fCode.size(); }
+    int size() { return int(fCode.size()); }
 
     bool hasReturn();
     ValueInst* getReturnValue();

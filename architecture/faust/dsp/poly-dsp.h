@@ -353,6 +353,8 @@ class dsp_poly : public decorator_dsp, public midi {
     
         dsp_poly(dsp* dsp):decorator_dsp(dsp)
         {}
+    
+        virtual ~dsp_poly() {}
 };
 
 /**

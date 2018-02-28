@@ -359,6 +359,8 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(fCount, 10);
         }
     
+        virtual ~measure_dsp() {}
+    
         /**
          * Constructor.
          *
