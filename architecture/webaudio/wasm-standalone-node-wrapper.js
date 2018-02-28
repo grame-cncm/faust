@@ -19,8 +19,8 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     var numOut = parseInt(json_object.outputs);
      
     // Memory allocator
-    var ptr_size = 8;
-    var sample_size = 8;  // double
+    var ptr_size = 4;
+    var sample_size = 4;  // float
     
     function pow2limit (x)
     {
@@ -35,7 +35,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
     
     var HEAP = instance.exports.memory.buffer;
     var HEAP32 = new Int32Array(HEAP);
-    var HEAPF = new Float64Array(HEAP);
+    var HEAPF = new Float32Array(HEAP);
   
     // bargraph
     var outputs_timer = 5;
@@ -167,7 +167,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             // Prepare Ins buffer tables
             var dspInChans = HEAP32.subarray(ins >> 2, (ins + numIn * ptr_size) >> 2);
             for (i = 0; i < numIn; i++) {
-                dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 3, (dspInChans[i] + buffer_size * sample_size) >> 3);
+                dspInChannnels[i] = HEAPF.subarray(dspInChans[i] >> 2, (dspInChans[i] + buffer_size * sample_size) >> 2);
             }
         }
         
@@ -180,7 +180,7 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             // Prepare Out buffer tables
             var dspOutChans = HEAP32.subarray(outs >> 2, (outs + numOut * ptr_size) >> 2);
             for (i = 0; i < numOut; i++) {
-                dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 3, (dspOutChans[i] + buffer_size * sample_size) >> 3);
+                dspOutChannnels[i] = HEAPF.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + buffer_size * sample_size) >> 2);
             }
         }
                                 
@@ -261,11 +261,6 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
             return inputs_items;
         },
         
-        getButtonsParams : function()
-        {
-            return buttons_items;
-        },
-        
         getJSON : function ()
         {
             return getJSONmydsp();
@@ -274,22 +269,8 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
         compute : function (inputs, outputs)
         {
             computeAux(inputs, outputs);
-        },
+        }
         
-        checkDefaults : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
-				if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
-			}
-			return true;
-		},
-	
-		initRandom : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
-                factory.setParamValue(dsp, pathTable[inputs_items[i]], 0.123456789);
-			}
-		}
     };
 };
 
@@ -298,141 +279,10 @@ faust.mydsp = function (context, instance, buffer_size, sample_rate) {
 var create = function(ins, outs, buffer_size) 
 {
     for (var i = 0; i < ins; i++) {
-        inputs.push(new Float64Array(buffer_size));
+        inputs.push(new Float32Array(buffer_size));
     }
     for (var i = 0; i < outs; i++) {
-        outputs.push(new Float64Array(buffer_size));
-    }
-}
-
-var impulse = function(ins, buffer_size) 
-{
-    for (var i = 0; i < ins; i++) {
-        inputs[i][0] = 1.0;
-        for (var f = 1; f < buffer_size; f++) {
-            inputs[i][f] = 0.0;
-        }
-    }
-}
-
-var zero = function(ins, buffer_size) 
-{
-    for (var i = 0; i < ins; i++) {
-        for (var f = 0; f < buffer_size; f++) {
-            inputs[i][f] = 0.0;
-        }
-    }
-}
-
-var normalize = function(f)
-{
-    return (Math.abs(f) < 0.000001) ? 0.0 : f;
-}
-
-var setButtons = function(dsp, value)
-{
-    var buttons = dsp.getButtonsParams();
-    for (var i = 0; i < buttons.length; i++) {
-         dsp.setParamValue(buttons[i], value);
-    }
-}
-
-var fs = require('fs');
-
-var buffer_size = 64;
-var sample_rate = 44100;
-var inputs = [];
-var outputs = [];
-var nbsamples = 60000;
-var linenum = 0;
-var run = 0;
-var control_data;
-
-function startDSP(instance, buffer_size)
-{
-	// Creates DSP and buffers
-    var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
-    create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
-
-    // Write output file header
-    console.log("number_of_inputs : ", DSP.getNumInputs());
-    console.log("number_of_outputs : ", DSP.getNumOutputs());
-    console.log("number_of_frames : ", nbsamples);
-
-    // Check getSampleRate
-    if (DSP.getSampleRate() !== sample_rate) {
-        console.error("ERROR in getSampleRate");
-        process.exit(1);
-    }
-
-    // Check setParamValue/getParamValue
-    var path_table = DSP.getParams();
-    for (var i = 0; i < path_table.length; i++) {
-        DSP.setParamValue(path_table[i], 0.1234);
-        if (DSP.getParamValue(path_table[i]) !== 0.1234) {
-            console.error("ERROR in setParamValue/getParamValue for " + path_table[i] + " " + DSP.getParamValue(path_table[i]));
-            process.exit(1);
-        }
-    }
-
-    // Check default after 'instanceResetUserInterface'
-    DSP.initRandom();
-    DSP.instanceResetUserInterface();
-    if (!DSP.checkDefaults()) {
-        console.error("ERROR in checkDefaults after 'instanceResetUserInterface'");
-        process.exit(1);
-    }
-
-    // Check default after 'instanceInit'
-    DSP.initRandom();
-    DSP.instanceInit();
-    if (!DSP.checkDefaults()) {
-        console.error("ERROR in checkDefaults after 'instanceInit'");
-        process.exit(1);
-    }
-
-    // Check default after 'init'
-    DSP.initRandom();
-    DSP.init(sample_rate);
-    if (!DSP.checkDefaults()) {
-        console.error("ERROR in checkDefaults after 'init'");
-        process.exit(1);
-    }
-
-    DSP.init(sample_rate);
-    
-    // Read control parameters
-    try {
-        control_data = fs.readFileSync('mydsprc', 'utf8');
-        var lines = control_data.split('\n');
-        for (var line = 0; line < lines.length; line++) {
-            var param = lines[line].split(' ');
-            DSP.setParamValue('/'+ param[1], parseFloat(param[0]));
-        }
-    } catch (e) {}
-
-    // Compute samples and write output file
-    while (nbsamples > 0) {
-        if (run === 0) {
-            impulse(DSP.getNumInputs(), buffer_size);
-            setButtons(DSP, 1.0);
-        }
-        if (run === 1) {
-            zero(DSP.getNumInputs(), buffer_size);
-            setButtons(DSP, 0.0);
-        }
-        var nFrames = Math.min(buffer_size, nbsamples);
-        DSP.compute(inputs, outputs);
-        run++;
-        for (var i = 0; i < nFrames; i++) {
-            var line = (linenum++) + " : ";
-            for (var c = 0; c < DSP.getNumOutputs(); c++) {
-                var f = normalize(outputs[c][i]);
-                line = line + f + " ";
-            }
-            console.log(line);
-        }
-        nbsamples -= nFrames;
+        outputs.push(new Float32Array(buffer_size));
     }
 }
 
@@ -499,10 +349,51 @@ var importObject = {
     }
 };
 
-var response = toUint8Array(fs.readFileSync('DSP.wasm'));
-var bytes = response.buffer;
+/* 
+Testing code : 
+
+	faust -lang wasm foo.dsp -o foo.wasm
+	node /usr/local/share/faust/webaudio/wasm-standalone-node-wrapper.js foo.js foo.wasm 
+	
+*/
+
+var fs = require('fs');
+
+var buffer_size = 64;
+var sample_rate = 44100;
+var inputs = [];
+var outputs = [];
+var nbsamples = 4096;
+
+function testDSP(instance, buffer_size)
+{
+	// Creates DSP and buffers
+    var DSP = faust.mydsp(null, instance, buffer_size, sample_rate);
+    create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
+
+    console.log("number_of_inputs : ", DSP.getNumInputs());
+    console.log("number_of_outputs : ", DSP.getNumOutputs());
+    console.log("JSON : ", DSP.getJSON());
+ 
+    // Init DSP
+    DSP.init(sample_rate);
+
+    // Compute some samples
+    while (nbsamples > 0) {
+       	DSP.compute(inputs, outputs);
+        nbsamples -= buffer_size;
+    }
+}
+
+// Read .js file and dynamically eval 'getJSONmydsp' function
+var response1 = fs.readFileSync(process.argv[2], 'utf8');
+var getJSONmydsp = eval('(' + response1 + ')');
+
+// Read .wasm file
+var response2 = toUint8Array(fs.readFileSync(process.argv[3]));
+var bytes = response2.buffer;
 
 var res = WebAssembly.compile(bytes)
         .then(m => { WebAssembly.instantiate(m, importObject)
-        .then(instance => { startDSP(instance, buffer_size); })});
+        .then(instance => { testDSP(instance, buffer_size); })});
 
