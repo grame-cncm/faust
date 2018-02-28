@@ -42,7 +42,6 @@ class PrintUI : public PathBuilder, public UI
     public:
 
         PrintUI() {}
-
         virtual ~PrintUI() {}
 
         // -- widget's layouts

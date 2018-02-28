@@ -63,6 +63,9 @@ class ControlUI : public UI {
         virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
    
     public:
+    
+        ControlUI() {}
+        virtual ~ControlUI() {}
        
         void encodeControl(float* control_buffer, unsigned int frames)
         { 

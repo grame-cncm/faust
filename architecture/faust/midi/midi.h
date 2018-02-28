@@ -207,7 +207,6 @@ class midi_handler : public midi {
             }
         }
 
-
 };
 
 #endif // __midi__

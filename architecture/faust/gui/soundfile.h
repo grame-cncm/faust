@@ -115,7 +115,7 @@ struct Soundfile {
         }
     }
     
-    ~Soundfile()
+    virtual ~Soundfile()
     {
         // Free the real channels only
         for (int chan = 0; chan < fChannels; chan++) {

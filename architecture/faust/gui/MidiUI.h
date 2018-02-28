@@ -102,7 +102,6 @@ class uiMidi {
         
         uiMidi(midi* midi_out, bool input):fMidiOut(midi_out), fInputCtrl(input)
         {}
-    
         virtual ~uiMidi()
         {}
     
@@ -115,7 +114,6 @@ class uiMidiItem : public uiMidi, public uiItem {
         uiMidiItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
             :uiMidi(midi_out, input), uiItem(ui, zone)
         {}
-    
         virtual ~uiMidiItem()
         {}
     
@@ -130,7 +128,6 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
         uiMidiTimedItem(midi* midi_out, GUI* ui, FAUSTFLOAT* zone, bool input = true)
             :uiMidi(midi_out, input), uiTimedItem(ui, zone)
         {}
-        
         virtual ~uiMidiTimedItem()
         {}
     

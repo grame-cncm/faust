@@ -428,13 +428,13 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
         JSONUIAux<FAUSTFLOAT>(name, filename, inputs, outputs)
         {}
         
-        JSONUI(int inputs, int outputs):
-        JSONUIAux<FAUSTFLOAT>(inputs, outputs)
+        JSONUI(int inputs, int outputs):JSONUIAux<FAUSTFLOAT>(inputs, outputs)
         {}
         
-        JSONUI():
-        JSONUIAux<FAUSTFLOAT>()
+        JSONUI():JSONUIAux<FAUSTFLOAT>()
         {}
+    
+        virtual ~JSONUI() {}
     
 };
 
