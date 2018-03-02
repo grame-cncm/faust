@@ -36,6 +36,10 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
+#include <llvm/ExecutionEngine/ObjectCache.h>
+#endif
+
 #if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #define LLVM_MAX_OPT_LEVEL 5
 #else
@@ -52,8 +56,6 @@ namespace llvm
 }
 
 class llvm_dsp_factory;
-
-class FaustObjectCache;
 
 // Public C++ interface
 
@@ -101,11 +103,101 @@ class EXPORT llvm_dsp : public dsp {
     
 };
 
+
+// ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work
+#if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
+class FaustObjectCache : public llvm::ObjectCache {
+    
+private:
+    
+    string fMachineCode;
+    
+public:
+    
+    FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
+    {}
+    
+    virtual ~FaustObjectCache()
+    {}
+    
+    void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj)
+    {
+        fMachineCode = Obj->getBuffer().str();
+    }
+    
+    MemoryBuffer* getObject(const Module* M)
+    {
+        return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+    }
+    
+    string getMachineCode() { return fMachineCode; }
+    
+};
+#endif
+
+#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+
+/*
+ static std::string getFeaturesStr()
+ {
+     SubtargetFeatures Features;
+     
+     // If user asked for the 'native' CPU, we need to autodetect features.
+     // This is necessary for x86 where the CPU might not support all the
+     // features the autodetected CPU name lists in the target. For example,
+     // not all Sandybridge processors support AVX.
+     StringMap<bool> HostFeatures;
+     if (sys::getHostCPUFeatures(HostFeatures)) {
+        for (auto &F : HostFeatures) {
+            Features.AddFeature(F.first(), F.second);
+        }
+    }
+ 
+    return Features.getString();
+ }
+ */
+
+// Workaround for iOS compiled LLVM 3.6 missing symbol
+#if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
+void ObjectCache::anchor() {}
+#endif
+
+class FaustObjectCache : public llvm::ObjectCache {
+    
+private:
+    
+    string fMachineCode;
+    
+public:
+    
+    FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
+    {}
+    
+    virtual ~FaustObjectCache()
+    {}
+    
+    virtual void notifyObjectCompiled(const llvm::Module *M, llvm::MemoryBufferRef Obj)
+    {
+        fMachineCode = Obj.getBuffer().str();
+    }
+    
+    virtual unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
+    {
+        return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
+    }
+    
+    string getMachineCode() { return fMachineCode; }
+    
+};
+#endif
+
+typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
+
 class llvm_dsp_factory_aux : public dsp_factory_imp {
 
     friend class llvm_dsp;
     
-    private:
+    protected:
     
         llvm::ExecutionEngine* fJIT;
 
@@ -140,16 +232,17 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         void* loadOptimize(const string& function);
     
         void init(const string& dsp_name, const string& type_name);
-        
+    
         bool crossCompile(const std::string& target);
-      
+    
     #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         static void LLVMFatalErrorHandler(const char* reason);
     #endif
     
-        string writeDSPFactoryToMachineAux(const string& target);
         void startLLVMLibrary();
         void stopLLVMLibrary();
+    
+        string writeDSPFactoryToMachineAux(const string& target);
     
     public:
     
@@ -164,32 +257,30 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target);
     #endif
     
+        llvm_dsp_factory_aux(const std::string& name,
+                            const std::string& sha_key,
+                            const std::string& dsp,
+                            const std::vector<std::string>& pathname_list)
+        :dsp_factory_imp(name, sha_key, dsp, pathname_list)
+        {}
+    
         virtual ~llvm_dsp_factory_aux();
-    
-        static llvm_dsp_factory_aux* JITFactory(llvm_dsp_factory_aux* factory, string& error_msg)
-        {
-            if (factory->initJIT(error_msg)) {
-                return factory;
-            } else {
-                delete factory;
-                return NULL;
-            }
-        }
-    
+      
         // Bitcode
-        string writeDSPFactoryToBitcode();
+        virtual string writeDSPFactoryToBitcode() { return ""; }
         
-        void writeDSPFactoryToBitcodeFile(const string& bit_code_path);
+        virtual void writeDSPFactoryToBitcodeFile(const string& bit_code_path) {}
         
         // IR
-        string writeDSPFactoryToIR();
+        virtual string writeDSPFactoryToIR() { return ""; }
         
-        void writeDSPFactoryToIRFile(const string& ir_code_path);
-        
-        string writeDSPFactoryToMachine(const string& target);
-        
-        void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
-        
+        virtual void writeDSPFactoryToIRFile(const string& ir_code_path) {}
+    
+        // Machine
+        virtual string writeDSPFactoryToMachine(const string& target);
+    
+        virtual void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
+
         bool initJIT(std::string& error_msg);
     
         std::string getTarget();
@@ -209,6 +300,11 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         void metadata(MetaGlue* glue);
    
         static int gInstance;
+    
+        static TLockAble* gDSPFactoriesLock;
+    
+        static dsp_factory_table<SDsp_factory> gLLVMFactoryTable;
+
 };
 
 // Public C++ interface
