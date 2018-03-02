@@ -41,7 +41,7 @@ class rt_midi : public midi_handler {
         static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
             rt_midi* midi = static_cast<rt_midi*>(arg);
-            unsigned int nBytes = message->size();
+            size_t nBytes = message->size();
             int type = (int)message->at(0) & 0xf0;
             int channel = (int)message->at(0) & 0x0f;
             

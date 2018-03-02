@@ -37,13 +37,14 @@
 #if defined(HTTPCTRL) && defined(QRCODECTRL) 
 
 #ifdef _WIN32
-#include <winsock2.h>
-#undef min
-#undef max
+# include <winsock2.h>
+# undef min
+# undef max
+# pragma warning (disable: 4100)
 #else
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+# include <netdb.h>
+# include <arpa/inet.h>
+# include <unistd.h>
 #endif
 
 #include <QtNetwork>
@@ -429,7 +430,7 @@ protected:
         } else {
             
             // find the minimal level > value
-            int l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
+            size_t l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
             painter.fillRect(rect(), fBrush[l]);
         }
     }
@@ -618,7 +619,7 @@ protected:
      */
     void paintContent(QPainter* painter) const
     {
-        int l = fLevel.size();
+        size_t l = fLevel.size();
         
         FAUSTFLOAT p = -1;   // fake value indicates to start from border
         int n = 0;
@@ -1865,5 +1866,10 @@ public:
         clearMetadata();
     }
 };
+
+#ifdef _WIN32
+# pragma warning (default: 4100)
+#endif
+
 
 #endif
