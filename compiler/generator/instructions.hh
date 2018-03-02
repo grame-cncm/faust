@@ -33,6 +33,10 @@
 #include <sstream>
 #include <stdio.h>
 
+#ifdef WIN32
+#pragma warning (disable: 4800)
+#endif
+
 #include "binop.hh"
 #include "property.hh"
 #include "Text.hh"
