@@ -158,6 +158,7 @@
 #endif
 
 using namespace llvm;
+using namespace std;
 
 static void splitTarget(const string& target, string& triple, string& cpu)
 {
@@ -184,14 +185,13 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-static void DUMP(Module* module)
+static void dumpModule(Module* module)
 {
     string res;
     raw_string_ostream out_str(res);
     out_str << *module;
     std::cout << out_str.str();
 }
-
 
 #if defined(LLVM_35) || defined(LLVM_36)
 // LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
@@ -471,7 +471,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         
         TargetOptions targetOptions;
         
-        // -fastmath is activated at IR level, and needs to be setup at JIT level also
+        // -fastmath is activated at IR level, and has to be setup at JIT level also
         
     #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #if !defined(LLVM_50) && !defined(LLVM_60)
@@ -551,7 +551,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
             #else
                 TargetRegistry::printRegisteredTargetsForVersion();
             #endif
-                DUMP(fModule);
+                dumpModule(fModule);
             }
            
             fpm.doInitialization();
@@ -574,7 +574,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
             pm.run(*fModule);
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-                DUMP(fModule);
+                dumpModule(fModule);
             }
         }
         
@@ -699,14 +699,14 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-            DUMP(fModule);
+            dumpModule(fModule);
         }
         
         // Now that we have all of the passes ready, run them.
         pm.run(*fModule);
         
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-            DUMP(fModule);
+            dumpModule(fModule);
         }
     }
      

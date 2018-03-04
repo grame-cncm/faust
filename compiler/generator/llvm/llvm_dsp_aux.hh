@@ -46,8 +46,6 @@
     #define LLVM_MAX_OPT_LEVEL 4
 #endif
 
-using namespace std;
-
 namespace llvm
 {
    class LLVMContext;
@@ -108,29 +106,29 @@ class EXPORT llvm_dsp : public dsp {
 #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
 class FaustObjectCache : public llvm::ObjectCache {
     
-private:
-    
-    string fMachineCode;
-    
-public:
-    
-    FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
-    {}
-    
-    virtual ~FaustObjectCache()
-    {}
-    
-    void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj)
-    {
-        fMachineCode = Obj->getBuffer().str();
-    }
-    
-    MemoryBuffer* getObject(const Module* M)
-    {
-        return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
-    }
-    
-    string getMachineCode() { return fMachineCode; }
+    private:
+        
+        std::string fMachineCode;
+        
+    public:
+        
+        FaustObjectCache(const std::string& machine_code = "") : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache()
+        {}
+        
+        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj)
+        {
+            fMachineCode = Obj->getBuffer().str();
+        }
+        
+        MemoryBuffer* getObject(const Module* M)
+        {
+            return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
+        }
+        
+        std::string getMachineCode() { return fMachineCode; }
     
 };
 #endif
@@ -164,29 +162,29 @@ void ObjectCache::anchor() {}
 
 class FaustObjectCache : public llvm::ObjectCache {
     
-private:
-    
-    string fMachineCode;
-    
-public:
-    
-    FaustObjectCache(const string& machine_code = "") : fMachineCode(machine_code)
-    {}
-    
-    virtual ~FaustObjectCache()
-    {}
-    
-    virtual void notifyObjectCompiled(const llvm::Module *M, llvm::MemoryBufferRef Obj)
-    {
-        fMachineCode = Obj.getBuffer().str();
-    }
-    
-    virtual unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
-    {
-        return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
-    }
-    
-    string getMachineCode() { return fMachineCode; }
+    private:
+        
+        std::string fMachineCode;
+        
+    public:
+        
+        FaustObjectCache(const std::string& machine_code = "") : fMachineCode(machine_code)
+        {}
+        
+        virtual ~FaustObjectCache()
+        {}
+        
+        virtual void notifyObjectCompiled(const llvm::Module *M, llvm::MemoryBufferRef Obj)
+        {
+            fMachineCode = Obj.getBuffer().str();
+        }
+        
+        virtual std::unique_ptr<llvm::MemoryBuffer> getObject(const llvm::Module* M)
+        {
+            return (fMachineCode == "") ? NULL : llvm::MemoryBuffer::getMemBuffer(llvm::StringRef(fMachineCode));
+        }
+        
+        std::string getMachineCode() { return fMachineCode; }
     
 };
 #endif
@@ -209,9 +207,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         llvm::LLVMContext* fContext;
     
         int fOptLevel;
-        string fTarget;
-        string fClassName;
-        string fTypeName;
+        std::string fTarget;
+        std::string fClassName;
+        std::string fTypeName;
     
         newDspFun fNew;
         deleteDspFun fDelete;
@@ -229,9 +227,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         metadataFun fMetadata;
         getSampleSizeFun fGetSampleSize;
     
-        void* loadOptimize(const string& function);
+        void* loadOptimize(const std::string& function);
     
-        void init(const string& dsp_name, const string& type_name);
+        void init(const std::string& dsp_name, const std::string& type_name);
     
         bool crossCompile(const std::string& target);
     
@@ -242,19 +240,19 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         void startLLVMLibrary();
         void stopLLVMLibrary();
     
-        string writeDSPFactoryToMachineAux(const string& target);
+        std::string writeDSPFactoryToMachineAux(const std::string& target);
     
     public:
     
-        llvm_dsp_factory_aux(const string& sha_key,
+        llvm_dsp_factory_aux(const std::string& sha_key,
                              const std::vector<std::string>& pathname_list,
                              llvm::Module* module,
                              llvm::LLVMContext* context,
-                             const string& target,
+                             const std::string& target,
                              int opt_level = 0);
         
     #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
-        llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target);
+        llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
     #endif
     
         llvm_dsp_factory_aux(const std::string& name,
@@ -265,21 +263,21 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         {}
     
         virtual ~llvm_dsp_factory_aux();
-      
+    
         // Bitcode
-        virtual string writeDSPFactoryToBitcode() { return ""; }
+        virtual std::string writeDSPFactoryToBitcode() { return ""; }
         
-        virtual void writeDSPFactoryToBitcodeFile(const string& bit_code_path) {}
+        virtual void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path) {}
         
         // IR
-        virtual string writeDSPFactoryToIR() { return ""; }
+        virtual std::string writeDSPFactoryToIR() { return ""; }
         
-        virtual void writeDSPFactoryToIRFile(const string& ir_code_path) {}
+        virtual void writeDSPFactoryToIRFile(const std::string& ir_code_path) {}
     
         // Machine
-        virtual string writeDSPFactoryToMachine(const string& target);
+        virtual std::string writeDSPFactoryToMachine(const std::string& target);
     
-        virtual void writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target);
+        virtual void writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
 
         bool initJIT(std::string& error_msg);
     
@@ -289,7 +287,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         int getOptlevel();
         void setOptlevel(int opt_level) { fOptLevel = ((opt_level == -1) || (opt_level > LLVM_MAX_OPT_LEVEL)) ? LLVM_MAX_OPT_LEVEL : opt_level; }
     
-        void setClassName(const string& class_name) { fClassName = class_name; }
+        void setClassName(const std::string& class_name) { fClassName = class_name; }
     
         llvm_dsp* createDSPInstance(dsp_factory* factory);
     
@@ -354,7 +352,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     
         std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
     
-        void writeDSPFactoryToBitcodeFile(const string& bit_code_path) { fFactory->writeDSPFactoryToBitcodeFile(bit_code_path); }
+        void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path) { fFactory->writeDSPFactoryToBitcodeFile(bit_code_path); }
     
         std::string writeDSPFactoryToIR() { return fFactory->writeDSPFactoryToIR(); }
     

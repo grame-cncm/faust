@@ -165,6 +165,7 @@
 #endif
 
 using namespace llvm;
+using namespace std;
 
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;

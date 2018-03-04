@@ -28,28 +28,28 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
 
     public:
     
-        llvm_dynamic_dsp_factory_aux(const string& sha_key,
+        llvm_dynamic_dsp_factory_aux(const std::string& sha_key,
                                      const std::vector<std::string>& pathname_list,
                                      llvm::Module* module,
                                      llvm::LLVMContext* context,
-                                     const string& target,
+                                     const std::string& target,
                                      int opt_level = 0);
     
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
-        llvm_dynamic_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
+        llvm_dynamic_dsp_factory_aux(const std::string& sha_key,
+                                     const std::string& machine_code,
+                                     const std::string& target)
         :llvm_dsp_factory_aux(sha_key, machine_code, target)
         {}
-    #endif
     
         // Bitcode
-        string writeDSPFactoryToBitcode();
+        std::string writeDSPFactoryToBitcode();
         
-        void writeDSPFactoryToBitcodeFile(const string& bit_code_path);
+        void writeDSPFactoryToBitcodeFile(const std::string& bit_code_path);
         
         // IR
-        virtual string writeDSPFactoryToIR();
+        virtual std::string writeDSPFactoryToIR();
         
-        virtual void writeDSPFactoryToIRFile(const string& ir_code_path);
+        virtual void writeDSPFactoryToIRFile(const std::string& ir_code_path);
     
 };
 
