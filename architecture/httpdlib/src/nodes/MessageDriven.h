@@ -110,7 +110,7 @@ class MessageDriven : public MessageProcessor, public smartable
 		void			add ( SMessageDriven node )	{ fSubNodes.push_back (node); }
 		const char*		getName() const				{ return fName.c_str(); }
 		std::string		getAddress() const;
-		int				size () const				{ return fSubNodes.size (); }
+		int				size () const				{ return (int)fSubNodes.size (); }
 		
 		const std::string&	name() const			{ return fName; }
 		SMessageDriven	subnode (int i) 			{ return fSubNodes[i]; }
