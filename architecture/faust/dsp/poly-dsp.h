@@ -502,7 +502,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                    int nvoices,
                    bool control = false,
                    bool group = true)
-        :dsp_poly(dsp), dsp_voice_group(panic, this, control, group)
+        : dsp_voice_group(panic, this, control, group), dsp_poly(dsp)
         {
             fDate = 0;
 

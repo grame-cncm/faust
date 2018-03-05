@@ -70,7 +70,7 @@ template <typename C> class FaustNode : public MessageDriven, public uiItem
 
 	protected:
 		FaustNode(RootNode* root, const char *name, C* zone, C init, C min, C max, const char* prefix, GUI* ui, bool initZone, bool input) 
-			: MessageDriven(name, prefix), uiItem(ui, zone), fRoot(root), fMapping(min, max), fInput(input)
+			: MessageDriven(name, prefix), uiItem(ui, zone), fMapping(min, max), fRoot(root), fInput(input)
 			{ 
                 if (initZone) {
                     *zone = init; 

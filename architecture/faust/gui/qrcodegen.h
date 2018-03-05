@@ -28,6 +28,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef WIN32
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
 
 /*---- Enum and struct types----*/
 
