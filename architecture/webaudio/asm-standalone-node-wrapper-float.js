@@ -36,8 +36,8 @@ window.Math.tan = global.Math.tan;
 
 var faust = faust || {};
 
-faust.mydsp = function (buffer_size, sample_rate) {
-
+faust.mydsp = function (buffer_size, sample_rate) 
+{
     var handler = null;
     var ins, outs;
     
@@ -372,7 +372,8 @@ faust.mydsp = function (buffer_size, sample_rate) {
 
 // Helper functions
 
-var create = function(ins, outs, buffer_size) {
+var create = function(ins, outs, buffer_size) 
+{
     for (var i = 0; i < ins; i++) {
         inputs.push(new Float32Array(buffer_size));
     }
@@ -381,7 +382,8 @@ var create = function(ins, outs, buffer_size) {
     }
 }
 
-var impulse = function(ins, buffer_size) {
+var impulse = function(ins, buffer_size) 
+{
     for (var i = 0; i < ins; i++) {
         inputs[i][0] = 1.0;
         for (var f = 1; f < buffer_size; f++) {
@@ -390,7 +392,8 @@ var impulse = function(ins, buffer_size) {
     }
 }
 
-var zero = function(ins, buffer_size) {
+var zero = function(ins, buffer_size) 
+{
     for (var i = 0; i < ins; i++) {
         for (var f = 0; f < buffer_size; f++) {
             inputs[i][f] = 0.0;
@@ -425,14 +428,6 @@ var control_data;
 // Creates DSP and buffers
 var DSP = faust.mydsp(buffer_size, sample_rate);
 create(DSP.getNumInputs(), DSP.getNumOutputs(), buffer_size);
-
-//console.log(DSP);
-//console.log(DSP.getNumInputs());
-//console.log(DSP.getNumOutputs());
-//console.log(DSP.json());
-//console.log(DSP.buttons());
-//console.log(control_data);
-//console.log(DSP.controls());
 
 // Write output file header
 console.log("number_of_inputs  : ", DSP.getNumInputs());

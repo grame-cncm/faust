@@ -31,7 +31,7 @@
 #include "faust/dsp/poly-dsp.h"
 
 #ifndef WIN32
-#include "faust/sound-file.h"
+//#include "faust/sound-file.h"
 #endif
 
 int faustgen_factory::gFaustCounter = 0;

@@ -330,6 +330,7 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
    
     string code = factory->getDSPCode();
     JSONUI json(fNameApp,
+                "",
                 tmp_dsp->getNumInputs(),
                 tmp_dsp->getNumOutputs(),
                 factory->getSHAKey(),

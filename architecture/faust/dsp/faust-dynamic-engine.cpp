@@ -164,7 +164,7 @@ struct dsp_aux {
     void createJSON(const string& name_app)
     {
         // JSON creation
-        JSONUI json(name_app, fDSP->getNumInputs(), fDSP->getNumOutputs());
+        JSONUI json(name_app, "", fDSP->getNumInputs(), fDSP->getNumOutputs());
         fDSP->buildUserInterface(&json);
         fDSP->metadata(&json);
         fJSON = json.JSON();

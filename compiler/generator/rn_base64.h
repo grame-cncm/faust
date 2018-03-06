@@ -25,6 +25,9 @@
 
 */
 
+#ifndef rn_base64_h
+#define rn_base64_h
+
 #include <string>
 #include <cstring>
 
@@ -150,3 +153,5 @@ static inline std::string base64_decode(std::string const& str)
 {
     return base64_decode_aux(str.c_str(), str.size());
 }
+
+#endif
