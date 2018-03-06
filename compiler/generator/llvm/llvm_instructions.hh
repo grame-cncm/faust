@@ -86,9 +86,9 @@ using namespace std;
     #include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
-#ifdef _WIN32
-    #define LLVM_MALLOC "llvm_malloc"
-    #define LLVM_FREE   "llvm_free"
+#if defined(_WIN32) && defined(LLVM_MEM) 
+	#define LLVM_MALLOC "llvm_malloc"
+	#define LLVM_FREE   "llvm_free"
 #else
     #define LLVM_MALLOC "malloc"
     #define LLVM_FREE   "free"

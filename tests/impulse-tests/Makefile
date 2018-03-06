@@ -7,9 +7,11 @@ system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo 
 ifeq ($(system), MINGW)
  FAUST ?= ../../build/bin/faust.exe
  COMPARE := ./filesCompare.exe
+ WINSOCK = -lws2_32
 else
  FAUST ?= ../../build/bin/faust
  COMPARE := ./filesCompare
+ WINSOCK = 
 endif
 
 MAKE ?= make
@@ -153,7 +155,7 @@ impulseinterp: $(SRCDIR)/impulseinterp.cpp ../../build/lib/libfaust.a
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` -o impulseinterp
 
 impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
-	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` -o impulsellvm
+	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` $(WINSOCK) -o impulsellvm
 
 
 #########################################################################

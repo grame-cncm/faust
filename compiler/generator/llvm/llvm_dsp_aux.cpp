@@ -234,7 +234,6 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
     }
 }
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
     :dsp_factory_imp("MachineDSP", sha_key, "")
 {
@@ -251,7 +250,6 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     fContext = new LLVMContext();
     fModule = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
 }
-#endif
 
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
                                            const std::vector<std::string>& pathname_list,
@@ -563,8 +561,6 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
     out.flush();
 }
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
-    
 static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
@@ -592,7 +588,6 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
     }
 }
 
-#endif
 
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target)
