@@ -25,9 +25,9 @@ sources =  $(wildcard *.cpp)
 objects = $(sources:.cpp=.o)
 
 ifeq ($(system), Darwin)
-	LIBS = ../../../compiler/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljack -ljacknet -L/opt/local/lib ../../../architecture/osclib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -framework CoreMIDI -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
+	LIBS = ../../../build/lib/libfaust.a -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreFoundation -lportaudio -ljack -ljacknet -L/opt/local/lib ../../../build/lib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -framework CoreMIDI -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 else 
-	LIBS = ../../../compiler/libfaust.a ../../../architecture/osclib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -ljack -ljacknet -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
+	LIBS = ../../../build/lib/libfaust.a ../../../build/lib/libOSCFaust.a ../../../architecture/httpdlib/libHTTPDFaust.a -ljack -ljacknet -lmicrohttpd -lpthread `$(LLVM_CONFIG) --ldflags` `$(LLVM_CONFIG) --libs` -lz -lncurses -ldl -llo
 endif
 
 ####### Files

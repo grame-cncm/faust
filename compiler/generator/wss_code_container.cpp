@@ -94,7 +94,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
         list<ValueInst*> fun_args;
         fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
         fun_args.push_back(InstBuilder::genInt32NumInst(LAST_TASK_INDEX));
-        fun_args.push_back(InstBuilder::genInt32NumInst(dag[0].size()));
+        fun_args.push_back(InstBuilder::genInt32NumInst(int(dag[0].size())));
         gen_code->pushBackInst(InstBuilder::genLabelInst("/* Initialize end task, if more than one input */"));
         gen_code->pushBackInst(InstBuilder::genVoidFunCallInst("initTask", fun_args));
     } else {
@@ -103,13 +103,13 @@ void WSSCodeContainer::generateDAGLoopWSSAux1(lclgraph dag, BlockInst* gen_code,
 
     // Compute init section
     gen_code->pushBackInst(InstBuilder::genLabelInst("/* Only initialize tasks with more than one input */"));
-    for (int l = dag.size() - 1; l >= 0; l--) {
+    for (int l = int(dag.size()) - 1; l >= 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             if ((*p)->getBackwardLoopDependencies().size() > 1)  { // Only initialize tasks with more than 1 input, since tasks with one input are "directly" activated.
                 list<ValueInst*> fun_args;
                 fun_args.push_back(InstBuilder::genLoadStructVar("fScheduler"));
                 fun_args.push_back(InstBuilder::genInt32NumInst((*p)->getIndex()));
-                fun_args.push_back(InstBuilder::genInt32NumInst((*p)->getBackwardLoopDependencies().size()));
+                fun_args.push_back(InstBuilder::genInt32NumInst(int((*p)->getBackwardLoopDependencies().size())));
                 gen_code->pushBackInst(InstBuilder::genVoidFunCallInst("initTask", fun_args));
             }
         }
@@ -192,7 +192,7 @@ void WSSCodeContainer::generateDAGLoopWSSAux3(int loop_count, const vector<int>&
     // Specific allocate instructions
     list<ValueInst*> fun_args;
     fun_args.push_back(InstBuilder::genInt32NumInst(loop_count));
-    fun_args.push_back(InstBuilder::genInt32NumInst(ready_loop.size()));
+    fun_args.push_back(InstBuilder::genInt32NumInst(int(ready_loop.size())));
     pushAllocateMethod(InstBuilder::genStoreStructVar("fScheduler", InstBuilder::genFunCallInst("createScheduler", fun_args)));
     
     for (unsigned int i = 0; i < ready_loop.size(); i++) {
@@ -302,7 +302,7 @@ StatementInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
   
     switch_block_code->pushBackInst(count_store);
 
-    for (int l = dag.size() - 1; l > 0; l--) {
+    for (int l = int(dag.size()) - 1; l > 0; l--) {
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++, loop_num++) {
 
             // Generates a "case" block for each task

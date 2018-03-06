@@ -38,7 +38,8 @@ all : updatesubmodules
 
 universal :
 	$(MAKE) -C $(BUILDLOCATION) universal
-	$(MAKE) -C architecture/osclib
+	$(MAKE) -C build staticlib
+	$(MAKE) -C build osc
 	@echo 
 	@echo "### Universal mode is ON"
 	@echo "### You need to recompile"

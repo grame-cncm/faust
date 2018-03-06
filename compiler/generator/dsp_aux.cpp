@@ -43,7 +43,7 @@ using namespace std;
 // Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
-    for (size_t i = 0; i < options.size(); i++) {
+    for (int i = 0; i < int(options.size()); i++) {
         if (key == options[i]) {
             position = i;
             return true;
@@ -470,7 +470,7 @@ EXPORT string generateSHA1(const string& dsp_content)
     
     // Hash one
     sha1_init(&ctx);
-    sha1_update(&ctx, (unsigned char*)dsp_content.c_str(), dsp_content.size());
+    sha1_update(&ctx, (unsigned char*)dsp_content.c_str(), int(dsp_content.size()));
     sha1_final(&ctx, obuf);
     
     // convert SHA1 key into hexadecimal string
