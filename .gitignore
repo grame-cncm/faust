@@ -29,3 +29,4 @@ compiler/faust
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
+tests/impulse-tests/ir

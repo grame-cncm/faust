@@ -78,7 +78,7 @@ class OSCStream
         OSCStream(UdpSocket* socket) 
             : fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) 
         {
-            fSocket->allowBroadcast();
+            fSocket->SetEnableBroadcast(true);
         } 
 		virtual ~OSCStream() {}
 		

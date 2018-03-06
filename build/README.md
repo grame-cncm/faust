@@ -4,7 +4,8 @@
 ### Prerequisites
 - you must have [cmake](https://cmake.org/) version 3.4.0 or greater installed.
 - you must have [LLVM](http://llvm.org/) installed to compile the llvm backend.
-- on Windows, you should have MS [Visual Studio](http://www.microsoft.com/express/) installed. The current Makefile is targetting Visual Studio 14 2015 Win64. See Windows specific notes.
+- you must have [libmicrohttpd](https://www.gnu.org/software/libmicrohttpd/) installed to compile the http libraries.
+- on Windows, you have the option to use MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See Windows specific notes.
 
 
 ## Using the Makefile
@@ -33,15 +34,15 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 **Warning**: running cmake from the build folder may override the existing Makefile.
 
 
-## Usefull cmake options
-
-- CMAKE_VERBOSE_MAKEFILE : a boolean value that sets the Makefiles in verbose mode. Ex: `cmake -DCMAKE_VERBOSE_MAKEFILE=ON`
 
 ## Compiling on Windows
 Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
 Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
 > pacman -S mingw-w64-x86_64-gcc
+
+In this case, make sure to uninstall the previous gcc version first:
+> pacman -R gcc
 
 To compile using Visual Studio, you'll have to configure manually your project using a commands prompt (e.g. Windows PowerShell):
 
@@ -53,16 +54,28 @@ Then you can open the Visual Studio solution located in `your_output_folder` or 
 
 `> cmake --build .`  
 
+
+
+
 ## Notes regarding the backends compilation
 
 ### Notes regarding LLVM
 - you must have `llvm-config` available from the command line.
 - using LLVM 5.0.0 works on every platform, you can get binary distributions from the [LLVM Releases page](http://releases.llvm.org/)
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
+- on Linux and MacOS, cmake assumes that a cmake file is available from the LLVM distribution. Depending on the LLVM version, it may not work properly. In this case, you can force the use of llvm-config with the LLVM_CONFIG option i.e.
+> cd faustdir &&
+cmake .. -DLLVM_CONFIG=on
 
 #### LLVM on windows:
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
 - pacman -S mingw-w64-x86_64-llvm
+
+Compiling using Visual Studio and LLVM 5.0.0 may lead to a link error:
+
+`Error	LNK1181	cannot open input file 'LTO-NOTFOUND.obj'`
+
+This is due to an incorrect `llvm-config` output. Open the solution and edit the project properties and remove the faulty input LTO-NOTFOUND entry from the `Linker->Input` section.
 
 #### LLVM on GNU/Linux:
 LLVM is generally available from the package manager but it might be an old version that don't statisfy the rtti constrain. In this case you should get a binary distribution from the [LLVM Releases page](http://releases.llvm.org/).

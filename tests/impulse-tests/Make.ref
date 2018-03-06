@@ -1,0 +1,108 @@
+#
+# Makefile for building the ir reference files
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+refdir := reference
+GCCOPTIONS := -O3 -I../../architecture -Iarchs -pthread -std=c++11
+lang ?= cpp
+arch ?= ./archs/impulsearch.cpp
+FAUSTOPTIONS := -lang $(lang) -double -i -a $(arch)
+
+.PHONY: test reference
+
+dspfiles := $(wildcard dsp/*.dsp)
+reffiles := $(patsubst dsp/%.dsp, $(refdir)/%.ir, $(dspfiles))
+
+
+listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(dspfiles:dsp/%.dsp=$1/vec/%) $(dspfiles:dsp/%.dsp=$1/vec/%.cpp) $(dspfiles:dsp/%.dsp=$1/sched/%) $(dspfiles:dsp/%.dsp=$1/sched/%.cpp) 
+
+.INTERMEDIATE: $(call listintermediate, $(refdir))
+
+#cppfiles := $(patsubst dsp/%.dsp, dsp/$(lang)/%.ir, $(dspfiles)) 
+#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/mem/%.ir, $(dspfiles)) 
+#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/fm/%.ir, $(dspfiles))
+#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/inpl/%.ir, $(dspfiles))
+
+
+#.DELETE_ON_ERROR: $(cppfiles)
+
+TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
+LIB    ?= ../../build/lib/libfaust.a
+SRCDIR := tools
+
+#########################################################################
+# building reference files
+reference: filesCompare $(refdir)/vec $(refdir)/sched $(reffiles) 
+
+help:
+	@echo "-------- FAUST impulse tests --------"
+	@echo "Available targets are:"
+	@echo " 'reference' (default): compiles all the dsp found in the dsp folder"
+	@echo "             using the $(arch) architecture in scalar, vec and sched modes,"
+	@echo "             then launch the output application to generate impulse response files,"
+	@echo "             which are then checked against each other using filesCompare"
+
+test:
+	@echo $(call listintermediate, $(refdir))
+
+
+#########################################################################
+# output directories
+$(refdir)/vec:
+	mkdir -p $(refdir)/vec
+$(refdir)/sched:
+	mkdir -p $(refdir)/sched
+
+
+#########################################################################
+# tools
+filesCompare: $(SRCDIR)/filesCompare.cpp
+	$(MAKE) filesCompare
+
+
+#########################################################################
+# rules for reference
+$(refdir)/%.ir: dsp/% $(refdir)/vec/%.ir $(refdir)/sched/%.ir dsp/%.dsp dsp/%.cpp 
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$< -n 60000 > $@
+	$(COMPARE)  $@ $(refdir)/vec/$(notdir $@)
+	$(COMPARE)  $@ $(refdir)/sched/$(notdir $@)
+
+$(refdir)/vec/%.ir: dsp/vec/% dsp/%.dsp dsp/vec/%.cpp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$< -n 60000 > $@
+
+$(refdir)/sched/%.ir: dsp/sched/% dsp/%.dsp dsp/sched/%.cpp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$< -n 60000 > $@
+
+dsp/%.cpp : dsp/%.dsp
+	$(FAUST) -double -i -a $(arch) $<  -o $@
+
+dsp/vec/%.cpp : dsp/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -double -vec -i -a $(arch) $<  -o $@
+
+dsp/sched/%.cpp : dsp/%.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -double -sch -i -a $(arch) $<  -o $@
+
+dsp/% : dsp/%.cpp
+	$(CXX) $(GCCOPTIONS) $<  -o $@
+dsp/vec/% : dsp/vec/%.cpp
+	$(CXX) $(GCCOPTIONS) $<  -o $@
+dsp/sched/% : dsp/sched/%.cpp
+	$(CXX) $(GCCOPTIONS) $<  -o $@
+
+

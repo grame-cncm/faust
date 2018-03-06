@@ -1,5 +1,15 @@
 #!/bin/bash
 
+PATH=../../build/bin:$PATH
+faust --version
+echo location $(which faust)
+
+# detect the current system 
+system=$(uname -s)
+# normalizes MINGW versions
+system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
+
+
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
@@ -27,8 +37,11 @@ notinlist() {
   return 0
 }
 
-if [ "$1" = "osx" ]; then
-    echo
+echo "------------------------"
+echo Run tests for $system
+echo "------------------------"
+
+if [ "$system" = "Darwin" ]; then
     echo "Test $OSX"
     echo "Test -midi $OSXMIDI"
     echo "Test -nvoices 8 $OSXPOLY"
@@ -118,8 +131,7 @@ if [ "$1" = "osx" ]; then
 
     (faust2android -exp10 exp10.dsp)&&(echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
 
-elif [ "$1" = "linux" ]; then
-    echo
+elif [ "$system" = "Linux" ]; then
     echo "Test $LINUX"
     echo "Test -midi $LINUXMIDI"
     echo "Test -nvoices 8 $LINUXPOLY"
@@ -175,6 +187,9 @@ elif [ "$1" = "linux" ]; then
     (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
     (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
+
+elif [ "$system" = "MINGW" ]; then
+	echo "not yet implemented"
 
 else
 	echo

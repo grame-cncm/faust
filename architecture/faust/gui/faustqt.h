@@ -37,17 +37,17 @@
 #if defined(HTTPCTRL) && defined(QRCODECTRL) 
 
 #ifdef _WIN32
-#include <winsock2.h>
-#undef min
-#undef max
+# include <winsock2.h>
+# undef min
+# undef max
+# pragma warning (disable: 4100)
 #else
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+# include <netdb.h>
+# include <arpa/inet.h>
+# include <unistd.h>
 #endif
 
 #include <QtNetwork>
-#include <qrencode.h>
 
 #endif
 
@@ -65,7 +65,12 @@
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/ValueConverter.h"
+#include "faust/gui/SimpleParser.h"
 #include "faust/gui/MetaDataUI.h"
+
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
+#include "faust/gui/qrcodegen.h"
+#endif
 
 // for compatibility
 #define minValue minimum
@@ -425,7 +430,7 @@ protected:
         } else {
             
             // find the minimal level > value
-            int l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
+            size_t l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
             painter.fillRect(rect(), fBrush[l]);
         }
     }
@@ -614,7 +619,7 @@ protected:
      */
     void paintContent(QPainter* painter) const
     {
-        int l = fLevel.size();
+        size_t l = fLevel.size();
         
         FAUSTFLOAT p = -1;   // fake value indicates to start from border
         int n = 0;
@@ -1153,6 +1158,36 @@ public:
  
  *******************************************************************************
  *******************************************************************************/
+// a simple utility to retrieve an abstract qr code
+// introduced to remove the dependency to qrencode
+static QImage getQRCode(const QString& url, int padding)
+{
+	qrcodegen_Ecc errCorLvl = qrcodegen_Ecc_HIGH; //qrcodegen_Ecc_MEDIUM qrcodegen_Ecc_LOW Error correction level
+	uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+	if (!qrcodegen_encodeText(url.toStdString().c_str(), tempBuffer, qrcode, errCorLvl, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true))
+		return QImage(1, 1, QImage::Format_RGB32);
+
+	int size = qrcodegen_getSize(qrcode);
+	QRgb colors[2];
+	colors[0] = qRgb(255, 255, 255); 	// 0 is white
+	colors[1] = qRgb(0, 0, 0); 			// 1 is black
+	// build the QRCode image
+	QImage image(size+2*padding, size+2*padding, QImage::Format_RGB32);
+	// clear the image
+	for (int y=0; y<size + 2*padding; y++) {
+		for (int x=0; x<size + 2*padding; x++) {
+			image.setPixel(x, y, colors[0]);
+		}
+	}
+	// copy the qrcode inside
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			image.setPixel(x+padding, y+padding, colors[qrcodegen_getModule(qrcode, x, y) & 1]);
+		}
+	}
+	return image;
+}
 
 class QTGUI : public QWidget, public GUI, public MetaDataUI
 {
@@ -1404,7 +1439,7 @@ public:
         url += QString::number(portnum);
         displayQRCode(url, NULL);
     }
-    
+	
     void displayQRCode(const QString& url, QMainWindow* parent = NULL)
     {
         if (parent == NULL) {
@@ -1416,32 +1451,35 @@ public:
         //    QTextEdit* httpdText = new QTextEdit(centralWidget);
         QTextBrowser* myBro = new QTextBrowser(centralWidget);
         
-        //Construction of the flashcode
+//        //Construction of the flashcode
+//        const int padding = 5;
+//        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+//
+//        //   qDebug() << "QRcode width = " << qrc->width;
+//
+//        QRgb colors[2];
+//        colors[0] = qRgb(255, 255, 255); 	// 0 is white
+//        colors[1] = qRgb(0, 0, 0); 			// 1 is black
+//
+//        // build the QRCode image
+//        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
+//        // clear the image
+//        for (int y = 0; y < qrc->width+2*padding; y++) {
+//            for (int x = 0; x < qrc->width+2*padding; x++) {
+//                image.setPixel(x, y, colors[0]);
+//            }
+//        }
+//        // copy the qrcode inside
+//        for (int y = 0; y < qrc->width; y++) {
+//            for (int x = 0; x < qrc->width; x++) {
+//                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
+//            }
+//        }
+		
         const int padding = 5;
-        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-        
-        //   qDebug() << "QRcode width = " << qrc->width;
-        
-        QRgb colors[2];
-        colors[0] = qRgb(255, 255, 255); 	// 0 is white
-        colors[1] = qRgb(0, 0, 0); 			// 1 is black
-        
-        // build the QRCode image
-        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
-        // clear the image
-        for (int y = 0; y < qrc->width+2*padding; y++) {
-            for (int x = 0; x < qrc->width+2*padding; x++) {
-                image.setPixel(x, y, colors[0]);
-            }
-        }
-        // copy the qrcode inside
-        for (int y = 0; y < qrc->width; y++) {
-            for (int x = 0; x < qrc->width; x++) {
-                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
-            }
-        }
-        
-        QImage big = image.scaledToWidth(qrc->width*8);
+		QImage image = getQRCode (url, padding);
+//        QImage big = image.scaledToWidth(qrc->width*8);
+        QImage big = image.scaledToWidth(image.width() * 8);
         QLabel* myLabel = new QLabel(centralWidget);
         
         fQrCode = QPixmap::fromImage(big);
@@ -1460,7 +1498,7 @@ public:
         myBro->setOpenExternalLinks(true);
         myBro->setHtml(text);
         myBro->setAlignment(Qt::AlignCenter);
-        myBro->setFixedWidth(qrc->width*8);
+        myBro->setFixedWidth(big.width());
         //    myBro->setFixedHeight(myBro->minimumHeight());
         
         QGridLayout *mainLayout = new QGridLayout;
@@ -1828,5 +1866,10 @@ public:
         clearMetadata();
     }
 };
+
+#ifdef _WIN32
+# pragma warning (default: 4100)
+#endif
+
 
 #endif

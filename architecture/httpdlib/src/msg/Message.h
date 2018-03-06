@@ -167,7 +167,7 @@ class Message
 	/// \brief gives the message parameters list
 	argslist&			params()			{ return fArguments; }
 	/// \brief gives the message parameters count
-	int					size() const		{ return fArguments.size(); }
+	int					size() const		{ return (int)fArguments.size(); }
 	
 	bool operator == (const Message& other) const;	
 

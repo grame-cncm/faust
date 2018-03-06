@@ -1,0 +1,55 @@
+#!/bin/bash
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to impulse tests			#
+#               (c) Grame, 2017                                     #
+#                                                                   #
+#####################################################################
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+if [ -f $FAUST_LIB_PATH/music.lib ]
+    then
+    FAUSTLIB=$FAUST_LIB_PATH
+elif [ -f /usr/local/share/faust/all.lib ]
+    then
+    FAUSTLIB=/usr/local/share/faust/
+elif [ -f /usr/share/faust/all.lib ]
+    then
+    FAUSTLIB=/usr/share/faust/
+else
+    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
+fi
+
+for p in $@; do
+    if [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"
+    fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+
+for f in $FILES; do
+
+    name=$(basename "$f" .dsp)
+    dirname=$(dirname "$f");
+
+    # compile Faust to asm.js
+    faust $OPTIONS -lang ajs -cn $name -a $FAUSTLIB/webaudio/asm-standalone-node-wrapper-double.js "$f" -o "${f%.dsp}.js" || exit
+
+	# run the binary to generate the impulse response
+    cd $dirname
+    node "$name.js" || exit
+
+    # cleanup
+    rm "$name.js"
+
+done
+

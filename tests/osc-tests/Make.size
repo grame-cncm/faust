@@ -1,0 +1,60 @@
+#
+# Makefile for testing the faust OSC UI
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+else
+ FAUST ?= ../../build/bin/faust
+endif
+MAKE     ?= make
+LIBDIR   ?= ../../build/lib
+FAUSTINC ?= ../../architecture
+version  := $(shell cat osc-version.txt)
+size 	 ?= float
+
+dspfiles  = $(shell find dsp -name "*.dsp")
+outfiles  = $(dspfiles:dsp/%.dsp=$(version)/$(size)/%.ir.txt) $(dspfiles:dsp/%.dsp=$(version)/$(size)/%.ir.dyn.txt) 
+OPTIONS  := -I$(FAUSTINC) -I$(FAUSTINC)/osclib/oscpack  -I$(FAUSTINC)/osclib/faust
+
+
+#########################################################################
+all: osclistener $(outfiles)
+
+osclistener:
+	$(MAKE) osclistener
+
+help:
+	@echo "-------- FAUST OSC UI tests --------"
+	@echo "Available target are:"
+	@echo " 'all' (default): build and run all the dsp found in the 'dsp' folder using an OSC UI"
+	@echo "                  Each dsp is compiled twice: using the static and the dynamic OSC libs."
+	@echo "                  The test sends the OSC messages taken from each corresponding dsp/*.osc.txt"
+	@echo "                  while the application is running."
+	@echo "                  It produces impulse response files on output, located in the $(version)/$(size) folder."
+	@echo 
+	@echo "Options:"
+	@echo " 'size=[float|double]]': used for FAUSTFLOAT size (default is $(size)"
+
+
+#########################################################################
+# rules for ir output
+$(version)/$(size)/%.ir.txt : $(version)/$(size)/% 
+	./osclistener | grep -vi "version"  > $<.osc.txt &
+	$< dsp/$(notdir $<).osc.txt | grep -vi "version" > $@ || (rm  $@; false)
+
+$(version)/$(size)/%.ir.dyn.txt : $(version)/$(size)/%-dyn
+	$(eval tmp := $(shell echo $< | sed 's/-dyn//'))
+	$< dsp/$(notdir $(tmp)).osc.txt | grep -vi "version" > $@ || (rm  $@; false)
+
+$(version)/$(size)/% : $(version)/$(size)/%.cpp
+	$(CXX) $(OPTIONS) -DFAUSTFLOAT=$(size) $(LIBDIR)/libOSCFaust.a  $< -o $@
+
+$(version)/$(size)/%-dyn : $(version)/$(size)/%.cpp
+	$(CXX) $(OPTIONS) -DFAUSTFLOAT=$(size) -L$(LIBDIR) -lOSCFaust -rpath $(LIBDIR)  $< -o $@
+
+$(version)/$(size)/%.cpp : dsp/%.dsp oscmin.cpp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -a oscmin.cpp  $<  -o $@ 

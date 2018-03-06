@@ -1,8 +1,8 @@
 /*
-	oscpack -- Open Sound Control packet manipulation library
-	http://www.audiomulch.com/~rossb/oscpack
+	oscpack -- Open Sound Control (OSC) packet manipulation library
+    http://www.rossbencina.com/code/oscpack
 
-	Copyright (c) 2004-2005 Ross Bencina <rossb@audiomulch.com>
+    Copyright (c) 2004-2013 Ross Bencina <rossb@audiomulch.com>
 
 	Permission is hereby granted, free of charge, to any person obtaining
 	a copy of this software and associated documentation files
@@ -15,10 +15,6 @@
 	The above copyright notice and this permission notice shall be
 	included in all copies or substantial portions of the Software.
 
-	Any person wishing to distribute modifications to the Software is
-	requested to send the modifications to the original developer so that
-	they can be incorporated into the canonical version.
-
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -27,16 +23,33 @@
 	CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
+
+/*
+	The text above constitutes the entire oscpack license; however, 
+	the oscpack developer(s) also make the following non-binding requests:
+
+	Any person wishing to distribute modifications to the Software is
+	requested to send the modifications to the original developer so that
+	they can be incorporated into the canonical version. It is also 
+	requested that these non-binding requests be included whenever the
+	above license is reproduced.
+*/
 #include "OscUnitTests.h"
 
-#include <iostream>
+#include <cstring>
 #include <iomanip>
-#include <string.h>
+#include <iostream>
 
 #include "osc/OscReceivedElements.h"
 #include "osc/OscPrintReceivedElements.h"
 #include "osc/OscOutboundPacketStream.h"
 
+#if defined(__BORLANDC__) // workaround for BCB4 release build intrinsics bug
+namespace std {
+using ::__strcmp__;  // avoid error: E2316 '__strcmp__' is not a member of 'std'.
+using ::__strcpy__;  // avoid error: E2316 '__strcpy__' is not a member of 'std'.
+}
+#endif
 
 namespace osc{
 
@@ -80,7 +93,7 @@ void assertEqual_( const T* lhs, const T* rhs, const char *slhs, const char *srh
 template <>
 void assertEqual_( const char* lhs, const char* rhs, const char *slhs, const char *srhs, const char *file, int line )
 {
-    if( strcmp( lhs, rhs ) == 0 )
+    if( std::strcmp( lhs, rhs ) == 0 )
         pass_equality( slhs, srhs, file, line );
     else
         fail_equality( slhs, srhs, file, line );
@@ -100,7 +113,7 @@ char * AllocateAligned4( unsigned long size )
 char * NewMessageBuffer( const char *s, unsigned long length )
 {
     char *p = AllocateAligned4( length );
-    memcpy( p, s, length );
+    std::memcpy( p, s, length );
     return p;
 }
 
@@ -114,8 +127,8 @@ void test1()
     try{
         ReceivedMessage m( ReceivedPacket(buffer, sizeof(s)-1) );
 
-        assertEqual( strcmp( m.AddressPattern(), "/test" ), 0 );
-        assertEqual( strcmp( m.TypeTags(), "fiT" ), 0 );
+        assertEqual( std::strcmp( m.AddressPattern(), "/test" ), 0 );
+        assertEqual( std::strcmp( m.TypeTags(), "fiT" ), 0 );
         
         ReceivedMessage::const_iterator i = m.ArgumentsBegin();
         ++i;
@@ -156,7 +169,7 @@ void test1()
         assertEqual( args.Eos(), false );
 
         float f;
-        long n;
+        int32 n;
         bool b;
         args >> f >> n >> b;
 
@@ -225,6 +238,8 @@ void test2()
         TEST2_PRINT( "/Nil\0\0\0\0,N\0\0" );
         //            01230 1 2 3 012 3
         TEST2_PRINT( "/Inf\0\0\0\0,I\0\0" );
+        //            0123012 3 0123012 3 0 1 2 3  0 1 2 3  0 1 2 3  
+        TEST2_PRINT( "/Array\0\0,[iii]\0\0\0\0\0\x1\0\0\0\x2\0\0\0\x3" );
 
         TEST2_PRINT( "/test\0\0\0,fiT\0\0\0\0\0\0\0\0\0\0\0A" );
                                                         
@@ -251,7 +266,7 @@ void test2()
 
 #define TEST_PACK_UNPACK0( addressPattern, argument, value, recieveGetter ) \
     {                                    \
-        memset( buffer, 0x74, bufferSize );   \
+        std::memset( buffer, 0x74, bufferSize );   \
         OutboundPacketStream ps( buffer, bufferSize ); \
         ps << BeginMessage( addressPattern )  \
             << argument \
@@ -262,7 +277,7 @@ void test2()
         assertEqual( m.ArgumentsBegin()-> recieveGetter () , value );\
     }  \
     {                                    \
-        memset( buffer, 0x74, bufferSize );   \
+        std::memset( buffer, 0x74, bufferSize );   \
         OutboundPacketStream ps( buffer, bufferSize ); \
         ps << BeginBundle( 1234 ) \
             << BeginMessage( addressPattern )  \
@@ -278,7 +293,7 @@ void test2()
     
 #define TEST_PACK_UNPACK( addressPattern, argument, type, recieveGetter ) \
     {                                    \
-        memset( buffer, 0x74, bufferSize );   \
+        std::memset( buffer, 0x74, bufferSize );   \
         OutboundPacketStream ps( buffer, bufferSize ); \
         ps << BeginMessage( addressPattern )  \
             << argument \
@@ -289,7 +304,7 @@ void test2()
         assertEqual( m.ArgumentsBegin()-> recieveGetter () , ( type ) argument );\
     }  \
     {                                    \
-        memset( buffer, 0x74, bufferSize );   \
+        std::memset( buffer, 0x74, bufferSize );   \
         OutboundPacketStream ps( buffer, bufferSize ); \
         ps << BeginBundle( 1234 ) \
             << BeginMessage( addressPattern )  \
@@ -311,7 +326,7 @@ void test3()
 // single message tests
     // empty message
     {
-        memset( buffer, 0x74, bufferSize );
+        std::memset( buffer, 0x74, bufferSize );
         OutboundPacketStream ps( buffer, bufferSize );
         ps << BeginMessage( "/no_arguments" )
             << EndMessage;
@@ -324,7 +339,11 @@ void test3()
     TEST_PACK_UNPACK( "/a_bool", false, bool, AsBool );
     TEST_PACK_UNPACK( "/a_bool", (bool)1, bool, AsBool );
 
+
+#ifndef _OBJC_OBJC_H_
     TEST_PACK_UNPACK0( "/nil", Nil, true, IsNil );
+#endif
+    TEST_PACK_UNPACK0( "/nil", OscNil, true, IsNil );
     TEST_PACK_UNPACK0( "/inf", Infinitum, true, IsInfinitum );
 
     TEST_PACK_UNPACK( "/an_int", (int32)1234, int32, AsInt32 );
@@ -346,7 +365,7 @@ void test3()
     // blob
     {
         char blobData[] = "abcd";
-        memset( buffer, 0x74, bufferSize );
+        std::memset( buffer, 0x74, bufferSize );
         OutboundPacketStream ps( buffer, bufferSize );
         ps << BeginMessage( "/a_blob" )
             << Blob( blobData, 4 )
@@ -356,11 +375,42 @@ void test3()
         std::cout << m << "\n";
 
         const void *value;
-        unsigned long size;
+        osc_bundle_element_size_t size;
         m.ArgumentsBegin()->AsBlob( value, size );
-        assertEqual( size, (unsigned long)4 );
+        assertEqual( size, (osc_bundle_element_size_t)4 );
         assertEqual( (memcmp( value, blobData, 4 ) == 0), true );
     }
+
+    // array
+    {
+        int32 arrayData[] = {1,2,3,4};
+        const std::size_t sourceArrayItemCount = 4;
+        std::memset( buffer, 0x74, bufferSize );
+        OutboundPacketStream ps( buffer, bufferSize );
+        ps << BeginMessage( "/an_array" )
+            << BeginArray;
+        for( std::size_t j=0; j < sourceArrayItemCount; ++j )
+            ps << arrayData[j];
+        ps << EndArray << EndMessage;
+        assertEqual( ps.IsReady(), true );
+        ReceivedMessage m( ReceivedPacket(ps.Data(), ps.Size()) );
+        std::cout << m << "\n";
+
+        ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
+        assertEqual( i->IsArrayBegin(), true );
+        assertEqual( i->ComputeArrayItemCount(), sourceArrayItemCount );
+        std::size_t arrayItemCount = i->ComputeArrayItemCount();
+        ++i; // move past array begin marker        
+        for( std::size_t j=0; j < arrayItemCount; ++j ){
+            assertEqual( true, i->IsInt32() );
+            int32 k = i->AsInt32();
+            assertEqual( k, arrayData[j] );
+            ++i;
+        }
+
+        assertEqual( i->IsArrayEnd(), true );
+    }
+
 
 
     TEST_PACK_UNPACK( "/a_string", "hello world", const char*, AsString );
@@ -371,7 +421,7 @@ void test3()
     // nested bundles, and multiple messages in bundles...
 
     {
-        memset( buffer, 0x74, bufferSize );
+        std::memset( buffer, 0x74, bufferSize );
         OutboundPacketStream ps( buffer, bufferSize );
         ps << BeginBundle()
             << BeginMessage( "/message_one" ) << 1 << 2 << 3 << 4 << EndMessage

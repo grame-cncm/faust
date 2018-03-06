@@ -1,0 +1,88 @@
+#
+# Makefile for generating ir using asmjs, wasm,... 
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+outdir ?= asmjs
+wasmdir ?= wasm
+lang ?= ajs
+arch ?= ../../architecture/webaudio/asm-standalone-node-wrapper-double.js
+wasmarch ?= ../../architecture/webaudio/wasm-standalone-node-wrapper-double.js
+FAUSTOPTIONS ?= 
+
+.PHONY: test 
+
+dspfiles := $(wildcard dsp/*.dsp)
+listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
+
+SRCDIR := tools
+
+
+all:
+	$(MAKE) -f Make.web asmjs
+
+test:
+	@echo $(call listfiles,$(outdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'asmjs' (default): check the double output using the ajs backend"
+	@echo " 'wasm'           : check the double output using the wasm backend"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir' 	   : define the output directory (default to 'asmjs')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
+
+
+#########################################################################
+# web backends
+asmjs:  ir/$(outdir) $(call listfiles,$(outdir))
+wasm:  ir/$(wasmdir) $(call listfiles,$(wasmdir))
+	
+
+#########################################################################
+# output directories
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+ir/$(wasmdir):
+	mkdir -p ir/$(wasmdir)
+
+
+#########################################################################
+# tools
+filesCompare: $(SRCDIR)/filesCompare.cpp
+	$(MAKE) filesCompare
+
+
+#########################################################################
+# rules for asm.js
+ir/$(outdir)/%.ir: ir/$(outdir)/%.js reference/%.ir
+	node $< > $@ || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@)
+ir/$(outdir)/%.js : dsp/%.dsp
+	$(FAUST) -double -lang $(lang) $(FAUSTOPTIONS) -cn $(basename $(notdir $@)) -a $(arch)  $<  -o $@
+
+#########################################################################
+# rules for wasm
+ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
+	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
+	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
+	mv $@.tmp $@
+ir/$(wasmdir)/%.wasm : dsp/%.dsp
+	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  $<  -o $@
+
+
+

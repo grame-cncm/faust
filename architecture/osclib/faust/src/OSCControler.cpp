@@ -40,8 +40,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 0.96f
-#define kVersionStr	"0.96"
+#define kVersion	 1.00f
+#define kVersionStr	"1.00"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -193,7 +193,7 @@ bool OSCControler::isPathFiltered(std::string path)
 //--------------------------------------------------------------------------
 void OSCControler::resetFilteredPaths()
 {
-    for (int i = fFilteredPaths.size()-1; i >= 0; i--) {
+    for (int i = int(fFilteredPaths.size()-1); i >= 0; i--) {
         OSCRegexp* reg = fFilteredPaths[i];
         fFilteredPaths.erase(fFilteredPaths.begin()+i);
         delete reg;
