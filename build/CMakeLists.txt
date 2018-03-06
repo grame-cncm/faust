@@ -149,9 +149,10 @@ if (LLVM_BACKEND )
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 
 	# the declarations below are redundant but necessary to cope with different cmake behaviors on different platforms
-	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS   "-fno-rtti ${LLVM_DEFINITIONS}")
-	set_property(SOURCE ${SRCDIR}/generator/llvm/llvm_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
-	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS} )
+	set (TMP ${SRCDIR}/generator/llvm)
+	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS   "-fno-rtti ${LLVM_DEFINITIONS}")
+	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
+	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LIBS})
 endif()
 
 ####################################
