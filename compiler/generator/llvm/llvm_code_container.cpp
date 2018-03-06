@@ -912,7 +912,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         throw faustexception(llvm_error.str());
     }
     
-    return new llvm_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
+    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
 }
 
 // Scalar

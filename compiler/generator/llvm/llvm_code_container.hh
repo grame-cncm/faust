@@ -27,7 +27,7 @@
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
-#include "llvm_dsp_aux.hh"
+#include "llvm_dynamic_dsp_aux.hh"
 
 #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/Support/FileSystem.h>
