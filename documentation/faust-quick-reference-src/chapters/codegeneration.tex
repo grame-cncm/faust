@@ -11,10 +11,10 @@ To illustrate the difference between scalar code and vector code, let's take the
 \label{rms}
 \begin{lstlisting}
 // Root Mean Square of n consecutive samples
-RMS(n) = square : mean(n) : sqrt ;
+RMS(n) = square : mean(n) : sqrt;
 
 // Square of a signal
-square(x) = x * x ;
+square(x) = x * x;
 
 // Mean of n consecutive samples of a signal
 // (uses fixpoint to avoid the accumulation of
@@ -23,14 +23,14 @@ mean(n) = float2fix : integrate(n) :
           fix2float : /(n); 
 
 // Sliding sum of n consecutive samples
-integrate(n,x) = x - x@n : +~_ ;
+integrate(n,x) = x - x@n : +~_;
 
 // Convertion between float and fix point
 float2fix(x) = int(x*(1<<20));      
 fix2float(x) = float(x)/(1<<20);    
 
 // Root Mean Square of 1000 consecutive samples
-process = RMS(1000) ;
+process = RMS(1000);
 \end{lstlisting}
 
 The compute() method generated in scalar mode is the following:
@@ -63,8 +63,8 @@ virtual void compute (int fullcount,
                       float** input, 
                       float** output) 
 {
-  int     iRec0_tmp[32+4];
-  int*    iRec0 = &iRec0_tmp[4];
+  int iRec0_tmp[32+4];
+  int* iRec0 = &iRec0_tmp[4];
   for (int index=0; index<fullcount; index+=32) 
   {
     int count = min (32, fullcount-index);

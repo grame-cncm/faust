@@ -77,6 +77,9 @@ for p in $FILES; do
     sed -e "s/DSP_NAME/"${f%.dsp}"/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
     sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
 
+    # collect binary file name for FaustGIDE
+    BINARIES="$BINARIES${f%.dsp}.maxpat;"
+
     # copy JavaScript UI file
     cp $FAUSTLIB/max-msp/ui.js .
 
@@ -85,4 +88,6 @@ for p in $FILES; do
     
 done
 
+BINARIES="$BINARIES ui.js"
 
+echo $BINARIES

@@ -676,7 +676,7 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, st
     extractMetadata(fullLabel, simplifiedLabel, metadata);
 
     if (metadata.count("tooltip")) {
-        gtk_tooltips_set_tip (gtk_tooltips_new (), widget, metadata["tooltip"].c_str(), NULL);
+        gtk_tooltips_set_tip(gtk_tooltips_new(), widget, metadata["tooltip"].c_str(), NULL);
     }
     if (metadata["option"] == "detachable") {
         openHandleBox(simplifiedLabel.c_str());
@@ -685,7 +685,7 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, st
 
 	//---------------------
 	if (fGroupTooltip != "") {
-		gtk_tooltips_set_tip (gtk_tooltips_new (), widget, fGroupTooltip.c_str(), NULL);
+		gtk_tooltips_set_tip(gtk_tooltips_new(), widget, fGroupTooltip.c_str(), NULL);
 		fGroupTooltip = "";
 	}
 	
@@ -700,7 +700,7 @@ int GTKUI::checkLabelOptions(GtkWidget* widget, const std::string& fullLabel, st
 void GTKUI::checkForTooltip(FAUSTFLOAT* zone, GtkWidget* widget)
 {
     if (fTooltip.count(zone)) {
-        gtk_tooltips_set_tip(gtk_tooltips_new (), widget, fTooltip[zone].c_str(), NULL);
+        gtk_tooltips_set_tip(gtk_tooltips_new(), widget, fTooltip[zone].c_str(), NULL);
     }
 }
 
@@ -737,7 +737,7 @@ void GTKUI::openHorizontalBox(const char* fullLabel)
     label = startWith(label, "0x") ? "" : label;
             
     if (fMode[fTop] != kTabMode && label[0] != 0) {
-        GtkWidget* frame = addWidget(label.c_str(), gtk_frame_new (label.c_str()));
+        GtkWidget* frame = addWidget(label.c_str(), gtk_frame_new(label.c_str()));
         gtk_container_add (GTK_CONTAINER(frame), box);
         gtk_widget_show(box);
         pushBox(kBoxMode, box);
@@ -759,7 +759,7 @@ void GTKUI::openVerticalBox(const char* fullLabel)
     label = startWith(label, "0x") ? "" : label;
             
     if (fMode[fTop] != kTabMode && label[0] != 0) {
-        GtkWidget* frame = addWidget(label.c_str(), gtk_frame_new (label.c_str()));
+        GtkWidget* frame = addWidget(label.c_str(), gtk_frame_new(label.c_str()));
         gtk_container_add (GTK_CONTAINER(frame), box);
         gtk_widget_show(box);
         pushBox(kBoxMode, box);
@@ -777,7 +777,7 @@ void GTKUI::openHandleBox(const char* label)
     gtk_container_set_border_width (GTK_CONTAINER (box), 2);
     label = startWith(label, "0x") ? "" : label;
     if (fMode[fTop] != kTabMode && label[0] != 0) {
-        GtkWidget* frame = addWidget(label, gtk_handle_box_new ());
+        GtkWidget* frame = addWidget(label, gtk_handle_box_new());
         gtk_container_add(GTK_CONTAINER(frame), box);
         gtk_widget_show(box);
         pushBox(kBoxMode, box);

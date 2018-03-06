@@ -294,6 +294,8 @@ struct ValueInst : public Printable, public Vectorizable
     {}
     
     virtual int size() { return 1; }
+    
+    virtual bool isSimpleValue() { return false; }
 };
 
 // ==================
@@ -442,8 +444,6 @@ struct VectorTyped : public Typed {
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
-
-struct SimpleValueInst {};
 
 struct NumValueInst {};
 
@@ -739,7 +739,7 @@ struct DropInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct LoadVarInst : public ValueInst, public SimpleValueInst
+struct LoadVarInst : public ValueInst
 {
     Address* fAddress;
 
@@ -756,9 +756,11 @@ struct LoadVarInst : public ValueInst, public SimpleValueInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
-struct LoadVarAddressInst : public ValueInst, public SimpleValueInst
+struct LoadVarAddressInst : public ValueInst
 {
     Address* fAddress;
 
@@ -775,6 +777,8 @@ struct LoadVarAddressInst : public ValueInst, public SimpleValueInst
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return dynamic_cast<NamedAddress*>(fAddress); }
 };
 
 // Special for wast/wasm backend : combine a store and a load
@@ -838,7 +842,7 @@ struct ShiftArrayVarInst : public StatementInst
 // Numbers
 // ========
 
-struct FloatNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct FloatNumInst : public ValueInst, public NumValueInst
 {
     float fNum;
 
@@ -849,10 +853,12 @@ struct FloatNumInst : public ValueInst, public SimpleValueInst, public NumValueI
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return true; }
 };
 
 template <class TYPE> 
-struct ArrayNumInst : public ValueInst, public SimpleValueInst
+struct ArrayNumInst : public ValueInst
 {
     vector<TYPE> fNumTable;
 
@@ -870,6 +876,7 @@ struct ArrayNumInst : public ValueInst, public SimpleValueInst
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
     
+    virtual bool isSimpleValue() { return true; }
 };
 
 struct FloatArrayNumInst : public ArrayNumInst<float>
@@ -885,7 +892,7 @@ struct FloatArrayNumInst : public ArrayNumInst<float>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DoubleNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct DoubleNumInst : public ValueInst, public NumValueInst
 {
     double fNum;
 
@@ -896,6 +903,8 @@ struct DoubleNumInst : public ValueInst, public SimpleValueInst, public NumValue
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return true; }
 };
 
 struct DoubleArrayNumInst : public ArrayNumInst<double>
@@ -911,7 +920,7 @@ struct DoubleArrayNumInst : public ArrayNumInst<double>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct Int32NumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct Int32NumInst : public ValueInst, public NumValueInst
 {
     int fNum;
 
@@ -922,9 +931,11 @@ struct Int32NumInst : public ValueInst, public SimpleValueInst, public NumValueI
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return true; }
 };
 
-struct Int64NumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct Int64NumInst : public ValueInst, public NumValueInst
 {
     long long fNum;
     
@@ -935,6 +946,8 @@ struct Int64NumInst : public ValueInst, public SimpleValueInst, public NumValueI
     void accept(InstVisitor* visitor) { visitor->visit(this); }
     
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return true; }
 };
 
 struct Int32ArrayNumInst : public ArrayNumInst<int>
@@ -950,7 +963,7 @@ struct Int32ArrayNumInst : public ArrayNumInst<int>
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct BoolNumInst : public ValueInst, public SimpleValueInst, public NumValueInst
+struct BoolNumInst : public ValueInst, public NumValueInst
 {
     bool fNum;
 
@@ -961,6 +974,8 @@ struct BoolNumInst : public ValueInst, public SimpleValueInst, public NumValueIn
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+    
+    virtual bool isSimpleValue() { return true; }
 };
 
 // ======================
@@ -1074,7 +1089,7 @@ struct BlockInst : public StatementInst
         }
     }
     
-    size_t size() { return fCode.size(); }
+    int size() { return int(fCode.size()); }
 
     bool hasReturn();
     ValueInst* getReturnValue();

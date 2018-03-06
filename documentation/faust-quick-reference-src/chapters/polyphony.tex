@@ -116,9 +116,9 @@ process = pm.clarinet_ui_MIDI <: _,_;
 effect = dm.freeverb_demo;
 \end{lstlisting}
 
-The architecture script then separate the instrument description itself (the \code{process = ...} definition) from the effect definition (the  \code{effect = ...} definition), possibly adapt the instrument number of outputs to the effect number of inputs, compile each part separately, and combine them with the \code{dsp_sequencer} object.
+The architecture script then separates the instrument description itself (the \code{process = ...} definition) from the effect definition (the  \code{effect = ...} definition), possibly adapts the instrument number of outputs to the effect number of inputs, compiles each part separately, and combines them with the \code{dsp_sequencer} object.
 
-A new \code{auto} parameter to be used in faust2xx script has been defined, as in the \code{faustcaqt inst.dsp -effect auto} line for example.
+A new \code{auto} parameter to be used in {\it faust2xx} script has been defined, as in the \code{faustcaqt inst.dsp -effect auto} line for example.
 
 \subsection{Integrated global output effect and libfaust}
 

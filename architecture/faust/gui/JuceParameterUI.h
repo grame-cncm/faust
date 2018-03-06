@@ -37,6 +37,8 @@ struct FaustPlugInAudioParameterBool : public AudioParameterBool, public uiOwned
     :AudioParameterBool(path, label, false), uiOwnedItem(gui, zone)
     {}
     
+    virtual ~FaustPlugInAudioParameterBool() {}
+    
     void reflectZone() override
     {
         FAUSTFLOAT v = *fZone;
@@ -58,6 +60,8 @@ struct FaustPlugInAudioParameterFloat : public AudioParameterFloat, public uiOwn
     FaustPlugInAudioParameterFloat(GUI* gui, FAUSTFLOAT* zone, const std::string& path, const std::string& label, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
     :AudioParameterFloat(path, label, float(min), float(max), float(init)), uiOwnedItem(gui, zone)
     {}
+    
+    virtual ~FaustPlugInAudioParameterFloat() {}
     
     void reflectZone() override
     {
@@ -85,6 +89,8 @@ class JuceParameterUI : public GUI, public PathBuilder {
         
         JuceParameterUI(AudioProcessor* processor):fProcessor(processor)
         {}
+    
+        virtual ~JuceParameterUI() {}
         
         // -- widget's layouts
         

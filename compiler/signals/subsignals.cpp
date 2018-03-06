@@ -90,11 +90,12 @@ int	getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 	else if (isSigVBargraph(sig, label,x,y,z))      { vsigs.push_back(z); return 1;	}
 	else if (isSigHBargraph(sig, label,x,y,z))      { vsigs.push_back(z); return 1;	}
 
-	else if (isSigSoundfile(sig,label))             { return 0;	}
-	else if (isSigSoundfileLength(sig,sf))          { vsigs.push_back(sf); return 1; }
-	else if (isSigSoundfileRate(sig,sf))			{ vsigs.push_back(sf); return 1; }
-	else if (isSigSoundfileChannel(sig,sf,x,y))     { vsigs.push_back(sf); vsigs.push_back(x); vsigs.push_back(y); return 3; }
-	
+    else if (isSigSoundfile(sig,label))             { return 0;	}
+    else if (isSigSoundfileLength(sig,sf))          { vsigs.push_back(sf); return 1; }
+    else if (isSigSoundfileRate(sig,sf))            { vsigs.push_back(sf); return 1; }
+    else if (isSigSoundfileChannels(sig,sf))        { vsigs.push_back(sf); return 1; }
+    else if (isSigSoundfileBuffer(sig,sf,x,y))      { vsigs.push_back(sf); vsigs.push_back(x); vsigs.push_back(y); return 3; }
+
 	else if (isSigAttach(sig, x, y))                { vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if (isSigEnable(sig, x, y))                { vsigs.push_back(x); vsigs.push_back(y); return 2;	}
     else if (isSigControl(sig, x, y))               { vsigs.push_back(x); vsigs.push_back(y); return 2;	}

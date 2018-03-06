@@ -33,7 +33,6 @@ process = noise * vslider("volume", 0, 0, 1, 0.1);
  
 The keyword \lstinline'process' is the equivalent of \lstinline'main' in C/C++. Any \faust program, to be valid, must at least define \lstinline'process'.
 
-
 \section{Statements}
 
 The \textit{statements} of a \faust program are of four kinds : \textit{metadata declarations}, \textit{file imports},  \textit{definitions} and \textit{documentation}. All statements but documentation end with a semicolon (\lstinline';'). 
@@ -83,7 +82,6 @@ declare copyright "MyCompany";
 declare version "1.00";
 declare license "BSD"; 
 \end{lstlisting}
-
 
 
 \subsection{Imports}
@@ -167,11 +165,9 @@ Similarly, the generation of the graphical block-diagram of a \faust expression 
 %   \end{syntdiag}
 % \end{grammar}
 
-
 \begin{rail}
 metadata : "<metadata>" keyword "</metadata>";
 \end{rail}
-
 
 The \lstinline'<metadata>' tags allow to reference \faust metadatas (cf. declarations), calling the corresponding keyword.
 
@@ -207,7 +203,6 @@ listing : "<listing" (listingattribute*) " />";
 listingattribute : ("mdoctags" | "dependencies" | "distributed") "=" ('"true"' | '"false"');
 \end{rail}
 
-
 % \begin{grammar}
 %   <listingattribute> ::= 
 %   \begin{syntdiag}
@@ -225,7 +220,6 @@ listingattribute : ("mdoctags" | "dependencies" | "distributed") "=" ('"true"' |
 % \end{grammar}
 
 The \lstinline'<listing />' empty-element tag is used to generate the listing of the \faust program. Its three attributes \lstinline'mdoctags', \lstinline'dependencies' and \lstinline'distributed' enable or disable respectively \lstinline'<mdoc>' tags, other files dependencies and distribution of interleaved faust code between \lstinline'<mdoc>' sections.
-
 
 \section{Definitions}
 
@@ -247,7 +241,6 @@ For example here is the definition of \lstinline'random', a simple pseudo-random
  random = +(12345) ~ *(1103515245);
 \end{lstlisting}
 
-
 \subsection{Function Definitions}
 
 Definitions with formal parameters correspond to functions definitions.
@@ -267,7 +260,6 @@ Please note that this notation is only a convenient alternative to the direct us
 \begin{lstlisting}
  linear2db = \(x).(20*log10(x));
 \end{lstlisting}
-
 
 \subsection{Definitions with pattern matching}
 
@@ -306,10 +298,6 @@ Please note that the order of pattern matching rules matters. The more specific 
 \end{lstlisting}
 the first rule will always match and the second rule will never be called.
 
-
-
- 
-  
 \section{Expressions}
 
 Despite its textual syntax, \faust is conceptually a block-diagram language. \faust expressions represent DSP block-diagrams and are assembled from primitive ones using various \textit{composition} operations. More traditional \textit{numerical} expressions in infix notation are also possible. Additionally \faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.
@@ -356,9 +344,6 @@ The priority and associativity of this five operations are given table \ref{tabl
   	\label{table:composition}
 \end{table}
  
-
-
-
 \paragraph{Parallel Composition}
 The \emph{parallel composition}  \lstinline'(A,B)' (figure \ref{figure:par1}) is probably the simplest one. It places the two block-dia\-grams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of \lstinline$A$ and \lstinline$B$. The outputs of the resulting block-diagram are the outputs of \lstinline$A$ and \lstinline$B$. 
 
@@ -474,8 +459,6 @@ Xi(expr) = bus(n) <: par(i,n,selector(n-i-1,n)) : expr
 
 For example \lstinline'Xi(-)' will reverse the order of the two inputs of the substraction.
 
-
-
 %Let's see these composition operations in action with two simple examples (figure \ref{fig:integrator}). 
 
 %The first example uses the recursive composition operator (\lstinline'~'). It is an integrator \lstinline'process = +~_;' that produces an output signal $Y$ such that $Y(t)=X(t)+Y(t-1)$.
@@ -490,10 +473,9 @@ For example \lstinline'Xi(-)' will reverse the order of the two inputs of the su
 %  \label{fig:integrator}
 %\end{figure}
 
-
 %The second example uses the parallel (\lstinline',') and split (\lstinline'<:') composition operators. It implements a Mid/Side stereophonic matrix: \lstinline'process = _,_<:+,-;' that produces two output signals $Y_0$ and $Y_1$ such that $Y_0(t)=X_0(t)+X_1(t)$ and $Y_1(t)=X_0(t)-X_1(t)$
 
- 
+
 \subsubsection{Iterations} 
 Iterations are analogous to \lstinline'for(...)' loops and provide a convenient way to automate some complex block-diagram constructions. 
 
@@ -526,17 +508,10 @@ process  =	seq(i, 10,
 			);
 \end{lstlisting}
 
-
-           
 \begin{rail}
 numiter : expression;
 \end{rail}
 The number of iterations must be a constant expression. 
-
-
-
-
-
 
 \subsection{Numerical Expressions}
 
@@ -551,7 +526,6 @@ numerical : math | bitwise | comparison;
 math : expression ('+'|'-'|'*'|'/'|'\%'|hat) expression;
 \end{rail}
  
-
 \subsubsection{Bitwise expressions} are the boolean operations and the left and right arithmetic shifts.
 
 \begin{rail}
@@ -563,8 +537,6 @@ bitwise : expression (pipe|ampersand|'xor'|'<<' |'>>') expression;
 \begin{rail}
 comparison : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
 \end{rail}
-
-
 
 \subsection{Time expressions}
 
@@ -610,8 +582,6 @@ To keep their original meaning, \faust expressions are bounded to their lexical 
 %     \end{stack}
 %   \end{syntdiag}
 % \end{grammar}
-
-
 
 \begin{rail}
 envexp :    expression 'with' lbrace (definition+) rbrace
@@ -741,8 +711,6 @@ For example \lstinline'constant.pi' refers to the definition of \lstinline'pi' i
 Please note that environment don't have to be named. We could have written directly 
 \lstinline'environment{pi = 3.14159; e = 2,718;....}.pi'
 
-
-
 \subsubsection{Library} 
 The \lstinline'library' construct allows to create an environment by reading the definitions from a file.
 
@@ -771,9 +739,6 @@ fl = library("miscfilter.lib");
 };
 \end{lstlisting}
 
-
-
-
 \subsubsection{Component} 
 The \lstinline'component(...)' construction allows to reuse a full \faust program as a simple expression.
 
@@ -789,7 +754,6 @@ component :    'component' '(' filename ')';
  \end{lstlisting}
  
  Please note that \lstinline'component("freeverb.dsp")' is equivalent to \lstinline'library("freeverb.dsp").process'.
-
 
 \subsubsection{Explicit substitution} 
 
@@ -816,7 +780,6 @@ For example we can create a customized version of \lstinline'component("freeverb
 };
 \end{lstlisting}
 
-
 \subsection{Foreign expressions}
 
 Reference to external C \textit{functions}, \textit{variables} and \textit{constants} can be introduced using the \textit{foreign function} mechanism.
@@ -826,7 +789,6 @@ foreignexp : 'ffunction' '(' signature ',' includefile ',' library')'
           | 'fvariable' '(' type identifier ',' includefile ')' 
           | 'fconstant' '(' type identifier ',' includefile ')' ;
 \end{rail}
-
 
 \subsubsection{ffunction} 
 An external C function is declared by indicating its name and signature as well as the required include file.
@@ -984,9 +946,6 @@ Or even use a more traditional, but equivalent, notation:
 	mono(fx) = _ <: fx :> _;
 \end{lstlisting}
 
-
-
-
 \subsubsection{Applications}
 Applications correspond to function calls and allow to replace the variable parts of an abstraction with the specified arguments.
 
@@ -1009,8 +968,6 @@ Whenever the \faust compiler find an application of an abstraction it replaces\m
 	(_ <: harmonizer :> _)
 \end{lstlisting}
 
-
-
 \subsubsection{Pattern Matching}
 Pattern matching rules provide an effective way to analyze and transform block-diagrams algorithmically.
 \begin{rail}
@@ -1031,12 +988,7 @@ will produce:
 	(harmonizer:freeverb)
 \end{lstlisting}
 
-
-
-
 Please note that patterns are evaluated before the pattern matching operation. Therefore only variables that appear free in the pattern are binding variables during pattern matching. 
-
-
 
 %--------------------------------------------------------------------------------------------------------------
 \section{Primitives}
@@ -1047,13 +999,13 @@ The primitive signal processing operations represent the built-in functionalitie
   \begin{rail}
   primitive : number
   			| waveform
+			| soundfile
 			| cprimitive
 			| mathprimitive
 			| delayandtables
 			| uielements
 			;
   \end{rail}
-
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Numbers}
@@ -1067,7 +1019,6 @@ The primitive signal processing operations represent the built-in functionalitie
   exponent : 'e'(|'+'|'-')(digit+);
   digit : "0--9";
   \end{rail}
-
 
 \bigskip
 
@@ -1083,13 +1034,11 @@ Like any other \faust expression, numbers are signal processors. For example the
 
 %\end{tabular}
 
-
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Waveforms}
 %--------------------------------------------------------------------------------------------------------------
 
 A waveform is a fixed periodic signal defined by a list of samples. A waveform has two outputs. The first output is constant and indicates the size (number of samples) of the period. The second output is the periodic signal itself. 
-
 
   \begin{rail}
   waveform : "waveform" lbrace (number + ',') rbrace;
@@ -1102,9 +1051,17 @@ Please note that \lstinline'waveform' works nicely with \lstinline'rdtable'. Its
 process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
 \end{lstlisting}
 
-
 \bigskip
 
+%--------------------------------------------------------------------------------------------------------------
+\subsection{Soundfiles}
+%--------------------------------------------------------------------------------------------------------------
+
+The soundfile primitive allows to access an externally defined sound resource. A soundfile has one input (the read index in the sound), three fixed outputs (the first one is the sound length in frames, the second one is the sound nominal sample rate, the third one is the sound number of channels) and several more outputs for the sound channels themselves. 
+
+If more outputs than the actual number of channels in the sound are used, the sound channels will be automatically duplicated up to the output number (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).
+
+If the sound resource cannot be loaded for whatever reason, a default  soundfile with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}
@@ -1158,7 +1115,6 @@ $n.m$ & $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ & floating point number: $y(t)
 
 \bigskip
 
-
 %--------------------------------------------------------------------------------------------------------------
 \subsection{\texttt{math.h}-equivalent primitives}
 %--------------------------------------------------------------------------------------------------------------
@@ -1200,10 +1156,6 @@ Most of the C \texttt{math.h} functions are also built-in as primitives (the oth
 \end{tabular}
 \bigskip
 
-
-
-
-
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Delay, Table, Selector primitives}
 %--------------------------------------------------------------------------------------------------------------
@@ -1230,7 +1182,6 @@ The following primitives allow to define fixed delays, read-only and read-write 
 \end{tabular}
 \bigskip
 
-
 \begin{figure}
 \centering
 \includegraphics[scale=0.6]{illustrations/faust-diagram4}
@@ -1240,11 +1191,9 @@ The following primitives allow to define fixed delays, read-only and read-write 
 \label{fig:delays}
 \end{figure}
 
-
 %--------------------------------------------------------------------------------------------------------------
 \subsection{User Interface Elements}
 %--------------------------------------------------------------------------------------------------------------
-
 
 \faust user interface widgets allow an abstract description of the user interface from within the \faust code. This description is
 independent of any GUI toolkits. It is based on \emph{buttons}, \emph{checkboxes}, \emph{sliders}, etc. that are grouped together 
@@ -1258,7 +1207,6 @@ All these GUI elements produce signals. A button for example (see figure \ref{fi
 \caption{User Interface Button}
 \label{fig:button}
 \end{figure}
-
 
 \bigskip
 
@@ -1296,7 +1244,6 @@ hslider("Voice 7", 0.9, 0, 1, 0.01).
 \end{lstlisting}
 
 while \lstinline'par(i,8,hslider("Voice", 0.9, 0, 1, 0.01))' would have created only one slider and duplicated its output 8 times.
-
 
 The variable part can have an optional format digit. 
 For example \lstinline'"Voice %2i"' would indicate to use two digit when inserting the value of i in the string.
@@ -1366,7 +1313,6 @@ The grammar for labels with pathnames is the following:
  path : (| '/') (| (folder '/')+);
  folder : (".." | ("h:" | "v:" | "t:" ) name);
 \end{rail}
-
 
 \paragraph{Metadata}
 Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file.  They are typically used to improve the look and feel of the user interface. 

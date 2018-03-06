@@ -543,8 +543,8 @@ ValueInst* InstructionsCompiler::CS(Tree sig)
 
 ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
-    // If value is already a variable, no need to create a new one, just reuse it...
-    if (dynamic_cast<LoadVarInst*>(exp)) { return exp; }
+    // If value is already a simple value, no need to create a variable, just reuse it...
+    if (exp->isSimpleValue()) { return exp; }
 
     string vname;
     Typed::VarType ctype;
@@ -1072,7 +1072,7 @@ ValueInst* InstructionsCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tr
         v2 = promote2real(t2, v2);
     }
     
-    if (gGlobal->gGenerateSelectWithIf && (type->variability() == kSamp) && (!dynamic_cast<SimpleValueInst*>(v1) || !dynamic_cast<SimpleValueInst*>(v2))) {
+    if (gGlobal->gGenerateSelectWithIf && (type->variability() == kSamp) && (!v1->isSimpleValue() || !v2->isSimpleValue())) {
         return generateSelect2WithIf(sig, (((t1 == kReal) || (t2 == kReal)) ? itfloat() : Typed::kInt32), cond, v1, v2);
     } else {
         return generateSelect2WithSelect(sig, cond, v1, v2);

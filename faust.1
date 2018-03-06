@@ -1,4 +1,4 @@
-.TH "man" "1" "" "Version 1.0 (21 November 2017)" "Faust man page"
+.TH "man" "1" "" "Version 1.01 (20 February 2018)" "Faust man page"
 .SH NAME
 .PP
 Faust \- DSP to C/C++, Rust, LLVM IR, JAVA, JavaScript, asm.js,
@@ -75,11 +75,11 @@ expressions
 \f[B]\-lt\f[], \f[B]\-\-less\-temporaries\f[] generate less\-temporaries
 when compiling delay lines
 .PP
-\f[B]\-mcd <n>\f[], \f[B]\-\-max\-copy\-delay <n>\f[] max delay
-threshold used to switch from copy based to ring buffer based delay
-lines (default 16 samples)
+\f[B]\-mcd <n>\f[], \f[B]\-\-max\-copy\-delay <n>\f[] threshold used to
+switch from copy based to ring buffer based delay lines (default 16
+samples)
 .PP
-\f[B]\-mem\f[], \f[B]\-\-memory\f[] memory allocate static in global
+\f[B]\-mem\f[], \f[B]\-\-memory\f[] allocate static memory in global
 state using a custom memory manager
 .PP
 \f[B]\-a <file>\f[] indicate the architecture file to use
@@ -90,9 +90,8 @@ architecture files in the generated code
 \f[B]\-cn <name>\f[], \f[B]\-\-class\-name <name>\f[] specify the name
 of the dsp class to be used instead of mydsp
 .PP
-\f[B]\-pn <name>\f[], \f[B]\-\-process\-name <name>\f[] specify the
-entry-point name in the source code to be used instead of \f[B]process\f[]
-(default) when compiling a program
+\f[B]\-pn <name>\f[], \f[B]\-\-process\-name <name>\f[] specify the name
+of the dsp entry\-point instead of process
 .PP
 \f[B]\-t <sec>\f[], \f[B]\-\-timeout <sec>\f[] abort compilation after
 seconds (default 120)
@@ -203,5 +202,5 @@ Please report bugs to:
 \f[B]<https://github.com/grame-cncm/faust/issues>\f[]
 .SH AUTHOR
 .PP
-Copyright (C) 2002\-2017, GRAME \- Centre National de Creation Musicale.
+Copyright (C) 2002\-2018, GRAME \- Centre National de Creation Musicale.
 All rights reserved.

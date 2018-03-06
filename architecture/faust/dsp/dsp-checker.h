@@ -63,6 +63,8 @@ class dsp_checker : public decorator_dsp
             fFP_NAN = 0;
         }
     
+        virtual ~dsp_checker() {}
+    
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             fDSP->compute(count, inputs, outputs);

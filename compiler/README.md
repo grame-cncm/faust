@@ -1,4 +1,4 @@
-% man(1) Version 1.0 (21 November 2017) | Faust man page
+% man(1) Version 1.01 (20 February 2018) | Faust man page
 
 NAME
 ====
@@ -83,10 +83,10 @@ generate right-balanced expressions
 generate less-temporaries when compiling delay lines
 
 **-mcd \<n>**, **--max-copy-delay \<n>**
-max delay threshold used to switch from copy based to ring buffer based delay lines (default 16 samples)
+threshold used to switch from copy based to ring buffer based delay lines (default 16 samples)
 
 **-mem**, **--memory**
-memory allocate static in global state using a custom memory manager
+allocate static memory in global state using a custom memory manager
 
 **-a \<file>**
 indicate the architecture file to use
@@ -96,6 +96,9 @@ inline all architecture files in the generated code
 
 **-cn \<name>**, **--class-name \<name>**
 specify the name of the dsp class to be used instead of mydsp
+
+**-pn \<name>**, **--process-name  \<name>**
+specify the name of the dsp entry-point instead of process
 
 **-t \<sec>**, **--timeout \<sec>**
 abort compilation after <sec> seconds (default 120)
@@ -210,6 +213,6 @@ Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
 AUTHOR
 ======
 
-Copyright (C) 2002-2017, GRAME - Centre National de Creation Musicale.
+Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale.
 All rights reserved.
 

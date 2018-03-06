@@ -42,6 +42,15 @@ INSTALLAU=0
 MANUFACTURER="Grame"
 
 for p in $@; do
+
+	 if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2au [-httpd] [-osc] [-install] [-debug] <file.dsp>"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-debug' to print all the build steps and keep intermediate build folder"
+        exit
+    fi
+    
 	if [ "$p" = -omp ]; then
 		if [[ $CXX == "icpc" ]]; then
 			OMP="-openmp"
@@ -50,9 +59,9 @@ for p in $@; do
 		fi
 	fi
 
-	if [ "$p" = -debug ]; then
+	if [ "$p" = "-debug" ]; then
 		DEBUG=1
-	elif [ "$p" = -icc ]; then
+	elif [ "$p" = "-icc" ]; then
 		ignore=" "
 	elif [ $p = "-osc" ]; then
 		OSCDEFS="DEFINES += OSCCTRL"
@@ -136,7 +145,7 @@ for f in $FILES; do
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' au-arch-temp.cpp
 	perl -pi -e 's/FaustAU_CustomViewFactory/'FaustAU_"$FILE_NAME"CustomViewFactory'/g' FaustAUCustomView.plist
 
-    faust  $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
+    faust $OPTIONS -a au-arch-temp.cpp $f -o Source/au-output.cpp || exit 1
 
 	rm au-arch-temp.cpp
 

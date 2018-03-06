@@ -62,7 +62,8 @@ struct auUIObject {
     virtual ~auUIObject()
     {}
     
-    virtual void GetName(char *text) {
+    virtual void GetName(char *text)
+    {
         std::strcpy(text, fLabel.c_str());
     }
     
@@ -82,7 +83,7 @@ struct auUIObject {
     }
     
     virtual long GetID()
-    { /* returns the sum of all the ASCII characters  contained in the parameter's label */
+    { /* returns the sum of all the ASCII characters contained in the parameter's label */
         int i;
         long acc;
         for (i = 0, acc = 0; i < fLabel.length(); i++)

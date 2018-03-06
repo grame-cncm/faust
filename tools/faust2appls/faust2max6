@@ -195,6 +195,8 @@ for p in $FILES; do
     
 done
 
+BINARIES="$BINARIES ui.js"
+
 echo $BINARIES
 
 

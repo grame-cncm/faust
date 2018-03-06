@@ -92,6 +92,8 @@ class juce_midi_handler : public midi_handler {
     
         juce_midi_handler():midi_handler("JUCE")
         {}
+    
+        virtual ~juce_midi_handler() {}
         
         void encodeBuffer(MidiBuffer& buffer)
         {

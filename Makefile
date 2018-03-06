@@ -1,11 +1,11 @@
-version := 2.5.21
+version := 2.5.23
 
 system	?= $(shell uname -s)
 
 ifeq ($(system), Darwin)
 LIB_EXT = dylib
 else
-ifneq ($(findstring MINGW32, $(system)),)
+ifneq ($(findstring MINGW, $(system)),)
 LIB_EXT = dll
 EXE = .exe
 else

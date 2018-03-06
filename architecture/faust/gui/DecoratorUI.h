@@ -35,7 +35,7 @@ class GenericUI : public UI
     
     public:
         
-        GenericUI(){}
+        GenericUI() {}
         virtual ~GenericUI() {}
         
         // -- widget's layouts

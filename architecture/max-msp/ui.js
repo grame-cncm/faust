@@ -17,7 +17,7 @@ var dsp_ui_table = [];
 
 var faust = faust || {};
 
-faust.ui = function (json, patcher) {
+faust.ui = function (json, name, patcher) {
   
     // inlets and outlets
     var inlets = 1;
@@ -134,6 +134,7 @@ faust.ui = function (json, patcher) {
             thenumberBoxes[numwidgets] = patcher.newobject("flonum", hBase + 258, 20 + widgHeight * numwidgets, 80, 13);
             thenumberBoxes[numwidgets].message('min', parseFloat(item.min));
             thenumberBoxes[numwidgets].message('max', parseFloat(item.max));
+            thenumberBoxes[numwidgets].message(parseFloat(item.init));
                 
             patcher.hiddenconnect(theSliders[numwidgets], 0, thenumberBoxes[numwidgets], 0);
                 
@@ -186,17 +187,31 @@ faust.ui = function (json, patcher) {
  
     // Create new
     var parsed_json = JSON.parse(json);
-    var dsp_object = patcher.getnamed(parsed_json.name + "~");
-
-    if (dsp_object === patcher.getnamed("null_object")) {
-        post("Error : missing dsp name in the patch, add a 'declare name foo' line with the DSP filename in the DSP source code\n");
+    
+    // Tries to find the compiled object from the "name" field in the JSON
+    var dsp_object1 = patcher.getnamed(parsed_json.name + "~");
+    if (dsp_object1 !== patcher.getnamed("null_object")) {
+        parse_ui(parsed_json.ui, dsp_object1, patcher);
+    } else {
+        // Tries to find the compiled object from the "filename" field in the JSON
+        var dsp_object2 = patcher.getnamed(parsed_json.filename + "~");
+        if (dsp_object2 !== patcher.getnamed("null_object")) {
+            parse_ui(parsed_json.ui, dsp_object2, patcher);
+        } else {
+            // Tries to find the compiled object from the "name" argument (used with faustgen~)
+            var dsp_object = get_dsp_name(patcher, name);
+            if (dsp_object !== patcher.getnamed("null_object")) {
+                parse_ui(parsed_json.ui, dsp_object, patcher);
+            } else {
+                post("Error : missing dsp name in the patch\n");
+            }
+        }
     }
-    parse_ui(parsed_json.ui, dsp_object, patcher);
 }
 
 function anything()
 {	
-	var args = arrayfromargs(messagename, arguments);
-    dsp_ui_table.push(faust.ui(args[1], this.patcher));
+    var args = arrayfromargs(messagename, arguments);
+    dsp_ui_table.push(faust.ui(args[1], args[2], this.patcher));
 }
 

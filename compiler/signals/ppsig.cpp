@@ -231,10 +231,11 @@ ostream& ppsig::print (ostream& fout) const
 	else if ( isSigVBargraph(sig, label,x,y,z) )	{ printui(fout, "vbargraph", label, x, y, z); }
 	else if ( isSigHBargraph(sig, label,x,y,z) )	{ printui(fout, "hbargraph", label, x, y, z); }
 
-	else if (isSigSoundfile(sig, label) )			{ printui(fout, "soundfile", label); }
-	else if (isSigSoundfileLength(sig, sf) )		{ printfun(fout, "length", sf); }
-	else if (isSigSoundfileRate(sig, sf) )	    	{ printfun(fout, "rate", sf); }
-	else if (isSigSoundfileChannel(sig,sf,x,y)) 	{ printfun(fout, "channel", sf, x, y); }
+    else if (isSigSoundfile(sig, label) )			{ printui(fout, "soundfile", label); }
+    else if (isSigSoundfileLength(sig, sf) )		{ printfun(fout, "length", sf); }
+    else if (isSigSoundfileRate(sig, sf) )	    	{ printfun(fout, "rate", sf); }
+    else if (isSigSoundfileChannels(sig, sf))       { printfun(fout, "channels", sf); }
+    else if (isSigSoundfileBuffer(sig,sf,x,y))      { printfun(fout, "buffer", sf, x, y); }
 
 	else if ( isSigAttach(sig, x, y) )				{ printfun(fout, "attach", x, y); }
     else if ( isSigEnable(sig, x, y) )				{ printfun(fout, "enable", x, y); }
