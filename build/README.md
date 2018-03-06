@@ -33,8 +33,6 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 
 **Warning**: running cmake from the build folder may override the existing Makefile.
 
-
-
 ## Compiling on Windows
 Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
@@ -53,9 +51,6 @@ To compile using Visual Studio, you'll have to configure manually your project u
 Then you can open the Visual Studio solution located in `your_output_folder` or continue using the command line:
 
 `> cmake --build .`  
-
-
-
 
 ## Notes regarding the backends compilation
 
@@ -89,7 +84,6 @@ While compiling with llvm 5.0.0 you may get the following link error:
 > Undefined symbols for architecture x86_64: "\_futimens"
 
 seems to be related to xcode version, the problem is not present using xcode 9
-
 
 ### Notes regarding the `interpreter` backend
 The 'interpreter' backend is not supported on windows using MSVC compilers
