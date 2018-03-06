@@ -36,15 +36,8 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
 #include <llvm/ExecutionEngine/ObjectCache.h>
-#endif
-
-#if defined(LLVM_34) || defined(LLVM_35)  || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define LLVM_MAX_OPT_LEVEL 5
-#else
-    #define LLVM_MAX_OPT_LEVEL 4
-#endif
+#define LLVM_MAX_OPT_LEVEL 5
 
 namespace llvm
 {
@@ -199,10 +192,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         llvm::ExecutionEngine* fJIT;
 
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
-        FaustObjectCache* fObjectCache;
-    #endif
-    
+        FaustObjectCache* fObjectCache;    
         llvm::Module* fModule;
         llvm::LLVMContext* fContext;
     
@@ -251,10 +241,8 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
                              const std::string& target,
                              int opt_level = 0);
         
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
         llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
-    #endif
-    
+
         llvm_dsp_factory_aux(const std::string& name,
                             const std::string& sha_key,
                             const std::string& dsp,
