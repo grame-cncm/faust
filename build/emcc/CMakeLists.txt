@@ -5,6 +5,10 @@ set ( CMAKE_OSX_DEPLOYMENT_TARGET	"")
 set ( CMAKE_OSX_SYSROOT 		"")
 set ( CMAKE_CXX_COMPILER 	"emcc")
 
+if (UNIVERSAL)
+message (WARNING "ASMJS and WASM do not support univeral mode. Switch back to native mode before compiling")
+endif()
+
 ####################################
 # emscripten support
 set (WASM_EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']\"")

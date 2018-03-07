@@ -86,7 +86,7 @@ do
         OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
+		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -110,7 +110,7 @@ if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
 	if [ $SYS_VERSION -ge 13 ]
 	then
-	    SPEC=""
+	    SPEC="-spec macx-clang"
 	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
 	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
 	else

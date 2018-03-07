@@ -74,7 +74,7 @@
 #endif
 
 #include "faust/dsp/dsp-combiner.h"
-#include "faust/dsp/sound-player.h"
+//#include "faust/dsp/sound-player.h"
 
 #define stringify_literal(x) #x
 #define stringify_expanded(x) stringify_literal(x)
