@@ -258,11 +258,11 @@ class TextInstVisitor : public InstVisitor {
                 (*it)->accept(this);
                 // Compile parameters
                 *fOut << fObjectAccess << fun_name << "(";
-                generateFunCallArgs(++it, inst->fArgs.end(), inst->fArgs.size() - 1);
+                generateFunCallArgs(++it, inst->fArgs.end(), int(inst->fArgs.size()) - 1);
             } else {
                 *fOut << fun_name << "(";
                 // Compile parameters
-                generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
+                generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), int(inst->fArgs.size()));
             }
             *fOut << ")";
         }

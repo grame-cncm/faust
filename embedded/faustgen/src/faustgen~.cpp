@@ -170,6 +170,7 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
+    fPolyphonic = false;
     
     fMidiHandler.start_midi();
     
@@ -349,8 +350,10 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
     
     if (nvoices > 0) {
+        fPolyphonic = true;
         return new mydsp_poly(mono, nvoices, true);
     } else {
+        fPolyphonic = false;
         return mono;
     }
 }
@@ -1479,8 +1482,8 @@ void faustgen::hilight_error(const string& error)
 void faustgen::add_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.addMidiIn(poly);
     }
 }
@@ -1488,8 +1491,8 @@ void faustgen::add_midihandler()
 void faustgen::remove_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.removeMidiIn(poly);
     }
 }

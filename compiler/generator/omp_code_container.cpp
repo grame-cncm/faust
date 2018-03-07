@@ -92,7 +92,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     int loop_num = 0;
     bool is_single = false; // Generates "#pragma omp single" once when we stay if a sequence of "single" loops
 
-    for (int l = dag.size() - 1; l >= 0; l--) {
+    for (int l = int(dag.size()) - 1; l >= 0; l--) {
         BlockInst* omp_sections_block = InstBuilder::genBlockInst();
         if (dag[l].size() > 1) {
             loop_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp sections"));
