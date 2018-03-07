@@ -13,7 +13,8 @@ CXXFLAGS=$MYGCCFLAGS
 
 ARCHFILE="ca-qt.cpp"
 #ARCHLIB="-L/usr/local/lib -L/opt/local/lib `pkg-config --cflags --static --libs sndfile` -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
-ARCHLIB="-L/usr/local/lib -L/opt/local/lib -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
+[ -d /opt/local/lib ] && OPTLIB=-L/opt/local/lib
+ARCHLIB="-L/usr/local/lib $OPTLIB -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation"
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
@@ -76,7 +77,7 @@ do
 		 OSCLIBS="-lOSCFaust"
 	elif [ "$p" = "-httpd" ]; then
 		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
+		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
 	elif [ "$p" = "-qrcode" ]; then # requires -httpd
 		QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
@@ -99,7 +100,7 @@ if [[ $(uname) == Darwin ]]; then
     SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
     if [ $SYS_VERSION -ge 13 ]
 	then
-	    SPEC=""
+	    SPEC="-spec macx-clang"
 	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
 	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
 	else
