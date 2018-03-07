@@ -194,7 +194,7 @@ parser :
 clean :
 	$(MAKE) -C build clean
 #	$(MAKE) -C architecture/osclib clean
-	$(MAKE) -C architecture/httpdlib/src clean
+#	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
 	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean

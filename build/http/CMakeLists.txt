@@ -42,6 +42,8 @@ FILE(GLOB SRC
 	${SRCDIR}/msg/*.cpp
 	${SRCDIR}/nodes/*.cpp)
 
+set (SRC ${SRC} ${ROOT}/compiler/parser/sourcefetcher.cpp)
+
 set( INCLUDE 
 	${SRCDIR}/hexa 
 	${SRCDIR}/html 
@@ -51,7 +53,9 @@ set( INCLUDE
 	${SRCDIR}/lib 
 	${SRCDIR}/msg 
 	${SRCDIR}/nodes
-	${ARCHDIR})
+	${ARCHDIR}
+	${ROOT}/compiler/tlib
+	)
 
 #######################################
 # libmicrohttpd settings
