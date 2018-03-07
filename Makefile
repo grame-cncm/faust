@@ -33,8 +33,8 @@ zname := faust-$(version)
 
 all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION)
-#	$(MAKE) -C build staticlib
-#	$(MAKE) -C architecture/osclib
+	$(MAKE) -C build staticlib
+	$(MAKE) -C build osc
 
 universal :
 	$(MAKE) -C $(BUILDLOCATION) universal
@@ -128,11 +128,10 @@ help :
 	@echo " 'asmjs'         : builds the faust asm-js library"
 	@echo " 'wasm'          : builds the faust web assembly library"
 	@echo " 'world'         : call the $(WORLDTARGETS) targets"
-	@echo " 'benchmark'     : builds the benchmark tools (rebuilds all)"
+	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'httpd'         : builds the libHTTPDFaust.a library"
 	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
-	@echo " 'bench'         : builds the bench tools (see tools/benchmark)"
 	@echo " 'parser'        : generates the parser from the lex and yacc files"
 	@echo " 'clean'         : remove all object files"
 	@echo 
