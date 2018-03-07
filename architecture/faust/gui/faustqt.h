@@ -1158,6 +1158,7 @@ public:
  
  *******************************************************************************
  *******************************************************************************/
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
 // a simple utility to retrieve an abstract qr code
 // introduced to remove the dependency to qrencode
 static QImage getQRCode(const QString& url, int padding)
@@ -1188,6 +1189,7 @@ static QImage getQRCode(const QString& url, int padding)
 	}
 	return image;
 }
+#endif
 
 class QTGUI : public QWidget, public GUI, public MetaDataUI
 {
