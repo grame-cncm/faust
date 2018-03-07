@@ -36,7 +36,7 @@ validate: $(validfiles)
 	
 
 osclistener: tools/osclistener.cpp
-	$(CXX) $(OPTIONS) $(LIBDIR)/libOSCFaust.a  tools/osclistener.cpp -o osclistener
+	$(CXX) $(OPTIONS) -I../../architecture/osclib/oscpack $(LIBDIR)/libOSCFaust.a  tools/osclistener.cpp -o osclistener
 
 
 #########################################################################
