@@ -1324,7 +1324,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
             // Keep current directory
             char buffer[FAUST_PATH_MAX];
-            char * current_directory = getcwd(buffer, FAUST_PATH_MAX);
+            char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
 
@@ -1356,9 +1356,10 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
                 // Restore current_directory
                 if (current_directory) {
-                	if (chdir(current_directory)) // return code is 0 on successful completion
-                		cerr << "can't restore current directory (" << current_directory << ")" << endl;
-				}
+                    if (chdir(current_directory)) { // return code is 0 on successful completion
+                        cerr << "can't restore current directory (" << current_directory << ")" << endl;
+                    }
+                }
                 delete enrobage;
 
             } else {
