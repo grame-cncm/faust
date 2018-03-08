@@ -60,7 +60,7 @@ native :
 # NOTE: Once the remote target is readily supported on most platforms, it
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
-WORLDTARGETS := all sound2faust httpd dynamic
+WORLDTARGETS := all sound2faust # httpd dynamic => these targets are now part of the 'all' target
 world : $(WORLDTARGETS)
 
 dynamic : all httpd
