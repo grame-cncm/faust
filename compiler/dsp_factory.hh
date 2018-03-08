@@ -30,6 +30,7 @@
 #include "exception.hh"
 #include "faust/gui/meta.h"
 #include "faust/gui/CInterface.h"
+#include "faust/dsp/dsp.h"
 
 #define LLVM_BACKEND_NAME       "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
@@ -148,8 +149,23 @@ class dsp_factory_imp : public dsp_factory_base {
         virtual void setMemoryManager(dsp_memory_manager* manager) { fManager = manager; }
         virtual dsp_memory_manager* getMemoryManager() { return fManager; }
     
-        virtual void* allocate(size_t size);
-        virtual void destroy(void* ptr);
+        virtual void* allocate(size_t size)
+        {
+            if (fManager) {
+                return fManager->allocate(size);
+            } else {
+                faustassert(false);
+                return nullptr;
+            }
+        }
+        virtual void destroy(void* ptr)
+        {
+            if (fManager) {
+                fManager->destroy(ptr);
+            } else {
+                faustassert(false);
+            }
+        }
     
         virtual void metadata(Meta* meta) { faustassert(false); }
     
@@ -158,7 +174,7 @@ class dsp_factory_imp : public dsp_factory_base {
         virtual std::string getBinaryCode() { return ""; }
 
         virtual std::vector<std::string> getDSPFactoryLibraryList() { return fPathnameList; }
- 
+    
 };
 
 /* To be used by textual backends. */

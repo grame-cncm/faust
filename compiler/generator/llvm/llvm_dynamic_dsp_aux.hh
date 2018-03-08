@@ -25,7 +25,8 @@
 #include "llvm_dsp_aux.hh"
 
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
-
+    
+ 
     public:
     
         llvm_dynamic_dsp_factory_aux(const std::string& sha_key,
@@ -40,6 +41,8 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
                                      const std::string& target)
         :llvm_dsp_factory_aux(sha_key, machine_code, target)
         {}
+    
+        virtual bool initJIT(std::string& error_msg);
     
         // Bitcode
         std::string writeDSPFactoryToBitcode();
