@@ -142,7 +142,7 @@ ir/mute:
 reference:
 	$(MAKE) -f Make.ref
 
-tools: filesCompare impulseinterp impulsellvm
+tools: filesCompare impulsellvm impulseinterp
 
 
 
