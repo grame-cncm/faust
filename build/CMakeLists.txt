@@ -18,7 +18,7 @@ set (CMAKE_CXX_STANDARD 11)
 # Output options
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
-option ( LLVM_CONFIG    "Force use off llvm-config"	off )
+option ( USE_LLVM_CONFIG    "Force use off llvm-config"	off )
 
 #######################################
 # Check output options
@@ -110,7 +110,13 @@ endfunction()
 ####################################
 # Manual LLVM scan
 macro (llvm_config)
-	set (LLVM_CONFIG llvm-config)
+	if ( NOT DEFINED LLVM_CONFIG)
+		set (LLVM_CONFIG llvm-config)
+	endif()
+	find_program (LC ${LLVM_CONFIG})
+	if (${LC} STREQUAL LC-NOTFOUND)
+		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
+	endif()
 	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
 	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
 	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
@@ -131,7 +137,7 @@ endmacro()
 if (LLVM_BACKEND )
 	if ((WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 		llvm_config()
-	elseif(LLVM_CONFIG)
+	elseif(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
 		find_package(LLVM REQUIRED CONFIG)
