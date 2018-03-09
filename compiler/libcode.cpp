@@ -57,6 +57,7 @@
 #include "garbageable.hh"
 #include "exception.hh"
 #include "Text.hh"
+#include "sha_key.hh"
 
 #ifdef WIN32
 #pragma warning (disable: 4996)
@@ -196,8 +197,6 @@ CodeContainer* container = NULL;
 typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
-
-std::string generateSHA1(const std::string& dsp_content);
 
 #ifdef _WIN32
 static void callFun(compile_fun fun)

@@ -33,6 +33,7 @@
 #include "libfaust.h"
 #include "libfaust-c.h"
 #include "export.hh"
+#include "sha_key.hh"
 
 #ifdef WIN32
 #pragma warning (disable: 4996)

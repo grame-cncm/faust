@@ -33,6 +33,7 @@
 #include "global.hh"
 #include "Text.hh"
 #include "libfaust.h"
+#include "sha_key.hh"
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>

@@ -31,6 +31,7 @@
 #include "faust/gui/CGlue.h"
 #include "rn_base64.h"
 #include "libfaust.h"
+#include "sha_key.hh"
 
 #include <llvm/Support/TargetSelect.h>
 
