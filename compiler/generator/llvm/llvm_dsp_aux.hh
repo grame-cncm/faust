@@ -252,6 +252,8 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         virtual ~llvm_dsp_factory_aux();
     
+        virtual bool initJIT(std::string& error_msg);
+    
         // Bitcode
         virtual std::string writeDSPFactoryToBitcode() { return ""; }
         
@@ -266,8 +268,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
         virtual std::string writeDSPFactoryToMachine(const std::string& target);
     
         virtual void writeDSPFactoryToMachineFile(const std::string& machine_code_path, const std::string& target);
-
-        bool initJIT(std::string& error_msg);
     
         std::string getTarget();
         void setTarget(const std::string& target) { fTarget = target; }

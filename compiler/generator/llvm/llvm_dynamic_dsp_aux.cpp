@@ -358,7 +358,7 @@ static void AddOptimizationPasses(PassManagerBase &MPM,
     Builder.populateModulePassManager(MPM);
 }
 
-bool llvm_dsp_factory_aux::initJIT(string& error_msg)
+bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
@@ -1109,4 +1109,286 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
+}
+
+// Public C interface : lock management is done by called C++ API
+
+EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
+{
+    return getDSPFactoryFromSHAKey(sha_key);
+}
+
+EXPORT const char** getAllCDSPFactories()
+{
+    vector<string> sha_key_list1 = getAllDSPFactories();
+    const char** sha_key_list2 = (const char**)malloc(sizeof(char*) * (sha_key_list1.size() + 1));
+    
+    size_t i;
+    for (i = 0; i < sha_key_list1.size(); i++) {
+        sha_key_list2[i] = strdup(sha_key_list1[i].c_str());
+    }
+    
+    // Last element is NULL
+    sha_key_list2[i] = nullptr;
+    return sha_key_list2;
+}
+
+EXPORT bool startMTCDSPFactories() { return startMTDSPFactories(); }
+
+EXPORT void stopMTCDSPFactories() { stopMTDSPFactories(); }
+
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory)
+{
+    return deleteDSPFactory(factory);
+}
+
+EXPORT char* getCName(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string name = factory->getName();
+        return strdup(name.c_str());
+    } else {
+        return nullptr;
+    }
+}
+
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string shakey = factory->getSHAKey();
+        return strdup(shakey.c_str());
+    } else {
+        return nullptr;
+    }
+}
+
+EXPORT char* getCTarget(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string target = factory->getTarget();
+        return strdup(target.c_str());
+    } else {
+        return nullptr;
+    }
+}
+
+EXPORT char* getCDSPCode(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string dspcode = factory->getDSPCode();
+        return strdup(dspcode.c_str());
+    } else {
+        return nullptr;
+    }
+}
+
+EXPORT char* getCDSPMachineTarget()
+{
+    string dspmachinetarget = getDSPMachineTarget();
+    return strdup(dspmachinetarget.c_str());
+}
+
+EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        vector<string> library_list1 = factory->getDSPFactoryLibraryList();
+        const char** library_list2 = (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
+        
+        size_t i;
+        for (i = 0; i < library_list1.size(); i++) {
+            library_list2[i] = strdup(library_list1[i].c_str());
+        }
+        
+        // Last element is NULL
+        library_list2[i] = nullptr;
+        return library_list2;
+    } else {
+        return nullptr;
+    }
+}
+
+EXPORT void deleteAllCDSPFactories()
+{
+    deleteAllDSPFactories();
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level)
+{
+    return readDSPFactoryFromBitcode(bit_code, target, opt_level);
+}
+
+EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory)
+{
+    return (factory) ? strdup(writeDSPFactoryToBitcode(factory).c_str()) : nullptr;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcodeFile(const char* bit_code_path, const char* target, int opt_level)
+{
+    return readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
+}
+
+EXPORT void writeCDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const char* bit_code_path)
+{
+    if (factory) {
+        writeDSPFactoryToBitcodeFile(factory, bit_code_path);
+    }
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIR(const char* ir_code, const char* target, int opt_level)
+{
+    return readDSPFactoryFromIR(ir_code, target, opt_level);
+}
+
+EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory)
+{
+    return (factory) ? strdup(writeDSPFactoryToIR(factory).c_str()) : nullptr;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level)
+{
+    return readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
+}
+
+EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path)
+{
+    if (factory) {
+        writeDSPFactoryToIRFile(factory, ir_code_path);
+    }
+}
+
+#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
+{
+    return readDSPFactoryFromMachine(machine_code, target);
+}
+
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
+{
+    return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : nullptr;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
+{
+    return readDSPFactoryFromMachineFile(machine_code_path, target);
+}
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)
+{
+    if (factory) {
+        writeDSPFactoryToMachineFile(factory, machine_code_path, target);
+    }
+}
+#else
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
+{
+    return nullptr;
+}
+
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
+{
+    return nullptr;
+}
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
+{
+    return nullptr;
+}
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const string& target)
+{}
+#endif
+
+EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
+{
+    if (dsp) {
+        dsp->metadata(glue);
+    }
+}
+
+EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? dsp->getNumInputs(): 0;
+}
+
+EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? dsp->getNumOutputs() : 0;
+}
+
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        dsp->init(samplingRate);
+    }
+}
+
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        dsp->instanceInit(samplingRate);
+    }
+}
+
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate)
+{
+    if (dsp) {
+        dsp->instanceConstants(samplingRate);
+    }
+}
+
+EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp)
+{
+    if (dsp) {
+        dsp->instanceResetUserInterface();
+    }
+}
+
+EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp)
+{
+    if (dsp) {
+        dsp->instanceClear();
+    }
+}
+
+EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? dsp->getSampleRate() : 0;
+}
+
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* glue)
+{
+    if (dsp) {
+        dsp->buildUserInterface(glue);
+    }
+}
+
+EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+{
+    if (dsp) {
+        dsp->compute(count, input, output);
+    }
+}
+
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp)
+{
+    return (dsp) ? dsp->clone() : 0;
+}
+
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager)
+{
+    if (factory)  {
+        factory->setMemoryManager(manager);
+    }
+}
+
+EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
+{
+    return (factory) ? factory->createDSPInstance() : 0;
+}
+
+EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
+{
+    if (dsp) {
+        delete (dsp); 
+    }
 }

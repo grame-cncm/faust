@@ -1,7 +1,7 @@
 # Inkscape2scad
 
 This Inkscape extension is a modified version of Daniel C. Newman's [Inkscape to OpenSCAD
-converter](http://www.thingiverse.com/thing:250360) targeting finite element
+converter](http://www.thingiverse.com/thing:25036) targeting finite element
 analysis. It allows to turn a 2d path into a an OpenSCAD `polygon` and can
 automatically add linear or rotate extrusion to it.
 
