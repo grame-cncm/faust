@@ -39,6 +39,7 @@
 #include <list>
 #include <cmath>
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/gui/FUI.h"
 #include "faust/misc.h"
 #include "faust/gui/GUI.h"
@@ -82,7 +83,7 @@
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp* DSP;
+dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -90,14 +91,57 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
+
+static bool hasMIDISync()
+{
+    JSONUI jsonui;
+    mydsp* tmp_dsp = new mydsp();
+    tmp_dsp->buildUserInterface(&jsonui);
+    std::string json = jsonui.JSON();
+    delete tmp_dsp;
+
+    return ((json.find("midi") != std::string::npos) &&
+            ((json.find("start") != std::string::npos) ||
+            (json.find("stop") != std::string::npos) ||
+            (json.find("clock") != std::string::npos)));
+}
+
 int main(int argc, char *argv[] )
 {
 	char* appname = basename (argv [0]);
-    char  rcfilename[256];
+  char  rcfilename[256];
 	char* home = getenv("HOME");
+	mydsp_poly* dsp_poly = NULL;
 	snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	DSP = new mydsp();
+	#ifdef POLY
+	    int poly = lopt(argv, "--poly", 4);
+	    int group = lopt(argv, "--group", 1);
+	    dsp_poly = new mydsp_poly(new mydsp(), poly, true, group);
+
+	#if MIDICTRL
+	    if (hasMIDISync()) {
+	        DSP = new timed_dsp(dsp_poly);
+	    } else {
+	        DSP = dsp_poly;
+	    }
+	#else
+	    DSP = dsp_poly;
+	#endif
+
+	#else
+
+	#if MIDICTRL
+	    if (hasMIDISync()) {
+	        DSP = new timed_dsp(new mydsp());
+	    } else {
+	        DSP = new mydsp();
+	    }
+	#else
+	    DSP = new mydsp();
+	#endif
+
+	#endif
 	if (DSP==0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
 		exit(1);
@@ -107,6 +151,14 @@ int main(int argc, char *argv[] )
 	FUI* finterface	= new FUI();
 	DSP->buildUserInterface(interface);
 	DSP->buildUserInterface(finterface);
+
+	#ifdef MIDICTRL
+	    rt_midi midi_handler(appname);
+	    midi_handler.addMidiIn(dsp_poly);
+	    MidiUI midiinterface(&midi_handler);
+	    DSP->buildUserInterface(&midiinterface);
+	    std::cout << "MIDI is on" << std::endl;
+	#endif
 
 #ifdef HTTPCTRL
 	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
@@ -130,6 +182,11 @@ int main(int argc, char *argv[] )
 
 #ifdef OSCCTRL
 	oscinterface->run();
+#endif
+#ifdef MIDICTRL
+    if (!midiinterface.run()) {
+        std::cerr << "MidiUI run error\n";
+    }
 #endif
 	interface->run();
 
