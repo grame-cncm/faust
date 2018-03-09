@@ -33,16 +33,16 @@ file (GLOB HH  ${SRCDIR}/*.hh  ${SRCDIR}/*/*.hh  ${SRCDIR}/generator/fir/*.hh)
 
 ####################################
 # include directories
-set (FAUST_INC ${SRCDIR} 
-	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw 
-	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended 
-	${SRCDIR}/generator 
-	${SRCDIR}/generator/fir 
-	${SRCDIR}/generator/interpreter 
-	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser 
-	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals 
-	${SRCDIR}/tlib ${SRCDIR}/utils  
-	${SRCDIR}/draw/device ${SRCDIR}/draw/schema 
+set (FAUST_INC ${SRCDIR}
+	${SRCDIR}/boxes ${SRCDIR}/documentator ${SRCDIR}/draw
+	${SRCDIR}/errors ${SRCDIR}/evaluate ${SRCDIR}/extended
+	${SRCDIR}/generator
+	${SRCDIR}/generator/fir
+	${SRCDIR}/generator/interpreter
+	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
+	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
+	${SRCDIR}/tlib ${SRCDIR}/utils
+	${SRCDIR}/draw/device ${SRCDIR}/draw/schema
 	${SRCDIR}/../architecture /usr/local/include)
 
 
@@ -168,7 +168,7 @@ if(APPLE)
 		set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "iphoneos")
 		set (CMAKE_OSX_ARCHITECTURES "arm64 armv7 armv7s")
 		set (CMAKE_OSX_SYSROOT "iphoneos")
-		set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0) 
+		set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
 	else()
 		set (MACSDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 		if (EXISTS ${MACSDK})
@@ -197,7 +197,7 @@ endif()
 # Add the different targets
 ####################################
 add_executable(faust ${SRC} ${HH})
-set_target_properties(faust  PROPERTIES 
+set_target_properties(faust  PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
 
 # static faust library
@@ -211,7 +211,7 @@ endif()
 add_library(dynamiclib SHARED ${SRC} ${HH})
 if (WIN32)
 	enable_language(RC)
-	set_target_properties(dynamiclib PROPERTIES 
+	set_target_properties(dynamiclib PROPERTIES
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
 		RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
 	if (MSVC)
@@ -227,9 +227,9 @@ else()
 		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
 		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
-	endif()	
+	endif()
 	set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	set_target_properties(dynamiclib PROPERTIES 
+	set_target_properties(dynamiclib PROPERTIES
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
@@ -270,10 +270,10 @@ set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARC
 
 ####################################
 # install the faust compiler and libraries
-install ( TARGETS faust staticlib dynamiclib 
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin 
+install ( TARGETS faust staticlib dynamiclib
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
 
@@ -305,7 +305,7 @@ install (
 )
 install (
     FILES     ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_EXECUTE
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
 )
 
 
@@ -319,9 +319,9 @@ install (
 # install faust libraries
 file (GLOB FAUSTDSPLIBS ${ROOT}/libraries/*.lib ${ROOT}/libraries/old/*.lib)
 # install various files from the architecture root folder
-file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c 
-						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js 
-						${ARCHDIR}/*.java ${ARCHDIR}/*.h 
+file (GLOB FAUSTARCHS   ${ARCHDIR}/*.cpp ${ARCHDIR}/*.c
+						${ARCHDIR}/*.rs  ${ARCHDIR}/*.js
+						${ARCHDIR}/*.java ${ARCHDIR}/*.h
 						${ARCHDIR}/mathdoctexts-*.txt  ${ARCHDIR}/latexheader.tex)
 install (
     FILES     ${FAUSTDSPLIBS} ${FAUSTARCHS} DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust
