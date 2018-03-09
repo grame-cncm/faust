@@ -190,6 +190,10 @@ int main(int argc, char *argv[] )
 #endif
 	interface->run();
 
+#ifdef MIDICTRL
+	midiinterface.stop();
+#endif
+
 	audio.stop();
 	finterface->saveState(rcfilename);
 
