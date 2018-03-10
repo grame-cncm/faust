@@ -75,8 +75,11 @@
 
 <<includeclass>>
 
-#ifdef POLY
 #include "faust/dsp/poly-dsp.h"
+
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
 #endif
 
 /***************************END USER SECTION ***************************/
@@ -108,105 +111,125 @@ static bool hasMIDISync()
 
 int main(int argc, char *argv[] )
 {
-	char* appname = basename (argv [0]);
-  char  rcfilename[256];
-	char* home = getenv("HOME");
-	mydsp_poly* dsp_poly = NULL;
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    char* appname = basename (argv [0]);
+    char rcfilename[256];
+    char* home = getenv("HOME");
+    int nvoices = 0;
+    mydsp_poly* dsp_poly = NULL;
+    snprintf(rcfilename, 255, "%s/.%src", home, appname);
 
-	#ifdef POLY
-	    int poly = lopt(argv, "--poly", 4);
-	    int group = lopt(argv, "--group", 1);
-	    dsp_poly = new mydsp_poly(new mydsp(), poly, true, group);
+#ifdef POLY2
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
 
-	#if MIDICTRL
-	    if (hasMIDISync()) {
-	        DSP = new timed_dsp(dsp_poly);
-	    } else {
-	        DSP = dsp_poly;
-	    }
-	#else
-	    DSP = dsp_poly;
-	#endif
-
-	#else
-
-	#if MIDICTRL
-	    if (hasMIDISync()) {
-	        DSP = new timed_dsp(new mydsp());
-	    } else {
-	        DSP = new mydsp();
-	    }
-	#else
-	    DSP = new mydsp();
-	#endif
-
-	#endif
-	if (DSP==0) {
+#if MIDICTRL
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+    } else {
+        DSP = new dsp_sequencer(dsp_poly, new effect());
+    }
+#else
+    DSP = new dsp_sequencer(dsp_poly, new effect());
+#endif
+    
+#else
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    
+    if (nvoices > 0) {
+        std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(dsp_poly);
+        } else {
+            DSP = dsp_poly;
+        }
+#else
+        DSP = dsp_poly;
+#endif
+    } else {
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+#else
+        DSP = new mydsp();
+#endif
+    }
+#endif
+    
+    if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
-		exit(1);
-	}
+        exit(1);
+    }
 
-	CMDUI* interface = new CMDUI(argc, argv);
-	FUI* finterface	= new FUI();
-	DSP->buildUserInterface(interface);
-	DSP->buildUserInterface(finterface);
+    CMDUI* interface = new CMDUI(argc, argv);
+    FUI* finterface	= new FUI();
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(finterface);
 
-	#ifdef MIDICTRL
-	    rt_midi midi_handler(appname);
-	    midi_handler.addMidiIn(dsp_poly);
-	    MidiUI midiinterface(&midi_handler);
-	    DSP->buildUserInterface(&midiinterface);
-	    std::cout << "MIDI is on" << std::endl;
-	#endif
+#ifdef MIDICTRL
+    rt_midi midi_handler(appname);
+    midi_handler.addMidiIn(dsp_poly);
+    MidiUI midiinterface(&midi_handler);
+    DSP->buildUserInterface(&midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
-	httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
-	DSP->buildUserInterface(httpdinterface);
+    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
 #endif
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP->buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(appname, argc, argv);
+    DSP->buildUserInterface(oscinterface);
 #endif
 
-	alsaaudio audio (argc, argv, DSP);
-	audio.init(appname, DSP);
-	finterface->recallState(rcfilename);
-	audio.start();
+    alsaaudio audio (argc, argv, DSP);
+    audio.init(appname, DSP);
+    finterface->recallState(rcfilename);
+    audio.start();
 
 #ifdef HTTPCTRL
-	httpdinterface->run();
+    httpdinterface->run();
 #endif
 
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface->run();
+    interface->run();
 
 #ifdef MIDICTRL
-	midiinterface.stop();
+    midiinterface.stop();
 #endif
 
-	audio.stop();
-	finterface->saveState(rcfilename);
+    audio.stop();
+    finterface->saveState(rcfilename);
 
     // desallocation
     delete interface;
     delete finterface;
 #ifdef HTTPCTRL
-	 delete httpdinterface;
+    delete httpdinterface;
 #endif
 #ifdef OSCCTRL
-	 delete oscinterface;
+    delete oscinterface;
 #endif
 
-  	return 0;
+    return 0;
 }
+
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

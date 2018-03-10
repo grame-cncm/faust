@@ -158,7 +158,7 @@ EndOfCode
         make
     ) > /dev/null || exit
 
-    # on Mac add the qt libraries to the bundle
+    # on Mac add the QT libraries to the bundle
     if [[ $(uname) == Darwin ]]; then
         if [ "$DEPLOY" = "yes" ]; then
             macdeployqt "$TMP/${f%.dsp}$EXT" || exit

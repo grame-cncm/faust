@@ -128,6 +128,13 @@
 using namespace llvm;
 using namespace std;
 
+#ifdef LLVM_MACHINE 
+
+void faustassert(bool) {}
+extern "C" EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
+
+#endif
+
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
