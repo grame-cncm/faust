@@ -125,7 +125,7 @@ int main(int argc, char *argv[] )
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
 
 #if MIDICTRL
-    if (midi_sync) {
+    if (hasMIDISync()) {
         DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
         DSP = new dsp_sequencer(dsp_poly, new effect());
@@ -143,7 +143,7 @@ int main(int argc, char *argv[] )
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
         
 #if MIDICTRL
-        if (midi_sync) {
+        if (hasMIDISync()) {
             DSP = new timed_dsp(dsp_poly);
         } else {
             DSP = dsp_poly;
@@ -153,7 +153,7 @@ int main(int argc, char *argv[] )
 #endif
     } else {
 #if MIDICTRL
-        if (midi_sync) {
+        if (hasMIDISync()) {
             DSP = new timed_dsp(new mydsp());
         } else {
             DSP = new mydsp();
