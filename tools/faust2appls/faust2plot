@@ -32,10 +32,7 @@ done
 for p in $@; do
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2plot [-n <num] [-s <num>] [-r <num>] <file.dsp>"
-        echo "Use '-n' to set the number of generated samples (default is 16)"
-        echo "Use '-s' to shift output signal at sample <num>"
-        echo "Use '-r' to set the sampling rate (default is 44100)"
+        echo "faust2plot <file.dsp>"
         exit
     fi
 
@@ -48,18 +45,18 @@ for p in $@; do
     fi
   
     if [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+        PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+        PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 done
 
 #-------------------------------------------------------------------
