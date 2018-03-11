@@ -31,6 +31,11 @@ zname := faust-$(version)
 
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
+compiler : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake
+	$(MAKE) -C $(BUILDLOCATION)
+	$(MAKE) -C build osc
+	
 all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION)
 	$(MAKE) -C build staticlib
@@ -123,7 +128,8 @@ bench :
 help :
 	@echo "===== Faust main makefile ====="
 	@echo "Available targets"
-	@echo " 'all' (default) : builds the faust compiler, the faust libraries and the faust osc libraries"
+	@echo " 'compiler' (default) : builds the faust compiler (without le LLVM backend), and the faust osc libraries"
+	@echo " 'all'           : builds the faust compiler, the faust libraries and the faust osc libraries"
 	@echo "                   see the build/Makefile for more build options (> make -C build help)"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"
