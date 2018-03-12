@@ -284,7 +284,7 @@ static void runFactory(dsp_factory* factory, const string& file, bool is_mem_all
     int nins = DSP->getNumInputs();
     int nouts = DSP->getNumOutputs();
     
-    channels* ichan = new channels(kFrames, ((inpl) ? std::max(nins, nouts) : nins));
+    channels* ichan = new channels(kFrames, ((inpl) ? ((nins > nouts) ? nins : nouts) : nins));
     channels* ochan = (inpl) ? ichan : new channels(kFrames, nouts);
     
     int nbsamples = 60000;

@@ -18,7 +18,11 @@ set (CMAKE_CXX_STANDARD 11)
 # Output options
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
-option ( USE_LLVM_CONFIG    "Force use off llvm-config"	off )
+option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
+option ( INCLUDE_STATIC    	"Include static library"	off )
+option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
+option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
+option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	off )
 
 #######################################
 # Check output options
@@ -135,9 +139,7 @@ endmacro()
 ####################################
 # LLVM
 if (LLVM_BACKEND )
-	if ((WIN32 AND NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
-		llvm_config()
-	elseif(USE_LLVM_CONFIG)
+	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
 		find_package(LLVM REQUIRED CONFIG)
@@ -194,84 +196,134 @@ endif()
 
 
 ####################################
+# Manual LLVM scan
+macro (llvm_config)
+	if ( NOT DEFINED LLVM_CONFIG)
+		set (LLVM_CONFIG llvm-config)
+	endif()
+	find_program (LC ${LLVM_CONFIG})
+	if (${LC} STREQUAL LC-NOTFOUND)
+		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
+	endif()
+	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
+	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
+	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+
+	execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
+	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
+	execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
+	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
+	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
+	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
+	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
+	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
+	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+endmacro()
+
+####################################
 # Add the different targets
 ####################################
 add_executable(faust ${SRC} ${HH})
 set_target_properties(faust  PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
+target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
+target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
+target_link_libraries (faust PRIVATE ${FAUST_LIBS})
+scan_backends (faust COMPILER)
+set (INSTALL_TARGETS faust)
 
 # static faust library
-add_library(staticlib STATIC ${SRC} ${HH})
-set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-if (APPLE AND IOS)
-	set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
-endif()
+if (INCLUDE_STATIC)
+	add_library(staticlib STATIC ${SRC} ${HH})
+	target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
+	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
+	set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+	if (APPLE AND IOS)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
+	endif()
+	if (WIN32)
+		if (MSVC)
+			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+		else()
+			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
+		endif()
+	endif()
+	if (IOS)
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
+	else()
+		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
+	endif()	
+	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
+	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
+	scan_backends (staticlib STATIC)
+endif()	
+
 
 # dynamic faust library
-add_library(dynamiclib SHARED ${SRC} ${HH})
-if (WIN32)
-	enable_language(RC)
-	set_target_properties(dynamiclib PROPERTIES
-		ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
-		RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
-	if (MSVC)
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+if (INCLUDE_DYNAMIC)
+	add_library(dynamiclib SHARED ${SRC} ${HH})
+	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
+	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
+	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
+	if (WIN32)
+		enable_language(RC)
+		set_target_properties(dynamiclib PROPERTIES 
+			ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
+			RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
+		set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
+		target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
+		target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
 	else()
-		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
+		if (IOS)
+			set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust.ios)
+		else()
+			set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
+		endif()	
+		set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+		set_target_properties(dynamiclib PROPERTIES 
+			LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
+			VERSION ${VERSION}
+			SOVERSION ${SOVERS})
 	endif()
-	set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
-	target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
-	target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
-else()
-	if (IOS)
-		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust.ios)
-	else()
-		set_target_properties(dynamiclib staticlib PROPERTIES OUTPUT_NAME faust)
-	endif()
-	set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	set_target_properties(dynamiclib PROPERTIES
-		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
-		VERSION ${VERSION}
-		SOVERSION ${SOVERS})
+	set_target_properties(dynamiclib PROPERTIES COMPILE_FLAGS -DFAUST_LIB)
+	scan_backends (dynamiclib DYNAMIC)
+	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
-set_target_properties(dynamiclib  staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB)
 
-# shared properties
-foreach (TARGET faust staticlib dynamiclib)
-	target_compile_definitions (${TARGET} PRIVATE ${FAUST_DEFINITIONS})
-	target_include_directories (${TARGET} PRIVATE ${FAUST_INC} ${LLVM_INC})
-	target_link_libraries (${TARGET} PRIVATE ${FAUST_LIBS})
-endforeach()
-
-scan_backends (faust COMPILER)
-scan_backends (staticlib STATIC)
-scan_backends (dynamiclib DYNAMIC)
 
 ####################################
 # add sub projects (emcc, osclib)
 ####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
-elseif(NOT IOS)
+elseif (NOT IOS)
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
-add_subdirectory (osc)
-add_subdirectory (http)
+if (INCLUDE_OSC)
+	add_subdirectory (osc)
+	set (SUBTARGETS ${SUBTARGETS} osc)
+endif()
+if (INCLUDE_HTTP)
+	add_subdirectory (http)
+	set (SUBTARGETS ${SUBTARGETS} http)
+endif()
 
 
 ####################################
 # install section
 ####################################
-message (STATUS "Install location is ${CMAKE_INSTALL_PREFIX}")
-
 set (ARCHDIR ${ROOT}/architecture)
 set (ARCHINC ${ARCHDIR}/faust)
 set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARCHINC}/midi ${ARCHINC}/unity ${ARCHINC}/vst)
 
+message (STATUS "Install location is ${CMAKE_INSTALL_PREFIX}")
+message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
+
 ####################################
 # install the faust compiler and libraries
-install ( TARGETS faust staticlib dynamiclib
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+install ( TARGETS ${INSTALL_TARGETS} 
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin 
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
