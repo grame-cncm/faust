@@ -57,7 +57,7 @@ class SoundUI : public GenericUI
             if (strlen(filename) == 0) filename = label;
             
         #if TARGET_OS_IPHONE
-            string filename_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(filename);
+            std::string filename_path_str = std::string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + std::string(filename);
             const char* filename_path = filename_path_str.c_str();
         #else
             const char* filename_path = filename;
