@@ -31,6 +31,11 @@ zname := faust-$(version)
 
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
+compiler : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake
+	$(MAKE) -C $(BUILDLOCATION)
+	$(MAKE) -C build osc
+	
 all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION)
 	$(MAKE) -C build staticlib
@@ -38,7 +43,8 @@ all : updatesubmodules
 
 universal :
 	$(MAKE) -C $(BUILDLOCATION) universal
-	$(MAKE) -C architecture/osclib
+	$(MAKE) -C build staticlib
+	$(MAKE) -C build osc
 	@echo 
 	@echo "### Universal mode is ON"
 	@echo "### You need to recompile"
@@ -59,7 +65,7 @@ native :
 # NOTE: Once the remote target is readily supported on most platforms, it
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
-WORLDTARGETS := all sound2faust httpd dynamic
+WORLDTARGETS := all sound2faust # httpd dynamic => these targets are now part of the 'all' target
 world : $(WORLDTARGETS)
 
 dynamic : all httpd
@@ -122,7 +128,8 @@ bench :
 help :
 	@echo "===== Faust main makefile ====="
 	@echo "Available targets"
-	@echo " 'all' (default) : builds the faust compiler, the faust libraries and the faust osc libraries"
+	@echo " 'compiler' (default) : builds the faust compiler (without le LLVM backend), and the faust osc libraries"
+	@echo " 'all'           : builds the faust compiler, the faust libraries and the faust osc libraries"
 	@echo "                   see the build/Makefile for more build options (> make -C build help)"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"

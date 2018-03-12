@@ -734,9 +734,9 @@ void LLVMCodeContainer::generateFunMaps()
         generateFunMap("sqrt", "fast_sqrt", 1);
         generateFunMap("tan", "fast_tan", 1);
     } else {
-#ifdef __APPLE__
+    #ifdef __APPLE__
         generateFunMap("exp10", "__exp10", 1, true);
-#endif
+    #endif
     }
 }
 

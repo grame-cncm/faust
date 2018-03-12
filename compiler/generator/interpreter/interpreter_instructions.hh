@@ -296,20 +296,20 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 if (ctype == Typed::kInt32) {
                     
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.fOffset, int_array->fNumTable.size(), int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FIRInstruction::kBlockStoreInt, tmp.fOffset, int(int_array->fNumTable.size()), int_array->fNumTable));
                 
                 } else if (ctype == Typed::kFloat) {
                     
                     FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
-                                                                            tmp.fOffset, float_array->fNumTable.size(),
+                                                                            tmp.fOffset, int(float_array->fNumTable.size()),
                                                                             reinterpret_cast<const std::vector<T>&>(float_array->fNumTable)));
                     
                 } else if (ctype == Typed::kDouble) {
                     
                     DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
                     fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal,
-                                                                            tmp.fOffset, double_array->fNumTable.size(),
+                                                                            tmp.fOffset, int(double_array->fNumTable.size()),
                                                                             reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
                      
                 } else {

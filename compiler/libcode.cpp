@@ -57,6 +57,7 @@
 #include "garbageable.hh"
 #include "exception.hh"
 #include "Text.hh"
+#include "sha_key.hh"
 
 #ifdef WIN32
 #pragma warning (disable: 4996)
@@ -196,8 +197,6 @@ CodeContainer* container = NULL;
 typedef void* (*compile_fun)(void* arg);
 
 string reorganizeCompilationOptions(int argc, const char* argv[]);
-
-std::string generateSHA1(const std::string& dsp_content);
 
 #ifdef _WIN32
 static void callFun(compile_fun fun)
@@ -1323,8 +1322,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         if (gGlobal->gArchFile != "") {
 
             // Keep current directory
-            char current_directory[FAUST_PATH_MAX];
-            getcwd(current_directory, FAUST_PATH_MAX);
+            char buffer[FAUST_PATH_MAX];
+            char* current_directory = getcwd(buffer, FAUST_PATH_MAX);
 
             if ((enrobage = openArchStream(gGlobal->gArchFile.c_str()))) {
 
@@ -1355,7 +1354,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 dst->flush();
 
                 // Restore current_directory
-                chdir(current_directory);
+                if (current_directory) {
+                    if (chdir(current_directory)) { // return code is 0 on successful completion
+                        cerr << "can't restore current directory (" << current_directory << ")" << endl;
+                    }
+                }
                 delete enrobage;
 
             } else {

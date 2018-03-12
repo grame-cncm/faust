@@ -1,5 +1,6 @@
 dox/*
-build*
+build/bin/*
+build/lib/*
 *~
 compile.sh
 *.aux

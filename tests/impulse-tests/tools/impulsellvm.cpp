@@ -92,8 +92,8 @@ int main(int argc, char* argv[])
     
     {
         // Test writeDSPFactoryToMachineFile/readDSPFactoryFromMachineFile
-        writeDSPFactoryToMachineFile(factory, "/var/tmp/llvm-factory-machine", "");
-        factory = readDSPFactoryFromMachineFile("/var/tmp/llvm-factory-machine", "");
+        writeDSPFactoryToMachineFile(factory, "/var/tmp/" + string(argv[1]) + "-llvm-factory-machine", "");
+        factory = readDSPFactoryFromMachineFile("/var/tmp/" + string(argv[1]) + "-llvm-factory-machine", "");
         
         if (!factory) {
             cerr << " ERROR in readDSPFactoryFromMachineFile " << endl;

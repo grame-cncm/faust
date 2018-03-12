@@ -281,7 +281,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
     else if (isBoxWaveform(box)) 	{
         faustassert(lsig.size()==0);
         const tvec br = box->branches();
-        return listConcat(makeList(sigInt(br.size())), makeList(sigWaveform(br)));
+        return listConcat(makeList(sigInt(int(br.size()))), makeList(sigWaveform(br)));
     }
 
     else if (isBoxFConst(box, type, name, file))    { 

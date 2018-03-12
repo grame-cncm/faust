@@ -8,6 +8,15 @@
 - on Windows, you have the option to use MS [Visual Studio](http://www.microsoft.com/express/) or the [MSYS2](http://www.msys2.org/) environment. The current Makefile is targetting MSYS2 by default. See Windows specific notes.
 
 
+## About cmake projects
+
+Build of Faust components is cmake based. Cmake is highly state dependant since it maintains a cache with the various settings of the project. The compilation process takes place in 2 phases:
+- 1) project generation
+- 2) compilation of the project
+
+These 2 phases are independent and it's possible to modify the project at any time.
+If you're familiar with cmake, you can directly use cmake commands otherwise, a Makefile is provided that includes and demonstrates all the project options.
+
 ## Using the Makefile
 
 Simply type `make` in the `build` folder to compile the **Faust** compiler.
@@ -77,13 +86,6 @@ LLVM is generally available from the package manager but it might be an old vers
 
 Identified potential compile time errors:
 - cannot find -ledit -> sudo apt-get install libedit-dev
-
-#### LLVM on MacOS:
-
-While compiling with llvm 5.0.0 you may get the following link error:
-> Undefined symbols for architecture x86_64: "\_futimens"
-
-seems to be related to xcode version, the problem is not present using xcode 9
 
 ### Notes regarding the `interpreter` backend
 The 'interpreter' backend is not supported on windows using MSVC compilers

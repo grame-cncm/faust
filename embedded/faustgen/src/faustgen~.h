@@ -114,6 +114,7 @@ class faustgen_factory {
         vector<string> fCompileOptions; // Faust compiler options
     
         int fOptLevel;                  // the LLVM optimization level
+        bool fPolyphonic;               // Whether the created DSP is polyphonic
     
         int m_siginlets;
         int m_sigoutlets;

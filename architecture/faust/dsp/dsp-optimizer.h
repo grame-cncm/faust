@@ -272,7 +272,7 @@ class dsp_optimizer {
             return true;
         }
     
-        std::vector<std::string> findOptimizedParametersAux(const std::vector<std::vector <std::string> >& options, double& best)
+        std::pair<double, std::vector<std::string> > findOptimizedParametersAux(const std::vector<std::vector <std::string> >& options)
         {
             std::vector<std::pair<int, double > > table_res;
             double res = 0.;
@@ -286,8 +286,7 @@ class dsp_optimizer {
             }
             
             sort(table_res.begin(), table_res.end(), compareFun);
-            best = table_res[0].second;
-            return options[table_res[0].first];
+            return std::make_pair(table_res[0].second, options[table_res[0].first]);
         }
 
         static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
@@ -365,21 +364,19 @@ class dsp_optimizer {
         {}
     
         /**
-         * Returns the best compilation parameters in a vector.
+         * Returns the best compilations parameters.
          *
-         * @param best - returns the best result (in Megabytes/seconds)
-         *
-         * @return the best compilation parameters in a vector.
+         * @return the best result (in Megabytes/seconds), and compilation parameters in a vector.
          */
-        std::vector<std::string> findOptimizedParameters(double& best)
+        std::pair<double, std::vector<std::string> > findOptimizedParameters()
         {
             std::cout << "Discover best parameters option" << std::endl;
-            std::vector<std::string> best1 = findOptimizedParametersAux(fOptionsTable, best);
+            std::pair<double, std::vector<std::string> > best1 = findOptimizedParametersAux(fOptionsTable);
             
             std::cout << "Refined with -mcd" << std::endl;
             std::vector<std::vector <std::string> > options_table;
             for (int size = 2; size <= 256; size *= 2) {
-                std::vector<std::string> best2 = best1;
+                std::vector<std::string> best2 = best1.second;
                 std::stringstream num;
                 num << size;
                 best2.push_back("-mcd");
@@ -387,7 +384,7 @@ class dsp_optimizer {
                 options_table.push_back(best2);
             }
             
-            return findOptimizedParametersAux(options_table, best);
+            return findOptimizedParametersAux(options_table);
         }
     
         /**
