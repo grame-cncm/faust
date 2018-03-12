@@ -228,7 +228,7 @@ string DocCompiler::generateCode (Tree sig, int priority)
 
 	else {
         stringstream error;
-        error << "Error in d signal, unrecognized signal : " << *sig << endl;
+        error << "ERROR in d signal, unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
 	}
     faustassert(0);
@@ -564,7 +564,7 @@ string DocCompiler::generateCacheCode(Tree sig, const string& exp)
 	} 
 	else {
         stringstream error;
-        error << "Error in sharing count (" << sharing << ") for " << *sig << endl;
+        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
         throw faustexception(error.str());
 	}
 	
@@ -982,7 +982,7 @@ string DocCompiler::generateIota (Tree sig, Tree n)
 {
 	int size;
 	if (!isSigInt(n, &size)) { 
-        throw faustexception("Error in generateIota\n");
+        throw faustexception("ERROR in generateIota\n");
     }
 	//cout << "iota !" << endl;
 	return subst(" t \\bmod{$0} ", docT(size));

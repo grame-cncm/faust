@@ -914,7 +914,7 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
     #ifdef MIDICTRL
         GUI::updateAllGuis();
     #endif
-         systhread_mutex_unlock(x->m_mutex);
+        systhread_mutex_unlock(x->m_mutex);
     } else {
         // Write null buffers to outs
         for (int i = 0; i < numouts; i++) {
