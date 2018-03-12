@@ -1583,6 +1583,7 @@
 					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
+					/opt/local/include,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1591,7 +1592,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = /usr/local/lib/faust/ios-libsndfile.a;
+				OTHER_LDFLAGS = "/usr/local/lib/faust/ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1617,6 +1618,7 @@
 					/usr/local/include,
 					osclib/oscpack,
 					osclib/faust,
+					/opt/local/include,
 				);
 				INFOPLIST_FILE = "iOS/iOS-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
@@ -1625,7 +1627,7 @@
 					"$(PROJECT_DIR)/osclib",
 					"$(PROJECT_DIR)/osclib/oscpack",
 				);
-				OTHER_LDFLAGS = /usr/local/lib/faust/ios-libsndfile.a;
+				OTHER_LDFLAGS = "/usr/local/lib/faust/ios-libsndfile.a";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				PROVISIONING_PROFILE_SPECIFIER = "";

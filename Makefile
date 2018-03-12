@@ -128,7 +128,7 @@ bench :
 help :
 	@echo "===== Faust main makefile ====="
 	@echo "Available targets"
-	@echo " 'compiler' (default) : builds the faust compiler (without le LLVM backend), and the faust osc libraries"
+	@echo " 'compiler' (default) : builds the faust compiler (without the LLVM backend), and the faust osc libraries"
 	@echo " 'all'           : builds the faust compiler, the faust libraries and the faust osc libraries"
 	@echo "                   see the build/Makefile for more build options (> make -C build help)"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # 
 # Faust project
 # version management tool
@@ -19,10 +19,10 @@ function winVer {
 	echo $1 | sed "s/\./,$2/g"
 }
 function rcUpdate {
-	sed "s/FILEVERSION[ 	].*/FILEVERSION $2/" $1 | \
-	sed "s/PRODUCTVERSION[ 	].*/PRODUCTVERSION $2/" | \
-	sed "s/VALUE \"FileVersion\"..*/VALUE \"FileVersion\", \"$3\"/" | \
-	sed "s/VALUE \"ProductVersion\"..*/VALUE \"ProductVersion\", \"$3\"/"
+ 	sed "s/FILEVERSION[ 	].*/FILEVERSION $2/" $1 | \
+ 	sed "s/PRODUCTVERSION[ 	].*/PRODUCTVERSION $2/" | \
+ 	sed "s/VALUE \"FileVersion\"..*/VALUE \"FileVersion\", \"$3\"/" | \
+ 	sed "s/VALUE \"ProductVersion\"..*/VALUE \"ProductVersion\", \"$3\"/"
 }
 
 ROOT=.

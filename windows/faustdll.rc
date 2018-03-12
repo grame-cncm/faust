@@ -13,8 +13,6 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Français (France) resources
-
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_FRA)
 #ifdef _WIN32
 LANGUAGE LANG_FRENCH, SUBLANG_FRENCH
@@ -53,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 2,5,23,0
- PRODUCTVERSION 2,5,23,0
+ FILEVERSION 2,5,24,0
+ PRODUCTVERSION 2,5,24,0
  FILEFLAGSMASK 0x17L
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -70,12 +68,12 @@ BEGIN
         BLOCK "040c04b0"
         BEGIN
             VALUE "FileDescription", "Faust compiler"
-            VALUE "FileVersion", "2, 5, 23, 0"
+            VALUE "FileVersion", "2, 5, 24, 0"
             VALUE "InternalName", "Faust"
             VALUE "LegalCopyright", "Copyright (C) 2009-2018 - Grame"
             VALUE "OriginalFilename", "faust.exe"
             VALUE "ProductName", "Faust"
-            VALUE "ProductVersion", "2, 5, 23, 0"
+            VALUE "ProductVersion", "2, 5, 24, 0"
         END
     END
     BLOCK "VarFileInfo"
@@ -84,7 +82,7 @@ BEGIN
     END
 END
 
-#endif    // Français (France) resources
+#endif 
 /////////////////////////////////////////////////////////////////////////////
 
 
