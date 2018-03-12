@@ -318,7 +318,7 @@ set (ARCHINC ${ARCHDIR}/faust)
 set (ARCHDIRS ${ARCHINC}/au ${ARCHINC}/audio ${ARCHINC}/dsp ${ARCHINC}/gui ${ARCHINC}/midi ${ARCHINC}/unity ${ARCHINC}/vst)
 
 message (STATUS "Install location is ${CMAKE_INSTALL_PREFIX}")
-message (STATUS "Install targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
+message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
 # install the faust compiler and libraries
