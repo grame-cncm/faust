@@ -31,6 +31,7 @@ CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
 NVOICES=-1
+ARCHFILE="jack-gtk.cpp"
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
@@ -101,7 +102,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

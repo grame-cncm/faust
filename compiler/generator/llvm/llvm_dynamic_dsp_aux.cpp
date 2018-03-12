@@ -33,6 +33,7 @@
 #include "global.hh"
 #include "Text.hh"
 #include "libfaust.h"
+#include "sha_key.hh"
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
@@ -809,21 +810,23 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
                                                                                                         dsp_content.c_str(),
                                                                                                         error_msg,
                                                                                                         true));
-            
-            if (factory_aux && factory_aux->initJIT(error_msg)) {
+            if (factory_aux) {
                 factory_aux->setTarget(target);
                 factory_aux->setOptlevel(opt_level);
                 factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
                 factory_aux->setName(name_app);
+                if (!factory_aux->initJIT(error_msg)) {
+                    goto error;
+                }
                 factory = new llvm_dsp_factory(factory_aux);
                 llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 factory->setDSPCode(expanded_dsp_content);
                 return factory;
-            } else {
-                delete factory_aux;
-                return NULL;
             }
+        error:
+            delete factory_aux;
+            return NULL;
         }
     }
 }

@@ -31,6 +31,7 @@
 #include "faust/gui/CGlue.h"
 #include "rn_base64.h"
 #include "libfaust.h"
+#include "sha_key.hh"
 
 #include <llvm/Support/TargetSelect.h>
 
@@ -127,6 +128,13 @@
 using namespace llvm;
 using namespace std;
 
+#ifdef LLVM_MACHINE 
+
+void faustassert(bool) {}
+extern "C" EXPORT const char* getCLibFaustVersion() { return FAUSTVERSION; }
+
+#endif
+
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
@@ -189,7 +197,9 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
         llvm_stop_multithreaded();
     #endif
     #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+    #ifndef LLVM_BUILD_UNIVERSAL // Crash in 32 bits on OSX, so deactivated in this case...
         LLVMResetFatalErrorHandler();
+    #endif
     #endif
     }
 }
