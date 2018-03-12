@@ -8,7 +8,11 @@
 int main(int argc, char* argv[])
 {
     int argc1 = argc - 2;
+ #ifdef WIN32
+    const char* argv1[50];
+#else
     const char* argv1[argc1];
+#endif
     for (int i = 0; i < argc - 2;  i++) {
         argv1[i] = argv[i + 2];
     }
