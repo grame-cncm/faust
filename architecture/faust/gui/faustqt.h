@@ -622,7 +622,7 @@ protected:
         size_t l = fLevel.size();
         
         FAUSTFLOAT p = -1;   // fake value indicates to start from border
-        int n = 0;
+        size_t n = 0;
         // paint all the full segments < fValue
         for (n = 0; (n < l) && (fValue > fLevel[n]); n++) {
             p = paintSegment(painter, p, fLevel[n], fBrush[n]);
