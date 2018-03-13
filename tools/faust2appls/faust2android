@@ -147,6 +147,7 @@ faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || ex
 
 # Run Gradle
 cd $BUILDDIR
+chmod a+x ./gradlew
 ./gradlew assembleRelease > $LOG
 cd ..
 
