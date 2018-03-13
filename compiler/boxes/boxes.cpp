@@ -190,7 +190,7 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
 	if (isNil (revarglist)) {
         // a revoir !!!!!!
-        throw faustexception("Error : buildBoxAppl called with null revarglist\n");
+        throw faustexception("ERROR : buildBoxAppl called with null revarglist\n");
     }
 	return  boxAppl(fun, revarglist);
 }
@@ -615,7 +615,7 @@ static Tree preparePattern(Tree box)
         // None of the previous tests succeded, then it is not a valid box
         else {
             stringstream error;
-            error << "Error in preparePattern() : " << *box << " is not a valid box" << endl;
+            error << "ERROR in preparePattern() : " << *box << " is not a valid box" << endl;
             throw faustexception(error.str());
         }
 

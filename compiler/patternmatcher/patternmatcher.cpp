@@ -569,7 +569,7 @@ Automaton *make_pattern_matcher(Tree R)
                     << endl;
             } else {
                 stringstream error;
-                error << "INTERNAL ERROR : " << __FILE__ << ":" << __LINE__ << endl;
+                error << "ERROR : " << __FILE__ << ":" << __LINE__ << endl;
                 throw faustexception(error.str());
             }
           } else if (ru->r >= r) {

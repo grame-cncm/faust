@@ -369,7 +369,7 @@ ostream& boxpp::print (ostream& fout) const
     // None of the previous tests succeded, then it is not a valid box
 	else {
         stringstream error;
-        error << "Error in box::print() : " << *box << " is not a valid box" << endl;
+        error << "ERROR in box::print() : " << *box << " is not a valid box" << endl;
         throw faustexception(error.str());
 	}
 

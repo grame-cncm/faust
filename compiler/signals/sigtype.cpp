@@ -159,7 +159,7 @@ Type operator| (const Type& t1, const Type& t2)
 	} else {
 
 	    stringstream error;
-        error << "Error : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
+        error << "ERROR : trying to combine incompatible types, " << t1 << " and " << t2 << endl;
         throw faustexception(error.str());
         
 	}
@@ -241,7 +241,7 @@ Type checkInt(Type t)
 	SimpleType* st = isSimpleType(t);
 	if (st == 0 || st->nature() > kInt) {
         stringstream error;
-        error << "Error : checkInt failed for type " << t << endl;
+        error << "ERROR : checkInt failed for type " << t << endl;
         throw faustexception(error.str());
 	}
 	return t;
@@ -252,7 +252,7 @@ Type checkKonst(Type t)
 	// verifie que t est constant
 	if (t->variability() > kKonst) {
         stringstream error;
-        error << "Error : checkKonst failed for type " << t << endl;
+        error << "ERROR : checkKonst failed for type " << t << endl;
         throw faustexception(error.str());
 	}
 	return t;
@@ -263,7 +263,7 @@ Type checkInit(Type t)
 	// verifie que t est connu a l'initialisation
 	if (t->computability() > kInit) {
         stringstream error;
-        error << "Error : checkInit failed for type " << t << endl;
+        error << "ERROR : checkInit failed for type " << t << endl;
         throw faustexception(error.str());
 	}
 	return t;
@@ -279,7 +279,7 @@ Type checkWRTbl(Type tbl, Type wr)
 	// verifie que wr est compatible avec le contenu de tbl
 	if (wr->nature() > tbl->nature()) {
         stringstream error;
-        error << "Error : checkWRTbl failed, the content of  " << tbl << " is incompatible with " << wr << endl;
+        error << "ERROR : checkWRTbl failed, the content of  " << tbl << " is incompatible with " << wr << endl;
         throw faustexception(error.str());
 	}
 	return tbl;

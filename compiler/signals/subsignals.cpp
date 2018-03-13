@@ -104,7 +104,7 @@ int	getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 
 	else {
         stringstream error;
-        error << "ERROR, getSubSignals unrecognized signal : " << *sig << endl;
+        error << "ERROR : getSubSignals unrecognized signal : " << *sig << endl;
         throw faustexception(error.str());
 	}
 	return 0;

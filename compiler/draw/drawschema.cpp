@@ -454,7 +454,7 @@ static schema* generateInsideSchema(Tree t)
 		}
 	} else {
         stringstream error;
-        error << "Internal Error, box expression not recognized : ";
+        error << "ERROR : box expression not recognized : ";
         t->print(error);
         error << endl;
         throw faustexception(error.str());
@@ -522,7 +522,7 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(chan) << ')';
     }
     else {
-        throw faustexception("INTERNAL ERROR : unknown user interface element\n");
+        throw faustexception("ERROR : unknown user interface element\n");
     }
     d = fout.str();
 }
@@ -556,7 +556,7 @@ static schema* generateSoundfileSchema(Tree t)
         string s; UserInterfaceDescription(t,s);
         return makeBlockSchema(1, 3+n, s, uicolor, "");
     } else {
-        throw faustexception("Internal error\n");
+        throw faustexception("ERROR : soundfile\n");
     }
 }
 

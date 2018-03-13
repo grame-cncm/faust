@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2004-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2004-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -110,7 +110,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.62"
+#define EXTERNAL_VERSION "0.63"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -142,6 +142,17 @@ struct Max_Meta2 : Meta
     {
         if ((strcmp("name", key) == 0) || (strcmp("author", key) == 0)) {
             post("%s : %s", key, value);
+        }
+    }
+};
+
+struct Max_Meta3 : Meta
+{
+    string fName;
+    void declare(const char* key, const char* value)
+    {
+        if ((strcmp("filename", key) == 0)) {
+            fName = "com.grame." + string(value) + "~";
         }
     }
 };
@@ -768,6 +779,21 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+    
+#ifdef __APPLE__
+    // OSX only : access to the fautgen~ bundle
+    Max_Meta3 meta3;
+    x->m_dsp->metadata(&meta3);
+    CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
+    CFURLRef faustgen_ref = CFBundleCopyBundleURL(faustgen_bundle);
+    if (faustgen_ref) {
+        UInt8 bundle_path[512];
+        Boolean res = CFURLGetFileSystemRepresentation(faustgen_ref, true, bundle_path, 512);
+        post("Bundle_path : %s\n", bundle_path);
+    } else {
+        post("Bundle_path cannot be found!");
+    }
+#endif
     
     // Send JSON to JS script
     faust_create_jsui(x);

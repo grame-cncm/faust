@@ -24,6 +24,10 @@
 #ifndef __SoundUI_H__
 #define __SoundUI_H__
 
+#ifdef TARGET_OS_IPHONE
+#include <CoreFoundation/CFBundle.h>
+#endif
+
 #include <map>
 #include <string>
 
@@ -55,12 +59,16 @@ class SoundUI : public GenericUI
         {
             // If no filename was given, assume label is the filename
             if (strlen(filename) == 0) filename = label;
-            
+            std::string filename_path = filename;
         #if TARGET_OS_IPHONE
-            string filename_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(filename);
-            const char* filename_path = filename_path_str.c_str();
-        #else
-            const char* filename_path = filename;
+            filename_path = filename;
+            CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+            if (bundle_ref) {
+                UInt8 bundle_path[512];
+                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                    filename_path = std::string((char*)bundle_path) + "/" + std::string(filename);
+                }
+            }
         #endif
             // Check if 'label' is already loaded
             if (fSFMap.find(filename) == fSFMap.end()) {

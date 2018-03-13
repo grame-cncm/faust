@@ -150,7 +150,7 @@ int computeBoxComplexity (Tree box)
 	else {
 		//fout << tree2str(box);
         stringstream error;
-        error << "ERROR in boxComplexity : not an evaluated box [[  " << *box << " ]]\n";
+        error << "ERROR in boxComplexity : not an evaluated box [[ " << *box << " ]]\n";
         throw faustexception(error.str());
 	}
 

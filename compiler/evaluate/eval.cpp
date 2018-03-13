@@ -587,7 +587,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else {
         stringstream error;
-        error << "ERROR : EVAL doesn't intercept : " << *exp << endl;
+        error << "ERROR : eval doesn't intercept : " << *exp << endl;
         throw faustexception(error.str());
     }
 
@@ -827,7 +827,7 @@ static string evalLabel (const char* src, Tree visited, Tree localValEnv)
 
         } else {
             stringstream error;
-            error << "internal error in evallabel : undefined state " << state << std::endl;
+            error << "ERROR in evallabel : undefined state " << state << std::endl;
             throw faustexception(error.str());
         }
     }
