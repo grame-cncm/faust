@@ -78,6 +78,10 @@
 #include "effect.cpp"
 #endif
 
+#if SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 using namespace std;
 
 /******************************************************************************
@@ -182,6 +186,9 @@ typedef struct faust
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
     midi_handler* m_midiHandler;
+#endif
+#ifdef SOUNDFILE
+    SoundUI* m_soundInterface;
 #endif
 } t_faust;
 
@@ -827,20 +834,29 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+
+#ifdef SOUNDFILE
     
 #ifdef __APPLE__
-    // OSX only : access to the fautgen~ bundle
+    // OSX only : access to the mxo bundle
     Max_Meta3 meta3;
     x->m_dsp->metadata(&meta3);
-    CFBundleRef faustgen_bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
-    CFURLRef faustgen_ref = CFBundleCopyBundleURL(faustgen_bundle);
-    if (faustgen_ref) {
+    string bundle_path_str;
+    CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
+    CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
+    if (bundle_ref) {
         UInt8 bundle_path[512];
-        Boolean res = CFURLGetFileSystemRepresentation(faustgen_ref, true, bundle_path, 512);
-        post("Bundle_path : %s\n", bundle_path);
+        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+            bundle_path_str = string((char*)bundle_path);
+            //post("Bundle_path : %s\n", bundle_path);
+        }
     } else {
         post("Bundle_path cannot be found!");
     }
+    x->m_soundInterface = new SoundUI(bundle_path_str);
+    x->m_dsp->buildUserInterface(x->m_soundInterface);
+#endif
+    
 #endif
     
     // Send JSON to JS script
@@ -894,6 +910,9 @@ void faust_free(t_faust* x)
     // m_midiUI *must* be deleted before m_midiHandler
     delete x->m_midiUI;
     delete x->m_midiHandler;
+#endif
+#ifdef SOUNDFILE
+    delete x->m_soundInterface;
 #endif
 }
 

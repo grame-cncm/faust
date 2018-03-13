@@ -16,6 +16,9 @@ CXXFLAGS+=" -fbracket-depth=512"
 
 NVOICES=-1
 EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILEFLAGS=""
 
 # path to max SDK
 
@@ -85,10 +88,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] <file.dsp>"
+        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-soundfile] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         exit
     fi
 
@@ -114,6 +118,10 @@ do
     EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILEFLAGS=`pkg-config --cflags --static --libs sndfile`
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -153,9 +161,9 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -json -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -json -a $FAUSTLIB/max-msp/max-msp.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
     fi
 
@@ -163,8 +171,7 @@ for p in $FILES; do
     (
 	cd "$TMP"
 	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	#$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI `pkg-config --cflags --static --libs sndfile` -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+    $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $SOUNDFILEFLAGS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
     ) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
@@ -175,12 +182,38 @@ for p in $FILES; do
     # Create Info.plist
     createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
 
+    if [ "$SOUNDFILE" = "1" ]; then
+        # get all soundfiles from the JSON file
+        cat $p.json | awk '
+                        BEGIN { FS=":"; SOFI=0; }
+                            /"soundfile"/ { SOFI=1; }
+                            /"label"/ {
+                            if (SOFI) {
+                                match($2, /"[^"]*/);
+                                print substr($2, RSTART+1, RLENGTH-1);
+                                SOFI=0;
+                            }
+                        }
+        ' > $p-tmp.txt
+        # copy found soundfiles in the final binary
+        for snd in $(cat $p-tmp.txt); do
+            if [ -f $snd ]; then
+                echo "Copy $snd in ${f%.dsp}$EXT"
+                cp $snd "$TMP/${f%.dsp}$EXT"
+            else
+                echo "Error: file $snd not found !"
+            fi
+        done
+        rm $p-tmp.txt
+    fi
+
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
+    rm $p.json
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
-    
+
 done
 
 BINARIES="$BINARIES ui.js"

@@ -34,16 +34,21 @@
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/soundfile.h"
 
+// To be used by dsp code if no SoundUI is used or when soundfile is not found
+static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+
 class SoundUI : public GenericUI
 {
 		
     private:
-     
-        std::map<std::string, Soundfile*> fSFMap;
+    
+        std::string fSoundfileDir;                  // The soundfile directory
+        std::map<std::string, Soundfile*> fSFMap;   // Map to share loaded soundfiles
     
      public:
             
-        SoundUI(){}
+        SoundUI(const std::string& sound_dir = ""):fSoundfileDir(sound_dir)
+        {}
     
         virtual ~SoundUI()
         {   
@@ -55,31 +60,30 @@ class SoundUI : public GenericUI
         }
 
         // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* file_name, Soundfile** sf_zone)
         {
             // If no filename was given, assume label is the filename
-            if (strlen(filename) == 0) filename = label;
-            std::string filename_path = filename;
-        #if TARGET_OS_IPHONE
-            filename_path = filename;
-            CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-            if (bundle_ref) {
-                UInt8 bundle_path[512];
-                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                    filename_path = std::string((char*)bundle_path) + "/" + std::string(filename);
+            std::string file_name_str;
+            if (strlen(file_name) == 0) {
+                file_name_str = label;
+            } else {
+                file_name_str = file_name;
+            }
+            
+            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str);
+            if (path_name_str != "") {
+                // Check if 'path_name_str' is already loaded
+                if (fSFMap.find(path_name_str) == fSFMap.end()) {
+                    fSFMap[path_name_str] = new Soundfile(path_name_str, 64);
                 }
+                // Get the soundfile
+                *sf_zone = fSFMap[path_name_str];
+            } else {
+                // Takes defaultsound
+                *sf_zone = defaultsound;
             }
-        #endif
-            // Check if 'label' is already loaded
-            if (fSFMap.find(filename) == fSFMap.end()) {
-                fSFMap[filename] = new Soundfile(filename_path, 64);
-            }
-            *sf_zone = fSFMap[filename];
         }
   
 };
-
-// To be used by dsp code if no SoundUI is used
-static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
 
 #endif

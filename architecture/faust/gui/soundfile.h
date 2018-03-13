@@ -46,7 +46,31 @@ struct Soundfile {
     int fChannels;
     FAUSTFLOAT** fBuffers;
     
-    Soundfile(const std::string& name, int max_chan)
+    static std::string CheckAux(const std::string& path_name_str)
+    {
+        SF_INFO snd_info;
+        snd_info.format = 0;
+        SNDFILE* snd_file = sf_open(path_name_str.c_str(), SFM_READ, &snd_info);
+        if (snd_file) {
+            sf_close(snd_file);
+            return path_name_str;
+        } else {
+            return "";
+        }
+    }
+    
+    // Check if soundfile exists and return the real path_name
+    static std::string Check(const std::string& soundfile_dir_str, const std::string& file_name_str)
+    {
+        std::string path_name_str = CheckAux(file_name_str);
+        if (path_name_str != "") {
+            return path_name_str;
+        } else {
+            return CheckAux(soundfile_dir_str + "/" + file_name_str);
+        }
+    }
+    
+    Soundfile(const std::string& path_name_str, int max_chan)
     {
         fBuffers = new FAUSTFLOAT*[max_chan];
         if (!fBuffers) {
@@ -56,7 +80,7 @@ struct Soundfile {
         // Open sndfile
         SF_INFO	snd_info;
         snd_info.format = 0;
-        SNDFILE* snd_file = sf_open(name.c_str(), SFM_READ, &snd_info);
+        SNDFILE* snd_file = sf_open(path_name_str.c_str(), SFM_READ, &snd_info);
         
         if (snd_file) {
             
@@ -93,8 +117,8 @@ struct Soundfile {
             
         } else {
             
-            if (name != "") {
-                std::cerr << "Error opening the file : " << name << std::endl;
+            if (path_name_str != "") {
+                std::cerr << "Error opening the file : " << path_name_str << std::endl;
             }
             
             fChannels = 1;
