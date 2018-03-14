@@ -35,7 +35,7 @@ PARDISO_LIB_EXT=_lp64
 # set PATH to Pardiso here:
 PARDISO_DIR=/opt/intel/mkl
 PARDISO_INCLUDE=-I$(PARDISO_DIR)/include
-PARDISO_LIB=-L$(PARDISO_DIR)/lib/$(PARDISO_EXT) -L$(PARDISO_DIR)/../lib/$(PARDISO_EXT)_lin -L/opt/intel/lib/intel64_lin -lm -lmkl_intel$(PARDISO_LIB_EXT) -lmkl_intel_thread -lmkl_core -liomp5 -lm -lpthread
+PARDISO_LIB=-L$(PARDISO_DIR)/lib/$(PARDISO_EXT) -L$(PARDISO_DIR)/../lib/$(PARDISO_EXT)_lin -L/opt/intel/lib/intel64_lin -L/opt/intel/lib -lm -lmkl_intel$(PARDISO_LIB_EXT) -lmkl_intel_thread -lmkl_core -liomp5 -lm -lpthread
 
 # the following assumes that Intel MKL is used both for Pardiso and BLAS/LAPACK (don't change)
 BLASLAPACK_DIR=$(PARDISO_DIR)
