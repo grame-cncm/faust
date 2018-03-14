@@ -104,5 +104,5 @@ cmake .. -DUSE_LLVM_CONFIG=off
 
 
 ### Notes regarding the `interpreter` backend
-The 'interpreter' backend is not supported on windows using MSVC compiler.
+The 'interpreter' backend is not supported on windows using MSVC compilers
 This is due to label dereferencing operator && that is only supported by gcc version 5 or greater.

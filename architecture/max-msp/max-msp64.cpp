@@ -10,7 +10,7 @@
 
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2004-2011 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2004-2028 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU Lesser General Public
@@ -78,6 +78,10 @@
 #include "effect.cpp"
 #endif
 
+#if SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 using namespace std;
 
 /******************************************************************************
@@ -111,7 +115,7 @@ using namespace std;
 #define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.62"
+#define EXTERNAL_VERSION "0.63"
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -153,6 +157,17 @@ struct Max_Meta2 : Meta
     }
 };
 
+struct Max_Meta3 : Meta
+{
+    string fName;
+    void declare(const char* key, const char* value)
+    {
+        if ((strcmp("filename", key) == 0)) {
+            fName = "com.grame." + string(value) + "~";
+        }
+    }
+};
+
 /*--------------------------------------------------------------------------*/
 typedef struct faust
 {
@@ -171,6 +186,9 @@ typedef struct faust
 #ifdef MIDICTRL
     MidiUI* m_midiUI;
     midi_handler* m_midiHandler;
+#endif
+#ifdef SOUNDFILE
+    SoundUI* m_soundInterface;
 #endif
 } t_faust;
 
@@ -816,6 +834,30 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     }
 
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
+
+#ifdef SOUNDFILE
+    
+#ifdef __APPLE__
+    // OSX only : access to the mxo bundle
+    Max_Meta3 meta3;
+    x->m_dsp->metadata(&meta3);
+    string bundle_path_str;
+    CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
+    CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
+    if (bundle_ref) {
+        UInt8 bundle_path[512];
+        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+            bundle_path_str = string((char*)bundle_path);
+            //post("Bundle_path : %s\n", bundle_path);
+        }
+    } else {
+        post("Bundle_path cannot be found!");
+    }
+    x->m_soundInterface = new SoundUI(bundle_path_str);
+    x->m_dsp->buildUserInterface(x->m_soundInterface);
+#endif
+    
+#endif
     
     // Send JSON to JS script
     faust_create_jsui(x);
@@ -869,6 +911,9 @@ void faust_free(t_faust* x)
     delete x->m_midiUI;
     delete x->m_midiHandler;
 #endif
+#ifdef SOUNDFILE
+    delete x->m_soundInterface;
+#endif
 }
 
 /*--------------------------------------------------------------------------*/
@@ -888,7 +933,7 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
     #ifdef MIDICTRL
         GUI::updateAllGuis();
     #endif
-         systhread_mutex_unlock(x->m_mutex);
+        systhread_mutex_unlock(x->m_mutex);
     } else {
         // Write null buffers to outs
         for (int i = 0; i < numouts; i++) {

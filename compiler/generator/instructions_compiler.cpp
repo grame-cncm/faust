@@ -459,7 +459,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     */
 	else {
         stringstream error;
-        error << "Error when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
 	}
 	return InstBuilder::genNullInst();
@@ -500,7 +500,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
 	} else {
         stringstream error;
-        error << "Error in sharing count (" << sharing << ") for " << *sig << endl;
+        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
         throw faustexception(error.str());
 	}
 }
@@ -610,7 +610,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
             return code;
         } else {
             stringstream error;
-            error << "No vector name for : " << ppsig(exp) << endl;
+            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
             throw faustexception(error.str());
         }
     }
@@ -811,7 +811,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 	if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in InstructionsCompiler::generateTable() : "
+        error << "ERROR in generateTable : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
@@ -886,7 +886,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in InstructionsCompiler::generateStaticTable() : "
+        error << "ERROR in generateStaticTable : "
 			  << *tsize
 			  << " is not an integer expression "
 			  << endl;

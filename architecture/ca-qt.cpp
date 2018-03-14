@@ -319,7 +319,16 @@ int main(int argc, char *argv[])
     QTGUI interface;
     FUI finterface;
 #ifdef SOUNDFILE
-    SoundUI soundinterface;
+    // Get bundle path
+    string bundle_path_str;
+    CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    if (bundle_ref) {
+        UInt8 bundle_path[512];
+        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+            bundle_path_str = string((char*)bundle_path);
+        }
+    }
+    SoundUI soundinterface(bundle_path_str);
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

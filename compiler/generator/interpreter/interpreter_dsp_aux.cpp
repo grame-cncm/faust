@@ -193,7 +193,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
         gInterpreterFactoryTable.setFactory(factory);
         return factory;
     } catch (faustexception& e) {
-        std::cerr << "Exception in readInterpreterDSPFactoryFromMachineAux: " << e.Message();
+        std::cerr << "ERROR in readInterpreterDSPFactoryFromMachineAux: " << e.Message();
         return NULL;
     }
 }

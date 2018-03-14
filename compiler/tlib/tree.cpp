@@ -224,7 +224,7 @@ int tree2int(Tree t)
 	} else if (isDouble(t->node(), &x)) {
 		i = int(x);
 	} else {
-		ERROR("ERROR : the node of the tree is not an int nor a float\n", t);
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not an int nor a float)\n", t);
 	}
 	return i;
 }	
@@ -240,7 +240,7 @@ double tree2float(Tree t)
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("ERROR : the node of the tree is not a float nor an int\n", t);
+        ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a float nor an int)\n", t);
     }
     return x;
 }   
@@ -256,7 +256,7 @@ double tree2double(Tree t)
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("ERROR : the node of the tree is not a float nor an int\n", t);
+        ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a float nor an int)\n", t);
     }
     return double(x);
 }   
@@ -266,7 +266,7 @@ const char* tree2str(Tree t)
 {
 	Sym s;
 	if (!isSym(t->node(), &s)) {
-		ERROR("ERROR : the node of the tree is not a symbol\n", t);
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a symbol)\n", t);
 	}
 	return name(s);
 }	
@@ -280,8 +280,8 @@ string tree2quotedstr (Tree t)
 void* tree2ptr(Tree t)
 {
 	void* x;
-	if (! isPointer(t->node(), &x)) {
-		ERROR("ERROR : the node of the tree is not a pointer\n", t);
+	if (!isPointer(t->node(), &x)) {
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a pointer)\n", t);
 	}
 	return x;
 }	

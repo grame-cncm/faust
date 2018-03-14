@@ -70,7 +70,7 @@ point topSchema::inputPoint(unsigned int i) const
 {
 	faustassert(placed());
 	faustassert(i < inputs());
-    throw faustexception("topSchema::inputPoint\n");
+    throw faustexception("ERROR : topSchema::inputPoint\n");
 }
 
 /**
@@ -80,7 +80,7 @@ point topSchema::outputPoint(unsigned int i) const
 {
 	faustassert(placed());
 	faustassert(i < outputs());
-    throw faustexception("topSchema::outputPoint\n");
+    throw faustexception("ERROR : topSchema::outputPoint\n");
 }
 
 /**

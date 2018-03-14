@@ -24,22 +24,31 @@
 #ifndef __SoundUI_H__
 #define __SoundUI_H__
 
+#ifdef TARGET_OS_IPHONE
+#include <CoreFoundation/CFBundle.h>
+#endif
+
 #include <map>
 #include <string>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/soundfile.h"
 
+// To be used by dsp code if no SoundUI is used or when soundfile is not found
+static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+
 class SoundUI : public GenericUI
 {
 		
     private:
-     
-        std::map<std::string, Soundfile*> fSFMap;
+    
+        std::string fSoundfileDir;                  // The soundfile directory
+        std::map<std::string, Soundfile*> fSFMap;   // Map to share loaded soundfiles
     
      public:
             
-        SoundUI(){}
+        SoundUI(const std::string& sound_dir = ""):fSoundfileDir(sound_dir)
+        {}
     
         virtual ~SoundUI()
         {   
@@ -51,27 +60,30 @@ class SoundUI : public GenericUI
         }
 
         // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* file_name, Soundfile** sf_zone)
         {
             // If no filename was given, assume label is the filename
-            if (strlen(filename) == 0) filename = label;
-            
-        #if TARGET_OS_IPHONE
-            string filename_path_str = string([[[NSBundle mainBundle] resourcePath] cStringUsingEncoding:NSUTF8StringEncoding]) + "/" + string(filename);
-            const char* filename_path = filename_path_str.c_str();
-        #else
-            const char* filename_path = filename;
-        #endif
-            // Check if 'label' is already loaded
-            if (fSFMap.find(filename) == fSFMap.end()) {
-                fSFMap[filename] = new Soundfile(filename_path, 64);
+            std::string file_name_str;
+            if (strlen(file_name) == 0) {
+                file_name_str = label;
+            } else {
+                file_name_str = file_name;
             }
-            *sf_zone = fSFMap[filename];
+            
+            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str);
+            if (path_name_str != "") {
+                // Check if 'path_name_str' is already loaded
+                if (fSFMap.find(path_name_str) == fSFMap.end()) {
+                    fSFMap[path_name_str] = new Soundfile(path_name_str, 64);
+                }
+                // Get the soundfile
+                *sf_zone = fSFMap[path_name_str];
+            } else {
+                // Takes defaultsound
+                *sf_zone = defaultsound;
+            }
         }
   
 };
-
-// To be used by dsp code if no SoundUI is used
-static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
 
 #endif

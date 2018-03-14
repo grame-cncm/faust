@@ -235,6 +235,7 @@ if [ $SOURCE -eq 0 ]; then
 	if [ $ANDROID -eq 1 ]; then
 		echo "Starting Android compilation" > $LOG
 		cd $BUILDDIR
+		chmod a+x ./gradlew
 		./gradlew assembleRelease > $LOG
 		cd ..
 		cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk > $LOG
