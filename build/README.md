@@ -18,16 +18,18 @@ These 2 phases are independent and it's possible to modify the project at any ti
 If you're familiar with cmake, you can directly use cmake commands otherwise, a Makefile is provided that includes and demonstrates all the project options.
 
 ## Using the Makefile
+The Makefile includes 2 kind of targets, addressing the 2 phases of the compilation (see above):
+- 1) targets to configure the project
+- 2) targets to compile
 
-Simply type `make` in the `build` folder to compile the **Faust** compiler.
-On output, you'll find applications in the `bin` folder and libraries in the `lib` folder.
+By default, you can simply type `make` in the `build` folder to compile the **Faust** compiler and the **OSC library**.
+On output, you'll find applications in the `build/bin` folder and libraries in the `build/lib` folder.
 
-Type `make help` for all details on targets and options.
+Type `make help` for details on targets and options.
 
 ## Customizing the embedded backends
-
-The file `backends.cmake` describes the embedded backends for each possible output.
-You can freely customize this file to your needs or use another one.
+The folder `backends` contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
+You can freely customize this file to your needs or create a new one. A `BACKENDS` option is provided by the Makefile to use any file (note it always look for the backends files into the backends folder)
 
 
 ## Advanced settings with cmake
@@ -43,7 +45,8 @@ You can have a look at the `Makefile` for examples of cmake invocations.
 **Warning**: running cmake from the build folder may override the existing Makefile.
 
 ## Compiling on Windows
-Using the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
+#### Using MSYS2
+Use of the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
 
 Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
 > pacman -S mingw-w64-x86_64-gcc
@@ -51,15 +54,21 @@ Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is
 In this case, make sure to uninstall the previous gcc version first:
 > pacman -R gcc
 
-To compile using Visual Studio, you'll have to configure manually your project using a commands prompt (e.g. Windows PowerShell):
+#### Using MSVC
+To compile using Visual Studio, you can configure manually your project using a commands prompt (e.g. Windows PowerShell):
 
 `> mkdir your_output_folder`  
 `> cd your_output_folder`  
-`> cmake -C ../backends.cmake .. -G "Visual Studio 14 2015 Win64"`
+`> cmake -C ../backends/backends.cmake .. -G "Visual Studio 14 2015 Win64"`
 
 Then you can open the Visual Studio solution located in `your_output_folder` or continue using the command line:
 
 `> cmake --build .`  
+
+If `make` is available from your commands prompt, you can get similar results with the following options :
+
+`> make  GENERATOR="Visual Studio 14 2015 Win64"`
+
 
 ## Notes regarding the backends compilation
 
@@ -67,9 +76,7 @@ Then you can open the Visual Studio solution located in `your_output_folder` or 
 - you must have `llvm-config` available from the command line.
 - using LLVM 5.0.0 works on every platform, you can get binary distributions from the [LLVM Releases page](http://releases.llvm.org/)
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
-- on Linux and MacOS, cmake assumes that a cmake file is available from the LLVM distribution. Depending on the LLVM version, it may not work properly. In this case, you can force the use of llvm-config with the LLVM_CONFIG option i.e.
-> cd faustdir &&
-cmake .. -DLLVM_CONFIG=on
+
 
 #### LLVM on windows:
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
@@ -84,9 +91,18 @@ This is due to an incorrect `llvm-config` output. Open the solution and edit the
 #### LLVM on GNU/Linux:
 LLVM is generally available from the package manager but it might be an old version that don't statisfy the rtti constrain. In this case you should get a binary distribution from the [LLVM Releases page](http://releases.llvm.org/).
 
-Identified potential compile time errors:
-- cannot find -ledit -> sudo apt-get install libedit-dev
+
+#### Potential issues with llvm-config:
+If `llvm-config` is available under a version name (e.g. llvm-config-5.0.0) you can use this name with the LLVM_CONFIG option e.g.:
+> cd faustdir &&
+cmake .. -DLLVM_CONFIG=llvm-config-5.0.0
+
+
+When the project generation fails to configure LLVM, you can try using the cmake llvm-config file (if available). To do so :
+> cd faustdir &&
+cmake .. -DUSE_LLVM_CONFIG=off
+
 
 ### Notes regarding the `interpreter` backend
-The 'interpreter' backend is not supported on windows using MSVC compilers
+The 'interpreter' backend is not supported on windows using MSVC compiler.
 This is due to label dereferencing operator && that is only supported by gcc version 5 or greater.
