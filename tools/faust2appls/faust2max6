@@ -2,9 +2,9 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to Max6 externals			#
-#				using double precision samples						#
-#               (c) Grame, 2012                                     #
+#               Compiles Faust programs to Max6 externals           #
+#               using double precision samples                      #
+#               (c) Grame, 2012-2018                                #
 #                                                                   #
 #####################################################################
 
@@ -20,7 +20,7 @@ NVOICES=-1
 EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
-SOUNDFILEFLAGS=""
+SOUNDFILELIBS=""
 
 # path to max SDK
 
@@ -128,7 +128,7 @@ do
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
-        SOUNDFILEFLAGS=`pkg-config --cflags --static --libs sndfile`
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ ${p:0:1} = "-" ]; then
@@ -182,10 +182,10 @@ for p in $FILES; do
 
     # compile c++ to binary
     (
-	cd "$TMP"
-	install -d "${f%.dsp}$EXT/Contents/MacOS"
-    $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $SOUNDFILEFLAGS -arch i386 -arch x86_64 -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-   ) > /dev/null || exit
+        cd "$TMP"
+        install -d "${f%.dsp}$EXT/Contents/MacOS"
+        $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64 $SOUNDFILELIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+   	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 

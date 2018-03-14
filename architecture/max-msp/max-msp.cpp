@@ -788,12 +788,11 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
     
 #ifdef SOUNDFILE
-    
-#ifdef __APPLE__
-    // OSX only : access to the mxo bundle
     Max_Meta3 meta3;
     x->m_dsp->metadata(&meta3);
     string bundle_path_str;
+#ifdef __APPLE__
+    // OSX only : access to the mxo bundle
     CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
     CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
     if (bundle_ref) {
@@ -805,10 +804,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     } else {
         post("Bundle_path cannot be found!");
     }
+#endif
     x->m_soundInterface = new SoundUI(bundle_path_str);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
-#endif
-    
 #endif
     
     // Send JSON to JS script

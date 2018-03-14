@@ -256,7 +256,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
             string key = i->first;
             set<string> values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-                if (key == "filename") {
+                if (key == "url") {
                     filename = wdel(*j);
                 }
             }

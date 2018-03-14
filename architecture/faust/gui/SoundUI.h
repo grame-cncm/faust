@@ -24,10 +24,6 @@
 #ifndef __SoundUI_H__
 #define __SoundUI_H__
 
-#ifdef TARGET_OS_IPHONE
-#include <CoreFoundation/CFBundle.h>
-#endif
-
 #include <map>
 #include <string>
 

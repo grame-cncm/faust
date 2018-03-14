@@ -46,6 +46,8 @@ struct Soundfile {
     int fChannels;
     FAUSTFLOAT** fBuffers;
     
+    typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
+    
     static std::string CheckAux(const std::string& path_name_str)
     {
         SF_INFO snd_info;
@@ -55,6 +57,7 @@ struct Soundfile {
             sf_close(snd_file);
             return path_name_str;
         } else {
+            std::cerr << "ERROR : '" << path_name_str << "' not found" << std::endl;
             return "";
         }
     }
@@ -96,13 +99,19 @@ struct Soundfile {
             }
             
             // Read and fill snd_info.channels number of channels
-            int nbf, index = 0;
-            double buffer[BUFFER_SIZE * snd_info.channels];
+            sf_count_t nbf, index = 0;
+            FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
+            sample_read reader;
+            if (sizeof (FAUSTFLOAT) == 4) {
+                reader = reinterpret_cast<sample_read>(sf_readf_float);
+            } else {
+                reader = reinterpret_cast<sample_read>(sf_readf_double);
+            }
             do {
-                nbf = int(sf_readf_double(snd_file, buffer, BUFFER_SIZE));
+                nbf = reader(snd_file, buffer, BUFFER_SIZE);
                 for (int sample = 0; sample < nbf; sample++) {
                     for (int chan = 0; chan < fChannels; chan++) {
-                        fBuffers[chan][index + sample] = (FAUSTFLOAT)buffer[sample * snd_info.channels + chan];
+                        fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
                     }
                 }
                 index += nbf;
