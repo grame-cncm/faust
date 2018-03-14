@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 
 #---------------------- faust2md -----------------------
 # Usage: `faust2md [-t 4] [-c] [-f] foo.dsp > foo.md`
