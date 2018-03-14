@@ -347,6 +347,12 @@ install (
     FILES     ${SRCDIR}/generator/libfaust.h ${SRCDIR}/generator/libfaust-c.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/dsp
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
+# the file below is part of the httpd lib but installed even if the lib is not part of the config
+# this is due to the fact that faust -i will try to read it (depending on the architecture file)
+install (
+    FILES     ${ARCHDIR}/httpdlib/src/include/HTTPDControler.h DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
 
 ####################################
 # install faust2xxx tools
