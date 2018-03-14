@@ -29,6 +29,7 @@ DESTDIR ?=
 
 MAKE ?= make
 CMAKEOPT ?= 
+BUILDOPT ?= --config Release
 
 #===============================================================
 # options
@@ -53,7 +54,7 @@ endif
 #===============================================================
 # main target
 all: $(PROJ)
-	cmake --build $(FAUSTDIR) --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
 clean:
 	cmake --build $(FAUSTDIR) --target clean
@@ -76,7 +77,8 @@ help:
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
 	@echo "  GENERATOR=<a cmake generator>: see cmake -h. Default to '$(GENERATOR)'"
-	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake."
+	@echo "  CMAKEOPT=<cmake options>    : pass options to cmake for project generation."
+	@echo "  BUILDOPT=<cmake options>    : pass options to cmake at build time (default to $(BUILDOPT))."
 	@echo "  BACKENDS=<backends file>    : see 'Backends' below"
 	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
 	@echo
@@ -114,15 +116,15 @@ test:
 	@echo BACKENDS  $(BACKENDS)
 	
 faust: $(PROJ) 
-	cmake --build $(FAUSTDIR) --target faust --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target faust $(BUILDOPT) -- $(JOBS)
 
 osc: $(PROJ)
-	cmake --build $(FAUSTDIR) --target oscstatic --config Release -- $(JOBS)
-	cmake --build $(FAUSTDIR) --target oscdynamic --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
 
 http: $(PROJ)
-	cmake --build $(FAUSTDIR) --target httpstatic --config Release -- $(JOBS)
-	cmake --build $(FAUSTDIR) --target httpdynamic --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
 
 
 #===============================================================
@@ -139,18 +141,18 @@ native:
 # building libraries
 #===============================================================
 staticlib: $(PROJ)
-	cmake --build $(FAUSTDIR) --target staticlib --config Release  -- $(JOBS) 
+	cmake --build $(FAUSTDIR) --target staticlib $(BUILDOPT)  -- $(JOBS) 
 
 dynamiclib: $(PROJ)
-	cmake --build $(FAUSTDIR) --target dynamiclib --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target dynamiclib $(BUILDOPT) -- $(JOBS)
 
 
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
 ios: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
-	cmake --build $(IOSDIR) --target staticlib --config Release -- $(JOBS)
-	cmake --build $(IOSDIR) --target OSCFaust --config Release --  $(JOBS)
+	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
+	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt ios.cmake
 	cd $(IOSDIR) && cmake -C ../ios.cmake .. -G Xcode
@@ -202,11 +204,11 @@ reset: $(PROJ)
 #===============================================================
 wasmlib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	cmake --build $(FAUSTDIR) --target wasmlib --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target wasmlib $(BUILDOPT) -- $(JOBS)
 
 asmjslib: $(FAUSTDIR) $(FAUSTDIR)/Makefile
 	@$(MAKE) checkemcc
-	cmake --build $(FAUSTDIR) --target asmjslib --config Release -- $(JOBS)
+	cmake --build $(FAUSTDIR) --target asmjslib $(BUILDOPT) -- $(JOBS)
 
 checkemcc:
 	@which $(EMCC) > /dev/null || (echo "### emcc must be available from your PATH."; false;)
