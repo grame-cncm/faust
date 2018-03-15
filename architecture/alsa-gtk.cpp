@@ -112,8 +112,8 @@ int main(int argc, char *argv[])
     char* home = getenv("HOME");
     mydsp_poly* dsp_poly = NULL;
 
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 #ifdef POLY
     int poly = lopt(argv, "--poly", 4);

@@ -239,8 +239,8 @@ int main(int argc, char *argv[])
     Sensors sensors(&apiui);
 #endif
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	snprintf(name, 256, "%s", basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";

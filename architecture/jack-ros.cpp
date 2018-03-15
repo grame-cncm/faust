@@ -76,7 +76,7 @@ mydsp*	DSP;
 int main(int argc, char *argv[])
 {
 	char appname[256];
-	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(appname, 256, "%s", basename(argv[0]));
 	
 	// Create DSP Object
 	DSP = new mydsp();

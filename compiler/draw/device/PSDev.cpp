@@ -46,7 +46,7 @@ static char * addFileNum(const char* fname)
 	f[i] = 0;
 
 	// add number and .ps suffix
-	snprintf(s, 255, "%s-%d.ps", f, ++gGlobal->gFileNum);
+	snprintf(s, 256, "%s-%d.ps", f, ++gGlobal->gFileNum);
 	//cerr << "file name " << s << endl;
 	return strdup(s);
 }

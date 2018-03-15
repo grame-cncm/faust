@@ -84,11 +84,11 @@ int main(int argc, char *argv[])
 {
     char appname[256];
 	
-	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(appname, 256, "%s", basename(argv[0]));
     
 	// Create DSP Object
 	DSP = new mydsp();
-	if (DSP==0) {
+	if (DSP == 0) {
         std::cout<<"Unable to allocate Faust DSP object" <<std::endl;
 		exit(1);
 	}

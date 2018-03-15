@@ -57,7 +57,7 @@
 #include "garbageable.hh"
 #include "exception.hh"
 #include "Text.hh"
-#include "sha_key.hh"
+#include "libfaust.h"
 
 #ifdef WIN32
 #pragma warning (disable: 4996)

@@ -74,9 +74,9 @@ int main(int argc, char *argv[])
         }
     }
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-    snprintf(filename, 255, "%s", basename(argv[argc-1]));
-	snprintf(rcfilename, 255, "%s/.%s-%src", home, appname, argv[1]);
+	snprintf(appname, 256, "%s", basename(argv[0]));
+    snprintf(filename, 256, "%s", basename(argv[argc-1]));
+	snprintf(rcfilename, 256, "%s/.%s-%src", home, appname, argv[1]);
 
 	GUI* interface 	= new GTKUI(filename, &argc, &argv);
 	FUI* finterface	= new FUI();

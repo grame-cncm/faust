@@ -78,9 +78,9 @@ int main(int argc, char *argv[])
 	char rcfilename[256];
 
 	char* home = getenv("HOME");
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(dst, 257, "/%s/", name);
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	snprintf(name, 256, "%s", basename(argv[0]));
+	snprintf(dst, 258, "/%s/", name);
+	snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 	GUI* interface = new GTKUI (name, &argc, &argv);
 	FUI* finterface	= new FUI();
@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
 	DSP.buildUserInterface(oscinterface);
 	oscinterface->addToggleButton("OSC IO", &oscio);
 	
-	snprintf(dst, 257, "/%s/", oscinterface->getRootName());
+	snprintf(dst, 258, "/%s/", oscinterface->getRootName());
 	osca.setDest (dst);
 	
 	osca.init (name, &DSP);	

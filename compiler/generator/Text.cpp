@@ -151,9 +151,9 @@ static string substitution (const string& model, const vector<string>& args)
     return result;
 }
 
-string T (char* c) 	{ return string(c); }
-string T (int n) 	{ char c[64]; snprintf(c, 63, "%d",n); 	return string(c); }
-string T (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
+string T(char* c) 	{ return string(c); }
+string T(int n) 	{ char c[64]; snprintf(c, 63, "%d", n); 	return string(c); }
+string T(long n) 	{ char c[64]; snprintf(c, 63, "%ld", n); return string(c); }
 
 /**
  * If needed add a trailing '.0' to the

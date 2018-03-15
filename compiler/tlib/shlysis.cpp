@@ -68,11 +68,10 @@ unique to each sharing analysis must be generated.
 
 Tree shprkey(Tree t) 
 {
-	char 	name[256];
+	char name[256];
 	snprintf(name, 256, "SHARED IN %p : ", (void*)(CTree*)t);
 	return tree(unique(name));
 }	
-
 
 /**
  * Return the value of sharing count or 0
@@ -88,15 +87,13 @@ int shcount(Tree key, Tree t)
 	}
 }	
 
-
-
 //------------------------------------------------------------------------------
 // Create a specific property key for the sharing count of subtrees of t
 //------------------------------------------------------------------------------
 
 static void annotate(Tree k, Tree t, barrier foo);
 
-static bool nobarrier (const Tree& t) { return false; }
+static bool nobarrier(const Tree& t) { return false; }
 
 /**
  * Do a sharing analysis : annotates all the subtrees of t 

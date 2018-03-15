@@ -187,8 +187,8 @@ int main(int argc, char *argv[])
 	char rcfilename[256];
 	char* home = getenv("HOME");
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(appname, 256, "%s", basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
 	Cdsp* DSP = new Cdsp();
 	if (DSP == 0) {

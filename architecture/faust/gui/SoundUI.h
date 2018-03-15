@@ -75,7 +75,7 @@ class SoundUI : public GenericUI
                 // Get the soundfile
                 *sf_zone = fSFMap[path_name_str];
             } else {
-                // Takes defaultsound
+                // Take the defaultsound
                 *sf_zone = defaultsound;
             }
         }
