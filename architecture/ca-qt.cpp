@@ -46,9 +46,6 @@
 #include "faust/gui/faustqt.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef IOS
 #include "faust/gui/APIUI.h"
@@ -63,6 +60,10 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 // Always include this file, otherwise -poly only mode does not compile....

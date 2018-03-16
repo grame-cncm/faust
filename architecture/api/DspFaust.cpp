@@ -30,7 +30,8 @@
 // Soundfile handling
 //**************************************************************
 
-// Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known 
+// Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known
+
 #if SOUNDFILE
 #ifdef __APPLE__
 #include <CoreFoundation/CFBundle.h>

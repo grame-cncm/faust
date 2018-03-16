@@ -14,10 +14,10 @@ Most major Faust targets are supported:
 * Android
 * OSX CoreAudio
 * ALSA
-* Jack
+* JACK
 * PortAudio
 * RTAudio
-* OpenFrameworks
+* openFrameworks
 * JUCE
 
 **NOTE:** This documentation only provides high level information on how to use `faust2api`. For detailed tutorials on this topic, visit [this page](https://ccrma.stanford.edu/~rmichon/faustTutorials/#adding-faust-real-time-audio-support-to-android-apps).

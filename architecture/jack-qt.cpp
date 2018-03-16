@@ -44,12 +44,6 @@
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
-#if SOUNDFILE
-#ifdef __APPLE__
-#include <CoreFoundation/CFBundle.h>
-#endif
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -57,6 +51,13 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#if SOUNDFILE
+#ifdef __APPLE__
+#include <CoreFoundation/CFBundle.h>
+#endif
+#include "faust/gui/SoundUI.h"
 #endif
 
 // Always include this file, otherwise -poly only mode does not compile....
