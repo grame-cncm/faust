@@ -34,7 +34,7 @@ for scriptname in $LINUXOSCHTTPD; do
     ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
 done
 
-(faust2unity -android -linux -w32 -w64 good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2unity -android -linux -w32 -w64  failed")
+(faust2unity -android -linux -w32 -w64 good.dsp &> LOG)&&(echo "OK: faust2unity -android succeeded !")||(echo "ERROR: faust2unity -android -linux -w32 -w64  failed")
 
 (faust2smartkeyb -android good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
 

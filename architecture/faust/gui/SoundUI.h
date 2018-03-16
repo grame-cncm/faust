@@ -38,8 +38,8 @@ class SoundUI : public GenericUI
 		
     private:
     
-        std::string fSoundfileDir;                  // The soundfile directory
-        std::map<std::string, Soundfile*> fSFMap;   // Map to share loaded soundfiles
+        std::string fSoundfileDir;                     // The soundfile directory
+        std::map<std::string, Soundfile*> fSFMap;      // Map to share loaded soundfiles
     
      public:
             
@@ -66,14 +66,16 @@ class SoundUI : public GenericUI
                 file_name_str = file_name;
             }
             
-            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str);
+            std::string sha_key;
+            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str, sha_key);
             if (path_name_str != "") {
-                // Check if 'path_name_str' is already loaded
-                if (fSFMap.find(path_name_str) == fSFMap.end()) {
-                    fSFMap[path_name_str] = new Soundfile(path_name_str, 64);
+                std::string file_key = (sha_key == "") ? path_name_str : sha_key;
+                // Check if 'file_key' is already loaded
+                if (fSFMap.find(file_key) == fSFMap.end()) {
+                    fSFMap[file_key] = new Soundfile(path_name_str, 64);
                 }
                 // Get the soundfile
-                *sf_zone = fSFMap[path_name_str];
+                *sf_zone = fSFMap[file_key];
             } else {
                 // Take the defaultsound
                 *sf_zone = defaultsound;

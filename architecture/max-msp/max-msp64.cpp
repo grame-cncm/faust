@@ -112,8 +112,8 @@ using namespace std;
 #include "jpatcher_api.h"
 #include <string.h>
 
-#define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
-#define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
+#define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
+#define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
 #define EXTERNAL_VERSION    "0.64"
 #define STR_SIZE            512
