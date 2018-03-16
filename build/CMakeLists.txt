@@ -224,12 +224,12 @@ endmacro()
 # Add the different targets
 ####################################
 add_executable(faust ${SRC} ${HH})
-set_target_properties(faust  PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${BINDIR})
 target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
 target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
 target_link_libraries (faust PRIVATE ${FAUST_LIBS})
 scan_backends (faust COMPILER)
+set_target_properties(faust  PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
 set (INSTALL_TARGETS faust)
 
 # static faust library
