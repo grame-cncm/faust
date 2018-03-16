@@ -264,7 +264,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         virtual void visit(AddSoundfileInst* inst)
         {
             *fOut << "AddSoundfile(" << quote(inst->fLabel)
-            << ", " << quote(inst->fFilename)
+            << ", " << quote(inst->fURL)
             << ", &" << inst->fVarname << ")";
             EndLine();
         }

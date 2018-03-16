@@ -432,7 +432,7 @@ struct StructTyped : public Typed {
     string fName;
     list<NamedTyped*> fFields;
   
-    StructTyped(const string& name, list<NamedTyped*> fields)
+    StructTyped(const string& name, const list<NamedTyped*>& fields)
         :fName(name), fFields(fields)
     {}
     
@@ -707,11 +707,11 @@ struct AddBargraphInst : public StatementInst
 struct AddSoundfileInst : public StatementInst
 {
     string fLabel;
-    string fFilename;
+    string fURL;
     string fVarname;
     
-    AddSoundfileInst(const string& label, const string& filename, const string& varname)
-        :fLabel(label), fFilename(filename), fVarname(varname)
+    AddSoundfileInst(const string& label, const string& url, const string& varname)
+        :fLabel(label), fURL(url), fVarname(varname)
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1466,7 +1466,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(AddButtonInst* inst) { return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType); }
         virtual StatementInst* visit(AddSliderInst* inst) { return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, inst->fType); }
         virtual StatementInst* visit(AddBargraphInst* inst) { return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType); }
-        virtual StatementInst* visit(AddSoundfileInst* inst) { return new AddSoundfileInst(inst->fLabel, inst->fFilename, inst->fVarname); }
+        virtual StatementInst* visit(AddSoundfileInst* inst) { return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fVarname); }
         virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
         // Typed
@@ -1822,8 +1822,8 @@ struct InstBuilder
     static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal); }
     
-    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& filename, const string& varname)
-        { return new AddSoundfileInst(label, filename, varname); }
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& varname)
+        { return new AddSoundfileInst(label, url, varname); }
   
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical); }

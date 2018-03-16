@@ -754,22 +754,22 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
     string varname = getFreshID("SF");
-    
+
     // SL
     //fClass->addIncludeFile("<atomic>");
     //fClass->addIncludeFile("\"faust/gui/soundfile.h\"");
-    
+
     // SL
     //fClass->addDeclCode(subst("std::atomic<Soundfile*> \t$0;", varname));
     fClass->addDeclCode(subst("Soundfile* \t$0;", varname));
-    
+
     //fClass->addDeclCode(subst("Soundfile* \t$0cache;", varname));
-	addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
-    
+    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+
     // SL
     fClass->addInitUICode(subst("if (!$0) $0 = defaultsound;", varname));
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
-    
+
     // SL
     //fClass->addZone2(subst("Soundfile* $0cache = $0.exchange(nullptr);", varname));
     fClass->addZone2(subst("Soundfile* $0cache = $0;", varname));
