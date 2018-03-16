@@ -18,6 +18,7 @@ OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios"
 OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce"
+OSXSOUND="faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp"
 OSXOSC="faust2ios"
 OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt"
 
@@ -48,7 +49,7 @@ if [ "$system" = "Darwin" ]; then
     echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
     echo "Test -nvoices 8 -effect <foo.dsp> -midi $OSXPOLY2MIDI"
     echo "Test -osc -httpd $OSXOSCHTTPD"
-
+    
     faust2dummy good.dsp > /dev/null
     ./good > good.txt
     diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
@@ -92,6 +93,11 @@ if [ "$system" = "Darwin" ]; then
         rm -rf good
     done
     
+    for scriptname in $OSXSOUND; do
+        ($scriptname -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
+        rm -rf good
+    done
+
     for scriptname in $OSXOSC; do
         ($scriptname -osc good.dsp &> LOG)&&(echo "OK: $scriptname -osc succeeded !")||(echo "ERROR: $scriptname -osc failed")
     done
@@ -107,6 +113,8 @@ if [ "$system" = "Darwin" ]; then
     (faust2api -ios -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -ios -midi -nvoices 8 failed")
 
     (faust2api -ios -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect effect.dsp -midi failed")
+
+	(faust2api -ios -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: faust2api -ios -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api -ios -soundfile -lang ocpp failed")
 
     (faust2nodejs -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
 

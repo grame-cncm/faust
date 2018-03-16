@@ -45,6 +45,9 @@
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
 #if SOUNDFILE
+#ifdef __APPLE__
+#include <CoreFoundation/CFBundle.h>
+#endif
 #include "faust/gui/SoundUI.h"
 #endif
 
@@ -115,8 +118,8 @@ int main(int argc, char *argv[])
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
 
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
@@ -178,8 +181,19 @@ int main(int argc, char *argv[])
 
     QTGUI interface;
     FUI finterface;
-#if SOUNDFILE
-    SoundUI soundinterface;
+#ifdef SOUNDFILE
+    // Get bundle path
+    string bundle_path_str;
+#ifdef __APPLE__
+    CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+    if (bundle_ref) {
+        UInt8 bundle_path[512];
+        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+            bundle_path_str = string((char*)bundle_path);
+        }
+    }
+#endif
+    SoundUI soundinterface(bundle_path_str);
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

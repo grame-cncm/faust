@@ -90,8 +90,8 @@ int main(int argc, char *argv[])
     int mtu = lopt(argv, "--m", DEFAULT_MTU);
     int latency = lopt(argv, "--l", 2);
 
-    snprintf(appname, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    snprintf(appname, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
     CMDUI* interface = new CMDUI(argc, argv);
     FUI* finterface	= new FUI();

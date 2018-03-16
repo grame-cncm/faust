@@ -33,7 +33,6 @@
 #include "global.hh"
 #include "Text.hh"
 #include "libfaust.h"
-#include "sha_key.hh"
 
 #include <llvm/Target/TargetMachine.h>
 #include <llvm/Transforms/IPO.h>
@@ -1052,11 +1051,11 @@ bool linkModules(Module* dst, ModulePTR src, char* error_msg)
     
 #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     if (Linker::linkModules(*dst, MovePTR(src))) {
-        snprintf(error_msg, 256, "cannot link module");
+        snprintf(error_msg, 256, "%s", "cannot link module");
         
 #elif defined(LLVM_36) || defined(LLVM_37)
     if (Linker::LinkModules(dst, MovePTR(src))) {
-        snprintf(error_msg, 256, "cannot link module");
+        snprintf(error_msg, 256, "%s", "cannot link module");
 #else
     string err;
     if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {

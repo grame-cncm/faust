@@ -28,6 +28,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -46,27 +48,39 @@ struct Soundfile {
     int fChannels;
     FAUSTFLOAT** fBuffers;
     
-    static std::string CheckAux(const std::string& path_name_str)
+    typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
+    
+    static std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
     {
         SF_INFO snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name_str.c_str(), SFM_READ, &snd_info);
         if (snd_file) {
             sf_close(snd_file);
+            // Possibly read associated SHA_KEY file
+            std::string sha_key_path_name_str = path_name_str + "_sha_key";
+            std::ifstream reader(sha_key_path_name_str.c_str());
+            if (reader.is_open()) {
+                std::string sha_key_line;
+                getline(reader, sha_key_line);
+                std::stringstream line_reader(sha_key_line);
+                line_reader >> sha_key;
+            }
             return path_name_str;
         } else {
+            std::cerr << "ERROR : '" << path_name_str << "' not found" << std::endl;
             return "";
         }
     }
     
     // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::string& soundfile_dir_str, const std::string& file_name_str)
+    static std::string Check(const std::string& soundfile_dir_str, const std::string& file_name_str, std::string& sha_key)
     {
-        std::string path_name_str = CheckAux(file_name_str);
+        std::string path_name_str = CheckAux(file_name_str, sha_key);
         if (path_name_str != "") {
             return path_name_str;
         } else {
-            return CheckAux(soundfile_dir_str + "/" + file_name_str);
+            return CheckAux(soundfile_dir_str + "/" + file_name_str, sha_key);
         }
     }
     
@@ -96,13 +110,19 @@ struct Soundfile {
             }
             
             // Read and fill snd_info.channels number of channels
-            int nbf, index = 0;
-            double buffer[BUFFER_SIZE * snd_info.channels];
+            sf_count_t nbf, index = 0;
+            FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
+            sample_read reader;
+            if (sizeof (FAUSTFLOAT) == 4) {
+                reader = reinterpret_cast<sample_read>(sf_readf_float);
+            } else {
+                reader = reinterpret_cast<sample_read>(sf_readf_double);
+            }
             do {
-                nbf = int(sf_readf_double(snd_file, buffer, BUFFER_SIZE));
+                nbf = reader(snd_file, buffer, BUFFER_SIZE);
                 for (int sample = 0; sample < nbf; sample++) {
                     for (int chan = 0; chan < fChannels; chan++) {
-                        fBuffers[chan][index + sample] = (FAUSTFLOAT)buffer[sample * snd_info.channels + chan];
+                        fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
                     }
                 }
                 index += nbf;

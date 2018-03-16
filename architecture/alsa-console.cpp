@@ -116,7 +116,7 @@ int main(int argc, char *argv[] )
     char* home = getenv("HOME");
     int nvoices = 0;
     mydsp_poly* dsp_poly = NULL;
-    snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);

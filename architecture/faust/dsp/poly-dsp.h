@@ -329,7 +329,7 @@ struct dsp_voice_group {
             if (!fGroupControl) {
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
-                    snprintf(buffer, 31, ((fVoiceTable.size() < 8) ? "Voice%lu" : "V%lu"), i+1);
+                    snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%lu" : "V%lu"), i+1);
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();

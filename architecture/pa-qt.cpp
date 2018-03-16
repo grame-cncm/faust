@@ -113,8 +113,8 @@ int main(int argc, char *argv[])
     char rcfilename[256];
     char* home = getenv("HOME");
 
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
 
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 128);

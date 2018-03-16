@@ -189,10 +189,10 @@ configstatic: $(PROJ)
 configdynamic: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=on ..
 
-includehttp: $(PROJ)
+confighttp: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=on ..
 
-includeall: $(PROJ)
+configall: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
 reset: $(PROJ)

@@ -32,6 +32,9 @@ CXXFLAGS=$MYGCCFLAGS
 OSCDEFS=""
 NVOICES=-1
 ARCHFILE="jack-gtk.cpp"
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
@@ -46,9 +49,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
+        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+   	    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         exit
@@ -73,6 +77,10 @@ do
         fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -107,7 +115,7 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

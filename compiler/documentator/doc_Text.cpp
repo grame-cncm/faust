@@ -60,20 +60,19 @@ const string symbolicNumber (double n);
 
 static void zdel(char* c)
 {
-    int     l = strlen(c) - 1;
-    bool    f = (c[l] == 'f');
+    int l = strlen(c) - 1;
+    bool f = (c[l] == 'f');
 
     if (f) c[l--] = 0;      // remove trailing if any f
-    while ( l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
+    while (l>1 && c[l-1] != '.' && c[l] == '0')  c[l--] = 0;
     if (f) c[++l] = 'f';    // restaure trailing f if needed
 }
 #endif
 
-string docT (char* c) 	{ return string(c); }
-string docT (int n) 	{ char c[64]; snprintf(c, 63, "%d",n);  return string(c); }
-string docT (long n) 	{ char c[64]; snprintf(c, 63, "%ld",n); return string(c); }
-string docT (double n) { return symbolicNumber(n); }
-
+string docT(char* c){ return string(c); }
+string docT(int n) { char c[64]; snprintf(c, 63, "%d", n);  return string(c); }
+string docT(long n) { char c[64]; snprintf(c, 63, "%ld", n); return string(c); }
+string docT(double n) { return symbolicNumber(n); }
 
 //
 //*****************************SYMBOLIC NUMBER REPRESENTATION*******************
@@ -211,15 +210,15 @@ const string addFraction (int num, int denom, const string& exp)
 /**
  * Return symbolic or numerical representation of n>0
  */
-const string positiveSymbolicNumber (double n)
+const string positiveSymbolicNumber(double n)
 {
     string s;
     faustassert(n>0);
 
     // Try to find a symbolic representation
 
-    for (int i=1;i<10;i++) {
-        for(int j=1;j<10;j++) {
+    for (int i=1; i<10; i++) {
+        for(int j=1; j<10; j++) {
             if (isSymbolicPower(i*n/j,s)) {
                 return addFraction(j,i,s);
             }
@@ -245,9 +244,7 @@ const string positiveSymbolicNumber (double n)
     }
 
     return s;
-
 }
-
 
 /**
  * Return symbolic or numerical representation of n

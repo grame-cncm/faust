@@ -112,10 +112,11 @@ using namespace std;
 #include "jpatcher_api.h"
 #include <string.h>
 
-#define ASSIST_INLET 	1  		/* should be defined somewhere ?? */
-#define ASSIST_OUTLET 	2		/* should be defined somewhere ?? */
+#define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
+#define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION "0.63"
+#define EXTERNAL_VERSION    "0.64"
+#define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/MidiUI.h"
@@ -228,7 +229,7 @@ class mspCheckButton : public mspUIObject {
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "CheckButton(double): %s", fLabel.c_str());
+            snprintf(buffer, STR_SIZE, "CheckButton(double): %s", fLabel.c_str());
 		}
 };
 
@@ -242,7 +243,7 @@ class mspButton : public mspUIObject {
 
 		void toString(char* buffer)
 		{
-            sprintf(buffer, "Button(double): %s", fLabel.c_str());
+            snprintf(buffer, STR_SIZE, "Button(double): %s", fLabel.c_str());
 		}
 };
 
@@ -267,7 +268,7 @@ class mspSlider : public mspUIObject {
             stringstream str;
             str << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
             string res = str.str();
-            snprintf(buffer, 256, res.c_str());
+            snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
 
 		void setValue(FAUSTFLOAT f) {*fZone = range(fMin,fMax,f);}
@@ -293,7 +294,7 @@ class mspBargraph : public mspUIObject {
             stringstream str;
             str << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
             string res = str.str();
-            snprintf(buffer, 256, res.c_str());
+            snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
     
         virtual FAUSTFLOAT getValue() 
@@ -505,7 +506,7 @@ class mspUI : public UI
             iterator it;
             post((char*)"------- labels and ranges ----------");
             for (it = fUITable1.begin(); it != fUITable1.end(); it++) {
-                char param[1024];
+                char param[STR_SIZE];
                 it->second->toString(param);
                 post(param);
             }
@@ -836,12 +837,11 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     ((t_pxobject*)x)->z_misc = Z_NO_INPLACE; // To assure input and output buffers are actually different
 
 #ifdef SOUNDFILE
-    
-#ifdef __APPLE__
-    // OSX only : access to the mxo bundle
     Max_Meta3 meta3;
     x->m_dsp->metadata(&meta3);
     string bundle_path_str;
+#ifdef __APPLE__
+    // OSX only : access to the mxo bundle
     CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
     CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
     if (bundle_ref) {
@@ -853,10 +853,9 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     } else {
         post("Bundle_path cannot be found!");
     }
+#endif
     x->m_soundInterface = new SoundUI(bundle_path_str);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
-#endif
-    
 #endif
     
     // Send JSON to JS script
