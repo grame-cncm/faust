@@ -38,8 +38,8 @@ class juceaudio : public audio, private AudioAppComponent {
     
         void prepareToPlay (int, double) override
         {
-            const BigInteger activeInputChannels =  deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
-            const BigInteger activeOutputChannels =  deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
+            const BigInteger activeInputChannels = deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
+            const BigInteger activeOutputChannels = deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
             const int maxInputChannels = activeInputChannels.getHighestBit() + 1;
             const int maxOutputChannels = activeOutputChannels.getHighestBit() + 1;
             

@@ -582,7 +582,6 @@ void global::printCompilationOptions(ostream& dst)
     }
 }
 
-
 global::~global()
 {
     Garbageable::cleanup();

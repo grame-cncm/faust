@@ -1,6 +1,5 @@
 #!/bin/bash
 
-OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to CLI alsa                 #
@@ -15,7 +14,7 @@ CXXFLAGS=$MYGCCFLAGS
 
 POLY="POLY"
 NVOICES=-1
-
+OSCDEFS=""
 ARCHFILE="alsa-console.cpp"
 
 #-------------------------------------------------------------------
@@ -40,11 +39,11 @@ do
     p=$1
 
 	if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2alsaconsole [-httpd] [-nvoices <num>] [-midi] [-osc] [-arch32] [-arch64] <file.dsp>"
-        echo "Use '-httpd' to activate HTTP control"
+        echo "faust2alsaconsole [-nvoices <num>] [-midi] [-osc] [-httpd] [-arch32] [-arch64] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-httpd' to activate HTTP control"
         echo "Use '-arch32' to compile a 32 bits binary"
         echo "Use '-arch64' to compile a 64 bits binary"
         exit
