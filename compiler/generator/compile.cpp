@@ -24,7 +24,7 @@
 							FAUST SIGNAL COMPILER
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-Compile a list of FAUST signals into a C++ class .
+Compile a list of FAUST signals into a C++ class.
 
  History :
  ---------
@@ -171,13 +171,13 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
 	Tree label, elements, varname, sig;
     
 	if (isUiFolder(t, label, elements)) {
-		const int orient = tree2int(left(label));
+        const int orient = tree2int(left(label));
         // Empty labels will be renamed with a 0xABCD (address) kind of name that is ignored and not displayed by UI architectures
         const char* str = tree2str(right(label));  
         const char* model;
-          
+
         // extract metadata from group label str resulting in a simplifiedLabel
-		// and metadata declarations for fictive zone at address 0
+        // and metadata declarations for fictive zone at address 0
         string  simplifiedLabel;
         map<string, set<string> > metadata;
         extractMetadata(str, simplifiedLabel, metadata);
@@ -191,37 +191,31 @@ void Compiler::generateUserInterfaceTree(Tree t, bool root)
                 fJSON.declare(NULL, wdel(key).c_str(), wdel(*j).c_str());
             }
         }
-        
+
         // At rool level and if label is empty, use the name kept in "metadata" (either the one coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == ""))
             ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin())))
             : checkNullLabel(t, simplifiedLabel);
         switch (orient) {
-           
+
             case 0 : model = "ui_interface->openVerticalBox(\"$0\");"; fJSON.openVerticalBox(group.c_str()); break;
             case 1 : model = "ui_interface->openHorizontalBox(\"$0\");"; fJSON.openHorizontalBox(group.c_str()); break;
             case 2 : model = "ui_interface->openTabBox(\"$0\");"; fJSON.openTabBox(group.c_str()); break;
                 
             default :
-                fprintf(stderr, "error in user interface generation 1\n");
-                exit(1);
-		}
-        
+                throw faustexception("ERROR in user interface generation 1\n");
+        }
+
         fClass->addUICode(subst(model, group));
         generateUserInterfaceElements(elements);
         fClass->addUICode("ui_interface->closeBox();");
         fJSON.closeBox();
 
-	} else if (isUiWidget(t, label, varname, sig)) {
-
-		generateWidgetCode(label, varname, sig);
-
-	} else {
-
-		fprintf(stderr, "error in user interface generation 2\n");
-		exit(1);
-
-	}
+    } else if (isUiWidget(t, label, varname, sig)) {
+        generateWidgetCode(label, varname, sig);
+    } else {
+        throw faustexception("ERROR in user interface generation 2\n");
+    }
 }
 
 /**
@@ -342,8 +336,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
                                 tree2str(varname)));
         fJSON.addSoundfile(checkNullLabel(varname, label).c_str(), filename.c_str(), NULL);
 	} else {
-		fprintf(stderr, "Error in generating widget code 362\n");
-		exit(1);
+		throw faustexception("ERROR in generating widget code 3\n");
 	}
 }
 
@@ -355,25 +348,19 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
  */
 void Compiler::generateMacroInterfaceTree(const string& pathname, Tree t)
 {
-	Tree label, elements, varname, sig;
+    Tree label, elements, varname, sig;
 
-	if (isUiFolder(t, label, elements)) {
-		string pathname2 = pathname;
-		//string str = unquote(tree2str(right(label)));
-		string str = tree2str(right(label));
-		if (str.length()>0) pathname2 += str + "/";
-		generateMacroInterfaceElements(pathname2, elements);
-
-	} else if (isUiWidget(t, label, varname, sig)) {
-
-		generateWidgetMacro(pathname, label, varname, sig);
-
-	} else {
-
-		fprintf(stderr, "error in user interface macro generation 2\n");
-		exit(1);
-
-	}
+    if (isUiFolder(t, label, elements)) {
+        string pathname2 = pathname;
+        //string str = unquote(tree2str(right(label)));
+        string str = tree2str(right(label));
+        if (str.length()>0) pathname2 += str + "/";
+        generateMacroInterfaceElements(pathname2, elements);
+    } else if (isUiWidget(t, label, varname, sig)) {
+        generateWidgetMacro(pathname, label, varname, sig);
+    } else {
+        throw faustexception("ERROR in user interface macro generation 2\n");
+    }
 }
 
 /**
@@ -398,9 +385,7 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    //string pathlabel = pathname+unquote(label);
-	string pathlabel = pathname+label;
+	string pathlabel = pathname + label;
 
 	if (isSigButton(sig, path)) {
 		fClass->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));
@@ -455,7 +440,6 @@ void Compiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree 
 				tree2str(varname)));
 
 	} else {
-		fprintf(stderr, "Error in generating widget macro\n");
-		exit(1);
+		throw faustexception("ERROR in generating widget macro\n");
 	}
 }
