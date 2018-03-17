@@ -54,9 +54,6 @@
 #endif
 
 #if SOUNDFILE
-#ifdef __APPLE__
-#include <CoreFoundation/CFBundle.h>
-#endif
 #include "faust/gui/SoundUI.h"
 #endif
 
@@ -183,18 +180,8 @@ int main(int argc, char *argv[])
     QTGUI interface;
     FUI finterface;
 #ifdef SOUNDFILE
-    // Get bundle path
-    string bundle_path_str;
-#ifdef __APPLE__
-    CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-    if (bundle_ref) {
-        UInt8 bundle_path[512];
-        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-            bundle_path_str = string((char*)bundle_path);
-        }
-    }
-#endif
-    SoundUI soundinterface(bundle_path_str);
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath());
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

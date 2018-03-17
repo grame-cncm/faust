@@ -27,6 +27,10 @@
 #include <map>
 #include <string>
 
+#ifdef __APPLE__
+#include <CoreFoundation/CFBundle.h>
+#endif
+
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/soundfile.h"
 
@@ -81,7 +85,37 @@ class SoundUI : public GenericUI
                 *sf_zone = defaultsound;
             }
         }
-  
+    
+    static std::string getBinaryPath()
+    {
+        std::string bundle_path_str;
+    #ifdef __APPLE__
+        CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+        if (bundle_ref) {
+            UInt8 bundle_path[512];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                bundle_path_str = std::string((char*)bundle_path);
+            }
+        }
+    #endif
+        return bundle_path_str;
+    }
+    
+    static std::string getBinaryPathFrom(const std::string& path)
+    {
+        std::string bundle_path_str;
+    #ifdef __APPLE__
+        CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+        CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
+        if (bundle_ref) {
+            UInt8 bundle_path[512];
+            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                bundle_path_str = std::string((char*)bundle_path);
+            }
+        }
+    #endif
+        return bundle_path_str;
+    }
 };
 
 #endif

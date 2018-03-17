@@ -33,9 +33,6 @@
 // Must be done before <<includeclass>> otherwise the 'Soundfile' type is not known
 
 #if SOUNDFILE
-#ifdef __APPLE__
-#include <CoreFoundation/CFBundle.h>
-#endif
 #include "faust/gui/SoundUI.h"
 #endif
 
@@ -246,18 +243,8 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #endif
     
 #if SOUNDFILE
-    // Get bundle path
-    string bundle_path_str;
-#ifdef __APPLE__
-    CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-    if (bundle_ref) {
-        UInt8 bundle_path[512];
-        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-            bundle_path_str = string((char*)bundle_path);
-        }
-    }
-#endif
-    fSoundInterface = new SoundUI(bundle_path_str);
+    // Use bundle path
+    fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
     fPolyEngine->buildUserInterface(fSoundInterface);
 #endif
 }
