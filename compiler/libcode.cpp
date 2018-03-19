@@ -643,7 +643,6 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception(error.str());
     }
 
-
     if (gGlobal->gFastMath) {
         if (!(gGlobal->gOutputLang == "c"
             || gGlobal->gOutputLang == "cpp"

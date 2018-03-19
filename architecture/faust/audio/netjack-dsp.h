@@ -128,9 +128,7 @@ class netjackaudio : public audio
             jack_set_net_slave_shutdown_callback(fNet, netShutdown, this);
         #endif
             jack_set_net_slave_sample_rate_callback(fNet, netSampleRate, this);
-            
             jack_set_net_slave_buffer_size_callback(fNet, netBufferSize, this);
-            
             jack_set_net_slave_error_callback(fNet, netError, this);
 
             return true;

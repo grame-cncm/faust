@@ -113,7 +113,7 @@ struct Soundfile {
             sf_count_t nbf, index = 0;
             FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
             sample_read reader;
-            if (sizeof (FAUSTFLOAT) == 4) {
+            if (sizeof(FAUSTFLOAT) == 4) {
                 reader = reinterpret_cast<sample_read>(sf_readf_float);
             } else {
                 reader = reinterpret_cast<sample_read>(sf_readf_double);

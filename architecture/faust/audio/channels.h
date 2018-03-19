@@ -77,7 +77,7 @@ class channels
         {
             for (int chan = 0; chan < fNumChannels; chan++) {
                 for (int frame = 0; frame < fNumFrames; frame++) {
-                    std::cout << "chan = " << chan << " frame = " << frame << " value = " <<  fBuffers[chan][frame] << std::endl;
+                    std::cout << "chan = " << chan << " frame = " << frame << " value = " << fBuffers[chan][frame] << std::endl;
                 }
             }
         }

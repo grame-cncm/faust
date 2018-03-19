@@ -791,21 +791,10 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
 #ifdef SOUNDFILE
     Max_Meta3 meta3;
     x->m_dsp->metadata(&meta3);
-    string bundle_path_str;
-#ifdef __APPLE__
-    // OSX only : access to the mxo bundle
-    CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, meta3.fName.c_str(), CFStringGetSystemEncoding()));
-    CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-    if (bundle_ref) {
-        UInt8 bundle_path[512];
-        if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-            bundle_path_str = string((char*)bundle_path);
-            //post("Bundle_path : %s\n", bundle_path);
-        }
-    } else {
+    string bundle_path_str = SoundUI::getBinaryPathFrom(meta3.fName);
+    if (bundle_path_str == "") {
         post("Bundle_path cannot be found!");
     }
-#endif
     x->m_soundInterface = new SoundUI(bundle_path_str);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
 #endif

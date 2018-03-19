@@ -722,7 +722,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
  
-    for (int i = 0; i< ffarity(ff); i++) {
+    for (int i = 0; i < ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
         // Reversed...
@@ -1579,13 +1579,11 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
 
-	} else if (isUiWidget(t, label, varname, sig)) {
-
-		generateWidgetCode(label, varname, sig);
-
-	} else {
+    } else if (isUiWidget(t, label, varname, sig)) {
+        generateWidgetCode(label, varname, sig);
+    } else {
         throw faustexception("ERROR in user interface generation\n");
-	}
+    }
 }
 
 /**
@@ -1703,9 +1701,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    //string pathlabel = pathname+unquote(label);
-	string pathlabel = pathname+label;
+    string pathlabel = pathname + label;
 
 	if (isSigButton(sig, path)) 					{
 		fContainer->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));

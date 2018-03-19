@@ -44,16 +44,17 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
+
+#ifdef HTTPCTRL
+#include "faust/gui/httpdUI.h"
 #endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
 
-#ifdef HTTPCTRL
-#include "faust/gui/httpdUI.h"
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 /******************************************************************************
@@ -129,7 +130,5 @@ int main(int argc, char *argv[] )
     return 0;
 }
 
-
-		
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

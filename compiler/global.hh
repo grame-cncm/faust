@@ -78,69 +78,69 @@ typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
 
 struct global {
 
-    Tree 			gResult;
-    Tree 			gResult2;
+    Tree gResult;
+    Tree gResult2;
 
-    SourceReader	gReader;
+    SourceReader gReader;
 
-    MetaDataSet     gMetaDataSet;
-    string          gDocLang;
-    tvec            gWaveForm;
+    MetaDataSet gMetaDataSet;
+    string gDocLang;
+    tvec gWaveForm;
 
     //-- globals
-    string          gFaustSuperSuperDirectory;
-    string          gFaustSuperDirectory;
-    string          gFaustDirectory;
-    string          gMasterDocument;
-    string          gMasterDirectory;
-    string          gMasterName;
-    string          gDocName;
-    list<string>    gImportDirList;         //dir list enrobage.cpp/fopensearch() searches for imports, etc.
-    list<string>    gArchitectureDirList;   //dir list enrobage.cpp/fopensearch() searches for architecture files
-    list<string>    gLibraryList;
-    string          gOutputDir;
-    string          gImportFilename;
-    Tree            gExpandedDefList;
+    string gFaustSuperSuperDirectory;
+    string gFaustSuperDirectory;
+    string gFaustDirectory;
+    string gMasterDocument;
+    string gMasterDirectory;
+    string gMasterName;
+    string gDocName;
+    list<string> gImportDirList;         //dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    list<string> gArchitectureDirList;   //dir list enrobage.cpp/fopensearch() searches for architecture files
+    list<string> gLibraryList;
+    string gOutputDir;
+    string gImportFilename;
+    Tree gExpandedDefList;
 
     //-- command line arguments
-    bool            gDetailsSwitch;
-    bool            gDrawSignals;
-    bool            gShadowBlur;        // note: svg2pdf doesn't like the blur filter
-    bool            gScaledSVG;         // to draw scaled SVG files
-    bool            gStripDocSwitch;	// Strip <mdoc> content from doc listings.
-    int            	gFoldThreshold;
-    int            	gMaxNameSize;
-    bool			gSimpleNames;
-    bool            gSimplifyDiagrams;
-    bool			gLessTempSwitch;
-    int				gMaxCopyDelay;
-    string			gOutputFile;
+    bool gDetailsSwitch;
+    bool gDrawSignals;
+    bool gShadowBlur;        // note: svg2pdf doesn't like the blur filter
+    bool gScaledSVG;         // to draw scaled SVG files
+    bool gStripDocSwitch;	 // Strip <mdoc> content from doc listings.
+    int gFoldThreshold;
+    int gMaxNameSize;
+    bool gSimpleNames;
+    bool gSimplifyDiagrams;
+    bool gLessTempSwitch;
+    int gMaxCopyDelay;
+    string gOutputFile;
 
-    bool            gVectorSwitch;
-    bool            gDeepFirstSwitch;
-    int             gVecSize;
-    int             gVectorLoopVariant;
-    int             gVecLoopSize;
+    bool gVectorSwitch;
+    bool gDeepFirstSwitch;
+    int gVecSize;
+    int gVectorLoopVariant;
+    int gVecLoopSize;
 
-    bool            gOpenMPSwitch;
-    bool            gOpenMPLoop;
-    bool            gSchedulerSwitch;
-    bool            gOpenCLSwitch;
-    bool            gCUDASwitch;
-    bool			gGroupTaskSwitch;
-    bool			gFunTaskSwitch;
+    bool gOpenMPSwitch;
+    bool gOpenMPLoop;
+    bool gSchedulerSwitch;
+    bool gOpenCLSwitch;
+    bool gCUDASwitch;
+    bool gGroupTaskSwitch;
+    bool gFunTaskSwitch;
 
-    bool            gUIMacroSwitch;
-    bool            gDumpNorm;
+    bool gUIMacroSwitch;
+    bool gDumpNorm;
     int             gFTZMode;
 
     int             gFloatSize;
 
-    bool			gPrintFileListSwitch;
-    bool			gInlineArchSwitch;
+    bool gPrintFileListSwitch;
+    bool gInlineArchSwitch;
 
-    bool			gDSPStruct;
-    bool            gLightMode;
+    bool gDSPStruct;
+    bool gLightMode;
 
     string			gClassName;
     string          gProcessName;
@@ -165,91 +165,91 @@ struct global {
 
     dsp_factory_base* gDSPFactory;
 
-    const char*     gInputString;
+    const char* gInputString;
 
-    bool			gLstDependenciesSwitch;     ///< mdoc listing management.
-    bool			gLstMdocTagsSwitch;         ///< mdoc listing management.
-    bool			gLstDistributedSwitch;      ///< mdoc listing management.
+    bool gLstDependenciesSwitch;     ///< mdoc listing management.
+    bool gLstMdocTagsSwitch;         ///< mdoc listing management.
+    bool gLstDistributedSwitch;      ///< mdoc listing management.
 
-    map<string, string>		gDocMetadatasStringMap;
-    set<string>				gDocMetadatasKeySet;
+    map<string, string> gDocMetadatasStringMap;
+    set<string> gDocMetadatasKeySet;
 
-    map<string, string>		gDocAutodocStringMap;
-    set<string>				gDocAutodocKeySet;
+    map<string, string> gDocAutodocStringMap;
+    set<string> gDocAutodocKeySet;
 
-    map<string, bool>       gDocNoticeFlagMap;
+    map<string, bool> gDocNoticeFlagMap;
 
-    map<string, string>		gDocMathStringMap;
+    map<string, string> gDocMathStringMap;
 
-    vector<Tree>            gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
+    vector<Tree> gDocVector;				///< Contains <mdoc> parsed trees: DOCTXT, DOCEQN, DOCDGM.
 
-    map<string, string>     gDocNoticeStringMap;
-    set<string>             gDocNoticeKeySet;
+    map<string, string> gDocNoticeStringMap;
+    set<string> gDocNoticeKeySet;
 
-    set<string>				gDocMathKeySet;
+    set<string> gDocMathKeySet;
 
-    bool                    gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
+    bool gLatexDocSwitch;		// Only LaTeX outformat is handled for the moment.
 
-    int                     gErrorCount;
+    int gErrorCount;
 
-    string                  gErrorMsg;
+    string gErrorMsg;
 
-    Tabber                  TABBER;
+    Tabber TABBER;
 
-    list<string>            gInputFiles;
+    list<string> gInputFiles;
 
-    int                     gFileNum;
+    int gFileNum;
 
-    int                     gCountInferences;
-    int                     gCountMaximal;
-    int                     gDummyInput;
+    int gCountInferences;
+    int gCountMaximal;
+    int gDummyInput;
 
-    int                     gBoxSlotNumber;     ///< counter for unique slot number
+    int gBoxSlotNumber;     ///< counter for unique slot number
 
-    bool                    gMemoryManager;
+    bool gMemoryManager;
 
-    Tree                    BOXTYPEPROP;
-    Tree                    NUMERICPROPERTY;
-    Tree                    DEFLINEPROP;
-    Tree                    USELINEPROP;
-    Tree                    SIMPLIFIED;
-    Tree                    DOCTABLES;
-    Tree                    NULLENV;
-    Tree                    COLORPROPERTY;
-    Tree                    ORDERPROP;
-    Tree                    RECURSIVNESS;
-    Tree                    NULLTYPEENV;
-    Tree                    RECDEF;
-    Tree                    DEBRUIJN2SYM;
-    Tree                    DEFNAMEPROPERTY;
-    Tree                    NICKNAMEPROPERTY;
-    Tree                    BCOMPLEXITY;        // Node used for memoization purposes
-    Tree                    LETRECBODY;
+    Tree BOXTYPEPROP;
+    Tree NUMERICPROPERTY;
+    Tree DEFLINEPROP;
+    Tree USELINEPROP;
+    Tree SIMPLIFIED;
+    Tree DOCTABLES;
+    Tree NULLENV;
+    Tree COLORPROPERTY;
+    Tree ORDERPROP;
+    Tree RECURSIVNESS;
+    Tree NULLTYPEENV;
+    Tree RECDEF;
+    Tree DEBRUIJN2SYM;
+    Tree DEFNAMEPROPERTY;
+    Tree NICKNAMEPROPERTY;
+    Tree BCOMPLEXITY;        // Node used for memoization purposes
+    Tree LETRECBODY;
 
-    Node                    PROPAGATEPROPERTY;
+    Node PROPAGATEPROPERTY;
 
-    xtended*                gAbsPrim;
-    xtended*                gAcosPrim;
-    xtended*                gTanPrim;
-    xtended*                gSqrtPrim;
-    xtended*                gSinPrim;
-    xtended*                gRintPrim;
-    xtended*                gRemainderPrim;
-    xtended*                gPowPrim;
-    xtended*                gMinPrim;
-    xtended*                gMaxPrim;
-    xtended*                gLogPrim;
-    xtended*                gLog10Prim;
-    xtended*                gFmodPrim;
-    xtended*                gFloorPrim;
-    xtended*                gExpPrim;
-    xtended*                gExp10Prim;
-    xtended*                gCosPrim;
-    xtended*                gCeilPrim;
-    xtended*                gAtanPrim;
-    xtended*                gAtan2Prim;
-    xtended*                gAsinPrim;
-    xtended*                gFtzPrim;
+    xtended* gAbsPrim;
+    xtended* gAcosPrim;
+    xtended* gTanPrim;
+    xtended* gSqrtPrim;
+    xtended* gSinPrim;
+    xtended* gRintPrim;
+    xtended* gRemainderPrim;
+    xtended* gPowPrim;
+    xtended* gMinPrim;
+    xtended* gMaxPrim;
+    xtended* gLogPrim;
+    xtended* gLog10Prim;
+    xtended* gFmodPrim;
+    xtended* gFloorPrim;
+    xtended* gExpPrim;
+    xtended* gExp10Prim;
+    xtended* gCosPrim;
+    xtended* gCeilPrim;
+    xtended* gAtanPrim;
+    xtended* gAtan2Prim;
+    xtended* gAsinPrim;
+    xtended* gFtzPrim;
 
     Sym BOXIDENT;
     Sym BOXCUT;
@@ -426,24 +426,24 @@ struct global {
 
     int gMachineMaxStackSize;
 
-    const char* 	gDocDevSuffix;			///< ".tex" (or .??? - used to choose output device).
-    string 			gCurrentDir;			///< Room to save current directory name.
-    string          gLatexheaderfilename;
+    const char* gDocDevSuffix;	///< ".tex" (or .??? - used to choose output device).
+    string gCurrentDir;			///< Room to save current directory name.
+    string gLatexheaderfilename;
 
-    struct tm		gCompilationDate;
+    struct tm gCompilationDate;
 
-    map<string, int>    gIDCounters;
+    map<string, int> gIDCounters;
 
-    string        gDocTextsDefaultFile;
+    string gDocTextsDefaultFile;
 
     // internal state during drawing
-    Occurrences* 	gOccurrences;
-    bool			gFoldingFlag;		// true with complex block-diagrams
-    stack<Tree>		gPendingExp;		// Expressions that need to be drawn
-    set<Tree>		gDrawnExp;			// Expressions drawn or scheduled so far
-    const char* 	gDevSuffix;			// .svg or .ps used to choose output device
-    string			gSchemaFileName;	// name of schema file beeing generated
-    map<Tree, string>    gBackLink;		// link to enclosing file for sub schema
+    Occurrences* gOccurrences;
+    bool gFoldingFlag;              // true with complex block-diagrams
+    stack<Tree> gPendingExp;		// Expressions that need to be drawn
+    set<Tree> gDrawnExp;			// Expressions drawn or scheduled so far
+    const char* gDevSuffix;			// .svg or .ps used to choose output device
+    string gSchemaFileName;         // name of schema file beeing generated
+    map<Tree, string> gBackLink;	// link to enclosing file for sub schema
 
     // FIR
     map<Typed::VarType, BasicTyped*> gTypeTable;    // To share a unique BasicTyped* object for a given type

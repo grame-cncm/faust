@@ -6,7 +6,7 @@
 
 Thanks to its architectures system, [Faust](http://faust.grame.fr) can generate a wide range of objects compatible with different platforms (Linux, Windows, OSX, RPI, Android, iOS, ROS, Bela and Web/JavaScript) and tools (Max/MSP, SuperCollider, PD, VST, AU, LV2, etc.). The mechanism behind this was designed to be as modular and reusable as possible. Additionally, the Faust compiler can be embedded in any C++ program using the [LLVM](http://llvm.org/) technology making it very portable.
 
-The goal of the `faust2api` project is to provide a tool to easily generate custom APIs based on one or several Faust objects. On one hand, [Faust DSP libraries](http://faust.grame.fr/libraries.html) implement hundreds of open source DSP algorithms that can be turned into C++, C, JAVA, JavaScript and LLVM bit code and embedded in your applications. On the other hand, Faust C++ libraries can carry out a wide range of tasks going from connecting Faust DSP objects to a specific audio engine (CoreAudio, OpenSL/ES, Alsa, Jack, etc.) or adding MIDI and polyphony support, sensor data handling, etc. to the same object.
+The goal of the `faust2api` project is to provide a tool to easily generate custom APIs based on one or several Faust objects. On one hand, [Faust DSP libraries](http://faust.grame.fr/libraries.html) implement hundreds of open source DSP algorithms that can be turned into C++, C, JAVA, JavaScript and LLVM bit code and embedded in your applications. On the other hand, Faust C++ libraries can carry out a wide range of tasks going from connecting Faust DSP objects to a specific audio engine (CoreAudio, OpenSL/ES, Alsa, JACK, etc.) or adding MIDI and polyphony support, sensor data handling, etc. to the same object.
 
 Most major Faust targets are supported:
 
@@ -14,10 +14,10 @@ Most major Faust targets are supported:
 * Android
 * OSX CoreAudio
 * ALSA
-* Jack
+* JACK
 * PortAudio
 * RTAudio
-* OpenFrameworks
+* openFrameworks
 * JUCE
 
 **NOTE:** This documentation only provides high level information on how to use `faust2api`. For detailed tutorials on this topic, visit [this page](https://ccrma.stanford.edu/~rmichon/faustTutorials/#adding-faust-real-time-audio-support-to-android-apps).
@@ -84,7 +84,7 @@ The `-osc` option can be used to add OSC support to the API.
 
 ### JACK Support
 
-To turn a Faust code into a Jack API, just run the following command:
+To turn a Faust code into a JACK API, just run the following command:
 
 ```
 faust2api -jack yourFaustCode.dsp
