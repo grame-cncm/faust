@@ -178,7 +178,7 @@ EndOfCode
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
                 echo "Copy $snd in ${f%.dsp}$EXT"
-                cp $snd "$TMP/${f%.dsp}$EXT"
+                cp $snd "$TMP/${f%.dsp}$EXT/Contents/Resources/"
             else
                 echo "Error: file $snd not found !"
             fi

@@ -94,7 +94,7 @@ class SoundUI : public GenericUI
         if (bundle_ref) {
             UInt8 bundle_path[512];
             if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                bundle_path_str = std::string((char*)bundle_path);
+                bundle_path_str = std::string((char*)bundle_path) + "/Contents/Resources/";
             }
         }
     #endif
