@@ -37,6 +37,11 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
+#if defined(LLVM_38)
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include <llvm/ExecutionEngine/ObjectCache.h>
 #define LLVM_MAX_OPT_LEVEL 5
 
@@ -95,40 +100,6 @@ class EXPORT llvm_dsp : public dsp {
     
 };
 
-
-// ObjectCache & MCCJIT is not taken into account when compiled with Visual Studio for the resulting compiler doesn't work
-#if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
-class FaustObjectCache : public llvm::ObjectCache {
-    
-    private:
-        
-        std::string fMachineCode;
-        
-    public:
-        
-        FaustObjectCache(const std::string& machine_code = "") : fMachineCode(machine_code)
-        {}
-        
-        virtual ~FaustObjectCache()
-        {}
-        
-        void notifyObjectCompiled(const Module *M, const MemoryBuffer *Obj)
-        {
-            fMachineCode = Obj->getBuffer().str();
-        }
-        
-        MemoryBuffer* getObject(const Module* M)
-        {
-            return (fMachineCode == "") ? NULL : MemoryBuffer::getMemBuffer(StringRef(fMachineCode));
-        }
-        
-        std::string getMachineCode() { return fMachineCode; }
-    
-};
-#endif
-
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-
 /*
  static std::string getFeaturesStr()
  {
@@ -181,7 +152,6 @@ class FaustObjectCache : public llvm::ObjectCache {
         std::string getMachineCode() { return fMachineCode; }
     
 };
-#endif
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
 
@@ -224,9 +194,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         bool crossCompile(const std::string& target);
     
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         static void LLVMFatalErrorHandler(const char* reason);
-    #endif
     
         void startLLVMLibrary();
         void stopLLVMLibrary();

@@ -36,12 +36,12 @@ static bool noNtrl(const Node& n) { return falsePredicate(n); }
 
 #if LLVM_BUILD
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-#include <llvm/IR/Instructions.h>
-#else
-#include <llvm/Instructions.h>
-#include <llvm/Instruction.h>
+#if defined(LLVM_38)
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
 #endif
+
+#include <llvm/IR/Instructions.h>
 
 using namespace llvm;
 

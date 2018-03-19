@@ -33,96 +33,28 @@
 #include "libfaust.h"
 
 #include <llvm/Support/TargetSelect.h>
-
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm-c/Core.h>
-#else
-    #include <llvm/Module.h>
-    #include <llvm/LLVMContext.h>
-    #include <llvm/Support/IRReader.h>
-#endif
-
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-#else
-    #include <llvm/Target/TargetLibraryInfo.h>
-    #include <llvm/PassManager.h>
-    #define PASS_MANAGER PassManager
-    #define FUNCTION_PASS_MANAGER FunctionPassManager
-#endif
-
+#include <llvm-c/Core.h>
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-
-    #include <llvm/Bitcode/BitcodeWriter.h>
-    #include <llvm/Bitcode/BitcodeReader.h>
-/*
-    #include <llvm/Transforms/IPO/AlwaysInliner.h>
-     */
-#elif defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-    #include <llvm/Bitcode/ReaderWriter.h>
-#endif
-
-/* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
- * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
- * 3.3.
- */
-#if defined(LLVM_32)
-    #include <llvm/DataLayout.h>
-#elif !defined(LLVM_34) && !defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)
-    #ifndef _WIN32
-    //#include <llvm/Target/TargetData.h>
-    #endif
-#endif
-
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
 #else
-    #include <llvm/ExecutionEngine/JIT.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #endif
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/Support/FileSystem.h>
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Support/FileSystem.h>
-    #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
-    #define OwningPtr std::unique_ptr
-    #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#else
-    #include <llvm/Support/PassNameParser.h>
-    #include <llvm/Linker.h>
-    #include <llvm/Assembly/PrintModulePass.h>
-    #include <llvm/Support/system_error.h>
-    #include <llvm/Analysis/Verifier.h>
-    #define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
-    #define GET_CPU_NAME llvm::sys::getHostCPUName()
-#endif
+#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+#define OwningPtr std::unique_ptr
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+#define sysfs_binary_flag sys::fs::F_None
+#define STREAM_ERROR std::error_code
+#define MEMORY_BUFFER MemoryBufferRef
+#define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
+#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define sysfs_binary_flag sys::fs::F_None
-#elif defined(LLVM_34)
-    #define sysfs_binary_flag sys::fs::F_Binary
-#else
-    #define sysfs_binary_flag raw_fd_ostream::F_Binary
-#endif
-
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define STREAM_ERROR std::error_code
-    #define MEMORY_BUFFER MemoryBufferRef
-    #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
-    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
-#else
-    #define STREAM_ERROR string
-    #define MEMORY_BUFFER MemoryBuffer*
-    #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
-    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
-#endif
-
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define ModulePTR std::unique_ptr<Module>
-    #define MovePTR(ptr) std::move(ptr)
-#else
-    #define ModulePTR Module*
-    #define MovePTR(ptr) ptr
-#endif
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 
 using namespace llvm;
 using namespace std;
@@ -144,17 +76,10 @@ TLockAble* llvm_dsp_factory_aux::gDSPFactoriesLock = 0;
 
 void* llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     void* fun = (void*)fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
     }
-#else
-    llvm::Function* fun_ptr = fModule->getFunction(function);
-    if (fun_ptr) {
-        return fJIT->getPointerToFunction(fun_ptr);
-    }
-#endif
     
     stringstream error;
     error << "ERROR : loadOptimize failed for '" << function << "'";
@@ -163,42 +88,26 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
 
 bool llvm_dsp_factory_aux::crossCompile(const string& target)
 {
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     delete fObjectCache;
     fObjectCache = new FaustObjectCache();
     setTarget(target);
     string error;
     return initJIT(error);
-#else
-    return false;
-#endif
 }
 
 void llvm_dsp_factory_aux::startLLVMLibrary()
 {
     if (llvm_dsp_factory_aux::gInstance++ == 0) {
         // Install a LLVM error handler
-    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         LLVMInstallFatalErrorHandler(llvm_dsp_factory_aux::LLVMFatalErrorHandler);
-    #endif
-    #if (!defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)) // In LLVM 3.5 this is gone.
-        if (!llvm_start_multithreaded()) {
-            std::cerr << "llvm_start_multithreaded error...\n";
-        }
-    #endif
     }
 }
 
 void llvm_dsp_factory_aux::stopLLVMLibrary()
 {
     if (--llvm_dsp_factory_aux::gInstance == 0) {
-    #if  (!defined(LLVM_35)) && (!defined(LLVM_36)) && (!defined(LLVM_37)) && (!defined(LLVM_38)) && (!defined(LLVM_39)) && (!defined(LLVM_40)) && (!defined(LLVM_50) && !defined(LLVM_60)) // In LLVM 3.5 this is gone.
-        llvm_stop_multithreaded();
-    #endif
-    #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #ifndef LLVM_BUILD_UNIVERSAL // Crash in 32 bits on OSX, so deactivated in this case...
         LLVMResetFatalErrorHandler();
-    #endif
     #endif
     }
 }
@@ -238,16 +147,12 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
     fModule = module;
     fContext = context;
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     fObjectCache = nullptr;
-#endif
 }
 
 llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 {
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     delete fObjectCache;
-#endif
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
@@ -257,12 +162,10 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
     stopLLVMLibrary();
 }
 
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 {
     throw faustexception(reason);
 }
-#endif
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 {
@@ -537,7 +440,6 @@ EXPORT void deleteAllDSPFactories()
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
 {
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     if (target == "" || target == getTarget()) {
         return fObjectCache->getMachineCode();
     } else {
@@ -550,9 +452,6 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
             return "";
         }
     }
-#else
-    return "";
-#endif
 }
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
@@ -607,24 +506,13 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path,const string& target)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
         std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
         return nullptr;
     } else {
         return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
-     }
-#else
-    OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(machine_code_path.c_str(), buffer)) {
-        std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
-        return nullptr;
-    } else {
-        return readDSPFactoryFromMachineAux(buffer.get(), target);
     }
-#endif
 }
 
 // Instance

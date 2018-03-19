@@ -100,7 +100,7 @@ cmake .. -DLLVM_CONFIG=llvm-config-5.0.0
 
 When the project generation fails to configure LLVM, you can try using the cmake llvm-config file (if available). To do so :
 > cd faustdir &&
-cmake .. -DUSE_LLVM_CONFIG=off
+cmake .. -DUSE_LLVM_CONFIG=on
 
 
 ### Notes regarding the `interpreter` backend

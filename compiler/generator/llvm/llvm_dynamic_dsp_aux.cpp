@@ -42,120 +42,54 @@
 #include <llvm/Support/ManagedStatic.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 #include <llvm/Support/Threading.h>
-
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/IR/Module.h>
-    #include <llvm/IR/LLVMContext.h>
-    #include <llvm/IRReader/IRReader.h>
-    #include <llvm/IR/DataLayout.h>
-    #include <llvm/Support/FormattedStream.h>
-    #include <llvm/Support/SourceMgr.h>
-    #include <llvm/Support/MemoryBuffer.h>
-    #include <llvm/ADT/Triple.h>
-    #include <llvm/Support/TargetRegistry.h>
-    #include <llvm-c/Core.h>
-    #include <llvm/Support/Host.h>
-    #include <llvm/MC/SubtargetFeature.h>
-#else
-    #include <llvm/Module.h>
-    #include <llvm/LLVMContext.h>
-    #include <llvm/Support/IRReader.h>
-#endif
-
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Analysis/TargetLibraryInfo.h>
-    #include <llvm/Analysis/TargetTransformInfo.h>
-    #include <llvm/IR/PassManager.h>
-    #include <llvm/IR/LegacyPassManager.h>
-    #define PASS_MANAGER legacy::PassManager
-    #define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#else
-    #include <llvm/Target/TargetLibraryInfo.h>
-    #include <llvm/PassManager.h>
-    #define PASS_MANAGER PassManager
-    #define FUNCTION_PASS_MANAGER FunctionPassManager
-#endif
+#include <llvm/IR/Module.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IRReader/IRReader.h>
+#include <llvm/IR/DataLayout.h>
+#include <llvm/Support/FormattedStream.h>
+#include <llvm/Support/SourceMgr.h>
+#include <llvm/Support/MemoryBuffer.h>
+#include <llvm/ADT/Triple.h>
+#include <llvm/Support/TargetRegistry.h>
+#include <llvm-c/Core.h>
+#include <llvm/Support/Host.h>
+#include <llvm/MC/SubtargetFeature.h>
+#include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/Analysis/TargetTransformInfo.h>
+#include <llvm/IR/PassManager.h>
+#include <llvm/IR/LegacyPassManager.h>
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #include <llvm/Bitcode/BitcodeWriter.h>
     #include <llvm/Bitcode/BitcodeReader.h>
     #include <llvm/Transforms/IPO/AlwaysInliner.h>
-#elif defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
+#elif defined(LLVM_38) || defined(LLVM_39)
     #include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
-/* The file llvm/Target/TargetData.h was renamed to llvm/DataLayout.h in LLVM
- * 3.2, which itself appears to have been moved to llvm/IR/DataLayout.h in LLVM
- * 3.3.
- */
-#if defined(LLVM_32)
-    #include <llvm/DataLayout.h>
-#elif !defined(LLVM_33) && !defined(LLVM_34) && !defined(LLVM_35) && !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)
-    #ifndef _WIN32
-    #include <llvm/Target/TargetData.h>
-    #endif
-#endif
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/ExecutionEngine/ObjectCache.h>
+#include <llvm/IR/LegacyPassNameParser.h>
+#include <llvm/Linker/Linker.h>
+#include <llvm/IR/IRPrintingPasses.h>
+#include <system_error>
+#include <llvm/IR/Verifier.h>
+#include <llvm/Support/FileSystem.h>
+#include "llvm/ExecutionEngine/ObjectCache.h"
 
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/ExecutionEngine/MCJIT.h>
-    #include <llvm/ExecutionEngine/ObjectCache.h>
-#else
-    #include <llvm/ExecutionEngine/JIT.h>
-#endif
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/IR/LegacyPassNameParser.h>
-    #include <llvm/Linker/Linker.h>
-    #include <llvm/IR/IRPrintingPasses.h>
-    #include <system_error>
-    #include <llvm/IR/Verifier.h>
-    #include <llvm/Support/FileSystem.h>
-    #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
-    #define OwningPtr std::unique_ptr
-    #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#else
-    #include <llvm/Support/PassNameParser.h>
-    #include <llvm/Linker.h>
-    #include <llvm/Assembly/PrintModulePass.h>
-    #include <llvm/Support/system_error.h>
-    #include <llvm/Analysis/Verifier.h>
-    #define llvmcreatePrintModulePass(out) createPrintModulePass(&out)
-    #define GET_CPU_NAME llvm::sys::getHostCPUName()
-#endif
-
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
-    #include "llvm/ExecutionEngine/ObjectCache.h"
-#endif
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define sysfs_binary_flag sys::fs::F_None
-#elif defined(LLVM_34)
-    #define sysfs_binary_flag sys::fs::F_Binary
-#else
-    #define sysfs_binary_flag raw_fd_ostream::F_Binary
-#endif
-
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define STREAM_ERROR std::error_code
-    #define MEMORY_BUFFER MemoryBufferRef
-    #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
-    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
-#else
-    #define STREAM_ERROR string
-    #define MEMORY_BUFFER MemoryBuffer*
-    #define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
-    #define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
-    #define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
-#endif
-
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define ModulePTR std::unique_ptr<Module>
-    #define MovePTR(ptr) std::move(ptr)
-#else
-    #define ModulePTR Module*
-    #define MovePTR(ptr) ptr
-#endif
+#define PASS_MANAGER legacy::PassManager
+#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
+#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+#define OwningPtr std::unique_ptr
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+#define sysfs_binary_flag sys::fs::F_None
+#define STREAM_ERROR std::error_code
+#define MEMORY_BUFFER MemoryBufferRef
+#define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
+#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 
 using namespace llvm;
 using namespace std;
@@ -193,26 +127,7 @@ static void dumpModule(Module* module)
     std::cout << out_str.str();
 }
 
-#if defined(LLVM_35) || defined(LLVM_36)
-// LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
-static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
-                                LLVMContext& Context,
-                                string* ErrMsg)
-{
-    using namespace llvm;
-    ErrorOr<Module*> ModuleOrErr = parseBitcodeFile(Buffer, Context);
-    if (error_code EC = ModuleOrErr.getError()) {
-        if (ErrMsg) *ErrMsg = EC.message();
-        return nullptr;
-    } else {
-        return ModuleOrErr.get();
-    }
-
-}
-#endif
-
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
                                 LLVMContext& Context,
                                 string* ErrMsg)
@@ -226,9 +141,7 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         return ModuleOrErr.get().release();
     }
 }
-
-#elif defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39)
-
+#elif defined(LLVM_38) || defined(LLVM_39)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
                                 LLVMContext& Context,
                                 string* ErrMsg)
@@ -242,7 +155,6 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         return ModuleOrErr.get().release();
     }
 }
-
 #endif
 
 // Bitcode
@@ -301,13 +213,9 @@ llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string& sha_key
     
     fModule = module;
     fContext = context;
-    
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     fObjectCache = nullptr;
-#endif
 }
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -344,9 +252,6 @@ static void AddOptimizationPasses(PassManagerBase &MPM,
     }
       
     Builder.DisableUnrollLoops = (OptLevel == 0);
-#if defined(LLVM_33)   
-    Builder.DisableSimplifyLibCalls = false;
-#endif
     
     // Add auto-vectorization passes
     if (OptLevel > 3) {
@@ -377,31 +282,20 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     InitializeNativeTargetAsmParser();
     
     // For ObjectCache to work...
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     LLVMLinkInMCJIT();
-#endif
     
     // Restoring from machine code
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
     if (fObjectCache) {
     
         // JIT
-    #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         EngineBuilder builder((unique_ptr<Module>(fModule)));
-    #else
-        EngineBuilder builder(fModule);
-    #endif
         builder.setEngineKind(EngineKind::JIT);
-    #if !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)
-        builder.setUseMCJIT(true);
-    #endif
         TargetMachine* tm = builder.selectTarget();
         fJIT = builder.create(tm);
         fJIT->setObjectCache(fObjectCache);
         fJIT->finalizeObject();
           
     } else {
-#endif
         // First check is Faust compilation succeeded... (valid LLVM module)
         if (!fModule) {
             return false;
@@ -417,19 +311,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         initializeVectorization(Registry);
         initializeIPO(Registry);
         initializeAnalysis(Registry);
-    #if !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)
-        initializeIPA(Registry);
-    #endif
         initializeTransformUtils(Registry);
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
        
-    #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         EngineBuilder builder((unique_ptr<Module>(fModule)));
-    #else
-        EngineBuilder builder(fModule);
-    #endif
         builder.setOptLevel(CodeGenOpt::Aggressive);
         builder.setEngineKind(EngineKind::JIT);
     #if !defined(LLVM_60)
@@ -438,13 +325,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         
         string buider_error;
         builder.setErrorStr(&buider_error);
-        
-        // MCJIT does not work correctly (incorrect float numbers ?) when used with dynamic libLLVM
-    #if (defined(LLVM_34) || defined(LLVM_35)) && !defined(_MSC_VER)
-        builder.setUseMCJIT(true);
-    #elif !defined(LLVM_36) && !defined(LLVM_37) && !defined(LLVM_38) && !defined(LLVM_39) && !defined(LLVM_40) && !defined(LLVM_50) && !defined(LLVM_60)
-        builder.setUseMCJIT(false);
-    #endif
     
     #ifdef _WIN32
         // Windows needs this special suffix to the target triple,
@@ -460,20 +340,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         splitTarget(fTarget, triple, cpu);
         fModule->setTargetTriple(triple + target_suffix);
         
-    #if defined(LLVM_33)
-        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : static_cast<std::basic_string<char>>(StringRef(cpu)));
-    #elif defined(LLVM_34)
-        builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : cpu);
-    #else
         builder.setMCPU((cpu == "") ? llvm::sys::getHostCPUName() : StringRef(cpu));
-        //std::cout << "llvm::sys::getHostCPUName()" << llvm::sys::getHostCPUName().data() << std::endl;
-    #endif
         
         TargetOptions targetOptions;
         
         // -fastmath is activated at IR level, and has to be setup at JIT level also
         
-    #if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     #if !defined(LLVM_50) && !defined(LLVM_60)
         targetOptions.LessPreciseFPMADOption = true;
     #endif
@@ -482,7 +354,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         targetOptions.NoInfsFPMath = true;
         targetOptions.NoNaNsFPMath = true;
         targetOptions.GuaranteedTailCallOpt = true;
-    #endif
     
     #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         targetOptions.NoTrappingFPMath = true;
@@ -512,34 +383,15 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             PASS_MANAGER pm;
             FUNCTION_PASS_MANAGER fpm(fModule);
             
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) // Code taken from opt.cpp
+            // Code taken from opt.cpp
             TargetLibraryInfoImpl TLII(Triple(fModule->getTargetTriple()));
             pm.add(new TargetLibraryInfoWrapperPass(TLII));
-        #else
-            // Add an appropriate TargetLibraryInfo pass for the module's triple.
-            TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fModule->getTargetTriple()));
-            pm.add(tli);
-        #endif
-
-        #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+      
             fModule->setDataLayout(fJIT->getDataLayout());
-        #elif defined(LLVM_37) // Code taken from opt.cpp
-            fModule->setDataLayout(*fJIT->getDataLayout());
-        #elif defined(LLVM_35) || defined(LLVM_36)
-            // LLVM 3.5 doesn't need a separate pass for the data
-            // layout, but it does require that we initialize the
-            // data layout of the module. -ag
-            fModule->setDataLayout(fJIT->getDataLayout());
-        #else
-            fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
-        #endif
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) // Code taken from opt.cpp
+            // Code taken from opt.cpp
             pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
-        #else
-            tm->addAnalysisPasses(pm);
-        #endif
           
             if (fOptLevel > 0) {
                 AddOptimizationPasses(pm, fpm, fOptLevel, 0);
@@ -547,7 +399,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
             #if defined(LLVM_60)
-              // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
+                // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
             #else
                 TargetRegistry::printRegisteredTargetsForVersion();
             #endif
@@ -563,7 +415,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             pm.add(createVerifierPass());
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+            #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 // TODO
             #else
                 tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
@@ -578,11 +430,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             }
         }
         
-    #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
         fObjectCache = new FaustObjectCache();
         fJIT->setObjectCache(fObjectCache);
     }
-    #endif
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
@@ -612,129 +462,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         return false;
     }
 }
-
-#else
-
-bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
-{
-    startTiming("initJIT");
-    
-    // First check is Faust compilation succeeded... (valid LLVM module)
-    if (!fModule) {
-        return false;
-    }
-    
-    InitializeNativeTarget();
-    InitializeNativeTargetAsmPrinter();
-    InitializeNativeTargetAsmParser();
-    
-    fModule->setTargetTriple(fTarget);
-   
-    EngineBuilder builder(fModule);
-    builder.setOptLevel(CodeGenOpt::Aggressive);
-    builder.setEngineKind(EngineKind::JIT);
-    builder.setUseMCJIT(false);
-    builder.setMCPU(llvm::sys::getHostCPUName());
-       
-    TargetMachine* tm = builder.selectTarget();
-    fJIT = builder.create(tm);
-    
-    if (!fJIT) {
-        endTiming("initJIT");
-        return false;
-    }
-    
-    // Run static constructors.
-    fJIT->runStaticConstructorsDestructors(false);
-    fJIT->DisableLazyCompilation(true);
-    
-#if defined(LLVM_32) 
-    fModule->setDataLayout(fJIT->getDataLayout()->getStringRepresentation());
-#else
-    fModule->setDataLayout(fJIT->getTargetData()->getStringRepresentation());
-#endif
-
-    int optlevel = getOptlevel();
-    
-    if ((optlevel == -1) || (fOptLevel > optlevel)) {
-        // Set up the optimizer pipeline. Start with registering info about how the
-        // target lays out data structures.
-        PASS_MANAGER pm;
-        FUNCTION_PASS_MANAGER fpm(fModule);
-    #if defined(LLVM_32)    
-        // TODO
-    #else
-        pm.add(new TargetData(*fJIT->getTargetData()));
-        fpm.add(new TargetData(*fJIT->getTargetData()));
-    #endif
-
-        // Taken from LLVM Opt.cpp
-        PassManagerBuilder Builder;
-        Builder.OptLevel = fOptLevel;
-
-        if (fOptLevel > 1) {
-            unsigned threshold = 225;
-            if (fOptLevel > 2) {
-                threshold = 275;
-            }
-            Builder.Inliner = createFunctionInliningPass(threshold);
-        } else {
-            Builder.Inliner = createAlwaysInlinerPass();
-        }
-        
-        // We use '4' to activate the auto-vectorizer
-        if (fOptLevel > 3) {
-        #if defined(LLVM_32) 
-            Builder.LoopVectorize = true;
-            //Builder.Vectorize = true;
-        #elif defined(LLVM_31)
-            Builder.Vectorize = true;
-        #endif
-        }
-          
-        Builder.DisableUnrollLoops = (fOptLevel == 0);
-        Builder.populateFunctionPassManager(fpm);
-        Builder.populateModulePassManager(pm);
-        
-        string debug_var = (getenv("FAUST_DEBUG")) ? string(getenv("FAUST_DEBUG")) : "";
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-            dumpModule(fModule);
-        }
-        
-        // Now that we have all of the passes ready, run them.
-        pm.run(*fModule);
-        
-        if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-            dumpModule(fModule);
-        }
-    }
-     
-    try {
-        fNew = (newDspFun)loadOptimize("new" + fClassName);
-        fDelete = (deleteDspFun)loadOptimize("delete" + fClassName);
-        fGetNumInputs = (getNumInputsFun)loadOptimize("getNumInputs" + fClassName);
-        fGetNumOutputs = (getNumOutputsFun)loadOptimize("getNumOutputs" + fClassName);
-        fGetSize = (getSizeFun)loadOptimize("getSize" + fClassName);
-        fBuildUserInterface = (buildUserInterfaceFun)loadOptimize("buildUserInterface" + fClassName);
-        fInit = (initFun)loadOptimize("init" + fClassName);
-        fInstanceInit = (initFun)loadOptimize("instanceInit" + fClassName);
-        fInstanceConstants = (initFun)loadOptimize("instanceConstants" + fClassName);
-        fInstanceResetUI = (clearFun)loadOptimize("instanceResetUserInterface" + fClassName);
-        fInstanceClear = (clearFun)loadOptimize("instanceClear" + fClassName);
-        fGetSampleRate = (getSampleRateFun)loadOptimize("getSampleRate" + fClassName);
-        fCompute = (computeFun)loadOptimize("compute" + fClassName);
-        fMetadata = (metadataFun)loadOptimize("metadata" + fClassName);
-        fGetSampleSize = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
-        endTiming("initJIT");
-        return true;
-    } catch (...) { // Module does not contain the Faust entry points...
-        endTiming("initJIT");
-        return false;
-    }
-}
-
-#endif
 
 // Public C++ API
 
@@ -878,24 +605,13 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, int opt_level)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-  
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     if (error_code ec = buffer.getError()) {
         std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
         return nullptr;
     } else {
         return readDSPFactoryFromBitcodeAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
-     }
-#else
-    OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(bit_code_path.c_str(), buffer)) {
-        std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
-        return nullptr;
-    } else {
-        return readDSPFactoryFromBitcodeAux(buffer.get(), target, opt_level);
     }
-#endif
 }
 
 EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string& bit_code_path)
@@ -922,11 +638,7 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         setlocale(LC_ALL, "C");
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
-    #if defined(LLVM_36) || defined(LLVM_37) ||defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         Module* module = parseIR(buffer, err, *context).release();  // parseIR takes ownership of the given buffer, so don't delete it
-    #else
-        Module* module = ParseIR(buffer, err, *context);            // ParseIR takes ownership of the given buffer, so don't delete it
-    #endif
         if (!module) return nullptr;
         
         setlocale(LC_ALL, tmp_local);
@@ -963,8 +675,6 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, int opt_level)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
- 
- #if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
     if (error_code ec = buffer.getError()) {
         std::cerr << "readDSPFactoryFromIRFile failed : " << ec.message() << std::endl;
@@ -972,15 +682,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
     } else {
         return readDSPFactoryFromIRAux(MEMORY_BUFFER_GET_REF(buffer), target, opt_level);
     }
-#else
-    OwningPtr<MemoryBuffer> buffer;
-    if (llvm::error_code ec = MemoryBuffer::getFileOrSTDIN(ir_code_path.c_str(), buffer)) {
-        std::cerr << "readDSPFactoryFromIRFile failed : " << ec.message() << std::endl;
-        return nullptr;
-    } else {
-        return readDSPFactoryFromIRAux(buffer.get(), target, opt_level);
-    }
-#endif
 }
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
@@ -1011,13 +712,7 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     ModulePTR module = parseIRFile(filename, err, *context);
-#elif defined(LLVM_36) || defined(LLVM_37)
-    ModulePTR module = parseIRFile(filename, err, *context).release();
-#else
-    Module* module = ParseIRFile(filename, err, *context);
-#endif
     
     if (module) {
         return module;
@@ -1048,25 +743,11 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
 bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 {
     bool res = false;
-    
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     if (Linker::linkModules(*dst, MovePTR(src))) {
         snprintf(error_msg, 256, "%s", "cannot link module");
-        
-#elif defined(LLVM_36) || defined(LLVM_37)
-    if (Linker::LinkModules(dst, MovePTR(src))) {
-        snprintf(error_msg, 256, "%s", "cannot link module");
-#else
-    string err;
-    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
-        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
-#endif
     } else {
         res = true;
     }
-#if defined(LLVM_34) || defined(LLVM_35)
-    delete src;
-#endif
     return res;
 }
         
@@ -1258,7 +939,6 @@ EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_c
     }
 }
 
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)) && !defined(_MSC_VER)
 EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
 {
     return readDSPFactoryFromMachine(machine_code, target);
@@ -1280,25 +960,6 @@ EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char*
         writeDSPFactoryToMachineFile(factory, machine_code_path, target);
     }
 }
-#else
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code)
-{
-    return nullptr;
-}
-
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const string& target)
-{
-    return nullptr;
-}
-
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path)
-{
-    return nullptr;
-}
-
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const string& target)
-{}
-#endif
 
 EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 {
