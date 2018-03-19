@@ -238,7 +238,7 @@ if (INCLUDE_STATIC)
 	target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
-	set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+	set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR})
 	if (APPLE AND IOS)
 		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust-ios)
 	endif()
@@ -269,8 +269,8 @@ if (INCLUDE_DYNAMIC)
 	if (WIN32)
 		enable_language(RC)
 		set_target_properties(dynamiclib PROPERTIES 
-			ARCHIVE_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR}
-			RUNTIME_OUTPUT_DIRECTORY_RELEASE  ${LIBDIR})
+			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
+			RUNTIME_OUTPUT_DIRECTORY  ${LIBDIR})
 		set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 		target_sources (faust PRIVATE ${ROOT}/windows/faust.rc)
 		target_sources (dynamiclib PRIVATE ${ROOT}/windows/faustdll.rc)
@@ -280,9 +280,9 @@ if (INCLUDE_DYNAMIC)
 		else()
 			set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
 		endif()	
-		set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
+		set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIBDIR})
 		set_target_properties(dynamiclib PROPERTIES 
-			LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
+			LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 			VERSION ${VERSION}
 			SOVERSION ${SOVERS})
 	endif()
