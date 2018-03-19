@@ -417,7 +417,6 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
-    
     assert(dsp);
     m_siginlets = dsp->getNumInputs();
     m_sigoutlets = dsp->getNumOutputs();
