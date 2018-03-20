@@ -151,10 +151,10 @@ tools: filesCompare impulsellvm impulseinterp
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(CXX) $(TOOLSOPTIONS) $(SRCDIR)/filesCompare.cpp -o filesCompare
 
-impulseinterp: $(SRCDIR)/impulseinterp.cpp ../../build/lib/libfaust.a
+impulseinterp: $(SRCDIR)/impulseinterp.cpp $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulseinterp.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` -o impulseinterp
 
-impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
+impulsellvm: $(SRCDIR)/impulsellvm.cpp $(LIB)
 	$(CXX) $(TOOLSOPTIONS) -Iarchs $(SRCDIR)/impulsellvm.cpp $(LIB) `llvm-config --ldflags --libs all --system-libs` $(WINSOCK) -o impulsellvm
 
 

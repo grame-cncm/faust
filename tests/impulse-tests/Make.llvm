@@ -54,7 +54,7 @@ ir/$(outdir):
 filesCompare: $(SRCDIR)/filesCompare.cpp
 	$(MAKE) filesCompare
 
-impulsellvm: $(SRCDIR)/impulsellvm.cpp ../../build/lib/libfaust.a
+impulsellvm: $(SRCDIR)/impulsellvm.cpp $(LIB)
 	$(MAKE) impulsellvm
 
 

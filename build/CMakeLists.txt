@@ -196,6 +196,15 @@ endif()
 
 
 ####################################
+# compiler dependent settings
+message ("CMAKE_CXX_COMPILER_ID ${CMAKE_CXX_COMPILER_ID}")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+else()
+	set(CMAKE_CXX_FLAGS_DEBUG "-g")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+endif()
+
+####################################
 # Manual LLVM scan
 macro (llvm_config)
 	if ( NOT DEFINED LLVM_CONFIG)
