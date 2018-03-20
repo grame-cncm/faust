@@ -59,18 +59,18 @@ using namespace std;
 #include <llvm/IR/PassManager.h>
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Bitcode/BitcodeWriter.h>
-    #include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
 #else
-    #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
 #if defined(_WIN32) && defined(LLVM_MEM) 
-	#define LLVM_MALLOC "llvm_malloc"
-	#define LLVM_FREE   "llvm_free"
+#define LLVM_MALLOC "llvm_malloc"
+#define LLVM_FREE   "llvm_free"
 #else
-    #define LLVM_MALLOC "malloc"
-    #define LLVM_FREE   "free"
+#define LLVM_MALLOC "malloc"
+#define LLVM_FREE   "free"
 #endif
 
 #define GET_ITERATOR(it) &(*(it))

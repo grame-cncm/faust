@@ -35,7 +35,6 @@
 # pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
-
 #include "faust/gui/UI.h"
 #include "faust/gui/ring-buffer.h"
 

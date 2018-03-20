@@ -77,20 +77,6 @@
 #include <llvm/Support/FileSystem.h>
 #include "llvm/ExecutionEngine/ObjectCache.h"
 
-#define PASS_MANAGER legacy::PassManager
-#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
-#define OwningPtr std::unique_ptr
-#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#define sysfs_binary_flag sys::fs::F_None
-#define STREAM_ERROR std::error_code
-#define MEMORY_BUFFER MemoryBufferRef
-#define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
-#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
-#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-
 using namespace llvm;
 using namespace std;
 
@@ -267,7 +253,6 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
     
-    //std::cout << "getFeaturesStr : " << getFeaturesStr() << std::endl;
 #ifdef LLVM_BUILD_UNIVERSAL
     // For multiple target support
     InitializeAllTargets();

@@ -504,8 +504,8 @@ class ZoneReader
 
     private:
 
-        FAUSTFLOAT*     fZone;
-        Interpolator    fInterpolator;
+        FAUSTFLOAT* fZone;
+        Interpolator fInterpolator;
 
     public:
 

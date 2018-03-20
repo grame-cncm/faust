@@ -43,7 +43,22 @@
 #endif
 
 #include <llvm/ExecutionEngine/ObjectCache.h>
+
 #define LLVM_MAX_OPT_LEVEL 5
+
+#define PASS_MANAGER legacy::PassManager
+#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
+#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+#define OwningPtr std::unique_ptr
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
+#define sysfs_binary_flag sys::fs::F_None
+#define STREAM_ERROR std::error_code
+#define MEMORY_BUFFER MemoryBufferRef
+#define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get()->getMemBufferRef())
+#define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 
 namespace llvm
 {
@@ -99,26 +114,6 @@ class EXPORT llvm_dsp : public dsp {
         virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
     
 };
-
-/*
- static std::string getFeaturesStr()
- {
-     SubtargetFeatures Features;
-     
-     // If user asked for the 'native' CPU, we need to autodetect features.
-     // This is necessary for x86 where the CPU might not support all the
-     // features the autodetected CPU name lists in the target. For example,
-     // not all Sandybridge processors support AVX.
-     StringMap<bool> HostFeatures;
-     if (sys::getHostCPUFeatures(HostFeatures)) {
-        for (auto &F : HostFeatures) {
-            Features.AddFeature(F.first(), F.second);
-        }
-    }
- 
-    return Features.getString();
- }
- */
 
 // Workaround for iOS compiled LLVM 3.6 missing symbol
 #if __IPHONE_OS_VERSION_MIN_REQUIRED >= 50000
