@@ -50,9 +50,9 @@ struct Typed : public Printable
     enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
                 kInt64, kInt64_ptr, kInt64_vec, kInt64_vec_ptr,
                 kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kFloat, kFloatish, kFloat_ptr, kFloat_vec, kFloat_vec_ptr,
-                kFloatMacro, kFloatMacro_ptr,
-                kDouble, kDoublish, kDouble_ptr, kDouble_vec, kDouble_vec_ptr,
+                kFloat, kFloatish, kFloat_ptr, kFloat_ptr_ptr, kFloat_vec, kFloat_vec_ptr,
+                kFloatMacro, kFloatMacro_ptr, kFloatMacro_ptr_ptr,
+                kDouble, kDoublish, kDouble_ptr, kDouble_ptr_ptr, kDouble_vec, kDouble_vec_ptr,
                 kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
                 kVoid, kVoid_ptr, kVoid_ptr_ptr,
                 kObj, kObj_ptr,
@@ -91,8 +91,12 @@ struct Typed : public Printable
         switch (type) {
             case kFloatMacro:
                 return kFloatMacro_ptr;
+            case kFloatMacro_ptr:
+                return kFloatMacro_ptr_ptr;
             case kFloat:
                 return kFloat_ptr;
+            case kFloat_ptr:
+                return kFloat_ptr_ptr;
             case kFloat_vec:
                 return kFloat_vec_ptr;
             case kInt32:
@@ -101,6 +105,8 @@ struct Typed : public Printable
                 return kInt32_vec_ptr;
             case kDouble:
                 return kDouble_ptr;
+            case kDouble_ptr:
+                return kDouble_ptr_ptr;
             case kDouble_vec:
                 return kDouble_vec_ptr;
             case kQuad:
@@ -149,8 +155,12 @@ struct Typed : public Printable
         switch (type) {
             case kFloatMacro_ptr:
                 return kFloatMacro;
+            case kFloatMacro_ptr_ptr:
+                return kFloatMacro_ptr;
             case kFloat_ptr:
                 return kFloat;
+            case kFloat_ptr_ptr:
+                return kFloat_ptr;
             case kFloat_vec_ptr:
                 return kFloat_vec;
             case kInt32_ptr:
@@ -159,6 +169,8 @@ struct Typed : public Printable
                 return kInt32_vec;
             case kDouble_ptr:
                 return kDouble;
+            case kDouble_ptr_ptr:
+                return kDouble_ptr;
             case kQuad_ptr:
                 return kQuad;
             case kDouble_vec_ptr:

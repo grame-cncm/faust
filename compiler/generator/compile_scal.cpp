@@ -753,7 +753,7 @@ string ScalarCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max
 
 string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 {
-    string varname = getFreshID("SF");
+    string varname = getFreshID("fSoundfile");
 
     // SL
     //fClass->addIncludeFile("<atomic>");

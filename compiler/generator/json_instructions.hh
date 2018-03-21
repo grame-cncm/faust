@@ -145,6 +145,11 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
             fPathTable[inst->fZone] = buildPath(inst->fLabel);
         }
     
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
+        }
+    
         void setInputs(int input) { fInputs = input; }
         void setOutputs(int output) { fOutputs = output; }
 };

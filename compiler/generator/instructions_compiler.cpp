@@ -38,6 +38,7 @@
 #include "sigToGraph.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -440,6 +441,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     else if (isSigSoundfile(sig, label))        { return generateSoundfile(sig, label); }
     else if (isSigSoundfileLength(sig, sf))     { return generateSoundfileLength(sig, CS(sf)); }
     else if (isSigSoundfileRate(sig, sf))       { return generateSoundfileRate(sig, CS(sf)); }
+    else if (isSigSoundfileChannels(sig, sf) )  { return generateSoundfileChannels(sig, CS(sf)); }
     else if (isSigSoundfileBuffer(sig, sf, x, y)) { return generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)); }
 
     else if (isSigAttach(sig, x, y))            { CS(y); return generateCacheCode(sig, CS(x)); }
@@ -1313,7 +1315,9 @@ ValueInst* InstructionsCompiler::generateHBargraph(Tree sig, Tree path, Tree min
 
 ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
 {
-    string varname = gGlobal->getFreshID("SF");
+    string varname = gGlobal->getFreshID("fSoundfile");
+    string SFcache = varname + "ca";
+    
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
     
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
@@ -1325,30 +1329,59 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
                                                    block,
                                                    InstBuilder::genBlockInst()));
     
-    pushComputeBlockMethod(InstBuilder::genDecStackVar(varname + "cache",
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache,
                                                     InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                     InstBuilder::genLoadStructVar(varname)));
-    pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStructVar(varname + "cache")));
+    pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
     
     return InstBuilder::genLoadStructVar(varname);
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf)
 {
-    //faustassert(false);
-    return InstBuilder::genNullInst();
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadArrayVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(0));
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf)
 {
-    //faustassert(false);
-    return InstBuilder::genNullInst();
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadArrayVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(1));
+}
+
+ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* sf)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadArrayVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(2));
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
 {
-    //faustassert(false);
-    return InstBuilder::genNullInst();
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    
+    Typed* type1 = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr);
+    Typed* type2 = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    
+    string SFcache = load->fAddress->getName() + "ca";
+    string SFcache_buffer = gGlobal->getFreshID(SFcache + "_bu");
+    string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
+    
+    // Struct access using an index that will be converted as a field name
+    LoadVarInst* load1 = InstBuilder::genLoadArrayVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(3));
+    
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer_chan,
+                                                       InstBuilder::genArrayTyped(type2, 0),
+                                                       InstBuilder::genLoadArrayVar(SFcache_buffer, Address::kStack, x)));
+    
+    return InstBuilder::genLoadArrayVar(SFcache_buffer_chan, Address::kStack, y);
 }
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)

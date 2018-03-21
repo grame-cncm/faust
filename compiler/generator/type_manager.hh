@@ -72,11 +72,16 @@ class CStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kFloat] = "float";
             fTypeDirectTable[Typed::kFloatish] = "floatish";
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloat_ptr_ptr] = "float" + fPtrPosfix + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
+            
+            fTypeDirectTable[Typed::kFloatMacro_ptr] = "FAUSTFLOAT" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "FAUSTFLOAT" + fPtrPosfix + fPtrPosfix;
             
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDoublish] = "doublish";
             fTypeDirectTable[Typed::kDouble_ptr] = "double" + fPtrPosfix;
+            fTypeDirectTable[Typed::kDouble_ptr_ptr] = "double" + fPtrPosfix + fPtrPosfix;;
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
             
             fTypeDirectTable[Typed::kQuad] = "quad";

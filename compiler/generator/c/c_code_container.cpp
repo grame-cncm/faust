@@ -376,6 +376,9 @@ void CScalarCodeContainer::generateCompute(int n)
         // Generates one single scalar loop
         ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
         loop->accept(&fCodeProducer);
+    
+        // Currently for soundfile management
+        generatePostComputeBlock(&fCodeProducer);
 
     tab(n, *fOut); *fOut << "}" << endl;
 }

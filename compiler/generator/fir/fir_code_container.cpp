@@ -260,6 +260,10 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     // Complexity estimation
     dumpCost(loop, dst);
     loop->accept(&firvisitor);
+    
+    // Currently for soundfile management
+    generatePostComputeBlock(&firvisitor);
+    
     *dst << std::endl;
 }
 

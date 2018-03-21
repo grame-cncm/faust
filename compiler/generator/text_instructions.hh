@@ -114,6 +114,20 @@ class TextInstVisitor : public InstVisitor {
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
+            Typed* type;
+            
+            if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
+                type = gGlobal->gVarTypeTable[indexed->getName()];
+                if (type->getType() == Typed::kSound_ptr) {
+                    // Specific code for Soundfile struct access
+                    Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+                    faustassert(field_index);
+                    string field_names[] = {"fLength", "fSampleRate", "fChannels",  "fBuffers"};
+                    *fOut << "->" << field_names[field_index->fNum];
+                    return;
+                }
+            }
+            
             *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
         }
         
