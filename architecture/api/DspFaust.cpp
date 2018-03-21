@@ -199,7 +199,6 @@ audio* DspFaust::createDriver(int sample_rate, int buffer_size)
 #elif DUMMY_DRIVER
     audio* driver = new dummyaudio(sample_rate, buffer_size);
 #endif
-    
     return driver;
 }
 
@@ -209,16 +208,16 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     midi_handler* midi;
 #if JACK_DRIVER
     midi = static_cast<jackaudio_midi*>(driver);
-    fMidiUI = new MidiUI(midi);
+    fMidiInterface = new MidiUI(midi);
 #elif JUCE_DRIVER
     midi = new juce_midi();
-    fMidiUI = new MidiUI(midi, true);
+    fMidiInterface = new MidiUI(midi, true);
 #else
     midi = new rt_midi();
-    fMidiUI = new MidiUI(midi, true);
+    fMidiInterface = new MidiUI(midi, true);
 #endif
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver, midi);
-    fPolyEngine->buildUserInterface(fMidiUI);
+    fPolyEngine->buildUserInterface(fMidiInterface);
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
 #endif
@@ -255,7 +254,7 @@ DspFaust::~DspFaust()
     delete fOSCInterface;
 #endif
 #if MIDICTRL
-    delete fMidiUI;
+    delete fMidiInterface;
 #endif
 #if SOUNDFILE
     delete fSoundInterface;
@@ -272,7 +271,7 @@ bool DspFaust::start()
     fOSCInterface->run();
 #endif
 #if MIDICTRL
-    if (!fMidiUI->run()) {
+    if (!fMidiInterface->run()) {
         std::cerr << "MIDI run error...\n";
     }
 #endif
@@ -285,7 +284,7 @@ void DspFaust::stop()
     fOSCInterface->stop();
 #endif
 #if MIDICTRL
-    fMidiUI->stop();
+    fMidiInterface->stop();
 #endif
 	fPolyEngine->stop();
 }

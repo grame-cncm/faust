@@ -48,7 +48,7 @@ class DspFaust
     #endif
         
     #if MIDICTRL
-        MidiUI* fMidiUI;
+        MidiUI* fMidiInterface;
     #endif
     
     #if SOUNDFILE

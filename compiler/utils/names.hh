@@ -42,19 +42,18 @@ using namespace std;
  * @return true if the expression t was a definition of id
  **/
  
-bool 	getDefNameProperty(Tree t, Tree& id);
+bool getDefNameProperty(Tree t, Tree& id);
 
-void 	setDefNameProperty(Tree t, Tree id);
-void 	setDefNameProperty(Tree t, const string& name);
+void setDefNameProperty(Tree t, Tree id);
+void setDefNameProperty(Tree t, const string& name);
 
 //bool getSigListNickName (Tree t, Tree& id);
 //void setSigListNickName (const siglist&  lsig, const string& nickname);
 
-void setSigListNickName (Tree lsig, const string& nickname);
+void setSigListNickName(Tree lsig, const string& nickname);
 
 void setSigNickname(Tree t, const string& id);
 bool getSigNickname(Tree t, Tree& id);
-
 
 /**
  * Push a new layer and add a single definition.

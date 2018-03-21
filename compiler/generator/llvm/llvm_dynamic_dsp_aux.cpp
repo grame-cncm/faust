@@ -60,11 +60,11 @@
 #include <llvm/IR/LegacyPassManager.h>
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Bitcode/BitcodeWriter.h>
-    #include <llvm/Bitcode/BitcodeReader.h>
-    #include <llvm/Transforms/IPO/AlwaysInliner.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Transforms/IPO/AlwaysInliner.h>
 #elif defined(LLVM_38) || defined(LLVM_39)
-    #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
 #include <llvm/ExecutionEngine/MCJIT.h>

@@ -72,7 +72,7 @@ class jsonfaustui : public UI, public Meta
 		// additionnal methods (not part of UI)
 		//--------------------------------------------
 		void numInput(int n);			// should be called with the inputs number
-		void numOutput(int n);		// should be called with the outputs number
+		void numOutput(int n);          // should be called with the outputs number
 		void declare(const char* , const char*); // global metadata declaration
 
 		//--------------------------------------------

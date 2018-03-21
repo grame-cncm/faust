@@ -328,12 +328,12 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	else if (isBoxPrim0(box, &p0)) 			{ 
 		faustassert(lsig.size()==0); 
-		return makeList( p0() );  
+		return makeList(p0());
 	}
 	
 	else if (isBoxPrim1(box, &p1)) 				{ 
 		faustassert(lsig.size()==1); 
-		return makeList( p1(lsig[0]) );  
+		return makeList(p1(lsig[0]));
 	}
 	
 	else if (isBoxPrim2(box, &p2)) 				{ 
@@ -343,19 +343,19 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
             if (gGlobal->gEnableFlag) {
                 // special case for sigEnable that requires a transformation
                 // enable(X,Y) -> sigEnable(X*Y, Y>0)
-                return makeList( sigEnable( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0)) ) );
+                return makeList(sigEnable( sigMul(lsig[0],lsig[1]), sigGT(lsig[1],sigReal(0.0))));
             } else {
                 // We gEnableFlag is false we replace enable by a simple multiplication
-                return makeList( sigMul(lsig[0],lsig[1]) );
+                return makeList(sigMul(lsig[0],lsig[1]));
             }
         } else if (p2 == &sigControl) {
             if (gGlobal->gEnableFlag) {
                 // special case for sigEnable that requires a transformation
                 // enable(X,Y) -> sigEnable(X*Y, Y>0)
-                return makeList( sigEnable( lsig[0], lsig[1] ) );
+                return makeList(sigEnable( lsig[0], lsig[1]));
             } else {
                 // We gEnableFlag is false we replace control by identity function
-                return makeList( lsig[0] );
+                return makeList(lsig[0]);
             }
         }
         return makeList( p2(lsig[0],lsig[1]) );
@@ -363,17 +363,17 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 	
 	else if (isBoxPrim3(box, &p3)) 				{ 
 		faustassert(lsig.size()==3); 
-		return makeList( p3(lsig[0],lsig[1],lsig[2]) );  
+		return makeList(p3(lsig[0],lsig[1],lsig[2]));
 	}
 	
 	else if (isBoxPrim4(box, &p4)) 				{ 
 		faustassert(lsig.size()==4); 
-		return makeList( p4(lsig[0],lsig[1],lsig[2],lsig[3]) );  
+		return makeList(p4(lsig[0],lsig[1],lsig[2],lsig[3]));
 	}
 	
 	else if (isBoxPrim5(box, &p5)) 				{ 
 		faustassert(lsig.size()==5); 
-		return makeList( p5(lsig[0],lsig[1],lsig[2],lsig[3],lsig[4]) );  
+		return makeList(p5(lsig[0],lsig[1],lsig[2],lsig[3],lsig[4]));
 	}
 	
 	else if (isBoxFFun(box, ff)) 				{ 
@@ -466,7 +466,7 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 			siglist lr = propagate(slotenv, path, t1,lsig);
 			return listConcat(propagate(slotenv, path, t2, listRange(lr, 0, in2)), listRange(lr, in2, out1));
 		} else {
-			return propagate(slotenv, path, t2, listConcat( propagate(slotenv, path, t1, listRange(lsig,0,in1)), listRange(lsig,in1,in1+in2-out1) ) );
+			return propagate(slotenv, path, t2, listConcat( propagate(slotenv, path, t1, listRange(lsig,0,in1)), listRange(lsig,in1,in1+in2-out1)));
 		}
 	}
 	
@@ -475,8 +475,8 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		getBoxType(t1, &in1, &out1);
 		getBoxType(t2, &in2, &out2);
 			
-		return listConcat(	propagate(slotenv, path, t1, listRange(lsig, 0,  in1)), 
-							propagate(slotenv, path, t2, listRange(lsig, in1, in1+in2)) );
+		return listConcat(propagate(slotenv, path, t1, listRange(lsig, 0,  in1)),
+                          propagate(slotenv, path, t2, listRange(lsig, in1, in1+in2)));
 	}
 	
 	else if (isBoxSplit(box, t1, t2)) 	{ 
