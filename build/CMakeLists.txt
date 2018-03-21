@@ -22,7 +22,7 @@ option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
 option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
-option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	off )
+option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
 
 #######################################
 # Check output options
@@ -197,7 +197,6 @@ endif()
 
 ####################################
 # compiler dependent settings
-message ("CMAKE_CXX_COMPILER_ID ${CMAKE_CXX_COMPILER_ID}")
 if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
 else()
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")

@@ -10,6 +10,10 @@ if (IOS)
 endif()
 
 #######################################
+# options
+option ( DYNAMIC 	"Compiles also the libray as dynamic library"	off )
+
+#######################################
 # check for variables that are normally set at upper level
 if (NOT DEFINED LIBDIR)
 	set (LIBDIR lib)
@@ -91,36 +95,47 @@ endif()
 # add libraries
 add_library( httpstatic STATIC  ${SRC})
 target_include_directories (httpstatic PRIVATE ${INCLUDE} )
-add_library( httpdynamic SHARED  ${SRC})
-target_include_directories (httpdynamic PRIVATE ${INCLUDE} )
-set_target_properties(httpdynamic PROPERTIES 
+set (TARGETS httpstatic)
+if (WIN32) 
+	target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
+	if (MSVC)
+		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
+	else()
+		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME ${TARGET})
+	endif()
+	target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
+else()
+	set_target_properties (httpstatic PROPERTIES 
+		OUTPUT_NAME ${TARGET}
+		COMPILE_FLAGS  "${LMHD_CFLAGS}"
+		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
+endif()
+
+if (DYNAMIC)
+	add_library( httpdynamic SHARED  ${SRC})
+	target_include_directories (httpdynamic PRIVATE ${INCLUDE} )
+	set_target_properties(httpdynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
-set (TARGETS httpstatic httpdynamic)
+	set (TARGETS ${TARGETS} httpdynamic)
+	if (WIN32) 
+		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
+		set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
+		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
+	else()
+		set_target_properties(httpdynamic PROPERTIES 
+			OUTPUT_NAME ${TARGET}
+			COMPILE_FLAGS  "${LMHD_CFLAGS}"
+			LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
+	endif()
+
+endif()
 
 file (GLOB HEADERS ${SRCDIR}/include/*.h)
 set_target_properties(${TARGETS} PROPERTIES 
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-
-if (WIN32) 
-	target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
-	target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
-	if (MSVC)
-		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
-	else()
-		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME ${TARGET})
-	endif()
-	set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
-	target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
-	target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
-else()
-	set_target_properties(${TARGETS} PROPERTIES 
-		OUTPUT_NAME ${TARGET}
-		COMPILE_FLAGS  "${LMHD_CFLAGS}"
-		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
-endif()
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
 set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
