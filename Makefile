@@ -29,7 +29,7 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
+.PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 compiler : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION)
@@ -63,17 +63,8 @@ native :
 WORLDTARGETS := all sound2faust # httpd dynamic => these targets are now part of the 'all' target
 world : $(WORLDTARGETS)
 
-dynamic : all httpd
-	$(MAKE) -C $(BUILDLOCATION) dynamiclib
-	$(MAKE) -C $(BUILDLOCATION) oscdynamic
-	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
-#	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
-
 benchmark : all
 	$(MAKE) -C tools/benchmark all
-
-httpd :
-	$(MAKE) -C architecture/httpdlib/src all
 
 remote :
 	$(MAKE) -C embedded/faustremote/RemoteServer all
@@ -118,20 +109,19 @@ sound2faust :
 bench :
 	$(MAKE) -C tools/benchmark
 
-.PHONY: clean depend install uninstall dist parser help
+.PHONY: clean install uninstall dist parser help
 
 help :
 	@echo "===== Faust main makefile ====="
 	@echo "Available targets"
-	@echo " 'compiler' (default) : builds the faust compiler (without the LLVM backend), and the faust osc libraries"
-	@echo " 'all'           : builds the faust compiler, the faust libraries and the faust osc libraries"
+	@echo " 'compiler' (default) : builds the faust compiler (without the LLVM backend), and the faust osc and httpd libraries"
+	@echo " 'all'           : builds the faust compiler, the faust static library and the faust osc and httpd libraries"
 	@echo "                   see the build/Makefile for more build options (> make -C build help)"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"
 	@echo " 'wasm'          : builds the faust web assembly library"
 	@echo " 'world'         : call the $(WORLDTARGETS) targets"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
-	@echo " 'httpd'         : builds the libHTTPDFaust.a library"
 	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
 	@echo " 'parser'        : generates the parser from the lex and yacc files"
@@ -148,7 +138,6 @@ help :
 	@echo " 'ios'           : [iOS] build the faust static library for iOS"
 	@echo 
 	@echo "Utilities targets:"
-	@echo " 'depend'           : generate dependencies for httpdlib"
 	@echo " 'man'              : generate the faust man page"
 	@echo " 'doc'              : generate the documentation using doxygen"
 	@echo " 'doclib'           : generate the documentation of the faust libraries"
@@ -200,11 +189,6 @@ clean :
 	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean
 	$(MAKE) -C tools/benchmark clean
-
-depend :
-#	$(MAKE) -C compiler -f $(MAKEFILE) depend
-#	$(MAKE) -C architecture/osclib depend
-	$(MAKE) -C architecture/httpdlib/src depend
 
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
