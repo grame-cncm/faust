@@ -8,6 +8,10 @@ set (VERSION 1.0.0)
 set (SOVERS 1)
 
 #######################################
+# options
+option ( DYNAMIC 	"Compiles also the libray as dynamic library"	off )
+
+#######################################
 # check for variables that are normally set at upper level
 if (NOT DEFINED LIBDIR)
 	set (LIBDIR lib)
@@ -53,13 +57,21 @@ endif()
 add_library( oscstatic STATIC ${SRC} ${PLATFORM_SRC})
 target_include_directories (oscstatic PRIVATE ${INCLUDE} )
 set (TARGETS oscstatic)
-if (NOT IOS)
+if (NOT IOS AND DYNAMIC)
 	add_library( oscdynamic SHARED ${SRC} ${PLATFORM_SRC} )
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} oscdynamic)
+
+	if (WIN32) 
+		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
+		target_link_libraries(oscdynamic ws2_32 winmm)
+	else()
+		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
+	endif()
+
 endif()
 
 
@@ -85,12 +97,9 @@ else()
 		else()
 			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
 		endif()
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 		target_link_libraries(oscstatic  ws2_32 winmm)
-		target_link_libraries(oscdynamic ws2_32 winmm)
 	else()
 		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
 
 	#######################################

@@ -32,19 +32,14 @@ zname := faust-$(version)
 .PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 compiler : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=regular.cmake
 	$(MAKE) -C $(BUILDLOCATION)
-	$(MAKE) -C build osc
 	
 all : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) configstatic
 	$(MAKE) -C $(BUILDLOCATION)
-	$(MAKE) -C build staticlib
-	$(MAKE) -C build osc
 
 universal :
 	$(MAKE) -C $(BUILDLOCATION) universal
-	$(MAKE) -C build staticlib
-	$(MAKE) -C build osc
 	@echo 
 	@echo "### Universal mode is ON"
 	@echo "### You need to recompile"

@@ -28,7 +28,7 @@ DESTDIR ?=
 .PHONY: faust install uninstall osc http
 
 MAKE ?= make
-CMAKEOPT ?= 
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
 BUILDOPT ?= --config Release
 
 #===============================================================
@@ -63,15 +63,15 @@ clean:
 help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
-	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust and osc)."
+	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
 	@echo " 'faust' 	 : builds the FAUST compiler."
-	@echo " 'staticlib'  : builds the FAUST static library (requires configstatic)."
-	@echo " 'dynamiclib' : builds the FAUST dynamic library (requires configdynamic)."
-	@echo " 'wasmlib'    : builds the FAUST compiler as a Web Assembly library"
-	@echo " 'asmjslib'   : builds the FAUST compiler as a ASM JS library"
-	@echo " 'ios'        : builds the static lib for iOS (makes use of the ios.cmake backend)"
-	@echo " 'osc'        : builds the static and dynamic Faust OSC libraries"
-	@echo " 'http'       : builds the static and dynamic Faust HTTPD libraries (requires confighttp)"
+	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
+	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
+	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
+	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
+	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
+	@echo " 'osc'        : builds the static Faust OSC libraries"
+	@echo " 'http'       : builds the static Faust HTTPD libraries"
 	@echo " 'clean'      : removes the output of the 'all' targets"
 	@echo
 	@echo "Available options:"
@@ -90,10 +90,8 @@ help:
 	@echo "the following targets do not recompile but change the cmake generated project."
 	@echo " 'configstatic'  : includes the static library in the project."
 	@echo " 'configdynamic' : includes the dynamic library in the project."
-	@echo " 'configlibs'    : includes the static and dynamic libraries in the project (configstatic + configdynamic)."
-	@echo " 'confighttp'    : includes the httpd library in the project."
 	@echo " 'configall'     : includes all libraries in the project."
-	@echo " 'reset'      : reset the project to the basic targets (faust and osc)."
+	@echo " 'reset'      : reset the project to the basic targets (faust, osc and http)."
 	@echo " 'cmake'      : regenerate the project using the current config"
 	@echo
 	@echo "Utilities targets:"
@@ -111,9 +109,6 @@ help:
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 	@echo "------ see also the README.md file ------"
 
-test:
-	@echo GENERATOR $(GENERATOR)
-	@echo BACKENDS  $(BACKENDS)
 	
 faust: $(PROJ) 
 	cmake --build $(FAUSTDIR) --target faust $(BUILDOPT) -- $(JOBS)
@@ -150,7 +145,7 @@ dynamiclib: $(PROJ)
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
-ios: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
+ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
 	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
 	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
 
@@ -180,23 +175,26 @@ cmake: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -G '$(GENERATOR)' ..
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 
-configlibs: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on ..
-
+configstatic: STATIC ?= on
 configstatic: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on ..
+	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) ..
 
+configdynamic: DYNAMIC ?= on
 configdynamic: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=on ..
+	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=$(DYNAMIC) ..
 
+confighttp: HTTP ?= on
 confighttp: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=on ..
 
 configall: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
+reset: STATIC ?= off
+reset: DYNAMIC ?= off
+reset: HTTP ?= on
 reset: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=off -DINCLUDE_DYNAMIC=off -DINCLUDE_HTTP=off ..
+	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
 
 
 #===============================================================
