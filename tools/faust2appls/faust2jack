@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to JACK-GTK                 #
-#               (c) Grame, 2009-2017                                #
+#               (c) Grame, 2009-2018                                #
 #                                                                   #
 #####################################################################
 
@@ -41,6 +41,8 @@ SOUNDFILELIBS=""
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation"
+else
+    ARCHLIB+=" `pkg-config --cflags --libs alsa`"
 fi
 
 #PHASE 2 : dispatch command arguments
@@ -114,7 +116,7 @@ for f in $FILES; do
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
