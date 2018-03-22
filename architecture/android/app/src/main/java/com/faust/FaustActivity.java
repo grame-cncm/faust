@@ -373,6 +373,7 @@ public class FaustActivity extends Activity {
             Osc.stopListening();
             dspFaust.stop(); // TODO: not sure if needed
     		dspFaust.delete();
+        dspFaust = null;
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
         parametersInfo.saveParameters(settings);
