@@ -111,13 +111,11 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-static void dumpModule(Module* module)
-{
-    string res;
-    raw_string_ostream out_str(res);
-    out_str << *module;
-    std::cout << out_str.str();
-}
+#define dumpLLVM(val) \
+    string res; \
+    raw_string_ostream out_str(res); \
+    out_str << *val; \
+    std::cout << out_str.str(); \
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
@@ -449,7 +447,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             #else
                 TargetRegistry::printRegisteredTargetsForVersion();
             #endif
-                dumpModule(fModule);
+                dumpLLVM(fModule);
             }
            
             fpm.doInitialization();
@@ -472,7 +470,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             pm.run(*fModule);
             
             if ((debug_var != "") && (debug_var.find("FAUST_LLVM2") != string::npos)) {
-                dumpModule(fModule);
+                dumpLLVM(fModule);
             }
         }
         

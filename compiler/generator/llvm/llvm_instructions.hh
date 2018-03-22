@@ -87,7 +87,13 @@ using namespace std;
 
 using namespace llvm;
 
-typedef llvm::Value* LlvmValue;
+typedef llvm::Value* LLVMValue;
+
+#define dumpLLVM(val) \
+    string res; \
+    raw_string_ostream out_str(res); \
+    out_str << *val; \
+    std::cout << out_str.str(); \
 
 // Helper class
 
@@ -103,6 +109,7 @@ struct LLVMTypeHelper {
         // LLVM type coding
         fTypeMap[Typed::kFloat] = llvm::Type::getFloatTy(module->getContext());
         fTypeMap[Typed::kFloat_ptr] = PointerType::get(fTypeMap[Typed::kFloat], 0);
+        fTypeMap[Typed::kFloat_ptr_ptr] = PointerType::get(fTypeMap[Typed::kFloat_ptr], 0);
         fTypeMap[Typed::kFloat_vec] = VectorType::get(fTypeMap[Typed::kFloat], gGlobal->gVecSize);
         fTypeMap[Typed::kFloat_vec_ptr] = PointerType::get(fTypeMap[Typed::kFloat_vec], 0);
 
@@ -113,6 +120,7 @@ struct LLVMTypeHelper {
 
         fTypeMap[Typed::kDouble] = llvm::Type::getDoubleTy(module->getContext());
         fTypeMap[Typed::kDouble_ptr] = PointerType::get(fTypeMap[Typed::kDouble], 0);
+        fTypeMap[Typed::kDouble_ptr_ptr] = PointerType::get(fTypeMap[Typed::kDouble_ptr], 0);
         fTypeMap[Typed::kDouble_vec] = VectorType::get(fTypeMap[Typed::kDouble], gGlobal->gVecSize);
         fTypeMap[Typed::kDouble_vec_ptr] = PointerType::get(fTypeMap[Typed::kDouble_vec], 0);
 
@@ -124,18 +132,22 @@ struct LLVMTypeHelper {
         // Takes the type of internal real
         fTypeMap[Typed::kFloatMacro] = fTypeMap[itfloat()];
         fTypeMap[Typed::kFloatMacro_ptr] = PointerType::get(fTypeMap[Typed::kFloatMacro], 0);
+        fTypeMap[Typed::kFloatMacro_ptr_ptr] = PointerType::get(fTypeMap[Typed::kFloatMacro_ptr], 0);
 
         fTypeMap[Typed::kVoid] = llvm::Type::getVoidTy(module->getContext());
         
         // void* must be defined as i8* type
         fTypeMap[Typed::kVoid_ptr] = PointerType::get(llvm::Type::getInt8Ty(module->getContext()), 0);
         fTypeMap[Typed::kVoid_ptr_ptr] = PointerType::get(fTypeMap[Typed::kVoid_ptr], 0);
+        
+        // Soundfile defined as i8* type
+        fTypeMap[Typed::kSound_ptr] = PointerType::get(llvm::Type::getInt8Ty(module->getContext()), 0);
     }
 
     virtual ~LLVMTypeHelper()
     {}
 
-    virtual LlvmValue genInt1(Module* module, int number, int size = 1)
+    virtual LLVMValue genInt1(Module* module, int number, int size = 1)
     {
         if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt1Ty(module->getContext()), size), number);
@@ -144,7 +156,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LlvmValue genInt32(Module* module, int number, int size = 1)
+    virtual LLVMValue genInt32(Module* module, int number, int size = 1)
     {
         if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(module->getContext()), size), number);
@@ -153,7 +165,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LlvmValue genInt64(Module* module, long long number, int size = 1)
+    virtual LLVMValue genInt64(Module* module, long long number, int size = 1)
     {
         if (size > 1) {
             return ConstantInt::get(VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size), number);
@@ -162,7 +174,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LlvmValue genFloat(Module* module, float number, int size = 1)
+    virtual LLVMValue genFloat(Module* module, float number, int size = 1)
     {
         if (size > 1) {
             return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(module->getContext()), size), number);
@@ -171,7 +183,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LlvmValue genDouble(Module* module, double number, int size = 1)
+    virtual LLVMValue genDouble(Module* module, double number, int size = 1)
     {
         if (size > 1) {
             return ConstantFP::get(VectorType::get(llvm::Type::getDoubleTy(module->getContext()), size), number);
@@ -225,6 +237,7 @@ struct LLVMTypeHelper {
         }
     }
     
+    // Convert FIR types in LLVM types
     LLVM_TYPE convertFIRType(Module* module, Typed* type)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
@@ -262,12 +275,15 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         Module* fModule;
         IRBuilder<>* fBuilder;
-        LlvmValue fSize;
+    
+        // DSP struct size in bytes coded as a LLVMValue
+        LLVMValue fSize;
    
         // DSP structure creation
-        std::map<string, int> fDSPFieldsNames;
-        VECTOR_OF_TYPES fDSPFields;
-        int fDSPFieldsCounter;
+        std::map<string, int> fDSPFieldsNames;      // map of field names and indexes
+        VECTOR_OF_TYPES fDSPFields;                 // vector of LLVM types (for each field)
+        int fDSPFieldsCounter;                      // fields counter
+    
         string fPrefix;
         DataLayout* fDataLayout;
   
@@ -276,7 +292,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         // UI structure creation
         llvm::PointerType* fStruct_UI_ptr;
-        LlvmValue fUIInterface_ptr;
+        LLVMValue fUIInterface_ptr;
     
         llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
         {
@@ -595,7 +611,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             delete fDataLayout;
         }
     
-        LlvmValue getSize() { return fSize; }
+        LLVMValue getSize() { return fSize; }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -671,7 +687,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
             
             fSize = genInt32(fModule, fDataLayout->getTypeSizeInBits(dsp_type));
-
+            
+            //dumpLLVM(dsp_type);
+            
             return dsp_type_ptr;
         }
 
@@ -685,7 +703,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             return fStruct_Meta_ptr;
         }
 
-        LlvmValue getUIPtr()
+        LLVMValue getUIPtr()
         {
             return fUIInterface_ptr;
         }
@@ -778,17 +796,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         IRBuilder<>* fBuilder;
         IRBuilder<>* fAllocaBuilder;    // To be used for "alloca", which have to be added in the first "entry" block of the function.
     
-        map<string, LlvmValue> fUICallTable;
+        map<string, LLVMValue> fUICallTable;
 
         // UI structure creation
-        LlvmValue fUIInterface_ptr;                 // Pointer on the UI
+        LLVMValue fUIInterface_ptr;                 // Pointer on the UI
 
         llvm::PointerType* fStructDSP;
 
         std::map<string, int> fDSPFieldsNames;      // Computed by LLVMTypeInstVisitor, used to access struct fields
-        std::map<string, LlvmValue> fDSPStackVars;  // Variables on the stack
+        std::map<string, LLVMValue> fDSPStackVars;  // Variables on the stack
 
-        LlvmValue fCurValue;                        // Current result of the compilation
+        LLVMValue fCurValue;                        // Current result of the compilation
         string fPrefix;                             // Prefix for function name
 
         map <string, GlobalVariable*> fGlobalStringTable;
@@ -799,7 +817,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LLVMInstVisitor(Module* module, IRBuilder<>* builder, IRBuilder<>* alloca_builder,
                         const std::map<string, int>& field_names,
-                        LlvmValue ui_ptr,
+                        LLVMValue ui_ptr,
                         llvm::PointerType* dsp_ptr,
                         const string& prefix = "")
                         :fModule(module),
@@ -910,7 +928,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         void printVarTable()
         {
-            std::map<string, LlvmValue>::const_iterator it;
+            std::map<string, LLVMValue>::const_iterator it;
             for (it = fDSPStackVars.begin(); it != fDSPStackVars.end(); it++) {
                 printf("stack var = %s \n", (*it).first.c_str());
             }
@@ -1015,7 +1033,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
         #endif
             
-            LlvmValue mth_index;
+            LLVMValue mth_index;
             switch (inst->fOrient) {
                 case 0: mth_index = fUICallTable["openVerticalBox"]; break;
                 case 1: mth_index = fUICallTable["openHorizontalBox"];  break;
@@ -1775,11 +1793,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Keep result of first arg compilation
             inst->fInst1->accept(this);
-            LlvmValue res1 = fCurValue;
+            LLVMValue res1 = fCurValue;
 
             // Keep result of second arg compilation
             inst->fInst2->accept(this);
-            LlvmValue res2 = fCurValue;
+            LLVMValue res2 = fCurValue;
 
             fCurValue = generateBinopAux(inst->fOpcode, res1, res2, inst->fSize);
         }
@@ -1863,7 +1881,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         void generateFunPolymorphicMinMax(FunCallInst* inst)
         {
-            vector<LlvmValue> fun_args;
+            vector<LLVMValue> fun_args;
 
             // Compile all arguments
             for (list<ValueInst*>::const_iterator it = inst->fArgs.begin(); it != inst->fArgs.end(); it++) {
@@ -1896,7 +1914,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
 
             // Compile arguments
-            vector<LlvmValue> fun_args;
+            vector<LLVMValue> fun_args;
             list<ValueInst*>::const_iterator it;
             Function* function = fModule->getFunction(gGlobal->getMathFunction(inst->fName));
   
@@ -2286,7 +2304,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // Helper code
         //==============
 
-        LlvmValue generateScalarSelect(int opcode, LlvmValue cond_value, LlvmValue then_value, LlvmValue else_value, int size)
+        LLVMValue generateScalarSelect(int opcode, LLVMValue cond_value, LLVMValue then_value, LLVMValue else_value, int size)
         {
             if (size == 1) {
                 return fBuilder->CreateSelect(cond_value, then_value, else_value);
@@ -2314,14 +2332,14 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinOpReal(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LLVMValue generateBinOpReal(int opcode, LLVMValue arg1, LLVMValue arg2, int size)
         {
             if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateFCmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
                 // Inst result for comparison
                 return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
             } else {
-                LlvmValue value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
+                LLVMValue value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
                 Instruction* inst = cast<Instruction>(value);
                 inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
                 inst->setFastMathFlags(fBuilder->getFastMathFlags());
@@ -2329,7 +2347,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinOpInt32_64(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LLVMValue generateBinOpInt32_64(int opcode, LLVMValue arg1, LLVMValue arg2, int size)
         {
             if (isBoolOpcode(opcode)) {
                 Value* comp_value = fBuilder->CreateICmp((CmpInst::Predicate)gBinOpTable[opcode]->fLLVMIntInst, arg1, arg2);
@@ -2340,7 +2358,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateBinopAux(int opcode, LlvmValue arg1, LlvmValue arg2, int size)
+        LLVMValue generateBinopAux(int opcode, LLVMValue arg1, LLVMValue arg2, int size)
         {
             faustassert(arg1);
             faustassert(arg2);
@@ -2368,7 +2386,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        LlvmValue generateFunPolymorphicMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
+        LLVMValue generateFunPolymorphicMinMaxAux(Value* arg1, Value* arg2, int size, int comparator)
         {
             if (arg1->getType() == getFloatTy(fModule, size) && arg2->getType() == getFloatTy(fModule, size)) {
 

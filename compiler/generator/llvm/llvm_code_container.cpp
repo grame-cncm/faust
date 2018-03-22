@@ -679,7 +679,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     fBuilder->ClearInsertionPoint();
 }
 
-void LLVMCodeContainer::generateGetSize(LlvmValue size)
+void LLVMCodeContainer::generateGetSize(LLVMValue size)
 {
     VECTOR_OF_TYPES llvm_getSize_args;
     FunctionType* llvm_getSize_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
@@ -985,7 +985,7 @@ void LLVMOpenMPCodeContainer::generateOMPCompute()
 
 void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 {
-    vector<LlvmValue> fun_args;
+    vector<LLVMValue> fun_args;
     Function* dsp_omp_compute = fModule->getFunction("dsp_omp_compute");
     CallInst* call_inst = CREATE_CALL(dsp_omp_compute, fun_args);
     call_inst->setCallingConv(CallingConv::C);
@@ -993,7 +993,7 @@ void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 
 void LLVMOpenMPCodeContainer::generateGOMP_parallel_start()
 {
-    vector<LlvmValue> fun_args;
+    vector<LLVMValue> fun_args;
     Function* GOMP_parallel_start = fModule->getFunction("GOMP_parallel_start");
     CallInst* call_inst = CREATE_CALL(GOMP_parallel_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
@@ -1006,7 +1006,7 @@ void LLVMOpenMPCodeContainer::generateGOMP_parallel_end()
     call_inst->setCallingConv(CallingConv::C);
 }
 
-LlvmValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
+LLVMValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
 {
     Function* GOMP_single_start = fModule->getFunction("GOMP_single_start");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_single_start);
@@ -1021,10 +1021,10 @@ void LLVMOpenMPCodeContainer::generateGOMP_barrier()
     call_inst->setCallingConv(CallingConv::C);
 }
 
-void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LlvmValue number)
+void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LLVMValue num)
 {
-    vector<LlvmValue> fun_args;
-    fun_args[0] = number;
+    vector<LLVMValue> fun_args;
+    fun_args[0] = num;
     Function* GOMP_sections_start = fModule->getFunction("GOMP_sections_start");
     CallInst* call_inst = CREATE_CALL(GOMP_sections_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);

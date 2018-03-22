@@ -94,37 +94,37 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateBuildUserInterfaceBegin();
         void generateBuildUserInterfaceEnd();
     
-        void generateGetSize(LlvmValue size);
+        void generateGetSize(LLVMValue size);
     
-        LlvmValue genInt1(int number)
+        LLVMValue genInt1(int num)
         {
-            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), num);
         }
 
-        LlvmValue genInt32(int number)
+        LLVMValue genInt32(int num)
         {
-            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), num);
         }
 
-        LlvmValue genInt64(int number)
+        LLVMValue genInt64(int num)
         {
-            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), num);
         }
 
-        LlvmValue genFloat(const string& number)
+        LLVMValue genFloat(const string& num)
         {
         #if defined(LLVM_60)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), num));
         #elif defined(LLVM_40) || defined(LLVM_50)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), num));
         #else
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));
+            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, num));
         #endif
         }
 
-        LlvmValue genFloat(float number)
+        LLVMValue genFloat(float num)
         {
-            return ConstantFP::get(getContext(), APFloat(number));
+            return ConstantFP::get(getContext(), APFloat(num));
         }
         
         LLVMContext& getContext();
@@ -187,9 +187,9 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
 
         void generateGOMP_parallel_start();
         void generateGOMP_parallel_end();
-        LlvmValue generateGOMP_single_start();
+        LLVMValue generateGOMP_single_start();
         void generateGOMP_barrier();
-        void generateGOMP_sections_start(LlvmValue number);
+        void generateGOMP_sections_start(LLVMValue num);
         void generateGOMP_sections_end();
         void generateGOMP_sections_next();
 
