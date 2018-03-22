@@ -17,7 +17,8 @@
  ************************************************************************/
 
 #include <math.h>
-#include "faust/gui/CUI.h"
+#include "faust/gui/CGlue.h"
+#include "faust/gui/SoundUI.h"
 
 #define max(a,b) ((a < b) ? b : a)
 #define min(a,b) ((a < b) ? a : b)

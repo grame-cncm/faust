@@ -22,6 +22,7 @@
 #include "compatibility.hh"
 #include "llvm_code_container.hh"
 #include "llvm_instructions.hh"
+#include "llvm_dynamic_dsp_aux.hh"
 #include "exception.hh"
 #include "global.hh"
 
@@ -601,14 +602,14 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     fBuilder->SetInsertPoint(entry_block);
     
     Value* idx0[2];
-    idx0[0] = genInt64(0);
-    idx0[1] = genInt32(0);
+    idx0[0] = LLVMTypeHelper::genInt64(fModule, 0);
+    idx0[1] = LLVMTypeHelper::genInt32(fModule, 0);
     Value* meta_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx0, idx0+2));
     LoadInst* load_meta_ptr = fBuilder->CreateLoad(meta_ptr);
 
     Value* idx1[2];
-    idx1[0] = genInt64(0);
-    idx1[1] = genInt32(1);
+    idx1[0] = LLVMTypeHelper::genInt64(fModule, 0);
+    idx1[1] = LLVMTypeHelper::genInt32(fModule, 1);
     Value* mth_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx1, idx1+2));
     LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
@@ -750,6 +751,8 @@ void LLVMCodeContainer::produceInternal()
     // Fill
     string counter = "count";
     generateFillBegin(counter);
+    
+    //dumpLLVM(fModule);
 
     generateComputeBlock(fCodeProducer);
 

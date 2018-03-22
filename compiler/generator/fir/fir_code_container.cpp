@@ -235,6 +235,15 @@ void FirCodeContainer::produceClass()
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
     
+    *fOut << "======= External types declaration ==========" << std::endl;
+    *fOut << std::endl;
+    map<Typed::VarType, DeclareStructTypeInst*>::const_iterator it;
+    for (it = gGlobal->gExternalStructTypes.begin(); it != gGlobal->gExternalStructTypes.end(); it++) {
+        ((*it).second)->accept(&firvisitor);
+        *fOut << std::endl;
+    }
+    *fOut << std::endl;
+    
     dumpSubContainers(firvisitor, fOut);
     dumpUserInterface(firvisitor, fOut);
     dumpGlobalsAndInit(firvisitor, fOut);

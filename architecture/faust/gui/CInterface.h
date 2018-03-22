@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef FAUST_CUI_H
-#define FAUST_CUI_H
+#ifndef CINTERFACE_H
+#define CINTERFACE_H
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float

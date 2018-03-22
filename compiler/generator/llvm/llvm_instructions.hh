@@ -89,11 +89,7 @@ using namespace llvm;
 
 typedef llvm::Value* LLVMValue;
 
-#define dumpLLVM(val) \
-    string res; \
-    raw_string_ostream out_str(res); \
-    out_str << *val; \
-    std::cout << out_str.str(); \
+#define dumpLLVM(val) { string res; raw_string_ostream out_str(res); out_str << *val; std::cout << out_str.str() << std::endl; }
 
 // Helper class
 
@@ -140,59 +136,65 @@ struct LLVMTypeHelper {
         fTypeMap[Typed::kVoid_ptr] = PointerType::get(llvm::Type::getInt8Ty(module->getContext()), 0);
         fTypeMap[Typed::kVoid_ptr_ptr] = PointerType::get(fTypeMap[Typed::kVoid_ptr], 0);
         
-        // Soundfile defined as i8* type
-        fTypeMap[Typed::kSound_ptr] = PointerType::get(llvm::Type::getInt8Ty(module->getContext()), 0);
+        // External structured type definition
+        map<Typed::VarType, DeclareStructTypeInst*>::const_iterator it;
+        for (it = gGlobal->gExternalStructTypes.begin(); it != gGlobal->gExternalStructTypes.end(); it++) {
+            LLVM_TYPE new_type = convertFIRType(module, ((*it).second)->fType);
+            fTypeMap[(*it).first] = new_type;
+            faustassert(Typed::getPtrFromType((*it).first));
+            fTypeMap[Typed::getPtrFromType((*it).first)] = PointerType::get(new_type, 0);
+        }
     }
 
     virtual ~LLVMTypeHelper()
     {}
 
-    virtual LLVMValue genInt1(Module* module, int number, int size = 1)
+    static LLVMValue genInt1(Module* module, int num, int size = 1)
     {
         if (size > 1) {
-            return ConstantInt::get(VectorType::get(llvm::Type::getInt1Ty(module->getContext()), size), number);
+            return ConstantInt::get(VectorType::get(llvm::Type::getInt1Ty(module->getContext()), size), num);
         } else {
-            return ConstantInt::get(llvm::Type::getInt1Ty(module->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt1Ty(module->getContext()), num);
         }
     }
 
-    virtual LLVMValue genInt32(Module* module, int number, int size = 1)
+    static LLVMValue genInt32(Module* module, int num, int size = 1)
     {
         if (size > 1) {
-            return ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(module->getContext()), size), number);
+            return ConstantInt::get(VectorType::get(llvm::Type::getInt32Ty(module->getContext()), size), num);
         } else {
-            return ConstantInt::get(llvm::Type::getInt32Ty(module->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt32Ty(module->getContext()), num);
         }
     }
 
-    virtual LLVMValue genInt64(Module* module, long long number, int size = 1)
+    static LLVMValue genInt64(Module* module, long long num, int size = 1)
     {
         if (size > 1) {
-            return ConstantInt::get(VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size), number);
+            return ConstantInt::get(VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size), num);
         } else {
-            return ConstantInt::get(llvm::Type::getInt64Ty(module->getContext()), number);
+            return ConstantInt::get(llvm::Type::getInt64Ty(module->getContext()), num);
         }
     }
 
-    virtual LLVMValue genFloat(Module* module, float number, int size = 1)
+    static LLVMValue genFloat(Module* module, float num, int size = 1)
     {
         if (size > 1) {
-            return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(module->getContext()), size), number);
+            return ConstantFP::get(VectorType::get(llvm::Type::getFloatTy(module->getContext()), size), num);
         } else {
-            return ConstantFP::get(module->getContext(), APFloat(number));
+            return ConstantFP::get(module->getContext(), APFloat(num));
         }
     }
 
-    virtual LLVMValue genDouble(Module* module, double number, int size = 1)
+    static LLVMValue genDouble(Module* module, double num, int size = 1)
     {
         if (size > 1) {
-            return ConstantFP::get(VectorType::get(llvm::Type::getDoubleTy(module->getContext()), size), number);
+            return ConstantFP::get(VectorType::get(llvm::Type::getDoubleTy(module->getContext()), size), num);
         } else {
-            return ConstantFP::get(module->getContext(), APFloat(number));
+            return ConstantFP::get(module->getContext(), APFloat(num));
         }
     }
 
-    virtual LLVM_TYPE getFloatTy(Module* module, int size)
+    static LLVM_TYPE getFloatTy(Module* module, int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getFloatTy(module->getContext()), size);
@@ -201,7 +203,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LLVM_TYPE getInt32Ty(Module* module, int size)
+    static LLVM_TYPE getInt32Ty(Module* module, int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getInt32Ty(module->getContext()), size);
@@ -210,7 +212,7 @@ struct LLVMTypeHelper {
         }
     }
     
-    virtual LLVM_TYPE getInt64Ty(Module* module, int size)
+    static LLVM_TYPE getInt64Ty(Module* module, int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getInt64Ty(module->getContext()), size);
@@ -219,7 +221,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LLVM_TYPE getInt1Ty(Module* module, int size)
+    static LLVM_TYPE getInt1Ty(Module* module, int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getInt1Ty(module->getContext()), size);
@@ -228,7 +230,7 @@ struct LLVMTypeHelper {
         }
     }
 
-    virtual LLVM_TYPE getDoubleTy(Module* module, int size)
+    static LLVM_TYPE getDoubleTy(Module* module, int size)
     {
         if (size > 1) {
             return VectorType::get(llvm::Type::getDoubleTy(module->getContext()), size);
@@ -237,21 +239,25 @@ struct LLVMTypeHelper {
         }
     }
     
-    // Convert FIR types in LLVM types
+    // Convert FIR types to LLVM types
     LLVM_TYPE convertFIRType(Module* module, Typed* type)
     {
         BasicTyped* basic_typed = dynamic_cast<BasicTyped*>(type);
         NamedTyped* named_typed = dynamic_cast<NamedTyped*>(type);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
         VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+        StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
     
         if (basic_typed) {
             return fTypeMap[basic_typed->fType];
         } else if (named_typed) {
-            // Used for internal structures (RWTable... etc...)
             LLVM_TYPE type = module->getTypeByName("struct.dsp" + named_typed->fName);
-            faustassert(type);
-            return PointerType::get(type, 0);
+            // Subcontainer type (RWTable...)
+            if (type) {
+                return PointerType::get(type, 0);
+            } else {
+                return convertFIRType(module, named_typed->fType);
+            }
         } else if (array_typed) {
             // Arrays of 0 size are actually pointers on the type
             if (array_typed->fSize == 0) {
@@ -261,12 +267,25 @@ struct LLVMTypeHelper {
             }
         } else if (vector_typed) {
             return VectorType::get(fTypeMap[vector_typed->fType->fType], vector_typed->fSize);
+        } else if (struct_typed) {
+            VECTOR_OF_TYPES llvm_types;
+            vector<NamedTyped*>::const_iterator it;
+            for (it = struct_typed->fFields.begin(); it != struct_typed->fFields.end(); it++) {
+                llvm_types.push_back(convertFIRType(module, *it));
+            }
+            return createStructType(module->getContext(), "struct.dsp" + struct_typed->fName, llvm_types);
+        } else {
+            faustassert(false);
+            return NULL;
         }
-        
-        faustassert(false);
-        return NULL;
     }
 
+    static llvm::StructType* createStructType(LLVMContext& context, string name, VECTOR_OF_TYPES types)
+    {
+        StructType* struct_type = StructType::create(context, name);
+        struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
+        return struct_type;
+    }
 };
 
 class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
@@ -293,13 +312,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         // UI structure creation
         llvm::PointerType* fStruct_UI_ptr;
         LLVMValue fUIInterface_ptr;
-    
-        llvm::StructType* createType(string name, VECTOR_OF_TYPES types)
-        {
-            StructType* struct_type = StructType::create(fModule->getContext(), name);
-            struct_type->setBody(MAKE_VECTOR_OF_TYPES(types));
-            return struct_type;
-        }
     
         virtual void generateFreeDsp(llvm::PointerType* dsp_type_ptr, bool internal)
         {
@@ -426,7 +438,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
             fStructTy_struct_Meta_fields.push_back(PointerTy_1);
 
-            StructType* fStructTy_struct_Meta = createType("struct.MetaGlue", fStructTy_struct_Meta_fields);
+            StructType* fStructTy_struct_Meta = LLVMTypeHelper::createStructType(fModule->getContext(), "struct.MetaGlue", fStructTy_struct_Meta_fields);
             fStruct_Meta_ptr = PointerType::get(fStructTy_struct_Meta, 0);
         }
 
@@ -525,7 +537,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
             FuncTy_19_args.push_back(PointerTy_0);
-            FuncTy_19_args.push_back(PointerTy_0);
+            FuncTy_19_args.push_back(PointerType::get(fTypeMap[Typed::kSound_ptr], 0));
             FunctionType* FuncTy_19 = FunctionType::get(
             /*Result=*/llvm::Type::getVoidTy(fModule->getContext()),
             /*Params=*/MAKE_VECTOR_OF_TYPES(FuncTy_19_args),
@@ -551,7 +563,10 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // declareFun
             StructTy_struct_UIGlue_fields.push_back(PointerTy_17);
 
-            llvm::StructType* fStruct_UI = createType("struct.UIGlue", StructTy_struct_UIGlue_fields);
+            llvm::StructType* fStruct_UI = LLVMTypeHelper::createStructType(fModule->getContext(), "struct.UIGlue", StructTy_struct_UIGlue_fields);
+            
+            //dumpLLVM(fStruct_UI);
+            
             fStruct_UI_ptr = PointerType::get(fStruct_UI, 0);
         }
 
@@ -666,7 +681,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         llvm::PointerType* getDSPType(bool internal, bool generate_ui = true)
         {
-            llvm::StructType* dsp_type = createType("struct.dsp" + fPrefix, fDSPFields);
+            llvm::StructType* dsp_type = LLVMTypeHelper::createStructType(fModule->getContext(), "struct.dsp" + fPrefix, fDSPFields);
             llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
             // Create llvm_free_dsp function
@@ -687,7 +702,6 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             }
             
             fSize = genInt32(fModule, fDataLayout->getTypeSizeInBits(dsp_type));
-            
             //dumpLLVM(dsp_type);
             
             return dsp_type_ptr;
@@ -1167,15 +1181,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             string name;
             switch (inst->fType) {
-                case AddSliderInst::kHorizontal: {
-                    name = "addHorizontalSlider"; break;
-                }
-                case AddSliderInst::kVertical: {
-                    name = "addVerticalSlider"; break;
-                }
-                case AddSliderInst::kNumEntry: {
-                    name = "addNumEntry"; break;
-                }
+                case AddSliderInst::kHorizontal: { name = "addHorizontalSlider"; break; }
+                case AddSliderInst::kVertical: { name = "addVerticalSlider"; break; }
+                case AddSliderInst::kNumEntry: { name = "addNumEntry"; break; }
             }
             addGenericSlider(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, name);
         }
@@ -1225,14 +1233,15 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             string name;
             switch (inst->fType) {
-                case AddBargraphInst::kHorizontal: {
-                    name = "addHorizontalBargraph"; break;
-                }
-                case AddBargraphInst::kVertical: {
-                    name = "addVerticalBargraph"; break;
-                }
+                case AddBargraphInst::kHorizontal: { name = "addHorizontalBargraph"; break; }
+                case AddBargraphInst::kVertical: { name = "addVerticalBargraph"; break; }
             }
             addGenericBargraph(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, name);
+        }
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+           // TODO
         }
 
         virtual void visit(DeclareVarInst* inst)
@@ -1794,17 +1803,17 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Keep result of first arg compilation
             inst->fInst1->accept(this);
             LLVMValue res1 = fCurValue;
-
+     
             // Keep result of second arg compilation
             inst->fInst2->accept(this);
             LLVMValue res2 = fCurValue;
-
+     
             fCurValue = generateBinopAux(inst->fOpcode, res1, res2, inst->fSize);
         }
     
         virtual void visit(::CastInst* inst)
         {
-            // Compile exp to cast, result in fCurValue
+            // Compile instruction to be casted, result in fCurValue
             inst->fInst->accept(this);
             visitAux(inst->fType->getType(), inst->fSize);
         }
@@ -1835,6 +1844,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         void visitAux(Typed::VarType type, int size)
         {
+            /*
+            std::cerr <<"visitAux(Typed::VarType) \n";
+            dumpLLVM(fCurValue);
+            dumpLLVM(fCurValue->getType());
+            dumpLLVM(fTypeMap[Typed::kSound_ptr]);
+            */
+            
             switch (type) {
 
                 case Typed::kFloat:
@@ -1844,6 +1860,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         // Nothing to do
                     } else if (fCurValue->getType() == getDoubleTy(fModule, size))  {
                         fCurValue = fBuilder->CreateFPTrunc(fCurValue, getFloatTy(fModule, size));
+                    } else {
+                        faustassert(false);
                     }
                     break;
 
@@ -1854,6 +1872,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
                     } else if (fCurValue->getType() == getDoubleTy(fModule,  size))  {
                         fCurValue = fBuilder->CreateFPToSI(fCurValue, getInt32Ty(fModule, size));
+                    } else if (fCurValue->getType()->isPointerTy()) {
+                        // Use BitCast for pointer to kInt32
+                        fCurValue = fBuilder->CreateBitCast(fCurValue, fBuilder->getInt32Ty());
+                    } else {
+                        faustassert(false);
                     }
                     break;
 
@@ -1864,14 +1887,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         fCurValue = fBuilder->CreateFPExt(fCurValue, getDoubleTy(fModule, size));
                     } else if (fCurValue->getType() == getDoubleTy(fModule, size))  {
                        // Nothing to do
+                    } else {
+                        faustassert(false);
                     }
                     break;
 
                 case Typed::kQuad:
-                    // No supposed to happen
-                    faustassert(false);
-                    break;
-
                 default:
                     // No supposed to happen
                     faustassert(false);
@@ -2360,17 +2381,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         LLVMValue generateBinopAux(int opcode, LLVMValue arg1, LLVMValue arg2, int size)
         {
+            //dumpLLVM(arg1);
+            //dumpLLVM(arg2);
+            
             faustassert(arg1);
             faustassert(arg2);
             
-            /*
-            cerr << "generateBinopAux ARGS" << endl;
-            arg1->dump();
-            arg1->getType()->dump();
-            arg2->dump();
-            arg2->getType()->dump();
-            */
-
             // Arguments are casted if needed in InstructionsCompiler::generateBinOp
             faustassert(arg1->getType() == arg2->getType());
 

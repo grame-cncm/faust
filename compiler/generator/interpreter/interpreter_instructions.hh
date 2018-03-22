@@ -218,6 +218,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(opcode, tmp.fOffset, inst->fLabel, inst->fMin, inst->fMax));
     }
     
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        // TODO
+    }
+    
     virtual void visit(LabelInst* inst) {}
 
     // Declarations

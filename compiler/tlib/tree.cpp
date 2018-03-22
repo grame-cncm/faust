@@ -92,21 +92,21 @@ bool CTree::gDetails = false;
 unsigned int CTree::gVisitTime = 0;
 
 // Constructor : add the tree to the hash table
-CTree::CTree (size_t hk, const Node& n, const tvec& br) 
-	:	fNode(n), 
-		fType(0),
-		fHashKey(hk), 
-	 	fAperture(calcTreeAperture(n,br)), 
-        fVisitTime(0),
-		fBranch(br) 
-{ 
+CTree::CTree (size_t hk, const Node& n, const tvec& br)
+	: fNode(n),
+     fType(0),
+     fHashKey(hk),
+     fAperture(calcTreeAperture(n,br)),
+     fVisitTime(0),
+     fBranch(br)
+{
 	// link dans la hash table
    	int j = hk % kHashTableSize;
 	fNext = gHashTable[j];
 	gHashTable[j] = this;
 }
 
-// Destructor : remove the tree form the hash table
+// Destructor : remove the tree from the hash table
 CTree::~CTree()
 {
 	int i = fHashKey % kHashTableSize;
@@ -149,7 +149,7 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 {
 	tvec br(ar);
 	
-	for (int i=0; i<ar; i++)  br[i] = tbl[i];
+	for (int i=0; i<ar; i++) br[i] = tbl[i];
 	
 	size_t hk = calcTreeHash(n, br);
 	Tree t = gHashTable[hk % kHashTableSize];

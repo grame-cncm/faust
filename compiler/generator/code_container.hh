@@ -107,7 +107,7 @@ class CodeContainer : public virtual Garbageable {
         string fFullCount;
         
         bool fGeneratedSR;
-  
+    
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;

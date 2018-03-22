@@ -27,7 +27,6 @@
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
-#include "llvm_dynamic_dsp_aux.hh"
 
 #include <llvm/Support/FileSystem.h>
 
@@ -96,42 +95,10 @@ class LLVMCodeContainer : public virtual CodeContainer {
     
         void generateGetSize(LLVMValue size);
     
-        LLVMValue genInt1(int num)
-        {
-            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), num);
-        }
-
-        LLVMValue genInt32(int num)
-        {
-            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), num);
-        }
-
-        LLVMValue genInt64(int num)
-        {
-            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), num);
-        }
-
-        LLVMValue genFloat(const string& num)
-        {
-        #if defined(LLVM_60)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), num));
-        #elif defined(LLVM_40) || defined(LLVM_50)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), num));
-        #else
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, num));
-        #endif
-        }
-
-        LLVMValue genFloat(float num)
-        {
-            return ConstantFP::get(getContext(), APFloat(num));
-        }
-        
         LLVMContext& getContext();
     
         // To be used for mathematical function mapping (-fm and exp10 on OSX)
         void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
-    
         void generateFunMaps();
 
     public:

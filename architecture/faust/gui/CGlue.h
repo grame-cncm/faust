@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef FAUST_UIGLUE_H
-#define FAUST_UIGLUE_H
+#ifndef CGLUE_H
+#define CGLUE_H
 
 #include "faust/gui/UI.h"
 #include "faust/gui/CInterface.h"

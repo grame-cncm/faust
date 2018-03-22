@@ -96,6 +96,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+            StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
 
             if (basic_typed) {
                 faustassert(fTypeDirectTable.find(basic_typed->fType) != fTypeDirectTable.end());
@@ -135,6 +136,15 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (vector_typed->fSize == 0)
                     ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
                     : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+            } else if (struct_typed) {
+                std::ostringstream res;
+                res << "StructType<\"" << struct_typed->fName << "\",";
+                vector<NamedTyped*>::const_iterator it;
+                for (it = struct_typed->fFields.begin(); it != struct_typed->fFields.end(); it++) {
+                    res << "[" << generateType(*it) << "]";
+                }
+                res << ">";
+                return res.str();
             } else {
                 faustassert(false);
                 return "";
@@ -148,6 +158,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             FunTyped* fun_typed = dynamic_cast<FunTyped*>(type);
             ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(type);
             VectorTyped* vector_typed = dynamic_cast<VectorTyped*>(type);
+            StructTyped* struct_typed = dynamic_cast<StructTyped*>(type);
 
             if (basic_typed) {
                 return "\"" + fTypeDirectTable[basic_typed->fType] + "\", " + name;
@@ -186,6 +197,15 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 return (vector_typed->fSize == 0)
                     ? "Type<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "()"
                     : "VecType<" + fTypeDirectTable[vector_typed->fType->fType] + ">" + "(" + num_str.str() + ")";
+            } else if (struct_typed) {
+                std::ostringstream res;
+                res << "StructType<\"" << struct_typed->fName << "\",";
+                vector<NamedTyped*>::const_iterator it;
+                for (it = struct_typed->fFields.begin(); it != struct_typed->fFields.end(); it++) {
+                    res << "[" << generateType(*it) << "]";
+                }
+                res << ">";
+                return res.str();
             } else {
                 faustassert(false);
                 return "";
@@ -287,9 +307,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
             EndLine();
         }
 
-        virtual void visit(DeclareTypeInst* inst)
+        virtual void visit(DeclareStructTypeInst* inst)
         {
-            *fOut << "DeclareTypeInst(" << generateType(inst->fType) << ")";
+            *fOut << "DeclareStructTypeInst(" << generateType(inst->fType) << ")";
             EndLine();
         }
 

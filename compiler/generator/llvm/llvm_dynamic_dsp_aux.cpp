@@ -86,6 +86,8 @@
 using namespace llvm;
 using namespace std;
 
+#define dumpLLVM(val) { string res; raw_string_ostream out_str(res); out_str << *val; std::cout << out_str.str() << std::endl; }
+
 static void splitTarget(const string& target, string& triple, string& cpu)
 {
     size_t pos1 = target.find_first_of(':');
@@ -110,12 +112,6 @@ static bool isParam(int argc, const char* argv[], const string& param)
     }
     return false;
 }
-
-#define dumpLLVM(val) \
-    string res; \
-    raw_string_ostream out_str(res); \
-    out_str << *val; \
-    std::cout << out_str.str(); \
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,

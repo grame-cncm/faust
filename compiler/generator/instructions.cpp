@@ -138,17 +138,17 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
     return genNamedTyped(name, genBasicTyped(type));
 }
 
-ValueInst* InstBuilder::genCastNumFloatInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastFloatInst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
 }
 
-ValueInst* InstBuilder::genCastNumFloatMacroInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
 }
 
-ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastInt32Inst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt32));
 }

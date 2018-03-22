@@ -88,11 +88,11 @@ class xtended : public virtual Garbageable {
 // True if two floating point numbers are close enough to be considered identical. It is used to recognize PI/n and 0 in some symbolic simplifications
 inline bool comparable(double x, double y) { return fabs(x-y) < 0.00001; }
 
-inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastNumFloatInst(val); }
-inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastNumIntInst(val); }
+inline ValueInst* promote2real(int type, ValueInst* val) { return (type == kReal) ? val : InstBuilder::genCastFloatInst(val); }
+inline ValueInst* promote2int(int type, ValueInst* val) { return (type == kInt) ? val : InstBuilder::genCastInt32Inst(val); }
 
-inline ValueInst* cast2real(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastNumFloatInst(val) : val; }
-inline ValueInst* cast2int(int type, ValueInst* val) { return (type == kInt) ? InstBuilder::genCastNumIntInst(val) : val; }
+inline ValueInst* cast2real(int type, ValueInst* val) { return (type == kReal) ? InstBuilder::genCastFloatInst(val) : val; }
+inline ValueInst* cast2int(int type, ValueInst* val) { return (type == kInt) ? InstBuilder::genCastInt32Inst(val) : val; }
 
 #endif
 

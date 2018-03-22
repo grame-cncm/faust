@@ -53,7 +53,7 @@ struct Printable;
 struct NullInst;
 struct DeclareVarInst;
 struct DeclareFunInst;
-struct DeclareTypeInst;
+struct DeclareStructTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct TeeVarInst;
@@ -135,7 +135,7 @@ struct InstVisitor : public virtual Garbageable {
     // Declarations
     virtual void visit(DeclareVarInst* inst) {}
     virtual void visit(DeclareFunInst* inst) {}
-    virtual void visit(DeclareTypeInst* inst) {}
+    virtual void visit(DeclareStructTypeInst* inst) {}
 
     // Memory
     virtual void visit(LoadVarInst* inst) {}
@@ -196,7 +196,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst) = 0;
     virtual StatementInst* visit(DeclareFunInst* inst) = 0;
-    virtual StatementInst* visit(DeclareTypeInst* inst) = 0;
+    virtual StatementInst* visit(DeclareStructTypeInst* inst) = 0;
 
     // Memory
     virtual ValueInst* visit(LoadVarInst* inst) = 0;
@@ -430,9 +430,9 @@ struct ArrayTyped : public Typed {
 struct StructTyped : public Typed {
 
     string fName;
-    list<NamedTyped*> fFields;
+    vector<NamedTyped*> fFields;
   
-    StructTyped(const string& name, const list<NamedTyped*>& fields)
+    StructTyped(const string& name, const vector<NamedTyped*>& fields)
         :fName(name), fFields(fields)
     {}
     
@@ -444,12 +444,14 @@ struct StructTyped : public Typed {
     int getSize()
     {
         int size = 0;
-        list<NamedTyped*>::iterator it;
+        vector<NamedTyped*>::iterator it;
         for (it = fFields.begin(); it != fFields.end(); it++) {
             size += (*it)->getSize();
         }
         return size;
     }
+    
+    string getName(int index) { return fFields[index]->fName; }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -1253,26 +1255,15 @@ struct DeclareFunInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DeclareTypeInst : public StatementInst
+struct DeclareStructTypeInst : public StatementInst
 {
-    /*
-     NamedTyped* fType;
-     
-     DeclareTypeInst(const string& name, Typed* type)
-     :fType(new NamedTyped(name, type))
-     {}
-     DeclareTypeInst(NamedTyped* type)
-     :fType(type)
-     {}
-     */
+    StructTyped* fType;
     
-    Typed* fType;
-    
-    DeclareTypeInst(Typed* type)
+    DeclareStructTypeInst(StructTyped* type)
     :fType(type)
     {}
     
-    virtual ~DeclareTypeInst()
+    virtual ~DeclareStructTypeInst()
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1359,10 +1350,9 @@ class BasicCloneVisitor : public CloneVisitor {
         {
             return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
-        virtual StatementInst* visit(DeclareTypeInst* inst)
+        virtual StatementInst* visit(DeclareStructTypeInst* inst)
         {
-            //return new DeclareTypeInst(dynamic_cast<NamedTyped*>(inst->fType->clone(this)));
-            return new DeclareTypeInst(dynamic_cast<StructTyped*>(inst->fType->clone(this)));
+            return new DeclareStructTypeInst(static_cast<StructTyped*>(inst->fType->clone(this)));
         }
 
         // Memory
@@ -1484,8 +1474,8 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
         {
-            list<NamedTyped*> cloned;
-            list<NamedTyped*>::const_iterator it;
+            vector<NamedTyped*> cloned;
+            vector<NamedTyped*>::const_iterator it;
             for (it = typed->fFields.begin(); it != typed->fFields.end(); it++) {
                 cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
             }
@@ -1839,12 +1829,12 @@ struct InstBuilder
         { return new DeclareVarInst(address, typed, value); }
 
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed, BlockInst* code)
-        {return new DeclareFunInst(name, typed, code);}
+        { return new DeclareFunInst(name, typed, code); }
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
-        {return new DeclareFunInst(name, typed);}
+        { return new DeclareFunInst(name, typed); }
 
-    static DeclareTypeInst* genDeclareTypeInst(Typed* type)
-        {return new DeclareTypeInst(type);}
+    static DeclareStructTypeInst* genDeclareStructTypeInst(StructTyped* type)
+        { return new DeclareStructTypeInst(type); }
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
@@ -1972,9 +1962,9 @@ struct InstBuilder
         return new BitcastInst(inst, typed, size);
     }
     
-    static ValueInst* genCastNumFloatInst(ValueInst* inst);
-    static ValueInst* genCastNumFloatMacroInst(ValueInst* inst);
-    static ValueInst* genCastNumIntInst(ValueInst* inst);
+    static ValueInst* genCastFloatInst(ValueInst* inst);
+    static ValueInst* genCastFloatMacroInst(ValueInst* inst);
+    static ValueInst* genCastInt32Inst(ValueInst* inst);
 
     // Control flow
     static RetInst* genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
@@ -2021,7 +2011,7 @@ struct InstBuilder
     { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
     static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
-    static StructTyped* genStructTyped(const string& name, const list<NamedTyped*>& fields) { return new StructTyped(name, fields); }
+    static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields) { return new StructTyped(name, fields); }
 
     // Addresses
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
@@ -2037,6 +2027,11 @@ struct InstBuilder
     static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
+    }
+    // Actually same as genLoadArrayVar
+    static LoadVarInst* genLoadStructPtrVar(string vname, Address::AccessType var_access, ValueInst* index)
+    {
+        return genLoadArrayVar(vname, var_access, index);
     }
 
     static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
