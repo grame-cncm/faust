@@ -221,7 +221,7 @@ install:
 	cmake --build $(FAUSTDIR) --target install
 uninstall: installedfiles = $(shell cat $(installLog))
 uninstall: $(installLog)
-	rm $(installedfiles) $(installLog)
+	rm -f $(installedfiles) $(installLog)
 
 #===============================================================
 undefined:
