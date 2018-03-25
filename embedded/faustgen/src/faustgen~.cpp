@@ -161,6 +161,7 @@ faustgen_factory::faustgen_factory(const string& name)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
+    fDefaultPath = path_getdefault();
     fName = name;
     fDSPfactory = 0;
     fBitCodeSize = 0;
@@ -840,7 +841,9 @@ void faustgen_factory::read(long inlet, t_symbol* s)
         }
     // Otherwise locate the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found", filename);
             return;
@@ -904,7 +907,9 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         }
     // Otherwise locate or create the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found, so tries to create it", filename);
             err = path_createsysfile(filename, path, type, &fh);

@@ -104,11 +104,11 @@ Tree ScalarCompiler::prepare(Tree LS)
     conditionAnnotation(L3);
     //conditionStatistics(L3);        // count condition occurences
 
-	// dump normal form
-	if (gGlobal->gDumpNorm) {
-		cout << ppsig(L3) << endl;
-		exit(0);
-	}
+    // dump normal form
+    if (gGlobal->gDumpNorm) {
+        cout << ppsig(L3) << endl;
+        throw faustexception("Dump normal form finished...\n");
+    }
 
 	recursivnessAnnotation(L3);		// Annotate L3 with recursivness information
 
@@ -287,9 +287,10 @@ bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
 string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
 {
     //cerr << "ScalarCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
-    string old; if (fCompileProperty.get(sig, old) && (old != cexp)) {
-        cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
-        exit(1);
+    string old;
+    if (fCompileProperty.get(sig, old) && (old != cexp)) {
+        //cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        //exit(1);
     }
     fCompileProperty.set(sig, cexp);
 	return cexp;
@@ -390,10 +391,9 @@ string ScalarCompiler::generateCode(Tree sig)
     else if ( isSigEnable(sig, x, y) )				{ return generateEnable(sig, x, y); }
     /* we should not have any control at this stage*/
 	else {
-		printf("Error in compiling signal, unrecognized signal : ");
-		print(sig);
-		printf("\n");
-		exit(1);
+        stringstream error;
+        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        throw faustexception(error.str());
 	}
 	return "error in generate code";
 }
@@ -563,8 +563,9 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
         return exp;
 
 	} else {
-        cerr << "Error in sharing count (" << sharing << ") for " << *sig << endl;
-		exit(1);
+        stringstream error;
+        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
+        throw faustexception(error.str());
 	}
 
 	return "Error in generateCacheCode";
@@ -837,12 +838,12 @@ string ScalarCompiler::generateTable(Tree sig, Tree tsize, Tree content)
     }
 
 	if (!isSigInt(tsize, &size)) {
-		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
-		cerr << "error in ScalarCompiler::generateTable() : "
-			 << *tsize
-             << " is not a constant integer table size expression "
-			 << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR in generateTable : "
+            << *tsize
+            << " is not an integer expression "
+            << endl;
+        throw faustexception(error.str());
 	}
 	// definition du nom et du type de la table
 	// A REVOIR !!!!!!!!!
@@ -891,12 +892,12 @@ string ScalarCompiler::generateStaticTable(Tree sig, Tree tsize, Tree content)
     }
 
     if (!isSigInt(tsize, &size)) {
-		//fprintf(stderr, "error in ScalarCompiler::generateTable()\n"); exit(1);
-		cerr << "error in ScalarCompiler::generateTable() : "
-			 << *tsize
-             << " is not a constant integer table size expression "
-			 << endl;
-        exit(1);
+        stringstream error;
+        error << "ERROR in generateStaticTable : "
+            << *tsize
+            << " is not an integer expression "
+            << endl;
+        throw faustexception(error.str());
 	}
 
 	// definition du nom et du type de la table
@@ -1065,7 +1066,7 @@ static bool isPowerOf2(int n)
 string ScalarCompiler::generateIota(Tree sig, Tree n)
 {
 	int size;
-	if (!isSigInt(n, &size)) { fprintf(stderr, "error in generateIota\n"); exit(1); }
+	if (!isSigInt(n, &size)) { throw faustexception("ERROR in generateIota\n"); }
 
 	string vperm = getFreshID("iota");
 

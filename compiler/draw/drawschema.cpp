@@ -110,7 +110,6 @@
 #define numcolor "#f44800"
 #endif
 
-
 #if 1
 #define linkcolor "#003366" 
 #define normalcolor "#4B71A1"
@@ -160,13 +159,11 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 	cholddir();					// return to current directory
 }
 
-
 /************************************************************************
  ************************************************************************
 							IMPLEMENTATION
  ************************************************************************
  ************************************************************************/
-
 
 //------------------- to schedule and retreive drawing ------------------
 
@@ -274,9 +271,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 	return dst;
 }
 
-
 //------------------------ generating the schema -------------------------
-
 
 /**
  * isInverter(t) returns true if t == '*(-1)'. This test is used
@@ -302,7 +297,6 @@ static bool isInverter(Tree t)
     }
     return false;
 }
-
 
 /**
  * Compute the Pure Routing property, that is expressions
@@ -334,7 +328,6 @@ static bool isPureRouting(Tree t)
         return false;
     }
 }
-
 
 /**
  * Generate an appropriate schema according to
@@ -376,8 +369,6 @@ static schema* generateDiagramSchema(Tree t)
 	}
 }
 
-
-
 /**
  * Generate the inside schema of a block diagram
  * according to its type
@@ -393,7 +384,6 @@ static schema* generateInsideSchema(Tree t)
 	prim3	p3;
 	prim4	p4;
 	prim5	p5;
-
 
 	xtended* xt = (xtended*)getUserData(t);
 
