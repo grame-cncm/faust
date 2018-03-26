@@ -115,11 +115,11 @@ faust: $(PROJ)
 
 osc: $(PROJ)
 	cmake --build $(FAUSTDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
-	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
+#	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
 
 http: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
-	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
+#	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
 
 
 #===============================================================
