@@ -36,7 +36,7 @@ static bool noNtrl(const Node& n) { return falsePredicate(n); }
 
 #if LLVM_BUILD
 
-#if defined(LLVM_38)
+#if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 #endif

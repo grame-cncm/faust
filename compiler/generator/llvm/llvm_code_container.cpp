@@ -35,8 +35,13 @@ using namespace std;
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
 
+#if defined(LLVM_35)
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
+#else
 #define ModulePTR std::unique_ptr<Module>
 #define MovePTR(ptr) std::move(ptr)
+#endif
 
 // Helper functions
 bool linkModules(Module* dst, ModulePTR src, char* error_msg);
@@ -57,6 +62,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fContext = new LLVMContext();
     stringstream options; gGlobal->printCompilationOptions(options);
     fModule = new Module(options.str() + ", v" + string(FAUSTVERSION), getContext());
+#if defined(LLVM_35)
+    fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
+#endif
     fBuilder = new IRBuilder<>(getContext());
     
     // Set "-fast-math"
@@ -66,7 +74,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
+#if defined(LLVM_35)
+    fBuilder->SetFastMathFlags(FMF);
+#else
     fBuilder->setFastMathFlags(FMF);
+#endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
     fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
@@ -91,7 +103,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
+#if defined(LLVM_35)
+    fBuilder->SetFastMathFlags(FMF);
+#else
     fBuilder->setFastMathFlags(FMF);
+#endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
 }
@@ -258,7 +274,11 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
+#if defined(LLVM_35)
+    Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+#else
     Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
+#endif
     Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
     ReturnInst::Create(getContext(), load_ptr, block); 
@@ -616,8 +636,13 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
+    #if defined(LLVM_35)
+        idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
+        idx2[2] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
+    #else
         idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
         idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
+    #endif
         CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+3));
         call_inst->setCallingConv(CallingConv::C);
     }

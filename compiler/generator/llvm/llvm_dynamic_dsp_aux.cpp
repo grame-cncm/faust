@@ -54,19 +54,7 @@
 #include <llvm-c/Core.h>
 #include <llvm/Support/Host.h>
 #include <llvm/MC/SubtargetFeature.h>
-#include <llvm/Analysis/TargetLibraryInfo.h>
-#include <llvm/Analysis/TargetTransformInfo.h>
-#include <llvm/IR/PassManager.h>
 #include <llvm/IR/LegacyPassManager.h>
-
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-#include <llvm/Bitcode/BitcodeWriter.h>
-#include <llvm/Bitcode/BitcodeReader.h>
-#include <llvm/Transforms/IPO/AlwaysInliner.h>
-#elif defined(LLVM_38) || defined(LLVM_39)
-#include <llvm/Bitcode/ReaderWriter.h>
-#endif
-
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/ExecutionEngine/ObjectCache.h>
 #include <llvm/IR/LegacyPassNameParser.h>
@@ -76,6 +64,24 @@
 #include <llvm/IR/Verifier.h>
 #include <llvm/Support/FileSystem.h>
 #include "llvm/ExecutionEngine/ObjectCache.h"
+
+#ifndef LLVM_35
+#include <llvm/Analysis/TargetTransformInfo.h>
+#include <llvm/Analysis/TargetLibraryInfo.h>
+#include <llvm/Target/TargetMachine.h>
+#include <llvm/IR/PassManager.h>
+#else
+#include <llvm/Target/TargetLibraryInfo.h>
+#endif
+
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Transforms/IPO/AlwaysInliner.h>
+#elif defined(LLVM_35) || defined(LLVM_38) || defined(LLVM_39)
+#include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Support/raw_ostream.h>
+#endif
 
 using namespace llvm;
 using namespace std;
@@ -141,6 +147,22 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
         return ModuleOrErr.get().release();
     }
 }
+#elif defined(LLVM_35)
+// LLVM 3.5 has parseBitcodeFile(). Must emulate ParseBitcodeFile. -ag
+static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
+                                LLVMContext& Context,
+                                string* ErrMsg)
+{
+    using namespace llvm;
+    ErrorOr<Module*> ModuleOrErr = parseBitcodeFile(Buffer, Context);
+    if (error_code EC = ModuleOrErr.getError()) {
+        if (ErrMsg) *ErrMsg = EC.message();
+        return nullptr;
+    } else {
+        return ModuleOrErr.get();
+    }
+    
+}
 #endif
 
 // Bitcode
@@ -199,7 +221,9 @@ llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string& sha_key
     
     fModule = module;
     fContext = context;
+#ifndef LLVM_35
     fObjectCache = nullptr;
+#endif
 }
 
 /// AddOptimizationPasses - This routine adds optimization passes
@@ -270,6 +294,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     LLVMLinkInMCJIT();
     
     // Restoring from machine code
+#ifndef LLVM_35
     if (fObjectCache) {
     
         // JIT
@@ -281,6 +306,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fJIT->finalizeObject();
           
     } else {
+#endif
         // First check is Faust compilation succeeded... (valid LLVM module)
         if (!fModule) {
             return false;
@@ -296,12 +322,20 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         initializeVectorization(Registry);
         initializeIPO(Registry);
         initializeAnalysis(Registry);
+    #if LLVM_35
+        initializeIPA(Registry);
+    #endif
         initializeTransformUtils(Registry);
         initializeInstCombine(Registry);
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
        
+    #if LLVM_35
+        EngineBuilder builder(fModule);
+    #else
         EngineBuilder builder((unique_ptr<Module>(fModule)));
+    #endif
+        
         builder.setOptLevel(CodeGenOpt::Aggressive);
         builder.setEngineKind(EngineKind::JIT);
     #if !defined(LLVM_60)
@@ -310,6 +344,10 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         
         string buider_error;
         builder.setErrorStr(&buider_error);
+        
+    #if LLVM_35
+        builder.setUseMCJIT(true);
+    #endif
     
     #ifdef _WIN32
         // Windows needs this special suffix to the target triple,
@@ -369,14 +407,25 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             FUNCTION_PASS_MANAGER fpm(fModule);
             
             // Code taken from opt.cpp
+        #if defined(LLVM_35)
+            // Add an appropriate TargetLibraryInfo pass for the module's triple.
+            TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fModule->getTargetTriple()));
+            pm.add(tli);
+        #else
             TargetLibraryInfoImpl TLII(Triple(fModule->getTargetTriple()));
             pm.add(new TargetLibraryInfoWrapperPass(TLII));
-      
+        #endif
+        
             fModule->setDataLayout(fJIT->getDataLayout());
           
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
             // Code taken from opt.cpp
+            
+        #if defined(LLVM_35)
+            tm->addAnalysisPasses(pm);
+        #else
             pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
+        #endif
           
             if (fOptLevel > 0) {
                 AddOptimizationPasses(pm, fpm, fOptLevel, 0);
@@ -415,9 +464,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             }
         }
         
+#ifndef LLVM_35
         fObjectCache = new FaustObjectCache();
         fJIT->setObjectCache(fObjectCache);
     }
+#endif
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
@@ -623,7 +674,11 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         setlocale(LC_ALL, "C");
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
+    #if defined(LLVM_35)
+        Module* module = ParseIR(buffer, err, *context);            // ParseIR takes ownership of the given buffer, so don't delete it
+    #else
         Module* module = parseIR(buffer, err, *context).release();  // parseIR takes ownership of the given buffer, so don't delete it
+    #endif
         if (!module) return nullptr;
         
         setlocale(LC_ALL, tmp_local);
@@ -697,7 +752,11 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string
 ModulePTR loadSingleModule(const string filename, LLVMContext* context)
 {
     SMDiagnostic err;
+#if defined(LLVM_35)
+    Module* module = ParseIRFile(filename, err, *context);
+#else
     ModulePTR module = parseIRFile(filename, err, *context);
+#endif
     
     if (module) {
         return module;
@@ -728,8 +787,14 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
 bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 {
     bool res = false;
+#if defined(LLVM_35)
+    string err;
+    if (Linker::LinkModules(dst, src, Linker::DestroySource, &err)) {
+        snprintf(error_msg, 256, "cannot link module : %s", err.c_str());
+#else
     if (Linker::linkModules(*dst, MovePTR(src))) {
         snprintf(error_msg, 256, "%s", "cannot link module");
+#endif
     } else {
         res = true;
     }

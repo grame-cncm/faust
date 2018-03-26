@@ -34,14 +34,27 @@
 
 #include <llvm/Support/TargetSelect.h>
 #include <llvm-c/Core.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/Support/FileSystem.h>
+
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Bitcode/BitcodeReader.h>
 #else
 #include <llvm/Bitcode/ReaderWriter.h>
 #endif
-#include <llvm/ExecutionEngine/MCJIT.h>
+
+#if defined(LLVM_35)
+#include <llvm-c/Core.h>
+#include <llvm/Target/TargetLibraryInfo.h>
+#include <llvm/PassManager.h>
+#include <llvm/ExecutionEngine/JIT.h>
 #include <llvm/Support/FileSystem.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/raw_ostream.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#endif
 
 using namespace llvm;
 using namespace std;
@@ -75,8 +88,10 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
 
 bool llvm_dsp_factory_aux::crossCompile(const string& target)
 {
+#ifndef LLVM_35
     delete fObjectCache;
     fObjectCache = new FaustObjectCache();
+#endif
     setTarget(target);
     string error;
     return initJIT(error);
@@ -102,6 +117,7 @@ void llvm_dsp_factory_aux::stopLLVMLibrary()
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& machine_code, const string& target)
     :dsp_factory_imp("MachineDSP", sha_key, "")
 {
+#ifndef LLVM_35
     startLLVMLibrary();
     
     init("MachineDSP", "");
@@ -114,6 +130,9 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     // Creates module and context
     fContext = new LLVMContext();
     fModule = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
+#else
+    #warning "machine code is not supported..."
+#endif
 }
 
 llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
@@ -133,13 +152,16 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
     
     fModule = module;
     fContext = context;
-    
+#ifndef LLVM_35
     fObjectCache = nullptr;
+#endif
 }
 
 llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 {
+#ifndef LLVM_35
     delete fObjectCache;
+#endif
     if (fJIT) {
         fJIT->runStaticConstructorsDestructors(true);
         // fModule is kept and deleted by fJIT
@@ -183,10 +205,16 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
     InitializeNativeTarget();
     
     // Restoring from machine code
+#if defined(LLVM_35)
+    EngineBuilder builder(fModule);
+#else
     EngineBuilder builder((unique_ptr<Module>(fModule)));
+#endif
     TargetMachine* tm = builder.selectTarget();
     fJIT = builder.create(tm);
+#ifndef LLVM_35
     fJIT->setObjectCache(fObjectCache);
+#endif
     fJIT->finalizeObject();
     
     // Run static constructors.
@@ -427,6 +455,7 @@ EXPORT void deleteAllDSPFactories()
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
 {
+#ifndef LLVM_35
     if (target == "" || target == getTarget()) {
         return fObjectCache->getMachineCode();
     } else {
@@ -439,6 +468,10 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachineAux(const string& target)
             return "";
         }
     }
+#else
+    #warning "machine code is not supported..."
+    return "";
+#endif
 }
 
 string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
@@ -448,12 +481,17 @@ string llvm_dsp_factory_aux::writeDSPFactoryToMachine(const string& target)
 
 void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_code_path, const string& target)
 {
+#ifndef LLVM_35
     STREAM_ERROR err;
     raw_fd_ostream out(machine_code_path.c_str(), err, sysfs_binary_flag);
     out << writeDSPFactoryToMachineAux(target);
     out.flush();
+#else
+    #warning "machine code is not supported..."
+#endif
 }
 
+#ifndef LLVM_35
 static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target)
 {
     string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
@@ -480,18 +518,24 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
         }
     }
 }
-
+#endif
 
 // machine <==> string
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target)
 {
+#ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target);
+#else
+    #warning "machine code is not supported..."
+    return nullptr;
+#endif
 }
 
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path,const string& target)
 {
+#ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
@@ -500,6 +544,10 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_cod
     } else {
         return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
     }
+#else
+    #warning "machine code is not supported..."
+    return nullptr;
+#endif
 }
 
 // Instance

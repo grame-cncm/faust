@@ -32,7 +32,12 @@
 #include <llvm/Support/FileSystem.h>
 
 #define sysfs_binary_flag sys::fs::F_None
+
+#if defined(LLVM_35)
+#define STREAM_ERROR string
+#else
 #define STREAM_ERROR std::error_code
+#endif
 
 using namespace std;
 using namespace llvm;

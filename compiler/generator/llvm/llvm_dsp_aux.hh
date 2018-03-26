@@ -37,7 +37,7 @@
 #include "dsp_factory.hh"
 #include "TMutex.h"
 
-#if defined(LLVM_38)
+#if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS
 #define __STDC_CONSTANT_MACROS
 #endif
@@ -46,12 +46,17 @@
 
 #define LLVM_MAX_OPT_LEVEL 5
 
+#if defined(LLVM_35)
+#define STREAM_ERROR string
+#define MEMORY_BUFFER MemoryBuffer*
+#define MEMORY_BUFFER_GET(buffer) (buffer->getBuffer())
+#define MEMORY_BUFFER_GET_REF(buffer) (buffer->get())
+#define MEMORY_BUFFER_CREATE(stringref) (MemoryBuffer::getMemBuffer(stringref))
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
 #define PASS_MANAGER legacy::PassManager
-#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
-#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
-#define OwningPtr std::unique_ptr
-#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
-#define sysfs_binary_flag sys::fs::F_None
+#define FUNCTION_PASS_MANAGER FunctionPassManager
+#else
 #define STREAM_ERROR std::error_code
 #define MEMORY_BUFFER MemoryBufferRef
 #define MEMORY_BUFFER_GET(buffer) (buffer.getBuffer())
@@ -59,6 +64,14 @@
 #define MEMORY_BUFFER_CREATE(stringref) (MemoryBufferRef(stringref, ""))
 #define ModulePTR std::unique_ptr<Module>
 #define MovePTR(ptr) std::move(ptr)
+#define PASS_MANAGER legacy::PassManager
+#define FUNCTION_PASS_MANAGER legacy::FunctionPassManager
+#endif
+
+#define sysfs_binary_flag sys::fs::F_None
+#define OwningPtr std::unique_ptr
+#define llvmcreatePrintModulePass(out) createPrintModulePass(out)
+#define GET_CPU_NAME llvm::sys::getHostCPUName().str()
 
 namespace llvm
 {
@@ -115,6 +128,7 @@ class EXPORT llvm_dsp : public dsp {
     
 };
 
+#ifndef LLVM_35
 class FaustObjectCache : public llvm::ObjectCache {
     
     private:
@@ -142,6 +156,7 @@ class FaustObjectCache : public llvm::ObjectCache {
         std::string getMachineCode() { return fMachineCode; }
     
 };
+#endif
 
 typedef class faust_smartptr<llvm_dsp_factory> SDsp_factory;
 
@@ -153,7 +168,9 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         llvm::ExecutionEngine* fJIT;
 
-        FaustObjectCache* fObjectCache;    
+    #ifndef LLVM_35
+        FaustObjectCache* fObjectCache;
+    #endif
         llvm::Module* fModule;
         llvm::LLVMContext* fContext;
     
