@@ -39,6 +39,11 @@ else
 	exit 1
 fi
 
+MAKEF=$ROOT/Makefile
+echo " updating $MAKEF"
+sed "s/^version *:= *..*/version := $VERSION/" $MAKEF > TMP$$
+mv -f TMP$$ $MAKEF
+
 CMAKE=$ROOT/build/CMakeLists.txt
 echo " updating $CMAKE"
 sed "s/set (VERSION[ 	]*.*)/set (VERSION $VERSION)/" $CMAKE > TMP$$
