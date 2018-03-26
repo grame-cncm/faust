@@ -26,6 +26,6 @@ branches:
 
 script: 
   - make JOBS="-j 2"
-# skip tests for the moment
-#  - make -C tests/impulse-tests travis -j 2
+  # Do also some impulse response tests
+  - make -C tests/impulse-tests travis -j 2
 
