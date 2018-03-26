@@ -109,7 +109,7 @@ typedef vector<Tree>	tvec;
 class CTree : public virtual Garbageable
 {
  private:
-	static const int 	kHashTableSize = 2000000; //510511;	///< size of the hash table used for "hash consing"
+	static const int 	kHashTableSize = 400009; 	///< size of the hash table (prime number)
 	static Tree			gHashTable[kHashTableSize];	///< hash table used for "hash consing"
 
  public:
@@ -122,15 +122,15 @@ class CTree : public virtual Garbageable
     Node            fNode;				///< the node content of the tree
     void*           fType;				///< the type of a tree
     plist           fProperties;		///< the properties list attached to the tree
-    unsigned int	fHashKey;			///< the hashtable key
+    size_t			fHashKey;			///< the hashtable key
     int             fAperture;			///< how "open" is a tree (synthezised field)
     unsigned int	fVisitTime;			///< keep track of visits
     tvec            fBranch;			///< the subtrees
 
-	CTree (unsigned int hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
+	CTree (size_t hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
 
 	bool 		equiv 				(const Node& n, const tvec& br) const;	///< used to check if an equivalent tree already exists
-	static unsigned int	calcTreeHash 		(const Node& n, const tvec& br);		///< compute the hash key of a tree according to its node and branches
+	static size_t	calcTreeHash 		(const Node& n, const tvec& br);		///< compute the hash key of a tree according to its node and branches
 	static int	calcTreeAperture 	(const Node& n, const tvec& br);		///< compute how open is a tree
 
  public:
@@ -144,7 +144,7 @@ class CTree : public virtual Garbageable
  	int 		arity() const		{ return (int)fBranch.size();}	///< return the number of branches (subtrees) of a tree
     Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
     const tvec& branches() const	{ return fBranch;	}       ///< return all branches (subtrees) of a tree
-    unsigned int 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
+    size_t 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
  	int 		aperture() const	{ return fAperture; 	}	///< return how "open" is a tree in terms of free variables
  	void 		setAperture(int a) 	{ fAperture=a; 			}	///< modify the aperture of a tree
 
