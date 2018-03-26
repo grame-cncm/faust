@@ -193,8 +193,9 @@ configall: $(PROJ)
 reset: STATIC ?= off
 reset: DYNAMIC ?= off
 reset: HTTP ?= on
+reset: BACKENDS ?= backends.cmake
 reset: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
+	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
 
 
 #===============================================================
