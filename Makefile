@@ -121,7 +121,7 @@ help :
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"
 	@echo " 'wasm'          : builds the faust web assembly library"
-	@echo " 'world'         : call the '$(WORLDTARGETS)' targets"
+	@echo " 'world'         : builds (almost) everything (package maintainers)"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
