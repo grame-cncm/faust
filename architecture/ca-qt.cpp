@@ -320,7 +320,7 @@ int main(int argc, char *argv[])
     FUI finterface;
 #ifdef SOUNDFILE
     // Use bundle path
-    SoundUI soundinterface(SoundUI::getBinaryPath());
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

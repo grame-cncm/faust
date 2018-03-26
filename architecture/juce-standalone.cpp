@@ -142,7 +142,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             
         #if defined(SOUNDFILE)
             // Use bundle path
-            fSoundUI = new SoundUI(SoundUI::getBinaryPath());
+            fSoundUI = new SoundUI(SoundUI::getBinaryPath("/Contents/Resources/"));
             fDSP->buildUserInterface(fSoundUI);
         #endif
             
