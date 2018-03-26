@@ -60,7 +60,7 @@ endif
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
-clean:
+clean: $(PROJ)
 	cmake --build $(FAUSTDIR) --target clean
 
 #===============================================================
