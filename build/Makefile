@@ -217,7 +217,7 @@ checkemcc:
 #===============================================================
 installLog := $(FAUSTDIR)/install_manifest.txt
 install:
-	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(DESTDIR)$(PREFIX) 
+	cd $(FAUSTDIR) && cmake .. -DCMAKE_INSTALL_PREFIX=$(PREFIX) 
 	cmake --build $(FAUSTDIR) --target install
 uninstall: installedfiles = $(shell cat $(installLog))
 uninstall: $(installLog)
