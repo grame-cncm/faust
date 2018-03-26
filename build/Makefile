@@ -149,8 +149,8 @@ ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
 	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
 	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
 
-$(IOSDIR)/faust.xcodeproj: CMakeLists.txt ios.cmake
-	cd $(IOSDIR) && cmake -C ../ios.cmake .. -G Xcode
+$(IOSDIR)/faust.xcodeproj: CMakeLists.txt backends/ios.cmake
+	cd $(IOSDIR) && cmake -C ../backends/ios.cmake .. -G Xcode
 
 
 #===============================================================

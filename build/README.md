@@ -75,7 +75,7 @@ If `make` is available from your commands prompt, you can get similar results wi
 
 ### Notes regarding LLVM
 - you must have `llvm-config` available from the command line.
-- LLVM supported versions starts at 3.8.
+- LLVM supported versions starts at 3.8, older versions may work but are not supported anymore.
 - using LLVM 5.0.0 works on every platform, you can get binary distributions from the [LLVM Releases page](http://releases.llvm.org/)
 - using a previous LLVM version: you have to make sure that it is compiled **with rtti**. You can check using `llvm-config --has-rtti`
 
@@ -92,7 +92,6 @@ This is due to an incorrect `llvm-config` output. Open the solution and edit the
 
 #### LLVM on GNU/Linux:
 LLVM is generally available from the package manager but it might be an old version that don't statisfy the rtti constrain. In this case you should get a binary distribution from the [LLVM Releases page](http://releases.llvm.org/).
-
 
 #### Potential issues with llvm-config:
 If `llvm-config` is available under a version name (e.g. llvm-config-5.0.0) you can use this name with the LLVM_CONFIG option e.g.:

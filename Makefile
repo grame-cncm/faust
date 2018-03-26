@@ -1,4 +1,4 @@
-version := 2.5.23
+version := 2.5.26
 
 system	?= $(shell uname -s)
 
@@ -32,7 +32,10 @@ zname := faust-$(version)
 .PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 compiler : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION)
+	$(MAKE) -C $(BUILDLOCATION) faust 
+	$(MAKE) -C $(BUILDLOCATION) http
+	$(MAKE) -C $(BUILDLOCATION) osc 
+	 
 	
 all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) configstatic
@@ -45,7 +48,6 @@ universal :
 	@echo "### You need to recompile"
 	@echo "### Use 'make native' to revert"
 	 
-
 native :
 	$(MAKE) -C $(BUILDLOCATION) native
 	@echo 
@@ -106,9 +108,6 @@ backends :
 sound2faust :
 	$(MAKE) -C tools/sound2faust
 
-bench :
-	$(MAKE) -C tools/benchmark
-
 .PHONY: clean install uninstall dist parser help
 
 help :
@@ -120,7 +119,7 @@ help :
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
 	@echo " 'asmjs'         : builds the faust asm-js library"
 	@echo " 'wasm'          : builds the faust web assembly library"
-	@echo " 'world'         : call the $(WORLDTARGETS) targets"
+	@echo " 'world'         : call the '$(WORLDTARGETS)' targets"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
 	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"

@@ -50,7 +50,6 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 Since release 2.5.18, Faust compilation and installation is based on cmake. For details about compilation, you should look at the [build/README.md](build/README.md) file.
 
-
 ### Getting the source code
 
 In order to compile Faust on your machine you can either download the latest release of the source code <https://github.com/grame-cncm/faust/releases> or clone the git repository. In order to clone the git repository you will have to do the following steps:
@@ -67,6 +66,10 @@ To build Faust on MacOSX or Linux, just run the following commands from the root
 
 	make
 	sudo make install
+
+This will compile the Faust compiler only, with a set of backends that do not have additional dependencies (so the LLVM backend will **not be compiled**). Use `make help` to see what other targets can be used from the toplevel Makefile. 
+
+To refine compilation for more specific cases, go in the build folder and see the [build/README.md](build/README.md) file.
 
 ### Windows
 
