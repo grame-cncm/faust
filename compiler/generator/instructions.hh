@@ -384,6 +384,21 @@ struct FunTyped : public Typed {
     
     Typed* getTyped() { return fResult; }
     
+    // Arguments type encoded as a string
+    string getPrototype()
+    {
+        string res;
+        list<NamedTyped*>::const_iterator it;
+        if (fArgsTypes.size() > 0) {
+            for (it = fArgsTypes.begin(); it != fArgsTypes.end(); it++) {
+                res += gTypeString[(*it)->getType()];
+            }
+        } else {
+            res = "void";
+        }
+        return res;
+    }
+    
     int getSize(); // moved in "instructions.cpp"
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }

@@ -72,16 +72,20 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
         :fName(name), fType(type), fCode(code)
 {
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[name] = type->getTyped();
-    } else if (gGlobal->gVarTypeTable[name] == type->getTyped()) {
-        if (gGlobal->gOutputLang == "llvm") {
-            throw faustexception("ERROR : foreign functions with the same name are not supported\n");
-        }
+        gGlobal->gVarTypeTable[name] = type;
     } else {
-        throw faustexception("ERROR : foreign functions that differ in their return type cannot be overloaded\n");
+        FunTyped* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
+        // If same result type
+        if (fun_type->getTyped() == type->getTyped()) {
+            if ((gGlobal->gOutputLang == "llvm") && (fun_type->getPrototype() != type->getPrototype())) {
+                throw faustexception("ERROR : foreign functions with the same name but different prototypes are not supported\n");
+            }
+        } else {
+            throw faustexception("ERROR : foreign functions that differ in their return type cannot be overloaded\n");
+        }
     }
 }
- 
+
 DeclareFunInst::~DeclareFunInst()
 {}
   

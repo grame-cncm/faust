@@ -675,7 +675,6 @@ void Garbageable::cleanup()
 
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
-
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
 	#ifdef _WIN32
@@ -686,7 +685,9 @@ void Garbageable::cleanup()
   	#endif
     }
 
+    // Reset to default state
     global::gObjectTable.clear();
+    global::gHeapCleanup = false;
 }
 
 void* Garbageable::operator new(size_t size)
