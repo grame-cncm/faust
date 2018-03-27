@@ -165,6 +165,18 @@ static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer,
 }
 #endif
 
+void llvm_dynamic_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
+{
+    string res;
+    raw_string_ostream out_str(res);
+    if (binary) {
+        WriteBitcodeToFile(fModule, out_str);
+    } else {
+        out_str << *fModule;
+    }
+    *out << out_str.str();
+}
+
 // Bitcode
 string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {

@@ -255,8 +255,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     
         llvm_dsp* createDSPInstance(dsp_factory* factory);
     
-        void write(std::ostream* out, bool binary, bool small = false);
-    
         void metadata(Meta* m);
     
         void metadata(MetaGlue* glue);

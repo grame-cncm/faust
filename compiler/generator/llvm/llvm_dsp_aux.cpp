@@ -173,7 +173,7 @@ llvm_dsp_factory_aux::~llvm_dsp_factory_aux()
 
 void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 {
-    throw faustexception(reason);
+    throw faustexception(string(reason) + "\n");
 }
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
@@ -260,18 +260,6 @@ int llvm_dsp_factory_aux::getOptlevel()
     }
     */
     return -1;
-}
-
-void llvm_dsp_factory_aux::write(std::ostream* out, bool binary, bool small)
-{
-    string res;
-    raw_string_ostream out_str(res);
-    if (binary) {
-        WriteBitcodeToFile(fModule, out_str);
-    } else {
-        out_str << *fModule;
-    }
-    *out << out_str.str();
 }
 
 void llvm_dsp_factory_aux::metadata(Meta* m)

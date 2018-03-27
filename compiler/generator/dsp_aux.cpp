@@ -207,7 +207,7 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
     return "\"" + res3 + "\"";
 }
 
-// External libfaust API
+// External C++ libfaust API
 
 EXPORT string expandDSPFromFile(const string& filename,
                                 int argc, const char* argv[],
@@ -290,6 +290,12 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
     }
 }
 
+// External C libfaust API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
 EXPORT const char* expandCDSPFromFile(const char* filename, 
                                     int argc, const char* argv[], 
                                     char* sha_key,
@@ -343,3 +349,6 @@ EXPORT void freeCMemory(void* ptr)
     free(ptr);
 }
 
+#ifdef __cplusplus
+}
+#endif
