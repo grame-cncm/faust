@@ -37,6 +37,7 @@ branches:
 
 script: 
   - make JOBS="-j 2"
+  - ./tests/architecture-tests/testtravis
   # Do also some impulse response tests
   # - make -C tests/impulse-tests travis -j 2
 
