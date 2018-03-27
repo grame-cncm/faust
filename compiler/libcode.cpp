@@ -1085,7 +1085,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         container = LLVMCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
-        gGlobal->gAllowForeignFunction = true;  // libc functions will be found by LLVM linker, but not user defined ones...
+        gGlobal->gAllowForeignFunction = true;  // libc functions will be found by the LLVM linker, but not user defined ones...
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
 
         if (gGlobal->gVectorSwitch) {
