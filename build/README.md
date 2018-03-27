@@ -108,3 +108,6 @@ You can bump into similar issues but at link time (encountered on Windows): try 
 ### Notes regarding the `interpreter` backend
 The 'interpreter' backend is not supported on windows using MSVC compilers
 This is due to label dereferencing operator && that is only supported by gcc version 5 or greater.
+
+------
+More details are available from the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki)
