@@ -53,35 +53,35 @@
 #pragma warning (disable: 4996)
 #endif
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
 #include "asmjs_instructions.hh"
 #endif
 
-#if C_BUILD
+#ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
 
-#if CPP_BUILD
+#ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #endif
 
-#if FIR_BUILD
+#ifdef FIR_BUILD
 #include "fir_code_container.hh"
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
 #include "interpreter_instructions.hh"
 #endif
 
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
 #include "java_code_container.hh"
 #endif
 
-#if JS_BUILD
+#ifdef JS_BUILD
 #include "js_code_container.hh"
 #endif
 
-#if RUST_BUILD
+#ifdef RUST_BUILD
 #include "rust_code_container.hh"
 #endif
 
@@ -591,22 +591,22 @@ global::~global()
     free(gCurrentLocal);
 
     // Cleanup
-#if C_BUILD
+#ifdef C_BUILD
     CInstVisitor::cleanup();
 #endif
-#if CPP_BUILD
+#ifdef CPP_BUILD
     CPPInstVisitor::cleanup();
 #endif
-#if FIR_BUILD
+#ifdef FIR_BUILD
     FIRInstVisitor::cleanup();
 #endif
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
 #endif
-#if JS_BUILD
+#ifdef JS_BUILD
     JAVAScriptInstVisitor::cleanup();
 #endif
-#if RUST_BUILD
+#ifdef RUST_BUILD
     RustInstVisitor::cleanup();
 #endif
 }

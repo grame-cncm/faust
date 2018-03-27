@@ -68,108 +68,108 @@ static string makeBackendsString()
 	stringstream backends;
 	const char* sep = " ";
 	backends << "DSP to";
-#if C_BUILD
+#ifdef C_BUILD
 	backends << sep << "C";
 	sep = ", ";
 #endif
 
-#if CPP_BUILD
+#ifdef CPP_BUILD
 	backends << sep << "C++";
 	sep = ", ";
 #endif
 
-#if FIR_BUILD
+#ifdef FIR_BUILD
 	backends << sep << "FIR";
 	sep = ", ";
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
 	backends << sep << "Interpreter";
 	sep = ", ";
 #endif
 
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
 	backends << sep << "Java";
 	sep = ", ";
 #endif
 
-#if JS_BUILD
+#ifdef JS_BUILD
 	backends << sep << "JavaScript";
 	sep = ", ";
 #endif
 
-#if LLVM_BUILD
+#ifdef LLVM_BUILD
 	backends << sep << "LLVM IR";
 	sep = ", ";
 #endif
 
-#if OCPP_BUILD
+#ifdef OCPP_BUILD
 	backends << sep << "old C++";
 	sep = ", ";
 #endif
 
-#if RUST_BUILD
+#ifdef RUST_BUILD
 	backends << sep << "Rust";
 	sep = ", ";
 #endif
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
 	backends << sep << "asm.js";
 	sep = ", ";
 #endif
 
-#if WASM_BUILD
+#ifdef WASM_BUILD
 	backends << sep << "WebAssembly (wast/wasm)";
 #endif
 	backends << " compiler";
 	return backends.str();
 }
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
 #include "asmjs_code_container.hh"
 #endif
 
-#if C_BUILD
+#ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
 
-#if CPP_BUILD
+#ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #include "cpp_gpu_code_container.hh"
 #endif
 
-#if FIR_BUILD
+#ifdef FIR_BUILD
 #include "fir_code_container.hh"
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
 #include "interpreter_code_container.cpp"
 #endif
 
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
 #include "java_code_container.hh"
 #endif
 
-#if JS_BUILD
+#ifdef JS_BUILD
 #include "js_code_container.hh"
 #endif
 
-#if LLVM_BUILD
+#ifdef LLVM_BUILD
 #include "llvm_code_container.hh"
 #include "clang_code_container.hh"
 #endif
 
-#if OCPP_BUILD
+#ifdef OCPP_BUILD
 #include "compile_scal.hh"
 #include "compile_vect.hh"
 #include "compile_sched.hh"
 #endif
 
-#if RUST_BUILD
+#ifdef RUST_BUILD
 #include "rust_code_container.hh"
 #endif
 
-#if WASM_BUILD
+#ifdef WASM_BUILD
 #include "wasm_code_container.hh"
 #include "wast_code_container.hh"
 #endif
@@ -185,7 +185,7 @@ extern double floatmin[4];
 static ifstream* injcode = NULL;
 static ifstream* enrobage = NULL;
 
-#if OCPP_BUILD
+#ifdef OCPP_BUILD
 // Old CPP compiler
 Compiler* old_comp = NULL;
 #endif
@@ -774,7 +774,7 @@ static void printDeclareHeader(ostream& dst)
  					 			MAIN
 *****************************************************************/
 
-#if OCPP_BUILD
+#ifdef OCPP_BUILD
 
 static void printHeader(ostream& dst)
 {
@@ -1060,12 +1060,12 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
     startTiming("generateCode");
 
-#if LLVM_BUILD
+#ifdef LLVM_BUILD
     if (gGlobal->gOutputLang == "cllvm") {
 
         gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
 
-    #if CLANG_BUILD
+    #ifdef CLANG_BUILD
         container = ClangCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs);
 
         if (generate) {
@@ -1109,7 +1109,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #endif
 
     } else if (gGlobal->gOutputLang == "interp") {
-    #if INTERP_BUILD
+    #ifdef INTERP_BUILD
         if (gGlobal->gFloatSize == 1) {
             container = InterpreterCodeContainer<float>::createContainer(gGlobal->gClassName, numInputs, numOutputs);
         } else if (gGlobal->gFloatSize == 2) {
@@ -1136,7 +1136,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         throw faustexception("ERROR : -lang interp not supported since Interpreter backend is not built\n");
     #endif
     } else if (gGlobal->gOutputLang == "fir") {
-    #if FIR_BUILD
+    #ifdef FIR_BUILD
         gGlobal->gGenerateSelectWithIf = false;
 
         container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
@@ -1157,7 +1157,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         if (gGlobal->gOutputLang == "c") {
 
-        #if C_BUILD
+        #ifdef C_BUILD
             container = CCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang c not supported since C backend is not built\n");
@@ -1165,7 +1165,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "cpp") {
 
-        #if CPP_BUILD
+        #ifdef CPP_BUILD
             container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
         #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
@@ -1173,7 +1173,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ocpp") {
 
-        #if OCPP_BUILD
+        #ifdef OCPP_BUILD
             if (gGlobal->gSchedulerSwitch) old_comp = new SchedulerCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
             else if (gGlobal->gVectorSwitch) old_comp = new VectorCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
             else old_comp = new ScalarCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
@@ -1187,7 +1187,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "rust") {
 
-        #if RUST_BUILD
+        #ifdef RUST_BUILD
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             container = RustCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
@@ -1196,7 +1196,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "java") {
 
-        #if JAVA_BUILD
+        #ifdef JAVA_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
         #else
@@ -1205,7 +1205,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "js") {
 
-        #if JS_BUILD
+        #ifdef JS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             container = JAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
         #else
@@ -1214,7 +1214,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ajs") {
 
-        #if ASMJS_BUILD
+        #ifdef ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gWaveformInDSP = true;         // waveform are allocated in the DSP and not as global data
@@ -1224,7 +1224,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         #endif
 
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
-        #if WASM_BUILD
+        #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
@@ -1258,7 +1258,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             throw faustexception("ERROR : -lang wast not supported since WAST backend is not built\n");
         #endif
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
-        #if WASM_BUILD
+        #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false; // No foreign functions
             gGlobal->gFAUSTFLOATToInternal = true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gLoopVarInBytes = true;        // the 'i' variable used in the scalar loop moves by bytes instead of frames
@@ -1395,7 +1395,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         if (dst != &cout) delete dst;
         if (helpers != &cout) delete helpers;
 
-#if OCPP_BUILD
+#ifdef OCPP_BUILD
     } else if (old_comp) {
 
         // Check for architecture file
@@ -1478,7 +1478,7 @@ static void generateOutputFiles()
             D->outputs(container->outputs());
 
             D->print(0, xout);
-    #if OCPP_BUILD
+    #ifdef OCPP_BUILD
         } else if (old_comp) {
 
             Description* D = old_comp->getDescription(); assert(D);
@@ -1519,7 +1519,7 @@ static void generateOutputFiles()
         if (new_comp) {
             ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             container->printGraphDotFormat(dotfile);
-    #if OCPP_BUILD
+    #ifdef OCPP_BUILD
         } else if (old_comp) {
             ofstream dotfile(subst("$0.dot", gGlobal->makeDrawPath()).c_str());
             old_comp->getClass()->printGraphDotFormat(dotfile);
