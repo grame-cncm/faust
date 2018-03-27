@@ -63,7 +63,7 @@ native :
 # should be added here. This requires Jack2 1.9.10 or later which isn't
 # usually installed on most systems, so we skip this target for now.
 world :
-	$(MAKE) -C $(BUILDLOCATION) configall
+	$(MAKE) -C $(BUILDLOCATION) configall BACKENDS=world.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 	$(MAKE) -C tools/sound2faust
 
