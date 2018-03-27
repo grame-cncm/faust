@@ -61,9 +61,24 @@ string checkReal(double val);
 string indent(string const& str, int tabs);
 string replaceChar(string str, char ch1, char ch2);
 
+inline bool checkMin(const string& str)
+{
+    return ((str == "min") || (str == "min_i") || (str == "min_f") || (str == "min_"));
+}
+
+inline bool checkMax(const string& str)
+{
+    return ((str == "max") || (str == "max_i") || (str == "max_f") || (str == "max_"));
+}
+
+inline bool checkMinMax(const string& str)
+{
+    return checkMin(str) || checkMax(str);
+}
+
 inline bool startWith(const string& str, const string& prefix)
 {
-    return (str.find(prefix) != string::npos);
+    return (str.substr(0, prefix.size()) == prefix);
 }
 
 inline bool endWith(const string& str, const string& suffix)
@@ -74,7 +89,7 @@ inline bool endWith(const string& str, const string& suffix)
 
 inline string startWithRes(const string& str, const string& prefix)
 {   
-    return (str.find(prefix) != string::npos) ? str.substr(prefix.size()) : "";
+    return (str.substr(0, prefix.size()) == prefix) ? str.substr(prefix.size()) : "";
 }
 
 inline bool startWithRes(const string& str, const string& prefix, string& res)

@@ -78,10 +78,14 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
         // If same result type
         if (fun_type->getTyped() == type->getTyped()) {
             if ((gGlobal->gOutputLang == "llvm") && (fun_type->getPrototype() != type->getPrototype())) {
-                throw faustexception("ERROR : foreign functions with the same name but different prototypes are not supported\n");
+                stringstream str;
+                str << "ERROR : foreign function '" << name << "' conflicts with another (possibly compiler internally defined) function with a different prototype\n";
+                throw faustexception(str.str());
             }
         } else {
-            throw faustexception("ERROR : foreign functions that differ in their return type cannot be overloaded\n");
+            stringstream str;
+            str << "ERROR : foreign function '" << name << "' conflicts with another (possibly compiler internally defined) function with a different return type\n";
+            throw faustexception(str.str());
         }
     }
 }
