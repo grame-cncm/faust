@@ -334,7 +334,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         initializeVectorization(Registry);
         initializeIPO(Registry);
         initializeAnalysis(Registry);
-    #if LLVM_35
+    #if defined(LLVM_35)
         initializeIPA(Registry);
     #endif
         initializeTransformUtils(Registry);
@@ -342,7 +342,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         initializeInstrumentation(Registry);
         initializeTarget(Registry);
        
-    #if LLVM_35
+    #if defined(LLVM_35)
         EngineBuilder builder(fModule);
     #else
         EngineBuilder builder((unique_ptr<Module>(fModule)));
@@ -357,11 +357,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         string buider_error;
         builder.setErrorStr(&buider_error);
         
-    #if LLVM_35
+    #if defined(LLVM_35)
         builder.setUseMCJIT(true);
     #endif
     
-    #ifdef _WIN32
+    #if defined(_WIN32) && defined(LLVM_35)
         // Windows needs this special suffix to the target triple,
         // otherwise the backend would try to generate native COFF
         // code which the JIT can't use
@@ -476,11 +476,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             }
         }
         
-#ifndef LLVM_35
+    #ifndef LLVM_35
         fObjectCache = new FaustObjectCache();
         fJIT->setObjectCache(fObjectCache);
     }
-#endif
+    #endif
     
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
