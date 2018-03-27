@@ -410,8 +410,9 @@ install (
 
 ####################################
 # install ios lib
-install (
-    FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
-    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
-)
-
+if (APPLE)
+	install (
+		FILES     ${ARCHDIR}/ios-libsndfile.a DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+	)
+endif()
