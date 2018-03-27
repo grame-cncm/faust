@@ -7,11 +7,12 @@ COPY . /faust
 
 RUN \
   apt-get update && \
-  apt-get install -y build-essential libssl-dev llvm libncurses5-dev libssl1.0.0 libncurses5 && \
-  rm -rf /var/lib/apt/lists/* && \
+  apt-get install -y build-essential llvm libncurses5-dev libncurses5 libmicrohttpd-dev git cmake && \
+  rm -rf /var/lib/apt/lists/*
+
+RUN \
   make && make install && \
-  make -C tools/faust2appls install && \
   make clean && \
-  apt-get purge -y build-essential libssl-dev llvm libncurses5-dev && apt-get autoremove -y
+  apt-get purge -y build-essential llvm libncurses5-dev && apt-get autoremove -y
 
 ENTRYPOINT ["/usr/local/bin/faust"]
