@@ -69,14 +69,20 @@ help:
 	@echo "Available targets are:"
 	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
 	@echo " 'faust' 	 : builds the FAUST compiler."
-	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
-	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
-	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
-	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static Faust OSC libraries"
 	@echo " 'http'       : builds the static Faust HTTPD libraries"
 	@echo " 'clean'      : removes the output of the 'all' targets"
+	@echo
+	@echo "Targets excluded from all:"
+	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
+	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
+	@echo
+	@echo "Targets that require specific configs:"
+	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
+	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
+	@echo " 'oscdynamic' : builds the OSC library in dynamic mode (requires configoscdynamic)."
+	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode (requires confighttpdynamic)."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -111,7 +117,7 @@ help:
 	@echo " 'uninstall'  : remove previously installed files,"
 	@echo "Installation options:"
 	@echo " 'DESTDIR'    : the destination directory,"
-	@echo " 'PREFIX'     : the destination directory,"
+	@echo " 'PREFIX'     : the destination prefix,"
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 	@echo "------ see also the README.md file ------"
 
