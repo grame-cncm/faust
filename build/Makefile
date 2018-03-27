@@ -68,15 +68,15 @@ help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
 	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
-	@echo " 'faust' 	 : builds the FAUST compiler."
+	@echo " 'faust' 	 : builds the Faust compiler."
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static Faust OSC libraries"
 	@echo " 'http'       : builds the static Faust HTTPD libraries"
 	@echo " 'clean'      : removes the output of the 'all' targets"
 	@echo
 	@echo "Targets excluded from all:"
-	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
-	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
+	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
+	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
 	@echo
 	@echo "Targets that require specific configs:"
 	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
