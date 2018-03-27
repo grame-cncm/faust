@@ -387,16 +387,16 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang = "";
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
     gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
 #endif
 
-#if WASM_BUILD
+#ifdef WASM_BUILD
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
     gInterpreterVisitor = 0; // Will be (possibly) allocated in Interp backend
 #endif
 
