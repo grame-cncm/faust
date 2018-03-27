@@ -54,16 +54,25 @@ native :
 	@echo "### Universal mode is OFF"
 	@echo "### You need to recompile"
 
-# make world: This builds all the common targets for a fairly complete Faust
-# installation: Faust compiler and library, sound2faust utility, OSC and HTTPD
-# libraries (both static and dynamic). Most of the extra targets require
-# additional dependencies and hence aren't built by default; please check the
-# Faust README for details. This target may be built in parallel (make -j).
-# NOTE: Once the remote target is readily supported on most platforms, it
-# should be added here. This requires Jack2 1.9.10 or later which isn't
-# usually installed on most systems, so we skip this target for now.
+# make world (MAINTAINERS TARGET): This builds all the common targets for a
+# fairly complete Faust installation: Faust compiler (including the LLVM
+# backend) and library, sound2faust utility, OSC and HTTPD libraries (both
+# static and dynamic).
+
+# CAVEAT: END USERS should note that this target requires a substantial amount
+# of additional dependencies (in particular, LLVM) which aren't readily
+# pre-installed on most systems, hence you should NOT use this target (which
+# is mostly aimed at package maintainers) unless you KNOW WHAT YOU'RE DOING.
+# Don't complain if the target doesn't build for you, use one of the standard
+# build targets instead. You have been warned! :)
+
+# MAINTAINERS: Once the "remote" target is readily supported on most
+# platforms, it should be added here. This requires Jack2 1.9.10 or later
+# which isn't regularly installed on most systems at present, so we skip this
+# target for now.
+
 world :
-	$(MAKE) -C $(BUILDLOCATION) configall
+	$(MAKE) -C $(BUILDLOCATION) configall configoscdynamic confighttpdynamic BACKENDS=world.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 	$(MAKE) -C tools/sound2faust
 
