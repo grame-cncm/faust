@@ -21,6 +21,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <climits>
 
 #include "tree.hh"
 #include "sigtype.hh"
