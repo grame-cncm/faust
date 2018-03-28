@@ -34,6 +34,7 @@ before_install:
 branches:
   only:
   - master-dev
+  - temptravis
 
 script: 
   - make JOBS="-j 2"
