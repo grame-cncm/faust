@@ -68,6 +68,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #endif
     fBuilder = new IRBuilder<>(getContext());
     
+    // Check pointer size
+    faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout().getPointerSize()));
+    
     // Set "-fast-math"
     FastMathFlags FMF;
 #if defined(LLVM_60)

@@ -382,7 +382,9 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineInt64Size = sizeof(long int);
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
-    gMachinePtrSize = sizeof(void*);
+    
+    // Assuming we are compiling for a 64 bits machine
+    gMachinePtrSize = 8;
 
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang = "";

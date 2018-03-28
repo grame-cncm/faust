@@ -1324,20 +1324,13 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
-    
-    pushResetUIInstructions(InstBuilder::genIfInst(InstBuilder::genEqual(InstBuilder::genCastInt32Inst(InstBuilder::genLoadStructVar(varname)),
+   
+    pushResetUIInstructions(InstBuilder::genIfInst(InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
+                                                                                                  InstBuilder::genBasicTyped(Typed::kUint_ptr)),
                                                                          InstBuilder::genTypedZero(Typed::kSound_ptr)),
                                                    block,
                                                    InstBuilder::genBlockInst()));
-    
-    /*
-    pushResetUIInstructions(InstBuilder::genIfInst(InstBuilder::genEqual(InstBuilder::genBitcastInst(InstBuilder::genLoadStructVar(varname),
-                                                                                                     InstBuilder::genBasicTyped(Typed::kInt32)),
-                                                                         InstBuilder::genTypedZero(Typed::kSound_ptr)),
-                                                   block,
-                                                   InstBuilder::genBlockInst()));
-    */
-    
+   
     pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache,
                                                     InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                     InstBuilder::genLoadStructVar(varname)));

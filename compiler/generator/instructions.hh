@@ -107,6 +107,68 @@ struct VectorTyped;
 struct NamedAddress;
 struct IndexedAddress;
 
+// Type checking
+
+inline bool isRealType(Typed::VarType type)
+{
+    return (type == Typed::kFloat
+            || type == Typed::kFloatMacro
+            || type == Typed::kFloatish
+            || type == Typed::kDouble
+            || type == Typed::kDoublish);
+}
+
+inline bool isRealPtrType(Typed::VarType type)
+{
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr);
+}
+
+inline bool isIntType(Typed::VarType type)
+{
+    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
+}
+
+inline bool isIntType32(Typed::VarType type)
+{
+    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+}
+
+inline bool isIntType64(Typed::VarType type)
+{
+    return ( type == Typed::kInt64);
+}
+
+inline bool isIntPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
+}
+
+inline bool isPtrType(Typed::VarType type)
+{
+    return isRealPtrType(type) || isIntPtrType(type);
+}
+
+inline bool isBoolType(Typed::VarType type)
+{
+    return (type == Typed::kBool);
+}
+
+inline bool isIntOrPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt32
+            || type == Typed::kInt64
+            || type == Typed::kInt32_ptr
+            || type == Typed::kInt64_ptr
+            || type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kObj_ptr
+            || type == Typed::kVoid_ptr);
+}
+
+
 // =========
 // Visitors
 // =========
@@ -1850,16 +1912,7 @@ struct InstBuilder
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size);}
     static DoubleNumInst* genQuadNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }  // Use DoubleNumInst
 
-    static ValueInst* genTypedZero(Typed::VarType type)
-    {
-        return (type == Typed::kInt32 
-                || type == Typed::kInt32_ptr 
-                || type == Typed::kFloat_ptr
-                || type == Typed::kFloatMacro_ptr
-                || type == Typed::kDouble_ptr
-                || type == Typed::kObj_ptr
-                || type == Typed::kSound_ptr) ? genInt32NumInst(0) : genRealNumInst(type, 0.);
-    }
+    static ValueInst* genTypedZero(Typed::VarType type);
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
     {
@@ -2529,67 +2582,6 @@ private:
     ValueInst* fValue;
     
 };
-
-// Type checking
-
-inline bool isRealType(Typed::VarType type)
-{
-    return (type == Typed::kFloat
-            || type == Typed::kFloatMacro
-            || type == Typed::kFloatish
-            || type == Typed::kDouble
-            || type == Typed::kDoublish);
-}
-
-inline bool isRealPtrType(Typed::VarType type)
-{
-    return (type == Typed::kFloat_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kDouble_ptr);
-}
-
-inline bool isIntType(Typed::VarType type)
-{
-    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
-}
-
-inline bool isIntType32(Typed::VarType type)
-{
-    return (type == Typed::kInt32 || type == Typed::kInt32ish);
-}
-
-inline bool isIntType64(Typed::VarType type)
-{
-    return ( type == Typed::kInt64);
-}
-
-inline bool isIntPtrType(Typed::VarType type)
-{
-    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
-}
-
-inline bool isPtrType(Typed::VarType type)
-{
-    return isRealPtrType(type) || isIntPtrType(type);
-}
-
-inline bool isBoolType(Typed::VarType type)
-{
-    return (type == Typed::kBool);
-}
-
-inline bool isIntOrPtrType(Typed::VarType type)
-{
-    return (type == Typed::kInt32
-            || type == Typed::kInt64
-            || type == Typed::kInt32_ptr
-            || type == Typed::kInt64_ptr
-            || type == Typed::kFloat_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kDouble_ptr
-            || type == Typed::kObj_ptr
-            || type == Typed::kVoid_ptr);
-}
 
 #endif
 

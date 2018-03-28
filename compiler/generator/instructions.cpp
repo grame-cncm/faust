@@ -26,6 +26,24 @@
 
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
+ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
+{
+    if (type == Typed::kInt32) {
+        return genInt32NumInst(0);
+    } else if (type == Typed::kInt64) {
+        return genInt64NumInst(0);
+    } else if (isRealType(type)) {
+        return genRealNumInst(type, 0.);
+    } else {
+        // Pointer type
+        if (gGlobal->gMachinePtrSize == 4) {
+            return genInt32NumInst(0);
+        } else {
+            return genInt64NumInst(0);
+        }
+    }
+}
+
 Typed::VarType ctType(Type t)
 {
     return (t->nature() == kInt) ? Typed::kInt32 : Typed::kFloat;
@@ -42,6 +60,7 @@ string Typed::gTypeString[] = {
     "kVoid", "kVoid_ptr", "kVoid_ptr_ptr",
     "kObj", "kObj_ptr",
     "kSound", "kSound_ptr",
+    "kUint_ptr"
     "kNoType"
 };
 

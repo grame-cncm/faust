@@ -37,6 +37,7 @@ using namespace std;
 #include "binop.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "Text.hh"
 
 #if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS
@@ -815,8 +816,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         // UI structure creation
         LLVMValue fUIInterface_ptr;                 // Pointer on the UI
 
-        llvm::PointerType* fStructDSP;
-
         std::map<string, int> fDSPFieldsNames;      // Computed by LLVMTypeInstVisitor, used to access struct fields
         std::map<string, LLVMValue> fDSPStackVars;  // Variables on the stack
 
@@ -838,7 +837,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                         fBuilder(builder),
                         fAllocaBuilder(alloca_builder),
                         fUIInterface_ptr(ui_ptr),
-                        fStructDSP(dsp_ptr),
                         fDSPFieldsNames(field_names),
                         fCurValue(NULL),
                         fPrefix(prefix)
@@ -862,7 +860,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             fUICallTable["declare"] = genInt32(fModule, 13);
 
-            fTypeMap[Typed::kObj_ptr] = fStructDSP;
+            fTypeMap[Typed::kObj_ptr] = dsp_ptr;
             
             initTypes(module);
             
@@ -929,22 +927,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual ~LLVMInstVisitor()
         {}
     
-         // User interface
-
-        string replaceSpacesWithUnderscore(const string& str)
-        {
-            string res = str;
-            for (size_t i = 0; i < res.size(); i++) {
-                if (res[i] == ' ') res[i] = '_';
-            }
-            return res;
-        }
+        // User interface
 
         void printVarTable()
         {
             std::map<string, LLVMValue>::const_iterator it;
             for (it = fDSPStackVars.begin(); it != fDSPStackVars.end(); it++) {
-                printf("stack var = %s \n", (*it).first.c_str());
+                cout << "stack var = " << (*it).first << endl;
             }
         }
         
@@ -1038,7 +1027,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* ui = GET_ITERATOR(func_llvm_buildUserInterface_args_it++);
 
             // Get LLVM constant string
-            string name = replaceSpacesWithUnderscore(inst->fName);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
         #if defined(LLVM_35)
@@ -1093,7 +1081,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* ui = GET_ITERATOR(func_llvm_buildUserInterface_args_it++);
 
             // Get LLVM constant string
-            string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
         #if defined(LLVM_35)
@@ -1142,7 +1129,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* ui = GET_ITERATOR(func_llvm_buildUserInterface_args_it++);
 
             // Get LLVM constant string
-            string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
         #if defined(LLVM_35)
@@ -1196,7 +1182,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             Value* ui = GET_ITERATOR(func_llvm_buildUserInterface_args_it++);
 
             // Get LLVM constant string
-            string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
         #if defined(LLVM_35)
@@ -1815,7 +1800,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Compile instruction to be casted, result in fCurValue
             inst->fInst->accept(this);
-            visitAux(inst->fType->getType(), inst->fSize);
+            visitCastAux(inst->fType->getType(), inst->fSize);
         }
     
         virtual void visit(::BitcastInst* inst)
@@ -1842,10 +1827,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             }
         }
 
-        void visitAux(Typed::VarType type, int size)
+        void visitCastAux(Typed::VarType type, int size)
         {
             /*
-            std::cerr <<"visitAux(Typed::VarType) \n";
+            std::cerr <<"visitCastAux(Typed::VarType) \n";
             dumpLLVM(fCurValue);
             dumpLLVM(fCurValue->getType());
             dumpLLVM(fTypeMap[Typed::kSound_ptr]);
@@ -1890,6 +1875,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     } else {
                         faustassert(false);
                     }
+                    break;
+                    
+                case Typed::kUint_ptr:
+                    fCurValue = fBuilder->CreatePtrToInt(fCurValue, fModule->getDataLayout().getIntPtrType(fModule->getContext()));
                     break;
 
                 case Typed::kQuad:

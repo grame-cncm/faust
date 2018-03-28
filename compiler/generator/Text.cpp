@@ -278,11 +278,11 @@ string indent(const string& str, int tabs)
     return outstream.str();
 }
 
-string replaceChar(string str, char ch1, char ch2)
+string replaceChar(string str, char src, char dst)
 {
-    for (size_t i = 0; i < str.length(); ++i) {
-        if (str[i] == ch1) {
-            str[i] = ch2;
+    for (size_t int i = 0; i < str.length(); ++i) {
+        if (str[i] == src) {
+            str[i] = dst;
         }
     }
     return str;

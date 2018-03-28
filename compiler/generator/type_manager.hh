@@ -99,6 +99,8 @@ class CStringTypeManager : public StringTypeManager {
             
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+            
+            fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
         }
     
         virtual std::string generateType(Typed* type)
@@ -187,6 +189,8 @@ class RustStringTypeManager : public StringTypeManager {
             
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+            
+            // TODO : handling kUint_ptr
         }
     
         virtual std::string generateType(Typed* type)

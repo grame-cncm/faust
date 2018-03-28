@@ -57,6 +57,7 @@ struct Typed : public Printable
                 kVoid, kVoid_ptr, kVoid_ptr_ptr,
                 kObj, kObj_ptr,
                 kSound, kSound_ptr,
+                kUint_ptr,
                 kNoType
     };
     

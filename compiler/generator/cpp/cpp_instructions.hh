@@ -243,7 +243,7 @@ class CPPInstVisitor : public TextInstVisitor {
             if (endWith(type, "*")) {
                 *fOut << "static_cast<" << type << ">("; inst->fInst->accept(this);  *fOut << ")";
             } else {
-                 *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
+                *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
             }
         }
     

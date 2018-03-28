@@ -27,7 +27,6 @@
 #include <fstream>
 #include <string>
 #include <list>
-#include <set>
 #include <map>
 
 #include "instructions.hh"
@@ -112,15 +111,15 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 std::ostringstream num_str;
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
-                    /*
+                    faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
                     return (array_typed->fSize == 0)
                         ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\""
                         : "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\"";
-                    */
-                    faustassert(fTypeDirectTable.find(basic_typed1->fType) != fTypeDirectTable.end());
+                    /*
                     return (array_typed->fSize == 0)
                         ? fTypeDirectTable[basic_typed1->fType]
                         : fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]";
+                    */
                 } else if (array_typed1) {
                     return generateType(array_typed1) + "[" + num_str.str() + "]";
                 } else if (named_typed1) {
@@ -176,12 +175,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
                 num_str << array_typed->fSize;
                 if (basic_typed1) {
                     return (array_typed->fSize == 0)
-                        /*
                         ? "\"" + fTypeDirectTable[basic_typed1->fType] + "*\", " + name
                         : "\"" + fTypeDirectTable[basic_typed1->fType] + "\", " + name + "[" + num_str.str() + "]";
-                        */
+                       /*
                         ? fTypeDirectTable[basic_typed1->fType] + "*, " + name
                         : fTypeDirectTable[basic_typed1->fType] + ", " + name + "[" + num_str.str() + "]";
+                        */
                         //: "\"" + fTypeDirectTable[basic_typed1->fType] + "[" + num_str.str() + "]" + "\", " + name;
                 } else if (array_typed1) {
                     return generateType(array_typed1) + "[" + num_str.str() + "]";
@@ -385,6 +384,20 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
+            
+            if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
+                Typed* type = gGlobal->gVarTypeTable[indexed->getName()];
+                Typed::VarType external_type = Typed::getTypeFromPtr(type->getType());
+                // If type is an external Structured type
+                if (gGlobal->gExternalStructTypes.find(external_type) != gGlobal->gExternalStructTypes.end()) {
+                    DeclareStructTypeInst* struct_type = gGlobal->gExternalStructTypes[external_type];
+                    Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+                    faustassert(field_index);
+                    *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+                    return;
+                }
+            }
+            
             *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
         }
 
