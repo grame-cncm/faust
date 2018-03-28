@@ -287,17 +287,18 @@ Type checkWRTbl(Type tbl, Type wr)
 
 /**
 	\brief Check is a type is appropriate for a delay.
-	@return -1 if not appropriate, mxd (max delay) if appropriate
+	@return an exception if not appropriate, mxd (max delay) if appropriate
 
  */
 int checkDelayInterval(Type t)
 {
 	interval i = t->getInterval();
-	if (i.valid && i.lo >= 0) {
+	if (i.valid && i.lo >= 0 && i.hi < INT_MAX) {
 		return int(i.hi+0.5);
 	} else {
-		//cerr << "checkDelayInterval failed for : " << i << endl;
-		return -1;
+        stringstream error;
+        error << "ERROR : invalid delay parameter range: " << i << ". The range must be between 0 and MAX_INT" << endl;
+        throw faustexception(error.str());
 	}
 }
 
