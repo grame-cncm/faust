@@ -27,6 +27,7 @@ matrix:
             - supercollider-dev
       env:
          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
+         - BACKENDS="regular.cmake"
 
 before_install:
     - eval "${MATRIX_EVAL}"
