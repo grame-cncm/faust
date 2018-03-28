@@ -9,7 +9,7 @@ master-dev : [![Build Status](https://travis-ci.org/grame-cncm/faust.svg?branch=
 
 Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. A distinctive characteristic of Faust is to be fully compiled.
 
-The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as CSOUND, LADSPA, MAX/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
+The Faust compiler translates DSP specifications into very efficient code for various languages (C++, C, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc.) working at sample level. It targets high-performance signal processing applications, libraries and audio plug-ins for a variety of audio platforms and standards. A same Faust specification can be used to easily generate various kinds of native standalone applications, iOS and Android apps, as well as Csound, LADSPA, Max/MSP, PD, Q, SuperCollider, VST, AU plugins, etc. (see the README in the `/architecture` folder for an exhaustive list).
 
 While there are Faust contributors everywhere across the globe, Faust is mainly being developed at Grame, Centre National de Creation Musicale (<http://www.grame.fr>), its birthplace.
 
@@ -21,7 +21,7 @@ In the following subsections, details about the differences between these 2 vers
 
 ### `master`
 
-`master` is the main Faust branch. It can compile in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust relies on LLVM and OpenSSL. Finally, Faust is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc. This branch also cotiaons the old Faust1 C++ backend.
+`master` is the main Faust branch. It can compile in different languages: C, C++, JAVA, JavaScript, ASM JavaScript, LLVM IR, WebAssembly etc. It also implements experimental features such as multi-rate capabilities, etc. Thanks to its ability to generate LLVM IR and by using LLVM JIT, Faust is "embeddable" in any C++ program through a library called `libfaust`. Compiling Faust relies on [LLVM](https://llvm.org). Finally, Faust is needed by some sister projects of Faust such as FaustLive, FaucK, faustgen~, etc. This branch also contains the old Faust1 C++ backend.
 
 ### `master-dev` (Preferred Development Branch)
 
@@ -42,9 +42,9 @@ This is an overview of the content of the top-level folders of the Faust distrib
 	installer/             : various instalers for Linux distribution
 	libraries/             : DSP libraries
 	syntax-highlighting/   : support for syntax highlighting for several editors
-	test/                  : various tests
+	tests/                 : various tests
 	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
-	windows/               : Windows projects
+	windows/               : Windows related ressources
 
 ## Compilation and Installation
 
