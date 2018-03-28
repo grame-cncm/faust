@@ -72,14 +72,24 @@ DeclareFunInst::DeclareFunInst(const string& name, FunTyped* type, BlockInst* co
         :fName(name), fType(type), fCode(code)
 {
     if (gGlobal->gVarTypeTable.find(name) == gGlobal->gVarTypeTable.end()) {
-        gGlobal->gVarTypeTable[name] = type->getTyped();
-        //cout << "DeclareFunInst " << name << " " << Typed::gTypeString[type->getType()] << endl;
-    } else if (gGlobal->gVarTypeTable[name] != type->getTyped()) {
-        //cout << "DeclareFunInst " << name << endl;
-        faustassert(false);
+        gGlobal->gVarTypeTable[name] = type;
+    } else {
+        FunTyped* fun_type = static_cast<FunTyped*>(gGlobal->gVarTypeTable[name]);
+        // If same result type
+        if (fun_type->getTyped() == type->getTyped()) {
+            if ((gGlobal->gOutputLang == "llvm") && (fun_type->getPrototype() != type->getPrototype())) {
+                stringstream str;
+                str << "ERROR : foreign function '" << name << "' conflicts with another (possibly compiler internally defined) function with a different prototype\n";
+                throw faustexception(str.str());
+            }
+        } else {
+            stringstream str;
+            str << "ERROR : foreign function '" << name << "' conflicts with another (possibly compiler internally defined) function with a different return type\n";
+            throw faustexception(str.str());
+        }
     }
 }
- 
+
 DeclareFunInst::~DeclareFunInst()
 {}
   

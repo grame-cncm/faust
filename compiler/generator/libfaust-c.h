@@ -30,6 +30,10 @@
 #define LIBEXPORT
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+    
 // Code by: B-Con (http://b-con.us)
 // Released under the GNU GPL
 // MD5 Hash Digest implementation (little endian byte order)
@@ -182,10 +186,6 @@ static void sha1_final(SHA1_CTX *ctx, uchar hash[])
         hash[i+16] = (ctx->state[4] >> (24-i*8)) & 0x000000ff;
     }
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
     
 /**
  * Compute a SHA1 key from a string
@@ -279,12 +279,8 @@ LIBEXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp
  * This is MANDATORY on Windows when otherwise all nasty runtime version related crashes can occur.
  *
  * @param ptr - the pointer to be deleted.
- */
-#ifdef EMCC
-extern "C" void freeCMemory(void* ptr);
-#else
-extern "C" LIBEXPORT void freeCMemory(void* ptr);
-#endif
+ */    
+LIBEXPORT void freeCMemory(void* ptr);
     
 #ifdef __cplusplus
 }

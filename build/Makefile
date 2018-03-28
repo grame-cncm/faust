@@ -69,14 +69,20 @@ help:
 	@echo "Available targets are:"
 	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
 	@echo " 'faust' 	 : builds the FAUST compiler."
-	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
-	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
-	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
-	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static Faust OSC libraries"
 	@echo " 'http'       : builds the static Faust HTTPD libraries"
 	@echo " 'clean'      : removes the output of the 'all' targets"
+	@echo
+	@echo "Targets excluded from all:"
+	@echo " 'wasmlib'    : builds the libfaust as a Web Assembly library"
+	@echo " 'asmjslib'   : builds the libfaust as a ASM JS library"
+	@echo
+	@echo "Targets that require specific configs:"
+	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
+	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
+	@echo " 'oscdynamic' : builds the OSC library in dynamic mode (requires configoscdynamic)."
+	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode (requires confighttpdynamic)."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
@@ -95,6 +101,8 @@ help:
 	@echo " 'configstatic'  : includes the static library in the project."
 	@echo " 'configdynamic' : includes the dynamic library in the project."
 	@echo " 'configall'     : includes all libraries in the project."
+	@echo " 'configoscdynamic'  : includes the dynamic OSC library in the project."
+	@echo " 'confighttpdynamic' : includes the dynamic HTTP library in the project."
 	@echo " 'reset'      : reset the project to the basic targets (faust, osc and http)."
 	@echo " 'cmake'      : regenerate the project using the current config"
 	@echo
@@ -109,7 +117,7 @@ help:
 	@echo " 'uninstall'  : remove previously installed files,"
 	@echo "Installation options:"
 	@echo " 'DESTDIR'    : the destination directory,"
-	@echo " 'PREFIX'     : the destination directory,"
+	@echo " 'PREFIX'     : the destination prefix,"
 	@echo "  Note that when using a relative path, it is relative to FAUSTDIR ($(FAUSTDIR))"
 	@echo "------ see also the README.md file ------"
 
@@ -119,11 +127,15 @@ faust: $(PROJ)
 
 osc: $(PROJ)
 	cmake --build $(FAUSTDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
-#	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
+
+oscdynamic: $(PROJ)
+	cmake --build $(FAUSTDIR) --target oscdynamic $(BUILDOPT) -- $(JOBS)
 
 http: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpstatic $(BUILDOPT) -- $(JOBS)
-#	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
+
+httpdynamic: $(PROJ)
+	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
 
 
 #===============================================================
@@ -149,12 +161,13 @@ dynamiclib: $(PROJ)
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
+ioslib: JOBS = "-jobs 4"
 ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
 	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
 	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt backends/ios.cmake
-	cd $(IOSDIR) && cmake -C ../backends/ios.cmake .. -G Xcode
+	cd $(IOSDIR) && cmake -C ../backends/ios.cmake ..  -DINCLUDE_STATIC=on -DINCLUDE_HTTP=off -G Xcode
 
 
 #===============================================================
@@ -189,7 +202,15 @@ configdynamic: $(PROJ)
 
 confighttp: HTTP ?= on
 confighttp: $(PROJ)
-	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=on ..
+	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=$(HTTP) ..
+
+configoscdynamic: OSCDYN ?= on
+configoscdynamic:
+	cd $(FAUSTDIR) && cmake -DOSCDYNAMIC=$(OSCDYN) ..
+
+confighttpdynamic: HTTPDYN ?= on
+confighttpdynamic:
+	cd $(FAUSTDIR) && cmake -DHTTPDYNAMIC=$(HTTPDYN) ..
 
 configall: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..

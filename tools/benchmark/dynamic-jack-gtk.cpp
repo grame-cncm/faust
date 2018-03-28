@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 #endif
     
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg << endl;
+        cerr << "Cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);
     }
     

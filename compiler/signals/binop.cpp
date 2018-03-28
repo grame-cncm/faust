@@ -34,7 +34,7 @@ static bool noNtrl(const Node& n) { return falsePredicate(n); }
 #pragma warning (disable: 4291)
 #endif
 
-#if LLVM_BUILD
+#ifdef LLVM_BUILD
 
 #if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS

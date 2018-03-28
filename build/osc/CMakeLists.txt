@@ -9,7 +9,7 @@ set (SOVERS 1)
 
 #######################################
 # options
-option ( DYNAMIC 	"Compiles also the libray as dynamic library"	off )
+option ( OSCDYNAMIC 	"Compiles also the libray as dynamic library"	off )
 
 #######################################
 # check for variables that are normally set at upper level
@@ -57,7 +57,7 @@ endif()
 add_library( oscstatic STATIC ${SRC} ${PLATFORM_SRC})
 target_include_directories (oscstatic PRIVATE ${INCLUDE} )
 set (TARGETS oscstatic)
-if (NOT IOS AND DYNAMIC)
+if (NOT IOS AND OSCDYNAMIC)
 	add_library( oscdynamic SHARED ${SRC} ${PLATFORM_SRC} )
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 

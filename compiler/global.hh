@@ -463,18 +463,18 @@ struct global {
 
     bool gEnableFlag;
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
     // One single global visitor for asm.js, so that sub-containers and global container use the same heap
     ASMJAVAScriptInstVisitor* gASMJSVisitor;
 #endif
 
-#if WASM_BUILD
+#ifdef WASM_BUILD
     // One single global visitor for WebAssembly, so that sub-containers and global container use the same heap
     WASMInstVisitor* gWASMVisitor;
     WASTInstVisitor* gWASTVisitor;
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
     // One single global visitor Interpreter backend, so that sub-containers and global container use the same heap
     DispatchVisitor* gInterpreterVisitor;
 #endif

@@ -44,6 +44,8 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
     
         virtual bool initJIT(std::string& error_msg);
     
+        void write(std::ostream* out, bool binary, bool small = false);
+    
         // Bitcode
         std::string writeDSPFactoryToBitcode();
         

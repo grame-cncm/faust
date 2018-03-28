@@ -11,7 +11,7 @@ endif()
 
 #######################################
 # options
-option ( DYNAMIC 	"Compiles also the libray as dynamic library"	off )
+option ( HTTPDYNAMIC 	"Compiles also the libray as dynamic library"	off )
 
 #######################################
 # check for variables that are normally set at upper level
@@ -111,7 +111,7 @@ else()
 		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
 endif()
 
-if (DYNAMIC)
+if (HTTPDYNAMIC)
 	add_library( httpdynamic SHARED  ${SRC})
 	target_include_directories (httpdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(httpdynamic PROPERTIES 

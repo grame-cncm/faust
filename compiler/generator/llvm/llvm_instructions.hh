@@ -1022,7 +1022,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 case 2: mth_index = fUICallTable["openTabBox"]; break;
                 default:
                     stringstream error;
-                    error << "LLVM : Error in user interface generation" << inst->fOrient << endl;
+                    error << "ERROR : in user interface generation" << inst->fOrient << endl;
                     throw faustexception(error.str());
             }
 
@@ -1311,7 +1311,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (!function) {  // Define it
 
                 // Special cases for min/max
-                if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
+                if (checkMinMax(inst->fName)) {
                     fCurValue = NULL;
                     return;
                 }
@@ -1872,11 +1872,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fun_args.push_back(fCurValue);
             }
 
-            if (startWith(inst->fName, "min")) {
+            if (checkMin(inst->fName) && fun_args.size() == 2) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
-            } else if (startWith(inst->fName, "max")) {
+            } else if (checkMax(inst->fName) && fun_args.size() == 2) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
-            } 
+            } else {
+                faustassert(false);
+            }
         }
     
         virtual void visit(FunCallInst* inst)
@@ -1884,11 +1886,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Don't know how to compile vectorized function call for now...
             if (inst->fSize > 1) {
                 stringstream error;
-                error << "LLVM : Error FunCallInst with fSize = " << inst->fSize << endl;
+                error << "ERROR : FunCallInst with fSize = " << inst->fSize << endl;
                 throw faustexception(error.str());
             }
             // Special case
-            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
+            if (checkMinMax(inst->fName)) {
                 generateFunPolymorphicMinMax(inst);
                 return;
             }
