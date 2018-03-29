@@ -35,12 +35,12 @@ using namespace std;
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
 
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define ModulePTR std::unique_ptr<Module>
-    #define MovePTR(ptr) std::move(ptr)
+#if defined(LLVM_35)
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
 #else
-    #define ModulePTR Module*
-    #define MovePTR(ptr) ptr
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 #endif
 
 // Helper functions
@@ -62,12 +62,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fContext = new LLVMContext();
     stringstream options; gGlobal->printCompilationOptions(options);
     fModule = new Module(options.str() + ", v" + string(FAUSTVERSION), getContext());
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36))
+#if defined(LLVM_35)
     fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
 #endif
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
     // Set "-fast-math"
     FastMathFlags FMF;
 #if defined(LLVM_60)
@@ -75,11 +74,10 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if (defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
-    fBuilder->setFastMathFlags(FMF);
-#else
+#if defined(LLVM_35)
     fBuilder->SetFastMathFlags(FMF);
-#endif
+#else
+    fBuilder->setFastMathFlags(FMF);
 #endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
@@ -98,7 +96,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fContext = context;
     fBuilder = new IRBuilder<>(getContext());
     
-#if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
     // Set "-fast-math"
     FastMathFlags FMF;
 #if defined(LLVM_60)
@@ -106,11 +103,10 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #else
     FMF.setUnsafeAlgebra();
 #endif
-#if (defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
-    fBuilder->setFastMathFlags(FMF);
-#else
+#if defined(LLVM_35)
     fBuilder->SetFastMathFlags(FMF);
-#endif
+#else
+    fBuilder->setFastMathFlags(FMF);
 #endif
     
     fAllocaBuilder = new IRBuilder<>(getContext());
@@ -222,25 +218,9 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
     Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
 #if !defined(LLVM_50) && !defined(LLVM_60)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
-#endif
-#elif defined(LLVM_32) 
-    AttrBuilder attr_builder;
-    attr_builder.addAttribute(Attributes::NoAlias);
-    Attributes attribute = Attributes::get(getContext(), attr_builder);
-    llvm_compute->addAttribute(3U, attribute);
-    llvm_compute->addAttribute(4U, attribute);
-#else
-    SmallVector<AttributeWithIndex, 4> attributes;
-    AttributeWithIndex PAWI;
-    PAWI.Index = 3U; PAWI.Attrs = Attribute::NoAlias;
-    attributes.push_back(PAWI);
-    PAWI.Index = 4U; PAWI.Attrs = Attribute::NoAlias;
-    attributes.push_back(PAWI);
-    llvm_compute->setAttributes(AttrListPtr::get(attributes.begin(), attributes.end()));
 #endif
 
     Function::arg_iterator llvm_compute_args_it = llvm_compute->arg_begin();
@@ -294,10 +274,10 @@ void LLVMCodeContainer::generateGetSampleRate(int field_index)
 
     BasicBlock* block = BasicBlock::Create(getContext(), "entry_block", sr_fun);
     fBuilder->SetInsertPoint(block);
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
-#else
+#if defined(LLVM_35)
     Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+#else
+    Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
 #endif
     Value* load_ptr = fBuilder->CreateLoad(zone_ptr);
 
@@ -656,12 +636,12 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
 
         Value* idx2[3];
         idx2[0] = load_meta_ptr;
-    #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-        idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
-        idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
-    #else
+    #if defined(LLVM_35)
         idx2[1] = fBuilder->CreateConstGEP2_32(llvm_label1, 0, 0);
         idx2[2] = fBuilder->CreateConstGEP2_32(llvm_label2, 0, 0);
+    #else
+        idx2[1] = fBuilder->CreateConstGEP2_32(type_def1, llvm_label1, 0, 0);
+        idx2[2] = fBuilder->CreateConstGEP2_32(type_def2, llvm_label2, 0, 0);
     #endif
         CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2+3));
         call_inst->setCallingConv(CallingConv::C);
@@ -734,9 +714,9 @@ void LLVMCodeContainer::generateFunMaps()
         generateFunMap("sqrt", "fast_sqrt", 1);
         generateFunMap("tan", "fast_tan", 1);
     } else {
-#ifdef __APPLE__
+    #ifdef __APPLE__
         generateFunMap("exp10", "__exp10", 1, true);
-#endif
+    #endif
     }
 }
 
@@ -912,7 +892,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         throw faustexception(llvm_error.str());
     }
     
-    return new llvm_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
+    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
 }
 
 // Scalar
@@ -1231,12 +1211,8 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
 
     Function* llvm_computethreadInternal = fModule->getFunction("computeThread");
     faustassert(llvm_computethreadInternal);
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
     Value* fun_args[] = { fBuilder->CreateBitCast(arg1, fStructDSP), arg2 };
     CallInst* call_inst = fBuilder->CreateCall(llvm_computethreadInternal, fun_args);
-#else
-    CallInst* call_inst = fBuilder->CreateCall2(llvm_computethreadInternal, fBuilder->CreateBitCast(arg1, fStructDSP), arg2);
-#endif
     call_inst->setCallingConv(CallingConv::C);
     fBuilder->CreateRetVoid();
 

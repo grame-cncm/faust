@@ -19,7 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-#include <openssl/sha.h>
 #include <stdio.h>
 #include <list>
 #include <iostream>
@@ -143,7 +142,7 @@ void* llvm_dsp_factory::loadOptimize(const string& function)
         return fun;
     } else {
         stringstream error;
-        error << "loadOptimize failed for '" << function << "'";
+        error << "ERROR : loadOptimize failed for '" << function << "'";
         throw faustexception(error.str());
     }
 }

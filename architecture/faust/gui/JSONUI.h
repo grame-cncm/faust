@@ -53,6 +53,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         std::string fVersion;
         std::string fOptions;
         std::string fName;
+        std::string fFileName;
         std::string fExpandedCode;
         std::string fSHAKey;
         std::string fDSPSize;
@@ -128,6 +129,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
      public:
      
         JSONUIAux(const std::string& name,
+                  const std::string& filename,
                   int inputs,
                   int outputs,
                   const std::string& sha_key,
@@ -137,22 +139,22 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& size,
                   const std::map<std::string, int>& path_table)
         {
-            init(name, inputs, outputs, sha_key, dsp_code,  version, options, size, path_table);
+            init(name, filename, inputs, outputs, sha_key, dsp_code,  version, options, size, path_table);
         }
 
-        JSONUIAux(const std::string& name, int inputs, int outputs)
+        JSONUIAux(const std::string& name, const std::string& filename, int inputs, int outputs)
         {
-            init(name, inputs, outputs, "", "", "", "", "", std::map<std::string, int>());
+            init(name, filename, inputs, outputs, "", "", "", "", "", std::map<std::string, int>());
         }
 
         JSONUIAux(int inputs, int outputs)
         {
-            init("", inputs, outputs, "", "","", "", "", std::map<std::string, int>());
+            init("", "", inputs, outputs, "", "","", "", "", std::map<std::string, int>());
         }
         
         JSONUIAux()
         {
-            init("", -1, -1, "", "", "", "", "", std::map<std::string, int>());
+            init("", "", -1, -1, "", "", "", "", "", std::map<std::string, int>());
         }
  
         virtual ~JSONUIAux() {}
@@ -162,6 +164,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
     
         // Init may be called multiple times so fMeta and fUI are reinitialized
         void init(const std::string& name,
+                  const std::string& filename,
                   int inputs,
                   int outputs,
                   const std::string& sha_key,
@@ -185,6 +188,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fTab += 1;
             
             fName = name;
+            fFileName = filename;
             fInputs = inputs;
             fOutputs = outputs;
             fExpandedCode = dsp_code;
@@ -361,7 +365,10 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         virtual void declare(const char* key, const char* value)
         {
             fMeta << fCloseMetaPar;
+            // fName found in metadata
             if ((strcmp(key, "name") == 0) && (fName == "")) fName = value;
+            // fFileName found in metadata
+            if ((strcmp(key, "filename") == 0) && (fFileName == "")) fFileName = value;
             tab(fTab, fMeta); fMeta << "{ " << "\"" << key << "\"" << ": " << "\"" << value << "\" }";
             fCloseMetaPar = ',';
         }
@@ -372,6 +379,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fJSON << "{";
             fTab += 1;
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
+            tab(fTab, fJSON); fJSON << "\"filename\": \"" << fFileName << "\",";
             if (fVersion != "") { tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\","; }
             if (fOptions != "") { tab(fTab, fJSON); fJSON << "\"options\": \"" << fOptions << "\","; }
             if (fDSPSize != "") { tab(fTab, fJSON); fJSON << "\"size\": \"" << fDSPSize << "\","; }
@@ -400,6 +408,7 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
     public :
     
         JSONUI(const std::string& name,
+               const std::string& filename,
                int inputs,
                int outputs,
                const std::string& sha_key,
@@ -408,20 +417,24 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
                const std::string& options,
                const std::string& size,
                const std::map<std::string, int>& path_table):
-        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs, sha_key, dsp_code, version, options, size, path_table)
+        JSONUIAux<FAUSTFLOAT>(name, filename,
+                              inputs, outputs,
+                              sha_key, dsp_code,
+                              version, options,
+                              size, path_table)
         {}
         
-        JSONUI(const std::string& name, int inputs, int outputs):
-        JSONUIAux<FAUSTFLOAT>(name, inputs, outputs)
+        JSONUI(const std::string& name, const std::string& filename, int inputs, int outputs):
+        JSONUIAux<FAUSTFLOAT>(name, filename, inputs, outputs)
         {}
         
-        JSONUI(int inputs, int outputs):
-        JSONUIAux<FAUSTFLOAT>(inputs, outputs)
+        JSONUI(int inputs, int outputs):JSONUIAux<FAUSTFLOAT>(inputs, outputs)
         {}
         
-        JSONUI():
-        JSONUIAux<FAUSTFLOAT>()
+        JSONUI():JSONUIAux<FAUSTFLOAT>()
         {}
+    
+        virtual ~JSONUI() {}
     
 };
 

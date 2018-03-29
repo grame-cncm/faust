@@ -1,5 +1,6 @@
 dox/*
-build*
+build/bin/*
+build/lib/*
 *~
 compile.sh
 *.aux
@@ -29,3 +30,4 @@ compiler/faust
 !*.xcodeproj/project.pbxproj
 !*.xcodeproj/xcshareddata/
 !*.xcworkspace/contents.xcworkspacedata
+tests/impulse-tests/ir

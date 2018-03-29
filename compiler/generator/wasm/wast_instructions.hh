@@ -519,7 +519,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 MathFunDesc desc = fMathLibTable[inst->fName];
                 if (desc.fMode == MathFunDesc::Gen::kWAS) {
                     // Special case for min/max
-                    if (startWith(desc.fName, "min") || startWith(desc.fName, "max")) {
+                    if (checkMinMax(desc.fName)) {
                         generateMinMax(inst->fArgs, desc.fName);
                     } else {
                         *fOut << "(" << realStr << "." << desc.fName << " ";

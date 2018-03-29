@@ -1,0 +1,48 @@
+#!/bin/bash
+
+LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2faustvst faust2graph faust2jack faust2jackconsole faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc faust2netjackconsole faust2netjackqt faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2sig faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole"
+LINUXMIDI="faust2jaqt"
+LINUXPOLY="faust2jaqt faust2juce"
+LINUXPOLYMIDI="faust2jaqt faust2juce"
+LINUXOSCHTTPD="faust2jaqt"
+
+
+echo "------------------------------"
+echo Run tests for the Faust server
+echo "------------------------------"
+
+
+for scriptname in $LINUX; do
+    ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+done
+
+for scriptname in $LINUXMIDI; do
+    ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+done
+
+for scriptname in $LINUXPOLY; do
+    ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+    rm -rf good
+done
+
+for scriptname in $LINUXPOLYMIDI; do
+    ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+    rm -rf good
+done
+
+for scriptname in $LINUXOSCHTTPD; do
+    ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+done
+
+(faust2unity -android -linux -w32 -w64 good.dsp &> LOG)&&(echo "OK: faust2unity -android succeeded !")||(echo "ERROR: faust2unity -android -linux -w32 -w64  failed")
+
+(faust2smartkeyb -android good.dsp &> LOG)&&(echo "OK: faust2smartkeyb -android succeeded !")||(echo "ERROR: faust2smartkeyb -android failed")
+
+(faust2api -android good.dsp &> LOG)&&(echo "OK: faust2api -android succeeded !")||(echo "ERROR: faust2api -android failed")
+
+(faust2api -android -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -midi succeeded !")||(echo "ERROR: faust2api -android -midi failed")
+
+(faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
+
+(faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
+

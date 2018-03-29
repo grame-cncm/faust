@@ -110,7 +110,6 @@
 #define numcolor "#f44800"
 #endif
 
-
 #if 1
 #define linkcolor "#003366" 
 #define normalcolor "#4B71A1"
@@ -160,13 +159,11 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 	cholddir();					// return to current directory
 }
 
-
 /************************************************************************
  ************************************************************************
 							IMPLEMENTATION
  ************************************************************************
  ************************************************************************/
-
 
 //------------------- to schedule and retreive drawing ------------------
 
@@ -274,9 +271,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 	return dst;
 }
 
-
 //------------------------ generating the schema -------------------------
-
 
 /**
  * isInverter(t) returns true if t == '*(-1)'. This test is used
@@ -302,7 +297,6 @@ static bool isInverter(Tree t)
     }
     return false;
 }
-
 
 /**
  * Compute the Pure Routing property, that is expressions
@@ -334,7 +328,6 @@ static bool isPureRouting(Tree t)
         return false;
     }
 }
-
 
 /**
  * Generate an appropriate schema according to
@@ -376,8 +369,6 @@ static schema* generateDiagramSchema(Tree t)
 	}
 }
 
-
-
 /**
  * Generate the inside schema of a block diagram
  * according to its type
@@ -393,7 +384,6 @@ static schema* generateInsideSchema(Tree t)
 	prim3	p3;
 	prim4	p4;
 	prim5	p5;
-
 
 	xtended* xt = (xtended*)getUserData(t);
 
@@ -454,7 +444,7 @@ static schema* generateInsideSchema(Tree t)
 		}
 	} else {
         stringstream error;
-        error << "Internal Error, box expression not recognized : ";
+        error << "ERROR : box expression not recognized : ";
         t->print(error);
         error << endl;
         throw faustexception(error.str());
@@ -522,21 +512,19 @@ static void UserInterfaceDescription(Tree box, string& d)
              << boxpp(chan) << ')';
     }
     else {
-        throw faustexception("INTERNAL ERROR : unknown user interface element\n");
+        throw faustexception("ERROR : unknown user interface element\n");
     }
     d = fout.str();
 }
 
-
 /**
  * Generate a 0->1 block schema for a user interface element
  */
-static schema* 	generateUserInterfaceSchema(Tree t)
+static schema* generateUserInterfaceSchema(Tree t)
 {
     string s; UserInterfaceDescription(t,s);
     return makeBlockSchema(0, 1, s, uicolor, "");
 }
-
 
 /**
  * Generate a 1->1 block schema for a user interface bargraph
@@ -552,17 +540,15 @@ static schema* generateBargraphSchema(Tree t)
  */
 static schema* generateSoundfileSchema(Tree t)
 {
-    Tree    label, chan;
+    Tree label, chan;
     if (isBoxSoundfile(t, label, chan)) {
         int n = tree2int(chan);
         string s; UserInterfaceDescription(t,s);
-        return makeBlockSchema(1, 2+n, s, uicolor, "");
+        return makeBlockSchema(1, 3+n, s, uicolor, "");
     } else {
-        throw faustexception("Internal error\n");
+        throw faustexception("ERROR : soundfile\n");
     }
 }
-
-
 
 /**
  * Generate a 1->0 block schema for an input slot
@@ -574,8 +560,6 @@ static schema* generateInputSlotSchema(Tree a)
 	return makeBlockSchema(1, 0, s.str(), slotcolor, "");
 }
 
-
-
 /**
  * Generate a 0->1 block schema for an output slot
  */
@@ -586,15 +570,13 @@ static schema* generateOutputSlotSchema(Tree a)
 	return makeBlockSchema(0, 1, s.str(), slotcolor, "");
 }
 
-
-
 /**
  * Generate an abstraction schema by placing in sequence
  * the input slots and the body
  */
 static schema* generateAbstractionSchema(schema* x, Tree t)
 {
-	Tree 	a,b;
+	Tree a,b;
 
 	while (isBoxSymbolic(t,a,b)) {
 		x = makeParSchema(x, generateInputSlotSchema(a));
@@ -620,7 +602,6 @@ static schema* addSchemaInputs(int ins, schema* x)
         return makeSeqSchema(y,x);
     }
 }
-
 
 static schema* addSchemaOutputs(int outs, schema* x)
 {

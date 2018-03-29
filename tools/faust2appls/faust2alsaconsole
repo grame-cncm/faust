@@ -1,10 +1,9 @@
 #!/bin/bash
 
-OSCDEFS=""
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to CLI alsa                 #
-#               (c) Grame, 2009-2011                                #
+#               (c) Grame, 2009-2018                                #
 #                                                                   #
 #####################################################################
 
@@ -12,6 +11,11 @@ OSCDEFS=""
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+
+POLY="POLY"
+NVOICES=-1
+OSCDEFS=""
+ARCHFILE="alsa-console.cpp"
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -30,7 +34,21 @@ for p in $@; do
 done
 
 #PHASE 2 : dispatch command arguments
-for p in $@; do
+while [ $1 ] 
+do
+    p=$1
+
+	if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2alsaconsole [-nvoices <num>] [-midi] [-osc] [-httpd] [-arch32] [-arch64] <file.dsp>"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-arch32' to compile a 32 bits binary"
+        echo "Use '-arch64' to compile a 64 bits binary"
+        exit
+    fi
+    
     if [ "$p" = -omp ]; then
         if [[ $CXX == "icpc" ]]; then
             OMP="-openmp"
@@ -38,37 +56,49 @@ for p in $@; do
             OMP="-fopenmp"
         fi
     fi
-  
+
     if [ "$p" = -icc ]; then
-    	ignore=" "
+		ignore=" "
+    elif [ $p = "-nvoices" ]; then
+        POLYDEFS="DEFINES += POLY"
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-osc" ]; then
-	 OSCDEFS="-DOSCCTRL -lOSCFaust"
+	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
-	 HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+		HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
-	PROCARCH="-m32 -L/usr/lib32"
+		PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
-	PROCARCH="-m64"
+		PROCARCH="-m64"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
-	    OPTIONS="$OPTIONS $p"        
+	    OPTIONS="$OPTIONS $p"
 	fi
+	
+shift
+
 done
 
 #-------------------------------------------------------------------
 # compile the *.dsp files using ALSA and GTK on linux
 #
 for f in $FILES; do
-	
+
 	# compile faust to c++
-	faust -i -a alsa-console.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS -lpthread -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs alsa` $PROCARCH $OSCDEFS $HTTPDEFS $POLYDEFS $MIDIDEFS -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 
@@ -77,5 +107,3 @@ for f in $FILES; do
 done
 
 echo $BINARIES
-
-

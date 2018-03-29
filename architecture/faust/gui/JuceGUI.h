@@ -1917,7 +1917,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \brief   Destructor.
          * \details Delete root box used in buildUserInterface logic.
          */
-        ~JuceGUI()
+        virtual ~JuceGUI()
         {
             delete fCurrentBox;
         }

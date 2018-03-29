@@ -274,22 +274,8 @@ faust.mydsp = function (instance, context, buffer_size, sample_rate) {
         compute : function (inputs, outputs)
         {
             computeAux(inputs, outputs);
-        },
+        }
         
-        checkDefaults : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
-				if (default_values[i] !== factory.getParamValue(dsp, pathTable[inputs_items[i]])) return false;
-			}
-			return true;
-		},
-	
-		initRandom : function ()
-		{
-			for (var i = 0; i < default_values.length; i++) {
-                factory.setParamValue(dsp, pathTable[inputs_items[i]], 0.123456789);
-			}
-		}
     };
 };
 

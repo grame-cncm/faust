@@ -90,7 +90,7 @@ static void addLayerDef(Tree id, Tree def, Tree lenv)
             //evalwarning(getDefFileProp(id), getDefLineProp(id), "equivalent re-definitions of", id);
         } else {
             stringstream error;
-            error << getDefFileProp(id) << ':' << getDefLineProp(id) << " ERROR: redefinition of symbols are not allowed : " << boxpp(id) << endl;
+            error << getDefFileProp(id) << ':' << getDefLineProp(id) << " ERROR : redefinition of symbols are not allowed : " << boxpp(id) << endl;
             gGlobal->gErrorCount++;
             throw faustexception(error.str());
         }

@@ -1615,7 +1615,7 @@ int main(int argc, char *argv[] )
     // compute rcfilename to (re)store application state
     char    rcfilename[256];
     char*   home = getenv("HOME");
-    snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
 	
 	AudioInterface	audio (
 		AudioParam().frequency(lopt(argv, "--frequency", 44100)) 

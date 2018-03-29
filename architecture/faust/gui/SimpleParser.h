@@ -38,6 +38,10 @@
 #include <iostream>
 #include <ctype.h>
 
+#ifndef _WIN32
+# pragma GCC diagnostic ignored "-Wunused-function"
+#endif
+
 using namespace std;
 
 struct itemInfo {

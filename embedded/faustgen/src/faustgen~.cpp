@@ -31,7 +31,7 @@
 #include "faust/dsp/poly-dsp.h"
 
 #ifndef WIN32
-#include "faust/sound-file.h"
+//#include "faust/sound-file.h"
 #endif
 
 int faustgen_factory::gFaustCounter = 0;
@@ -161,6 +161,7 @@ faustgen_factory::faustgen_factory(const string& name)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
+    fDefaultPath = path_getdefault();
     fName = name;
     fDSPfactory = 0;
     fBitCodeSize = 0;
@@ -170,6 +171,7 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
+    fPolyphonic = false;
     
     fMidiHandler.start_midi();
     
@@ -349,8 +351,10 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
     
     if (nvoices > 0) {
+        fPolyphonic = true;
         return new mydsp_poly(mono, nvoices, true);
     } else {
+        fPolyphonic = false;
         return mono;
     }
 }
@@ -414,7 +418,6 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
-    
     assert(dsp);
     m_siginlets = dsp->getNumInputs();
     m_sigoutlets = dsp->getNumOutputs();
@@ -838,7 +841,9 @@ void faustgen_factory::read(long inlet, t_symbol* s)
         }
     // Otherwise locate the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found", filename);
             return;
@@ -902,7 +907,9 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         }
     // Otherwise locate or create the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found, so tries to create it", filename);
             err = path_createsysfile(filename, path, type, &fh);
@@ -1061,7 +1068,6 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
      
     // Fetch the data inside the max patcher using the dictionary
     t_dictionary* d = 0;
-    
     if ((d = (t_dictionary*)gensym("#D")->s_thing) && res) {
         fDSPfactory->getfromdictionary(d);
     }
@@ -1480,8 +1486,8 @@ void faustgen::hilight_error(const string& error)
 void faustgen::add_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.addMidiIn(poly);
     }
 }
@@ -1489,8 +1495,8 @@ void faustgen::add_midihandler()
 void faustgen::remove_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.removeMidiIn(poly);
     }
 }
@@ -1573,9 +1579,17 @@ void faustgen::create_jsui()
         obj = jbox_get_object(box);
         // Notify JSON
         if (obj && strcmp(object_classname(obj)->s_name, "js") == 0) {
-            t_atom json;
-            atom_setsym(&json, gensym(fDSPfactory->get_json()));
-            object_method_typed(obj, gensym("anything"), 1, &json, 0);
+            t_atom argv[2];
+            // Add JSON parameter
+            atom_setsym(&argv[0], gensym(fDSPfactory->get_json()));
+            // Add scripting name parameter
+            t_object* fg_box;
+            object_obex_lookup((t_object*)&m_ob, gensym("#B"), &fg_box);
+            t_symbol* scripting = jbox_get_varname(fg_box); // scripting name
+            if (scripting) {
+                atom_setsym(&argv[1], gensym(scripting->s_name));
+            }
+            object_method_typed(obj, gensym("anything"), 2, argv, 0);
         }
     }
         

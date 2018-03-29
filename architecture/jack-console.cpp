@@ -44,16 +44,17 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
+
+#ifdef HTTPCTRL
+#include "faust/gui/httpdUI.h"
 #endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
 
-#ifdef HTTPCTRL
-#include "faust/gui/httpdUI.h"
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 /******************************************************************************
@@ -86,8 +87,8 @@ int main(int argc, char *argv[] )
     char rcfilename[256];
     char* home = getenv("HOME");
 
-    snprintf(appname, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, appname);
+    snprintf(appname, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
     CMDUI interface(argc, argv);
     FUI finterface;
@@ -129,7 +130,5 @@ int main(int argc, char *argv[] )
     return 0;
 }
 
-
-		
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

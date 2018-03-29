@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     char* name = basename (argv [0]);
     char rcfilename[256];
     char* home = getenv("HOME");
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
 
 #ifdef POLY
     int poly = lopt(argv, "--poly", 4);

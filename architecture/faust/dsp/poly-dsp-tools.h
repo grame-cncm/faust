@@ -65,8 +65,10 @@ class dsp_poly_effect : public dsp_poly {
     public:
     
         dsp_poly_effect(dsp_poly* dsp1, dsp* dsp2)
-            :fPolyDSP(dsp1), dsp_poly(dsp2)
+            :dsp_poly(dsp2), fPolyDSP(dsp1) 
         {}
+    
+        virtual ~dsp_poly_effect() {}
         
         MapUI* keyOn(int channel, int pitch, int velocity)
         {

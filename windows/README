@@ -5,18 +5,5 @@
 	 			 http://www.grame.fr
 
 
-
-BUILDING LIBFAUST ON VISUAL STUDIO
-----------------------------------
-
-1- Compile dependencies
-	LLVM
-	openssl
-	
-2- Copy template.props and name it faust.props
-	
-3- Modify faust.props with the paths to your dependencies
-
-
-
-tested on visual studio 2012 with LLVM 3.4
+This folder contains windows specific resources.
+It includes binary versions of libmicrohttpd.

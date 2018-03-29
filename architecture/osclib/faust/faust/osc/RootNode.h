@@ -70,7 +70,7 @@ struct aliastarget
             
         } else {
             // no control !
-            return (fMinOut+fMaxOut)/2.0;
+            return (fMinOut+fMaxOut)/2.0f;
         }
     }
     
@@ -88,7 +88,7 @@ struct aliastarget
             
         } else {
             // no control !
-            return (fMinIn+fMaxIn)/2.0;
+            return (fMinIn+fMaxIn)/2.0f;
         }
     }
 };

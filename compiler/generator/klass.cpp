@@ -868,7 +868,11 @@ void Klass::printComputeMethod(int n, ostream& fout)
         switch (gGlobal->gVectorLoopVariant) {
             case 0 : printComputeMethodVectorFaster(n, fout); break;
             case 1 : printComputeMethodVectorSimple(n, fout); break;
-            default : cerr << "unknown loop variant " << gGlobal->gVectorLoopVariant << endl; exit(1);
+            default : {
+                stringstream error;
+                error << "ERROR : unknown loop variant"  << gGlobal->gVectorLoopVariant << endl;
+                throw faustexception(error.str());
+            }
         }
    } else {
         printComputeMethodScalar(n, fout);

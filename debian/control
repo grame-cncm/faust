@@ -2,7 +2,7 @@ Source: faust
 Section: sound
 Priority: optional
 Maintainer: Albert Graef <aggraef@gmail.com>
-Build-Depends: debhelper (>= 7.0.50~), bison, flex, pkg-config,
+Build-Depends: debhelper (>= 7.0.50~), bison, cmake, flex, pkg-config,
  llvm-dev, libtool, libsndfile1-dev, libssl-dev, libmicrohttpd-dev,
  libncurses5-dev, libedit-dev, vim-common
 Standards-Version: 3.9.3

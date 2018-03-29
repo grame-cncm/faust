@@ -46,9 +46,6 @@
 #include "faust/gui/faustqt.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef IOS
 #include "faust/gui/APIUI.h"
@@ -65,6 +62,10 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 // Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
@@ -74,7 +75,6 @@
 #endif
 
 #include "faust/dsp/dsp-combiner.h"
-#include "faust/dsp/sound-player.h"
 
 #define stringify_literal(x) #x
 #define stringify_expanded(x) stringify_literal(x)
@@ -125,87 +125,86 @@ ztimedmap GUI::gTimedZoneMap;
 //------------------------------------------------------------------------
 class Sensor
 {
-	private:
-    
-		QSensor* fSensor;
-		int fType;
-		QSensorReading* fReader;
-		QSensor* create(int type) const;
-	
-	public:
-		enum  { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
+    private:
 
-				 Sensor(int type) : fSensor(0), fType(type), fReader(0)
-									{ fSensor = create (type); fSensor->connectToBackend(); }
-		virtual ~Sensor()			{ if (available()) activate (false); delete fSensor; }
+        QSensor* fSensor;
+        int fType;
+        QSensorReading* fReader;
+        QSensor* create(int type) const;
 
-		int				isAccel() const		{ return fType == kAccelerometer; }
-		int				isGyro () const		{ return fType == kGyroscope; }
-		bool			available() const	{ return fSensor->isConnectedToBackend(); }
-		bool			active() const		{ return fSensor->isActive(); }
-		void			activate(bool state){ fSensor->setActive(state); fReader = fSensor->reading(); }
-		int				count()				{ return fReader ? fReader->valueCount() : 0; }
-		float			value(int i) const	{ return fReader->value(i).value<float>(); }
+    public:
+        enum { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
+
+        Sensor(int type) : fSensor(0), fType(type), fReader(0)
+        { fSensor = create (type); fSensor->connectToBackend(); }
+        virtual ~Sensor() { if (available()) activate (false); delete fSensor; }
+
+        int isAccel() const { return fType == kAccelerometer; }
+        int isGyro () const { return fType == kGyroscope; }
+        bool available() const { return fSensor->isConnectedToBackend(); }
+        bool active() const { return fSensor->isActive(); }
+        void activate(bool state){ fSensor->setActive(state); fReader = fSensor->reading(); }
+        int count() { return fReader ? fReader->valueCount() : 0; }
+        float value(int i) const { return fReader->value(i).value<float>(); }
 };
 
 //------------------------------------------------------------------------
-QSensor* Sensor::create (int type) const
+QSensor* Sensor::create(int type) const
 {
-	switch (type) {
-		case kAccelerometer: return new QAccelerometer();
-		case kGyroscope: return new QGyroscope();
-		default:
-			cerr << "unknown sensor type " << type << endl;
-	}
-	return 0;
+    switch (type) {
+        case kAccelerometer: return new QAccelerometer();
+        case kGyroscope: return new QGyroscope();
+        default: cerr << "unknown sensor type " << type << endl;
+    }
+    return 0;
 }
 
 //------------------------------------------------------------------------
 class Sensors : public QObject
 {
     private:
-    
+
         APIUI* fUI;
         Sensor fAccel, fGyro;
         int fTimerID;
-        
-	public:
-    
-		typedef std::map<int, Sensor*> TSensors;
-				 Sensors(APIUI* ui)
-				 		: fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
-		virtual ~Sensors()		{ killTimer(fTimerID); }
-		void start();
-        
-	protected:
-    
-		void timerEvent(QTimerEvent*);
+
+    public:
+
+        typedef std::map<int, Sensor*> TSensors;
+        Sensors(APIUI* ui)
+            : fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
+        virtual ~Sensors() { killTimer(fTimerID); }
+        void start();
+
+        protected:
+
+        void timerEvent(QTimerEvent*);
 };
 
 //------------------------------------------------------------------------
 void Sensors::timerEvent(QTimerEvent*)
 {
-	if (fAccel.active()) {
+    if (fAccel.active()) {
         int count = fAccel.count();
         for (int i = 0; (i< count) && (i < 3); i++) {
-        	fUI->propagateAcc(i, fAccel.value(i));
+            fUI->propagateAcc(i, fAccel.value(i));
         }
-	}
-	if (fGyro.active()) {
+    }
+    if (fGyro.active()) {
         int count = fGyro.count();
         for (int i = 0; (i< count) && (i < 3); i++) {
-        	fUI->propagateGyr(i, fGyro.value(i));
+            fUI->propagateGyr(i, fGyro.value(i));
         }
-	}
+    }
 }
 
 //------------------------------------------------------------------------
 void Sensors::start() 
 {
-	bool activate = false;
-	if (fAccel.available()) { fAccel.activate(true); activate = true; }
-	if (fGyro.available()) 	{ fGyro.activate(true); activate = true; }
-	if (activate) fTimerID = startTimer(10);
+    bool activate = false;
+    if (fAccel.available()) { fAccel.activate(true); activate = true; }
+    if (fGyro.available()) { fGyro.activate(true); activate = true; }
+    if (activate) fTimerID = startTimer(10);
 }
 #endif
 
@@ -240,8 +239,8 @@ int main(int argc, char *argv[])
     Sensors sensors(&apiui);
 #endif
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	snprintf(name, 256, "%s", basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
@@ -320,7 +319,8 @@ int main(int argc, char *argv[])
     QTGUI interface;
     FUI finterface;
 #ifdef SOUNDFILE
-    SoundUI soundinterface;
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

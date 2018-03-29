@@ -38,6 +38,9 @@
 #include <string>
 #include <map>
 
+
+#define STR_SIZE 512
+
 #ifdef WIN32
 #include <stdio.h>
 #define snprintf _snprintf
@@ -81,7 +84,7 @@ class mspCheckButton : public mspUIObject {
         
         void toString(char* buffer)
         {
-            snprintf(buffer, 256, "CheckButton(float): %s", fLabel.c_str());
+            snprintf(buffer, STR_SIZE, "CheckButton(float): %s", fLabel.c_str());
         }
 };
 
@@ -95,7 +98,7 @@ class mspButton : public mspUIObject {
         
         void toString(char* buffer)
         {
-            snprintf(buffer, 256, "Button(float): %s", fLabel.c_str());
+            snprintf(buffer, STR_SIZE, "Button(float): %s", fLabel.c_str());
         }
 };
 
@@ -120,7 +123,7 @@ class mspSlider : public mspUIObject {
             stringstream str;
             str << "Slider(float): " << fLabel << " [init=" << fInit << ":min=" << fMin << ":max=" << fMax << ":step=" << fStep << ":cur=" << *fZone << "]";
             string res = str.str();
-            snprintf(buffer, 256, res.c_str());
+            snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
         void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
@@ -146,7 +149,7 @@ class mspBargraph : public mspUIObject {
             stringstream str;
             str << "Bargraph(float): " << fLabel << " [min=" << fMin << ":max=" << fMax << ":cur=" << *fZone << "]";
             string res = str.str();
-            snprintf(buffer, 256, res.c_str());
+            snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
         virtual FAUSTFLOAT getValue() 
@@ -321,7 +324,7 @@ class mspUI : public UI
             iterator it;
             post((char*)"------- labels and ranges ----------");
             for (it = fUITable1.begin(); it != fUITable1.end(); it++) {
-                char param[1024];
+                char param[STR_SIZE];
                 it->second->toString(param);
                 post(param);
             }

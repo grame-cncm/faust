@@ -48,7 +48,7 @@ class DspFaust
     #endif
         
     #if MIDICTRL
-        MidiUI* fMidiUI;
+        MidiUI* fMidiInterface;
     #endif
     
     #if SOUNDFILE
@@ -95,7 +95,7 @@ class DspFaust
         DspFaust(const string&, int, int);
     #endif
         
-        ~DspFaust();
+        virtual ~DspFaust();
         
         //---------------------`bool start()`---------------------
         // Start the audio processing.

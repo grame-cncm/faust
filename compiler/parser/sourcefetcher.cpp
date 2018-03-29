@@ -435,7 +435,7 @@ int http_fetch(const char* url_tmp, char** fileBuf)
 			errorSource = ERRNO;
 			return -1;
 		}
-		ret = read(sock, pageBuf + bytesRead, contentLength);
+		ret = int(read(sock, pageBuf + bytesRead, contentLength));
 		if (ret == -1) {
 			close(sock);
 			free(pageBuf);
@@ -726,7 +726,7 @@ int _http_read_header(int sock, char* headerPtr)
 			errorSource = ERRNO;
 			return -1;
 		}
-		ret = read(sock, headerPtr, 1);
+		ret = int(read(sock, headerPtr, 1));
 		if (ret == -1) {
 			errorSource = ERRNO;
 			return -1;

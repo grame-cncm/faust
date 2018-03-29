@@ -27,21 +27,16 @@
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
-#include "llvm_dsp_aux.hh"
+#include "llvm_dynamic_dsp_aux.hh"
 
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Support/FileSystem.h>
-    #define sysfs_binary_flag sys::fs::F_None
-#elif defined(LLVM_34)
-    #define sysfs_binary_flag sys::fs::F_Binary
-#else
-    #define sysfs_binary_flag raw_fd_ostream::F_Binary
-#endif
+#include <llvm/Support/FileSystem.h>
 
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define STREAM_ERROR std::error_code
+#define sysfs_binary_flag sys::fs::F_None
+
+#if defined(LLVM_35)
+#define STREAM_ERROR string
 #else
-    #define STREAM_ERROR std::string
+#define STREAM_ERROR std::error_code
 #endif
 
 using namespace std;

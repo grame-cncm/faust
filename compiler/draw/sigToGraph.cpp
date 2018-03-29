@@ -236,7 +236,7 @@ static string sigLabel(Tree sig)
     
     else {
         stringstream error;
-        error << "ERROR, unrecognized signal : " << *sig  << endl;
+        error << "ERROR : unrecognized signal : " << *sig  << endl;
         throw faustexception(error.str());
     }
     

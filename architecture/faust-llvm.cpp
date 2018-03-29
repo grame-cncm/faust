@@ -39,7 +39,7 @@
 int main(int argc, char *argv[])
 {
     char jackname[256];
-    snprintf(jackname, 255, "%s", basename(argv[0]));
+    snprintf(jackname, 256, "%s", basename(argv[0]));
     std::string error_msg;
 
     if (argc < 2) {

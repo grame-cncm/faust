@@ -2,9 +2,9 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to Max6 externals			#
-#				using double precision samples						#
-#               (c) Grame, 2012                                     #
+#               Compiles Faust programs to Max6 externals           #
+#               using double precision samples                      #
+#               (c) Grame, 2012-2018                                #
 #                                                                   #
 #####################################################################
 
@@ -18,6 +18,9 @@ POLY=""
 NOPATCH="0"
 NVOICES=-1
 EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 # path to max SDK
 
@@ -27,19 +30,35 @@ MSPINC=$SDK/msp-includes
 
 createInfoPList() {
 	(
-	echo '<?xml version="1.0" encoding="UTF-8"?>'
-	echo '<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
-	echo '<plist version="1.0">'
-	echo '<dict>'
-	echo '	<key>CFBundleExecutable</key>'
-	echo "	<string>$1</string>"
-	echo '	<key>CFBundleName</key>'
-	echo "	<string>$1</string>"
-	echo '	<key>CFBundlePackageType</key>'
-	echo '	<string>iLaX</string>'
-	echo '</dict>'
-	echo '</plist>'
-	) > "$2"
+    echo '<?xml version="1.0" encoding="UTF-8"?>'
+    echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+    echo '<plist version="1.0">'
+    echo '<dict>'
+    echo '  <key>CFBundleDevelopmentRegion</key>'
+    echo '  <string>English</string>'
+    echo '  <key>CFBundleExecutable</key>'
+    echo "	<string>$1</string>"
+    echo '  <key>CFBundleIconFile</key>'
+    echo '  <string></string>'
+    echo '  <key>CFBundleIdentifier</key>'
+    echo "  <string>com.grame.$1</string>"
+    echo '  <key>CFBundleInfoDictionaryVersion</key>'
+    echo '  <string>1.0.0</string>'
+    echo '  <key>CFBundlePackageType</key>'
+    echo '  <string>iLaX</string>'
+    echo '  <key>CFBundleSignature</key>'
+    echo '  <string>max2</string>'
+    echo '  <key>CFBundleVersion</key>'
+    echo '  <string>1.0.0</string>'
+    echo '  <key>CFBundleShortVersionString</key>'
+    echo '  <string>1.0.0</string>'
+    echo '  <key>CFBundleLongVersionString</key>'
+    echo "  <string>$1 1.0.0, Copyright 2012-2018 Grame</string>"
+    echo '  <key>CSResourcesFileMapped</key>'
+    echo '  <true/>'
+    echo '</dict>'
+    echo '</plist>'
+    ) > "$2"
 }
 
 #-------------------------------------------------------------------
@@ -74,11 +93,12 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-nopatch] <file.dsp>"
+        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-nopatch] [-soundfile] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-nopatch' to deactivate patch generation"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         exit
     fi
 
@@ -105,6 +125,10 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ ${p:0:1} = "-" ]; then
@@ -150,28 +174,55 @@ for p in $FILES; do
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then
-        faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     else
-        faust -i -double -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+        faust -i -double -json -a $FAUSTLIB/max-msp/max-msp64.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
         faust -i -double -cn effect -a $FAUSTLIB/minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
     fi
 
     # compile c++ to binary
     (
-	cd "$TMP"
-	install -d "${f%.dsp}$EXT/Contents/MacOS"
-	#$CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI `pkg-config --cflags --static --libs sndfile` -arch i386 -arch x86_64 -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS -I ../../ -I$MAXINC -I$MSPINC $FAUSTTOOLSFLAGS -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64 -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
-    ) > /dev/null || exit
+        cd "$TMP"
+        install -d "${f%.dsp}$EXT/Contents/MacOS"
+        $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64 $SOUNDFILELIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+   	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
 
     # Keep .dsp and .cpp files in the plug-in
     cp "$TMP/${f%.dsp}.cpp" "$TMP/${f%.dsp}$EXT"   
     cp "$SRCDIR/$f" "$TMP/${f%.dsp}$EXT"
+    # Create Info.plist
+    createInfoPList "${f%.dsp}~" "$TMP/${f%.dsp}$EXT/Contents/Info.plist"
+
+    if [ "$SOUNDFILE" = "1" ]; then
+        # get all soundfiles from the JSON file
+        cat $p.json | awk '
+                        BEGIN { FS=":"; SOFI=0; }
+                            /"soundfile"/ { SOFI=1; }
+                            /"label"/ {
+                            if (SOFI) {
+                                match($2, /"[^"]*/);
+                                print substr($2, RSTART+1, RLENGTH-1);
+                                SOFI=0;
+                            }
+                        }
+        ' > $p-tmp.txt
+        # copy found soundfiles in the final binary
+        for snd in $(cat $p-tmp.txt); do
+            if [ -f $snd ]; then
+                echo "Copy $snd in ${f%.dsp}$EXT"
+                cp $snd "$TMP/${f%.dsp}$EXT"
+            else
+                echo "Error: file $snd not found !"
+            fi
+        done
+        rm $p-tmp.txt
+    fi
 
     cp -r "$TMP/${f%.dsp}$EXT" "$SRCDIR/${f%.dsp}$EXT"
     rm -rf "$TDR"
+    rm $p.json
 
     # collect binary file name for FaustGIDE
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
@@ -194,6 +245,8 @@ for p in $FILES; do
     fi
     
 done
+
+BINARIES="$BINARIES ui.js"
 
 echo $BINARIES
 

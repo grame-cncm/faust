@@ -417,7 +417,7 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
             return code;
         } else {
             stringstream error;
-            error << "No vector name for : " << ppsig(exp) << endl;
+            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
             throw faustexception(error.str());
         }
     }

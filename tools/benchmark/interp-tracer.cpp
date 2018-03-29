@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
     bool is_control = isopt(argv, "-control");
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || trace_mode < 0 || trace_mode > 5) {
-        cout << "interp-trace -trace <1-5> -control [additional Faust options (-ftz xx)] foo.dsp" << endl;
+        cout << "interp-tracer -trace <1-5> -control [additional Faust options (-ftz xx)] foo.dsp" << endl;
         cout << "-control to activate min/max control check\n";
         cout << "-trace 1 to collect FP_SUBNORMAL only\n";
         cout << "-trace 2 to collect FP_SUBNORMAL, FP_INFINITE and FP_NAN\n";
@@ -151,7 +151,7 @@ int main(int argc, char* argv[])
     dsp_factory* factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
     
     if (!factory) {
-        cerr << "Cannot create factory : " << error_msg << endl;
+        cerr << "Cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);
     }
     

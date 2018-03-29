@@ -84,7 +84,7 @@ EOF
 	OSCLIBS="-lOSCFaust"
     elif [ $p = "-httpd" ]; then
 	HTTPDEFS="DEFINES += HTTPCTRL"
-	HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
+	HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-qrcode" ]; then # requires -httpd
 	QRDEFS="DEFINES += QRCODECTRL"
     elif [ $p = "-nometa" ]; then

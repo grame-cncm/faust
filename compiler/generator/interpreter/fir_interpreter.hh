@@ -185,7 +185,7 @@ class FIRInterpreter  {
                 for (int i = fWriteIndex - 1; i >= 0; i--) {
                     *out << fExecTrace[i];
                 }
-                for (int i = fExecTrace.size() - 1; i >= fWriteIndex; i--) {
+                for (int i = int(fExecTrace.size()) - 1; i >= fWriteIndex; i--) {
                     *out << fExecTrace[i];
                 }
             }

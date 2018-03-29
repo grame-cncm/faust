@@ -17,7 +17,7 @@ Installation:
 sudo make install
 ```
 
-## Using `mesh2faust`
+## Using `dx72faust`
 
 The only argument of `dx72faust` is a `.syx` DX7 preset file:
 

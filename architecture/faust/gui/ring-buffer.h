@@ -27,6 +27,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WIN32
+#pragma warning (disable: 4334)
+#endif
+
 typedef struct {
     char *buf;
     size_t len;

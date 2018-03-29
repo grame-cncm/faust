@@ -54,7 +54,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.19"
+#define FAUSTGEN_VERSION "1.22"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -114,6 +114,10 @@ class faustgen_factory {
         vector<string> fCompileOptions; // Faust compiler options
     
         int fOptLevel;                  // the LLVM optimization level
+        bool fPolyphonic;               // Whether the created DSP is polyphonic
+    
+        short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
+                                        // and explicitely set in 'read' and 'write' (using path_setdefault)
     
         int m_siginlets;
         int m_sigoutlets;

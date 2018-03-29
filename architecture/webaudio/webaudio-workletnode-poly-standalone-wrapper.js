@@ -92,14 +92,15 @@ class mydsp_polyNode extends AudioWorkletNode {
     
     getJSON()
     {
+        var res = "";
+        res = res.concat("{\"name\":\""); res = res.concat(this.json_object.name); res = res.concat("\",");
+        res = res.concat("\"version\":\""); res = res.concat(this.json_object.version); res = res.concat("\",");
+        res = res.concat("\"options\":\""); res = res.concat(this.json_object.options); res = res.concat("\",");
+        res = res.concat("\"inputs\":\""); res = res.concat(this.json_object.inputs); res = res.concat("\",");
+        res = res.concat("\"outputs\":\""); res = res.concat(this.json_object.outputs); res = res.concat("\",");
+        res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(this.json_object.meta)); res = res.concat(",");
+
         if (this.effect_json_object) {
-            var res = "";
-            res = res.concat("{\"name\":\""); res = res.concat(this.json_object.name); res = res.concat("\",");
-            res = res.concat("\"version\":\""); res = res.concat(this.json_object.version); res = res.concat("\",");
-            res = res.concat("\"options\":\""); res = res.concat(this.json_object.options); res = res.concat("\",");
-            res = res.concat("\"inputs\":\""); res = res.concat(this.json_object.inputs); res = res.concat("\",");
-            res = res.concat("\"outputs\":\""); res = res.concat(this.json_object.outputs); res = res.concat("\",");
-            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(this.json_object.meta)); res = res.concat(",");
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
             res = res.concat("{\"type\": \"vgroup\",\"label\":\"Instrument\",\"items\":");
             res = res.concat(JSON.stringify(this.json_object.ui));
@@ -110,7 +111,12 @@ class mydsp_polyNode extends AudioWorkletNode {
             res = res.concat("]}]}");
             return res;
         } else {
-            return getJSONmydsp();
+            res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Polyphonic\",\"items\":[");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Voices\",\"items\":");
+            res = res.concat(JSON.stringify(this.json_object.ui));
+            res = res.concat("},");
+            res = res.concat("]}]}");
+            return res;
         }
     }
     

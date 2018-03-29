@@ -44,9 +44,6 @@
 #include "faust/misc.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/audio/jack-dsp.h"
-#if SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -54,6 +51,10 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#if SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 // Always include this file, otherwise -poly only mode does not compile....
@@ -114,8 +115,8 @@ int main(int argc, char *argv[])
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
 
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);

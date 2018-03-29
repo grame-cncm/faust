@@ -190,7 +190,7 @@ Tree buildBoxAppl 	(Tree fun, Tree revarglist)
 {
 	if (isNil (revarglist)) {
         // a revoir !!!!!!
-        throw faustexception("Error : buildBoxAppl called with null revarglist\n");
+        throw faustexception("ERROR : buildBoxAppl called with null revarglist\n");
     }
 	return  boxAppl(fun, revarglist);
 }
@@ -523,7 +523,6 @@ static Tree preparePattern(Tree box)
 
         xtended* xt = (xtended*) getUserData(box);
 
-
         // primitive elements
              if (xt) 						return box;
         else if (isBoxIdent(box))           return boxPatternVar(box);
@@ -545,7 +544,6 @@ static Tree preparePattern(Tree box)
         else if (isBoxPrim5(box, &p5))		return box;
 
         else if (isBoxWithLocalDef(box, body, ldef))	return boxWithLocalDef(preparePattern(body), ldef);
-
 
         // foreign elements
         else if (isBoxFFun(box, ff))		return box;
@@ -607,7 +605,6 @@ static Tree preparePattern(Tree box)
         }
         */
 
-
         else if (isBoxSlot(box, &id))               return box;
         else if (isBoxSymbolic(box, slot, body))    return box;
 
@@ -615,11 +612,10 @@ static Tree preparePattern(Tree box)
         else if (isBoxCase(box, rules))             return box;
         else if (isBoxPatternVar(box, ident))       return box;
 
-
         // None of the previous tests succeded, then it is not a valid box
         else {
             stringstream error;
-            error << "Error in preparePattern() : " << *box << " is not a valid box" << endl;
+            error << "ERROR in preparePattern() : " << *box << " is not a valid box" << endl;
             throw faustexception(error.str());
         }
 
@@ -635,28 +631,27 @@ static Tree prepareRules(Tree rules) {
     return lmap(prepareRule, rules);
 }
 
-Tree boxCaseInternal 	 (Tree rules)       { return tree(gGlobal->BOXCASE, rules); 					}
-Tree boxCase    (Tree rules)				{ return boxCaseInternal(prepareRules(rules));  }
+Tree boxCaseInternal(Tree rules)    { return tree(gGlobal->BOXCASE, rules); }
+Tree boxCase(Tree rules)            { return boxCaseInternal(prepareRules(rules)); }
 
-bool isBoxCase (Tree s)						{ Tree rules; return isTree(s, gGlobal->BOXCASE, rules);	}
-bool isBoxCase (Tree s, Tree& rules)		{ return isTree(s, gGlobal->BOXCASE, rules);				}
+bool isBoxCase(Tree s)                  { Tree rules; return isTree(s, gGlobal->BOXCASE, rules); }
+bool isBoxCase(Tree s, Tree& rules)     { return isTree(s, gGlobal->BOXCASE, rules); }
 
+Tree boxPatternVar(Tree id)             { return tree(gGlobal->BOXPATVAR, id); }
+bool isBoxPatternVar(Tree s, Tree& id)  { return isTree(s, gGlobal->BOXPATVAR, id); }
 
-Tree boxPatternVar	(Tree id)				{ return tree(gGlobal->BOXPATVAR, id); 					}
-bool isBoxPatternVar(Tree s, Tree& id)		{ return isTree(s, gGlobal->BOXPATVAR, id);				}
-
-Tree boxPatternMatcher		(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)	
+Tree boxPatternMatcher(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)
 { 
 	return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList); 
 } 					
 
-bool isBoxPatternMatcher	(Tree s)
+bool isBoxPatternMatcher(Tree s)
 {
 	Tree ta, ts, env, orig, rpl;
 	return isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, orig, rpl);
 }
 
-bool isBoxPatternMatcher	(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
+bool isBoxPatternMatcher(Tree s, Automaton*& a, int& state, Tree& env, Tree& origRules, Tree& revParamList)
 {
 	Tree ta, ts;
 	if (isTree(s, gGlobal->BOXPATMATCHER, ta, ts, env, origRules, revParamList)) {

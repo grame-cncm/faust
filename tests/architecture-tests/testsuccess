@@ -1,15 +1,27 @@
 #!/bin/bash
 
+PATH=../../build/bin:$PATH
+faust --version
+echo location $(which faust)
+
+# detect the current system 
+system=$(uname -s)
+# normalizes MINGW versions
+system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
+
+
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
+OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jackconsole faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
 OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios"
 OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
 OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce"
-OSXOSC="faust2ios"
-OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt"
+OSXSOUND="faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp"
+OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole"
+OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole"
+OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole"
 
 LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackconsole faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole"
 LINUXMIDI="faust2jaqt"
@@ -27,15 +39,21 @@ notinlist() {
   return 0
 }
 
-if [ "$1" = "osx" ]; then
-    echo
+echo "------------------------"
+echo Run tests for $system
+echo "------------------------"
+
+if [ "$system" = "Darwin" ]; then
     echo "Test $OSX"
     echo "Test -midi $OSXMIDI"
     echo "Test -nvoices 8 $OSXPOLY"
     echo "Test -nvoices 8 -midi $OSXPOLYMIDI"
     echo "Test -nvoices 8 -effect <foo.dsp> -midi $OSXPOLY2MIDI"
+    echo "Test -soundfile $OSXSOUND"
+    echo "Test -httpd $OSXHTTPD"
+    echo "Test -osc $OSXOSC"
     echo "Test -osc -httpd $OSXOSCHTTPD"
-
+    
     faust2dummy good.dsp > /dev/null
     ./good > good.txt
     diff good.txt good_ref.txt && echo "OK: faust2dummy good.dsp succeeded !" || echo "ERROR: faust2dummy good.dsp failed"
@@ -79,6 +97,15 @@ if [ "$1" = "osx" ]; then
         rm -rf good
     done
     
+    for scriptname in $OSXSOUND; do
+        ($scriptname -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
+        rm -rf good
+    done
+
+    for scriptname in $OSXHTTPD; do
+        ($scriptname -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -httpd succeeded !")||(echo "ERROR: $scriptname -httpd failed")
+    done
+
     for scriptname in $OSXOSC; do
         ($scriptname -osc good.dsp &> LOG)&&(echo "OK: $scriptname -osc succeeded !")||(echo "ERROR: $scriptname -osc failed")
     done
@@ -94,6 +121,8 @@ if [ "$1" = "osx" ]; then
     (faust2api -ios -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -ios -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -ios -midi -nvoices 8 failed")
 
     (faust2api -ios -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -ios -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -ios -nvoices 8 -effect effect.dsp -midi failed")
+
+	(faust2api -ios -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: faust2api -ios -soundfile -lang ocpp succeeded !")||(echo "ERROR: faust2api -ios -soundfile -lang ocpp failed")
 
     (faust2nodejs -coreaudio good.dsp &> LOG)&&(echo "OK: faust2nodejs -coreaudio succeeded !")||(echo "ERROR: faust2nodejs -coreaudio failed")
 
@@ -118,8 +147,7 @@ if [ "$1" = "osx" ]; then
 
     (faust2android -exp10 exp10.dsp)&&(echo "WARNING: faust2android -exp10 succeeded ?")||(echo "OK: faust2android -exp10 correctly failed !")
 
-elif [ "$1" = "linux" ]; then
-    echo
+elif [ "$system" = "Linux" ]; then
     echo "Test $LINUX"
     echo "Test -midi $LINUXMIDI"
     echo "Test -nvoices 8 $LINUXPOLY"
@@ -175,6 +203,9 @@ elif [ "$1" = "linux" ]; then
     (faust2api -android -midi -nvoices 8 good.dsp &> LOG)&&(echo "OK: faust2api -android -midi -nvoices 8 succeeded !")||(echo "ERROR: faust2api -android -midi -nvoices 8 failed")
 
     (faust2api -android -nvoices 8 -effect effect.dsp -midi good.dsp &> LOG)&&(echo "OK: faust2api -android -nvoices 8 -effect effect.dsp -midi succeeded !")||(echo "ERROR: faust2api -android -nvoices 8 -effect effect.dsp -midi failed")
+
+elif [ "$system" = "MINGW" ]; then
+	echo "not yet implemented"
 
 else
 	echo

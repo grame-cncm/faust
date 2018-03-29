@@ -44,16 +44,16 @@
 
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
-#endif //OSCCTRL
+#endif
 
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
-#endif //MIDICTRL
+#endif
 
 #if defined(POLY2)
 #include "faust/dsp/dsp-combiner.h"
 #include "dsp_effect.cpp"
-#endif //POLY POLY2
+#endif 
 
 <<includeIntrinsic>>
 
@@ -199,7 +199,7 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
     public:
         
         FaustPlugInAudioProcessor();
-        ~FaustPlugInAudioProcessor();
+        virtual ~FaustPlugInAudioProcessor();
         
         void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     
@@ -276,7 +276,7 @@ class FaustPlugInAudioProcessorEditor : public AudioProcessorEditor
     public:
         
         FaustPlugInAudioProcessorEditor (FaustPlugInAudioProcessor&);
-        ~FaustPlugInAudioProcessorEditor();
+        virtual ~FaustPlugInAudioProcessorEditor();
         
         void paint (Graphics&) override;
         void resized() override;

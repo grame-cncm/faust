@@ -2358,14 +2358,15 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
      */
     sp.getJSON = function ()
     {
+        var res = "";
+        res = res.concat("{\"name\":\""); res = res.concat(factory.json_object.name); res = res.concat("\",");
+        res = res.concat("\"version\":\""); res = res.concat(factory.json_object.version); res = res.concat("\",");
+        res = res.concat("\"options\":\""); res = res.concat(factory.json_object.options); res = res.concat("\",");
+        res = res.concat("\"inputs\":\""); res = res.concat(factory.json_object.inputs); res = res.concat("\",");
+        res = res.concat("\"outputs\":\""); res = res.concat(factory.json_object.outputs); res = res.concat("\",");
+        res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(factory.json_object.meta)); res = res.concat(",");
+
         if (factory.effect_json_object) {
-            var res = "";
-            res = res.concat("{\"name\":\""); res = res.concat(factory.json_object.name); res = res.concat("\",");
-            res = res.concat("\"version\":\""); res = res.concat(factory.json_object.version); res = res.concat("\",");
-            res = res.concat("\"options\":\""); res = res.concat(factory.json_object.options); res = res.concat("\",");
-            res = res.concat("\"inputs\":\""); res = res.concat(factory.json_object.inputs); res = res.concat("\",");
-            res = res.concat("\"outputs\":\""); res = res.concat(factory.json_object.outputs); res = res.concat("\",");
-            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(factory.json_object.meta)); res = res.concat(",");
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
             res = res.concat("{\"type\": \"vgroup\",\"label\":\"Instrument\",\"items\":");
             res = res.concat(JSON.stringify(factory.json_object.ui));
@@ -2376,7 +2377,12 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             res = res.concat("]}]}");
             return res;
         } else {
-            return factory.getJSON();
+            res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Polyphonic\",\"items\":[");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Voices\",\"items\":");
+            res = res.concat(JSON.stringify(factory.json_object.ui));
+            res = res.concat("},");
+            res = res.concat("]}]}");
+            return res;
         }
     }
     
@@ -3332,14 +3338,15 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
     
     audio_node.getJSON = function()
     {
+        var res = "";
+        res = res.concat("{\"name\":\""); res = res.concat(factory.json_object.name); res = res.concat("\",");
+        res = res.concat("\"version\":\""); res = res.concat(factory.json_object.version); res = res.concat("\",");
+        res = res.concat("\"options\":\""); res = res.concat(factory.json_object.options); res = res.concat("\",");
+        res = res.concat("\"inputs\":\""); res = res.concat(factory.json_object.inputs); res = res.concat("\",");
+        res = res.concat("\"outputs\":\""); res = res.concat(factory.json_object.outputs); res = res.concat("\",");
+        res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(factory.json_object.meta)); res = res.concat(",");
+
         if (factory.effect_json_object) {
-            var res = "";
-            res = res.concat("{\"name\":\""); res = res.concat(factory.json_object.name); res = res.concat("\",");
-            res = res.concat("\"version\":\""); res = res.concat(factory.json_object.version); res = res.concat("\",");
-            res = res.concat("\"options\":\""); res = res.concat(factory.json_object.options); res = res.concat("\",");
-            res = res.concat("\"inputs\":\""); res = res.concat(factory.json_object.inputs); res = res.concat("\",");
-            res = res.concat("\"outputs\":\""); res = res.concat(factory.json_object.outputs); res = res.concat("\",");
-            res = res.concat("\"meta\":"); res = res.concat(JSON.stringify(factory.json_object.meta)); res = res.concat(",");
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Sequencer\",\"items\":[");
             res = res.concat("{\"type\": \"vgroup\",\"label\":\"Instrument\",\"items\":");
             res = res.concat(JSON.stringify(factory.json_object.ui));
@@ -3350,7 +3357,12 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
             res = res.concat("]}]}");
             return res;
         } else {
-            return factory.getJSON();
+            res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Polyphonic\",\"items\":[");
+            res = res.concat("{\"type\": \"vgroup\",\"label\":\"Voices\",\"items\":");
+            res = res.concat(JSON.stringify(factory.json_object.ui));
+            res = res.concat("},");
+            res = res.concat("]}]}");
+            return res;
         }
     }
     
@@ -3445,6 +3457,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
         var mydsp_polyProcessorString4 = mydsp_polyProcessorString3.replace(re4, factory.getBase64Code());
         
         var url = null;
+        // Is there is an effect to compile
         if (factory.name_effect) {
             var re5 = /CODE1/g;
             var re6 = /CODE2/g;

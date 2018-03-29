@@ -38,13 +38,14 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth] [-midi] [-osc] <file.dsp>"
+        echo "faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth] [-midi] [-osc] [-soundfile]  <file.dsp>"
         echo "Use '-standalone' to produce a standalone project, otherwise a plugin project is generated"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI or OSC"
         echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources (can be used in -standalone mode only)"
         exit
     fi
 
@@ -68,12 +69,8 @@ do
         IS_MIDI="1"
     elif [ $p = "-osc" ]; then
 		 DEF+="OSCCTRL "
-		 OSCLIBS="-lOSCFaust"
-	elif [ "$p" = "-httpd" ]; then
-		DEF+="HTTPCTRL "
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd -lqrencode"
-	elif [ "$p" = "-qrcode" ]; then # requires -httpd
-		DEF+="QRCODECTRL "
+    elif [ $p = "-soundfile" ]; then
+        DEF+="SOUNDFILE "
     elif [ ${p:0:1} = "-" ]; then
         if [ $p = "-double" ]; then
             FAUSTFLOAT="double"

@@ -53,35 +53,35 @@
 #pragma warning (disable: 4996)
 #endif
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
 #include "asmjs_instructions.hh"
 #endif
 
-#if C_BUILD
+#ifdef C_BUILD
 #include "c_code_container.hh"
 #endif
 
-#if CPP_BUILD
+#ifdef CPP_BUILD
 #include "cpp_code_container.hh"
 #endif
 
-#if FIR_BUILD
+#ifdef FIR_BUILD
 #include "fir_code_container.hh"
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
 #include "interpreter_instructions.hh"
 #endif
 
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
 #include "java_code_container.hh"
 #endif
 
-#if JS_BUILD
+#ifdef JS_BUILD
 #include "js_code_container.hh"
 #endif
 
-#if RUST_BUILD
+#ifdef RUST_BUILD
 #include "rust_code_container.hh"
 #endif
 
@@ -387,16 +387,16 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang = "";
 
-#if ASMJS_BUILD
+#ifdef ASMJS_BUILD
     gASMJSVisitor = 0;  // Will be (possibly) allocated in ASMJS backend
 #endif
 
-#if WASM_BUILD
+#ifdef WASM_BUILD
     gWASMVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
     gWASTVisitor = 0;   // Will be (possibly) allocated in WebAssembly backend
 #endif
 
-#if INTERP_BUILD
+#ifdef INTERP_BUILD
     gInterpreterVisitor = 0; // Will be (possibly) allocated in Interp backend
 #endif
 
@@ -582,7 +582,6 @@ void global::printCompilationOptions(ostream& dst)
     }
 }
 
-
 global::~global()
 {
     Garbageable::cleanup();
@@ -592,22 +591,22 @@ global::~global()
     free(gCurrentLocal);
 
     // Cleanup
-#if C_BUILD
+#ifdef C_BUILD
     CInstVisitor::cleanup();
 #endif
-#if CPP_BUILD
+#ifdef CPP_BUILD
     CPPInstVisitor::cleanup();
 #endif
-#if FIR_BUILD
+#ifdef FIR_BUILD
     FIRInstVisitor::cleanup();
 #endif
-#if JAVA_BUILD
+#ifdef JAVA_BUILD
     JAVAInstVisitor::cleanup();
 #endif
-#if JS_BUILD
+#ifdef JS_BUILD
     JAVAScriptInstVisitor::cleanup();
 #endif
-#if RUST_BUILD
+#ifdef RUST_BUILD
     RustInstVisitor::cleanup();
 #endif
 }
@@ -676,7 +675,6 @@ void Garbageable::cleanup()
 
     // Here removing the deleted pointer from the list is pointless
     // and takes time, thus we don't do it.
-
     global::gHeapCleanup = true;
     for (it = global::gObjectTable.begin(); it != global::gObjectTable.end(); it++) {
 	#ifdef _WIN32
@@ -687,7 +685,9 @@ void Garbageable::cleanup()
   	#endif
     }
 
+    // Reset to default state
     global::gObjectTable.clear();
+    global::gHeapCleanup = false;
 }
 
 void* Garbageable::operator new(size_t size)

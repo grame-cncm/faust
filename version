@@ -1,0 +1,70 @@
+#!/bin/bash
+# 
+# Faust project
+# version management tool
+#
+
+if [ $# -ne 1 ]
+then
+	echo "Faust version management utility"
+	echo "usage: version version_num"
+	echo "       version_num format: n.n.n"
+	exit 1
+fi
+
+function soVer {
+	echo $1 | sed 's/\..*//'
+}
+function winVer {
+	echo $1 | sed "s/\./,$2/g"
+}
+function rcUpdate {
+ 	sed "s/FILEVERSION[ 	].*/FILEVERSION $2/" $1 | \
+ 	sed "s/PRODUCTVERSION[ 	].*/PRODUCTVERSION $2/" | \
+ 	sed "s/VALUE \"FileVersion\"..*/VALUE \"FileVersion\", \"$3\"/" | \
+ 	sed "s/VALUE \"ProductVersion\"..*/VALUE \"ProductVersion\", \"$3\"/"
+}
+
+ROOT=.
+VERSION=$1
+SOVER=$(soVer $VERSION)
+WINVERS=$(winVer $VERSION)",0"
+WINVERS2=$(winVer $VERSION " ")", 0"
+
+if [ -d compiler ]
+then
+	echo "moving version number to $VERSION"
+else
+	echo "this script must be called from the Faust project root directory"
+	exit 1
+fi
+
+MAKEF=$ROOT/Makefile
+echo " updating $MAKEF"
+sed "s/^version *:= *..*/version := $VERSION/" $MAKEF > TMP$$
+mv -f TMP$$ $MAKEF
+
+CMAKE=$ROOT/build/CMakeLists.txt
+echo " updating $CMAKE"
+sed "s/set (VERSION[ 	]*.*)/set (VERSION $VERSION)/" $CMAKE > TMP$$
+sed "s/set (SOVERS[ 	]*.*)/set (SOVERS $SOVER)/" TMP$$ > $CMAKE
+
+FAUST=$ROOT/compiler/generator/export.hh
+echo " updating $FAUST"
+sed "s/FAUSTVERSION[ 	]\".*\"/FAUSTVERSION \"$VERSION\"/" $FAUST > TMP$$
+mv -f TMP$$ $FAUST
+
+FAUSTRC=$ROOT/windows/faust.rc
+echo " updating $FAUSTRC"
+rcUpdate $FAUSTRC $WINVERS "$WINVERS2" > TMP$$
+mv -f TMP$$ $FAUSTRC
+
+FAUSTDLLRC=$ROOT/windows/faustdll.rc
+echo " updating $FAUSTDLLRC"
+rcUpdate $FAUSTRC $WINVERS "$WINVERS2" > TMP$$
+mv -f TMP$$ $FAUSTDLLRC
+
+
+echo "### You need to recompile faust for the change to take effect."
+
+exit 0

@@ -42,16 +42,20 @@
 
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
-#endif //OSCCTRL
+#endif
 
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
-#endif //MIDICTRL
+#endif
+
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
 
 #if defined(POLY2)
 #include "faust/dsp/dsp-combiner.h"
 #include "dsp_effect.cpp"
-#endif //POLY POLY2
+#endif 
 
 <<includeIntrinsic>>
 
@@ -136,6 +140,12 @@ class FaustComponent : public AudioAppComponent, private Timer
             }
         #endif
             
+        #if defined(SOUNDFILE)
+            // Use bundle path
+            fSoundUI = new SoundUI(SoundUI::getBinaryPath("/Contents/Resources/"));
+            fDSP->buildUserInterface(fSoundUI);
+        #endif
+            
             recommendedSize = fJuceGUI.getSize();
             setSize (recommendedSize.getWidth(), recommendedSize.getHeight());
 
@@ -144,7 +154,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             startTimerHz(25); 
         }
 
-        ~FaustComponent()
+        virtual ~FaustComponent()
         {
             shutdownAudio();
         }
@@ -221,6 +231,10 @@ class FaustComponent : public AudioAppComponent, private Timer
     
     #if defined(OSCCTRL)
         ScopedPointer<JuceOSCUI> fOSCUI;
+    #endif
+    
+    #if defined(SOUNDFILE)
+        ScopedPointer<SoundUI> fSoundUI;
     #endif
         
         JuceGUI fJuceGUI;

@@ -1,3 +1,5 @@
+cmake_minimum_required(VERSION 3.4)
+
 file(GLOB tests RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *dsp)
 
 list(REMOVE_ITEM tests freeverb.dsp)

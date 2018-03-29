@@ -24,7 +24,7 @@
 							FAUST SIGNAL COMPILER
 						Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-Compile a list of FAUST signals into a C++ class .
+Compile a list of FAUST signals into a C++ class.
 
  History :
  ---------
