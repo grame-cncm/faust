@@ -82,11 +82,31 @@ class mydspNode extends AudioWorkletNode {
         this.port.onmessage = this.handleMessage.bind(this);
     }
     
+    // To be called by the message port with messages coming from the processor
+    handleMessage(event)
+    {
+        var msg = event.data;
+        if (this.output_handler) {
+            this.output_handler(msg.path, msg.value);
+        }
+    }
+    
+    // Public API
+    
+    /**
+     *  Returns a full JSON description of the DSP.
+     */
     getJSON()
     {
         return getJSONmydsp();
     }
     
+    /**
+     *  Set the control value at a given path.
+     *
+     * @param path - a path to the control
+     * @param val - the value to be set
+     */
     setParamValue(path, val)
     {
         //this.port.postMessage({ type:"param", key:path, value:val });
@@ -95,6 +115,11 @@ class mydspNode extends AudioWorkletNode {
         this.parameters.get(path).setValueAtTime(val, 0);
     }
     
+    /**
+     *  Get the control value at a given path.
+     *
+     * @return the current control value
+     */
     getParamValue(path)
     {
         return this.parameters.get(path).value;
@@ -120,7 +145,6 @@ class mydspNode extends AudioWorkletNode {
         return this.output_handler;
     }
     
-    // TO REMOVE
     getNumInputs()
     {
         return parseInt(this.json_object.inputs);
@@ -131,13 +155,16 @@ class mydspNode extends AudioWorkletNode {
         return parseInt(this.json_object.outputs);
     }
     
+    /**
+     * Returns an array of all input paths (to be used with setParamValue/getParamValue)
+     */
     getParams()
     {
         return this.inputs_items;
     }
     
     /**
-     * Controller
+     * Control change
      *
      * @param channel - the MIDI channel (0..15, not used for now)
      * @param ctrl - the MIDI controller number (0..127)
@@ -159,34 +186,70 @@ class mydspNode extends AudioWorkletNode {
         this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
     }
     
+    /**
+     * Generic MIDI message handler.
+     */
     midiMessage(data)
     {
         this.port.postMessage({ type:"midi", data:data });
     }
     
-    handleMessage(event) 
-    {
-        var msg = event.data;
-        if (this.output_handler) {
-            this.output_handler(msg.path, msg.value);
-        }
-    }
-    
 }
 
-// Faust context
-var faust = faust || {};
+// Factory class
 
-faust.createmydsp = function(context, callback)
-{
-    // Resume audio context each time...
-    context.resume();
+class mydsp {
     
-    // The main global scope
-    context.audioWorklet.addModule("mydsp-processor.js")
-    .then(function () {
-         callback(new mydspNode(context, {}));
-    })
-    .catch(function(error) { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
+    /**
+     * Factory constructor.
+     *
+     * @param context - the audio context
+     * @param baseUrl - the baseUrl of the plugin folder
+     */
+    constructor(context, baseUrl)
+    {
+    	// Resume audio context each time...
+    	context.resume();
+    	
+        this.context = context;
+        this.baseUrl = baseUrl;
+    }
+    
+    /**
+     * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
+     */
+    load()
+    {
+    	return new Promise((resolve, reject) => {
+        		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
+        		this.node = new mydspNode(this.context, {});
+        		return (this.node);
+        	}).then((node) => {
+                resolve(node);
+            }).catch((e) => {
+                reject(e);
+            });
+        });
+    }
+    
+    loadGui() 
+    {
+        return new Promise((resolve, reject) => {
+            try {
+            	var link = document.createElement('link');
+            	link.rel = 'import';
+            	link.id = 'urlPlugin';
+            	link.href = this.baseUrl + "main.html";
+            	document.head.appendChild(link);
+            	var element = document.createElement("faust-mydsp");
+            	element._plug = this.node;
+            	resolve(element);
+        	} catch (e) {
+            	console.log(e);
+            	reject(e);
+        	}
+    	});
+    };
+    
 }
 

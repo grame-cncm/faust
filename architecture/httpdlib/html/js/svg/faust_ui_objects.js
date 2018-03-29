@@ -326,7 +326,6 @@ _f4u$t.RotatingButton.prototype.dims = function() {
   return [this.r() * 2, this.r() * 2];
 }
 
-
 _f4u$t.RotatingButton.prototype.make_mgroove = function(svg, parent, id) {
   var full_id = 'faust_rbutton_mgroove_'+id;
   var mousedown = _f4u$t.activate_rbutton;

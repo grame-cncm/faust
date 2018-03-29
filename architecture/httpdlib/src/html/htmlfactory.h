@@ -50,13 +50,13 @@ class htmlfactory
 				 htmlfactory(const char *name, const char* address, int port);
 		virtual ~htmlfactory() {}
 
-		void addnode (const char* type, const char* label);
-		void addnode (const char* type, const char* label, float init, float min, float max, float step);
-		void addnode (const char* type, const char* label, float min, float max);
-		void opengroup (const char* type, const char* label);
-		void closegroup ();
+		void addnode(const char* type, const char* label);
+		void addnode(const char* type, const char* label, float init, float min, float max, float step);
+		void addnode(const char* type, const char* label, float min, float max);
+		void opengroup(const char* type, const char* label);
+		void closegroup();
 
-		htmlpage&	root()			{ return fPage; }
+		htmlpage& root() { return fPage; }
 };
 
 } // end namespoace

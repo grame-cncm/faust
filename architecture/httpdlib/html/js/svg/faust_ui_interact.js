@@ -4,7 +4,6 @@
  * obviously, the goal is to separate the two as much as possible
  */
 
-
 /*
   UTILITY FUNCTIONS
 */
@@ -49,7 +48,7 @@ _f4u$t.transform_to_array = function(transform) {
   while(true) {
     var match = matrix.exec(transform);
     if (match != null) {
-      out.push(["matrix",parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]), parseFloat(match[4]), parseFloat(match[5]), parseFloat(match[6])]);
+      out.push(["matrix", parseFloat(match[1]), parseFloat(match[2]), parseFloat(match[3]), parseFloat(match[4]), parseFloat(match[5]), parseFloat(match[6])]);
       transform = transform.substr(match[0].length,transform.length-match[0].length);
       continue;
     }

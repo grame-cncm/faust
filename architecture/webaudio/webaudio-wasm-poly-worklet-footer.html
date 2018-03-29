@@ -7,12 +7,10 @@
 
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var audio_context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
 var max_polyphony = 16;
-var audio_input = null;
-var DSP_poly = null;
-var faustsvg = null;
-var output_handler = null;
+var factory = null;
+var node = null;
 
 function workletAvailable()
 {
@@ -21,40 +19,33 @@ function workletAvailable()
     return context.audioWorklet && typeof context.audioWorklet.addModule === 'function';
 }
 
-function changeBufferSize(buffer_size)
-{
-    var new_buffer_size = buffer_size.options[buffer_size.selectedIndex].value;
-    console.log(new_buffer_size);
-    startNewDSP(new_buffer_size);
-}
-
 // MIDI input handling
 
 function keyOn(channel, pitch, velocity)
 {
-    if (DSP_poly) {
-        DSP_poly.keyOn(channel, pitch, velocity);
+    if (node) {
+        node.keyOn(channel, pitch, velocity);
     }
 }
 
 function keyOff(channel, pitch, velocity)
 {
-    if (DSP_poly) {
-        DSP_poly.keyOff(channel, pitch, velocity);
+    if (node) {
+        node.keyOff(channel, pitch, velocity);
     }
 }
 
 function pitchWheel(channel, wheel)
 {
-    if (DSP_poly) {
-        DSP_poly.pitchWheel(channel, wheel);
+    if (node) {
+        node.pitchWheel(channel, wheel);
     }
 }
 
 function ctrlChange(channel, ctrl, value)
 {
-    if (DSP_poly) {
-        DSP_poly.ctrlChange(channel, ctrl, value);
+    if (node) {
+        node.ctrlChange(channel, ctrl, value);
     }
 }
 
@@ -79,8 +70,8 @@ function midiMessageReceived(ev)
     }
     */
     
-    if (DSP_poly) {
-        DSP_poly.midiMessage(ev.data);
+    if (node) {
+        node.midiMessage(ev.data);
     }
 }
 
@@ -129,7 +120,6 @@ function activateAudioInput()
         navigator.getUserMedia({audio: { echoCancellation: false }}, getDevice, function(e) {
                                alert('Error getting audio input');
                                console.log(e);
-                               audio_input = null;
                                });
     } else {
         alert('Audio input API not available');
@@ -138,20 +128,17 @@ function activateAudioInput()
 
 function getDevice(device)
 {
-    // Create an AudioNode from the stream.
-    audio_input = audio_context.createMediaStreamSource(device);
-    
-    // Connect it to the destination.
-    audio_input.connect(DSP_poly);
+    // Connect the input to the destination.
+    context.createMediaStreamSource(device).connect(node);
 }
 
 // Save/Load functions using local storage (no yet working since 'params' does not reflect the polyphonic layout...)
 function saveDSP()
 {
     if (typeof(Storage) !== "undefined") {
-        var params = DSP_poly.getParams();
+        var params = node.getParams();
         for (var i = 0; i < params.length; i++) {
-            localStorage.setItem(params[i], DSP_poly.getParamValue(params[i]));
+            localStorage.setItem(params[i], node.getParamValue(params[i]));
         }
     }
 }
@@ -159,11 +146,11 @@ function saveDSP()
 function loadDSP()
 {
     if (typeof(Storage) !== "undefined") {
-        var params = DSP_poly.getParams();
+        var params = node.getParams();
         for (var i = 0; i < params.length; i++) {
             if (localStorage.getItem(params[i])) {
                 // Restore DSP state
-                DSP_poly.setParamValue(params[i], Number(localStorage.getItem(params[i])));
+                node.setParamValue(params[i], Number(localStorage.getItem(params[i])));
                 // Restore GUI state
                 output_handler(params[i], Number(localStorage.getItem(params[i])));
             }
@@ -171,30 +158,24 @@ function loadDSP()
     }
 }
 
-function startDSPAux(dsp)
+function startDSPAux(aw_node)
 {
-    if (!dsp) {
-        alert(faust.getErrorMessage());
-        return;
-    }
+    node = aw_node;
     
-    DSP_poly = dsp;
+    node.connect(context.destination);
     
-    DSP_poly.connect(audio_context.destination);
-    
-    console.log(DSP_poly.getJSON());
-    //DSP_poly.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
-    console.log(DSP_poly.getParams());
+    console.log(node.getJSON());
+    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
+    console.log(node.getParams());
     
     // No polling from the server needed, so use an empty loop
     _f4u$t.main_loop = function() {}
     
-    faustsvg = $('<div />');
+    var faustsvg = $('<div />');
     $('body').append(faustsvg);
     
-    output_handler = _f4u$t.main(DSP_poly.getJSON(), faustsvg, function(path, val) { DSP_poly.setParamValue(path, val); });
-    DSP_poly.setOutputParamHandler(output_handler);
-    
+    node.setOutputParamHandler(_f4u$t.main(node.getJSON(), faustsvg, function(path, val) { node.setParamValue(path, val); }));
+   
     // Load DSP state from local storage
     loadDSP();
 }
@@ -207,7 +188,11 @@ function startDSP()
 function startNewDSP()
 {
     if (isWasm && workletAvailable()) {
-        faust.createDSP_poly(audio_context, max_polyphony, startDSPAux);
+        factory = new DSP(context, "");
+        factory.load()
+        .then((aw_node) => startDSPAux(aw_node))
+        .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });
+        
     }  else {
         alert("WebAssembly or AudioWorklet is not supported in this browser !");
     }
@@ -217,12 +202,12 @@ function startNewDSP()
 window.addEventListener('touchstart', function() {
                         
                         // create empty buffer
-                        var buffer = audio_context.createBuffer(1, 1, 22050);
-                        var source = audio_context.createBufferSource();
+                        var buffer = context.createBuffer(1, 1, 22050);
+                        var source = context.createBufferSource();
                         source.buffer = buffer;
                         
                         // connect to output (your speakers)
-                        source.connect(audio_context.destination);
+                        source.connect(context.destination);
                         
                         // play the file
                         source.start();
@@ -240,6 +225,6 @@ if (typeof (Module) !== "undefined") {
 }
 
 // Save DSP state to local storage
-setInterval(function() { if (DSP_poly) saveDSP(); }, 1000);
+setInterval(function() { if (node) saveDSP(); }, 1000);
 
 </script>

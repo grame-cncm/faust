@@ -51,8 +51,8 @@ class htmlpage : public std::stringstream
 		
 		void	print(std::ostream& out, std::string s) const;
 		void	print(std::ostream& out) const;
-		void	setPort (int port)					{ fPort = port; }
-		void	setRoot (const std::string& root)	{ fRoot = root; }
+		void	setPort(int port)					{ fPort = port; }
+		void	setRoot(const std::string& root)	{ fRoot = root; }
 };
 
 } // end namespoace

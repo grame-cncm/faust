@@ -604,7 +604,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     }
 
     /**
-     * Controller
+     * Control change
      *
      * @param channel - the MIDI channel (0..15, not used for now)
      * @param ctrl - the MIDI controller number (0..127)

@@ -204,9 +204,19 @@ EndOfCode
         fi
     fi
 
+    # create the main.json file
+    echo "{" > main.json
+    echo "\"name\": \"$name\"," >> main.json
+    echo "\"vendor\": \"GRAME\"," >> main.json
+    echo "\"version\": \"1.0\"," >> main.json
+    echo "\"url\": \"$name.js\"," >> main.json
+    echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
+    echo "\"thumbnail\": \"\"" >> main.json
+    echo "}" >> main.json
+
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-        BINARIES="$BINARIES$name.js, $name-processor.js;"
+        BINARIES="$BINARIES$name.js, $name-processor.js, main.json;"
         rm $name.wasm
         rm -f $name"_effect".wasm
     else
@@ -301,6 +311,7 @@ if [ $EMCC = "true" ]; then
     rm $COMB_SRC
     rm $COMB_WRAPPED_FILES
 fi
+
 
 # collect binary file name
 BINARIES="comb.js;"

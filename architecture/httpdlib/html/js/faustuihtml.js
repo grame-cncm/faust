@@ -103,9 +103,9 @@ function buildhtmlui (data) {
 	var ui = desc.ui;
 	var address = "http://"+desc.address+":"+desc.port;
 	var table = "<table class='ui'>\n<tr>";
-	table += htmlCol ( desc.name, "name");
-	table += htmlCol ( desc.address, "url");
-	table += htmlCol ( desc.port, "port");
+	table += htmlCol(desc.name, "name");
+	table += htmlCol(desc.address, "url");
+	table += htmlCol(desc.port, "port");
 	table += "</tr>\n" + htmlhr(3);
 
 	for (var i=0; i<ui.length; i++) {
@@ -152,7 +152,7 @@ function dispatch (data) {
 }
 
 function update (root) {
-	$.get( root, function(data) { dispatch( data ); } );
-	setTimeout ( function () { update(root); }, 250);
+	$.get(root, function(data) { dispatch( data ); });
+	setTimeout(function () { update(root); }, 250);
 }
 $(document).ready(function() { update ($('#root').val()); });

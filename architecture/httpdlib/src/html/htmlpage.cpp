@@ -29,11 +29,11 @@
 
 using namespace std;
 
-void find_and_replace(string &source, const string find, string replace ) {
-
+void find_and_replace(string &source, const string find, string replace)
+{
 	size_t j;
-	for ( ; (j = source.find( find )) != string::npos ; ) {
-		source.replace( j, find.length(), replace );
+	for (; (j = source.find(find)) != string::npos;) {
+		source.replace(j, find.length(), replace);
 	}
 }
 
@@ -45,8 +45,7 @@ static const char * kPortNumberHandler = "__port_number__handler__";
 //--------------------------------------------------------------------------
 htmlpage::htmlpage(const char *name, const char* address, int port) 
 					: fName(name), fAddress(address), fPort(port)
-{
-}
+{}
 
 //--------------------------------------------------------------------------
 string htmlpage::getUrl() const
@@ -71,12 +70,12 @@ void htmlpage::print(std::ostream& out) const
 		out << "<center>\n\n";
 	} else {
 		out << "<html>\n<head>\n";
-		out << "	<link id='css' rel='stylesheet' type='text/css' href='http://faust.grame.fr/userinterface/css/style1.css' />\n";
-		out << "	<script src='http://faust.grame.fr/userinterface/js/jquery-1.7.1.min.js' language='javascript'></script>\n";
-		out << "	<script src='http://faust.grame.fr/userinterface/js/faust.js' language='javascript'></script>\n";
+		out << "	<link id='css' rel='stylesheet' type='text/css' href='https://faust.grame.fr/userinterface/css/style1.css' />\n";
+		out << "	<script src='https://faust.grame.fr/userinterface/js/jquery-1.7.1.min.js' language='javascript'></script>\n";
+		out << "	<script src='https://faust.grame.fr/userinterface/js/faust.js' language='javascript'></script>\n";
 		out << "	<title id=titre>" << fName << "</title>";
 		out << "</head>\n<body>\n";
-		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','http://faust.grame.fr/userinterface/css/style'+num+'.css');}";
+		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','https://faust.grame.fr/userinterface/css/style'+num+'.css');}";
 		out << "\n</script>\n";
 		out << "<center>\n\n";
 	}
@@ -135,11 +134,11 @@ void htmlpage::print(std::ostream& out, string s) const
 	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>" << endl;
 #else
 	out << "<style type=\"text/css\">" << endl;
-        for (unsigned int i=0; i < stylesheet_len; i++) { out << stylesheet[i]; } out << endl;
+        for (unsigned int i = 0; i < stylesheet_len; i++) { out << stylesheet[i]; } out << endl;
     out << "</style>" << endl;
 
     out << "    <script type=\"text/javascript\" >" << endl;
-        for (unsigned int i=0; i < jsscripts_len; i++) { out << jsscripts[i]; } out << endl;
+        for (unsigned int i = 0; i < jsscripts_len; i++) { out << jsscripts[i]; } out << endl;
     out << "    </script>" << endl;
 #endif
 

@@ -2519,7 +2519,7 @@ faust.deletePolyDSPInstance = function (dsp) {}
 
 // Template string
 
-var mydsp_polyProcessorString = `
+var mydspPolyProcessorString = `
 
     'use strict';
 
@@ -2532,20 +2532,20 @@ var mydsp_polyProcessorString = `
     function getBase64Mixer() { return "AGFzbQEAAAABj4CAgAACYAN/f38AYAR/f39/AX0CkoCAgAABBm1lbW9yeQZtZW1vcnkCAAIDg4CAgAACAAEHmoCAgAACC2NsZWFyT3V0cHV0AAAIbWl4Vm9pY2UAAQqKgoCAAALigICAAAEDfwJAQQAhBQNAAkAgAiAFQQJ0aigCACEDQQAhBANAAkAgAyAEQQJ0akMAAAAAOAIAIARBAWohBCAEIABIBEAMAgUMAQsACwsgBUEBaiEFIAUgAUgEQAwCBQwBCwALCwsLnYGAgAACBH8DfQJ9QQAhB0MAAAAAIQgDQAJAQQAhBiACIAdBAnRqKAIAIQQgAyAHQQJ0aigCACEFA0ACQCAEIAZBAnRqKgIAIQkgCCAJi5chCCAFIAZBAnRqKgIAIQogBSAGQQJ0aiAKIAmSOAIAIAZBAWohBiAGIABIBEAMAgUMAQsACwsgB0EBaiEHIAcgAUgEQAwCBQwBCwALCyAIDwsL"; }
 
     // Polyphonic Faust DSP
-    class mydsp_polyProcessor extends AudioWorkletProcessor {
+    class mydspPolyProcessor extends AudioWorkletProcessor {
         
         // JSON parsing functions
         static parse_ui(ui, obj, callback)
         {
             for (var i = 0; i < ui.length; i++) {
-                mydsp_polyProcessor.parse_group(ui[i], obj, callback);
+                mydspPolyProcessor.parse_group(ui[i], obj, callback);
             }
         }
         
         static parse_group(group, obj, callback)
         {
             if (group.items) {
-                mydsp_polyProcessor.parse_items(group.items, obj, callback);
+                mydspPolyProcessor.parse_items(group.items, obj, callback);
             }
         }
         
@@ -2561,7 +2561,7 @@ var mydsp_polyProcessorString = `
             if (item.type === "vgroup"
                 || item.type === "hgroup"
                 || item.type === "tgroup") {
-                mydsp_polyProcessor.parse_items(item.items, obj, callback);
+                mydspPolyProcessor.parse_items(item.items, obj, callback);
             } else if (item.type === "hbargraph"
                        || item.type === "vbargraph") {
             // Nothing
@@ -2582,7 +2582,7 @@ var mydsp_polyProcessorString = `
             if (item.type === "vgroup"
                 || item.type === "hgroup"
                 || item.type === "tgroup") {
-                mydsp_polyProcessor.parse_items(item.items, obj, callback);
+                mydspPolyProcessor.parse_items(item.items, obj, callback);
             } else if (item.type === "hbargraph"
                        || item.type === "vbargraph") {
                 // Keep bargraph adresses
@@ -2642,7 +2642,7 @@ var mydsp_polyProcessorString = `
                 
                 for (var nMod3, nMod4, nUint24 = 0, nOutIdx = 0, nInIdx = 0; nInIdx < nInLen; nInIdx++) {
                     nMod4 = nInIdx & 3;
-                    nUint24 |= mydsp_polyProcessor.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
+                    nUint24 |= mydspPolyProcessor.b64ToUint6(sB64Enc.charCodeAt(nInIdx)) << 18 - 6 * nMod4;
                     if (nMod4 === 3 || nInLen - nInIdx === 1) {
                         for (nMod3 = 0; nMod3 < 3 && nOutIdx < nOutLen; nMod3++, nOutIdx++) {
                             taBytes[nOutIdx] = nUint24 >>> (16 >>> nMod3 & 24) & 255;
@@ -2665,11 +2665,11 @@ var mydsp_polyProcessorString = `
             var params = [];
             
             // Add instrument parameters
-            mydsp_polyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydsp_polyProcessor.parse_item1);
+            mydspPolyProcessor.parse_ui(JSON.parse(getJSONmydsp()).ui, params, mydspPolyProcessor.parse_item1);
             
             // Possibly add effect parameters
             if (getJSONeffect() !== "") {
-                mydsp_polyProcessor.parse_ui(JSON.parse(getJSONeffect()).ui, params, mydsp_polyProcessor.parse_item1);
+                mydspPolyProcessor.parse_ui(JSON.parse(getJSONeffect()).ui, params, mydspPolyProcessor.parse_item1);
             }
             return params;
         }
@@ -2750,7 +2750,7 @@ var mydsp_polyProcessorString = `
             this.sample_size = 4;
             
             // Create the WASM memory
-            var wasm_memory = mydsp_polyProcessor.createMemory(mydsp_polyProcessor.buffer_size, mydsp_polyProcessor.polyphony);
+            var wasm_memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
             
             // Create the WASM mixer
             this.mixerObject = { imports: { print: arg => console.log(arg) } }
@@ -2812,14 +2812,14 @@ var mydsp_polyProcessorString = `
                 }
             };
             
-            this.mixer = new WebAssembly.Instance(mydsp_polyProcessor.wasm_mixer_module, this.mixerObject).exports;
+            this.mixer = new WebAssembly.Instance(mydspPolyProcessor.wasm_mixer_module, this.mixerObject).exports;
             
             // Create the WASM instance
-            this.factory = new WebAssembly.Instance(mydsp_polyProcessor.wasm_module, this.importObject).exports;
+            this.factory = new WebAssembly.Instance(mydspPolyProcessor.wasm_module, this.importObject).exports;
             
             // Create the WASM effect instance
-            if (mydsp_polyProcessor.wasm_effect_module) {
-                this.effect = new WebAssembly.Instance(mydsp_polyProcessor.wasm_effect_module, this.importObject).exports;
+            if (mydspPolyProcessor.wasm_effect_module) {
+                this.effect = new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports;
             }
             
             this.HEAP = wasm_memory.buffer;
@@ -2848,17 +2848,17 @@ var mydsp_polyProcessorString = `
             
             // Setup buffer offset
             this.audio_heap_inputs = this.audio_heap_ptr_mixing + (this.numOut * this.ptr_size);
-            this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydsp_polyProcessor.buffer_size * this.sample_size);
-            this.audio_heap_mixing = this.audio_heap_outputs + (this.numOut * mydsp_polyProcessor.buffer_size * this.sample_size);
+            this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydspPolyProcessor.buffer_size * this.sample_size);
+            this.audio_heap_mixing = this.audio_heap_outputs + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
             
             // Setup DSP voices offset
-            this.dsp_start = this.audio_heap_mixing + (this.numOut * mydsp_polyProcessor.buffer_size * this.sample_size);
+            this.dsp_start = this.audio_heap_mixing + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
             
             console.log(this.mixer);
             console.log(this.factory);
             
             // Start of DSP memory ('polyphony' DSP voices)
-            this.polyphony = mydsp_polyProcessor.polyphony;
+            this.polyphony = mydspPolyProcessor.polyphony;
             this.dsp_voices = [];
             this.dsp_voices_state = [];
             this.dsp_voices_level = [];
@@ -2979,13 +2979,13 @@ var mydsp_polyProcessorString = `
                 if (this.numIn > 0) {
                     this.ins = this.audio_heap_ptr_inputs;
                     for (i = 0; i < this.numIn; i++) {
-                        this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((mydsp_polyProcessor.buffer_size * this.sample_size) * i);
+                        this.HEAP32[(this.ins >> 2) + i] = this.audio_heap_inputs + ((mydspPolyProcessor.buffer_size * this.sample_size) * i);
                     }
                     
                     // Prepare Ins buffer tables
                     var dspInChans = this.HEAP32.subarray(this.ins >> 2, (this.ins + this.numIn * this.ptr_size) >> 2);
                     for (i = 0; i < this.numIn; i++) {
-                        this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + mydsp_polyProcessor.buffer_size * this.sample_size) >> 2);
+                        this.dspInChannnels[i] = this.HEAPF32.subarray(dspInChans[i] >> 2, (dspInChans[i] + mydspPolyProcessor.buffer_size * this.sample_size) >> 2);
                     }
                 }
                 
@@ -2995,22 +2995,22 @@ var mydsp_polyProcessorString = `
                     this.mixing = this.audio_heap_ptr_mixing;
                     
                     for (i = 0; i < this.numOut; i++) {
-                        this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((mydsp_polyProcessor.buffer_size * this.sample_size) * i);
-                        this.HEAP32[(this.mixing >> 2) + i] = this.audio_heap_mixing + ((mydsp_polyProcessor.buffer_size * this.sample_size) * i);
+                        this.HEAP32[(this.outs >> 2) + i] = this.audio_heap_outputs + ((mydspPolyProcessor.buffer_size * this.sample_size) * i);
+                        this.HEAP32[(this.mixing >> 2) + i] = this.audio_heap_mixing + ((mydspPolyProcessor.buffer_size * this.sample_size) * i);
                     }
                     
                     // Prepare Out buffer tables
                     var dspOutChans = this.HEAP32.subarray(this.outs >> 2, (this.outs + this.numOut * this.ptr_size) >> 2);
                     for (i = 0; i < this.numOut; i++) {
-                        this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + mydsp_polyProcessor.buffer_size * this.sample_size) >> 2);
+                        this.dspOutChannnels[i] = this.HEAPF32.subarray(dspOutChans[i] >> 2, (dspOutChans[i] + mydspPolyProcessor.buffer_size * this.sample_size) >> 2);
                     }
                 }
                 
                 // Parse UI
-                mydsp_polyProcessor.parse_ui(this.json_object.ui, this, mydsp_polyProcessor.parse_item2);
+                mydspPolyProcessor.parse_ui(this.json_object.ui, this, mydspPolyProcessor.parse_item2);
                 
                 if (this.effect) {
-                    mydsp_polyProcessor.parse_ui(this.effect_json_object.ui, this, mydsp_polyProcessor.parse_item2);
+                    mydspPolyProcessor.parse_ui(this.effect_json_object.ui, this, mydspPolyProcessor.parse_item2);
                 }
                 
                 // keep 'keyOn/keyOff' labels
@@ -3079,7 +3079,7 @@ var mydsp_polyProcessorString = `
                 if (this.fCtrlLabel[ctrl] !== []) {
                     for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
                         var path = this.fCtrlLabel[ctrl][i].path;
-                        this.setParamValue(path, mydsp_polyProcessor.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
+                        this.setParamValue(path, mydspPolyProcessor.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
                         if (this.output_handler) {
                             this.output_handler(path, this.getParamValue(path));
                         }
@@ -3178,11 +3178,11 @@ var mydsp_polyProcessorString = `
             
             // Possibly call an externally given callback (for instance to synchronize playing a MIDIFile...)
             if (this.compute_handler) {
-                this.compute_handler(mydsp_polyProcessor.buffer_size);
+                this.compute_handler(mydspPolyProcessor.buffer_size);
             }
             
             // First clear the outputs
-            this.mixer.clearOutput(mydsp_polyProcessor.buffer_size, this.numOut, this.outs);
+            this.mixer.clearOutput(mydspPolyProcessor.buffer_size, this.numOut, this.outs);
             
             // Compute all running voices
             for (var i = 0; i < this.polyphony; i++) {
@@ -3192,14 +3192,14 @@ var mydsp_polyProcessorString = `
                         this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
                         this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
                         this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 1.0);
-                        this.factory.compute(this.dsp_voices[i], mydsp_polyProcessor.buffer_size, this.ins, this.mixing);
+                        this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                         this.dsp_voices_trigger[i] = false;
                     } else {
                         // Compute regular voice
-                        this.factory.compute(this.dsp_voices[i], mydsp_polyProcessor.buffer_size, this.ins, this.mixing);
+                        this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                     }
                     // Mix it in result
-                    this.dsp_voices_level[i] = this.mixer.mixVoice(mydsp_polyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
+                    this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                     // Check the level to possibly set the voice in kFreeVoice again
                     if ((this.dsp_voices_level[i] < 0.001) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
                         this.dsp_voices_state[i] = this.kFreeVoice;
@@ -3209,7 +3209,7 @@ var mydsp_polyProcessorString = `
             
             // Apply effect
             if (this.effect) {
-                this.effect.compute(this.effect_start, mydsp_polyProcessor.buffer_size, this.outs, this.outs);
+                this.effect.compute(this.effect_start, mydspPolyProcessor.buffer_size, this.outs, this.outs);
             }
             
             // Update bargraph
@@ -3229,20 +3229,20 @@ var mydsp_polyProcessorString = `
 
     // Globals
 
-    mydsp_polyProcessor.buffer_size = 128;
-    mydsp_polyProcessor.polyphony = MAX_POLYPHONY;
+    mydspPolyProcessor.buffer_size = 128;
+    mydspPolyProcessor.polyphony = MAX_POLYPHONY;
 
     // Synchronously compile the WASM modules
     try {
-        mydsp_polyProcessor.wasm_mixer_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Mixer()));
-        mydsp_polyProcessor.wasm_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codemydsp()));
+        mydspPolyProcessor.wasm_mixer_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Mixer()));
+        mydspPolyProcessor.wasm_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codemydsp()));
         // Possibly compile effect
         if (getBase64Codeeffect() !== "") {
-            mydsp_polyProcessor.wasm_effect_module = new WebAssembly.Module(mydsp_polyProcessor.atob(getBase64Codeeffect()));
+            mydspPolyProcessor.wasm_effect_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codeeffect()));
         }
-        registerProcessor('mydsp_poly', mydsp_polyProcessor);
+        registerProcessor('mydspPoly', mydspPolyProcessor);
     } catch (e) {
-        console.log(e); console.log("Faust mydsp_poly cannot be loaded or compiled");
+        console.log(e); console.log("Faust mydspPoly cannot be loaded or compiled");
     }
 
 `;
@@ -3255,7 +3255,7 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
     context.resume();
     
 	// Create a generic AudioWorkletNode, use polyphony to distinguish different classes
-	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "_poly",
+	var audio_node = new AudioWorkletNode(context, factory.name + '_' + polyphony.toString() + "Poly",
                                           { numberOfInputs: (parseInt(factory.json_object.inputs) > 0) ? 1 : 0,
                                             numberOfOutputs: (parseInt(factory.json_object.outputs) > 0) ? 1 : 0,
                                             channelCount: Math.max(1, parseInt(factory.json_object.inputs)),
@@ -3451,25 +3451,25 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
         var re4 = /GETBASE64CODE/g;
         
         // Use polyphony to distinguish different classes
-        var mydsp_polyProcessorString1 = mydsp_polyProcessorString.replace(re1, factory.name + '_' + polyphony.toString());
-        var mydsp_polyProcessorString2 = mydsp_polyProcessorString1.replace(re2, polyphony);
-        var mydsp_polyProcessorString3 = mydsp_polyProcessorString2.replace(re3, factory.getJSON());
-        var mydsp_polyProcessorString4 = mydsp_polyProcessorString3.replace(re4, factory.getBase64Code());
+        var mydspPolyProcessorString1 = mydspPolyProcessorString.replace(re1, factory.name + '_' + polyphony.toString());
+        var mydspPolyProcessorString2 = mydspPolyProcessorString1.replace(re2, polyphony);
+        var mydspPolyProcessorString3 = mydspPolyProcessorString2.replace(re3, factory.getJSON());
+        var mydspPolyProcessorString4 = mydspPolyProcessorString3.replace(re4, factory.getBase64Code());
         
         var url = null;
         // Is there is an effect to compile
         if (factory.name_effect) {
             var re5 = /CODE1/g;
             var re6 = /CODE2/g;
-            var mydsp_polyProcessorString5 = mydsp_polyProcessorString4.replace(re5, factory.getJSONeffect());
-            var mydsp_polyProcessorString6 = mydsp_polyProcessorString5.replace(re6, factory.getBase64Codeeffect());
-            url = window.URL.createObjectURL(new Blob([mydsp_polyProcessorString6], { type: 'text/javascript' }));
+            var mydspPolyProcessorString5 = mydspPolyProcessorString4.replace(re5, factory.getJSONeffect());
+            var mydspPolyProcessorString6 = mydspPolyProcessorString5.replace(re6, factory.getBase64Codeeffect());
+            url = window.URL.createObjectURL(new Blob([mydspPolyProcessorString6], { type: 'text/javascript' }));
         } else {
             var re5 = /CODE1/g;
             var re6 = /CODE2/g;
-            var mydsp_polyProcessorString5 = mydsp_polyProcessorString4.replace(re5, "");
-            var mydsp_polyProcessorString6 = mydsp_polyProcessorString5.replace(re6, "");
-            url = window.URL.createObjectURL(new Blob([mydsp_polyProcessorString6], { type: 'text/javascript' }));
+            var mydspPolyProcessorString5 = mydspPolyProcessorString4.replace(re5, "");
+            var mydspPolyProcessorString6 = mydspPolyProcessorString5.replace(re6, "");
+            url = window.URL.createObjectURL(new Blob([mydspPolyProcessorString6], { type: 'text/javascript' }));
         }
         
         context.audioWorklet.addModule(url)
@@ -3479,7 +3479,7 @@ faust.createPolyDSPWorkletInstance = function(factory, context, polyphony, callb
               // Create audio node
               faust.createPolyDSPWorkletInstanceAux(factory, context, polyphony, callback);
          })
-        .catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); alert(error); });
+        .catch(function(error) { console.log(error); console.log("Faust mydspPoly cannot be loaded or compiled"); alert(error); });
        	
     } else {
         // Create audio node
