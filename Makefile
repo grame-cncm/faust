@@ -32,10 +32,14 @@ zname := faust-$(version)
 .PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
 compiler : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) faust BACKENDS=regular.cmake
+	$(MAKE) -C $(BUILDLOCATION) http
+	$(MAKE) -C $(BUILDLOCATION) osc 
+
+travis : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) faust 
 	$(MAKE) -C $(BUILDLOCATION) http
 	$(MAKE) -C $(BUILDLOCATION) osc 
-	 
 	
 all : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) configstatic
