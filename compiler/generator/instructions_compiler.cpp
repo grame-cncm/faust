@@ -931,7 +931,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         list<ValueInst*> destroy_args;
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar(vname));
-        pushStaticDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("destroy", destroy_args, true)));
+        pushStaticDestroyMethod(InstBuilder::genVoidFunCallInst("destroy", destroy_args, true));
     }
 
     // Fill the table

@@ -221,6 +221,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         // TODO
+        throw faustexception("ERROR : AddSoundfileInst not supported for Interpreter\n");
     }
     
     virtual void visit(LabelInst* inst) {}

@@ -1226,7 +1226,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
     
         virtual void visit(AddSoundfileInst* inst)
         {
-           // TODO
+            // TODO
+            throw faustexception("ERROR : AddSoundfileInst not supported for LLVM\n");
         }
 
         virtual void visit(DeclareVarInst* inst)
