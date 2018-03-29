@@ -26,9 +26,7 @@ matrix:
             - puredata-dev 
             - supercollider-dev
       env:
-        global:
-          - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
-          - BACKENDS=regular.cmake
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
 before_install:
     - eval "${MATRIX_EVAL}"
@@ -39,7 +37,7 @@ branches:
   - temptravis
 
 script: 
-  - make JOBS="-j 2"
+  - make travis
   # - ./tests/architecture-tests/testtravis
   # Do also some impulse response tests
   - make -C tests/impulse-tests travis -j 2
