@@ -85,6 +85,8 @@ do
 		shift
 		if [[ -f "$1" ]]; then
 			EFFECT=$1
+		elif [ $1 = "auto" ]; then
+			EFFECT=$1
 		else
 			echo "No file specified after -effect"
 			echoHelp
