@@ -229,7 +229,6 @@ mkdir "$APIFOLDER"
 # START CHECKING FOR AUTO EFFECT
 if [ "$NVOICES" -gt "0" ]; then
 if [ "$EFFECT" = "auto" ]; then
-    echo "Start extracting effect"
     EFFECT="$APIFOLDER/autoeffect.dsp"
     cat > "$EFFECT" << EndOfCode
     adapt(1,1) = _;
@@ -243,7 +242,6 @@ if [ "$EFFECT" = "auto" ]; then
 EndOfCode
     # We check this is a faust valid code. No error if it is not
     faust $EFFECT -o /dev/null 2> /dev/null|| POLY2="0" EFFECT=""
-    echo "effect is $EFFECT"
 fi
 else
     # No polyphony, make shure no effect
