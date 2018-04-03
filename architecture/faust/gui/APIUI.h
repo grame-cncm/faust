@@ -97,7 +97,7 @@ class APIUI : public PathBuilder, public Meta, public UI
             fStep.push_back(step);
             fItemType.push_back(type);
             
-            //handle scale metadata
+            // handle scale metadata
             switch (fCurrentScale) {
                 case kLin:
                     fConversion.push_back(new LinearValueConverter(0, 1, min, max));
@@ -243,7 +243,7 @@ class APIUI : public PathBuilder, public Meta, public UI
     
         enum Type { kAcc = 0, kGyr = 1, kNoType };
    
-        APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0)
+        APIUI() : fNumParameters(0), fHasScreenControl(false), fRedReader(0), fGreenReader(0), fBlueReader(0), fCurrentScale(kLin)
         {}
 
         virtual ~APIUI()
