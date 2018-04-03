@@ -94,8 +94,9 @@ class DspFaust
     #if DYNAMIC_DSP
         DspFaust(const string&, int, int);
     #endif
-        
-        virtual ~DspFaust();
+    
+        // No virtual destructor since DspFaust does not have any virtual methods and is not supposed to be subclassed
+        ~DspFaust();
         
         //---------------------`bool start()`---------------------
         // Start the audio processing.

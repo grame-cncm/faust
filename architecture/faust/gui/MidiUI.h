@@ -214,6 +214,7 @@ class uiMidiClock : public uiMidiTimedItem
 
 class uiMidiProgChange : public uiMidiItem
 {
+    
     private:
         
         int fPgm;
@@ -489,6 +490,9 @@ class MidiUI : public GUI, public midi
         }
 
     public:
+    
+        MidiUI():fMidiHandler(NULL), fDelete(false)
+        {}
 
         MidiUI(midi_handler* midi_handler, bool delete_handler = false)
         {

@@ -139,7 +139,7 @@ class GUI : public UI
     
         // -- metadata declarations
 
-        virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
+        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
     
         // Static global for timed zones, shared between all UI that will set timed values
         static ztimedmap gTimedZoneMap;

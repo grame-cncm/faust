@@ -69,7 +69,7 @@ class oscdsp : public audio, public oscfaust::OSCIO {
             delete [] fOutBuffers;
         }
 
-        virtual bool init(const char*name, dsp* DSP) 
+        virtual bool init(const char* name, dsp* DSP) 
         {
             fDsp = DSP;
             fDsp->init(44100);
