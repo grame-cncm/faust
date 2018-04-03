@@ -39,7 +39,7 @@
 #include <libgen.h>
 
 #include "faust/dsp/dsp.h"
-#include "faust/GUI/GUI.h"
+#include "faust/gui/GUI.h"
 #include "faust/audio/jack-dsp.h"
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
