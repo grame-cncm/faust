@@ -559,7 +559,10 @@ class MidiUI : public GUI, public midi
         
         MapUI* keyOn(double date, int channel, int note, int velocity)
         {
-            if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
+            // KeyOn with welocity of zero are treated as KeyOff
+            if (velocity == 0) {
+                keyOff(date, channel, note, velocity);
+            } else if (fKeyOnTable.find(note) != fKeyOnTable.end()) {
                 for (unsigned int i = 0; i < fKeyOnTable[note].size(); i++) {
                     fKeyOnTable[note][i]->modifyZone(FAUSTFLOAT(velocity));
                 }
