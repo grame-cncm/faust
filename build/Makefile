@@ -215,11 +215,11 @@ confighttpdynamic:
 configall: $(PROJ)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
-reset: STATIC ?= off
-reset: DYNAMIC ?= off
-reset: HTTP ?= on
-reset: BACKENDS ?= backends.cmake
 reset: $(PROJ)
+	STATIC ?= off
+	DYNAMIC ?= off
+	HTTP ?= on
+	BACKENDS ?= backends.cmake
 	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
 
 
