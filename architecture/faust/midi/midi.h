@@ -137,8 +137,8 @@ class midi_handler : public midi {
         midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
         virtual ~midi_handler() {}
 
-        virtual void addMidiIn(midi* midi_dsp) { if (midi_dsp) fMidiInputs.push_back(midi_dsp); }
-        virtual void removeMidiIn(midi* midi_dsp)
+        void addMidiIn(midi* midi_dsp) { if (midi_dsp) fMidiInputs.push_back(midi_dsp); }
+        void removeMidiIn(midi* midi_dsp)
         {
             std::vector<midi*>::iterator it = std::find(fMidiInputs.begin(), fMidiInputs.end(), midi_dsp);
             if (it != fMidiInputs.end()) {

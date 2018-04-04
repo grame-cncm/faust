@@ -109,7 +109,7 @@ Finds the sum of a numerical array.
 **/
 Array.prototype.sum = function() {
   var sum = 0;
-  for(var i = 0; i < this.length; i++) {
+  for (var i = 0; i < this.length; i++) {
     sum += this[i];
   }
   return sum;
@@ -477,7 +477,7 @@ _f4u$t.rand_string = function(n)
     n = 8;
   }
 
-  for( var i=0; i < n; i++ ) {
+  for (var i = 0; i < n; i++ ) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
@@ -868,7 +868,7 @@ _f4u$t.unique = function(s) {
 }
 
 /**
-Returns the type part of an id.  The faust naming convention gives
+Returns the type part of an id. The faust naming convention gives
 all DOM ids a type as the second entry. Examples are vslider, hslider,
 rbutton.
 
@@ -1311,7 +1311,7 @@ _f4u$t.hard_delete = function(div) {
   To be called when used with the C++/LLVM libfaust based FaustNode.
 **/
 _f4u$t.make_audio_ui = function(dsp, svg) {
-  var json = eval ("(" + dsp.json() + ")");
+  var json = eval("(" + dsp.json() + ")");
   var faust_svg = new _f4u$t.SVG(
     svg,
     // kludge to prevent scroll bars...

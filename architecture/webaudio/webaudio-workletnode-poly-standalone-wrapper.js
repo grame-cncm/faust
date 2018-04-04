@@ -9,7 +9,7 @@ if (typeof (AudioWorkletNode) === "undefined") {
 	alert("AudioWorklet is not supported in this browser !")
 }
 
-class mydsp_polyNode extends AudioWorkletNode {
+class mydspPolyNode extends AudioWorkletNode {
     
     constructor(context, options) 
     {
@@ -23,7 +23,7 @@ class mydsp_polyNode extends AudioWorkletNode {
         options.channelCountMode = "explicit";
         options.channelInterpretation = "speakers";
         
-        super(context, 'mydsp_poly', options);
+        super(context, 'mydspPoly', options);
         
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
@@ -90,6 +90,20 @@ class mydsp_polyNode extends AudioWorkletNode {
         this.port.onmessage = this.handleMessage.bind(this);
     }
     
+    // To be called by the message port with messages coming from the processor
+    handleMessage(event)
+    {
+        var msg = event.data;
+        if (this.output_handler) {
+            this.output_handler(msg.path, msg.value);
+        }
+    }
+    
+    // Public API
+  
+    /**
+     *  Returns a full JSON description of the DSP.
+     */
     getJSON()
     {
         var res = "";
@@ -120,12 +134,23 @@ class mydsp_polyNode extends AudioWorkletNode {
         }
     }
     
+    /**
+     *  Set the control value at a given path.
+     *
+     * @param path - a path to the control
+     * @param val - the value to be set
+     */
     setParamValue(path, val)
     {
         this.port.postMessage({ type:"param", key:path, value:val });
         this.parameters.get(path).setValueAtTime(val, 0);
     }
     
+    /**
+     *  Get the control value at a given path.
+     *
+     * @return the current control value
+     */
     getParamValue(path)
     {
         return this.parameters.get(path).value;
@@ -151,7 +176,6 @@ class mydsp_polyNode extends AudioWorkletNode {
         return this.output_handler;
     }
     
-    // TO REMOVE
     getNumInputs()
     {
         return parseInt(this.json_object.inputs);
@@ -162,6 +186,9 @@ class mydsp_polyNode extends AudioWorkletNode {
         return parseInt(this.json_object.outputs);
     }
     
+    /**
+     * Returns an array of all input paths (to be used with setParamValue/getParamValue)
+     */
     getParams()
     {
         return this.inputs_items;
@@ -200,7 +227,7 @@ class mydsp_polyNode extends AudioWorkletNode {
     }
 
     /**
-     * Controller
+     * Control change
      *
      * @param channel - the MIDI channel (0..15, not used for now)
      * @param ctrl - the MIDI controller number (0..127)
@@ -222,34 +249,68 @@ class mydsp_polyNode extends AudioWorkletNode {
         this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
     }
     
+    /**
+     * Generic MIDI message handler.
+     */
     midiMessage(data)
     {
     	this.port.postMessage({ type:"midi", data:data });
     }
     
-    handleMessage(event) 
-    {
-        var msg = event.data;
-        if (this.output_handler) {
-            this.output_handler(msg.path, msg.value);
-        }
-    }
 }
 
-// Faust context
-var faust = faust || {};
+// Factory class
 
-faust.createmydsp_poly = function(context, max_polyphony, callback)
-{
-    // TODO: handle max_polyphony
+class mydsp {
     
-    // Resume audio context each time...
-    context.resume();
+    /**
+     * Factory constructor.
+     *
+     * @param context - the audio context
+     * @param baseUrl - the baseUrl of the plugin folder
+     */
+    constructor(context, baseUrl)
+    {
+    	// Resume audio context each time...
+    	context.resume();
+    	
+        this.context = context;
+        this.baseUrl = baseUrl;
+    }
     
-    // The main global scope
-    context.audioWorklet.addModule("mydsp-processor.js")
-    .then(function () {
-        callback(new mydsp_polyNode(context, {}));
-    })
-	.catch(function(error) { console.log(error); console.log("Faust mydsp_poly cannot be loaded or compiled"); });
+    /**
+     * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
+     */
+    load()
+    {
+    	return new Promise((resolve, reject) => {
+        		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
+        		this.node = new mydspPolyNode(this.context, {});
+        		return (this.node);
+        	}).then((node) => {
+                resolve(node);
+            }).catch((e) => {
+                reject(e);
+            });
+        });
+    }
+    
+    loadGui() 
+    {
+        return new Promise((resolve, reject) => {
+            try {
+            	var link = document.createElement('link');
+            	link.rel = 'import';
+            	link.id = 'urlPlugin';
+            	link.href = this.baseUrl + "main.html";
+            	document.head.appendChild(link);
+            	var element = document.createElement("faust-mydsp");
+            	element._plug = this.node;
+            	resolve(element);
+        	} catch (e) {
+            	console.log(e);
+            	reject(e);
+        	}
+    	});
+    };
 }

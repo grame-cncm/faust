@@ -644,7 +644,7 @@ class alsaaudio : public audio
 
 	virtual ~alsaaudio() { stop(); delete fAudio; }
 
-	virtual bool init(const char */*name*/, dsp* DSP)
+	virtual bool init(const char* /*name*/, dsp* DSP)
     {
         fDSP = DSP;
         fAudio->inputs(DSP->getNumInputs());

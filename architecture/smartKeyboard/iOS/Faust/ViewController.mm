@@ -14,10 +14,6 @@
 
 @implementation ViewController{
     DspFaust* faustDsp;
-#if MULTI_KEYBOARD_ONLY == 0
-    PresetMenu *presetMenu;
-    InstrumentInterface *instrumentInterface;
-#endif
     NSInteger currentPreset;
     NSString *audioSettingsFile;
     NSDictionary *audioSettings;
@@ -57,14 +53,8 @@
     
     [self startFaustDsp];
     
-#if MULTI_KEYBOARD_ONLY == 0
-    presetMenu = [[PresetMenu alloc] initWithFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height) withCurrentPreset:currentPreset];
-    [presetMenu addTarget:self action:@selector(newEventOnPresetMenu:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:presetMenu];
-#else
     MultiKeyboard *multiKeyboard = [[MultiKeyboard alloc] initWithFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height) withFaustDSP:faustDsp withPreset:nil];
     [self.view addSubview:multiKeyboard];
-#endif
 }
 
 // creates default audio settings
@@ -94,40 +84,10 @@
     }
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
+- (void)viewWillDisappear:(BOOL)animated{
+    [super viewWillDisappear:animated];
     [self stopFaustDsp];
 }
-
-#if MULTI_KEYBOARD_ONLY == 0
-- (IBAction)newEventOnPresetMenu:(PresetMenu*)sender{
-    // lauching the keyboard interface with the selected preset
-    if(sender->actionType == 0){
-        currentPreset = sender->currentPreset;
-        instrumentInterface = [[InstrumentInterface alloc] initWithFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height) withFaustDSP:faustDsp withPresetId:currentPreset];
-        [presetMenu removeFromSuperview];
-        presetMenu = nil;
-        [instrumentInterface addTarget:self action:@selector(newEventOnInstrumentInterface:) forControlEvents:UIControlEventValueChanged];
-        [self.view addSubview:instrumentInterface];
-    }
-    // reloading the audio settings and restarting audio
-    else if(sender->actionType == 1){
-        audioSettings = [[NSDictionary alloc] initWithContentsOfFile:audioSettingsFile];
-        [self stopFaustDsp];
-        [self startFaustDsp];
-    }
-}
-
-// user pressed home button on keyboard interface...
-- (IBAction)newEventOnInstrumentInterface:(InstrumentInterface*)sender{
-    currentPreset = sender->currentPreset;
-    [instrumentInterface removeFromSuperview];
-    instrumentInterface = nil;
-    presetMenu = [[PresetMenu alloc] initWithFrame:CGRectMake(0.0f, 0.0f, self.view.frame.size.width, self.view.frame.size.height) withCurrentPreset:currentPreset];
-    [presetMenu addTarget:self action:@selector(newEventOnPresetMenu:) forControlEvents:UIControlEventValueChanged];
-    [self.view addSubview:presetMenu];
-}
-#endif
 
 - (BOOL)prefersStatusBarHidden
 {
