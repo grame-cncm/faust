@@ -183,7 +183,7 @@ $(FAUSTDIR):
 $(IOSDIR): 
 	mkdir $(IOSDIR)
 
-$(PROJ): $(FAUSTDIR) backends/$(BACKENDS)
+$(PROJ): 
 	$(MAKE) cmake
 
 verbose: $(FAUSTDIR)
