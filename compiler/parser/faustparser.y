@@ -345,6 +345,7 @@ number			: INT   						{ $$ = boxInt(atoi(yytext)); }
 				
 statement       : IMPORT LPAR uqstring RPAR ENDDEF	   	{ $$ = importFile($3); }
 				| DECLARE name string  ENDDEF		   	{ declareMetadata($2,$3); $$ = gGlobal->nil; }
+				| DECLARE name name string  ENDDEF		{ declareDefinitionMetadata($2,$3,$4); $$ = gGlobal->nil; }
 				| definition						   	{ $$ = $1; }
 				| BDOC doc EDOC						   	{ declareDoc($2); $$ = gGlobal->nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ }
                 ;
