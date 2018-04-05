@@ -8,7 +8,7 @@ SVG  := $(HTML)/js/svg
 
 sources = $(wildcard $(SVG)/*.js)
 
-.INTERMEDIATE: jsscripts stylesheet
+#.INTERMEDIATE: jsscripts stylesheet
 
 
 all: stylesheet.cpp jsscripts.cpp
