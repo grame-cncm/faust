@@ -60,7 +60,7 @@ endif
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
-clean: $(PROJ)
+clean: $(FAUSTDIR)
 	cmake --build $(FAUSTDIR) --target clean
 
 #===============================================================
@@ -193,15 +193,15 @@ cmake: $(FAUSTDIR)
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 
 configstatic: STATIC ?= on
-configstatic: $(PROJ)
+configstatic: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) ..
 
 configdynamic: DYNAMIC ?= on
-configdynamic: $(PROJ)
+configdynamic: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=$(DYNAMIC) ..
 
 confighttp: HTTP ?= on
-confighttp: $(PROJ)
+confighttp: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=$(HTTP) ..
 
 configoscdynamic: OSCDYN ?= on
@@ -212,15 +212,11 @@ confighttpdynamic: HTTPDYN ?= on
 confighttpdynamic:
 	cd $(FAUSTDIR) && cmake -DHTTPDYNAMIC=$(HTTPDYN) ..
 
-configall: $(PROJ)
+configall: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
-reset: $(PROJ)
-	STATIC ?= off
-	DYNAMIC ?= off
-	HTTP ?= on
-	BACKENDS ?= backends.cmake
-	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
+reset: $(FAUSTDIR)
+	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=off -DINCLUDE_DYNAMIC=off -DINCLUDE_HTTP=on ..
 
 
 #===============================================================
