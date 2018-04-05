@@ -384,21 +384,13 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         virtual void visit(IndexedAddress* indexed)
         {
             indexed->fAddress->accept(this);
-            
-            if (gGlobal->gVarTypeTable.find(indexed->getName()) != gGlobal->gVarTypeTable.end()) {
-                Typed* type = gGlobal->gVarTypeTable[indexed->getName()];
-                Typed::VarType ext_type = Typed::getTypeFromPtr(type->getType());
-                // If type is an external Structured type
-                if (gGlobal->gExternalStructTypes.find(ext_type) != gGlobal->gExternalStructTypes.end()) {
-                    DeclareStructTypeInst* struct_type = gGlobal->gExternalStructTypes[ext_type];
-                    Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
-                    faustassert(field_index);
-                    *fOut << "->" << struct_type->fType->getName(field_index->fNum);
-                    return;
-                }
+            DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+            if (struct_type) {
+                Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+                *fOut << "->" << struct_type->fType->getName(field_index->fNum);
+            } else {
+                *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
             }
-            
-            *fOut << "["; indexed->fIndex->accept(this); *fOut << "]";
         }
 
         virtual void visit(LoadVarInst* inst)

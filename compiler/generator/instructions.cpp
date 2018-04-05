@@ -26,6 +26,19 @@
 
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
+DeclareStructTypeInst* isStructType(const string& name)
+{
+    if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {
+        Typed* type = gGlobal->gVarTypeTable[name];
+        Typed::VarType ext_type = Typed::getTypeFromPtr(type->getType());
+        // If type is an external Structured type
+        if (gGlobal->gExternalStructTypes.find(ext_type) != gGlobal->gExternalStructTypes.end()) {
+            return gGlobal->gExternalStructTypes[ext_type];
+        }
+    }
+    return nullptr;
+}
+
 ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
 {
     if (type == Typed::kInt32) {

@@ -168,6 +168,7 @@ inline bool isIntOrPtrType(Typed::VarType type)
             || type == Typed::kVoid_ptr);
 }
 
+DeclareStructTypeInst* isStructType(const string& name);
 
 // =========
 // Visitors
@@ -2582,6 +2583,8 @@ private:
     ValueInst* fValue;
     
 };
+
+
 
 #endif
 
