@@ -137,8 +137,29 @@ macro (llvm_config)
 endmacro()
 
 ####################################
+# Manual LLVM scan
+macro (include_llvm)
+	set (INCLUDE_LLVM off)
+	if (LLVM_BACKEND)
+		string (FIND "${LLVM_BACKEND}" "STATIC"  POS)
+		if (${POS} GREATER -1 AND INCLUDE_STATIC)
+			set (INCLUDE_LLVM on)
+		endif()
+		string (FIND "${LLVM_BACKEND}" "DYNAMIC" POS)
+		if (${POS} GREATER -1 AND INCLUDE_DYNAMIC)
+			set (INCLUDE_LLVM on)
+		endif()
+		string (FIND "${LLVM_BACKEND}" "COMPILER"  POS)
+		if (${POS} GREATER -1)
+			set (INCLUDE_LLVM on)
+		endif()
+	endif()
+endmacro()
+
+####################################
 # LLVM
-if (LLVM_BACKEND )
+include_llvm()
+if (INCLUDE_LLVM )
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
