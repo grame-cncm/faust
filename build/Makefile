@@ -111,6 +111,7 @@ help:
 	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
 	@echo " 'verbose'    : turn the verbose makefile option ON."
 	@echo " 'silent'     : turn the verbose makefile option OFF."
+	@echo " 'jsscripts'  : to rebuild javascript resources (from architecture/httpdlib)."
 	@echo
 	@echo "Installation targets:"
 	@echo " 'install'    : install faust to the target directory (default to $(DESTDIR)$(PREFIX)),"
@@ -136,6 +137,9 @@ http: $(PROJ)
 
 httpdynamic: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
+
+jsscripts: 
+	make -C ../architecture/httpdlib/src/hexa
 
 
 #===============================================================
