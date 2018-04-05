@@ -38,6 +38,7 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 #include "Text.hh"
+#include "fir_to_fir.hh"
 
 #if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS
@@ -957,6 +958,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             Value* load_ptr;
             LoadInst* tmp_load = new LoadInst(variable);
+        
             if (isa<ArrayType>(tmp_load->getType())) {
                 Value* idx[2];
                 idx[0] = genInt64(fModule, 0);
@@ -1492,6 +1494,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void visitNameAddress(LoadVarInst* inst, NamedAddress* named_address)
         {
             Value* load_ptr = visitNameAddressAux(inst->fSize, named_address);
+            dumpLLVM(load_ptr);
             
             if (named_address->fAccess & Address::kStruct) {
                 // We want to see array like [256 x float] as a float*
@@ -1639,6 +1642,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Result is in fCurValue;
             inst->fValue->accept(this);
+            
+            
                 
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
@@ -1708,6 +1713,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(StoreVarInst* inst)
         {
+            
+            dump2FIR(inst);
+            
             NamedAddress* named_address = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed_address = dynamic_cast<IndexedAddress*>(inst->fAddress);
 
