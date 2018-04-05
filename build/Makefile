@@ -49,7 +49,7 @@ endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
-ifneq (,$(findstring Visual Studio,$(GENERATOR)))
+ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
 	JOBS = /maxcpucount:4
 endif
@@ -145,10 +145,10 @@ jsscripts:
 #===============================================================
 # building universal binaries on macos
 #===============================================================
-universal: 
+universal: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DUNIVERSAL=ON ..
 
-native: 
+native: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DUNIVERSAL=OFF ..
 
 
