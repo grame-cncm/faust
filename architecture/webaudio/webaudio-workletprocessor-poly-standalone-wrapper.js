@@ -709,13 +709,15 @@ mydspPolyProcessor.polyphony = 16;
 
 // Synchronously compile and instantiate the WASM modules
 try {
-    mydspPolyProcessor.wasm_mixer_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Mixer()));
-    mydspPolyProcessor.wasm_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codemydsp()));
-    // Possibly compile effect
-    if (typeof (getBase64Codeeffect) !== "undefined") {
-        mydspPolyProcessor.wasm_effect_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codeeffect()));
+    if (mydspPolyProcessor.wasm_mixer_module == undefined) {
+        mydspPolyProcessor.wasm_mixer_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Mixer()));
+        mydspPolyProcessor.wasm_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codemydsp()));
+        // Possibly compile effect
+        if (typeof (getBase64Codeeffect) !== "undefined") {
+            mydspPolyProcessor.wasm_effect_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codeeffect()));
+        }
+        registerProcessor('mydspPoly', mydspPolyProcessor);
     }
-    registerProcessor('mydspPoly', mydspPolyProcessor);
 } catch (e) {
     console.log(e); console.log("Faust mydspPoly cannot be loaded or compiled");
 }

@@ -425,8 +425,10 @@ mydspProcessor.importObject = {
 
 // Synchronously compile and instantiate the WASM module
 try {
-    mydspProcessor.wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
-    registerProcessor('mydsp', mydspProcessor);
+    if (mydspProcessor.wasm_module == undefined) {
+        mydspProcessor.wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
+        registerProcessor('mydsp', mydspProcessor);
+    }
 } catch (e) {
     console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
 }
