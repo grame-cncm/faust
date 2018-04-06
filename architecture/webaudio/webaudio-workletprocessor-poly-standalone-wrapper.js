@@ -225,8 +225,70 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.ptr_size = 4;
         this.sample_size = 4;
         
-        this.factory = mydspPolyProcessor.mydsp_instance.exports;
-        this.HEAP = mydspPolyProcessor.memory.buffer;
+        this.memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
+
+        // Create Mixer
+        this.mixObject = { imports: { print: arg => console.log(arg) } }
+        this.mixObject["memory"] = { "memory": this.memory };
+
+        this.importObject = {
+            env: {
+                memoryBase: 0,
+                tableBase: 0,
+                    
+                // Integer version
+                _abs: Math.abs,
+                
+                // Float version
+                _acosf: Math.acos,
+                _asinf: Math.asin,
+                _atanf: Math.atan,
+                _atan2f: Math.atan2,
+                _ceilf: Math.ceil,
+                _cosf: Math.cos,
+                _expf: Math.exp,
+                _floorf: Math.floor,
+                _fmodf: function(x, y) { return x % y; },
+                _logf: Math.log,
+                _log10f: Math.log10,
+                _max_f: Math.max,
+                _min_f: Math.min,
+                _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
+                _powf: Math.pow,
+                _roundf: Math.fround,
+                _sinf: Math.sin,
+                _sqrtf: Math.sqrt,
+                _tanf: Math.tan,
+                   
+                // Double version
+                _acos: Math.acos,
+                _asin: Math.asin,
+                _atan: Math.atan,
+                _atan2: Math.atan2,
+                _ceil: Math.ceil,
+                _cos: Math.cos,
+                _exp: Math.exp,
+                _floor: Math.floor,
+                _fmod: function(x, y) { return x % y; },
+                _log: Math.log,
+                _log10: Math.log10,
+                _max_: Math.max,
+                _min_: Math.min,
+                _remainder:function(x, y) { return x - Math.round(x/y) * y; },
+                _pow: Math.pow,
+                _round: Math.fround,
+                _sin: Math.sin,
+                _sqrt: Math.sqrt,
+                _tan: Math.tan,
+                
+                memory: this.memory,
+                
+                table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
+            }
+        }
+
+        this.factory = new WebAssembly.Instance(mydspPolyProcessor.wasm_module, this.importObject).exports;
+        this.HEAP = this.memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
@@ -259,10 +321,10 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.dsp_start = this.audio_heap_mixing + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
         
         // wasm mixer
-        this.mixer = mydspPolyProcessor.mixer_instance.exports;
+        this.mixer = new WebAssembly.Instance(mydspPolyProcessor.wasm_mixer_module, this.mixObject).exports;
         
         // wasm effect
-        this.effect = (mydspPolyProcessor.effect_instance) ? mydspPolyProcessor.effect_instance.exports : null;
+        this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
         
         console.log(this.mixer);
         console.log(this.factory);
@@ -645,78 +707,13 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
 mydspPolyProcessor.buffer_size = 128;
 mydspPolyProcessor.polyphony = 16;
 
-mydspPolyProcessor.memory = mydspPolyProcessor.createMemory(mydspPolyProcessor.buffer_size, mydspPolyProcessor.polyphony);
-
-// Create Mixer
-mydspPolyProcessor.mixObject = { imports: { print: arg => console.log(arg) } }
-mydspPolyProcessor.mixObject["memory"] = { "memory": mydspPolyProcessor.memory };
-
-mydspPolyProcessor.importObject = {
-    env: {
-        memoryBase: 0,
-        tableBase: 0,
-            
-        // Integer version
-        _abs: Math.abs,
-        
-        // Float version
-        _acosf: Math.acos,
-        _asinf: Math.asin,
-        _atanf: Math.atan,
-        _atan2f: Math.atan2,
-        _ceilf: Math.ceil,
-        _cosf: Math.cos,
-        _expf: Math.exp,
-        _floorf: Math.floor,
-        _fmodf: function(x, y) { return x % y; },
-        _logf: Math.log,
-        _log10f: Math.log10,
-        _max_f: Math.max,
-        _min_f: Math.min,
-        _remainderf: function(x, y) { return x - Math.round(x/y) * y; },
-        _powf: Math.pow,
-        _roundf: Math.fround,
-        _sinf: Math.sin,
-        _sqrtf: Math.sqrt,
-        _tanf: Math.tan,
-           
-        // Double version
-        _acos: Math.acos,
-        _asin: Math.asin,
-        _atan: Math.atan,
-        _atan2: Math.atan2,
-        _ceil: Math.ceil,
-        _cos: Math.cos,
-        _exp: Math.exp,
-        _floor: Math.floor,
-        _fmod: function(x, y) { return x % y; },
-        _log: Math.log,
-        _log10: Math.log10,
-        _max_: Math.max,
-        _min_: Math.min,
-        _remainder:function(x, y) { return x - Math.round(x/y) * y; },
-        _pow: Math.pow,
-        _round: Math.fround,
-        _sin: Math.sin,
-        _sqrt: Math.sqrt,
-        _tan: Math.tan,
-        
-        memory: mydspPolyProcessor.memory,
-        
-        table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-    }
-};
-
 // Synchronously compile and instantiate the WASM modules
 try {
-    let wasm_mixer_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Mixer()));
-    mydspPolyProcessor.mixer_instance = new WebAssembly.Instance(wasm_mixer_module, mydspPolyProcessor.mixObject);
-    let wasm_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codemydsp()));
-    mydspPolyProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydspPolyProcessor.importObject);
+    mydspPolyProcessor.wasm_mixer_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Mixer()));
+    mydspPolyProcessor.wasm_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codemydsp()));
     // Possibly compile effect
     if (typeof (getBase64Codeeffect) !== "undefined") {
-        let wasm_effect_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codeeffect()));
-        mydspPolyProcessor.effect_instance = new WebAssembly.Instance(wasm_effect_module, mydspPolyProcessor.importObject);
+        mydspPolyProcessor.wasm_effect_module = new WebAssembly.Module(mydspPolyProcessor.atob(getBase64Codeeffect()));
     }
     registerProcessor('mydspPoly', mydspPolyProcessor);
 } catch (e) {
