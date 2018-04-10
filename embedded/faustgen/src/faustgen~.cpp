@@ -587,7 +587,7 @@ default_sourcecode:
 }
 
 // Called when saving the Max patcher
-// This function saves the necessary data inside the json file (Faust sourcecode)
+// This function saves the necessary data inside the JSON file (Faust sourcecode)
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
     post("Saving object version, sourcecode and bitcode...");

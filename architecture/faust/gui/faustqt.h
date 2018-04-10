@@ -204,47 +204,47 @@ public:
         
 		// Shadowing...
         
-		// Knob shadow...
-		if (knobBorderWidth > 0) {
-			QLinearGradient inShadow(xcenter - side / 4, ycenter - side / 4,
+        // Knob shadow...
+        if (knobBorderWidth > 0) {
+            QLinearGradient inShadow(xcenter - side / 4, ycenter - side / 4,
                                      xcenter + side / 4, ycenter + side / 4);
-			inShadow.setColorAt(0.0, borderColor.light());
-			inShadow.setColorAt(1.0, borderColor.dark());
-			p->setPen(QPen(QBrush(inShadow), knobBorderWidth * 7 / 8));
-			p->drawEllipse(xcenter - side / 2 + indent,
+            inShadow.setColorAt(0.0, borderColor.light());
+            inShadow.setColorAt(1.0, borderColor.dark());
+            p->setPen(QPen(QBrush(inShadow), knobBorderWidth * 7 / 8));
+            p->drawEllipse(xcenter - side / 2 + indent,
                            ycenter - side / 2 + indent,
                            side - 2 * indent, side - 2 * indent);
-		}
-        
-		// Scale shadow...
-		QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
+        }
+
+        // Scale shadow...
+        QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
                                   xcenter + side / 3, ycenter + side / 3);
-		outShadow.setColorAt(0.0, background.dark().dark());
-		outShadow.setColorAt(1.0, background.light().light());
-		p->setPen(QPen(QBrush(outShadow), scaleShadowWidth));
-		p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
+        outShadow.setColorAt(0.0, background.dark().dark());
+        outShadow.setColorAt(1.0, background.light().light());
+        p->setPen(QPen(QBrush(outShadow), scaleShadowWidth));
+        p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
                    ycenter - side / 2 + scaleShadowWidth / 2,
                    side - scaleShadowWidth, side - scaleShadowWidth, -45 * 16, 270 * 16);
-        
-		// Pointer notch...
-   	double hyp = double(side) / 2.0;
-		double len = hyp - indent - 1;
-        
-		double x = xcenter - len * sin(angle);
-		double y = ycenter + len * cos(angle);
-        
-		QColor pointerColor = pal.dark().color();
-		pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
-		pen.setWidth(pointerWidth + 2);
-		p->setPen(pen);
-		p->drawLine(QLineF(xcenter, ycenter, x, y));
-		pen.setColor((dial->state & State_Enabled) ? pointerColor.light() : pointerColor.light(140));
-		pen.setWidth(pointerWidth);
-		p->setPen(pen);
-		p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
-        
-		// done
-		p->restore();
+
+        // Pointer notch...
+        double hyp = double(side) / 2.0;
+        double len = hyp - indent - 1;
+
+        double x = xcenter - len * sin(angle);
+        double y = ycenter + len * cos(angle);
+
+        QColor pointerColor = pal.dark().color();
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
+        pen.setWidth(pointerWidth + 2);
+        p->setPen(pen);
+        p->drawLine(QLineF(xcenter, ycenter, x, y));
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.light() : pointerColor.light(140));
+        pen.setWidth(pointerWidth);
+        p->setPen(pen);
+        p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
+
+        // done
+        p->restore();
 	}
     
 };
@@ -325,10 +325,10 @@ protected:
             QColor c(40, 160, 40, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-10);
             fBrush.push_back(QBrush(g));
@@ -338,10 +338,10 @@ protected:
             QColor c(160, 220, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-6);
             fBrush.push_back(QBrush(g));
@@ -351,10 +351,10 @@ protected:
             QColor c(220, 220, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-3);
             fBrush.push_back(QBrush(g));
@@ -364,10 +364,10 @@ protected:
             QColor c(240, 160, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(0);
             fBrush.push_back(QBrush(g));
@@ -377,10 +377,10 @@ protected:
             QColor c(240,  0, 20, alpha);   // ColorOver
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(+10);
             fBrush.push_back(QBrush(g));
@@ -457,7 +457,7 @@ class LED : public AbstractDisplay
     
 protected:
     
-     QColor  fColor;
+     QColor fColor;
     
     /**
      * Draw the LED using a transparency depending of its value
@@ -494,7 +494,7 @@ class linBargraph : public AbstractDisplay
     
 protected:
     
-    QBrush  fBrush;
+    QBrush fBrush;
     
     /**
      * No scale implemented yet
@@ -539,10 +539,10 @@ public:
         int x = int(height() < width());    // gradient direction
         QLinearGradient g(0,0,x,1-x);
         g.setCoordinateMode(QGradient::ObjectBoundingMode);
-        g.setColorAt(0.0,   c.lighter());
-        g.setColorAt(0.2,   c);
-        g.setColorAt(0.8,   c);
-        g.setColorAt(0.9,   c.darker(120));
+        g.setColorAt(0.0, c.lighter());
+        g.setColorAt(0.2, c);
+        g.setColorAt(0.8, c);
+        g.setColorAt(0.9, c.darker(120));
         fBrush = QBrush(g);
     }
 };
@@ -667,7 +667,7 @@ protected:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
-        int    h = height();
+        int h = height();
         return h - h*(s0-sx)/(s0-s1);
     }
     
