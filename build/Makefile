@@ -49,7 +49,7 @@ endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
-ifneq (,$(findstring Visual Studio,$(GENERATOR)))
+ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
 	JOBS = /maxcpucount:4
 endif
@@ -60,7 +60,7 @@ endif
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
-clean: $(PROJ)
+clean: $(FAUSTDIR)
 	cmake --build $(FAUSTDIR) --target clean
 
 #===============================================================
@@ -111,6 +111,7 @@ help:
 	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
 	@echo " 'verbose'    : turn the verbose makefile option ON."
 	@echo " 'silent'     : turn the verbose makefile option OFF."
+	@echo " 'jsscripts'  : to rebuild javascript resources (from architecture/httpdlib)."
 	@echo
 	@echo "Installation targets:"
 	@echo " 'install'    : install faust to the target directory (default to $(DESTDIR)$(PREFIX)),"
@@ -137,14 +138,17 @@ http: $(PROJ)
 httpdynamic: $(PROJ)
 	cmake --build $(FAUSTDIR) --target httpdynamic $(BUILDOPT) -- $(JOBS)
 
+jsscripts: 
+	make -C ../architecture/httpdlib/src/hexa
+
 
 #===============================================================
 # building universal binaries on macos
 #===============================================================
-universal: 
+universal: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DUNIVERSAL=ON ..
 
-native: 
+native: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DUNIVERSAL=OFF ..
 
 
@@ -179,7 +183,7 @@ $(FAUSTDIR):
 $(IOSDIR): 
 	mkdir $(IOSDIR)
 
-$(PROJ): $(FAUSTDIR) backends/$(BACKENDS)
+$(PROJ): 
 	$(MAKE) cmake
 
 verbose: $(FAUSTDIR)
@@ -193,15 +197,15 @@ cmake: $(FAUSTDIR)
 	@echo BACKENDS=$(BACKENDS) > $(BCACHE)
 
 configstatic: STATIC ?= on
-configstatic: $(PROJ)
+configstatic: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) ..
 
 configdynamic: DYNAMIC ?= on
-configdynamic: $(PROJ)
+configdynamic: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=$(DYNAMIC) ..
 
 confighttp: HTTP ?= on
-confighttp: $(PROJ)
+confighttp: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=$(HTTP) ..
 
 configoscdynamic: OSCDYN ?= on
@@ -212,15 +216,11 @@ confighttpdynamic: HTTPDYN ?= on
 confighttpdynamic:
 	cd $(FAUSTDIR) && cmake -DHTTPDYNAMIC=$(HTTPDYN) ..
 
-configall: $(PROJ)
+configall: $(FAUSTDIR)
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
-reset: $(PROJ)
-	STATIC ?= off
-	DYNAMIC ?= off
-	HTTP ?= on
-	BACKENDS ?= backends.cmake
-	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=$(STATIC) -DINCLUDE_DYNAMIC=$(DYNAMIC) -DINCLUDE_HTTP=$(HTTP) ..
+reset: $(FAUSTDIR)
+	cd $(FAUSTDIR) && cmake -C ../backends/$(BACKENDS) $(CMAKEOPT) -DINCLUDE_STATIC=off -DINCLUDE_DYNAMIC=off -DINCLUDE_HTTP=on ..
 
 
 #===============================================================

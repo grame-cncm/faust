@@ -461,6 +461,12 @@ void declareMetadata(Tree key, Tree value)
     }
 }
 
+// Definition related metadata
+void declareDefinitionMetadata(Tree id, Tree key, Tree value)
+{
+    // not implemented yet
+}
+
 void declareDoc(Tree t)
 {
 	gGlobal->gDocVector.push_back(t);

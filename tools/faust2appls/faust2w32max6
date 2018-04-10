@@ -9,10 +9,23 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS+=" -fbracket-depth=512"
+
+POLY=""
+NOPATCH="0"
+NVOICES=-1
+EFFECT=""
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
+
 #------------------------------------------------------------------------------
 # 1/ MAX/MSP SDK Should be installed somewhere
 MAXSDK=/usr/local/include/c74support
-. faustpath
 EXT="~.mxe"
 
 if [ ! -d "${MAXSDK}" ]; then
@@ -122,6 +135,27 @@ for p in $FILES; do
 
     # collect binary file name for FaustWorks
     BINARIES="$BINARIES$SRCDIR/${f%.dsp}$EXT;"
+        
+    # create Max patch
+    if [ "$NOPATCH" = "0" ]; then
+        if [ "$POLY" = "POLY1" ]; then
+            cat $FAUSTLIB/max-msp/wrapper-poly.maxpat > ${f%.dsp}-temp1.maxpat
+        else
+            cat $FAUSTLIB/max-msp/wrapper.maxpat > ${f%.dsp}-temp1.maxpat
+        fi
+        sed -e "s/DSP_NAME/"${f%.dsp}"~/g" ${f%.dsp}-temp1.maxpat >> ${f%.dsp}-temp2.maxpat
+        sed -e "s/UI_FILE/"$JSFILE_PATH"/g" ${f%.dsp}-temp2.maxpat > ${f%.dsp}.maxpat
+
+        # copy JavaScript UI file
+        cp $FAUSTLIB/max-msp/ui.js .
+        rm ${f%.dsp}-temp1.maxpat
+        rm ${f%.dsp}-temp2.maxpat
+
+        BINARIES="$BINARIES ${f%.dsp}.maxpat ui.js"
+    fi
+
 done
+
+
 
 echo "$BINARIES"

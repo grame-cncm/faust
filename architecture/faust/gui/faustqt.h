@@ -1376,9 +1376,9 @@ public:
         fTimer = NULL;
 
         fMainWindow = new QMainWindow;
-        QScrollArea *sa = new QScrollArea( fMainWindow );
+        QScrollArea *sa = new QScrollArea(fMainWindow);
         
-        sa->setWidgetResizable( true );
+        sa->setWidgetResizable(true);
         sa->setWidget(this);
         
         fMainWindow->setCentralWidget(sa);

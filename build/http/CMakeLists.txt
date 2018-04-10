@@ -63,13 +63,9 @@ set( INCLUDE
 
 #######################################
 # libmicrohttpd settings
-if (WIN32)
-	if (MSVC)
-		if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
-			set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
-		else()
-			set (LMHDIR ${ROOT}/windows/libmicrohttpd)
-		endif()
+if (WIN32 AND MSVC)
+	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
+		set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
 		set (LMHLIB ${LMHDIR}/libmicrohttpd.lib)
 	else ()  # assume we're using MSYS or MINGW and the arch is 64bits
 		set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
@@ -79,7 +75,7 @@ if (WIN32)
 else ()
 	include (FindPkgConfig)
 	if (${PKG_CONFIG_FOUND}) 
-		pkg_check_modules(LMHD libmicrohttpd)
+		pkg_search_module(LMHD libmicrohttpd)
 		if (${LMHD_FOUND})
 		else ()
 			message (WARNING "Cannot locate libmicrohttpd: skip ${TARGET} generation")

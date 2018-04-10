@@ -32,6 +32,7 @@ using namespace std;
 Tree formatDefinitions(Tree rldef);
 Tree checkRulelist (Tree lrules);
 void declareMetadata(Tree key, Tree value);
+void declareDefinitionMetadata(Tree id, Tree key, Tree value);
 void declareDoc(Tree t);
 
 class SourceReader 

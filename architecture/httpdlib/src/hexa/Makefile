@@ -8,14 +8,14 @@ SVG  := $(HTML)/js/svg
 
 sources = $(wildcard $(SVG)/*.js)
 
-.INTERMEDIATE: jsscripts stylesheet
+#.INTERMEDIATE: jsscripts stylesheet
 
 
 all: stylesheet.cpp jsscripts.cpp
 	
 clean :
-	rm -f jsscripts.js jsscripts.cpp
-	rm -f stylesheet.cpp	
+	rm -f jsscripts jsscripts.js jsscripts.cpp
+	rm -f stylesheet stylesheet.cpp	
 
 # rules to generate the cpp files 
 jsscripts.cpp : jsscripts

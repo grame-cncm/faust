@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.5.31)
+set (VERSION 2.5.32)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -137,8 +137,29 @@ macro (llvm_config)
 endmacro()
 
 ####################################
+# Manual LLVM scan
+macro (include_llvm)
+	set (INCLUDE_LLVM off)
+	if (LLVM_BACKEND)
+		string (FIND "${LLVM_BACKEND}" "STATIC"  POS)
+		if (${POS} GREATER -1 AND INCLUDE_STATIC)
+			set (INCLUDE_LLVM on)
+		endif()
+		string (FIND "${LLVM_BACKEND}" "DYNAMIC" POS)
+		if (${POS} GREATER -1 AND INCLUDE_DYNAMIC)
+			set (INCLUDE_LLVM on)
+		endif()
+		string (FIND "${LLVM_BACKEND}" "COMPILER"  POS)
+		if (${POS} GREATER -1)
+			set (INCLUDE_LLVM on)
+		endif()
+	endif()
+endmacro()
+
+####################################
 # LLVM
-if (LLVM_BACKEND )
+include_llvm()
+if (INCLUDE_LLVM )
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
@@ -377,6 +398,18 @@ install (
 # install shared resources
 install (
     FILES     ${ROOT}/faust.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+install (
+    FILES  ${ARCHDIR}/httpdlib/src/hexa/jsscripts DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/js
+    RENAME jsscripts.js
+    PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
+)
+
+install (
+    FILES  ${ARCHDIR}/httpdlib/src/hexa/stylesheet DESTINATION ${CMAKE_INSTALL_PREFIX}/share/faust/js
+    RENAME stylesheet.js
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
