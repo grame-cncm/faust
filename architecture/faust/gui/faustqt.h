@@ -1677,40 +1677,44 @@ public:
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-	virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		openVerticalBox(label);
-		QAbstractSlider* 	w = new QDial(); //qsynthKnob();
-        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		w->setStyle(new qsynthDialVokiStyle());
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-        
+    virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        openVerticalBox(label);
+        QDial* w = new QDial(); //qsynthKnob();
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        w->setStyle(new qsynthDialVokiStyle());
+        w->setFocusPolicy(Qt::StrongFocus);
+        w->setWrapping(true);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+
         // compute the size of the knob+display
-        int width  = int(64*pow(2,fGuiSize[zone]));
+        int width = int(64*pow(2,fGuiSize[zone]));
         int height = int(100*pow(2,fGuiSize[zone]));
         fGroupStack.top()->setMinimumSize(width,height);
         fGroupStack.top()->setMaximumSize(width,height);
-        
-		closeBox();
+
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
-    
-	virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		openHorizontalBox(label);
-		QAbstractSlider* 	w = new QDial(); //new qsynthKnob();
-        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		w->setStyle(new qsynthDialVokiStyle());
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-		closeBox();
+    }
+
+    virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        openHorizontalBox(label);
+        QDial* w = new QDial(); //new qsynthKnob();
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        w->setStyle(new qsynthDialVokiStyle());
+        w->setFocusPolicy(Qt::StrongFocus);
+        w->setWrapping(true);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

@@ -30,7 +30,6 @@ MSPINC=$SDK/msp-includes
 
 JSFILE_PATH="ui.js"
 
-
 createInfoPList() {
 	(
     echo '<?xml version="1.0" encoding="UTF-8"?>'
