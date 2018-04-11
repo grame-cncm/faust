@@ -85,9 +85,11 @@
 //   improved for Qt4 by David Garcia Garzon.
 //
 
-#define DIAL_MIN      (0.25 * M_PI)
-#define DIAL_MAX      (1.75 * M_PI)
-#define DIAL_RANGE    (DIAL_MAX - DIAL_MIN)
+#define DIAL_MIN       (0.25 * M_PI)
+#define DIAL_MAX       (1.75 * M_PI)
+#define DIAL_RANGE     (DIAL_MAX - DIAL_MIN)
+#define DIAL_WRAPPING  false
+
 
 class qsynthDialVokiStyle : public QCommonStyle
 {
@@ -909,7 +911,7 @@ public:
     void set(bool)
     {
         *fZone = fValue;
-        //        qDebug() << "setting " << fValue << " --> " << fZone;
+        // qDebug() << "setting " << fValue << " --> " << fZone;
     }
 };
 
@@ -941,7 +943,7 @@ public:
         
         if (parseMenuList(mdescr, names, values)) {
             
-            QBoxLayout*    l;
+            QBoxLayout* l;
             if (vertical) {
                 l = new QVBoxLayout(this);
             } else {
@@ -1056,8 +1058,8 @@ public:
         fCache = v;
         
         // search closest value
-        int             defaultitem = -1;
-        double          mindelta = FLT_MAX;
+        int defaultitem = -1;
+        double mindelta = FLT_MAX;
         
         for (unsigned int i=0; i<fValues.size(); i++) {
             double delta = fabs(fValues[i]-v);
@@ -1685,7 +1687,7 @@ public:
         insert(label, w);
         w->setStyle(new qsynthDialVokiStyle());
         w->setFocusPolicy(Qt::StrongFocus);
-        w->setWrapping(true);
+        w->setWrapping(DIAL_WRAPPING);
         QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
         addNumDisplay(0, zone, init, min, max, step);
 
@@ -1708,7 +1710,7 @@ public:
         insert(label, w);
         w->setStyle(new qsynthDialVokiStyle());
         w->setFocusPolicy(Qt::StrongFocus);
-        w->setWrapping(true);
+        w->setWrapping(DIAL_WRAPPING);
         QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
         addNumDisplay(0, zone, init, min, max, step);
         closeBox();
