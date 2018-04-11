@@ -28,6 +28,9 @@ SDK=/usr/local/include/c74support/
 MAXINC=$SDK/max-includes
 MSPINC=$SDK/msp-includes
 
+JSFILE_PATH="ui.js"
+
+
 createInfoPList() {
 	(
     echo '<?xml version="1.0" encoding="UTF-8"?>'
@@ -61,23 +64,6 @@ createInfoPList() {
     ) > "$2"
 }
 
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-    FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/local/share/faust
-    JSFILE_PATH="ui.js"
-elif [ -f /usr/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/share/faust
-    JSFILE_PATH="ui.js"
-else
-    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
