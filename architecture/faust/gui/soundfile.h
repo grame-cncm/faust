@@ -68,7 +68,7 @@ struct Soundfile {
             }
             return path_name_str;
         } else {
-            std::cerr << "ERROR : '" << path_name_str << "' not found" << std::endl;
+            std::cerr << "ERROR : cannot open '" << path_name_str << "' (" << sf_strerror(nullptr) << ")" << std::endl;
             return "";
         }
     }
