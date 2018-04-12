@@ -62,6 +62,30 @@ set( INCLUDE
 	)
 
 #######################################
+# manual libmicrohttpd settings
+macro (libmicrohttpd_config)
+	set (PP $ENV{PKG_CONFIG_PATH})
+	set (SEP "")
+	foreach(A ${PP})
+		message(STATUS "libmicrohttpd_config A ${A}")
+#		string (REPLACE "C:\\msys[^\\]*" "/c/" A1 ${A} )
+		string (REPLACE "\\" "/" A2 ${A} )
+		list (APPEND LPP ${A2})
+	endforeach()
+	message(STATUS "libmicrohttpd_config LPP ${LPP}")
+	find_program (PKG pkg-config)
+	if (${PKG} STREQUAL PKG-NOTFOUND)
+		message (FATAL_ERROR "Cannot find pkg-config")
+	endif()
+	set (ENV{PKG_CONFIG_PATH} /mingw64/lib/pkgconfig )
+	message(STATUS "PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH}")
+	execute_process (COMMAND ${PKG} --cflags libmicrohttpd OUTPUT_VARIABLE LMHD_CFLAGS)
+#	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
+#	message(STATUS "Found libmicrohttpd ${LMHD_CFLAGS}")
+
+endmacro()
+
+#######################################
 # libmicrohttpd settings
 if (WIN32 AND MSVC)
 	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
@@ -73,7 +97,12 @@ if (WIN32 AND MSVC)
 	endif()
 	set (INCLUDE ${INCLUDE} ${LMHDIR})
 else ()
-	include (FindPkgConfig)
+	if ( DEFINED PKG_PATH )
+		message(STATUS "Set PKG_CONFIG_PATH to ${PKG_PATH}")
+		set (ENV{PKG_CONFIG_PATH} ${PKG_PATH} )
+	endif()
+
+	find_package(PkgConfig REQUIRED)
 	if (${PKG_CONFIG_FOUND}) 
 		pkg_search_module(LMHD libmicrohttpd)
 		if (${LMHD_FOUND})
@@ -121,7 +150,7 @@ if (HTTPDYNAMIC)
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} httpdynamic)
-	if (WIN32) 
+	if (WIN32 AND MSVC) 
 		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
 		set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
