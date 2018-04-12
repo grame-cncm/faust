@@ -1,5 +1,8 @@
 #!/bin/bash
 
+. faustpath
+. faustoptflags
+
 #-------------------------------------------------------------------
 # Wrapping resources
 HTML_FOOTER=""
@@ -12,22 +15,6 @@ SVG=""
 EMCC="false"
 POLY="false"
 EXPORT="false"
-
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-    FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/local/share/faust/
-elif [ -f /usr/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/share/faust/
-else
-    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

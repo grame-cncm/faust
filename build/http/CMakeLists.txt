@@ -62,6 +62,18 @@ set( INCLUDE
 	)
 
 #######################################
+# manual libmicrohttpd settings
+macro (set_pkg_config_path)
+	set (PP $ENV{PKG_CONFIG_PATH})
+	foreach(A ${PP})
+		string (REPLACE "\\" "/" A1 ${A} )
+		string (REGEX REPLACE "C:/msys[^/]*" "" A2 ${A1} )
+		set (LP "${LP}:${A2}")
+	endforeach()
+	set (ENV{PKG_CONFIG_PATH} ${LP} )
+endmacro()
+
+#######################################
 # libmicrohttpd settings
 if (WIN32 AND MSVC)
 	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
@@ -73,10 +85,22 @@ if (WIN32 AND MSVC)
 	endif()
 	set (INCLUDE ${INCLUDE} ${LMHDIR})
 else ()
-	include (FindPkgConfig)
+
+	find_package(PkgConfig REQUIRED)
 	if (${PKG_CONFIG_FOUND}) 
+		if ( WIN32 )
+			set_pkg_config_path ()
+			message(STATUS "Using MSYS PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH}")
+		endif()
 		pkg_search_module(LMHD libmicrohttpd)
 		if (${LMHD_FOUND})
+			foreach (A ${LMHD_CFLAGS})
+				set(LIBMICROHTTPD__CFLAGS "${LIBMICROHTTPD__CFLAGS} ${A}")
+			endforeach()
+			foreach (A ${LMHD_LDFLAGS})
+				set(LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ${A}")
+			endforeach()
+			message (STATUS "Found libmicrohttpd ${LMHD_VERSION}")
 		else ()
 			message (WARNING "Cannot locate libmicrohttpd: skip ${TARGET} generation")
 			return ()
@@ -92,7 +116,7 @@ endif()
 add_library( httpstatic STATIC  ${SRC})
 target_include_directories (httpstatic PRIVATE ${INCLUDE} )
 set (TARGETS httpstatic)
-if (WIN32) 
+if (WIN32 AND MSVC) 
 	target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
 	if (MSVC)
 		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
@@ -103,8 +127,8 @@ if (WIN32)
 else()
 	set_target_properties (httpstatic PROPERTIES 
 		OUTPUT_NAME ${TARGET}
-		COMPILE_FLAGS  "${LMHD_CFLAGS}"
-		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
+		COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
+		LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 endif()
 
 if (HTTPDYNAMIC)
@@ -114,15 +138,15 @@ if (HTTPDYNAMIC)
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} httpdynamic)
-	if (WIN32) 
+	if (WIN32 AND MSVC) 
 		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
 		set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
 	else()
 		set_target_properties(httpdynamic PROPERTIES 
 			OUTPUT_NAME ${TARGET}
-			COMPILE_FLAGS  "${LMHD_CFLAGS}"
-			LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
+			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
+			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 	endif()
 
 endif()

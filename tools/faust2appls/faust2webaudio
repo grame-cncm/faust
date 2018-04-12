@@ -1,20 +1,7 @@
 #!/bin/bash
 
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-  	FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-  	FAUSTLIB=/usr/local/share/faust/
-elif [ -f /usr/share/faust/music.lib ]
-then
-  	FAUSTLIB=/usr/share/faust/
-else
-  	error "$0: Cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
+. faustpath
+. faustoptflags
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
