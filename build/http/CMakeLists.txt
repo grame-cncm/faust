@@ -77,6 +77,13 @@ else ()
 	if (${PKG_CONFIG_FOUND}) 
 		pkg_search_module(LMHD libmicrohttpd)
 		if (${LMHD_FOUND})
+			foreach (A ${LMHD_CFLAGS})
+				set(LIBMICROHTTPD__CFLAGS "${LIBMICROHTTPD__CFLAGS} ${A}")
+			endforeach()
+			foreach (A ${LMHD_LDFLAGS})
+				set(LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ${A}")
+			endforeach()
+			message (STATUS "Found libmicrohttpd ${LMHD_VERSION}")
 		else ()
 			message (WARNING "Cannot locate libmicrohttpd: skip ${TARGET} generation")
 			return ()
@@ -103,8 +110,8 @@ if (WIN32)
 else()
 	set_target_properties (httpstatic PROPERTIES 
 		OUTPUT_NAME ${TARGET}
-		COMPILE_FLAGS  "${LMHD_CFLAGS}"
-		LINK_FLAGS     "-L${LMHD_LIBRARY_DIRS} -l${LMHD_LIBRARIES}")
+		COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
+		LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 endif()
 
 if (HTTPDYNAMIC)
