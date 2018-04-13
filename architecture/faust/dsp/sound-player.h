@@ -100,7 +100,7 @@ class sound_base_player : public dsp {
             ui_interface->openVerticalBox("Transport");
             ui_interface->addCheckButton("Play", &fPlayButton);
             ui_interface->addCheckButton("Loop", &fLoopButton);
-            ui_interface->addHorizontalSlider("Position", &fFramesSlider, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
+            ui_interface->addHorizontalSlider("Position in frames", &fFramesSlider, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
             ui_interface->closeBox();
         }
         
@@ -269,15 +269,15 @@ class sound_dtd_player : public sound_base_player {
                 FAUSTFLOAT buffer[count * fInfo.channels];
                 ringbuffer_read(fBuffer, (char*)buffer, convertFromFrames(count));
                 
-                // Deinterleave and write to ouput
+                // Deinterleave and write to output
                 for (int chan = 0; chan < fInfo.channels; chan++) {
                     for (int frame = 0; frame < count; frame++) {
-                        outputs[chan][frame] = buffer[frame * fInfo.channels + chan];
+                        outputs[chan][dst + frame] = buffer[frame * fInfo.channels + chan];
                     }
                 }
                 
             } else {
-                std::cerr << "ERROR in playSlice : missing " <<  (count - read_space_frames) << " frames\n";
+                std::cerr << "ERROR in playSlice : missing " << (count - read_space_frames) << " frames\n";
             }
         }
     
@@ -337,7 +337,8 @@ class sound_dtd_player : public sound_base_player {
 
 /**
     PositionManager as a GUI : changing the slider position of a sound_base_player
-    (sound_memory_player or sound_dtd_player) will be reflected i the internal buffer
+    (sound_memory_player or sound_dtd_player) will be reflected in the internal buffer
+    using the GUI::updateAllGuis mecanism.
  */
 
 class PositionManager : public GUI {
@@ -369,13 +370,23 @@ class PositionManager : public GUI {
 
 /*
  
- PositionManager* dtd = new PositionManager();
+ // A unique manager is usually needed
+ PositionManager* manager = new PositionManager();
  
+ // Create memory or DirectToDisk sound players
  dsp* player1 = new sound_dtd_player("toto.wav");
- dtd->addDSP(player1);
+ dsp* player2 = new sound_memory_player("titi.flac");
  
- dsp* player2 = new sound_memory_player("titi.falc");
- dtd->addDSP(player2);
+ // Add sound_plays to the manager, so that position changes are reflected in the internal buffer
+ manager->addDSP(player1);
+ manager->addDSP(player2);
+ 
+ // When player1 and player2 are no needed anymore, before deleting them:
+ manager->removeDSP(player1);
+ manager->removeDSP(player2);
+ 
+ // When the application quits...
+ delete manager;
  
 */
 
