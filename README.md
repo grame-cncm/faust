@@ -93,6 +93,15 @@ To use an additional tool, for example faust2pdf:
 
 The `/examples` folder contains dozen of example Faust codes organized by categories. There are many options to use them.
 
+### Faust Editor
+
+The [Faust Editor](http://faust.grame.fr/editor-page/) can be used to edit, compile and run Faust code from any recent Web Browser with WebAssembly support.
+
+### Faust Online Compiler
+
+The [Faust Online Compiler](http://faust.grame.fr/onlinecompiler/) allows to write and compile Faust codes for a wide range of targets and platforms. Unlike, the Faust playground presented above, it doesn't permit to run a Faust program in a web browser.
+
+
 ### FaustPlayground
 
 [FaustPlayground](http://faust.grame.fr/faustplayground/) is an online tool to compile and use Faust code directly in a web browser. To use a Faust example from the `/examples` folder, just drag-and-drop it in the work space and it should work right away!
@@ -100,10 +109,6 @@ The `/examples` folder contains dozen of example Faust codes organized by catego
 ### FaustLive
 
 [FaustLive](https://sourceforge.net/p/faudiostream/faustlive/ci/master/tree/) is a program that was designed to facilitate the prototyping of Faust codes. It embeds the LLVM on-the-fly compiler of Faust2 allowing you to very rapidly compile Faust codes on your computer. Binaries and installation packages of FaustLive are available for [Linux, Windows and OSX](https://sourceforge.net/projects/faudiostream/files/).
-
-### Faust Online Compiler
-
-The [Faust Online Compiler](http://faust.grame.fr/onlinecompiler/) allows to write and compile Faust codes for a wide range of targets and platforms. Unlike, the Faust playground presented above, it doesn't permit to run a Faust program in a web browser.
 
 ### `faust2...` Scripts and Programs
 
