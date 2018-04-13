@@ -12,6 +12,9 @@ endif()
 #######################################
 # options
 option ( HTTPDYNAMIC 	"Compiles also the libray as dynamic library"	off )
+option ( LIBMICROHTTPD_CFLAGS 	"Manual C flags for libmicrohttpd"	off )
+option ( LIBMICROHTTPD_LDFLAGS 	"Manual link flags for libmicrohttpd"	off )
+
 
 #######################################
 # check for variables that are normally set at upper level
@@ -75,6 +78,9 @@ endmacro()
 
 #######################################
 # libmicrohttpd settings
+if (LIBMICROHTTPD_CFLAGS AND LIBMICROHTTPD_LDFLAGS)
+	message(STATUS "Using manual cflags '${LIBMICROHTTPD_CFLAGS}' and ldflags '${LIBMICROHTTPD_LDFLAGS}' for libmicrohttpd")
+else()
 if (WIN32 AND MSVC)
 	if("${CMAKE_GENERATOR}" MATCHES "(Win64|IA64)")
 		set (LMHDIR ${ROOT}/windows/libmicrohttpd/x64)
@@ -109,6 +115,7 @@ else ()
 		message (WARNING "No pkg-config, cannot locate libmicrohttpd: skip ${TARGET} generation")
 		return ()
 	endif()
+endif()
 endif()
 
 #######################################
