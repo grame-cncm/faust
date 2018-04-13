@@ -33,6 +33,7 @@
 
 #define BUFFER_SIZE 512
 #define RING_BUFFER_SIZE BUFFER_SIZE * 32
+#define HALF_RING_BUFFER_SIZE RING_BUFFER_SIZE / 2
 
 /**
  * LibSndfile based player
@@ -128,8 +129,9 @@ class sound_base_player : public dsp {
         
         virtual void instanceResetUserInterface()
         {
-            fPlayButton = FAUSTFLOAT(0);
-            fLoopButton = FAUSTFLOAT(0);
+            // Play and loop by default
+            fPlayButton = FAUSTFLOAT(1);
+            fLoopButton = FAUSTFLOAT(1);
             fFramesSlider = FAUSTFLOAT(0);
         }
         
@@ -148,6 +150,7 @@ class sound_base_player : public dsp {
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
             if (fPlayButton == FAUSTFLOAT(1)) {
+                
                 int rcount = std::min(count, fFrames);
                 playSlice(rcount, fInfo.frames - fFrames, 0, outputs);
                 if (rcount < count) {
@@ -257,7 +260,7 @@ class sound_dtd_player : public sound_base_player {
     
     private:
         
-        ringbuffer_t* fBuffer;
+        ringbuffer_t* fBuffer;  // Ringbuffer written in setFrame and read in playSlice
     
         void playSlice(int count, int src, int dst, FAUSTFLOAT** outputs)
         {
@@ -277,8 +280,15 @@ class sound_dtd_player : public sound_base_player {
                 }
                 
             } else {
-                std::cerr << "ERROR in playSlice : missing " << (count - read_space_frames) << " frames\n";
+                std::cerr << "PlaySlice : missing " << (count - read_space_frames) << " frames\n";
             }
+        }
+    
+        size_t readAndwrite(FAUSTFLOAT* buffer, size_t size)
+        {
+            size_t nbf = fReaderFun(fFile, buffer, size);
+            ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(nbf));
+            return nbf;
         }
     
         void setFrame(int frames)
@@ -294,19 +304,17 @@ class sound_dtd_player : public sound_base_player {
             size_t write_space_frames = convertToFrames(ringbuffer_write_space(fBuffer));
             
             // If ringbuffer has to be filled
-            if (write_space_frames > RING_BUFFER_SIZE/2) {
-                FAUSTFLOAT buffer[RING_BUFFER_SIZE/2 * fInfo.channels];
-                size_t nbf = fReaderFun(fFile, buffer, RING_BUFFER_SIZE/2);
+            if (write_space_frames > HALF_RING_BUFFER_SIZE) {
+                FAUSTFLOAT buffer[HALF_RING_BUFFER_SIZE * fInfo.channels];
+                
+                // Tries to read and write HALF_RING_BUFFER_SIZE frames
+                size_t nbf = readAndwrite(buffer, HALF_RING_BUFFER_SIZE);
+                
                 // End of file is reached
-                if (nbf < RING_BUFFER_SIZE/2) {
-                    // Write remaining frames
-                    ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(nbf));
-                    // Read beginning of file
+                if (nbf < HALF_RING_BUFFER_SIZE) {
+                    // Read RING_BUFFER_SIZE/2 - nbf frame from the beginning of file
                     sf_seek(fFile, 0, SEEK_SET);
-                    fReaderFun(fFile, buffer, RING_BUFFER_SIZE/2-nbf);
-                    ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(RING_BUFFER_SIZE/2-nbf));
-                } else {
-                    ringbuffer_write(fBuffer, (char*)buffer, convertFromFrames(RING_BUFFER_SIZE/2));
+                    readAndwrite(buffer, HALF_RING_BUFFER_SIZE - nbf);
                 }
             }
         }
@@ -336,9 +344,9 @@ class sound_dtd_player : public sound_base_player {
 };
 
 /**
-    PositionManager as a GUI : changing the slider position of a sound_base_player
+    PositionManager is a GUI : changing the slider position of a sound_base_player
     (sound_memory_player or sound_dtd_player) will be reflected in the internal buffer
-    using the GUI::updateAllGuis mecanism.
+    position using the GUI::updateAllGuis mecanism.
  */
 
 class PositionManager : public GUI {
