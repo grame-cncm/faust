@@ -44,9 +44,6 @@
 #include "faust/misc.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/jack-dsp.h"
-#if SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -54,6 +51,10 @@
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
+#endif
+
+#if SOUNDFILE
+#include "faust/gui/SoundUI.h"
 #endif
 
 // Always include this file, otherwise -poly only mode does not compile....
@@ -115,8 +116,8 @@ int main(int argc, char *argv[])
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
 
-    snprintf(name, 255, "%s", basename(argv[0]));
-    snprintf(rcfilename, 255, "%s/.%src", home, name);
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
@@ -178,8 +179,9 @@ int main(int argc, char *argv[])
 
     QTGUI interface;
     FUI finterface;
-#if SOUNDFILE
-    SoundUI soundinterface;
+#ifdef SOUNDFILE
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

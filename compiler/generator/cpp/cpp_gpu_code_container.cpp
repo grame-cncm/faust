@@ -1475,7 +1475,7 @@ void CPPCUDAVectorCodeContainer::generateComputeKernel(int n)
     loop_code->pushBackInst(InstBuilder::genLabelInst("int tasknum = blockDim.x * blockIdx.x + threadIdx.x;"));
 
     // Generate DAG
-    for (int l = dag.size() - 1; l >= 0; l--) {
+    for (int l = (int)dag.size() - 1; l >= 0; l--) {
 
         ValueInst* switch_cond = InstBuilder::genLoadVarInst(InstBuilder::genNamedAddress("tasknum", Address::kStack));
         ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);

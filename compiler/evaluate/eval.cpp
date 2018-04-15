@@ -342,10 +342,16 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 	} else if (isBoxSeq(exp, e1, e2)) {
         Tree a1 = eval(e1, visited, localValEnv);
         Tree a2 = eval(e2, visited, localValEnv);
+        Tree re  = boxSeq(a1,a2);
+
         xtended* xxt = (xtended*) getUserData(a2);
         siglist lsig;
         // try a numerical simplification of expressions of type 2,3:+
         if (isNumericalTuple(a1,lsig) && (xxt || isBoxWire(a2) || isBoxPrim1(a2) || isBoxPrim2(a2))) {
+            // check that re is well typed before try to simplify it
+            int n,m;
+            getBoxType(re, &n, &m);
+
             Tree lres = boxPropagateSig(gGlobal->nil, a2, lsig);
             if ( isList(lres) && isNil(tl(lres)) ) {
                 Tree r = simplify(hd(lres));
@@ -355,7 +361,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
             }
         }
         // no numerical simplification
-        return boxSeq(a1, a2);
+        return re;
 
 	} else if (isBoxPar(exp, e1, e2)) {
 		return boxPar(eval(e1, visited, localValEnv), eval(e2, visited, localValEnv));
@@ -587,7 +593,7 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 
     } else {
         stringstream error;
-        error << "ERROR : EVAL doesn't intercept : " << *exp << endl;
+        error << "ERROR : eval doesn't intercept : " << *exp << endl;
         throw faustexception(error.str());
     }
 
@@ -827,7 +833,7 @@ static string evalLabel (const char* src, Tree visited, Tree localValEnv)
 
         } else {
             stringstream error;
-            error << "internal error in evallabel : undefined state " << state << std::endl;
+            error << "ERROR in evallabel : undefined state " << state << std::endl;
             throw faustexception(error.str());
         }
     }

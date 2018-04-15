@@ -46,9 +46,6 @@
 #include "faust/gui/faustqt.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
 #ifdef IOS
 #include "faust/gui/APIUI.h"
@@ -65,6 +62,10 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
 // Always include this file, otherwise -poly only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
@@ -74,7 +75,6 @@
 #endif
 
 #include "faust/dsp/dsp-combiner.h"
-#include "faust/dsp/sound-player.h"
 
 #define stringify_literal(x) #x
 #define stringify_expanded(x) stringify_literal(x)
@@ -239,8 +239,8 @@ int main(int argc, char *argv[])
     Sensors sensors(&apiui);
 #endif
 
-	snprintf(name, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, name);
+	snprintf(name, 256, "%s", basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
@@ -319,7 +319,8 @@ int main(int argc, char *argv[])
     QTGUI interface;
     FUI finterface;
 #ifdef SOUNDFILE
-    SoundUI soundinterface;
+    // Use bundle path
+    SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
     DSP->buildUserInterface(&interface);

@@ -75,9 +75,9 @@ int main(int argc, char *argv[])
 	gtk_init (&argc, &argv);
 	const char* name = basename(argv[0]);
 
-    char  rcfilename[256];
+    char rcfilename[256];
 	char* home = getenv("HOME");
-	snprintf(rcfilename, 255, "%s/.%src", home, basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
 
 	GUI* interface = new GTKUI (name, &argc, &argv);
 	DSP.buildUserInterface(interface);
@@ -108,14 +108,14 @@ int main(int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	char	appname[256];
-	char  	rcfilename[256];
-	char* 	home = getenv("HOME");
+	char appname[256];
+	char rcfilename[256];
+	char* home = getenv("HOME");
 
-	snprintf(appname, 255, "%s", basename(argv[0]));
-	snprintf(rcfilename, 255, "%s/.%src", home, appname);
+	snprintf(appname, 256, "%s", basename(argv[0]));
+	snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
-	GUI* interface 	= new GTKUI (appname, &argc, &argv);
+	GUI* interface = new GTKUI (appname, &argc, &argv);
 	FUI* finterface	= new FUI();
 	DSP.buildUserInterface(interface);
 	DSP.buildUserInterface(finterface);

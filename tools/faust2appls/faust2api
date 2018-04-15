@@ -3,7 +3,7 @@
 #####################################################################
 #                                                                   #
 #    Generates an API for Android or iOS based on a Faust object    #
-#               (c) Romain Michon CCRMA and Grame, 2016             #
+#               (c) Romain Michon CCRMA and Grame, 2016-2018        #
 #                                                                   #
 #####################################################################
 
@@ -68,6 +68,7 @@ echoHelp ()
     echo "Global options:"
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
+    echo "   -effect auto: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified)."
     echo "   -nodoc : prevents documentation from being generated."
     echo "   -nozip : prevents generated files to be put in a zip file."
     echo ""
@@ -115,6 +116,7 @@ echoHelp ()
 
 createAPI ()
 {
+
     cp -r $FAUSTLIB/api/DspFaust.h $APIFOLDER
     faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
@@ -203,15 +205,16 @@ do
     else
         OPTIONS="$OPTIONS $p"
     fi
-
-shift
-
+    shift
 done
+
 
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
     exit 1
 fi
+
+
 
 ###################################
 # GENERATING API
@@ -221,6 +224,31 @@ APIFOLDER="dsp-faust" # TODO could be selected by the user
 
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
+
+#---------------------------------------------------------
+# START CHECKING FOR AUTO EFFECT
+if [ "$NVOICES" -gt "0" ]; then
+if [ "$EFFECT" = "auto" ]; then
+    EFFECT="$APIFOLDER/autoeffect.dsp"
+    cat > "$EFFECT" << EndOfCode
+    adapt(1,1) = _;
+    adapt(2,2) = _,_;
+    adapt(1,2) = _ <: _,_;
+    adapt(2,1) = _,_ :> _;
+
+    adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+    process = adaptor(library("$FILE").process, library("$FILE").effect) : library("$FILE").effect;
+EndOfCode
+    # We check this is a faust valid code. No error if it is not
+    faust $EFFECT -o /dev/null 2> /dev/null|| POLY2="0" EFFECT=""
+fi
+else
+    # No polyphony, make shure no effect
+    POLY2="0" EFFECT=""
+fi
+
+# END CHECKING FOR AUTO EFFECT
 
 if [ $ANDROID_DRIVER -eq 1 ]; then
     echo "Your dsp-faust.zip API package for Android is being created"

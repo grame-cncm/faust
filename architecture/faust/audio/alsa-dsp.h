@@ -77,7 +77,7 @@ o thread
  */
 static bool setRealtimePriority ()
 {
-    struct passwd *         pw;
+    struct passwd*          pw;
     int                     err;
     uid_t                   uid;
     struct sched_param      param;
@@ -194,7 +194,7 @@ struct AudioInterface : public AudioParam
 		int err;
 
 		// try to open output device, quit if fail to open output device
-		err = snd_pcm_open( &fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0 ); check_error(err)
+		err = snd_pcm_open(&fOutputDevice, fCardName, SND_PCM_STREAM_PLAYBACK, 0); check_error(err)
 
 		// setup output device parameters
 		err = snd_pcm_hw_params_malloc(&fOutputParams); check_error(err)
@@ -233,11 +233,11 @@ struct AudioInterface : public AudioParam
 
 			// we have and need an input device
 			// set the number of physical inputs close to what we need
-			err = snd_pcm_hw_params_malloc	( &fInputParams ); 	check_error(err);
+			err = snd_pcm_hw_params_malloc(&fInputParams); check_error(err);
 			setAudioParams(fInputDevice, fInputParams);
 			fCardInputs = fSoftInputs;
 			snd_pcm_hw_params_set_channels_near(fInputDevice, fInputParams, &fCardInputs);
-			err = snd_pcm_hw_params (fInputDevice,  fInputParams );	 	check_error(err);
+            err = snd_pcm_hw_params(fInputDevice, fInputParams); check_error(err);
 
 			// allocation of alsa buffers
 			if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
@@ -257,14 +257,14 @@ struct AudioInterface : public AudioParam
 		fChanOutputs = max(fSoftOutputs, fCardOutputs);		assert (fChanOutputs < 256);
 
 		for (unsigned int i = 0; i < fChanInputs; i++) {
-			fInputSoftChannels[i] = (float*) calloc (fBuffering, sizeof(float));
+			fInputSoftChannels[i] = (float*)calloc(fBuffering, sizeof(float));
 			for (unsigned int j = 0; j < fBuffering; j++) {
 				fInputSoftChannels[i][j] = 0.0;
 			}
 		}
 
 		for (unsigned int i = 0; i < fChanOutputs; i++) {
-			fOutputSoftChannels[i] = (float*) calloc (fBuffering, sizeof(float));
+			fOutputSoftChannels[i] = (float*)calloc(fBuffering, sizeof(float));
 			for (unsigned int j = 0; j < fBuffering; j++) {
 				fOutputSoftChannels[i][j] = 0.0;
 			}
@@ -281,17 +281,17 @@ struct AudioInterface : public AudioParam
 
 		// set alsa access mode (and fSampleAccess field) either to non interleaved or interleaved
 
-		err = snd_pcm_hw_params_set_access(stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED );
+		err = snd_pcm_hw_params_set_access(stream, params, SND_PCM_ACCESS_RW_NONINTERLEAVED);
 		if (err) {
-			err = snd_pcm_hw_params_set_access (stream, params, SND_PCM_ACCESS_RW_INTERLEAVED );
+			err = snd_pcm_hw_params_set_access(stream, params, SND_PCM_ACCESS_RW_INTERLEAVED);
 			check_error_msg(err, "unable to set access mode neither to non-interleaved or to interleaved");
 		}
 		snd_pcm_hw_params_get_access(params, &fSampleAccess);
 
 		// search for 32-bits or 16-bits format
-		err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S32);
+		err = snd_pcm_hw_params_set_format(stream, params, SND_PCM_FORMAT_S32);
 		if (err) {
-			err = snd_pcm_hw_params_set_format (stream, params, SND_PCM_FORMAT_S16);
+			err = snd_pcm_hw_params_set_format(stream, params, SND_PCM_FORMAT_S16);
 		 	check_error_msg(err, "unable to set format to either 32-bits or 16-bits");
 		}
 		snd_pcm_hw_params_get_format(params, &fSampleFormat);
@@ -311,7 +311,7 @@ struct AudioInterface : public AudioParam
 		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
 		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
 		unsigned int 		channels; 	snd_pcm_hw_params_get_channels(params, &channels);
-		ssize_t bsize = snd_pcm_format_size (format, psize * channels);
+		ssize_t bsize = snd_pcm_format_size(format, psize * channels);
 		return bsize;
 	}
 
@@ -319,7 +319,7 @@ struct AudioInterface : public AudioParam
 	{
 		_snd_pcm_format 	format;  	snd_pcm_hw_params_get_format(params, &format);
 		snd_pcm_uframes_t 	psize;		snd_pcm_hw_params_get_period_size(params, &psize, NULL);
-		ssize_t bsize = snd_pcm_format_size (format, psize);
+		ssize_t bsize = snd_pcm_format_size(format, psize);
 		return bsize;
 	}
 
@@ -342,16 +342,13 @@ struct AudioInterface : public AudioParam
 			}
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
 				short* buffer16b = (short*)fInputCardBuffer;
 				for (unsigned int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
 						fInputSoftChannels[c][s] = float(buffer16b[c + s*fCardInputs])*(1.0/float(SHRT_MAX));
 					}
 				}
-
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
-
 				int32* buffer32b = (int32*)fInputCardBuffer;
 				for (unsigned int s = 0; s < fBuffering; s++) {
 					for (unsigned int c = 0; c < fCardInputs; c++) {
@@ -359,7 +356,6 @@ struct AudioInterface : public AudioParam
 					}
 				}
 			} else {
-
 				printf("unrecognized input sample format : %u\n", fSampleFormat);
 				exit(1);
 			}
@@ -374,16 +370,13 @@ struct AudioInterface : public AudioParam
 			}
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
 				for (unsigned int c = 0; c < fCardInputs; c++) {
 					short* chan16b = (short*)fInputCardChannels[c];
 					for (unsigned int s = 0; s < fBuffering; s++) {
 						fInputSoftChannels[c][s] = float(chan16b[s])*(1.0/float(SHRT_MAX));
 					}
 				}
-
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32) {
-
 				for (unsigned int c = 0; c < fCardInputs; c++) {
 					int32* chan32b = (int32*)fInputCardChannels[c];
 					for (unsigned int s = 0; s < fBuffering; s++) {
@@ -411,26 +404,23 @@ struct AudioInterface : public AudioParam
 		if (fSampleAccess == SND_PCM_ACCESS_RW_INTERLEAVED) {
 
 			if (fSampleFormat == SND_PCM_FORMAT_S16) {
-
 				short* buffer16b = (short*)fOutputCardBuffer;
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer16b[c + f*fCardOutputs] = short( max(min(x,1.0f),-1.0f) * float(SHRT_MAX) ) ;
+						buffer16b[c + f*fCardOutputs] = short(max(min(x,1.0f),-1.0f) * float(SHRT_MAX)) ;
 					}
 				}
 
 			} else if (fSampleFormat == SND_PCM_FORMAT_S32)  {
-
 				int32* buffer32b = (int32*)fOutputCardBuffer;
 				for (unsigned int f = 0; f < fBuffering; f++) {
 					for (unsigned int c = 0; c < fCardOutputs; c++) {
 						float x = fOutputSoftChannels[c][f];
-						buffer32b[c + f*fCardOutputs] = int( max(min(x,1.0f),-1.0f) * float(INT_MAX) ) ;
+						buffer32b[c + f*fCardOutputs] = int(max(min(x,1.0f),-1.0f) * float(INT_MAX));
 					}
 				}
 			} else {
-
 				printf("unrecognized output sample format : %u\n", fSampleFormat);
 				exit(1);
 			}
@@ -452,7 +442,7 @@ struct AudioInterface : public AudioParam
 					short* chan16b = (short*) fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan16b[f] = short( max(min(x,1.0f),-1.0f) * float(SHRT_MAX) ) ;
+						chan16b[f] = short(max(min(x,1.0f),-1.0f) * float(SHRT_MAX));
 					}
 				}
 
@@ -462,12 +452,11 @@ struct AudioInterface : public AudioParam
 					int32* chan32b = (int32*) fOutputCardChannels[c];
 					for (unsigned int f = 0; f < fBuffering; f++) {
 						float x = fOutputSoftChannels[c][f];
-						chan32b[f] = int( max(min(x,1.0f),-1.0f) * float(INT_MAX) ) ;
+						chan32b[f] = int(max(min(x,1.0f),-1.0f) * float(INT_MAX));
 					}
 				}
 
 			} else {
-
 				printf("unrecognized output sample format : %u\n", fSampleFormat);
 				exit(1);
 			}
@@ -493,9 +482,9 @@ struct AudioInterface : public AudioParam
 		int						err;
 		snd_ctl_card_info_t*	card_info;
     	snd_ctl_t*				ctl_handle;
-		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
+		err = snd_ctl_open(&ctl_handle, fCardName, 0); check_error(err);
 		snd_ctl_card_info_alloca (&card_info);
-		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
+		err = snd_ctl_card_info(ctl_handle, card_info);	check_error(err);
 		printf("%s|%d|%d|%d|%d|%s\n",
 				snd_ctl_card_info_get_driver(card_info),
 				fCardInputs, fCardOutputs,
@@ -520,9 +509,9 @@ struct AudioInterface : public AudioParam
 		printf("Channel inputs  : %2d, Channel outputs  : %2d\n", fChanInputs, fChanOutputs);
 
 		// affichage des infos de la carte
-		err = snd_ctl_open (&ctl_handle, fCardName, 0);		check_error(err);
+		err = snd_ctl_open (&ctl_handle, fCardName, 0); check_error(err);
 		snd_ctl_card_info_alloca (&card_info);
-		err = snd_ctl_card_info(ctl_handle, card_info);		check_error(err);
+		err = snd_ctl_card_info(ctl_handle, card_info); check_error(err);
 		printCardInfo(card_info);
 
 		// affichage des infos liees aux streams d'entree-sortie
@@ -568,7 +557,7 @@ struct AudioInterface : public AudioParam
 long lopt(int argc, char *argv[], const char* longname, const char* shortname, long def)
 {
 	for (int i=2; i<argc; i++)
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 )
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
 			return atoi(argv[i]);
 	return def;
 }
@@ -577,7 +566,7 @@ long lopt(int argc, char *argv[], const char* longname, const char* shortname, l
 const char* sopt(int argc, char *argv[], const char* longname, const char* shortname, const char* def)
 {
 	for (int i=2; i<argc; i++)
-		if ( strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0 )
+		if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0)
 			return argv[i];
 	return def;
 }
@@ -586,7 +575,7 @@ const char* sopt(int argc, char *argv[], const char* longname, const char* short
 bool fopt(int argc, char *argv[], const char* longname, const char* shortname)
 {
 	for (int i=1; i<argc; i++)
-		if ( strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0 )
+		if (strcmp(argv[i], shortname) == 0 || strcmp(argv[i], longname) == 0)
 			return true;
 	return false;
 }
@@ -655,7 +644,7 @@ class alsaaudio : public audio
 
 	virtual ~alsaaudio() { stop(); delete fAudio; }
 
-	virtual bool init(const char */*name*/, dsp* DSP)
+	virtual bool init(const char* /*name*/, dsp* DSP)
     {
         fDSP = DSP;
         fAudio->inputs(DSP->getNumInputs());

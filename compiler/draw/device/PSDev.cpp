@@ -46,7 +46,7 @@ static char * addFileNum(const char* fname)
 	f[i] = 0;
 
 	// add number and .ps suffix
-	snprintf(s, 255, "%s-%d.ps", f, ++gGlobal->gFileNum);
+	snprintf(s, 256, "%s-%d.ps", f, ++gGlobal->gFileNum);
 	//cerr << "file name " << s << endl;
 	return strdup(s);
 }
@@ -55,7 +55,7 @@ PSDev::PSDev(const char* ficName, double largeur, double hauteur)
 {
 	if ((fic_repr = fopen(addFileNum(ficName),"w+")) == NULL) { 
 		stringstream error;
-		error << "Impossible to create or open " << ficName << endl;
+		error << "ERROR : impossible to create or open " << ficName << endl;
         throw faustexception(error.str());
 	}
 

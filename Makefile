@@ -1,4 +1,4 @@
-version := 2.5.23
+version := 2.5.32
 
 system	?= $(shell uname -s)
 
@@ -16,7 +16,10 @@ endif
 DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
-BINLOCATION := compiler
+BUILDLOCATION := build
+DEBUGFOLDER := faustdebug
+BINLOCATION := $(BUILDLOCATION)/bin
+LIBLOCATION := $(BUILDLOCATION)/lib
 
 MAKEFILE := Makefile.unix
 
@@ -26,36 +29,59 @@ mfiles := $(wildcard examples/Makefile.*)
 vname := faust-$(version)-$(shell date +%y%m%d.%H%M%S)
 zname := faust-$(version)
 
-.PHONY: all world dynamic benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
+.PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
+compiler : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) faust BACKENDS=regular.cmake
+	$(MAKE) -C $(BUILDLOCATION) http
+	$(MAKE) -C $(BUILDLOCATION) osc 
+
+travis : updatesubmodules
+	$(MAKE) -C $(BUILDLOCATION) faust 
+	$(MAKE) -C $(BUILDLOCATION) http
+	$(MAKE) -C $(BUILDLOCATION) osc 
+	
 all : updatesubmodules
-	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix)
-	$(MAKE) -C architecture/osclib
+	$(MAKE) -C $(BUILDLOCATION) configstatic
+	$(MAKE) -C $(BUILDLOCATION)
 
-universal : updatesubmodules
-	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) universal
-	$(MAKE) -C architecture/osclib
+universal :
+	$(MAKE) -C $(BUILDLOCATION) universal
+	@echo 
+	@echo "### Universal mode is ON"
+	@echo "### You need to recompile"
+	@echo "### Use 'make native' to revert"
+	 
+native :
+	$(MAKE) -C $(BUILDLOCATION) native
+	@echo 
+	@echo "### Universal mode is OFF"
+	@echo "### You need to recompile"
 
-# make world: This builds all the common targets for a fairly complete Faust
-# installation: Faust compiler and library, sound2faust utility, OSC and HTTPD
-# libraries (both static and dynamic). Most of the extra targets require
-# additional dependencies and hence aren't built by default; please check the
-# Faust README for details. This target may be built in parallel (make -j).
-# NOTE: Once the remote target is readily supported on most platforms, it
-# should be added here. This requires Jack2 1.9.10 or later which isn't
-# usually installed on most systems, so we skip this target for now.
-world : all sound2faust httpd dynamic
+# make world (MAINTAINERS TARGET): This builds all the common targets for a
+# fairly complete Faust installation: Faust compiler (including the LLVM
+# backend) and library, sound2faust utility, OSC and HTTPD libraries (both
+# static and dynamic).
 
-dynamic : all httpd
-	$(MAKE) -C compiler -f $(MAKEFILE) dynamic prefix=$(prefix)
-	$(MAKE) -C architecture/httpdlib/src dynamic PREFIX=$(PREFIX)
-	$(MAKE) -C architecture/osclib dynamic PREFIX=$(PREFIX)
+# CAVEAT: END USERS should note that this target requires a substantial amount
+# of additional dependencies (in particular, LLVM) which aren't readily
+# pre-installed on most systems, hence you should NOT use this target (which
+# is mostly aimed at package maintainers) unless you KNOW WHAT YOU'RE DOING.
+# Don't complain if the target doesn't build for you, use one of the standard
+# build targets instead. You have been warned! :)
+
+# MAINTAINERS: Once the "remote" target is readily supported on most
+# platforms, it should be added here. This requires Jack2 1.9.10 or later
+# which isn't regularly installed on most systems at present, so we skip this
+# target for now.
+
+world :
+	$(MAKE) -C $(BUILDLOCATION) configall configoscdynamic confighttpdynamic BACKENDS=world.cmake
+	$(MAKE) -C $(BUILDLOCATION)
+	$(MAKE) -C tools/sound2faust
 
 benchmark : all
 	$(MAKE) -C tools/benchmark all
-
-httpd :
-	$(MAKE) -C architecture/httpdlib/src all
 
 remote :
 	$(MAKE) -C embedded/faustremote/RemoteServer all
@@ -66,73 +92,113 @@ win32 :
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
 debug :
-	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) FAUSTDIR=faustdebug CMAKEOPT=-DCMAKE_BUILD_TYPE=Debug
+#	$(MAKE) -C compiler debug -f $(MAKEFILE) prefix=$(prefix)
 
 plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
 ios :
-	$(MAKE) -C compiler ios -f $(MAKEFILE) prefix=$(prefix)
-
-ios-llvm :
-	$(MAKE) -C compiler ios-llvm -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) ios
 
 asmjs :
-	$(MAKE) -C compiler asmjs -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) asmjslib
 
 wasm :
-	$(MAKE) -C compiler wasm -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) wasmlib
 
 light :
-	$(MAKE) -C compiler light -f $(MAKEFILE) prefix=$(prefix)
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=light.cmake
+	@echo 
+	@echo "### Light version of backends is ON"
+	@echo "### You need to recompile"
+	@echo "### Use 'make backends' to revert"
+
+backends :
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=backends.cmake
+	@echo 
+	@echo "### Default version of backends is ON"
+	@echo "### You need to recompile"
 
 sound2faust :
 	$(MAKE) -C tools/sound2faust
 
-bench :
-	$(MAKE) -C tools/benchmark
-
-.PHONY: clean depend install uninstall dist parser help
+.PHONY: clean install uninstall dist parser help
 
 help :
-	@echo "Usage : '$(MAKE); sudo $(MAKE) install'"
-	@echo "For http support : 'make httpd; make; sudo $(MAKE) install' (requires GNU libmicrohttpd)"
-	@echo "$(MAKE) or $(MAKE) all : compile the Faust compiler and osc support library"
-	@echo "$(MAKE) httpd : compile httpdlib (requires GNU libmicrohttpd)"
-	@echo "$(MAKE) dynamic : compile httpd & osc supports as dynamic libraries"
-	@echo "$(MAKE) asmjs : compile asmjs libfaust.js"
-	@echo "$(MAKE) wasm : compile wasm libfaust-wasm.js"
-	@echo "$(MAKE) universal : on OSX, compile 32/64bits version of compiler and libraries"
-	@echo "$(MAKE) light : only compile C/C++ backend (to avoid dependency with LLVM)"
-	@echo "$(MAKE) debug : produce a debug version of compiler and libraries"
-	@echo "$(MAKE) sound2faust : compile sound to DSP file converter"
-	@echo "$(MAKE) remote : compile remote components used by FaustLive"
-	@echo "$(MAKE) parser : generate the parser from the lex and yacc files"
-	@echo "$(MAKE) clean : remove all object files"
-	@echo "$(MAKE) doc : generate the documentation using doxygen"
-	@echo "$(MAKE) updatesubmodules : update the libraries submodule"
-	@echo "$(MAKE) doclib : generate the documentation of the faust libraries"
-	@echo "$(MAKE) install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
-	@echo "$(MAKE) uninstall : undo what install did"
-	@echo "$(MAKE) dist : make a Faust distribution as a .zip file"
-	@echo "$(MAKE) log : make a changelog file"
+	@echo "===== Faust main makefile ====="
+	@echo "Available targets"
+	@echo " 'compiler' (default) : builds the faust compiler (without the LLVM backend), and the faust osc and httpd libraries"
+	@echo " 'all'           : builds the faust compiler, the faust static library and the faust osc and httpd libraries"
+	@echo "                   see the build/Makefile for more build options (> make -C build help)"
+	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
+	@echo " 'asmjs'         : builds the faust asm-js library"
+	@echo " 'wasm'          : builds the faust web assembly library"
+	@echo " 'world'         : builds (almost) everything (package maintainers)"
+	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
+	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
+	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
+	@echo " 'parser'        : generates the parser from the lex and yacc files"
+	@echo " 'clean'         : remove all object files"
+	@echo 
+	@echo "Backends specific targets:"
+	@echo " 'light'         : switch to light version of the faust backends (c and cpp)"
+	@echo " 'backends'      : switch to regular version of the faust backends (see $(BUILDLOCATION)/backends.cmake)"
+	@echo 
+	@echo "Platform specific targets:"
+	@echo " 'universal'     : [MacOSX] switch to universal binaries mode"
+	@echo " 'native'        : [MacOSX] switch to native mode"
+	@echo " 'win32'         : [linux]  used for win cross-compilation (requires mingw32-binutils package)"
+	@echo " 'ios'           : [iOS] build the faust static library for iOS"
+	@echo 
+	@echo "Utilities targets:"
+	@echo " 'man'              : generate the faust man page"
+	@echo " 'doc'              : generate the documentation using doxygen"
+	@echo " 'doclib'           : generate the documentation of the faust libraries"
+	@echo " 'updatesubmodules' : update the libraries submodule"
+	@echo " 'install'          : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
+	@echo " 'devinstall'       : install the benchmark tools"
+	@echo " 'uninstall'        : undo what install did"
+	@echo " 'dist'             : make a Faust distribution as a .zip file"
+	@echo " 'log'              : make a changelog file"
+	@echo 
+	@echo "Obsolete targets:"
+	@echo " 'plugin'           : builds the libfaustplugin.a library"
+
+
+# 	@echo "Usage : 'make; sudo make install'"
+# 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
+# 	@echo "make or make all : compile the Faust compiler and osc support library"
+# 	@echo "make httpd : compile httpdlib (requires GNU libmicrohttpd)"
+# 	@echo "make dynamic : compile httpd & osc supports as dynamic libraries"
+# 	@echo "make asmjs : compile asmjs libfaust.js"
+# 	@echo "make wasm : compile wasm libfaust-wasm.js"
+# 	@echo "make universal : on OSX, compile 32/64bits version of compiler and libraries"
+# 	@echo "make light : only compile C/C++ backend (to avoid dependency with LLVM)"
+# 	@echo "make debug : produce a debug version of compiler and libraries"
+# 	@echo "make sound2faust : compile sound to DSP file converter"
+# 	@echo "make remote : compile remote components used by FaustLive"
+# 	@echo "make parser : generate the parser from the lex and yacc files"
+# 	@echo "make clean : remove all object files"
+# 	@echo "make doc : generate the documentation using doxygen"
+# 	@echo "make updatesubmodules : update the libraries submodule"
+# 	@echo "make doclib : generate the documentation of the faust libraries"
+# 	@echo "make install : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
+# 	@echo "make uninstall : undo what install did"
+# 	@echo "make dist : make a Faust distribution as a .zip file"
+# 	@echo "make log : make a changelog file"
 
 parser :
-	$(MAKE) -C compiler -f $(MAKEFILE) parser
+	$(MAKE) -C compiler/parser
 
 clean :
-	$(MAKE) -C compiler -f $(MAKEFILE) clean
-	$(MAKE) -C architecture/osclib clean
-	$(MAKE) -C architecture/httpdlib/src clean
+	$(MAKE) -C build clean
+#	$(MAKE) -C architecture/osclib clean
+#	$(MAKE) -C architecture/httpdlib/src clean
 	$(MAKE) -C embedded/faustremote/RemoteServer clean
 	$(MAKE) -C embedded/faustremote clean
 	$(MAKE) -C tools/sound2faust clean
 	$(MAKE) -C tools/benchmark clean
-
-depend :
-	$(MAKE) -C compiler -f $(MAKEFILE) depend
-	$(MAKE) -C architecture/osclib depend
-	$(MAKE) -C architecture/httpdlib/src depend
 
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
@@ -150,120 +216,139 @@ man :
 	pandoc --standalone --to man compiler/README.md -o faust.1
 
 install :
-	# install faust itself
-	mkdir -p $(prefix)/bin/
-	mkdir -p $(prefix)/lib/
-	mkdir -p $(prefix)/lib/faust
-	mkdir -p $(prefix)/include/
-	mkdir -p $(prefix)/include/faust/
-	mkdir -p $(prefix)/include/faust/osc/
-	mkdir -p $(prefix)/include/faust/dsp/
-	mkdir -p $(prefix)/share/faust
-	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
-	([ -e $(BINLOCATION)/libfaust.$(LIB_EXT) ] && install $(BINLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
-	([ -e $(BINLOCATION)/libfaust.a ] && cp $(BINLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
-	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
-	cp compiler/generator/wasm/wasm-dsp.h  $(prefix)/include/faust/dsp/
-	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
-	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
+	make -C $(BUILDLOCATION) install DESTDIR=$(DESTDIR) PREFIX=$(PREFIX)
 
-	# install architecture and faust library files
-	cp architecture/*.c $(prefix)/share/faust/
-	cp architecture/*.rs $(prefix)/share/faust/
-	cp architecture/*.cpp $(prefix)/share/faust/
-	cp architecture/*.java $(prefix)/share/faust/
-	cp architecture/*.js $(prefix)/share/faust/
-	cp libraries/old/*.lib $(prefix)/share/faust/
-	cp libraries/*.lib $(prefix)/share/faust/
+uninstall :
+	make -C $(BUILDLOCATION) uninstall
 
-	# This is needed by faust2lv2 -gui / lv2ui.cpp.
-	cp architecture/lv2qtgui.h $(prefix)/share/faust/
+# install :
+# 	# install faust itself
+# 	mkdir -p $(prefix)/bin/
+# 	mkdir -p $(prefix)/lib/
+# 	mkdir -p $(prefix)/lib/faust
+# 	mkdir -p $(prefix)/include/
+# 	mkdir -p $(prefix)/include/faust/
+# 	mkdir -p $(prefix)/include/faust/osc/
+# 	mkdir -p $(prefix)/include/faust/dsp/
+# 	mkdir -p $(prefix)/share/faust
+# 	([ -e $(BINLOCATION)/faust ] && install $(BINLOCATION)/faust $(prefix)/bin/)  || echo faust not available
+# 	([ -e $(LIBLOCATION)/libfaust.$(LIB_EXT) ] && install $(LIBLOCATION)/libfaust.$(LIB_EXT) $(prefix)/lib/) || echo libfaust.$(LIB_EXT) not available
+# 	([ -e $(LIBLOCATION)/libfaust.a ] && install $(LIBLOCATION)/libfaust.a $(prefix)/lib/) || echo libfaust.a not available
+# 	cp compiler/generator/libfaust.h  $(prefix)/include/faust/dsp/
+# 	cp compiler/generator/libfaust-c.h  $(prefix)/include/faust/dsp/
+# 	cp compiler/generator/wasm/wasm-dsp.h  $(prefix)/include/faust/dsp/
+# 	([ -e compiler/scheduler.ll ] && chmod gou+r compiler/scheduler.ll) || echo scheduler.ll not available
+# 	([ -e compiler/scheduler.ll ] && cp compiler/scheduler.ll $(prefix)/lib/faust) || echo scheduler.ll not available
+# 
+# 	# install architecture and faust library files
+# 	cp architecture/*.c $(prefix)/share/faust/
+# 	cp architecture/*.rs $(prefix)/share/faust/
+# 	cp architecture/*.cpp $(prefix)/share/faust/
+# 	cp architecture/*.java $(prefix)/share/faust/
+# 	cp architecture/*.js $(prefix)/share/faust/
+# 	cp libraries/old/*.lib $(prefix)/share/faust/
+# 	cp libraries/*.lib $(prefix)/share/faust/
+# 
+# 	# This is needed by faust2lv2 -gui / lv2ui.cpp.
+# 	cp architecture/lv2qtgui.h $(prefix)/share/faust/
+# 
+# 	# This is needed by faust2faustvst -gui / faustvst.cpp.
+# 	cp architecture/faustvstqt.h $(prefix)/share/faust/
+# 
+# 	# install iOS
+# 	rm -rf $(prefix)/share/faust/iOS
+# 	cp -r architecture/iOS $(prefix)/share/faust/
+# 	cp -r architecture/osclib $(prefix)/share/faust
+# 	# remove object files and libraries in the copied osclib folder
+# 	$(MAKE) -C $(prefix)/share/faust/osclib clean
+# 	rm -rf $(prefix)/share/faust/iOS/DerivedData/
+# 	cp architecture/ios-libsndfile.a $(prefix)/lib/faust
+# 
+# 	# install smartKeyboard
+# 	rm -rf $(prefix)/share/faust/smartKeyboard
+# 	cp -r architecture/smartKeyboard $(prefix)/share/faust/
+# 
+# 	# install Juce
+# 	rm -rf $(prefix)/share/faust/juce
+# 	cp -r architecture/juce $(prefix)/share/faust/
+# 
+# 	# install AU
+# 	rm -rf $(prefix)/share/faust/AU/
+# 	cp -r architecture/AU $(prefix)/share/faust/
+# 
+# 	# install Android
+# 	rm -rf $(prefix)/share/faust/android
+# 	cp -r architecture/android $(prefix)/share/faust/
+# 
+# 	# install APIs
+# 	rm -rf $(prefix)/share/faust/api/
+# 	cp -r architecture/api $(prefix)/share/faust/
+# 
+# 	# install nodejs
+# 	rm -rf $(prefix)/share/faust/nodejs/
+# 	cp -r architecture/nodejs $(prefix)/share/faust/
+# 
+# 	# install Max/MSP
+# 	rm -rf $(prefix)/share/faust/max-msp/
+# 	cp -r architecture/max-msp $(prefix)/share/faust/
+# 
+# 	#install unity
+# 	rm -rf $(prefix)/share/faust/unity
+# 	cp -r architecture/unity $(prefix)/share/faust/
+# 
+# 	# install math documentation files
+# 	cp architecture/mathdoctexts-*.txt $(prefix)/share/faust/
+# 	cp architecture/latexheader.tex $(prefix)/share/faust/
+# 
+# 	# install additional binary libraries (osc, http,...)
+# 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust.a not available
+# 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust.$(LIB_EXT) not available
+# 
+# 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
+# 	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
+# 
+# 	cp -r architecture/httpdlib/html/js $(prefix)/share/faust/js
+# 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/share/faust/js/stylesheet.js) || echo stylesheet not available
+# 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/share/faust/js/jsscripts.js) || echo jsscripts not available
+# 
+# 	# install includes files for architectures
+# 	cp -r architecture/faust $(prefix)/include/
+# 
+# 	# install additional includes files for binary libraries  (osc, http,...)
+# 	cp architecture/osclib/faust/faust/OSCControler.h $(prefix)/include/faust/gui/
+# 	cp architecture/osclib/faust/faust/osc/*.h $(prefix)/include/faust/osc/
+# 	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
+# 
+# 	# install faust2xxx tools
+# 	make -C tools/faust2appls install
+# 
+# 	# install sound converter
+# 	[ -e tools/sound2faust/sound2faust ] && $(MAKE) -C tools/sound2faust install || echo sound2faust not compiled
+# 
+# 	# install faustremote
+# 	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
+# 	cp embedded/faustremote/remote-dsp.h  $(prefix)/include/faust/dsp/
+# 
+# 	# install webaudio
+# 	cp -r architecture/webaudio $(prefix)/share/faust/
+# 
+# 	# install Max/MSP
+# 	cp -r architecture/max-msp $(prefix)/share/faust/
+# 
+# 	# install benchmark tools
+# 	rm -rf $(prefix)/share/faust/iOS-bench
+# 	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
+# 	cp tools/benchmark/faustbench $(prefix)/bin/
+# 	cp tools/benchmark/faustbench.cpp $(prefix)/share/faust/
+# 	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
+# 	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
+# 
+# 	# install Faust man file
+# 	([ -e faust.1 ]) && (install -d $(prefix)/share/man/man1/; install faust.1 $(prefix)/share/man/man1) || echo faust.1 not found
 
-	# This is needed by faust2faustvst -gui / faustvst.cpp.
-	cp architecture/faustvstqt.h $(prefix)/share/faust/
-
-	# install iOS
-	rm -rf $(prefix)/share/faust/iOS
-	cp -r architecture/iOS $(prefix)/share/faust/
-	cp -r architecture/osclib $(prefix)/share/faust
-	# remove object files and libraries in the copied osclib folder
-	$(MAKE) -C $(prefix)/share/faust/osclib clean
-	rm -rf $(prefix)/share/faust/iOS/DerivedData/
-	cp architecture/ios-libsndfile.a $(prefix)/lib/faust
-
-	# install smartKeyboard
-	rm -rf $(prefix)/share/faust/smartKeyboard
-	cp -r architecture/smartKeyboard $(prefix)/share/faust/
-
-	# install Juce
-	rm -rf $(prefix)/share/faust/juce
-	cp -r architecture/juce $(prefix)/share/faust/
-
-	# install AU
-	rm -rf $(prefix)/share/faust/AU/
-	cp -r architecture/AU $(prefix)/share/faust/
-
-	# install Android
-	rm -rf $(prefix)/share/faust/android
-	cp -r architecture/android $(prefix)/share/faust/
-
-	# install APIs
-	rm -rf $(prefix)/share/faust/api/
-	cp -r architecture/api $(prefix)/share/faust/
-
-	# install nodejs
-	rm -rf $(prefix)/share/faust/nodejs/
-	cp -r architecture/nodejs $(prefix)/share/faust/
-
-	# install Max/MSP
-	rm -rf $(prefix)/share/faust/max-msp/
-	cp -r architecture/max-msp $(prefix)/share/faust/
-
-	#install unity
-	rm -rf $(prefix)/share/faust/unity
-	cp -r architecture/unity $(prefix)/share/faust/
-
-	# install math documentation files
-	cp architecture/mathdoctexts-*.txt $(prefix)/share/faust/
-	cp architecture/latexheader.tex $(prefix)/share/faust/
-
-	# install additional binary libraries (osc, http,...)
-	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust.a not available
-	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust.$(LIB_EXT) not available
-
-	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
-	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
-
-	cp -r architecture/httpdlib/html/js $(prefix)/share/faust/js
-	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/share/faust/js/stylesheet.js) || echo stylesheet not available
-	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/share/faust/js/jsscripts.js) || echo jsscripts not available
-
-	# install includes files for architectures
-	cp -r architecture/faust $(prefix)/include/
-
-	# install additional includes files for binary libraries  (osc, http,...)
-	cp architecture/osclib/faust/faust/OSCControler.h $(prefix)/include/faust/gui/
-	cp architecture/osclib/faust/faust/osc/*.h $(prefix)/include/faust/osc/
-	cp architecture/httpdlib/src/include/*.h $(prefix)/include/faust/gui/
-
-	# install faust2xxx tools
-	make -C tools/faust2appls install
-
-	# install sound converter
-	[ -e tools/sound2faust/sound2faust ] && $(MAKE) -C tools/sound2faust install || echo sound2faust not compiled
-
-	# install faustremote
-	([ -e embedded/faustremote/libfaustremote.a ] &&  install embedded/faustremote/libfaustremote.a  $(prefix)/lib/) || echo remote not compiled
-	cp embedded/faustremote/remote-dsp.h  $(prefix)/include/faust/dsp/
-
-	# install webaudio
-	cp -r architecture/webaudio $(prefix)/share/faust/
-
-	# install Max/MSP
-	cp -r architecture/max-msp $(prefix)/share/faust/
 
 	# install benchmark tools
+devinstall:
 	rm -rf $(prefix)/share/faust/iOS-bench
 	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
 	cp tools/benchmark/faustbench $(prefix)/bin/
@@ -271,20 +356,18 @@ install :
 	([ -e tools/benchmark/faustbench-llvm ]) && install tools/benchmark/faustbench $(prefix)/bin/ || echo faustbench-llvm not found
 	([ -e tools/benchmark/faustbench-llvm-interp ]) && install tools/benchmark/faustbench-llvm $(prefix)/bin/ || echo faustbench-llvm-interp not found
 
-	# install Faust man file
-	([ -e faust.1 ]) && (install -d $(prefix)/share/man/man1/; install faust.1 $(prefix)/share/man/man1) || echo faust.1 not found
 
-uninstall :
-	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
-	rm -rf $(prefix)/share/faust/
-	rm -rf $(prefix)/include/faust/
-	rm -f $(prefix)/bin/faust$(EXE)
-	rm -f $(prefix)/bin/RemoteServer$(EXE)
-	make -C tools/faust2appls uninstall
-	rm -f $(prefix)/bin/sound2faust$(EXE)
-	rm -f $(prefix)/bin/faustbench
-	rm -f $(prefix)/share/man/man1/faust.1
-	rm -f $(prefix)/lib/faust/ios-libsndfile.a
+# uninstall :
+# 	rm -f $(addprefix $(prefix)/lib/, libfaust.a libfaust.$(LIB_EXT) libHTTPDFaust.a libHTTPDFaust.$(LIB_EXT) libOSCFaust.a libOSCFaust*.$(LIB_EXT)* libfaustremote.a)
+# 	rm -rf $(prefix)/share/faust/
+# 	rm -rf $(prefix)/include/faust/
+# 	rm -f $(prefix)/bin/faust$(EXE)
+# 	rm -f $(prefix)/bin/RemoteServer$(EXE)
+# 	make -C tools/faust2appls uninstall
+# 	rm -f $(prefix)/bin/sound2faust$(EXE)
+# 	rm -f $(prefix)/bin/faustbench
+# 	rm -f $(prefix)/share/man/man1/faust.1
+# 	rm -f $(prefix)/lib/faust/ios-libsndfile.a
 
 # make a faust distribution tarball
 dist = faust-$(version)

@@ -50,11 +50,11 @@
 #endif
 
 #define LocalFactoryDSPTableType list<llvm_dsp_factory*>
-#define LocalFactoryDSPTableIt   LocalFactoryDSPTableType::iterator
+#define LocalFactoryDSPTableIt LocalFactoryDSPTableType::iterator
 
-#define RemoteFactoryDSPTable     pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
+#define RemoteFactoryDSPTable pair<list<remote_dsp_aux*>, list<remote_audio_aux*> >
 #define RemoteFactoryDSPTableType map<Sremote_dsp_factory, RemoteFactoryDSPTable>
-#define RemoteFactoryDSPTableIt   RemoteFactoryDSPTableType::iterator
+#define RemoteFactoryDSPTableIt RemoteFactoryDSPTableType::iterator
 
 using namespace std;
 
@@ -93,8 +93,11 @@ struct remote_DNS {
       
     static void errorHandler(int num, const char* m, const char* path);
     
-    static int pingHandler(const char* path, const char* types, lo_arg** argv,
-                           int argc, void* data, void* user_data);
+    static int pingHandler(const char* path,
+                           const char* types,
+                           lo_arg** argv,
+                           int argc, void* data,
+                           void* user_data);
    
     remote_DNS();
     virtual ~remote_DNS();

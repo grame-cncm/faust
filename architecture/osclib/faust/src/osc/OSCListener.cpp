@@ -86,7 +86,7 @@ void OSCListener::ProcessMessage(const osc::ReceivedMessage& m, const IpEndpoint
 			msg.add<string>(i->AsStringUnchecked());			
 		}
 		else if (i->IsInt32()) {
-			msg.add<int>(i->AsInt32Unchecked());			
+			msg.add<int>(int(i->AsInt32Unchecked()));
 		}
 		else if (i->IsFloat()) {
 			msg.add<float>(i->AsFloatUnchecked());			

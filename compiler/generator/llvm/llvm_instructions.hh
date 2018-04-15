@@ -22,6 +22,10 @@
 #ifndef _LLVM_INSTRUCTIONS_H
 #define _LLVM_INSTRUCTIONS_H
 
+#ifdef WIN32
+#pragma warning (disable: 4624 4291 4141)
+#endif
+
 using namespace std;
 
 #include <string>
@@ -34,68 +38,42 @@ using namespace std;
 #include "exception.hh"
 #include "global.hh"
 
+#if defined(LLVM_35) || defined(LLVM_38)
+#define __STDC_LIMIT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
+
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/Transforms/Scalar.h>
 #include <llvm-c/BitWriter.h>
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Support/Host.h>
 #include <llvm/Support/TargetSelect.h>
-
-#if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/IR/IRBuilder.h>
-    #include <llvm/IR/DataLayout.h>
-    #include <llvm/IR/DerivedTypes.h>
-    #include <llvm/IR/LLVMContext.h>
-    #include <llvm/IR/Module.h>
-#elif defined(LLVM_32)
-    #include <llvm/IRBuilder.h>
-#else
-    #include <llvm/Target/TargetData.h>
-    #include <llvm/Support/IRBuilder.h>
-    #include <llvm/DerivedTypes.h>
-    #include <llvm/LLVMContext.h>
-    #include <llvm/Module.h>
-#endif
-
-#if defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/IR/Verifier.h>
-#else
-    #include <llvm/Analysis/Verifier.h>
-#endif
-
-#if defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/ExecutionEngine/MCJIT.h>
-#else
-    #include <llvm/ExecutionEngine/JIT.h>
-#endif
-
-#if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/IR/PassManager.h>
-#else
-    #include <llvm/PassManager.h>
-#endif
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/DataLayout.h>
+#include <llvm/IR/DerivedTypes.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <llvm/IR/Verifier.h>
+#include <llvm/ExecutionEngine/MCJIT.h>
+#include <llvm/IR/PassManager.h>
 
 #if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #include <llvm/Bitcode/BitcodeWriter.h>
-    #include <llvm/Bitcode/BitcodeReader.h>
+#include <llvm/Bitcode/BitcodeWriter.h>
+#include <llvm/Bitcode/BitcodeReader.h>
 #else
-    #include <llvm/Bitcode/ReaderWriter.h>
+#include <llvm/Bitcode/ReaderWriter.h>
 #endif
 
-#ifdef _WIN32
-    #define LLVM_MALLOC "llvm_malloc"
-    #define LLVM_FREE   "llvm_free"
+#if defined(_WIN32) && defined(LLVM_MEM) 
+#define LLVM_MALLOC "llvm_malloc"
+#define LLVM_FREE   "llvm_free"
 #else
-    #define LLVM_MALLOC "malloc"
-    #define LLVM_FREE   "free"
+#define LLVM_MALLOC "malloc"
+#define LLVM_FREE   "free"
 #endif
 
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-    #define GET_ITERATOR(it) &(*(it))
-#else
-    #define GET_ITERATOR(it) it
-#endif
-
+#define GET_ITERATOR(it) &(*(it))
 #define VECTOR_OF_TYPES vector<llvm::Type*>
 #define MAP_OF_TYPES std::map<Typed::VarType, llvm::Type*>
 #define LLVM_TYPE llvm::Type*
@@ -291,10 +269,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         VECTOR_OF_TYPES fDSPFields;
         int fDSPFieldsCounter;
         string fPrefix;
-    #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
         DataLayout* fDataLayout;
-    #endif
-
+  
         // Meta structure creation
         llvm::PointerType* fStruct_Meta_ptr;
 
@@ -396,14 +372,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             // llvm_create_dsp block
             BasicBlock* entry_func_llvm_create_dsp = BasicBlock::Create(fModule->getContext(), "entry", func_llvm_create_dsp);
 
-        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             llvm::CallInst* call_inst1 = CallInst::Create(func_malloc, genInt64(fModule, fDataLayout->getTypeSizeInBits(dsp_type)), "", entry_func_llvm_create_dsp);
-        #else
-            // Dynamically computed object size (see http://nondot.org/sabre/LLVMNotes/SizeOf-OffsetOf-VariableSizedStructs.txt)
-            Value* ptr_size = GetElementPtrInst::Create(ConstantPointerNull::get(dsp_type_ptr), genInt64(fModule, 1), "ptr_size", entry_func_llvm_create_dsp);
-            llvm::CastInst* size_inst = new PtrToIntInst(ptr_size, fBuilder->getInt64Ty(), "size", entry_func_llvm_create_dsp);
-            CallInst* call_inst1 = CallInst::Create(func_malloc, size_inst, "", entry_func_llvm_create_dsp);
-        #endif
         
             call_inst1->setCallingConv(CallingConv::C);
             llvm::CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
@@ -612,9 +581,9 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
             fBuilder = new IRBuilder<>(fModule->getContext());
             
             initTypes(module);
-        #if defined(LLVM_35) || defined(LLVM_36)
+        #if defined(LLVM_35)
             fDataLayout = new DataLayout(*module->getDataLayout());
-        #elif defined(LLVM_34)  || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+        #else
             fDataLayout = new DataLayout(module->getDataLayout());
         #endif
         }
@@ -623,9 +592,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         {
             // External object not covered by Garbageable, so delete it here
             delete fBuilder;
-        #if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             delete fDataLayout;
-        #endif
         }
     
         LlvmValue getSize() { return fSize; }
@@ -1001,24 +968,23 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             GlobalVariable* llvm_key = addStringConstant(inst->fKey, type_def1);
             GlobalVariable* llvm_value = addStringConstant(inst->fValue, type_def2);
 
-         #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* const_string1 = fBuilder->CreateConstGEP2_32(type_def1, llvm_key, 0, 0);
-            Value* const_string2 = fBuilder->CreateConstGEP2_32(type_def2, llvm_value, 0, 0);
-         #else
+        #if defined(LLVM_35)
             Value* const_string1 = fBuilder->CreateConstGEP2_32(llvm_key, 0, 0);
             Value* const_string2 = fBuilder->CreateConstGEP2_32(llvm_value, 0, 0);
-         #endif
-            
+        #else
+            Value* const_string1 = fBuilder->CreateConstGEP2_32(type_def1, llvm_key, 0, 0);
+            Value* const_string2 = fBuilder->CreateConstGEP2_32(type_def2, llvm_value, 0, 0);
+        #endif
             // Generates access to zone
             Value* zone_ptr;
             if (inst->fZone == "0") {
                 zone_ptr = Constant::getNullValue((itfloat() == Typed::kFloat) ? fTypeMap[Typed::kFloat_ptr] : fTypeMap[Typed::kDouble_ptr]);
             } else {
                 int field_index = fDSPFieldsNames[inst->fZone];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-                zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
-            #else
+            #if defined(LLVM_35)
                 zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+            #else
+                zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
             #endif
             }
 
@@ -1043,11 +1009,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(inst->fName);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_name = addStringConstant(inst->fName, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
-       #else
+        #if defined(LLVM_35)
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_name, 0, 0);
-       #endif
+        #else
+            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_name, 0, 0);
+        #endif
             
             LlvmValue mth_index;
             switch (inst->fOrient) {
@@ -1056,7 +1022,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 case 2: mth_index = fUICallTable["openTabBox"]; break;
                 default:
                     stringstream error;
-                    error << "LLVM : Error in user interface generation" << inst->fOrient << endl;
+                    error << "ERROR : in user interface generation" << inst->fOrient << endl;
                     throw faustexception(error.str());
             }
 
@@ -1065,12 +1031,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             idx[1] = mth_index;
             Value* mth_ptr = fBuilder->CreateInBoundsGEP(ui, MAKE_IXD(idx, idx+2));
             LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
             Value* fun_args[] = { fUIInterface_ptr, const_string };
             CallInst* call_inst = fBuilder->CreateCall(mth, fun_args);
-        #else
-            CallInst* call_inst = fBuilder->CreateCall2(mth, fUIInterface_ptr, const_string);
-        #endif
             call_inst->setCallingConv(CallingConv::C);
         }
 
@@ -1102,12 +1064,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
-       #else
+        #if defined(LLVM_35)
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
-       #endif
-            
+        #else
+            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #endif
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
             idx[1] = fUICallTable[button_type];
@@ -1116,14 +1077,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+        #if defined(LLVM_35)
+            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+        #else
             Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
+        #endif
             Value* fun_args[] = { fUIInterface_ptr, const_string, zone_ptr };
             CallInst* call_inst = fBuilder->CreateCall(mth, fun_args);
-        #else
-            Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
-            CallInst* call_inst = fBuilder->CreateCall3(mth, fUIInterface_ptr, const_string, zone_ptr);
-        #endif
             call_inst->setCallingConv(CallingConv::C);
         }
 
@@ -1153,11 +1113,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
-       #else
+        #if defined(LLVM_35)
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
-       #endif
+        #else
+            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #endif
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
             idx[1] = fUICallTable[slider_type];
@@ -1166,12 +1126,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
-        #else
+        #if defined(LLVM_35)
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+        #else
+            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #endif
-
+      
             Value* idx2[7];
             idx2[0] = fUIInterface_ptr;
             idx2[1] = const_string;
@@ -1213,12 +1173,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             string name = replaceSpacesWithUnderscore(label);
             llvm::Type* type_def = 0;
             GlobalVariable* llvm_label = addStringConstant(label, type_def);
-       #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
-       #else
+        #if defined(LLVM_35)
             Value* const_string = fBuilder->CreateConstGEP2_32(llvm_label, 0, 0);
-       #endif
-            
+        #else
+            Value* const_string = fBuilder->CreateConstGEP2_32(type_def, llvm_label, 0, 0);
+        #endif
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
             idx[1] = fUICallTable[bargraph_type];
@@ -1227,12 +1186,12 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             // Generates access to zone
             int field_index = fDSPFieldsNames[zone];
-        #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
-        #else
+        #if defined(LLVM_35)
             Value* zone_ptr = fBuilder->CreateStructGEP(dsp, field_index);
+        #else
+            Value* zone_ptr = fBuilder->CreateStructGEP(0, dsp, field_index);
         #endif
-
+     
             Value* idx2[5];
             idx2[0] = fUIInterface_ptr;
             idx2[1] = const_string;
@@ -1352,7 +1311,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             if (!function) {  // Define it
 
                 // Special cases for min/max
-                if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
+                if (checkMinMax(inst->fName)) {
                     fCurValue = NULL;
                     return;
                 }
@@ -1378,7 +1337,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                                                     inst->fName, fModule);
                 function->setCallingConv(CallingConv::C);
                 
-            #if defined(LLVM_33) || defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
                 // In order for auto-vectorization to correctly work with vectorizable math functions
                 if (find(gMathLibTable.begin(), gMathLibTable.end(), inst->fName) != gMathLibTable.end()) {
                     function->setDoesNotAccessMemory();
@@ -1387,8 +1345,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                     //printf("inst->fName NO %s\n", inst->fName.c_str());
                 }
                 function->setDoesNotThrow();
-            #endif
-
+       
                 // Set name for function arguments
                 Function::arg_iterator args = function->arg_begin();
                 for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++) {
@@ -1499,10 +1456,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-                return fBuilder->CreateStructGEP(0, getDSP(), field_index);
-            #else
+            #if defined(LLVM_35)
                 return fBuilder->CreateStructGEP(getDSP(), field_index);
+            #else
+                return fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #endif
             } else if (named_address->fAccess & Address::kFunArgs) {
                 return genVectorLoad(NULL, getDSPArg(named_address->fName), size, false);
@@ -1672,10 +1629,10 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
-            #if defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-                Value* store_ptr = fBuilder->CreateStructGEP(0, getDSP(), field_index);
-            #else
+            #if defined(LLVM_35)
                 Value* store_ptr = fBuilder->CreateStructGEP(getDSP(), field_index);
+            #else
+                Value* store_ptr = fBuilder->CreateStructGEP(0, getDSP(), field_index);
             #endif
                 genVectorStore(store_ptr, fCurValue, inst->fValue->fSize, named_address->fAccess & Address::kVolatile, false);
             } else if (named_address->fAccess & Address::kFunArgs) {
@@ -1915,11 +1872,13 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 fun_args.push_back(fCurValue);
             }
 
-            if (startWith(inst->fName, "min")) {
+            if (checkMin(inst->fName) && fun_args.size() == 2) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kLT);
-            } else if (startWith(inst->fName, "max")) {
+            } else if (checkMax(inst->fName) && fun_args.size() == 2) {
                 fCurValue = generateFunPolymorphicMinMaxAux(fun_args[0], fun_args[1], inst->fSize, kGT);
-            } 
+            } else {
+                faustassert(false);
+            }
         }
     
         virtual void visit(FunCallInst* inst)
@@ -1927,11 +1886,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             // Don't know how to compile vectorized function call for now...
             if (inst->fSize > 1) {
                 stringstream error;
-                error << "LLVM : Error FunCallInst with fSize = " << inst->fSize << endl;
+                error << "ERROR : FunCallInst with fSize = " << inst->fSize << endl;
                 throw faustexception(error.str());
             }
             // Special case
-            if (startWith(inst->fName, "min") || startWith(inst->fName, "max")) {
+            if (checkMinMax(inst->fName)) {
                 generateFunPolymorphicMinMax(inst);
                 return;
             }
@@ -2362,15 +2321,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 // Inst result for comparison
                 return generateScalarSelect(opcode, comp_value, genInt32(fModule, 1, size), genInt32(fModule, 0, size), size);
             } else {
-            #if (defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) ||defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60))
                 LlvmValue value = fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
                 Instruction* inst = cast<Instruction>(value);
                 inst->setMetadata(LLVMContext::MD_fpmath, fBuilder->getDefaultFPMathTag());
                 inst->setFastMathFlags(fBuilder->getFastMathFlags());
                 return inst;
-            #else
-                return fBuilder->CreateBinOp((Instruction::BinaryOps)gBinOpTable[opcode]->fLLVMFloatInst, arg1, arg2);
-            #endif
             }
         }
 

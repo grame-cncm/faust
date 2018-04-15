@@ -1,4 +1,6 @@
-LIB := ../../compiler
+#LIB := ../../compiler
+LIB ?= ../../build/lib
+INC = ../../architecture
 FASTMATH = ../../architecture/faust/dsp/fastmath.cpp
 #FASTMATH = ../../architecture/faust/dsp/fastmath-light.cpp
 
@@ -9,23 +11,26 @@ prefix := $(DESTDIR)$(PREFIX)
 
 all: faustbench-llvm faustbench-llvm-interp dynamic-jack-gtk poly-dynamic-jack-gtk interp-tracer fastmath
 
-faustbench-llvm: faustbench-llvm.cpp
-	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
+faustbench-llvm: faustbench-llvm.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 faustbench-llvm.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm
 
-faustbench-llvm-interp: faustbench-llvm-interp.cpp
-	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o faustbench-llvm-interp
+faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm-interp
 
-dynamic-jack-gtk: dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0`  -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+
+dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
+	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp -I $(INC) $(LIB)/libfaustmachine.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-machine-jack-gtk
 
 poly-dynamic-jack-gtk: poly-dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 poly-dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -lOSCFaust -lHTTPDFaust -lmicrohttpd -framework CoreAudio -framework AudioUnit -framework CoreServices -framework CoreMIDI -framework CoreFoundation -o poly-dynamic-jack-gtk
 
 dynamic-jack-gtk-plugin: dynamic-jack-gtk.cpp
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -DINTERP_PLUGIN -I $(INC) $(LIB)/libfaustplugin.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -lz -lncurses -lpthread -o dynamic-jack-gtk-plugin
 
-interp-tracer: interp-tracer.cpp
-	$(CXX) -std=c++11 -O3 interp-tracer.cpp $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -lz -lncurses -lpthread -o interp-tracer
+interp-tracer: interp-tracer.cpp $(LIB)/libfaust.a
+	$(CXX) -std=c++11 -O3 interp-tracer.cpp -I $(INC) $(LIB)/libfaust.a `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs gtk+-2.0` -lz -lncurses -lpthread -o interp-tracer
 
 fastmath: $(FASTMATH)
 	clang++ -Ofast -emit-llvm -S $(FASTMATH) -o fastmath.ll
@@ -43,6 +48,7 @@ install:
 	cp faustbench.cpp $(prefix)/share/faust
 	cp faustbench $(prefix)/bin
 	([ -e dynamic-jack-gtk ]) && cp dynamic-jack-gtk $(prefix)/bin || echo dynamic-jack-gtk not found
+	([ -e dynamic-machine-jack-gtk ]) && cp dynamic-machine-jack-gtk $(prefix)/bin || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && cp poly-dynamic-jack-gtk $(prefix)/bin || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && cp interp-tracer $(prefix)/bin || echo interp-tracer not found
 	([ -e dynamic-jack-gtk-plugin ]) && cp dynamic-jack-gtk-plugin  $(prefix)/bin || echo dynamic-jack-gtk-plugin not found
@@ -55,6 +61,7 @@ clean:
 
 	([ -e dynamic-jack-gtk-plugin ]) && rm dynamic-jack-gtk-plugin || echo dynamic-jack-gtk-plugin not found
 	([ -e dynamic-jack-gtk ]) && rm dynamic-jack-gtk || echo dynamic-jack-gtk not found
+	([ -e dynamic-machine-jack-gtk ]) && rm dynamic-machine-jack-gtk || echo dynamic-machine-jack-gtk not found
 	([ -e poly-dynamic-jack-gtk ]) && rm poly-dynamic-jack-gtk || echo poly-dynamic-jack-gtk not found
 	([ -e interp-tracer ]) && rm interp-tracer || echo interp-tracer not found
 	([ -e faustbench-llvm ]) && rm faustbench-llvm || echo faustbench-llvm not found

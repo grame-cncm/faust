@@ -2,15 +2,19 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to alsa-gtk                 #
-#               (c) Grame, 2009-2011                                #
+#               Compiles Faust programs to jack-console             #
+#               (c) Grame, 2009-2018                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
 
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
+
 OSCDEFS=""
+ARCHFILE="jack-console.cpp"
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -21,8 +25,6 @@ OSCDEFS=""
 
 # PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
 # without having to configure CXX and CXXFLAGS
-CXX=g++
-CXXFLAGS=$MYGCCFLAGS
 
 for p in $@; do
 	if [ "$p" = -icc ]; then
@@ -51,7 +53,7 @@ for p in $@; do
     if [ "$p" = -icc ]; then
     	ignore=" "
     elif [ $p = "-osc" ]; then
-        OSCDEFS="-DOSCCTRL -lOSCFaust -lpthread"
+        OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
     elif [ $p = "-arch32" ]; then
@@ -73,12 +75,12 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a "$FAUSTLIB/jack-console.cpp" $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
 		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

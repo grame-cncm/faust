@@ -1,6 +1,5 @@
 /*
- faust2wasm
- Additional code: GRAME 2017
+ faust2wasm: GRAME 2017-2018
 */
  
 'use strict';
@@ -166,8 +165,9 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.ptr_size = 4;
         this.sample_size = 4;
         
-        this.factory = mydspProcessor.mydsp_instance.exports;
-        this.HEAP = mydspProcessor.mydsp_instance.exports.memory.buffer;
+        this.mydsp_instance = new WebAssembly.Instance(mydspProcessor.wasm_module, mydspProcessor.importObject);
+  	   	this.factory = this.mydsp_instance.exports;
+        this.HEAP = this.mydsp_instance.exports.memory.buffer;
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
 
@@ -424,9 +424,10 @@ mydspProcessor.importObject = {
 
 // Synchronously compile and instantiate the WASM module
 try {
-    let wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
-    mydspProcessor.mydsp_instance = new WebAssembly.Instance(wasm_module, mydspProcessor.importObject);
-    registerProcessor('mydsp', mydspProcessor);
+    if (mydspProcessor.wasm_module == undefined) {
+        mydspProcessor.wasm_module = new WebAssembly.Module(mydspProcessor.atob(getBase64Codemydsp()));
+        registerProcessor('mydsp', mydspProcessor);
+    }
 } catch (e) {
     console.log(e); console.log("Faust mydsp cannot be loaded or compiled");
 }

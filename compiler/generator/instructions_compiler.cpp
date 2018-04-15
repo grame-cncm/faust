@@ -459,7 +459,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     */
 	else {
         stringstream error;
-        error << "Error when compiling, unrecognized signal : " << ppsig(sig) << endl;
+        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
 	}
 	return InstBuilder::genNullInst();
@@ -500,7 +500,7 @@ ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 
 	} else {
         stringstream error;
-        error << "Error in sharing count (" << sharing << ") for " << *sig << endl;
+        error << "ERROR in sharing count (" << sharing << ") for " << *sig << endl;
         throw faustexception(error.str());
 	}
 }
@@ -610,7 +610,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
             return code;
         } else {
             stringstream error;
-            error << "No vector name for : " << ppsig(exp) << endl;
+            error << "ERROR : no vector name for : " << ppsig(exp) << endl;
             throw faustexception(error.str());
         }
     }
@@ -722,7 +722,7 @@ ValueInst* InstructionsCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
     list<ValueInst*> args_value;
     list<NamedTyped*> args_types;
  
-    for (int i = 0; i< ffarity(ff); i++) {
+    for (int i = 0; i < ffarity(ff); i++) {
         stringstream num; num << i;
         Tree parameter = nth(largs, i);
         // Reversed...
@@ -811,7 +811,7 @@ ValueInst* InstructionsCompiler::generateTable(Tree sig, Tree tsize, Tree conten
 
 	if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in InstructionsCompiler::generateTable() : "
+        error << "ERROR in generateTable : "
 			 << *tsize
 			 << " is not an integer expression "
 			 << endl;
@@ -886,7 +886,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
 
     if (!isSigInt(tsize, &size)) {
 	    stringstream error;
-        error << "error in InstructionsCompiler::generateStaticTable() : "
+        error << "ERROR in generateStaticTable : "
 			  << *tsize
 			  << " is not an integer expression "
 			  << endl;
@@ -1579,13 +1579,11 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
 
-	} else if (isUiWidget(t, label, varname, sig)) {
-
-		generateWidgetCode(label, varname, sig);
-
-	} else {
+    } else if (isUiWidget(t, label, varname, sig)) {
+        generateWidgetCode(label, varname, sig);
+    } else {
         throw faustexception("ERROR in user interface generation\n");
-	}
+    }
 }
 
 /**
@@ -1703,9 +1701,7 @@ void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree full
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    //string pathlabel = pathname+unquote(label);
-	string pathlabel = pathname+label;
+    string pathlabel = pathname + label;
 
 	if (isSigButton(sig, path)) 					{
 		fContainer->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));

@@ -79,9 +79,10 @@ storage of trees.
 #include <stdio.h>
 #include <string.h>
 #include <limits.h>
-#include "tree.hh"
 #include <fstream>
 #include <cstdlib>
+
+#include "tree.hh"
 #include "exception.hh"
 
 #define ERROR(s,t) { throw faustexception(s); }
@@ -91,7 +92,7 @@ bool CTree::gDetails = false;
 unsigned int CTree::gVisitTime = 0;
 
 // Constructor : add the tree to the hash table
-CTree::CTree (unsigned int hk, const Node& n, const tvec& br) 
+CTree::CTree (size_t hk, const Node& n, const tvec& br) 
 	:	fNode(n), 
 		fType(0),
 		fHashKey(hk), 
@@ -106,10 +107,10 @@ CTree::CTree (unsigned int hk, const Node& n, const tvec& br)
 }
 
 // Destructor : remove the tree form the hash table
-CTree::~CTree () 
+CTree::~CTree()
 {
-	int		i = fHashKey % kHashTableSize;
-	Tree	t = gHashTable[i];
+	int i = fHashKey % kHashTableSize;
+	Tree t = gHashTable[i];
 	
 	//printf("Delete of "); this->print(); printf("\n");
 	if (t == this) {
@@ -126,14 +127,14 @@ CTree::~CTree ()
 }
 
 // equivalence 
-bool CTree::equiv (const Node& n, const tvec& br) const
+bool CTree::equiv(const Node& n, const tvec& br) const
 {
 	return (fNode == n) && (fBranch == br);
 }
 
-unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
+size_t CTree::calcTreeHash(const Node& n, const tvec& br)
 {
-	unsigned int 			hk = n.type() ^ n.getInt();
+	size_t hk = size_t(n.getPointer());
 	tvec::const_iterator  b = br.begin();
 	tvec::const_iterator  z = br.end();
 	
@@ -146,12 +147,12 @@ unsigned int CTree::calcTreeHash( const Node& n, const tvec& br )
 
 Tree CTree::make(const Node& n, int ar, Tree* tbl)
 {
-	tvec	br(ar); 
+	tvec br(ar);
 	
 	for (int i=0; i<ar; i++)  br[i] = tbl[i];
 	
-	unsigned int 	hk  = calcTreeHash(n, br);
-	Tree	t = gHashTable[hk % kHashTableSize];
+	size_t hk = calcTreeHash(n, br);
+	Tree t = gHashTable[hk % kHashTableSize];
 	
 	while (t && !t->equiv(n, br)) {
 		t = t->fNext;
@@ -161,8 +162,8 @@ Tree CTree::make(const Node& n, int ar, Tree* tbl)
 
 Tree CTree::make(const Node& n, const tvec& br)
 {
-	unsigned int 	hk  = calcTreeHash(n, br);
-	Tree	t = gHashTable[hk % kHashTableSize];
+	size_t hk = calcTreeHash(n, br);
+	Tree t = gHashTable[hk % kHashTableSize];
 	
 	while (t && !t->equiv(n, br)) {
 		t = t->fNext;
@@ -170,7 +171,7 @@ Tree CTree::make(const Node& n, const tvec& br)
 	return (t) ? t : new CTree(hk, n, br);
 }
 
-ostream& CTree::print (ostream& fout) const
+ostream& CTree::print(ostream& fout) const
 {
     if (gDetails) {
         // print the adresse of the tree
@@ -189,7 +190,7 @@ ostream& CTree::print (ostream& fout) const
 	return fout;
 }
 
-void CTree::control ()
+void CTree::control()
 {
 	printf("\ngHashTable Content :\n\n");
 	for (int i = 0; i < kHashTableSize; i++) {
@@ -207,65 +208,65 @@ void CTree::control ()
 	printf("\nEnd gHashTable\n");
 }
 
-void CTree::init ()
+void CTree::init()
 {
     memset(gHashTable, 0, sizeof(Tree) * kHashTableSize);
 }
 
 // if t has a node of type int, return it otherwise error
-int tree2int (Tree t)
+int tree2int(Tree t)
 {
-	double	x;
-	int		i;
+	double x;
+	int i;
 
 	if (isInt(t->node(), &i)) {
 		// nothing to do
 	} else if (isDouble(t->node(), &x)) {
 		i = int(x);
 	} else {
-		ERROR("the node of the tree is not an int nor a float\n", t);
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not an int nor a float)\n", t);
 	}
 	return i;
 }	
     
 // if t has a node of type float, return it otherwise error
-double tree2float (Tree t)
+double tree2float(Tree t)
 {
-    double   x;
-    int     i;
+    double x;
+    int i;
 
     if (isInt(t->node(), &i)) {
         x = double(i);
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("the node of the tree is not a float nor an int\n", t);
+        ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a float nor an int)\n", t);
     }
     return x;
 }   
     
 // if t has a node of type float, return it as a double otherwise error
-double tree2double (Tree t)
+double tree2double(Tree t)
 {
-    double   x;
-    int     i;
+    double x;
+    int i;
 
     if (isInt(t->node(), &i)) {
         x = double(i);
     } else if (isDouble(t->node(), &x)) {
         //nothing to do
     } else {
-        ERROR("the node of the tree is not a float nor an int\n", t);
+        ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a float nor an int)\n", t);
     }
     return double(x);
 }   
 	
 // if t has a node of type symbol, return its name otherwise error		
-const char* tree2str (Tree t)
+const char* tree2str(Tree t)
 {
 	Sym s;
 	if (!isSym(t->node(), &s)) {
-		ERROR("the node of the tree is not a symbol\n", t);
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a symbol)\n", t);
 	}
 	return name(s);
 }	
@@ -276,11 +277,11 @@ string tree2quotedstr (Tree t)
 }
 
 // if t has a node of type ptr, return it otherwise error			
-void* tree2ptr (Tree t)
+void* tree2ptr(Tree t)
 {
-	void*	x;
-	if (! isPointer(t->node(), &x)) {
-		ERROR("the node of the tree is not a pointer\n", t);
+	void* x;
+	if (!isPointer(t->node(), &x)) {
+		ERROR("ERROR : the parameter must be a constant value known at compile time (the node of the tree is not a pointer)\n", t);
 	}
 	return x;
 }	
@@ -292,13 +293,13 @@ bool isTree (const Tree& t, const Node& n)
 }
 */
 
-// Si ca ne pose pas de probl�es, c'est plus pratique	
-bool isTree (const Tree& t, const Node& n) 
+// Si ca ne pose pas de problemes, c'est plus pratique
+bool isTree(const Tree& t, const Node& n)
 { 
 	return (t->node() == n);
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a)
+bool isTree(const Tree& t, const Node& n, Tree& a)
 {
     if ((t->node() == n) && (t->arity() == 1)) {
         a=t->branch(0);
@@ -308,7 +309,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a)
     }
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b)
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b)
 { 
 	if ((t->node() == n) && (t->arity() == 2)) { 
 		a=t->branch(0); 
@@ -319,7 +320,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b)
 	}
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c) 
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c)
 { 
 	if ((t->node() == n) && (t->arity() == 3)) { 
 		a=t->branch(0); 
@@ -331,7 +332,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c)
 	}
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d)  
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d)
 { 
 	if ((t->node() == n) && (t->arity() == 4)) { 
 		a=t->branch(0); 
@@ -344,7 +345,7 @@ bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d)
 	}
 }
 
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e)  
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e)
 { 
 	if ((t->node() == n) && (t->arity() == 5)) { 
 		a=t->branch(0); 

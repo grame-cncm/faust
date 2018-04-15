@@ -3,8 +3,14 @@
     Receives the messages from the SimpleSend.cpp example.
 */
 
-#include <string.h>
 #include <iostream>
+#include <cstring>
+
+#if defined(__BORLANDC__) // workaround for BCB4 release build intrinsics bug
+namespace std {
+using ::__strcmp__;  // avoid error: E2316 '__strcmp__' is not a member of 'std'.
+}
+#endif
 
 #include "osc/OscReceivedElements.h"
 #include "osc/OscPacketListener.h"
@@ -19,11 +25,13 @@ protected:
     virtual void ProcessMessage( const osc::ReceivedMessage& m, 
 				const IpEndpointName& remoteEndpoint )
     {
+        (void) remoteEndpoint; // suppress unused parameter warning
+
         try{
             // example of parsing single messages. osc::OsckPacketListener
             // handles the bundle traversal.
             
-            if( strcmp( m.AddressPattern(), "/test1" ) == 0 ){
+            if( std::strcmp( m.AddressPattern(), "/test1" ) == 0 ){
                 // example #1 -- argument stream interface
                 osc::ReceivedMessageArgumentStream args = m.ArgumentStream();
                 bool a1;
@@ -35,7 +43,7 @@ protected:
                 std::cout << "received '/test1' message with arguments: "
                     << a1 << " " << a2 << " " << a3 << " " << a4 << "\n";
                 
-            }else if( strcmp( m.AddressPattern(), "/test2" ) == 0 ){
+            }else if( std::strcmp( m.AddressPattern(), "/test2" ) == 0 ){
                 // example #2 -- argument iterator interface, supports
                 // reflection for overloaded messages (eg you can call 
                 // (*arg)->IsBool() to check if a bool was passed etc).
@@ -61,6 +69,9 @@ protected:
 
 int main(int argc, char* argv[])
 {
+    (void) argc; // suppress unused parameter warnings
+    (void) argv; // suppress unused parameter warnings
+
     ExamplePacketListener listener;
     UdpListeningReceiveSocket s(
             IpEndpointName( IpEndpointName::ANY_ADDRESS, PORT ),

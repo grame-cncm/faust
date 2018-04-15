@@ -37,17 +37,17 @@
 #if defined(HTTPCTRL) && defined(QRCODECTRL) 
 
 #ifdef _WIN32
-#include <winsock2.h>
-#undef min
-#undef max
+# include <winsock2.h>
+# undef min
+# undef max
+# pragma warning (disable: 4100)
 #else
-#include <netdb.h>
-#include <arpa/inet.h>
-#include <unistd.h>
+# include <netdb.h>
+# include <arpa/inet.h>
+# include <unistd.h>
 #endif
 
 #include <QtNetwork>
-#include <qrencode.h>
 
 #endif
 
@@ -65,7 +65,12 @@
 
 #include "faust/gui/GUI.h"
 #include "faust/gui/ValueConverter.h"
+#include "faust/gui/SimpleParser.h"
 #include "faust/gui/MetaDataUI.h"
+
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
+#include "faust/gui/qrcodegen.h"
+#endif
 
 // for compatibility
 #define minValue minimum
@@ -80,9 +85,11 @@
 //   improved for Qt4 by David Garcia Garzon.
 //
 
-#define DIAL_MIN      (0.25 * M_PI)
-#define DIAL_MAX      (1.75 * M_PI)
-#define DIAL_RANGE    (DIAL_MAX - DIAL_MIN)
+#define DIAL_MIN       (0.25 * M_PI)
+#define DIAL_MAX       (1.75 * M_PI)
+#define DIAL_RANGE     (DIAL_MAX - DIAL_MIN)
+#define DIAL_WRAPPING  false
+
 
 class qsynthDialVokiStyle : public QCommonStyle
 {
@@ -91,7 +98,7 @@ public:
 	qsynthDialVokiStyle() {};
 	virtual ~qsynthDialVokiStyle() {};
     
-    virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex *opt, QPainter *p, const QWidget *widget = 0) const
+    virtual void drawComplexControl(ComplexControl cc, const QStyleOptionComplex* opt, QPainter* p, const QWidget* widget = NULL) const
 	{
 		if (cc != QStyle::CC_Dial)
 		{
@@ -199,47 +206,47 @@ public:
         
 		// Shadowing...
         
-		// Knob shadow...
-		if (knobBorderWidth > 0) {
-			QLinearGradient inShadow(xcenter - side / 4, ycenter - side / 4,
+        // Knob shadow...
+        if (knobBorderWidth > 0) {
+            QLinearGradient inShadow(xcenter - side / 4, ycenter - side / 4,
                                      xcenter + side / 4, ycenter + side / 4);
-			inShadow.setColorAt(0.0, borderColor.light());
-			inShadow.setColorAt(1.0, borderColor.dark());
-			p->setPen(QPen(QBrush(inShadow), knobBorderWidth * 7 / 8));
-			p->drawEllipse(xcenter - side / 2 + indent,
+            inShadow.setColorAt(0.0, borderColor.light());
+            inShadow.setColorAt(1.0, borderColor.dark());
+            p->setPen(QPen(QBrush(inShadow), knobBorderWidth * 7 / 8));
+            p->drawEllipse(xcenter - side / 2 + indent,
                            ycenter - side / 2 + indent,
                            side - 2 * indent, side - 2 * indent);
-		}
-        
-		// Scale shadow...
-		QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
+        }
+
+        // Scale shadow...
+        QLinearGradient outShadow(xcenter - side / 3, ycenter - side / 3,
                                   xcenter + side / 3, ycenter + side / 3);
-		outShadow.setColorAt(0.0, background.dark().dark());
-		outShadow.setColorAt(1.0, background.light().light());
-		p->setPen(QPen(QBrush(outShadow), scaleShadowWidth));
-		p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
+        outShadow.setColorAt(0.0, background.dark().dark());
+        outShadow.setColorAt(1.0, background.light().light());
+        p->setPen(QPen(QBrush(outShadow), scaleShadowWidth));
+        p->drawArc(xcenter - side / 2 + scaleShadowWidth / 2,
                    ycenter - side / 2 + scaleShadowWidth / 2,
                    side - scaleShadowWidth, side - scaleShadowWidth, -45 * 16, 270 * 16);
-        
-		// Pointer notch...
-   	double hyp = double(side) / 2.0;
-		double len = hyp - indent - 1;
-        
-		double x = xcenter - len * sin(angle);
-		double y = ycenter + len * cos(angle);
-        
-		QColor pointerColor = pal.dark().color();
-		pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
-		pen.setWidth(pointerWidth + 2);
-		p->setPen(pen);
-		p->drawLine(QLineF(xcenter, ycenter, x, y));
-		pen.setColor((dial->state & State_Enabled) ? pointerColor.light() : pointerColor.light(140));
-		pen.setWidth(pointerWidth);
-		p->setPen(pen);
-		p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
-        
-		// done
-		p->restore();
+
+        // Pointer notch...
+        double hyp = double(side) / 2.0;
+        double len = hyp - indent - 1;
+
+        double x = xcenter - len * sin(angle);
+        double y = ycenter + len * cos(angle);
+
+        QColor pointerColor = pal.dark().color();
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.dark(140) : pointerColor);
+        pen.setWidth(pointerWidth + 2);
+        p->setPen(pen);
+        p->drawLine(QLineF(xcenter, ycenter, x, y));
+        pen.setColor((dial->state & State_Enabled) ? pointerColor.light() : pointerColor.light(140));
+        pen.setWidth(pointerWidth);
+        p->setPen(pen);
+        p->drawLine(QLineF(xcenter - 1, ycenter - 1, x - 1, y - 1));
+
+        // done
+        p->restore();
 	}
     
 };
@@ -320,10 +327,10 @@ protected:
             QColor c(40, 160, 40, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-10);
             fBrush.push_back(QBrush(g));
@@ -333,10 +340,10 @@ protected:
             QColor c(160, 220, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-6);
             fBrush.push_back(QBrush(g));
@@ -346,10 +353,10 @@ protected:
             QColor c(220, 220, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(-3);
             fBrush.push_back(QBrush(g));
@@ -359,10 +366,10 @@ protected:
             QColor c(240, 160, 20, alpha);
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(0);
             fBrush.push_back(QBrush(g));
@@ -372,10 +379,10 @@ protected:
             QColor c(240,  0, 20, alpha);   // ColorOver
             QLinearGradient g(0,0,x,1-x);
             g.setCoordinateMode(QGradient::ObjectBoundingMode);
-            g.setColorAt(0.0,   c.lighter());
-            g.setColorAt(0.2,   c);
-            g.setColorAt(0.8,   c);
-            g.setColorAt(0.9,   c.darker(120));
+            g.setColorAt(0.0, c.lighter());
+            g.setColorAt(0.2, c);
+            g.setColorAt(0.8, c);
+            g.setColorAt(0.9, c.darker(120));
             
             fLevel.push_back(+10);
             fBrush.push_back(QBrush(g));
@@ -409,7 +416,7 @@ protected:
     /**
      * Draw the LED using a color depending of its value in dB
      */
-    virtual void paintEvent ( QPaintEvent *)
+    virtual void paintEvent(QPaintEvent*)
     {
         QPainter painter(this);
         painter.drawRect(rect());
@@ -425,7 +432,7 @@ protected:
         } else {
             
             // find the minimal level > value
-            int l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
+            size_t l = fLevel.size()-1; while (fValue < fLevel[l] && l > 0) l--;
             painter.fillRect(rect(), fBrush[l]);
         }
     }
@@ -438,7 +445,7 @@ public:
         initLevelsColors(1);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(16, 8);
     }
@@ -452,7 +459,7 @@ class LED : public AbstractDisplay
     
 protected:
     
-     QColor  fColor;
+     QColor fColor;
     
     /**
      * Draw the LED using a transparency depending of its value
@@ -475,7 +482,7 @@ public:
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(16, 8);
     }
@@ -489,7 +496,7 @@ class linBargraph : public AbstractDisplay
     
 protected:
     
-    QBrush  fBrush;
+    QBrush fBrush;
     
     /**
      * No scale implemented yet
@@ -534,10 +541,10 @@ public:
         int x = int(height() < width());    // gradient direction
         QLinearGradient g(0,0,x,1-x);
         g.setCoordinateMode(QGradient::ObjectBoundingMode);
-        g.setColorAt(0.0,   c.lighter());
-        g.setColorAt(0.2,   c);
-        g.setColorAt(0.8,   c);
-        g.setColorAt(0.9,   c.darker(120));
+        g.setColorAt(0.0, c.lighter());
+        g.setColorAt(0.2, c);
+        g.setColorAt(0.8, c);
+        g.setColorAt(0.9, c.darker(120));
         fBrush = QBrush(g);
     }
 };
@@ -555,7 +562,7 @@ public:
         setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Preferred);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(16, 128);
     }
@@ -594,7 +601,7 @@ protected:
     // according to the vertical or horizontal direction
     // in dbVerticalBargraph and dbHorizontalBargraph
     virtual void paintMark(QPainter* painter, FAUSTFLOAT v) const = 0;
-    virtual int paintSegment (QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const = 0;
+    virtual int paintSegment(QPainter* painter, int pos, FAUSTFLOAT v, const QBrush& b) const = 0;
     
     /**
      * Draw the logarithmic scale
@@ -614,10 +621,10 @@ protected:
      */
     void paintContent(QPainter* painter) const
     {
-        int l = fLevel.size();
+        size_t l = fLevel.size();
         
         FAUSTFLOAT p = -1;   // fake value indicates to start from border
-        int n = 0;
+        size_t n = 0;
         // paint all the full segments < fValue
         for (n = 0; (n < l) && (fValue > fLevel[n]); n++) {
             p = paintSegment(painter, p, fLevel[n], fBrush[n]);
@@ -629,7 +636,7 @@ protected:
         painter->drawRect(0,0,width(),height());
     }
     
-    virtual void paintEvent (QPaintEvent *)
+    virtual void paintEvent(QPaintEvent *)
     {
         QPainter painter(this);
         paintScale(&painter);
@@ -662,7 +669,7 @@ protected:
         FAUSTFLOAT s0 = fScaleMin;
         FAUSTFLOAT s1 = fScaleMax;
         FAUSTFLOAT sx = dB2Scale(dB);
-        int    h = height();
+        int h = height();
         return h - h*(s0-sx)/(s0-s1);
     }
     
@@ -756,7 +763,7 @@ public:
         initLevelsColors(0);
     }
     
-    virtual QSize sizeHint () const
+    virtual QSize sizeHint() const
     {
         return QSize(256, 18);
     }
@@ -788,7 +795,7 @@ public:
     
 	QAbstractButton* 	fButton;
     
-	uiButton (GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
+	uiButton(GUI* ui, FAUSTFLOAT* zone, QAbstractButton* b) : uiItem(ui, zone), fButton(b) {}
     
 	virtual void reflectZone()
 	{
@@ -815,13 +822,13 @@ public:
     
 	QCheckBox* 	fCheckBox;
     
-	uiCheckButton (GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
+	uiCheckButton(GUI* ui, FAUSTFLOAT* zone, QCheckBox* b) : uiItem(ui, zone), fCheckBox(b) {}
     
 	virtual void reflectZone()
 	{
 		FAUSTFLOAT v = *fZone;
 		fCache = v;
-		fCheckBox->setCheckState( (v < 0.5) ? Qt::Unchecked : Qt::Checked );
+		fCheckBox->setCheckState((v < 0.5) ? Qt::Unchecked : Qt::Checked);
 	}
     
     public slots :
@@ -847,7 +854,7 @@ protected:
     
 public:
     
-    uiSlider (GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
+    uiSlider(GUI* ui, FAUSTFLOAT* zone, QAbstractSlider* slider, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step, MetaDataUI::Scale scale)
     : uiItem(ui, zone), fSlider(slider), fCur(cur), fMin(lo), fMax(hi), fStep(step)
     {
 		// select appropriate converter according to scale mode
@@ -861,9 +868,9 @@ public:
         *fZone = fCur;
     }
     
-	~uiSlider() 
+	virtual ~uiSlider()
 	{
-		if (fConverter) delete fConverter;
+		delete fConverter;
 	}
     
     virtual void reflectZone()
@@ -874,7 +881,10 @@ public:
     }
     
     public slots :
-    void setValue(int v)		{ modifyZone(fConverter->ui2faust(v)); }
+    void setValue(int v)
+    {
+        modifyZone(fConverter->ui2faust(v));
+    }
 };
 
 
@@ -893,7 +903,7 @@ protected:
     FAUSTFLOAT* fZone;
     
 public:
-    explicit ZoneSetter(FAUSTFLOAT v, FAUSTFLOAT* z, QObject *parent = 0):
+    explicit ZoneSetter(FAUSTFLOAT v, FAUSTFLOAT* z, QObject* parent = NULL):
     QObject(parent), fValue(v), fZone(z)
     {}
     
@@ -901,7 +911,7 @@ public:
     void set(bool)
     {
         *fZone = fValue;
-        //        qDebug() << "setting " << fValue << " --> " << fZone;
+        // qDebug() << "setting " << fValue << " --> " << fZone;
     }
 };
 
@@ -923,7 +933,7 @@ protected:
     
 public:
     
-    uiRadioButtons (GUI* ui, FAUSTFLOAT* z, const char* label,
+    uiRadioButtons(GUI* ui, FAUSTFLOAT* z, const char* label,
                     FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
                     bool vertical, const char* mdescr, QWidget* parent)
     : QGroupBox(label, parent),  uiItem(ui, z)
@@ -933,7 +943,7 @@ public:
         
         if (parseMenuList(mdescr, names, values)) {
             
-            QBoxLayout*    l;
+            QBoxLayout* l;
             if (vertical) {
                 l = new QVBoxLayout(this);
             } else {
@@ -941,7 +951,7 @@ public:
             }
             l->setSpacing(5);
             
-            QRadioButton*   defaultbutton = 0;
+            QRadioButton*   defaultbutton = NULL;
             double          mindelta = FLT_MAX;
             
             for (unsigned int i = 0; i < names.size(); i++) {
@@ -1006,7 +1016,7 @@ protected:
     
 public:
     
-    uiMenu (GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
+    uiMenu(GUI* ui, FAUSTFLOAT* z, const char* /*label*/,
             FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT /*step*/,
             const char* mdescr, QWidget* parent)
     : QComboBox(parent),  uiItem(ui, z)
@@ -1021,7 +1031,7 @@ public:
             
             for (unsigned int i = 0; i < names.size(); i++) {
                 double v = values[i];
-                if ( (v >= lo) && (v <= hi) ) {
+                if ((v >= lo) && (v <= hi)) {
                     
                     // It is a valid value : add corresponding menu item
                     addItem(QString(names[i].c_str()), v);
@@ -1048,8 +1058,8 @@ public:
         fCache = v;
         
         // search closest value
-        int             defaultitem = -1;
-        double          mindelta = FLT_MAX;
+        int defaultitem = -1;
+        double mindelta = FLT_MAX;
         
         for (unsigned int i=0; i<fValues.size(); i++) {
             double delta = fabs(fValues[i]-v);
@@ -1079,11 +1089,11 @@ class uiBargraph : public QObject, public uiItem
     
 protected:
     
-    AbstractDisplay*   fBar;
+    AbstractDisplay* fBar;
     
 public:
     
-    uiBargraph (GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    uiBargraph(GUI* ui, FAUSTFLOAT* zone, AbstractDisplay* bar, FAUSTFLOAT lo, FAUSTFLOAT hi)
     : uiItem(ui, zone), fBar(bar)
     {
         fBar->setRange(lo, hi);
@@ -1118,7 +1128,7 @@ protected:
     
 public:
     
-	uiNumEntry (GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
+	uiNumEntry(GUI* ui, FAUSTFLOAT* zone, QDoubleSpinBox* numEntry, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step)
     : uiItem(ui, zone), fNumEntry(numEntry), fCur(cur), fMin(lo), fMax(hi), fStep(step)
 	{
 		fDecimals = (fStep >= 1.0) ? 0 : int(0.5+log10(1.0/fStep));
@@ -1153,6 +1163,38 @@ public:
  
  *******************************************************************************
  *******************************************************************************/
+#if defined(HTTPCTRL) && defined(QRCODECTRL)
+// a simple utility to retrieve an abstract qr code
+// introduced to remove the dependency to qrencode
+static QImage getQRCode(const QString& url, int padding)
+{
+	qrcodegen_Ecc errCorLvl = qrcodegen_Ecc_HIGH; //qrcodegen_Ecc_MEDIUM qrcodegen_Ecc_LOW Error correction level
+	uint8_t qrcode[qrcodegen_BUFFER_LEN_MAX];
+	uint8_t tempBuffer[qrcodegen_BUFFER_LEN_MAX];
+	if (!qrcodegen_encodeText(url.toStdString().c_str(), tempBuffer, qrcode, errCorLvl, qrcodegen_VERSION_MIN, qrcodegen_VERSION_MAX, qrcodegen_Mask_AUTO, true))
+		return QImage(1, 1, QImage::Format_RGB32);
+
+	int size = qrcodegen_getSize(qrcode);
+	QRgb colors[2];
+	colors[0] = qRgb(255, 255, 255); 	// 0 is white
+	colors[1] = qRgb(0, 0, 0); 			// 1 is black
+	// build the QRCode image
+	QImage image(size+2*padding, size+2*padding, QImage::Format_RGB32);
+	// clear the image
+	for (int y=0; y<size + 2*padding; y++) {
+		for (int x=0; x<size + 2*padding; x++) {
+			image.setPixel(x, y, colors[0]);
+		}
+	}
+	// copy the qrcode inside
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			image.setPixel(x+padding, y+padding, colors[qrcodegen_getModule(qrcode, x, y) & 1]);
+		}
+	}
+	return image;
+}
+#endif
 
 class QTGUI : public QWidget, public GUI, public MetaDataUI
 {
@@ -1171,7 +1213,7 @@ protected:
 	bool isTabContext()
 	{
 		//return fGroupStack.empty() || ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
-		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != 0));
+		return ((!fGroupStack.empty()) && (dynamic_cast<QTabWidget*>(fGroupStack.top()) != NULL));
 	}
     
     /**
@@ -1270,7 +1312,7 @@ protected:
                 pal.setColor(box->backgroundRole(), QColor::fromRgb(150, 150, 150));
                 box->setPalette(pal);
                 
-            } else  if (label.size()>0) {
+            } else if (label.size()>0) {
                 QGroupBox* group = new QGroupBox();
                 group->setTitle(label.c_str());
                 box = group;
@@ -1324,7 +1366,7 @@ public:
         QWidget::show();
         
         fMainWindow = NULL;        
-        fTimer = 0;
+        fTimer = NULL;
     }
 
     QTGUI():QWidget()
@@ -1333,12 +1375,12 @@ public:
         setLayout(fGeneralLayout);
         QWidget::show();
 
-        fTimer = 0;
+        fTimer = NULL;
 
         fMainWindow = new QMainWindow;
-        QScrollArea *sa = new QScrollArea( fMainWindow );
+        QScrollArea *sa = new QScrollArea(fMainWindow);
         
-        sa->setWidgetResizable( true );
+        sa->setWidgetResizable(true);
         sa->setWidget(this);
         
         fMainWindow->setCentralWidget(sa);
@@ -1404,7 +1446,7 @@ public:
         url += QString::number(portnum);
         displayQRCode(url, NULL);
     }
-    
+	
     void displayQRCode(const QString& url, QMainWindow* parent = NULL)
     {
         if (parent == NULL) {
@@ -1416,32 +1458,35 @@ public:
         //    QTextEdit* httpdText = new QTextEdit(centralWidget);
         QTextBrowser* myBro = new QTextBrowser(centralWidget);
         
-        //Construction of the flashcode
+//        //Construction of the flashcode
+//        const int padding = 5;
+//        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
+//
+//        //   qDebug() << "QRcode width = " << qrc->width;
+//
+//        QRgb colors[2];
+//        colors[0] = qRgb(255, 255, 255); 	// 0 is white
+//        colors[1] = qRgb(0, 0, 0); 			// 1 is black
+//
+//        // build the QRCode image
+//        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
+//        // clear the image
+//        for (int y = 0; y < qrc->width+2*padding; y++) {
+//            for (int x = 0; x < qrc->width+2*padding; x++) {
+//                image.setPixel(x, y, colors[0]);
+//            }
+//        }
+//        // copy the qrcode inside
+//        for (int y = 0; y < qrc->width; y++) {
+//            for (int x = 0; x < qrc->width; x++) {
+//                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
+//            }
+//        }
+		
         const int padding = 5;
-        QRcode* qrc = QRcode_encodeString(url.toLatin1().data(), 0, QR_ECLEVEL_H, QR_MODE_8, 1);
-        
-        //   qDebug() << "QRcode width = " << qrc->width;
-        
-        QRgb colors[2];
-        colors[0] = qRgb(255, 255, 255); 	// 0 is white
-        colors[1] = qRgb(0, 0, 0); 			// 1 is black
-        
-        // build the QRCode image
-        QImage image(qrc->width+2*padding, qrc->width+2*padding, QImage::Format_RGB32);
-        // clear the image
-        for (int y = 0; y < qrc->width+2*padding; y++) {
-            for (int x = 0; x < qrc->width+2*padding; x++) {
-                image.setPixel(x, y, colors[0]);
-            }
-        }
-        // copy the qrcode inside
-        for (int y = 0; y < qrc->width; y++) {
-            for (int x = 0; x < qrc->width; x++) {
-                image.setPixel(x+padding, y+padding, colors[qrc->data[y*qrc->width+x]&1]);
-            }
-        }
-        
-        QImage big = image.scaledToWidth(qrc->width*8);
+		QImage image = getQRCode (url, padding);
+//        QImage big = image.scaledToWidth(qrc->width*8);
+        QImage big = image.scaledToWidth(image.width() * 8);
         QLabel* myLabel = new QLabel(centralWidget);
         
         fQrCode = QPixmap::fromImage(big);
@@ -1460,7 +1505,7 @@ public:
         myBro->setOpenExternalLinks(true);
         myBro->setHtml(text);
         myBro->setAlignment(Qt::AlignCenter);
-        myBro->setFixedWidth(qrc->width*8);
+        myBro->setFixedWidth(big.width());
         //    myBro->setFixedHeight(myBro->minimumHeight());
         
         QGridLayout *mainLayout = new QGridLayout;
@@ -1487,7 +1532,7 @@ public:
     
     virtual bool run()
     {
-        if (fTimer == 0) {
+        if (!fTimer) {
             fTimer = new QTimer(this);
             QObject::connect(fTimer, SIGNAL(timeout()), this, SLOT(update()));
             fTimer->start(100);
@@ -1501,7 +1546,7 @@ public:
     
     virtual void stop()
 	{
-		if (fTimer != 0) {
+		if (fTimer) {
             fTimer->stop();
             delete fTimer;
             fTimer = NULL;
@@ -1634,40 +1679,44 @@ public:
 	//
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
     
-	virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		openVerticalBox(label);
-		QAbstractSlider* 	w = new QDial(); //qsynthKnob();
-        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		w->setStyle(new qsynthDialVokiStyle());
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-        
+    virtual void addVerticalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        openVerticalBox(label);
+        QDial* w = new QDial(); //qsynthKnob();
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        w->setStyle(new qsynthDialVokiStyle());
+        w->setFocusPolicy(Qt::StrongFocus);
+        w->setWrapping(DIAL_WRAPPING);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+
         // compute the size of the knob+display
-        int width  = int(64*pow(2,fGuiSize[zone]));
+        int width = int(64*pow(2,fGuiSize[zone]));
         int height = int(100*pow(2,fGuiSize[zone]));
         fGroupStack.top()->setMinimumSize(width,height);
         fGroupStack.top()->setMaximumSize(width,height);
-        
-		closeBox();
+
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
-    
-	virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
-	{
-		openHorizontalBox(label);
-		QAbstractSlider* 	w = new QDial(); //new qsynthKnob();
-        uiSlider*	c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
-		insert(label, w);
-		w->setStyle(new qsynthDialVokiStyle());
-		QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
-		addNumDisplay(0, zone, init, min, max, step);
-		closeBox();
+    }
+
+    virtual void addHorizontalKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        openHorizontalBox(label);
+        QDial* w = new QDial(); //new qsynthKnob();
+        uiSlider* c = new uiSlider(this, zone, w, init, min, max, step, getScale(zone));
+        insert(label, w);
+        w->setStyle(new qsynthDialVokiStyle());
+        w->setFocusPolicy(Qt::StrongFocus);
+        w->setWrapping(DIAL_WRAPPING);
+        QObject::connect(w, SIGNAL(valueChanged(int)), c, SLOT(setValue(int)));
+        addNumDisplay(0, zone, init, min, max, step);
+        closeBox();
         checkForTooltip(zone, w);
         clearMetadata();
-	}
+    }
     
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
@@ -1828,5 +1877,10 @@ public:
         clearMetadata();
     }
 };
+
+#ifdef _WIN32
+# pragma warning (default: 4100)
+#endif
+
 
 #endif

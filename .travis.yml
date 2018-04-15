@@ -1,55 +1,43 @@
-# Use new trusty images, should yield newer compilers and packages
+
 sudo: required
-dist: precise
+dist: trusty
 language: cpp
 
 matrix:
   include:
-    - compiler: gcc
+    # works on Precise and Trusty
+    - os: linux
       addons:
         apt:
           sources:
             - ubuntu-toolchain-r-test
           packages:
             - g++-4.9
-      env: COMPILER=g++-4.9
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-5
-      env: COMPILER=g++-5
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.6
-          packages:
-            - clang-3.6
-      env: COMPILER=clang++-3.6
-    - compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.7
-          packages:
-            - clang-3.7
-      env: COMPILER=clang++-3.7
+            - libmicrohttpd-dev
+            - libgtk2.0-dev 
+            - libqt4-dev 
+            - libasound2-dev 
+            - libqrencode-dev 
+            - portaudio19-dev 
+            - libjack-jackd2-dev 
+            - libcsound64-dev 
+            - dssi-dev 
+            - lv2-dev 
+            - puredata-dev 
+            - supercollider-dev
+      env:
+        - MATRIX_EVAL="CC=gcc-4.9 && CXX=g++-4.9"
 
 before_install:
-  - sudo apt-get -qq update
-  - sudo apt-get install -y libmicrohttpd-dev libssl-dev ncurses-dev libsndfile-dev libedit-dev libcurl4-openssl-dev vim-common
-
-env:
-  - LLVM_CONFIG=llvm-config-3.8
+    - eval "${MATRIX_EVAL}"
   
 branches:
   only:
   - master-dev
-  - master
 
-script:  make light CXX=$COMPILER -j4
+script: 
+  - make travis
+  # - ./tests/architecture-tests/testtravis
+  # Do also some impulse response tests
+  - make -C tests/impulse-tests travis -j 2
+

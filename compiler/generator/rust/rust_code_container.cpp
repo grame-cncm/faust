@@ -175,7 +175,6 @@ void RustCodeContainer::produceClass()
     tab(n, *fOut);
     fCodeProducer.Tab(n);
     generateGlobalDeclarations(&fCodeProducer);
-    tab(n, *fOut);
     
     // TODO
     //tab(n, *fOut); *fOut << "impl dsp<" << ifloat() <<"> for " << fKlassName << " {";

@@ -104,7 +104,7 @@ class FUI : public UI, public PathBuilder
 
         void setButtons(bool state)
         {
-            for (int i = 0; i < fButtons.size(); i++) {
+            for (size_t i = 0; i < fButtons.size(); i++) {
                 *fButtons[i] = state;
             }
         }

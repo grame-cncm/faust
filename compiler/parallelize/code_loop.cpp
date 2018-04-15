@@ -401,7 +401,7 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
 {
     if (visited.find(l) == visited.end()) {
         visited.insert(l);
-        int n = l->fBackwardLoopDependencies.size();
+        int n = int(l->fBackwardLoopDependencies.size());
         if (n == 0) {
             return;
         } else if (n == 1) {

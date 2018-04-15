@@ -33,6 +33,10 @@
 #include <sstream>
 #include <stdio.h>
 
+#ifdef WIN32
+#pragma warning (disable: 4800)
+#endif
+
 #include "binop.hh"
 #include "property.hh"
 #include "Text.hh"
@@ -379,6 +383,21 @@ struct FunTyped : public Typed {
     VarType getType() { return fResult->getType(); }
     
     Typed* getTyped() { return fResult; }
+    
+    // Arguments type encoded as a string
+    string getPrototype()
+    {
+        string res;
+        list<NamedTyped*>::const_iterator it;
+        if (fArgsTypes.size() > 0) {
+            for (it = fArgsTypes.begin(); it != fArgsTypes.end(); it++) {
+                res += gTypeString[(*it)->getType()];
+            }
+        } else {
+            res = "void";
+        }
+        return res;
+    }
     
     int getSize(); // moved in "instructions.cpp"
 

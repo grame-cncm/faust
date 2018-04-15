@@ -44,6 +44,7 @@ install:
 	install faust2jackserver $(dest)
 	install faust2jackrust $(dest)
 	install faust2jaqt $(dest)
+	install faust2jaqtchain $(dest)
 	install faust2juce $(dest)
 	install faust2ladspa $(dest)
 	install faust2linuxunity $(dest)
@@ -125,6 +126,7 @@ uninstall:
 	rm -f $(dest)/faust2jackserver
 	rm -f $(dest)/faust2jackrust
 	rm -f $(dest)/faust2jaqt
+	rm -f $(dest)/faust2jaqtchain
 	rm -f $(dest)/faust2juce
 	rm -f $(dest)/faust2ladspa
 	rm -f $(dest)/faust2linuxunity

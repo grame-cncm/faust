@@ -79,15 +79,14 @@ ztimedmap GUI::gTimedZoneMap;
 //-------------------------------------------------------------------------
 int main(int argc, char *argv[])
 {
- 	char	appname[256];
-	char* 	home = getenv("HOME");
+ 	char appname[256];
+	char* home = getenv("HOME");
 	
-	snprintf(appname, 255, "%s", basename(argv[0]));
+	snprintf(appname, 256, "%s", basename(argv[0]));
 	
 	// create DSP object
 	DSP = new mydsp();
-	if (DSP==0) 
-	{
+	if (DSP == 0) {
         ROS_ERROR("Unable to allocate Faust DSP object" );
 		exit(1);
 	}

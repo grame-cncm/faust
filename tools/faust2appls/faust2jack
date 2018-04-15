@@ -3,40 +3,30 @@
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to JACK-GTK                 #
-#               (c) Grame, 2009-2017                                #
+#               (c) Grame, 2009-2018                                #
 #                                                                   #
 #####################################################################
 
 . faustpath
 . faustoptflags
 
-#-------------------------------------------------------------------
-# Set Faust include path
-
-if [ -f $FAUST_LIB_PATH/music.lib ]
-then
-    FAUSTLIB=$FAUST_LIB_PATH
-elif [ -f /usr/local/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/local/share/faust/
-elif [ -f /usr/share/faust/music.lib ]
-then
-    FAUSTLIB=/usr/share/faust/
-else
-    echo "ERROR : $0 cannot find Faust library dir (usually /usr/local/share/faust)"
-fi
-
 CXX=g++
 CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
 NVOICES=-1
+ARCHFILE="jack-gtk.cpp"
+SOUNDFILE="0"
+SOUNDFILEDEFS=""
+SOUNDFILELIBS=""
 
 #-------------------------------------------------------------------
 # Check Darwin specifics
 #
 if [[ $(uname) == Darwin ]]; then
     ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation"
+else
+    ARCHLIB+=" `pkg-config --cflags --libs alsa`"
 fi
 
 #PHASE 2 : dispatch command arguments
@@ -45,9 +35,10 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
+        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-midi] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
-        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+   	    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         exit
@@ -72,6 +63,10 @@ do
         fi
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILE="1"
+        SOUNDFILEDEFS="-DSOUNDFILE"
+        SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-osc" ]; then
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
@@ -101,12 +96,11 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a jack-gtk.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
-		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack sndfile $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $ARCHLIB -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" `pkg-config --cflags --libs jack $OCVLIBS gtk+-2.0` $SOUNDFILELIBS $PROCARCH $OSCDEFS $HTTPDEFS $OCVDEFS $MIDIDEFS $SOUNDFILEDEFS $ARCHLIB -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

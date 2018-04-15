@@ -48,6 +48,8 @@
 class httpdUIAux
 {
     public:
+    
+        virtual ~httpdUIAux() {}
 
         virtual bool run()              = 0;
         virtual void stop()             = 0;
@@ -152,7 +154,6 @@ class httpdServerUI : public UI, public httpdUIAux
 
 // API from sourcefetcher.hh and compiled in libHTTPDFaust library.
 int http_fetch(const char *url, char **fileBuf);
-
 
 /*
 Use to control a running Faust DSP wrapped with "httpdServerUI".

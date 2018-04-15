@@ -329,7 +329,7 @@ struct dsp_voice_group {
             if (!fGroupControl) {
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
-                    snprintf(buffer, 31, ((fVoiceTable.size() < 8) ? "Voice%lu" : "V%lu"), i+1);
+                    snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%ld" : "V%ld"), i+1);
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();
@@ -502,7 +502,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                    int nvoices,
                    bool control = false,
                    bool group = true)
-        :dsp_poly(dsp), dsp_voice_group(panic, this, control, group)
+        : dsp_voice_group(panic, this, control, group), dsp_poly(dsp)
         {
             fDate = 0;
 

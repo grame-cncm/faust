@@ -1,0 +1,68 @@
+#
+# Makefile for generating ir using llvm  
+#
+
+system := $(shell uname -s)
+system := $(shell echo $(system) | grep MINGW > /dev/null && echo MINGW || echo $(system))
+ifeq ($(system), MINGW)
+ FAUST ?= ../../build/bin/faust.exe
+ COMPARE := ./filesCompare.exe
+else
+ FAUST ?= ../../build/bin/faust
+ COMPARE := ./filesCompare
+endif
+MAKE ?= make
+
+outdir ?= llvm
+lang ?= llvm
+FAUSTOPTIONS ?= 
+
+.PHONY: test 
+
+dspfiles := $(wildcard dsp/*.dsp)
+listfiles = $(dspfiles:dsp/%.dsp=ir/$1/%.ir) 
+
+SRCDIR := tools
+
+
+#########################################################################
+llvm:  impulsellvm ir/$(outdir) $(call listfiles,$(outdir))
+
+test:
+	@echo $(call listfiles,$(outdir))
+
+help:
+	@echo "-------- FAUST impulse response tests --------"
+	@echo "Available targets are:"
+	@echo " 'llvm' (default): check the double output using the llvm backend"
+	@echo
+	@echo "Options:"
+	@echo " 'outdir' 	   : define the output directory (default to 'llvm')"
+	@echo " 'FAUSTOPTIONS' : define additional faust options (empty by default)"
+
+
+	
+
+#########################################################################
+# output directories
+ir/$(outdir):
+	mkdir -p ir/$(outdir)
+
+
+#########################################################################
+# tools
+filesCompare: $(SRCDIR)/filesCompare.cpp
+	$(MAKE) filesCompare
+
+impulsellvm: $(SRCDIR)/impulsellvm.cpp $(LIB)
+	$(MAKE) impulsellvm
+
+
+#########################################################################
+# rules for llvm
+ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
+	cd $(dir $<); ../impulsellvm $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
+	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+
+
+

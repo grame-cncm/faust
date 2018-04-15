@@ -29,6 +29,12 @@
 #include <vector>
 #include <iostream>
 
+#ifdef _WIN32
+# pragma warning (disable: 4100)
+#else
+# pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include "faust/gui/UI.h"
 #include "faust/gui/ring-buffer.h"
 
@@ -133,7 +139,7 @@ class GUI : public UI
     
         // -- metadata declarations
 
-        virtual void declare(FAUSTFLOAT* , const char* , const char*) {}
+        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
     
         // Static global for timed zones, shared between all UI that will set timed values
         static ztimedmap gTimedZoneMap;
@@ -323,7 +329,7 @@ inline void GUI::updateAllZones()
 		FAUSTFLOAT* z = m->first;
 		clist*	l = m->second;
         if (z) {
-            FAUSTFLOAT	v = *z;
+            FAUSTFLOAT v = *z;
             for (clist::iterator c = l->begin(); c != l->end(); c++) {
                 if ((*c)->cache() != v) (*c)->reflectZone();
             }

@@ -38,7 +38,7 @@ htmlfactory::htmlfactory(const char *name, const char* address, int port)
 	fGroups.push("");
 }
 
-void htmlfactory::addnode (const char* type, const char* label)
+void htmlfactory::addnode(const char* type, const char* label)
 {
 	string stype (type);
 	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
@@ -59,7 +59,7 @@ void htmlfactory::addnode (const char* type, const char* label)
 	}
 }
 
-void htmlfactory::addnode (const char* type, const char* label, float init, float min, float max, float step)
+void htmlfactory::addnode(const char* type, const char* label, float init, float min, float max, float step)
 {
 	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
 	url += label;
@@ -83,19 +83,19 @@ void htmlfactory::addnode (const char* type, const char* label, float min, float
  * Open a group in the current group and place it on the top of the stack. 
  * Takes into account that due to alias, a group can been previously created.  
  */
-void htmlfactory::opengroup (const char* type, const char* label)
+void htmlfactory::opengroup(const char* type, const char* label)
 {
 	string path = fGroups.top() + "/";
 	path += label;
 	fGroups.push (path);
 	if (fGroups.size() == 2)		// first group: actually the address space root
-		fPage.setRoot (fGroups.top());
+		fPage.setRoot(fGroups.top());
 }
 
 //--------------------------------------------------------------------------
-void htmlfactory::closegroup ()
+void htmlfactory::closegroup()
 {
-	fGroups.pop ();
+	fGroups.pop();
 }
 
 } // end namespoace

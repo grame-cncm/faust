@@ -1,0 +1,35 @@
+#!/bin/bash
+
+LINUX="faust2alsa faust2asmjs faust2csound faust2dssi faust2jack faust2ladspa faust2lv2 faust2supercollider faust2webaudioasm"
+LINUXMIDI="faust2jack"
+LINUXPOLY="faust2jack faust2juce"
+LINUXPOLYMIDI="faust2jack faust2juce"
+LINUXOSCHTTPD="faust2jack"
+
+
+echo "------------------------------"
+echo Run limited architecture tests
+echo "------------------------------"
+
+
+for scriptname in $LINUX; do
+    ($scriptname good.dsp &> LOG)&&(echo "OK: $scriptname succeeded !")||(echo "ERROR: $scriptname failed")
+done
+
+for scriptname in $LINUXMIDI; do
+    ($scriptname -midi good.dsp &> LOG)&&(echo "OK: $scriptname -midi succeeded !")||(echo "ERROR: $scriptname -midi failed")
+done
+
+for scriptname in $LINUXPOLY; do
+    ($scriptname -nvoices 8 good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 succeeded !")||(echo "ERROR: $scriptname -nvoices 8 failed")
+    rm -rf good
+done
+
+for scriptname in $LINUXPOLYMIDI; do
+    ($scriptname -nvoices 8 -midi good.dsp &> LOG)&&(echo "OK: $scriptname -nvoices 8 -midi succeeded !")||(echo "ERROR: $scriptname -nvoices 8 -midi failed")
+    rm -rf good
+done
+
+for scriptname in $LINUXOSCHTTPD; do
+    ($scriptname -osc -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -osc -httpd succeeded !")||(echo "ERROR: $scriptname -osc -httpd failed")
+done

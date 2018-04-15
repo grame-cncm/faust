@@ -1,0 +1,148 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles several Faust programs to JACK-QT          #
+#               (c) Grame, 2018                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+CXXFLAGS=$MYGCCFLAGS
+
+#-------------------------------------------------------------------
+# Set Faust include path
+
+ARCHLIB="-L/usr/local/lib -ljack"
+PATH=$PATH:/usr/local/bin
+
+#-------------------------------------------------------------------------------
+# Search for qmake or qmake-qt4
+
+QMAKE=$(which qmake-qt5 || which qmake-qt4 || echo qmake)
+
+#PHASE 2 : dispatch command arguments
+
+QTDEFS=""
+
+OSCINC=""
+OSCLIB=""
+HTTPDEFS=""
+HTTPLIBS=""
+DEPLOY=""
+
+while [ $1 ]
+do
+    p=$1
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2jaqtchain [-httpd] [-osc] <file.dsp>"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-osc' to activate OSC control"
+        exit
+    fi
+
+    if [ "$p" = -icc ]; then
+    	ignore=" "
+    elif [ $p = "-deploy" ]; then
+        DEPLOY="yes"
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="DEFINES += OSCCTRL"
+        OSCLIBS="-lOSCFaust"
+	elif [ "$p" = "-httpd" ]; then
+		HTTPDEFS="DEFINES += HTTPCTRL"
+		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    elif [ ${p:0:1} = "-" ]; then
+	    OPTIONS="$OPTIONS $p"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+    else
+	    OPTIONS="$OPTIONS $p"        
+	fi
+
+shift
+
+done
+
+#-------------------------------------------------------------------
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation -framework CoreAudio"
+    HTTPLIBS="-L/opt/local/lib $HTTPLIBS"
+    SYS_VERSION=$(uname -v | cut -d : -f1 | cut -d. -f1 | cut -d' ' -f4)
+	if [ $SYS_VERSION -ge 13 ]
+	then
+	    SPEC="-spec macx-clang"
+	    CLANGOPT="QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.9"  
+	    CXXFLAGS="$CXXFLAGS -mmacosx-version-min=10.9"
+	else
+	    SPEC="-spec macx-g++"
+	    CLANGOPT=""
+	fi
+    EXT=".app"
+fi
+
+#-------------------------------------------------------------------
+# Check Linux specifics
+#
+if [[ $(uname) == Linux ]]; then
+    ARCHLIB+=" -lasound"
+fi
+
+# creates a temporary dir
+TDR=$(mktemp -d faust.XXXXXX)
+TMP="$TDR/chain"
+mkdir "$TMP"
+
+#-------------------------------------------------------------------
+cat $FAUSTLIB/jack-qt-chain-header.cpp > "$TMP/combined.cpp"
+echo "void addAllDSP() {" >> "$TMP/combined_dsp.cpp"
+
+#-------------------------------------------------------------------
+# compile the *.dsp files
+#
+for p in $FILES; do
+
+    CUR=$(pwd)
+    f=$(basename "$p")
+	SRCDIR=$(dirname "$p")
+    name=$(basename "$f" .dsp)
+
+    echo $f
+
+    # compile faust to c++
+ 	faust $OPTIONS "$SRCDIR/$f" -cn $name -o "$TMP/${f%.dsp}.cpp" || exit
+
+    # push DSP in the chain
+    cat "$TMP/${f%.dsp}.cpp" >> "$TMP/combined.cpp"
+    echo "dsp_chain.push_back(std::make_pair(\"$name\", new $name()));" >> "$TMP/combined_dsp.cpp"
+    rm "$TMP/${f%.dsp}.cpp"
+
+done
+
+#-------------------------------------------------------------------
+echo "}" >> "$TMP/combined_dsp.cpp"
+cat "$TMP/combined_dsp.cpp" >> "$TMP/combined.cpp"
+cat $FAUSTLIB/jack-qt-chain-footer.cpp >> "$TMP/combined.cpp"
+rm "$TMP/combined_dsp.cpp"
+
+# compile c++ to binary
+(
+    cd "$TMP"
+    $QMAKE -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC" "QMAKE_CXXFLAGS=$CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS"
+    $QMAKE $SPEC
+    make
+) > /dev/null || exit
+
+cp -r "$TMP/chain$EXT" "$SRCDIR/chain$EXT"
+rm -rf "$TDR"
+
+# collect binary file name for FaustGIDE
+BINARIES="$BINARIES$SRCDIR/chain$EXT;"
+
+echo $BINARIES
+
+

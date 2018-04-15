@@ -23,7 +23,7 @@ done
 for f in $FILES; do
 
 	# compile Faust to c++
-    faust $OPTIONS -i -a impulsearch.cpp  "$f" -o "$f.cpp" || exit
+    faust $OPTIONS -i -A .. -a impulsearch.cpp  "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

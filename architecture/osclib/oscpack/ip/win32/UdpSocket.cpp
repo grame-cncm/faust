@@ -1,8 +1,8 @@
 /*
-	oscpack -- Open Sound Control packet manipulation library
-	http://www.audiomulch.com/~rossb/oscpack
+	oscpack -- Open Sound Control (OSC) packet manipulation library
+    http://www.rossbencina.com/code/oscpack
 
-	Copyright (c) 2004-2005 Ross Bencina <rossb@audiomulch.com>
+    Copyright (c) 2004-2013 Ross Bencina <rossb@audiomulch.com>
 
 	Permission is hereby granted, free of charge, to any person obtaining
 	a copy of this software and associated documentation files
@@ -15,10 +15,6 @@
 	The above copyright notice and this permission notice shall be
 	included in all copies or substantial portions of the Software.
 
-	Any person wishing to distribute modifications to the Software is
-	requested to send the modifications to the original developer so that
-	they can be incorporated into the canonical version.
-
 	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
 	EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
 	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -27,30 +23,47 @@
 	CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
-#include "ip/UdpSocket.h"
+
+/*
+	The text above constitutes the entire oscpack license; however, 
+	the oscpack developer(s) also make the following non-binding requests:
+
+	Any person wishing to distribute modifications to the Software is
+	requested to send the modifications to the original developer so that
+	they can be incorporated into the canonical version. It is also 
+	requested that these non-binding requests be included whenever the
+	above license is reproduced.
+*/
 
 #include <winsock2.h>   // this must come first to prevent errors with MSVC7
-#include <Ws2tcpip.h>
-#include <Mswsock.h>
 #include <windows.h>
 #include <mmsystem.h>   // for timeGetTime()
 
-#include <vector>
-#include <algorithm>
-#include <stdexcept>
-#include <assert.h>
+#ifndef WINCE
 #include <signal.h>
+#endif
+
+#include <algorithm>
+#include <cassert>
+#include <cstring> // for memset
+#include <stdexcept>
+#include <vector>
+
+#include "ip/UdpSocket.h" // usually I'd include the module header first
+                          // but this is causing conflicts with BCB4 due to
+                          // std::size_t usage.
 
 #include "ip/NetworkingUtils.h"
 #include "ip/PacketListener.h"
 #include "ip/TimerListener.h"
+
 
 typedef int socklen_t;
 
 
 static void SockaddrFromIpEndpointName( struct sockaddr_in& sockAddr, const IpEndpointName& endpoint )
 {
-    memset( (char *)&sockAddr, 0, sizeof(sockAddr ) );
+    std::memset( (char *)&sockAddr, 0, sizeof(sockAddr ) );
     sockAddr.sin_family = AF_INET;
 
 	sockAddr.sin_addr.s_addr = 
@@ -95,11 +108,11 @@ public:
 		, isConnected_( false )
 		, socket_( INVALID_SOCKET )
 	{
-		if( (socket_ = WSASocket(AF_INET, SOCK_DGRAM, 0, 0, 0, 0)) == INVALID_SOCKET ){
+		if( (socket_ = socket( AF_INET, SOCK_DGRAM, 0 )) == INVALID_SOCKET ){
             throw std::runtime_error("unable to create udp socket\n");
         }
 
-		memset( &sendToAddr_, 0, sizeof(sendToAddr_) );
+		std::memset( &sendToAddr_, 0, sizeof(sendToAddr_) );
         sendToAddr_.sin_family = AF_INET;
 	}
 
@@ -107,11 +120,21 @@ public:
 	{
 		if (socket_ != INVALID_SOCKET) closesocket(socket_);
 	}
-	
-	void allowBroadcast()
+
+	void SetEnableBroadcast( bool enableBroadcast )
 	{
-		int val = 1;
-		setsockopt(socket_, SOL_SOCKET, SO_BROADCAST, (char *)&val, sizeof(val));
+		char broadcast = (char)((enableBroadcast) ? 1 : 0); // char on win32
+		setsockopt(socket_, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+	}
+
+	void SetAllowReuse( bool allowReuse )
+	{
+		// Note: SO_REUSEADDR is non-deterministic for listening sockets on Win32. See MSDN article:
+		// "Using SO_REUSEADDR and SO_EXCLUSIVEADDRUSE"
+		// http://msdn.microsoft.com/en-us/library/ms740621%28VS.85%29.aspx
+
+		char reuseAddr = (char)((allowReuse) ? 1 : 0); // char on win32
+		setsockopt(socket_, SOL_SOCKET, SO_REUSEADDR, &reuseAddr, sizeof(reuseAddr));
 	}
 
 	IpEndpointName LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const
@@ -130,7 +153,7 @@ public:
         // get the address
 
         struct sockaddr_in sockAddr;
-        memset( (char *)&sockAddr, 0, sizeof(sockAddr ) );
+        std::memset( (char *)&sockAddr, 0, sizeof(sockAddr ) );
         socklen_t length = sizeof(sockAddr);
         if (getsockname(socket_, (struct sockaddr *)&sockAddr, &length) < 0) {
             throw std::runtime_error("unable to getsockname\n");
@@ -169,19 +192,19 @@ public:
 		isConnected_ = true;
 	}
 
-	void Send( const char *data, int size )
+	void Send( const char *data, std::size_t size )
 	{
 		assert( isConnected_ );
 
-        send( socket_, data, size, 0 );
+        send( socket_, data, (int)size, 0 );
 	}
 
-    void SendTo( const IpEndpointName& remoteEndpoint, const char *data, int size )
+    void SendTo( const IpEndpointName& remoteEndpoint, const char *data, std::size_t size )
 	{
 		sendToAddr_.sin_addr.s_addr = htonl( remoteEndpoint.address );
         sendToAddr_.sin_port = htons( (short)remoteEndpoint.port );
 
-        sendto( socket_, data, size, 0, (sockaddr*)&sendToAddr_, sizeof(sendToAddr_) );
+        sendto( socket_, data, (int)size, 0, (sockaddr*)&sendToAddr_, sizeof(sendToAddr_) );
 	}
 
 	void Bind( const IpEndpointName& localEndpoint )
@@ -198,73 +221,22 @@ public:
 
 	bool IsBound() const { return isBound_; }
 
-    int ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, int size )
+    std::size_t ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, std::size_t size )
 	{
 		assert( isBound_ );
-	
-		// Load WSARecvMsg function
-		static LPFN_WSARECVMSG WSARecvMsg = NULL;
-		if (WSARecvMsg == NULL) {
-        GUID guid = WSAID_WSARECVMSG;
-        DWORD bytes_returned;
-			if (WSAIoctl(socket_, SIO_GET_EXTENSION_FUNCTION_POINTER, &guid, sizeof(guid),
-					&WSARecvMsg, sizeof(WSARecvMsg), &bytes_returned, NULL, NULL) == SOCKET_ERROR) {
-				return 0;
-			}
-		}
 
-		// Main structure to read the message
-		WSAMSG msg;
-
-		// Structure to write remote/source sockaddr
-		struct sockaddr_in peeraddr;
-		socklen_t fromAddrLen = sizeof(peeraddr);	
-		msg.name =  (struct sockaddr *)&peeraddr;
-		msg.namelen = fromAddrLen;
-	
-		// Structure for control data
-		char controlbuf[0x100];
-		msg.Control.len = sizeof(controlbuf);
-		msg.Control.buf = controlbuf;
-
-		// Structure to access the message data.
-		WSABUF buffer;		
-		buffer.buf = data;
-		buffer.len = size;
-		msg.lpBuffers = &buffer;
-		msg.dwBufferCount = 1;
-
-		msg.dwFlags = 0;
-
-		// Set socket option
-		int val = 1;
-		setsockopt(socket_, IPPROTO_IP, IP_PKTINFO, (char *)&val, sizeof(val));
-
-		DWORD readLen = 0; // Size of data read
-		WSARecvMsg(socket_, &msg, &readLen, 0, 0);
-
-		if( readLen < 0 )
+		struct sockaddr_in fromAddr;
+        socklen_t fromAddrLen = sizeof(fromAddr);
+             	 
+        int result = recvfrom(socket_, data, (int)size, 0,
+                    (struct sockaddr *) &fromAddr, (socklen_t*)&fromAddrLen);
+		if( result < 0 )
 			return 0;
 
-		for ( // iterate through all the control headers
-			LPWSACMSGHDR cmsg = WSA_CMSG_FIRSTHDR(&msg);
-			cmsg != NULL;
-			cmsg = WSA_CMSG_NXTHDR(&msg, cmsg))
-		{
-			// ignore the control headers that don't match what we want
-			if (cmsg->cmsg_level != IPPROTO_IP ||
-				cmsg->cmsg_type != IP_PKTINFO)
-			{
-				continue;
-			}
-			// Get the destination address
-			struct in_pktinfo *pi = (struct in_pktinfo *)WSA_CMSG_DATA(cmsg);
-			// pi->ipi_addr is the destination in_addr
-			remoteEndpoint.destAddress = ntohl(pi->ipi_addr.s_addr);
-		}
-		remoteEndpoint.address = ntohl(peeraddr.sin_addr.s_addr);
-		remoteEndpoint.port = ntohs(peeraddr.sin_port);
-		return readLen;
+		remoteEndpoint.address = ntohl(fromAddr.sin_addr.s_addr);
+		remoteEndpoint.port = ntohs(fromAddr.sin_port);
+
+		return result;
 	}
 
 	SOCKET& Socket() { return socket_; }
@@ -280,9 +252,14 @@ UdpSocket::~UdpSocket()
 	delete impl_;
 }
 
-void UdpSocket::allowBroadcast()
+void UdpSocket::SetEnableBroadcast( bool enableBroadcast )
 {
-	impl_->allowBroadcast();
+    impl_->SetEnableBroadcast( enableBroadcast );
+}
+
+void UdpSocket::SetAllowReuse( bool allowReuse )
+{
+    impl_->SetAllowReuse( allowReuse );
 }
 
 IpEndpointName UdpSocket::LocalEndpointFor( const IpEndpointName& remoteEndpoint ) const
@@ -295,12 +272,12 @@ void UdpSocket::Connect( const IpEndpointName& remoteEndpoint )
 	impl_->Connect( remoteEndpoint );
 }
 
-void UdpSocket::Send( const char *data, int size )
+void UdpSocket::Send( const char *data, std::size_t size )
 {
 	impl_->Send( data, size );
 }
 
-void UdpSocket::SendTo( const IpEndpointName& remoteEndpoint, const char *data, int size )
+void UdpSocket::SendTo( const IpEndpointName& remoteEndpoint, const char *data, std::size_t size )
 {
 	impl_->SendTo( remoteEndpoint, data, size );
 }
@@ -315,7 +292,7 @@ bool UdpSocket::IsBound() const
 	return impl_->IsBound();
 }
 
-int UdpSocket::ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, int size )
+std::size_t UdpSocket::ReceiveFrom( IpEndpointName& remoteEndpoint, char *data, std::size_t size )
 {
 	return impl_->ReceiveFrom( remoteEndpoint, data, size );
 }
@@ -345,7 +322,9 @@ extern "C" /*static*/ void InterruptSignalHandler( int );
 /*static*/ void InterruptSignalHandler( int )
 {
 	multiplexerInstanceToAbortWithSigInt_->AsynchronousBreak();
-	signal( SIGINT, SIG_DFL );
+#ifndef WINCE
+    signal( SIGINT, SIG_DFL );
+#endif
 }
 
 
@@ -360,8 +339,12 @@ class SocketReceiveMultiplexer::Implementation{
 
 	double GetCurrentTimeMs() const
 	{
+#ifndef WINCE
 		return timeGetTime(); // FIXME: bad choice if you want to run for more than 40 days
-	}
+#else
+        return 0;
+#endif
+    }
 
 public:
     Implementation()
@@ -468,9 +451,9 @@ public:
 
 			if( waitResult != WAIT_TIMEOUT ){
 				for( int i = waitResult - WAIT_OBJECT_0; i < (int)socketListeners_.size(); ++i ){
-					int size = socketListeners_[i].second->ReceiveFrom( remoteEndpoint, data, MAX_BUFFER_SIZE );
+					std::size_t size = socketListeners_[i].second->ReceiveFrom( remoteEndpoint, data, MAX_BUFFER_SIZE );
 					if( size > 0 ){
-						socketListeners_[i].first->ProcessPacket( data, size, remoteEndpoint );
+						socketListeners_[i].first->ProcessPacket( data, (int)size, remoteEndpoint );
 						if( break_ )
 							break;
 					}
@@ -566,9 +549,13 @@ void SocketReceiveMultiplexer::RunUntilSigInt()
 {
 	assert( multiplexerInstanceToAbortWithSigInt_ == 0 ); /* at present we support only one multiplexer instance running until sig int */
 	multiplexerInstanceToAbortWithSigInt_ = this;
-	signal( SIGINT, InterruptSignalHandler );
+#ifndef WINCE
+    signal( SIGINT, InterruptSignalHandler );
+#endif
 	impl_->Run();
+#ifndef WINCE
 	signal( SIGINT, SIG_DFL );
+#endif
 	multiplexerInstanceToAbortWithSigInt_ = 0;
 }
 

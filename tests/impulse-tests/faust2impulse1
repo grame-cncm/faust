@@ -17,17 +17,19 @@ for p in $@; do
 	fi
 done
 
+P=$(dirname $0)
+
 #-------------------------------------------------------------------
 # compile the *.dsp files
 
 for f in $FILES; do
 
 	# compile Faust to c++
-    faust $OPTIONS -i -a impulsearch1.cpp -mem "$f" -o "$f.cpp" || exit
+    faust $OPTIONS -i -a $P/archs/impulsearch1.cpp -mem "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
-		${CXX=g++} ${CXXFLAGS=-O3 -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
+		${CXX=g++} ${CXXFLAGS=-O3 -I$P -I../archs -pthread -std=c++11} $OMP "$f.cpp" -o "${f%.dsp}"
 	) > /dev/null || exit
 
 

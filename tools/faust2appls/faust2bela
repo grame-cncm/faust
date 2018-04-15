@@ -11,7 +11,7 @@ COREFILES="$BEAGLERT/core/default_main.cpp $BEAGLERT/core/DigitalChannelManager.
 
 faust -i -a bela.cpp -cn $CLASSNAME $FILENAME -o render.cpp || exit
 
-arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $COREFILES render.cpp $BEAGLERT/libprussdrv.a $BEAGLERT/libNE10.a -lrt -lnative -lxenomai || exit
+arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $COREFILES render.cpp $BEAGLERT/lib/libprussdrv.a $BEAGLERT/lib/libNE10.a -lrt -lnative -lxenomai || exit
 
 rm render.cpp
 

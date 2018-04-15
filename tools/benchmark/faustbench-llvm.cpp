@@ -31,11 +31,10 @@ using namespace std;
 template <typename T>
 static void bench(dsp_optimizer<T> optimizer, const string& name)
 {
-    double value;
-    vector<string> options = optimizer.findOptimizedParameters(value);
-    cout << "Best value is for '" << name << "' is : " << value << " with ";
-    for (int i = 0; i < options.size(); i++) {
-        cout << options[i] << " ";
+    pair<double, vector<std::string> > res = optimizer.findOptimizedParameters();
+    cout << "Best value is for '" << name << "' is : " << res.first << " with ";
+    for (int i = 0; i < res.second.size(); i++) {
+        cout << res.second[i] << " ";
     }
     cout << endl;
 }
@@ -85,7 +84,7 @@ int main(int argc, char* argv[])
             
             dsp_factory* factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
             if (!factory) {
-                cerr << "Cannot create factory : " << error_msg << endl;
+                cerr << "Cannot create factory : " << error_msg;
                 exit(EXIT_FAILURE);
             }
             

@@ -48,7 +48,7 @@ class DspFaust
     #endif
         
     #if MIDICTRL
-        MidiUI* fMidiUI;
+        MidiUI* fMidiInterface;
     #endif
     
     #if SOUNDFILE
@@ -94,7 +94,8 @@ class DspFaust
     #if DYNAMIC_DSP
         DspFaust(const string&, int, int);
     #endif
-        
+    
+        // No virtual destructor since DspFaust does not have any virtual methods and is not supposed to be subclassed
         ~DspFaust();
         
         //---------------------`bool start()`---------------------

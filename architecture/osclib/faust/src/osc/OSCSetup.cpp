@@ -58,12 +58,12 @@ class OscThread : public TThreads
             try {
                 fListener->run(); 
             }
-            catch (osc::Exception& e) {
+            catch (osc::Exception& ) {
                 if (fErrCallback != NULL) {
                     (*fErrCallback)(fArg);
                 }
             }        
-            catch (std::runtime_error& err) {
+            catch (std::runtime_error& ) {
                 if (fErrCallback != NULL) {
                     (*fErrCallback)(fArg);
                 }

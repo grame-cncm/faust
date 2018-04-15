@@ -27,6 +27,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef WIN32
+#pragma warning (disable: 4334)
+#endif
+
 typedef struct {
     char *buf;
     size_t len;
@@ -62,7 +66,7 @@ void ringbuffer_write_advance(ringbuffer_t *rb, size_t cnt);
 size_t ringbuffer_write_space(const ringbuffer_t *rb);
 
 /* Create a new ringbuffer to hold at least `sz' bytes of data. The
-   actual buffer size is rounded up to the next power of two.  */
+   actual buffer size is rounded up to the next power of two. */
 
 inline ringbuffer_t *
 ringbuffer_create (size_t sz)
@@ -142,7 +146,7 @@ ringbuffer_reset_size (ringbuffer_t * rb, size_t sz)
     rb->write_ptr = 0;
 }
 
-/* Return the number of bytes available for reading.  This is the
+/* Return the number of bytes available for reading. This is the
    number of bytes in front of the read pointer and behind the write
    pointer.  */
 
@@ -161,7 +165,7 @@ ringbuffer_read_space (const ringbuffer_t * rb)
 	}
 }
 
-/* Return the number of bytes available for writing.  This is the
+/* Return the number of bytes available for writing. This is the
    number of bytes in front of the write pointer and behind the read
    pointer.  */
 
@@ -182,7 +186,7 @@ ringbuffer_write_space (const ringbuffer_t * rb)
 	}
 }
 
-/* The copying data reader.  Copy at most `cnt' bytes from `rb' to
+/* The copying data reader. Copy at most `cnt' bytes from `rb' to
    `dest'.  Returns the actual number of bytes copied. */
 
 inline size_t
@@ -220,7 +224,7 @@ ringbuffer_read (ringbuffer_t * rb, char *dest, size_t cnt)
 	return to_read;
 }
 
-/* The copying data reader w/o read pointer advance.  Copy at most
+/* The copying data reader w/o read pointer advance. Copy at most
    `cnt' bytes from `rb' to `dest'.  Returns the actual number of bytes
    copied. */
 
@@ -261,7 +265,7 @@ ringbuffer_peek (ringbuffer_t * rb, char *dest, size_t cnt)
 	return to_read;
 }
 
-/* The copying data writer.  Copy at most `cnt' bytes to `rb' from
+/* The copying data writer. Copy at most `cnt' bytes to `rb' from
    `src'.  Returns the actual number of bytes copied. */
 
 inline size_t
@@ -317,10 +321,10 @@ ringbuffer_write_advance (ringbuffer_t * rb, size_t cnt)
 	rb->write_ptr = tmp;
 }
 
-/* The non-copying data reader.  `vec' is an array of two places.  Set
-   the values at `vec' to hold the current readable data at `rb'.  If
+/* The non-copying data reader. `vec' is an array of two places. Set
+   the values at `vec' to hold the current readable data at `rb'. If
    the readable data is in one segment the second segment has zero
-   length.  */
+   length. */
 
 inline void
 ringbuffer_get_read_vector (const ringbuffer_t * rb,
@@ -361,10 +365,10 @@ ringbuffer_get_read_vector (const ringbuffer_t * rb,
 	}
 }
 
-/* The non-copying data writer.  `vec' is an array of two places.  Set
-   the values at `vec' to hold the current writeable data at `rb'.  If
+/* The non-copying data writer. `vec' is an array of two places. Set
+   the values at `vec' to hold the current writeable data at `rb'. If
    the writeable data is in one segment the second segment has zero
-   length.  */
+   length. */
 
 inline void
 ringbuffer_get_write_vector (const ringbuffer_t * rb,

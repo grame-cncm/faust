@@ -161,6 +161,7 @@ faustgen_factory::faustgen_factory(const string& name)
     m_siginlets = 0;
     m_sigoutlets = 0;
     
+    fDefaultPath = path_getdefault();
     fName = name;
     fDSPfactory = 0;
     fBitCodeSize = 0;
@@ -170,6 +171,7 @@ faustgen_factory::faustgen_factory(const string& name)
     gFaustCounter++;
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
+    fPolyphonic = false;
     
     fMidiHandler.start_midi();
     
@@ -349,8 +351,10 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
     
     if (nvoices > 0) {
+        fPolyphonic = true;
         return new mydsp_poly(mono, nvoices, true);
     } else {
+        fPolyphonic = false;
         return mono;
     }
 }
@@ -414,7 +418,6 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     post("Allocation of default DSP succeeded, %i input(s), %i output(s)", dsp->getNumInputs(), dsp->getNumOutputs());
   
  end:
-    
     assert(dsp);
     m_siginlets = dsp->getNumInputs();
     m_sigoutlets = dsp->getNumOutputs();
@@ -584,7 +587,7 @@ default_sourcecode:
 }
 
 // Called when saving the Max patcher
-// This function saves the necessary data inside the json file (Faust sourcecode)
+// This function saves the necessary data inside the JSON file (Faust sourcecode)
 void faustgen_factory::appendtodictionary(t_dictionary* d)
 {
     post("Saving object version, sourcecode and bitcode...");
@@ -838,7 +841,9 @@ void faustgen_factory::read(long inlet, t_symbol* s)
         }
     // Otherwise locate the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found", filename);
             return;
@@ -902,7 +907,9 @@ void faustgen_factory::write(long inlet, t_symbol* s)
         }
     // Otherwise locate or create the file
     } else {
-        strcpy(filename, s->s_name);
+        strncpy_zero(filename, s->s_name, MAX_FILENAME_CHARS);
+        // Set default path with saved value
+        path_setdefault(fDefaultPath, 0);
         if (locatefile_extended(filename, &path, (t_fourcc*)&type, (t_fourcc*)&type, 1)) {
             post("Faust DSP file '%s' not found, so tries to create it", filename);
             err = path_createsysfile(filename, path, type, &fh);
@@ -1479,8 +1486,8 @@ void faustgen::hilight_error(const string& error)
 void faustgen::add_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.addMidiIn(poly);
     }
 }
@@ -1488,8 +1495,8 @@ void faustgen::add_midihandler()
 void faustgen::remove_midihandler()
 {
     // Polyphonic DSP is controlled by MIDI
-    mydsp_poly* poly = dynamic_cast<mydsp_poly*>(fDSP);
-    if (poly) {
+    if (fDSPfactory->fPolyphonic) {
+        mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
         fDSPfactory->fMidiHandler.removeMidiIn(poly);
     }
 }

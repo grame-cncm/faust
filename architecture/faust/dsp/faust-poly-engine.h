@@ -127,7 +127,7 @@ class FaustPolyEngine {
             MyMeta meta;
             fFinalDSP->metadata(&meta);
             fDriver->init(meta.fName.c_str(), fFinalDSP);
-            if (midi) midi->setName(meta.fName.c_str());
+            if (midi) midi->setName(meta.fName);
         }
     
     public:

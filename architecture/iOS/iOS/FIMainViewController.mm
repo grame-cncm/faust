@@ -235,7 +235,8 @@ static void jack_shutdown_callback(const char* message, void* arg)
     DSP->buildUserInterface(finterface);
     
 #if SOUNDFILE
-    SoundUI* soundinterface = new SoundUI();
+    // Use bundle path
+    soundinterface = new SoundUI(SoundUI::getBinaryPath());
     DSP->buildUserInterface(soundinterface);
 #endif
     
