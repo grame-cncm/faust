@@ -27,6 +27,7 @@
 #include <sndfile.h>
 #include <string>
 #include <iostream>
+#include <mutex>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/ring-buffer.h"
@@ -49,12 +50,18 @@ class sound_base_player : public dsp {
         SNDFILE* fFile;
         std::string fFileName;
         int fSamplingRate;
-        int fFrames;            // File current frame while playing (starts at fInfo.frames, ends at 0)
+    
+        // File current frame while playing
+        FAUSTFLOAT fCurFrames;
         
         // Zones for UI management
         FAUSTFLOAT fPlayButton;
         FAUSTFLOAT fLoopButton;
-        FAUSTFLOAT fFramesSlider;
+        FAUSTFLOAT fSetFrames;
+        FAUSTFLOAT fLastSetFrames;
+    
+        // To protect postion change
+        std::mutex fMutex;
     
         // Generic reader function
         sample_read fReaderFun;
@@ -101,7 +108,9 @@ class sound_base_player : public dsp {
             ui_interface->openVerticalBox("Transport");
             ui_interface->addCheckButton("Play", &fPlayButton);
             ui_interface->addCheckButton("Loop", &fLoopButton);
-            ui_interface->addHorizontalSlider("Position in frames", &fFramesSlider, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
+            ui_interface->addHorizontalSlider("Set position", &fSetFrames, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
+            ui_interface->addHorizontalBargraph("Current position", &fCurFrames, FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames));
+            
             ui_interface->closeBox();
         }
         
@@ -132,12 +141,13 @@ class sound_base_player : public dsp {
             // Play and loop by default
             fPlayButton = FAUSTFLOAT(1);
             fLoopButton = FAUSTFLOAT(1);
-            fFramesSlider = FAUSTFLOAT(0);
+            fSetFrames = FAUSTFLOAT(0);
+            fLastSetFrames = FAUSTFLOAT(0);
         }
         
         virtual void instanceClear()
         {
-            fFrames = fInfo.frames;
+            fCurFrames = FAUSTFLOAT(0);
         }
     
         virtual sound_base_player* clone() { return new sound_base_player(fFileName); }
@@ -149,27 +159,27 @@ class sound_base_player : public dsp {
         
         virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            if (fPlayButton == FAUSTFLOAT(1)) {
+            if (fPlayButton == FAUSTFLOAT(1) && fMutex.try_lock()) {
                 
-                int rcount = std::min(count, fFrames);
-                playSlice(rcount, fInfo.frames - fFrames, 0, outputs);
+                int rcount = std::min(count, int(fInfo.frames - fCurFrames));
+                playSlice(rcount, fCurFrames, 0, outputs);
+                
                 if (rcount < count) {
                     if (fLoopButton == FAUSTFLOAT(1)) {
                         // Loop buffer
                         playSlice(count - rcount, 0, rcount, outputs);
-                        fFrames = fInfo.frames - (count - rcount);
+                        fCurFrames = count - rcount;
                     } else {
                         // Otherwise clear end of buffer and stops
                         clearSlice(count - rcount, rcount, outputs);
-                        fFrames = fInfo.frames;
+                        fCurFrames =  FAUSTFLOAT(0);
                         fPlayButton = 0;
                     }
                 } else {
-                    fFrames -= count;
+                    fCurFrames += count;
                 }
                 
-                // Reflect current pos
-                fFramesSlider = fInfo.frames - fFrames;
+                fMutex.unlock();
                 
             } else {
                 // Clear output
@@ -182,10 +192,16 @@ class sound_base_player : public dsp {
             static_cast<sound_base_player*>(arg)->setFrame(int(val));
         }
     
-        FAUSTFLOAT* getFrameZone()
+        FAUSTFLOAT* getCurFramesZone()
         {
-            return &fFramesSlider;
+            return &fCurFrames;
         }
+    
+        FAUSTFLOAT* getSetFramesZone()
+        {
+            return &fSetFrames;
+        }
+   
 };
 
 /**
@@ -207,9 +223,14 @@ class sound_memory_player : public sound_base_player {
     
         void setFrame(int frames)
         {
-            // If not playing and position change
-            if (fPlayButton == FAUSTFLOAT(0) && std::abs(frames - (fInfo.frames - fFrames)) > BUFFER_SIZE) {
-                fFrames = fInfo.frames - frames;
+             // If position change
+            if (fSetFrames != fLastSetFrames
+                && std::abs(fSetFrames - fLastSetFrames) > BUFFER_SIZE
+                && std::abs(fSetFrames - fCurFrames) > BUFFER_SIZE) {
+                fMutex.lock();
+                fLastSetFrames = fSetFrames;
+                fCurFrames = fSetFrames;
+                fMutex.unlock();
             }
         }
  
@@ -293,12 +314,18 @@ class sound_dtd_player : public sound_base_player {
     
         void setFrame(int frames)
         {
-            // If not playing and position change
-            if (fPlayButton == FAUSTFLOAT(0) && std::abs(frames - (fInfo.frames - fFrames)) > BUFFER_SIZE) {
-                // Change pos, reset ringbuffer
+            // If position change
+            if (fSetFrames != fLastSetFrames
+                && std::abs(fSetFrames - fLastSetFrames) > BUFFER_SIZE
+                && std::abs(fSetFrames - fCurFrames) > BUFFER_SIZE) {
+                fMutex.lock();
+                // Reset ringbuffer
                 ringbuffer_reset(fBuffer);
-                sf_seek(fFile, frames, SEEK_SET);
-                fFrames = fInfo.frames - frames;
+                // Reset fCurFrames and seek in the file
+                fLastSetFrames = fSetFrames;
+                sf_seek(fFile, fSetFrames, SEEK_SET);
+                fCurFrames = fSetFrames;
+                fMutex.unlock();
             }
             
             size_t write_space_frames = convertToFrames(ringbuffer_write_space(fBuffer));
@@ -306,10 +333,8 @@ class sound_dtd_player : public sound_base_player {
             // If ringbuffer has to be filled
             if (write_space_frames > HALF_RING_BUFFER_SIZE) {
                 FAUSTFLOAT buffer[HALF_RING_BUFFER_SIZE * fInfo.channels];
-                
                 // Tries to read and write HALF_RING_BUFFER_SIZE frames
                 size_t nbf = readAndwrite(buffer, HALF_RING_BUFFER_SIZE);
-                
                 // End of file is reached
                 if (nbf < HALF_RING_BUFFER_SIZE) {
                     // Read RING_BUFFER_SIZE/2 - nbf frame from the beginning of file
@@ -353,7 +378,7 @@ class PositionManager : public GUI {
     
     private:
         
-        std::map<sound_base_player*, uiCallbackItem*> fFileReader;
+        std::map<sound_base_player*, std::pair<uiCallbackItem*, uiCallbackItem*> > fFileReader;
         
     public:
         
@@ -366,7 +391,8 @@ class PositionManager : public GUI {
         // Add a sound_base_player (sound_memory_player or sound_dtd_player) in the PositionManager
         void addDSP(sound_base_player* dsp)
         {
-            fFileReader[dsp] = new uiCallbackItem(this, dsp->getFrameZone(), sound_base_player::setFrame, dsp);
+            fFileReader[dsp] = std::make_pair(new uiCallbackItem(this, dsp->getCurFramesZone(), sound_base_player::setFrame, dsp),
+                                              new uiCallbackItem(this, dsp->getSetFramesZone(), sound_base_player::setFrame, dsp));
         }
     
         // Remove a sound_base_player (sound_memory_player or sound_dtd_player) in the PositionManager
