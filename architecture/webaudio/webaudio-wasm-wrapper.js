@@ -219,6 +219,29 @@ faust.getLibFaustVersion = function ()
     return faust_module.Pointer_stringify(faust.getCLibFaustVersion());
 }
 
+faust.ab2str = function(buf) 
+{ 
+    if (buf) {
+        return String.fromCharCode.apply(null, new Uint8Array(buf));
+    } else {
+        return null;
+    }
+}
+
+faust.str2ab = function(str) 
+{
+    if (str) {
+        var buf = new ArrayBuffer(str.length);
+        var bufView = new Uint8Array(buf);
+        for (var i = 0, strLen = str.length; i < strLen; i++) {
+            bufView[i] = str.charCodeAt(i);
+        }
+        return buf;
+    } else {
+        return null;
+    }
+}
+
 faust.compileCode = function (factory_name, code, argv, internal_memory)
 {
     var code_ptr = faust_module._malloc(code.length + 1);
@@ -284,7 +307,7 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
             }
             faust_module._free(argv_ptr);
 
-            return {factory_code: factory_code, helpers_code: helpers_code};
+            return { code: factory_code, code_source: code, helpers: helpers_code };
         }
         
     } catch (e) {
@@ -334,17 +357,21 @@ faust.createDSPFactoryAux = function (code, argv, internal_memory, callback)
         if (res2) {
             // Effect is in the code
             faust.readDSPFactoryFromMachineAux(factory_name1,
-                                               res1.factory_code,
-                                               res1.helpers_code,
+                                               res1.code,
+                                               res1.code_source,
+                                               res1.helpers,
                                                factory_name2,
-                                               res2.factory_code,
-                                               res2.helpers_code,
+                                               res2.code,
+                                               res2.code_source,
+                                               res2.helpers,
                                                sha_key,
                                                callback);
         } else {
             faust.readDSPFactoryFromMachineAux(factory_name1,
-                                               res1.factory_code,
-                                               res1.helpers_code,
+                                               res1.code,
+                                               res1.code_source,
+                                               res1.helpers,
+                                               null,
                                                null,
                                                null,
                                                null,
@@ -455,10 +482,12 @@ faust.expandDSP = function (code, argv)
 faust.writeDSPFactoryToMachine = function (factory)
 {
     return { name: factory.name,
-            code: factory.code,
+            code: faust.ab2str(factory.code),
+            code_source: factory.code_source,
             helpers: factory.helpers,
             name_effect : factory.name_effect,
-            code_effect: factory.code_effect,
+            code_effect: faust.ab2str(factory.code_effect),
+            code_source_effect: factory.code_source_effect,
             helpers_effect : factory.helpers_effect,
             };
 }
@@ -475,17 +504,19 @@ faust.writeDSPFactoryToMachine = function (factory)
  */
 faust.readDSPFactoryFromMachine = function (machine, callback)
 {
-    var sha_key = Sha1.hash(machine.code, true);
+    var sha_key = Sha1.hash(machine.code_source, true);
     var factory = faust.factory_table[sha_key];
     if (factory) {
         // Existing factory, do not create it...
         callback(factory);
     } else {
         faust.readDSPFactoryFromMachineAux(machine.name,
-                                           machine.code,
+                                           faust.str2ab(machine.code),
+                                           machine.code_source,
                                            machine.helpers,
                                            machine.name_effect,
-                                           machine.code_effect,
+                                           faust.str2ab(machine.code_effect),
+                                           machine.code_source_effect,
                                            machine.helpers_effect,
                                            sha_key,
                                            callback);
@@ -494,9 +525,11 @@ faust.readDSPFactoryFromMachine = function (machine, callback)
 
 faust.readDSPFactoryFromMachineAux = function (factory_name1,
                                                factory_code1,
+                                               factory_code_source1,
                                                helpers_code1,
                                                factory_name2,
                                                factory_code2,
+                                               factory_code_source2,
                                                helpers_code2,
                                                sha_key,
                                                callback)
@@ -504,7 +537,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
     var time1 = performance.now();
     
     try {
-        var binaryen_module = Binaryen.readBinary(factory_code);
+        var binaryen_module = Binaryen.readBinary(factory_code1);
         console.log("Binaryen based optimisation");
         binaryen_module.optimize();
         //console.log(binaryen_module.emitText());
@@ -524,6 +557,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
         factory.polyphony = [];  // Default mode
           
         factory.code = factory_code1;
+        factory.code_source = factory_code_source1;
         factory.helpers = helpers_code1;
         factory.module = module;
           
@@ -550,6 +584,7 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
             .then(module_effect => {
                   
                   factory.code_effect = factory_code2;
+                  factory.code_source_effect = factory_code_source2;
                   factory.helpers_effect = helpers_code2;
                   factory.module_effect = module_effect;
                   

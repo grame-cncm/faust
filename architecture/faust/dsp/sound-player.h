@@ -60,7 +60,7 @@ class sound_base_player : public dsp {
         FAUSTFLOAT fSetFrames;
         FAUSTFLOAT fLastSetFrames;
     
-        // To protect postion change
+        // To protect position change
         std::mutex fMutex;
     
         // Generic reader function
@@ -110,7 +110,6 @@ class sound_base_player : public dsp {
             ui_interface->addCheckButton("Loop", &fLoopButton);
             ui_interface->addHorizontalSlider("Set position", &fSetFrames, FAUSTFLOAT(0), FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames), FAUSTFLOAT(100));
             ui_interface->addHorizontalBargraph("Current position", &fCurFrames, FAUSTFLOAT(0), FAUSTFLOAT(fInfo.frames));
-            
             ui_interface->closeBox();
         }
         
@@ -223,7 +222,7 @@ class sound_memory_player : public sound_base_player {
     
         void setFrame(int frames)
         {
-             // If position change
+            // If position change
             if (fSetFrames != fLastSetFrames
                 && std::abs(fSetFrames - fLastSetFrames) > BUFFER_SIZE
                 && std::abs(fSetFrames - fCurFrames) > BUFFER_SIZE) {
@@ -395,7 +394,7 @@ class PositionManager : public GUI {
                                               new uiCallbackItem(this, dsp->getSetFramesZone(), sound_base_player::setFrame, dsp));
         }
     
-        // Remove a sound_base_player (sound_memory_player or sound_dtd_player) in the PositionManager
+        // Remove a sound_base_player (sound_memory_player or sound_dtd_player) from the PositionManager
         void removeDSP(sound_base_player* dsp)
         {
             fFileReader.erase(dsp);
