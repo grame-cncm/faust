@@ -180,6 +180,7 @@ set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
 # install section
 ####################################
 install ( TARGETS ${TARGETS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui
