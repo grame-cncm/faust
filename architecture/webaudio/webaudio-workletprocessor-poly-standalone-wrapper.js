@@ -639,7 +639,18 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
     {
         var input = inputs[0];
         var output = outputs[0];
-      
+        
+        // Check inputs
+        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            //console.log("Process input error");
+            return true;
+        }
+        // Check outputs
+        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            //console.log("Process output error");
+            return true;
+        }
+        
         // Copy inputs
         if (input !== undefined) {
             for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {
