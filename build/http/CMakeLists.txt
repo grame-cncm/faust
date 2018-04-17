@@ -118,6 +118,15 @@ else ()
 endif()
 endif()
 
+if ( WIN32 )
+	if (MSVC)
+		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ws2_32" )
+	else()
+		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} -lws2_32" )
+	endif()
+endif()
+
+
 #######################################
 # add libraries
 add_library( httpstatic STATIC  ${SRC})
