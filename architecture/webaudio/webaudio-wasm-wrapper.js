@@ -462,7 +462,7 @@ faust.expandDSP = function (code, argv)
     faust.freeCMemory(expand_dsp_ptr);
 
     // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
-    argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);
+    argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv.length);
     // Free 'argv' C side array
     for (var i = 0; i < argv.length; i++) {
         faust_module._free(argv_ptr_buffer[i]);

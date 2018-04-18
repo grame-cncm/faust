@@ -756,7 +756,8 @@ static void printDeclareHeader(ostream& dst)
         if (i->first != tree("author")) {
             dst << "declare ";
             stringstream key; key << *(i->first);
-            dst << replaceChar(replaceChar(key.str(), '.', '_'), '/', '_');
+            std::vector<char> to_replace{'.', ':', '/'};
+            dst << replaceCharList(key.str(), to_replace, '_');
             dst << " " << **(i->second.begin()) << ";" << endl;
         } else {
             for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); ++j) {

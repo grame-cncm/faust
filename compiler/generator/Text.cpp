@@ -280,8 +280,20 @@ string indent(const string& str, int tabs)
 
 string replaceChar(string str, char ch1, char ch2)
 {
-    for (unsigned int i = 0; i < str.length(); ++i) {
+    for (size_t i = 0; i < str.length(); ++i) {
         if (str[i] == ch1) {
+            str[i] = ch2;
+        }
+    }
+    return str;
+}
+
+string replaceCharList(string str, const vector<char>& ch1, char ch2)
+{
+    vector<char>::const_iterator beg = ch1.begin();
+    vector<char>::const_iterator end = ch1.end();
+    for (size_t i = 0; i < str.length(); ++i) {
+        if (std::find(beg, end, str[i]) != end) {
             str[i] = ch2;
         }
     }
