@@ -1290,9 +1290,9 @@ var mydspProcessorString = `
             this.HEAP32 = new Int32Array(this.HEAP);
             this.HEAPF32 = new Float32Array(this.HEAP);
 
-            console.log(this.HEAP);
-            console.log(this.HEAP32);
-            console.log(this.HEAPF32);
+            //console.log(this.HEAP);
+            //console.log(this.HEAP32);
+            //console.log(this.HEAPF32);
 
             // bargraph
             this.outputs_timer = 5;
@@ -1853,9 +1853,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     // wasm effect
     sp.effect = (effect_instance) ? effect_instance.exports : null;
 
-    console.log(sp.mixer);
-    console.log(sp.factory);
-    console.log(sp.effect);
+    //console.log(sp.mixer);
+    //console.log(sp.factory);
+    //console.log(sp.effect);
 
     // Start of DSP memory ('polyphony' DSP voices)
     sp.dsp_voices = [];
@@ -1941,12 +1941,14 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
 
         // Then decide which one to steal
         if (oldest_date_release != Number.MAX_VALUE) {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_release], sp.fDate, voice_release);
+            }
             return sp.allocVoice(voice_release);
         } else if (oldest_date_playing != Number.MAX_VALUE) {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", sp.dsp_voices_date[voice_playing], sp.fDate, voice_playing);
+            }
             return sp.allocVoice(voice_playing);
         } else {
             return sp.kNoVoice;
@@ -2274,8 +2276,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.keyOn = function (channel, pitch, velocity)
     {
         var voice = sp.getFreeVoice();
-        if (faust.debug)
+        if (faust.debug) {
             console.log("keyOn voice %d", voice);
+        }
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
         sp.dsp_voices_state[voice] = pitch;
@@ -2292,15 +2295,17 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("keyOff voice %d", voice);
+            }
             // No use of velocity for now...
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel, 0.0);
             // Release voice
             sp.dsp_voices_state[voice] = sp.kReleaseVoice;
         } else {
-            if (faust.debug)
+            if (faust.debug) {
                 console.log("Playing voice not found...");
+            }
         }
     }
 
@@ -2873,9 +2878,9 @@ var mydspPolyProcessorString = `
             this.HEAP32 = new Int32Array(this.HEAP);
             this.HEAPF32 = new Float32Array(this.HEAP);
 
-            console.log(this.HEAP);
-            console.log(this.HEAP32);
-            console.log(this.HEAPF32);
+            //console.log(this.HEAP);
+            //console.log(this.HEAP32);
+            //console.log(this.HEAPF32);
 
             // bargraph
             this.outputs_timer = 5;
@@ -2901,8 +2906,8 @@ var mydspPolyProcessorString = `
             // Setup DSP voices offset
             this.dsp_start = this.audio_heap_mixing + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
 
-            console.log(this.mixer);
-            console.log(this.factory);
+            //console.log(this.mixer);
+            //console.log(this.factory);
 
             // Start of DSP memory ('polyphony' DSP voices)
             this.polyphony = mydspPolyProcessor.polyphony;
@@ -2992,12 +2997,14 @@ var mydspPolyProcessorString = `
 
                 // Then decide which one to steal
                 if (oldest_date_release != Number.MAX_VALUE) {
-                    if (this.debug)
+                    if (this.debug) {
                         console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_release], this.fDate, voice_release);
+                    }
                     return this.allocVoice(voice_release);
                 } else if (oldest_date_playing != Number.MAX_VALUE) {
-                    if (this.debug)
+                    if (this.debug) {
                         console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_playing], this.fDate, voice_playing);
+                    }
                     return this.allocVoice(voice_playing);
                 } else {
                     return this.kNoVoice;
@@ -3088,8 +3095,9 @@ var mydspPolyProcessorString = `
             this.keyOn = function (channel, pitch, velocity)
             {
                 var voice = this.getFreeVoice();
-                if (this.debug)
+                if (this.debug) {
                     console.log("keyOn voice %d", voice);
+                }
                 this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel, this.midiToFreq(pitch));
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel, velocity/127.);
                 this.dsp_voices_state[voice] = pitch;
@@ -3104,8 +3112,9 @@ var mydspPolyProcessorString = `
                     // Release voice
                     this.dsp_voices_state[voice] = this.kReleaseVoice;
                 } else {
-                    if (this.debug)
+                    if (this.debug) {
                         console.log("Playing voice not found...");
+                    }
                 }
             }
 
