@@ -14,6 +14,9 @@
 # change if you want to get the log of what's happening
 LOG="/dev/null"
 
+# FAUSTGRADLE environement variable. By default we use ./gradlew 
+FAUSTGRADLE=${FAUSTGRADLE:=./gradlew}
+
 # exit if a command fails
 set -e
 
@@ -148,7 +151,7 @@ faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || ex
 # Run Gradle
 cd $BUILDDIR
 chmod a+x ./gradlew
-./gradlew assembleRelease > $LOG
+$FAUSTGRADLE assembleRelease > $LOG
 cd ..
 
 cp -r $BUILDDIR/app/build/outputs/apk/app-release.apk $APPNAME.apk
