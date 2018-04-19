@@ -1,7 +1,7 @@
 /*
  faust2wasm: GRAME 2017-2018
 */
- 
+
 'use strict';
 
 if (typeof (AudioWorkletNode) === "undefined") {
@@ -9,11 +9,11 @@ if (typeof (AudioWorkletNode) === "undefined") {
 }
 
 class mydspPolyNode extends AudioWorkletNode {
-    
-    constructor(context, options) 
+
+    constructor(context, options)
     {
         var json_object = JSON.parse(getJSONmydsp());
-      
+
         // Setting values for the input, the output and the channel count.
         options.numberOfInputs = (parseInt(json_object.inputs) > 0) ? 1 : 0;
         options.numberOfOutputs = (parseInt(json_object.outputs) > 0) ? 1 : 0;
@@ -21,9 +21,9 @@ class mydspPolyNode extends AudioWorkletNode {
         options.outputChannelCount = [parseInt(json_object.outputs)];
         options.channelCountMode = "explicit";
         options.channelInterpretation = "speakers";
-        
+
         super(context, 'mydspPoly', options);
-        
+
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
         {
@@ -31,21 +31,21 @@ class mydspPolyNode extends AudioWorkletNode {
                 this.parse_group(ui[i], obj);
             }
         }
-        
+
         this.parse_group = function(group, obj)
         {
             if (group.items) {
                 this.parse_items(group.items, obj);
             }
         }
-        
+
         this.parse_items = function(items, obj)
         {
             for (var i = 0; i < items.length; i++) {
             	this.parse_item(items[i], obj);
             }
         }
-        
+
         this.parse_item = function(item, obj)
         {
             if (item.type === "vgroup"
@@ -65,30 +65,30 @@ class mydspPolyNode extends AudioWorkletNode {
                 obj.inputs_items.push(item.address);
             }
         }
-        
+
         this.json_object = json_object;
-        
+
         if (typeof (getJSONeffect) !== "undefined") {
             this.effect_json_object = JSON.parse(getJSONeffect());
         }
-        
+
         this.output_handler = null;
-        
+
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
-    
+
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
-        
+
         if (this.effect_json_object) {
             this.parse_ui(this.effect_json_object.ui, this);
         }
-        
+
         // Set message handler
         this.port.onmessage = this.handleMessage.bind(this);
     }
-    
+
     // To be called by the message port with messages coming from the processor
     handleMessage(event)
     {
@@ -97,9 +97,9 @@ class mydspPolyNode extends AudioWorkletNode {
             this.output_handler(msg.path, msg.value);
         }
     }
-    
+
     // Public API
-  
+
     /**
      *  Returns a full JSON description of the DSP.
      */
@@ -132,7 +132,7 @@ class mydspPolyNode extends AudioWorkletNode {
             return res;
         }
     }
-    
+
     /**
      *  Set the control value at a given path.
      *
@@ -144,7 +144,7 @@ class mydspPolyNode extends AudioWorkletNode {
         this.port.postMessage({ type:"param", key:path, value:val });
         this.parameters.get(path).setValueAtTime(val, 0);
     }
-    
+
     /**
      *  Get the control value at a given path.
      *
@@ -154,7 +154,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return this.parameters.get(path).value;
     }
-    
+
     /**
      * Setup a control output handler with a function of type (path, value)
      * to be used on each generated output value. This handler will be called
@@ -166,7 +166,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.output_handler = handler;
     }
-    
+
     /**
      * Get the current output handler.
      */
@@ -174,17 +174,17 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return this.output_handler;
     }
-    
+
     getNumInputs()
     {
         return parseInt(this.json_object.inputs);
     }
-    
+
     getNumOutputs()
     {
         return parseInt(this.json_object.outputs);
     }
-    
+
     /**
      * Returns an array of all input paths (to be used with setParamValue/getParamValue)
      */
@@ -192,7 +192,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return this.inputs_items;
     }
-     
+
     /**
      * Instantiates a new polyphonic voice.
      *
@@ -204,7 +204,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "keyOn", data: [channel, pitch, velocity] });
     }
-    
+
     /**
      * De-instantiates a polyphonic voice.
      *
@@ -236,7 +236,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
     }
-    
+
     /**
      * PitchWeel
      *
@@ -247,7 +247,7 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
     }
-    
+
     /**
      * Generic MIDI message handler.
      */
@@ -255,13 +255,13 @@ class mydspPolyNode extends AudioWorkletNode {
     {
     	this.port.postMessage({ type:"midi", data:data });
     }
-    
+
 }
 
 // Factory class
 
 class mydsp {
-    
+
     /**
      * Factory constructor.
      *
@@ -272,11 +272,11 @@ class mydsp {
     {
     	// Resume audio context each time...
     	context.resume();
-    	
+
         this.context = context;
         this.baseUrl = baseUrl;
     }
-    
+
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
@@ -285,6 +285,7 @@ class mydsp {
     	return new Promise((resolve, reject) => {
         		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
         		this.node = new mydspPolyNode(this.context, {});
+                this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
         		return (this.node);
         	}).then((node) => {
                 resolve(node);
@@ -293,8 +294,8 @@ class mydsp {
             });
         });
     }
-    
-    loadGui() 
+
+    loadGui()
     {
         return new Promise((resolve, reject) => {
             try {

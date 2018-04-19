@@ -118,6 +118,15 @@ else ()
 endif()
 endif()
 
+if ( WIN32 )
+	if (MSVC)
+		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ws2_32" )
+	else()
+		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} -lws2_32" )
+	endif()
+endif()
+
+
 #######################################
 # add libraries
 add_library( httpstatic STATIC  ${SRC})
@@ -171,6 +180,7 @@ set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
 # install section
 ####################################
 install ( TARGETS ${TARGETS}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust/gui

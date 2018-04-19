@@ -290,9 +290,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.HEAP32 = new Int32Array(this.HEAP);
         this.HEAPF32 = new Float32Array(this.HEAP);
         
-        console.log(this.HEAP);
-        console.log(this.HEAP32);
-        console.log(this.HEAPF32);
+        //console.log(this.HEAP);
+        //console.log(this.HEAP32);
+        //console.log(this.HEAPF32);
         
         // bargraph
         this.outputs_timer = 5;
@@ -324,9 +324,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // wasm effect
         this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
         
-        console.log(this.mixer);
-        console.log(this.factory);
-        console.log(this.effect);
+        //console.log(this.mixer);
+        //console.log(this.factory);
+        //console.log(this.effect);
         
         // Start of DSP memory ('polyphony' DSP voices)
         this.polyphony = mydspPolyProcessor.polyphony;
@@ -416,12 +416,14 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             
             // Then decide which one to steal
             if (oldest_date_release != Number.MAX_VALUE) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Steal release voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_release], this.fDate, voice_release);
+                }
                 return this.allocVoice(voice_release);
             } else if (oldest_date_playing != Number.MAX_VALUE) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Steal playing voice : voice_date = %d cur_date = %d voice = %d", this.dsp_voices_date[voice_playing], this.fDate, voice_playing);
+                }
                 return this.allocVoice(voice_playing);
             } else {
                 return this.kNoVoice;
@@ -512,8 +514,9 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.keyOn = function (channel, pitch, velocity)
         {
             var voice = this.getFreeVoice();
-            if (this.debug)
+            if (this.debug) {
                 console.log("keyOn voice %d", voice);
+            }
             this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel, this.midiToFreq(pitch));
             this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel, velocity/127.);
             this.dsp_voices_state[voice] = pitch;
@@ -523,15 +526,17 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
-                if (this.debug)
+                if (this.debug) {
                     console.log("keyOff voice %d", voice);
+                }
                 // No use of velocity for now...
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel, 0.0);
                 // Release voice
                 this.dsp_voices_state[voice] = this.kReleaseVoice;
             } else {
-                if (this.debug)
+                if (this.debug) {
                     console.log("Playing voice not found...");
+                }
             }
         }
         
@@ -639,7 +644,18 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
     {
         var input = inputs[0];
         var output = outputs[0];
-      
+        
+        // Check inputs
+        if (this.numIn > 0 && ((input === undefined) || (input[0].length === 0))) {
+            //console.log("Process input error");
+            return true;
+        }
+        // Check outputs
+        if (this.numOut > 0 && ((output === undefined) || (output[0].length === 0))) {
+            //console.log("Process output error");
+            return true;
+        }
+        
         // Copy inputs
         if (input !== undefined) {
             for (var chan = 0; chan < Math.min(this.numIn, input.length) ; ++chan) {

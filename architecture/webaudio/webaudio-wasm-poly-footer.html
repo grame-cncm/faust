@@ -133,27 +133,59 @@ function getDevice(device)
 }
 
 // Save/Load functions using local storage (no yet working since 'params' does not reflect the polyphonic layout...)
-function saveDSP()
+
+//set item from local storage 'item_key' key
+function getStorageItemValue(item_key, key)
 {
-    if (typeof(Storage) !== "undefined") {
-        var params = DSP_poly.getParams();
-        for (var i = 0; i < params.length; i++) {
-            localStorage.setItem(params[i], DSP_poly.getParamValue(params[i]));
-        }
+    if (localStorage.getItem(item_key)) {
+        var item_value = JSON.parse(localStorage.getItem(item_key));
+        var item_index = item_value.findIndex((obj => obj[0] === key));
+        return (item_index >= 0) ? item_value[item_index][1]: null;
+    } else {
+        return null;
     }
 }
 
-function loadDSP()
+//get [key, value] in local storage item_key key
+function setStorageItemValue(item_key, key, value)
 {
-    if (typeof(Storage) !== "undefined") {
-        var params = DSP_poly.getParams();
-        for (var i = 0; i < params.length; i++) {
-            if (localStorage.getItem(params[i])) {
-                // Restore DSP state
-                DSP_poly.setParamValue(params[i], Number(localStorage.getItem(params[i])));
-                // Restore GUI state
-                output_handler(params[i], Number(localStorage.getItem(params[i])));
-            }
+    var item_value;
+    if (localStorage.getItem(item_key)) {
+        item_value = JSON.parse(localStorage.getItem(item_key));
+    } else {
+        item_value = [];
+    }
+    
+    // Possibly update an existing 'key'
+    var item_index = item_value.findIndex((obj => obj[0] === key));
+    if (item_index >= 0) {
+        item_value[item_index][1] = value;
+        // Otherwise push a new [key, value]
+    } else {
+        item_value.push([key, value]);
+    }
+    
+    localStorage.setItem(item_key, JSON.stringify(item_value));
+}
+
+function saveDSPState()
+{
+   var params = DSP.getParams();
+    for (var i = 0; i < params.length; i++) {
+        setStorageItemValue('DSP', params[i], DSP.getParamValue(params[i]));
+    }
+}
+
+function loadDSPState()
+{
+    var params = DSP.getParams();
+    for (var i = 0; i < params.length; i++) {
+        var value = getStorageItemValue('DSP', params[i]);
+        if (value) {
+            // Restore DSP state
+            DSP.setParamValue(params[i], Number(value));
+            // Restore GUI state
+            output_handler(params[i], Number(value));
         }
     }
 }
@@ -184,7 +216,7 @@ function startDSPAux(dsp)
     DSP_poly.setOutputParamHandler(output_handler);
     
     // Load DSP state from local storage
-    loadDSP();
+    loadDSPState();
 }
 
 function startDSP()
@@ -221,7 +253,7 @@ window.addEventListener('touchstart', function() {
 $(startDSP);
                         
 // Save DSP state to local storage
-setInterval(function() { if (DSP_poly) saveDSP(); }, 1000);
+setInterval(function() { if (DSP_poly) saveDSPState(); }, 1000);
 
 </script>
 
