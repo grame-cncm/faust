@@ -513,7 +513,12 @@ siglist realPropagate (Tree slotenv, Tree path, Tree box, const siglist&  lsig)
 		siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
         Tree g = rec(listConvert(l3));
         return makeSigProjList(g, out1);
-    }
+    } 
+
+    else if (isBoxEnvironment(box)) 	{
+		faustassert(lsig.size()==0); 
+		return siglist(); 
+    } 
 
     stringstream error;
     error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", unrecognised box expression : " << boxpp(box) << endl;

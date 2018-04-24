@@ -442,6 +442,10 @@ static schema* generateInsideSchema(Tree t)
 		} else {
 			return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10, "Abstraction");
 		}
+        
+    } else if (isBoxEnvironment(t)) { 
+        return makeBlockSchema(0, 0, "environment{...}", normalcolor, ""); 
+
 	} else {
         stringstream error;
         error << "ERROR : box expression not recognized : ";
