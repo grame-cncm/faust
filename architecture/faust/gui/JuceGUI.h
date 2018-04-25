@@ -495,7 +495,7 @@ class uiSlider : public uiComponent, private juce::Slider::Listener
          * \param   scale                           Scale of the slider, exponential, logarithmic, or linear.
          * \param   type                            Type of slider (see SliderType).
          */
-        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT cur, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
+        uiSlider(GUI* gui, FAUSTFLOAT* zone, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, String name, String unit, String tooltip, MetaDataUI::Scale scale, SliderType type) : uiComponent(gui, zone, w, h, name), fType(type)
         {
             if (scale == MetaDataUI::kLog) {
                 fConverter = new LogValueConverter(min, max, min, max);
@@ -1856,7 +1856,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
             } else if (isMenu(zone)) {
                 addMenu(label, zone, defaultVal(zone, init), min, max, step, fMenuDescription[zone].c_str());
             } else {
-                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
+                fCurrentBox->add(new uiSlider(this, zone, kWidth, kHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), type));
             }
         }
         
@@ -1890,7 +1890,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         /** Add a ciruclar slider to the user interface. */
         void addKnob(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) {
-            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, min, max, defaultVal(zone, init), step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
+            fCurrentBox->add(new uiSlider(this, zone, kKnobWidth, kKnobHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]),  getScale(zone), Knob));
         }
         
         /** Add a bargraph to the user interface. */
@@ -2002,7 +2002,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         {
             // kMargin pixels between the slider and his name
             int newWidth = Font().getStringWidth(String(label)) + kNumEntryWidth + kMargin;
-            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, min, max, init, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
+            fCurrentBox->add(new uiSlider(this, zone, newWidth, kNumEntryHeight, defaultVal(zone, init), min, max, step, String(label), String(fUnit[zone]), String(fTooltip[zone]), getScale(zone), NumEntry));
         }
         
         /** Add a vertical bargraph to the user interface. */

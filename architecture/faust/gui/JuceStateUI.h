@@ -41,7 +41,7 @@ class JuceStateUI : public GenericUI {
     public:
     
         JuceStateUI() {}
-        virtual ~JuceStateUII() {}
+        virtual ~JuceStateUI() {}
     
         void getStateInformation (MemoryBlock& destData)
         {

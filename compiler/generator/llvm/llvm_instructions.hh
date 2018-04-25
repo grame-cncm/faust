@@ -1494,7 +1494,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         void visitNameAddress(LoadVarInst* inst, NamedAddress* named_address)
         {
             Value* load_ptr = visitNameAddressAux(inst->fSize, named_address);
-            dumpLLVM(load_ptr);
+            //dumpLLVM(load_ptr);
             
             if (named_address->fAccess & Address::kStruct) {
                 // We want to see array like [256 x float] as a float*
@@ -1714,7 +1714,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         virtual void visit(StoreVarInst* inst)
         {
             
-            dump2FIR(inst);
+            //dump2FIR(inst);
             
             NamedAddress* named_address = dynamic_cast<NamedAddress*>(inst->fAddress);
             IndexedAddress* indexed_address = dynamic_cast<IndexedAddress*>(inst->fAddress);
