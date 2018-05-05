@@ -173,6 +173,14 @@ class CPPInstVisitor : public TextInstVisitor {
             << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel)
+            << ", " << quote(inst->fURL)
+            << ", &" << inst->fVarname << ")";
+            EndLine();
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {
@@ -235,7 +243,7 @@ class CPPInstVisitor : public TextInstVisitor {
             if (endWith(type, "*")) {
                 *fOut << "static_cast<" << type << ">("; inst->fInst->accept(this);  *fOut << ")";
             } else {
-                 *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
+                *fOut << type << "("; inst->fInst->accept(this);  *fOut << ")";
             }
         }
     

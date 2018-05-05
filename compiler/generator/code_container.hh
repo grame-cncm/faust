@@ -83,7 +83,8 @@ class CodeContainer : public virtual Garbageable {
         BlockInst* fStaticDestroyInstructions;
 
         // Compute method
-        BlockInst* fComputeBlockInstructions;
+        BlockInst* fComputeBlockInstructions;       // Before DSP loop
+        BlockInst* fPostComputeBlockInstructions;   // After DSP loop
 
         // Additionnal functions
         BlockInst* fComputeFunctions;
@@ -106,7 +107,7 @@ class CodeContainer : public virtual Garbageable {
         string fFullCount;
         
         bool fGeneratedSR;
-  
+    
         void merge(set<string>& dst, set<string>& src)
         {
             set<string>::iterator i;
@@ -371,6 +372,13 @@ class CodeContainer : public virtual Garbageable {
             }
         }
     
+        void generatePostComputeBlock(InstVisitor* visitor)
+        {
+            if (fPostComputeBlockInstructions->fCode.size() > 0) {
+                fPostComputeBlockInstructions->accept(visitor);
+            }
+        }
+    
         void generateAllocate(InstVisitor* visitor)
         {
             if (fAllocateInstructions->fCode.size() > 0) {
@@ -390,13 +398,19 @@ class CodeContainer : public virtual Garbageable {
         StatementInst* pushResetUIInstructions(StatementInst* inst) { fResetUserInterfaceInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostInitMethod(StatementInst* inst) { fPostInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushFrontInitMethod(StatementInst* inst) { fInitInstructions->pushFrontInst(inst); return inst; }
+    
+        StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
+    
         StatementInst* pushAllocateMethod(StatementInst* inst) { fAllocateInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushDestroyMethod(StatementInst* inst) { fDestroyInstructions->pushBackInst(inst); return inst; }
+    
         StatementInst* pushStaticInitMethod(StatementInst* inst) { fStaticInitInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushStaticDestroyMethod(StatementInst* inst) { fStaticDestroyInstructions->pushBackInst(inst); return inst; }
         StatementInst* pushPostStaticInitMethod(StatementInst* inst) { fPostStaticInitInstructions->pushBackInst(inst); return inst; }
+    
         StatementInst* pushComputeBlockMethod(StatementInst* inst) { fComputeBlockInstructions->pushBackInst(inst); return inst; }
-        StatementInst* pushUserInterfaceMethod(StatementInst* inst) { fUserInterfaceInstructions->pushBackInst(inst); return inst; }
+        StatementInst* pushPostComputeBlockMethod(StatementInst* inst) { fPostComputeBlockInstructions->pushBackInst(inst); return inst; }
+    
         StatementInst* pushOtherComputeMethod(StatementInst* inst) { fComputeFunctions->pushBackInst(inst); return inst; }
 
         StatementInst* pushComputePreDSPMethod(StatementInst* inst)     { return fCurLoop->pushComputePreDSPMethod(inst); }

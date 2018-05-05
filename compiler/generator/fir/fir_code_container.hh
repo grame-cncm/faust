@@ -34,8 +34,6 @@
 
 using namespace std;
 
-
-
 class FirCodeContainer : public virtual CodeContainer {
     
     private:
@@ -47,6 +45,7 @@ class FirCodeContainer : public virtual CodeContainer {
         virtual void dumpThread(FIRInstVisitor& firvisitor, ostream* dst) {};
         virtual void dumpComputeBlock(FIRInstVisitor& firvisitor, ostream* dst);
         virtual void dumpCompute(FIRInstVisitor& firvisitor, ostream* dst) = 0;
+        virtual void dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst);
         virtual void dumpMemory(ostream* dst);
         virtual void dumpFlatten(ostream* dst);
         

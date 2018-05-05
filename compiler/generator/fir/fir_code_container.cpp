@@ -235,23 +235,44 @@ void FirCodeContainer::produceClass()
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
     
+    *fOut << "======= External types declaration ==========" << std::endl;
+    *fOut << std::endl;
+    map<Typed::VarType, DeclareStructTypeInst*>::const_iterator it;
+    for (it = gGlobal->gExternalStructTypes.begin(); it != gGlobal->gExternalStructTypes.end(); it++) {
+        ((*it).second)->accept(&firvisitor);
+        *fOut << std::endl;
+    }
+    *fOut << std::endl;
+    
     dumpSubContainers(firvisitor, fOut);
     dumpUserInterface(firvisitor, fOut);
     dumpGlobalsAndInit(firvisitor, fOut);
     dumpThread(firvisitor, fOut);
     dumpComputeBlock(firvisitor, fOut);
     dumpCompute(firvisitor, fOut);
+    dumpPostCompute(firvisitor, fOut);
     dumpFlatten(fOut);
     dumpMemory(fOut);
 }
 
+void FirCodeContainer::dumpPostCompute(FIRInstVisitor& firvisitor, ostream* dst)
+{
+    *dst << "======= Post compute DSP ==========" << std::endl;
+    fPostComputeBlockInstructions->accept(&firvisitor);
+    *dst << std::endl;
+}
+
 void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* dst)
 {
-    *dst << "======= Compute DSP ==========" << std::endl << std::endl;
+    *dst << "======= Compute DSP ==========" << std::endl;
     ForLoopInst* loop = fCurLoop->generateScalarLoop("count");
     // Complexity estimation
     dumpCost(loop, dst);
     loop->accept(&firvisitor);
+    
+    // Currently for soundfile management
+    generatePostComputeBlock(&firvisitor);
+    
     *dst << std::endl;
 }
 

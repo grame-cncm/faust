@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef FAUST_CUI_H
-#define FAUST_CUI_H
+#ifndef CINTERFACE_H
+#define CINTERFACE_H
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -60,7 +60,7 @@ typedef void (* addVerticalBargraphFun) (void* ui_interface, const char* label, 
 
 // -- soundfiles
     
-typedef void (* addSoundFileFun) (void* ui_interface, const char* label, const char* filename, Soundfile** sf_zone);
+typedef void (* addSoundFileFun) (void* ui_interface, const char* label, const char* url, struct Soundfile** sf_zone);
 
 typedef void (* declareFun) (void* ui_interface, FAUSTFLOAT* zone, const char* key, const char* value);
 

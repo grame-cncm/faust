@@ -149,9 +149,7 @@ class JAVAScriptInstVisitor : public TextInstVisitor {
         }
 
         virtual void visit(LabelInst* inst)
-        {
-            // Empty
-        }
+        {}
 
         virtual void visit(DeclareVarInst* inst)
         {

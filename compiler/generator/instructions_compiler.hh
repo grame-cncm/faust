@@ -94,6 +94,7 @@ class InstructionsCompiler : public virtual Garbageable {
         StatementInst* pushPostStaticInitMethod(StatementInst* inst)    { return fContainer->pushPostStaticInitMethod(inst); }
         StatementInst* pushStaticDestroyMethod(StatementInst* inst)     { return fContainer->pushStaticDestroyMethod(inst); }
         StatementInst* pushComputeBlockMethod(StatementInst* inst)      { return fContainer->pushComputeBlockMethod(inst); }
+        StatementInst* pushPostComputeBlockMethod(StatementInst* inst)  { return fContainer->pushPostComputeBlockMethod(inst); }
         StatementInst* pushUserInterfaceMethod(StatementInst* inst)     { return fContainer->pushUserInterfaceMethod(inst); }
 
         StatementInst* pushDeclare(StatementInst* inst)                 { return fContainer->pushDeclare(inst); }
@@ -179,6 +180,12 @@ class InstructionsCompiler : public virtual Garbageable {
 
         virtual ValueInst* generateVBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
         virtual ValueInst* generateHBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
+    
+        virtual ValueInst* generateSoundfile(Tree sig, Tree label);
+        virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf);
+        virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf);
+        virtual ValueInst* generateSoundfileChannels(Tree sig, ValueInst* sf);
+        virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y);
 
         virtual ValueInst* generateIntNumber(Tree sig, int num);
         virtual ValueInst* generateRealNumber(Tree sig, double num);

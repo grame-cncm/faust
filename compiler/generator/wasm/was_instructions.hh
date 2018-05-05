@@ -196,12 +196,7 @@ struct WASInst {
     
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
-    
-    static DeclareFunInst* generateInit();
-    static DeclareFunInst* generateInstanceInit();
-    
-    static DeclareFunInst* generateGetSampleRate();
-    
+     
 };
 
 #endif

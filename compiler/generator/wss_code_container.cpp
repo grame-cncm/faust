@@ -64,6 +64,10 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     VariableMover::Move(this, "tmp");
     VariableMover::Move(this, "Zec");
     VariableMover::Move(this, "Yec");
+    
+    // To move variable in "computeThread"
+    Compute2ComputeThread mover0(this, "fSoundfile");
+    fComputeBlockInstructions->accept(&mover0);
 
     // To move variable in "computeThread"
     Compute2ComputeThread mover1(this, "Slow");
@@ -80,7 +84,7 @@ void WSSCodeContainer::moveCompute2ComputeThread()
     // To move variable in "computeThread"
     Compute2ComputeThread mover4(this, "fOutput");
     fComputeBlockInstructions->accept(&mover4);
-
+   
     // Remove marked variables from fComputeBlockInstructions
     RemoverCloneVisitor remover;
     fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));

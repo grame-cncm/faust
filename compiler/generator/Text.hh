@@ -105,7 +105,7 @@ inline bool startWithRes(const string& str, const string& prefix, string& res)
 
 inline string removeChar(const string& str, char c)
 {
-    std::string res;
+    string res;
     res.reserve(str.size()); // optional, avoids buffer reallocations in the loop
     for (size_t i = 0; i < str.size(); ++i) {
         if (str[i] != c) res += str[i];
@@ -125,9 +125,9 @@ inline bool replaceExtension(const string& str, const string& term, string& res)
     }
 }
 
-inline std::string flatten(const std::string& src)
+inline string flatten(const string& src)
 {
-    std::stringstream dst;
+    stringstream dst;
     size_t size = src.size();
     for (size_t i = 0; i < src.size(); i++) {
         switch (src[i]) {
@@ -148,9 +148,9 @@ inline std::string flatten(const std::string& src)
     return dst.str();
 }
 
-inline std::string pathToContent(const std::string& path)
+inline string pathToContent(const string& path)
 {
-    std::ifstream file(path.c_str(), std::ifstream::binary);
+    ifstream file(path.c_str(), ifstream::binary);
     
     file.seekg(0, file.end);
     int size = int(file.tellg());

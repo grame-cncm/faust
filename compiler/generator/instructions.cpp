@@ -26,6 +26,37 @@
 
 std::stack<BlockInst*> BasicCloneVisitor::fBlockStack;
 
+DeclareStructTypeInst* isStructType(const string& name)
+{
+    if (gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end()) {
+        Typed* type = gGlobal->gVarTypeTable[name];
+        Typed::VarType ext_type = Typed::getTypeFromPtr(type->getType());
+        // If type is an external Structured type
+        if (gGlobal->gExternalStructTypes.find(ext_type) != gGlobal->gExternalStructTypes.end()) {
+            return gGlobal->gExternalStructTypes[ext_type];
+        }
+    }
+    return nullptr;
+}
+
+ValueInst* InstBuilder::genTypedZero(Typed::VarType type)
+{
+    if (type == Typed::kInt32) {
+        return genInt32NumInst(0);
+    } else if (type == Typed::kInt64) {
+        return genInt64NumInst(0);
+    } else if (isRealType(type)) {
+        return genRealNumInst(type, 0.);
+    } else {
+        // Pointer type
+        if (gGlobal->gMachinePtrSize == 4) {
+            return genInt32NumInst(0);
+        } else {
+            return genInt64NumInst(0);
+        }
+    }
+}
+
 Typed::VarType ctType(Type t)
 {
     return (t->nature() == kInt) ? Typed::kInt32 : Typed::kFloat;
@@ -35,11 +66,15 @@ string Typed::gTypeString[] = {
     "kInt32", "kInt32ish", "kInt32_ptr", "kInt32_vec", "kInt32_vec_ptr",
     "kInt64", "kInt64_ptr", "kInt64_vec", "kInt64_vec_ptr",
     "kBool", "kBool_ptr", "kBool_vec", "kBool_vec_ptr",
-    "kFloat", "kFloatish", "kFloat_ptr", "kFloat_vec", "kFloat_vec_ptr",
-    "kFloatMacro", "kFloatMacro_ptr",
-    "kDouble", "kDoublish", "kDouble_ptr", "kDouble_vec", "kDouble_vec_ptr",
+    "kFloat", "kFloatish", "kFloat_ptr", "kFloat_ptr_ptr", "kFloat_vec", "kFloat_vec_ptr",
+    "kFloatMacro", "kFloatMacro_ptr", "kFloatMacro_ptr_ptr",
+    "kDouble", "kDoublish", "kDouble_ptr", "kDouble_ptr_ptr", "kDouble_vec", "kDouble_vec_ptr",
     "kQuad", "kQuad_ptr", "kQuad_vec", "kQuad_vec_ptr",
-    "kVoid", "kVoid_ptr", "kVoid_ptr_ptr", "kObj", "kObj_ptr", "kNoType"
+    "kVoid", "kVoid_ptr", "kVoid_ptr_ptr",
+    "kObj", "kObj_ptr",
+    "kSound", "kSound_ptr",
+    "kUint_ptr"
+    "kNoType"
 };
 
 void BasicTyped::cleanup() { gGlobal->gTypeTable.clear(); }
@@ -135,17 +170,17 @@ NamedTyped* InstBuilder::genNamedTyped(const string& name, Typed::VarType type)
     return genNamedTyped(name, genBasicTyped(type));
 }
 
-ValueInst* InstBuilder::genCastNumFloatInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastFloatInst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(itfloat()));
 }
 
-ValueInst* InstBuilder::genCastNumFloatMacroInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastFloatMacroInst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kFloatMacro));
 }
 
-ValueInst* InstBuilder::genCastNumIntInst(ValueInst* inst)
+ValueInst* InstBuilder::genCastInt32Inst(ValueInst* inst)
 {
     return InstBuilder::genCastInst(inst, InstBuilder::genBasicTyped(Typed::kInt32));
 }

@@ -56,7 +56,7 @@ class CStringTypeManager : public StringTypeManager {
       public:
 
         CStringTypeManager(const std::string& float_macro_name, const std::string&  ptr_postfix)
-        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+            :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
         {
             fPtrPosfix = ptr_postfix;
             
@@ -72,11 +72,16 @@ class CStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kFloat] = "float";
             fTypeDirectTable[Typed::kFloatish] = "floatish";
             fTypeDirectTable[Typed::kFloat_ptr] = "float" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloat_ptr_ptr] = "float" + fPtrPosfix + fPtrPosfix;
             fTypeDirectTable[Typed::kFloat_vec] = "vector<float>";
+            
+            fTypeDirectTable[Typed::kFloatMacro_ptr] = "FAUSTFLOAT" + fPtrPosfix;
+            fTypeDirectTable[Typed::kFloatMacro_ptr_ptr] = "FAUSTFLOAT" + fPtrPosfix + fPtrPosfix;
             
             fTypeDirectTable[Typed::kDouble] = "double";
             fTypeDirectTable[Typed::kDoublish] = "doublish";
             fTypeDirectTable[Typed::kDouble_ptr] = "double" + fPtrPosfix;
+            fTypeDirectTable[Typed::kDouble_ptr_ptr] = "double" + fPtrPosfix + fPtrPosfix;;
             fTypeDirectTable[Typed::kDouble_vec] = "vector<double>";
             
             fTypeDirectTable[Typed::kQuad] = "quad";
@@ -89,8 +94,13 @@ class CStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
             
+            fTypeDirectTable[Typed::kSound] = "Soundfile";
+            fTypeDirectTable[Typed::kSound_ptr] = "Soundfile" + fPtrPosfix;
+            
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+            
+            fTypeDirectTable[Typed::kUint_ptr] = "uintptr_t";
         }
     
         virtual std::string generateType(Typed* type)
@@ -142,7 +152,7 @@ class RustStringTypeManager : public StringTypeManager {
     public:
     
         RustStringTypeManager(const std::string& float_macro_name, const std::string& ptr_postfix)
-        :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
+            :StringTypeManager(float_macro_name, float_macro_name + ptr_postfix)
         {
             fPtrPosfix = ptr_postfix;
             
@@ -175,8 +185,12 @@ class RustStringTypeManager : public StringTypeManager {
             fTypeDirectTable[Typed::kVoid] = "void";
             fTypeDirectTable[Typed::kVoid_ptr] = "void" + fPtrPosfix;
             
+            // TODO : handling Soundfile
+            
             fTypeDirectTable[Typed::kObj] = "";
             fTypeDirectTable[Typed::kObj_ptr] = fPtrPosfix;
+            
+            // TODO : handling kUint_ptr
         }
     
         virtual std::string generateType(Typed* type)

@@ -242,9 +242,9 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		*inum = max(0,u-y); *onum = v;
 		
     } else if (isBoxEnvironment(t)) {
-        stringstream error;
-        error << "Connection error : an environment is not a block-diagram : " << boxpp(t) << endl;
-        throw faustexception(error.str());
+		*inum = 0;
+		*onum = 0;
+
     } else {
         stringstream error;
         error << "boxType() internal error : unrecognized box expression " << boxpp(t) << endl;

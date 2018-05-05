@@ -146,6 +146,9 @@ int computeBoxComplexity (Tree box)
 	else if (isBoxHGroup(box, label, t1))	return BC(t1);
 	else if (isBoxTGroup(box, label, t1))	return BC(t1);
 
+	// environment
+	else if (isBoxEnvironment(box))			return 0;
+
 	//a completer
 	else {
 		//fout << tree2str(box);

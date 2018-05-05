@@ -58,6 +58,7 @@ struct DispatchVisitor;
 class ASMJAVAScriptInstVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
+class DeclareStructTypeInst;
 
 struct Typed;
 struct BasicTyped;
@@ -132,9 +133,9 @@ struct global {
 
     bool gUIMacroSwitch;
     bool gDumpNorm;
-    int             gFTZMode;
+    int gFTZMode;
 
-    int             gFloatSize;
+    int gFloatSize;
 
     bool gPrintFileListSwitch;
     bool gInlineArchSwitch;
@@ -142,10 +143,8 @@ struct global {
     bool gDSPStruct;
     bool gLightMode;
 
-    string			gClassName;
-    string          gProcessName;
-
-
+    string gClassName;
+    string gProcessName;
 
     // Backend configuration
     string gOutputLang;          // Chosen backend
@@ -377,7 +376,10 @@ struct global {
 
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
-
+    
+    // The map of types and associated Structured types
+    map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
+   
     // Essential predefined types
     Type TINT;
     Type TREAL;

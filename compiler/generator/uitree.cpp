@@ -44,7 +44,7 @@ static void error(const char * s, Tree t)
 static bool findKey (Tree pl, Tree key, Tree& val)
 {
 	if (isNil(pl)) 				return false;
-	if (left(hd(pl)) == key) 	{ val= right(hd(pl)); return true; }
+	if (left(hd(pl)) == key) 	{ val = right(hd(pl)); return true; }
 	/*  left(hd(pl)) != key	*/	return findKey (tl(pl), key, val); 
 }
 

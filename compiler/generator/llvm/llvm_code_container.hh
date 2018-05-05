@@ -27,7 +27,6 @@
 #include "vec_code_container.hh"
 #include "omp_code_container.hh"
 #include "wss_code_container.hh"
-#include "llvm_dynamic_dsp_aux.hh"
 
 #include <llvm/Support/FileSystem.h>
 
@@ -94,44 +93,12 @@ class LLVMCodeContainer : public virtual CodeContainer {
         void generateBuildUserInterfaceBegin();
         void generateBuildUserInterfaceEnd();
     
-        void generateGetSize(LlvmValue size);
+        void generateGetSize(LLVMValue size);
     
-        LlvmValue genInt1(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt1Ty(getContext()), number);
-        }
-
-        LlvmValue genInt32(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt32Ty(getContext()), number);
-        }
-
-        LlvmValue genInt64(int number)
-        {
-            return ConstantInt::get(llvm::Type::getInt64Ty(getContext()), number);
-        }
-
-        LlvmValue genFloat(const string& number)
-        {
-        #if defined(LLVM_60)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
-        #elif defined(LLVM_40) || defined(LLVM_50)
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle(), number));
-        #else
-            return ConstantFP::get(getContext(), APFloat(APFloat::IEEEsingle, number));
-        #endif
-        }
-
-        LlvmValue genFloat(float number)
-        {
-            return ConstantFP::get(getContext(), APFloat(number));
-        }
-        
         LLVMContext& getContext();
     
         // To be used for mathematical function mapping (-fm and exp10 on OSX)
         void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
-    
         void generateFunMaps();
 
     public:
@@ -187,9 +154,9 @@ class LLVMOpenMPCodeContainer : public OpenMPCodeContainer, public LLVMCodeConta
 
         void generateGOMP_parallel_start();
         void generateGOMP_parallel_end();
-        LlvmValue generateGOMP_single_start();
+        LLVMValue generateGOMP_single_start();
         void generateGOMP_barrier();
-        void generateGOMP_sections_start(LlvmValue number);
+        void generateGOMP_sections_start(LLVMValue num);
         void generateGOMP_sections_end();
         void generateGOMP_sections_next();
 

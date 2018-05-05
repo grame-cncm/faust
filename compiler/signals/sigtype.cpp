@@ -89,7 +89,7 @@ ostream& TableType::print(ostream& dst) const
  */
 bool TableType::isMaximal() const
 {
-    return  (fNature==kReal)
+    return (fNature==kReal)
             && (fVariability==kSamp)
             && (fComputability==kExec);
 }
@@ -280,7 +280,7 @@ Type checkWRTbl(Type tbl, Type wr)
 	// verifie que wr est compatible avec le contenu de tbl
 	if (wr->nature() > tbl->nature()) {
         stringstream error;
-        error << "ERROR : checkWRTbl failed, the content of  " << tbl << " is incompatible with " << wr << endl;
+        error << "ERROR : checkWRTbl failed, the content of " << tbl << " is incompatible with " << wr << endl;
         throw faustexception(error.str());
 	}
 	return tbl;

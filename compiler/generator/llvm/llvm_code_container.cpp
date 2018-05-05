@@ -22,6 +22,7 @@
 #include "compatibility.hh"
 #include "llvm_code_container.hh"
 #include "llvm_instructions.hh"
+#include "llvm_dynamic_dsp_aux.hh"
 #include "exception.hh"
 #include "global.hh"
 
@@ -66,6 +67,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fModule->setDataLayout("e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128");
 #endif
     fBuilder = new IRBuilder<>(getContext());
+    
+    // Check pointer size
+    faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout().getPointerSize()));
     
     // Set "-fast-math"
     FastMathFlags FMF;
@@ -601,14 +605,14 @@ void LLVMCodeContainer::generateMetadata(llvm::PointerType* meta_type_ptr)
     fBuilder->SetInsertPoint(entry_block);
     
     Value* idx0[2];
-    idx0[0] = genInt64(0);
-    idx0[1] = genInt32(0);
+    idx0[0] = LLVMTypeHelper::genInt64(fModule, 0);
+    idx0[1] = LLVMTypeHelper::genInt32(fModule, 0);
     Value* meta_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx0, idx0+2));
     LoadInst* load_meta_ptr = fBuilder->CreateLoad(meta_ptr);
 
     Value* idx1[2];
-    idx1[0] = genInt64(0);
-    idx1[1] = genInt32(1);
+    idx1[0] = LLVMTypeHelper::genInt64(fModule, 0);
+    idx1[1] = LLVMTypeHelper::genInt32(fModule, 1);
     Value* mth_ptr = fBuilder->CreateGEP(meta, MAKE_IXD(idx1, idx1+2));
     LoadInst* mth = fBuilder->CreateLoad(mth_ptr);
 
@@ -679,7 +683,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     fBuilder->ClearInsertionPoint();
 }
 
-void LLVMCodeContainer::generateGetSize(LlvmValue size)
+void LLVMCodeContainer::generateGetSize(LLVMValue size)
 {
     VECTOR_OF_TYPES llvm_getSize_args;
     FunctionType* llvm_getSize_type = FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
@@ -750,6 +754,8 @@ void LLVMCodeContainer::produceInternal()
     // Fill
     string counter = "count";
     generateFillBegin(counter);
+    
+    //dumpLLVM(fModule);
 
     generateComputeBlock(fCodeProducer);
 
@@ -985,7 +991,7 @@ void LLVMOpenMPCodeContainer::generateOMPCompute()
 
 void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 {
-    vector<LlvmValue> fun_args;
+    vector<LLVMValue> fun_args;
     Function* dsp_omp_compute = fModule->getFunction("dsp_omp_compute");
     CallInst* call_inst = CREATE_CALL(dsp_omp_compute, fun_args);
     call_inst->setCallingConv(CallingConv::C);
@@ -993,7 +999,7 @@ void LLVMOpenMPCodeContainer::generateDSPOMPCompute()
 
 void LLVMOpenMPCodeContainer::generateGOMP_parallel_start()
 {
-    vector<LlvmValue> fun_args;
+    vector<LLVMValue> fun_args;
     Function* GOMP_parallel_start = fModule->getFunction("GOMP_parallel_start");
     CallInst* call_inst = CREATE_CALL(GOMP_parallel_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);
@@ -1006,7 +1012,7 @@ void LLVMOpenMPCodeContainer::generateGOMP_parallel_end()
     call_inst->setCallingConv(CallingConv::C);
 }
 
-LlvmValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
+LLVMValue LLVMOpenMPCodeContainer::generateGOMP_single_start()
 {
     Function* GOMP_single_start = fModule->getFunction("GOMP_single_start");
     CallInst* call_inst = fBuilder->CreateCall(GOMP_single_start);
@@ -1021,10 +1027,10 @@ void LLVMOpenMPCodeContainer::generateGOMP_barrier()
     call_inst->setCallingConv(CallingConv::C);
 }
 
-void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LlvmValue number)
+void LLVMOpenMPCodeContainer::generateGOMP_sections_start(LLVMValue num)
 {
-    vector<LlvmValue> fun_args;
-    fun_args[0] = number;
+    vector<LLVMValue> fun_args;
+    fun_args[0] = num;
     Function* GOMP_sections_start = fModule->getFunction("GOMP_sections_start");
     CallInst* call_inst = CREATE_CALL(GOMP_sections_start, fun_args);
     call_inst->setCallingConv(CallingConv::C);

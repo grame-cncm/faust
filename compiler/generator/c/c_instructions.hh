@@ -176,6 +176,14 @@ class CInstVisitor : public TextInstVisitor {
             << ", " << checkReal(inst->fMax) << ")";          
             EndLine();
         }
+    
+        virtual void visit(AddSoundfileInst* inst)
+        {
+            *fOut << "ui_interface->addSoundFile(ui_interface->uiInterface, " << quote(inst->fLabel)
+            << ", " << quote(inst->fURL)
+            << ", &dsp->" << inst->fVarname << ")";
+            EndLine();
+        }
 
         virtual void visit(DeclareVarInst* inst)
         {

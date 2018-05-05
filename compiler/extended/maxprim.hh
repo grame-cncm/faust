@@ -114,7 +114,7 @@ class MaxPrim : public xtended
                 list<ValueInst*>::const_iterator it2 = args.begin();
                 casted_args.push_back((*it2));
                 it2++;
-                casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
+                casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
                 return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
             }
         } else if (n1 == kReal) {
@@ -126,7 +126,7 @@ class MaxPrim : public xtended
             
             // prepare args values
             list<ValueInst*>::const_iterator it2 = args.begin();
-            casted_args.push_back(InstBuilder::genCastNumFloatInst(*it2));
+            casted_args.push_back(InstBuilder::genCastFloatInst(*it2));
             it2++;
             casted_args.push_back((*it2));
             return container->pushFunction(subst("max_$0", isuffix()), result_type, arg_types, casted_args);
@@ -149,14 +149,14 @@ class MaxPrim : public xtended
                     list<ValueInst*>::const_iterator it2 = args.begin();
                     casted_args.push_back((*it2));
                     it2++;
-                    casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
+                    casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                     return container->pushFunction("max_i", result_type, arg_types, casted_args);
                 }
             } else if (b1 == kNum) {
                 faustassert(b0 == kBool);    // first is boolean, cast to int
                 // prepare args values
                 list<ValueInst*>::const_iterator it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
+                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
                 casted_args.push_back((*it2));
                 return container->pushFunction("max_i", result_type, arg_types, casted_args);
@@ -165,9 +165,9 @@ class MaxPrim : public xtended
                 // and 'false' is actually '0' (which is not the case if compiled in SSE mode)
                 faustassert(b0 == kBool); faustassert(b1 == kBool);   // both are booleans, cast both
                 list<ValueInst*>::const_iterator it2 = args.begin();
-                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
+                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 it2++;
-                casted_args.push_back(InstBuilder::genCastNumIntInst(*it2));
+                casted_args.push_back(InstBuilder::genCastInt32Inst(*it2));
                 return container->pushFunction("max_i", result_type, arg_types, casted_args);
             }
         }

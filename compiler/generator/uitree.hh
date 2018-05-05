@@ -35,7 +35,7 @@ bool isUiFolder(Tree t, Tree& label, Tree& elements);
 
 bool isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig);
 
-inline Tree uiLabel (Tree t)	{ return t->branch(0); }
+inline Tree uiLabel(Tree t)	{ return t->branch(0); }
 
 Tree putSubFolder(Tree folder, Tree path, Tree item);
 

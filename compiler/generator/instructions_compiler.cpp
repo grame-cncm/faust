@@ -38,6 +38,7 @@
 #include "sigToGraph.hh"
 #include "exception.hh"
 #include "global.hh"
+#include "fir_to_fir.hh"
 
 using namespace std;
 
@@ -327,7 +328,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
 
         // Cast to external float
-        ValueInst* res = InstBuilder::genCastNumFloatMacroInst(CS(sig));
+        ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
         // 09/12/11 : HACK
@@ -383,9 +384,9 @@ void InstructionsCompiler::compileSingleSignal(Tree sig)
 ValueInst* InstructionsCompiler::generateCode(Tree sig)
 {
 #if 0
-	fprintf(stderr, "CALL generateCode(");
+    fprintf(stderr, "CALL generateCode(");
     printSignal(sig, stderr);
-	fprintf(stderr, ")\n");
+    fprintf(stderr, ")\n");
 #endif
 
     ValueInst* code;
@@ -393,76 +394,84 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return code;
     }
 
-	int 	i;
-	double	r;
-	Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file;
+    int 	i;
+    double	r;
+    Tree 	c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
-	//printf("compilation of %p : ", sig); print(sig); printf("\n");
+    //printf("compilation of %p : ", sig); print(sig); printf("\n");
 
-		 if ( getUserData(sig) ) 					{ return generateXtended(sig); }
-	else if ( isSigInt(sig, &i) ) 					{ return generateIntNumber(sig, i); }
-	else if ( isSigReal(sig, &r) ) 					{ return generateRealNumber(sig, r); }
-    else if ( isSigWaveform(sig) )                  { return generateWaveform(sig); }
-	else if ( isSigInput(sig, &i) ) 				{ return generateInput(sig, i); }
+    if (getUserData(sig))           { return generateXtended(sig); }
+    else if (isSigInt(sig, &i))     { return generateIntNumber(sig, i); }
+    else if (isSigReal(sig, &r))    { return generateRealNumber(sig, r); }
+    else if (isSigWaveform(sig))    { return generateWaveform(sig); }
+    else if (isSigInput(sig, &i))   { return generateInput(sig, i); }
 
-	else if ( isSigFixDelay(sig, x, y) ) 			{ return generateFixDelay(sig, x, y); }
-	else if ( isSigPrefix(sig, x, y) ) 				{ return generatePrefix(sig, x, y); }
-	else if ( isSigIota(sig, x) ) 					{ return generateIota(sig, x); }
+    else if (isSigFixDelay(sig, x, y))  { return generateFixDelay(sig, x, y); }
+    else if (isSigPrefix(sig, x, y))    { return generatePrefix(sig, x, y); }
+    else if (isSigIota(sig, x))         { return generateIota(sig, x); }
 
-	else if ( isSigBinOp(sig, &i, x, y) )			{ return generateBinOp(sig, i, x, y); }
-	else if ( isSigFFun(sig, ff, largs) )			{ return generateFFun(sig, ff, largs); }
-    else if ( isSigFConst(sig, type, name, file) )  { return generateFConst(sig, type, tree2str(file), tree2str(name)); }
-    else if ( isSigFVar(sig, type, name, file) )    { return generateFVar(sig, type, tree2str(file), tree2str(name)); }
+    else if (isSigBinOp(sig, &i, x, y)) { return generateBinOp(sig, i, x, y); }
+    else if (isSigFFun(sig, ff, largs)) { return generateFFun(sig, ff, largs); }
+    else if (isSigFConst(sig, type, name, file)) { return generateFConst(sig, type, tree2str(file), tree2str(name)); }
+    else if (isSigFVar(sig, type, name, file))  { return generateFVar(sig, type, tree2str(file), tree2str(name)); }
 
-	else if ( isSigTable(sig, id, x, y) ) 			{ return generateTable(sig, x, y); }
-	else if ( isSigWRTbl(sig, id, x, y, z) )		{ return generateWRTbl(sig, x, y, z); }
-	else if ( isSigRDTbl(sig, x, y) ) 				{ return generateRDTbl(sig, x, y); }
+    else if (isSigTable(sig, id, x, y))     { return generateTable(sig, x, y); }
+    else if (isSigWRTbl(sig, id, x, y, z))  { return generateWRTbl(sig, x, y, z); }
+    else if (isSigRDTbl(sig, x, y))         { return generateRDTbl(sig, x, y); }
 
-	else if ( isSigSelect2(sig, sel, x, y) ) 		{ return generateSelect2(sig, sel, x, y); }
-	else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ return generateSelect3(sig, sel, x, y, z); }
+    else if (isSigSelect2(sig, sel, x, y))      { return generateSelect2(sig, sel, x, y); }
+    else if (isSigSelect3(sig, sel, x, y, z))   { return generateSelect3(sig, sel, x, y, z); }
 
-	else if ( isSigGen(sig, x) ) 					{ return generateSigGen(sig, x); }
+    else if (isSigGen(sig, x))                  { return generateSigGen(sig, x); }
 
-    else if ( isProj(sig, &i, x) )                  { return generateRecProj(sig, x, i); }
+    else if (isProj(sig, &i, x))                { return generateRecProj(sig, x, i); }
 
-	else if ( isSigIntCast(sig, x) ) 				{ return generateIntCast(sig, x); }
-	else if ( isSigFloatCast(sig, x) ) 				{ return generateFloatCast(sig, x); }
+    else if (isSigIntCast(sig, x))              { return generateIntCast(sig, x); }
+    else if (isSigFloatCast(sig, x))            { return generateFloatCast(sig, x); }
 
-	else if ( isSigButton(sig, label) ) 			{ return generateButton(sig, label); }
-	else if ( isSigCheckbox(sig, label) ) 			{ return generateCheckbox(sig, label); }
-	else if ( isSigVSlider(sig, label,c,x,y,z) )	{ return generateVSlider(sig, label, c, x, y, z); }
-	else if ( isSigHSlider(sig, label,c,x,y,z) )	{ return generateHSlider(sig, label, c, x, y, z); }
-	else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ return generateNumEntry(sig, label, c, x, y, z); }
+    else if (isSigButton(sig, label))           { return generateButton(sig, label); }
+    else if (isSigCheckbox(sig, label))         { return generateCheckbox(sig, label); }
+    else if (isSigVSlider(sig, label, c, x, y, z))  { return generateVSlider(sig, label, c, x, y, z); }
+    else if (isSigHSlider(sig, label, c, x, y, z))  { return generateHSlider(sig, label, c, x, y, z); }
+    else if (isSigNumEntry(sig, label, c, x, y, z)) { return generateNumEntry(sig, label, c, x, y, z); }
 
+    else if (isSigVBargraph(sig, label, x, y, z)) { return generateVBargraph(sig, label, x, y, CS(z)); }
+    else if (isSigHBargraph(sig, label,x ,y ,z))  { return generateHBargraph(sig, label, x, y, CS(z)); }
 
-	else if ( isSigVBargraph(sig, label,x,y,z) )	{ return generateVBargraph(sig, label, x, y, CS(z)); }
-	else if ( isSigHBargraph(sig, label,x,y,z) )	{ return generateHBargraph(sig, label, x, y, CS(z)); }
-	else if ( isSigAttach(sig, x, y) )				{ CS(y); return generateCacheCode(sig, CS(x)); }
+    /*
+    else if (isSigSoundfile(sig, label))        { return generateSoundfile(sig, label); }
+    else if (isSigSoundfileLength(sig, sf))     { return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf))); }
+    else if (isSigSoundfileRate(sig, sf))       { return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf))); }
+    else if (isSigSoundfileChannels(sig, sf) )  { return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf))); }
+    else if (isSigSoundfileBuffer(sig, sf, x, y)) { return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y))); }
+    */
+
+    else if (isSigAttach(sig, x, y))            { CS(y); return generateCacheCode(sig, CS(x)); }
     /*
     HACK : 09/12/11
     else if (isSigVectorize(sig, x, y)) {
-        printf("vectorize not implemented\n");
-        exit(0);
+    printf("vectorize not implemented\n");
+    exit(0);
     }
     else if (isSigSerialize(sig, x)) {
-        printf("serialize not implemented\n");
-        exit(0);
+    printf("serialize not implemented\n");
+    exit(0);
     }
     else if (isSigConcat(sig, x, y)) {
-        printf("concatenation not implemented\n");
-        exit(0);
+    printf("concatenation not implemented\n");
+    exit(0);
     }
     else if (isSigVectorAt(sig, x, y)) {
-        printf("vector at not implemented\n");
-        exit(0);
+    printf("vector at not implemented\n");
+    exit(0);
     }
     */
-	else {
+    else {
         stringstream error;
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
-	}
-	return InstBuilder::genNullInst();
+    }
+    return InstBuilder::genNullInst();
 }
 
 ValueInst* InstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
@@ -687,7 +696,7 @@ ValueInst* InstructionsCompiler::generateBinOp(Tree sig, int opcode, Tree a1, Tr
         }
         // HACK for Rust backend
         if (gGlobal->gOutputLang == "rust") {
-            res = InstBuilder::genCastNumIntInst(res);
+            res = InstBuilder::genCastInt32Inst(res);
         }
     // One of a1 or a2 is kReal, operation is done on kReal
     } else if ((t1 == kReal) || (t2 == kReal)) {
@@ -754,9 +763,9 @@ ValueInst* InstructionsCompiler::generateInput(Tree sig, int idx)
     ValueInst* res;
     // HACK for Rust backend
     if (gGlobal->gOutputLang == "rust") {
-        res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
+        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadArrayStackVar(subst("inputs[$0]", T(idx)), getCurrentLoopIndex()));
     } else {
-        res = InstBuilder::genCastNumFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
+        res = InstBuilder::genCastFloatInst(InstBuilder::genLoadArrayStackVar(subst("input$0", T(idx)), getCurrentLoopIndex()));
     }
 
     if (gGlobal->gInPlace) {
@@ -924,7 +933,7 @@ ValueInst* InstructionsCompiler::generateStaticTable(Tree sig, Tree tsize, Tree 
         list<ValueInst*> destroy_args;
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
         destroy_args.push_back(InstBuilder::genLoadStaticStructVar(vname));
-        pushStaticDestroyMethod(InstBuilder::genDropInst(InstBuilder::genFunCallInst("destroy", destroy_args, true)));
+        pushStaticDestroyMethod(InstBuilder::genVoidFunCallInst("destroy", destroy_args, true));
     }
 
     // Fill the table
@@ -1202,13 +1211,13 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
 // Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateIntCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kInt) ? InstBuilder::genCastNumIntInst(CS(x)) : CS(x)); 
+    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kInt) ? InstBuilder::genCastInt32Inst(CS(x)) : CS(x));
 }
 
 // Generate cast only when really necessary...
 ValueInst* InstructionsCompiler::generateFloatCast(Tree sig, Tree x)
 {
-    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kReal) ? InstBuilder::genCastNumFloatInst(CS(x)) : CS(x)); 
+    return generateCacheCode(sig, (getCertifiedSigType(x)->nature() != kReal) ? InstBuilder::genCastFloatInst(CS(x)) : CS(x));
 }
 
 /*****************************************************************************
@@ -1225,7 +1234,7 @@ ValueInst* InstructionsCompiler::generateButtonAux(Tree sig, Tree path, const st
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateButton(Tree sig, Tree path)
@@ -1248,7 +1257,7 @@ ValueInst* InstructionsCompiler::generateSliderAux(Tree sig, Tree path, Tree cur
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // Cast to internal float
-    return generateCacheCode(sig, InstBuilder::genCastNumFloatInst(InstBuilder::genLoadStructVar(varname)));
+    return generateCacheCode(sig, InstBuilder::genCastFloatInst(InstBuilder::genLoadStructVar(varname)));
 }
 
 ValueInst* InstructionsCompiler::generateVSlider(Tree sig, Tree path, Tree cur, Tree min, Tree max, Tree step)
@@ -1274,7 +1283,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 	::Type t = getCertifiedSigType(sig);
     
     // Cast to external float
-    StoreVarInst* res = InstBuilder::genStoreStructVar(varname, InstBuilder::genCastNumFloatMacroInst(exp));
+    StoreVarInst* res = InstBuilder::genStoreStructVar(varname, InstBuilder::genCastFloatMacroInst(exp));
     
 	switch (t->variability()) {
 
@@ -1292,7 +1301,7 @@ ValueInst* InstructionsCompiler::generateBargraphAux(Tree sig, Tree path, Tree m
 	}
 
     return generateCacheCode(sig, (t->nature() == kInt)
-        ? InstBuilder::genCastNumIntInst(InstBuilder::genLoadStructVar(varname))
+        ? InstBuilder::genCastInt32Inst(InstBuilder::genLoadStructVar(varname))
         : InstBuilder::genLoadStructVar(varname));
 }
 
@@ -1304,6 +1313,79 @@ ValueInst* InstructionsCompiler::generateVBargraph(Tree sig, Tree path, Tree min
 ValueInst* InstructionsCompiler::generateHBargraph(Tree sig, Tree path, Tree min, Tree max, ValueInst* exp)
 {
     return generateBargraphAux(sig, path, min, max, exp, "fHbargraph");
+}
+
+ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
+{
+    string varname = gGlobal->getFreshID("fSoundfile");
+    string SFcache = varname + "ca";
+    
+    addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
+    
+    pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+    
+    BlockInst* block = InstBuilder::genBlockInst();
+    block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+   
+    pushResetUIInstructions(InstBuilder::genIfInst(InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
+                                                                                                  InstBuilder::genBasicTyped(Typed::kUint_ptr)),
+                                                                         InstBuilder::genTypedZero(Typed::kSound_ptr)),
+                                                   block,
+                                                   InstBuilder::genBlockInst()));
+   
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache,
+                                                    InstBuilder::genBasicTyped(Typed::kSound_ptr),
+                                                    InstBuilder::genLoadStructVar(varname)));
+    pushPostComputeBlockMethod(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadStackVar(SFcache)));
+    
+    return InstBuilder::genLoadStructVar(varname);
+}
+
+ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(0));
+}
+
+ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(1));
+}
+
+ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* sf)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    // Struct access using an index that will be converted as a field name
+    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack, InstBuilder::genInt32NumInst(2));
+}
+
+ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
+{
+    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
+    faustassert(load);
+    
+    Typed* type1 = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr);
+    Typed* type2 = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    
+    string SFcache = load->fAddress->getName() + "ca";
+    string SFcache_buffer = gGlobal->getFreshID(SFcache + "_bu");
+    string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
+    
+    // Struct access using an index that will be converted as a field name
+    LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(3));
+    
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer_chan,
+                                                       InstBuilder::genArrayTyped(type2, 0),
+                                                       InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));
+    
+    return InstBuilder::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStack, y);
 }
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
@@ -1536,7 +1618,7 @@ void InstructionsCompiler::addUIWidget(Tree path, Tree widget)
 Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 {
 	Tree root, elems;
-	if (isUiFolder(t, root, elems) && isList(elems) && isNil(tl(elems)) ) {
+	if (isUiFolder(t, root, elems) && isList(elems) && isNil(tl(elems))) {
 		Tree folder = right(hd(elems));
 		return (isUiFolder(folder)) ? folder : t;
 	}
@@ -1546,20 +1628,19 @@ Tree InstructionsCompiler::prepareUserInterfaceTree(Tree t)
 //================================= BUILD USER INTERFACE METHOD =================================
 
 /**
- * Generate buildUserInterface C++ lines of code corresponding
- * to user interface element t
+ * Generate buildUserInterface corresponding to user interface element t
  */
 void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
 {
-	Tree label, elements, varname, sig;
+    Tree label, elements, varname, sig;
 
-	if (isUiFolder(t, label, elements)) {
-		const int orient = tree2int(left(label));
+    if (isUiFolder(t, label, elements)) {
+        const int orient = tree2int(left(label));
         // Empty labels will be renamed with a 0xABCD (address) that is ignored and not displayed by UI architectures
-		string str = tree2str(right(label));
-      
+        string str = tree2str(right(label));
+
         // extract metadata from group label str resulting in a simplifiedLabel
-		// and metadata declarations for fictive zone at address 0
+        // and metadata declarations for fictive zone at address 0
         string simplifiedLabel;
         map<string, set<string> > metadata;
         extractMetadata(str, simplifiedLabel, metadata);
@@ -1574,11 +1655,10 @@ void InstructionsCompiler::generateUserInterfaceTree(Tree t, bool root)
         }
         // At rool level and if label is empty, use the name kept in "metadata" (either the one coded in 'declare name "XXX";' line, or the filename)
         string group = (root && (simplifiedLabel == "")) ? unquote(tree2str(*(gGlobal->gMetaDataSet[tree("name")].begin()))) : checkNullLabel(t, simplifiedLabel);
-        
+
         pushUserInterfaceMethod(InstBuilder::genOpenboxInst(orient, group));
         generateUserInterfaceElements(elements);
         pushUserInterfaceMethod(InstBuilder::genCloseboxInst());
-
     } else if (isUiWidget(t, label, varname, sig)) {
         generateWidgetCode(label, varname, sig);
     } else {
@@ -1606,15 +1686,29 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 	Tree path, c, x, y, z;
     string label;
     map<string, set<string> > metadata;
-
+    string url;
+ 
     extractMetadata(tree2str(fulllabel), label, metadata);
-
-    // Add metadata if any
-    for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-        const string& key = i->first;
-        const set<string>& values = i->second;
-        for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
-            pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(*j)));
+    
+    // Extract "url" metadata to be given as parameter to 'addSoundfile' function
+    if (isSigSoundfile(sig, path)) {
+        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+            string key = i->first;
+            set<string> values = i->second;
+            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
+                if (key == "url") {
+                    url = rmWhiteSpaces(*j);
+                }
+            }
+        }
+    } else {
+        // Add metadata if any
+        for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
+            const string& key = i->first;
+            const set<string>& values = i->second;
+            for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
+                pushUserInterfaceMethod(InstBuilder::genAddMetaDeclareInst(tree2str(varname), rmWhiteSpaces(key), rmWhiteSpaces(*j)));
+            }
         }
     }
 
@@ -1626,31 +1720,36 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddCheckbuttonInst(checkNullLabel(varname, label), tree2str(varname)));
 
-	} else if (isSigVSlider(sig, path,c,x,y,z)) {
+	} else if (isSigVSlider(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
-	} else if (isSigHSlider(sig, path,c,x,y,z))	{
+	} else if (isSigHSlider(sig, path, c, x, y, z))	{
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddHorizontalSliderInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
-	} else if (isSigNumEntry(sig, path,c,x,y,z)) {
+	} else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label), tree2str(varname), tree2float(c), tree2float(x), tree2float(y), tree2float(z)));
 
-	} else if (isSigVBargraph(sig, path,x,y,z))	{
+	} else if (isSigVBargraph(sig, path, x, y, z))	{
         fContainer->incUIPassiveCount();
         pushUserInterfaceMethod(
             InstBuilder::genAddVerticalBargraphInst(checkNullLabel(varname, label, true), tree2str(varname),  tree2float(x), tree2float(y)));
 
-	} else if (isSigHBargraph(sig, path,x,y,z))	{
+	} else if (isSigHBargraph(sig, path, x, y, z))	{
         fContainer->incUIPassiveCount();
  	    pushUserInterfaceMethod(
             InstBuilder::genAddHorizontalBargraphInst(checkNullLabel(varname, label, true), tree2str(varname), tree2float(x), tree2float(y)));
-
+        
+    } else if (isSigSoundfile(sig, path)) {
+        fContainer->incUIActiveCount();
+        pushUserInterfaceMethod(
+            InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true), url, tree2str(varname)));
+        
 	} else {
 		throw faustexception("ERROR in generating widget code\n");
 	}
@@ -1668,7 +1767,6 @@ void InstructionsCompiler::generateMacroInterfaceTree(const string& pathname, Tr
 
 	if (isUiFolder(t, label, elements)) {
 		string pathname2 = pathname;
-		//string str = unquote(tree2str(right(label)));
 		string str = tree2str(right(label));
 		if (str.length() > 0) pathname2 += str + "/";
 		generateMacroInterfaceElements(pathname2, elements);
@@ -1696,63 +1794,70 @@ void InstructionsCompiler::generateMacroInterfaceElements(const string& pathname
  */
 void InstructionsCompiler::generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig)
 {
-	Tree path, c, x, y, z;
+    Tree path, c, x, y, z;
     string label;
     map<string, set<string> > metadata;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
-    string pathlabel = pathname + label;
 
-	if (isSigButton(sig, path)) 					{
-		fContainer->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));
+    //string pathlabel = pathname+unquote(label);
+    string pathlabel = pathname+label;
 
-	} else if (isSigCheckbox(sig, path)) 			{
-		fContainer->addUIMacro(subst("FAUST_ADDCHECKBOX(\"$0\", $1);", pathlabel, tree2str(varname)));
+    if (isSigButton(sig, path)) 					{
+        fContainer->addUIMacro(subst("FAUST_ADDBUTTON(\"$0\", $1);", pathlabel, tree2str(varname)));
 
-	} else if (isSigVSlider(sig, path,c,x,y,z))	{
-		fContainer->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
+    } else if (isSigCheckbox(sig, path)) 			{
+        fContainer->addUIMacro(subst("FAUST_ADDCHECKBOX(\"$0\", $1);", pathlabel, tree2str(varname)));
+
+    } else if (isSigVSlider(sig, path, c, x, y, z))	{
+        fContainer->addUIMacro(subst("FAUST_ADDVERTICALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
+                            pathlabel,
+                            tree2str(varname),
+                            T(tree2float(c)),
+                            T(tree2float(x)),
+                            T(tree2float(y)),
+                            T(tree2float(z))));
+
+    } else if (isSigHSlider(sig, path, c, x, y, z))	{
+        fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
+                            pathlabel,
+                            tree2str(varname),
+                            T(tree2float(c)),
+                            T(tree2float(x)),
+                            T(tree2float(y)),
+                            T(tree2float(z))));
+
+    } else if (isSigNumEntry(sig, path, c, x, y, z))	{
+        fContainer->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);",
+                            pathlabel,
+                            tree2str(varname),
+                            T(tree2float(c)),
+                            T(tree2float(x)),
+                            T(tree2float(y)),
+                            T(tree2float(z))));
+
+    } else if (isSigVBargraph(sig, path, x, y, z))	{
+        fContainer->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);",
+                            pathlabel,
+                            tree2str(varname),
+                            T(tree2float(x)),
+                            T(tree2float(y))));
+
+    } else if (isSigHBargraph(sig, path, x, y, z))	{
+        fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);",
+                            pathlabel,
+                            tree2str(varname),
+                            T(tree2float(x)),
+                            T(tree2float(y))));
+        
+    } else if (isSigSoundfile(sig, path)) {
+        fContainer->addUIMacro(subst("FAUST_ADDSOUNDFILE(\"$0\", $1);",
                                 pathlabel,
-                                tree2str(varname),
-                                T(tree2float(c)),
-                                T(tree2float(x)),
-                                T(tree2float(y)),
-                                T(tree2float(z))));
+                                tree2str(varname)));
 
-	} else if (isSigHSlider(sig, path,c,x,y,z))	{
-		fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALSLIDER(\"$0\", $1, $2, $3, $4, $5);",
-                                pathlabel,
-                                tree2str(varname),
-                                T(tree2float(c)),
-                                T(tree2float(x)),
-                                T(tree2float(y)),
-                                T(tree2float(z))));
-
-	} else if (isSigNumEntry(sig, path,c,x,y,z))	{
-		fContainer->addUIMacro(subst("FAUST_ADDNUMENTRY(\"$0\", $1, $2, $3, $4, $5);",
-                                pathlabel,
-                                tree2str(varname),
-                                T(tree2float(c)),
-                                T(tree2float(x)),
-                                T(tree2float(y)),
-                                T(tree2float(z))));
-
-	} else if (isSigVBargraph(sig, path,x,y,z))	{
-		fContainer->addUIMacro(subst("FAUST_ADDVERTICALBARGRAPH(\"$0\", $1, $2, $3);",
-                                pathlabel,
-                                tree2str(varname),
-                                T(tree2float(x)),
-                                T(tree2float(y))));
-
-	} else if (isSigHBargraph(sig, path,x,y,z))	{
-		fContainer->addUIMacro(subst("FAUST_ADDHORIZONTALBARGRAPH(\"$0\", $1, $2, $3);",
-                                pathlabel,
-                                tree2str(varname),
-                                T(tree2float(x)),
-                                T(tree2float(y))));
-
-	} else {
-	     throw faustexception("ERROR in generating widget code\n");
-	}
+    } else {
+        throw faustexception("ERROR in generating widget code\n");
+    }
 }
 
 /**

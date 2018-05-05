@@ -28,7 +28,7 @@
 #include "typing_instructions.hh"
 
 // Tools to dump FIR
-inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
+inline void dump2FIR(StatementInst* inst, std::ostream* out = &cerr)
 {
     *out << "========== dump2FIR " << inst << " statement begin ========== "<< std::endl;
     FIRInstVisitor fir_visitor(out);
@@ -36,7 +36,7 @@ inline void dump2FIR(StatementInst* inst, std::ostream* out = &cout)
     *out << "========== dump2FIR statement end ==========" << std::endl;
 }
 
-inline void dump2FIR(ValueInst* value, std::ostream* out = &cout)
+inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr)
 {
     *out << "========== dump2FIR " << value << " value begin ========== "<< std::endl;
     FIRInstVisitor fir_visitor(out);

@@ -38,9 +38,9 @@ extern "C"
     @{
      */
     
-    typedef struct {} llvm_dsp_factory;
+    typedef void llvm_dsp_factory;
     
-    typedef struct {} llvm_dsp;
+    typedef void llvm_dsp;
     
     /**
      * Get the library version.

@@ -53,7 +53,7 @@ struct Printable;
 struct NullInst;
 struct DeclareVarInst;
 struct DeclareFunInst;
-struct DeclareTypeInst;
+struct DeclareStructTypeInst;
 struct LoadVarInst;
 struct LoadVarAddressInst;
 struct TeeVarInst;
@@ -89,6 +89,7 @@ struct CloseboxInst;
 struct AddButtonInst;
 struct AddSliderInst;
 struct AddBargraphInst;
+struct AddSoundfileInst;
 struct LabelInst;
 
 struct Typed;
@@ -105,6 +106,69 @@ struct VectorTyped;
 
 struct NamedAddress;
 struct IndexedAddress;
+
+// Type checking
+
+inline bool isRealType(Typed::VarType type)
+{
+    return (type == Typed::kFloat
+            || type == Typed::kFloatMacro
+            || type == Typed::kFloatish
+            || type == Typed::kDouble
+            || type == Typed::kDoublish);
+}
+
+inline bool isRealPtrType(Typed::VarType type)
+{
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr);
+}
+
+inline bool isIntType(Typed::VarType type)
+{
+    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
+}
+
+inline bool isIntType32(Typed::VarType type)
+{
+    return (type == Typed::kInt32 || type == Typed::kInt32ish);
+}
+
+inline bool isIntType64(Typed::VarType type)
+{
+    return ( type == Typed::kInt64);
+}
+
+inline bool isIntPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
+}
+
+inline bool isPtrType(Typed::VarType type)
+{
+    return isRealPtrType(type) || isIntPtrType(type);
+}
+
+inline bool isBoolType(Typed::VarType type)
+{
+    return (type == Typed::kBool);
+}
+
+inline bool isIntOrPtrType(Typed::VarType type)
+{
+    return (type == Typed::kInt32
+            || type == Typed::kInt64
+            || type == Typed::kInt32_ptr
+            || type == Typed::kInt64_ptr
+            || type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kObj_ptr
+            || type == Typed::kVoid_ptr);
+}
+
+DeclareStructTypeInst* isStructType(const string& name);
 
 // =========
 // Visitors
@@ -124,6 +188,7 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(AddButtonInst* inst) {}
     virtual void visit(AddSliderInst* inst) {}
     virtual void visit(AddBargraphInst* inst) {}
+    virtual void visit(AddSoundfileInst* inst) {}
 
     virtual void visit(LabelInst* inst) {}
     
@@ -133,7 +198,7 @@ struct InstVisitor : public virtual Garbageable {
     // Declarations
     virtual void visit(DeclareVarInst* inst) {}
     virtual void visit(DeclareFunInst* inst) {}
-    virtual void visit(DeclareTypeInst* inst) {}
+    virtual void visit(DeclareStructTypeInst* inst) {}
 
     // Memory
     virtual void visit(LoadVarInst* inst) {}
@@ -194,7 +259,7 @@ struct CloneVisitor : public virtual Garbageable {
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst) = 0;
     virtual StatementInst* visit(DeclareFunInst* inst) = 0;
-    virtual StatementInst* visit(DeclareTypeInst* inst) = 0;
+    virtual StatementInst* visit(DeclareStructTypeInst* inst) = 0;
 
     // Memory
     virtual ValueInst* visit(LoadVarInst* inst) = 0;
@@ -248,6 +313,7 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(AddButtonInst* inst) = 0;
     virtual StatementInst* visit(AddSliderInst* inst) = 0;
     virtual StatementInst* visit(AddBargraphInst* inst) = 0;
+    virtual StatementInst* visit(AddSoundfileInst* inst) = 0;
     virtual StatementInst* visit(LabelInst* inst) = 0;
 
     // Types
@@ -426,21 +492,29 @@ struct ArrayTyped : public Typed {
 
 struct StructTyped : public Typed {
 
-    Typed* fType;
     string fName;
+    vector<NamedTyped*> fFields;
   
-    StructTyped(const string& name, Typed* type)
-        :fType(type), fName(name)
+    StructTyped(const string& name, const vector<NamedTyped*>& fields)
+        :fName(name), fFields(fields)
     {}
     
     virtual ~StructTyped()
     {}
 
-    //VarType getType() { return getPtrFromType(fType->getType()); }
-
     VarType getType() { return kObj_ptr; }
     
-    int getSize() { return fType->getSize(); }
+    int getSize()
+    {
+        int size = 0;
+        vector<NamedTyped*>::iterator it;
+        for (it = fFields.begin(); it != fFields.end(); it++) {
+            size += (*it)->getSize();
+        }
+        return size;
+    }
+    
+    string getName(int index) { return fFields[index]->fName; }
 
     Typed* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
@@ -692,6 +766,21 @@ struct AddBargraphInst : public StatementInst
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
+struct AddSoundfileInst : public StatementInst
+{
+    string fLabel;
+    string fURL;
+    string fVarname;
+    
+    AddSoundfileInst(const string& label, const string& url, const string& varname)
+        :fLabel(label), fURL(url), fVarname(varname)
+    {}
+    
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
@@ -1229,26 +1318,15 @@ struct DeclareFunInst : public StatementInst
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
-struct DeclareTypeInst : public StatementInst
+struct DeclareStructTypeInst : public StatementInst
 {
-    /*
-     NamedTyped* fType;
-     
-     DeclareTypeInst(const string& name, Typed* type)
-     :fType(new NamedTyped(name, type))
-     {}
-     DeclareTypeInst(NamedTyped* type)
-     :fType(type)
-     {}
-     */
+    StructTyped* fType;
     
-    Typed* fType;
-    
-    DeclareTypeInst(Typed* type)
+    DeclareStructTypeInst(StructTyped* type)
     :fType(type)
     {}
     
-    virtual ~DeclareTypeInst()
+    virtual ~DeclareStructTypeInst()
     {}
     
     void accept(InstVisitor* visitor) { visitor->visit(this); }
@@ -1335,10 +1413,9 @@ class BasicCloneVisitor : public CloneVisitor {
         {
             return new DeclareFunInst(inst->fName, static_cast<FunTyped*>(inst->fType->clone(this)), static_cast<BlockInst*>(inst->fCode->clone(this)));
         }
-        virtual StatementInst* visit(DeclareTypeInst* inst)
+        virtual StatementInst* visit(DeclareStructTypeInst* inst)
         {
-            //return new DeclareTypeInst(dynamic_cast<NamedTyped*>(inst->fType->clone(this)));
-            return new DeclareTypeInst(dynamic_cast<StructTyped*>(inst->fType->clone(this)));
+            return new DeclareStructTypeInst(static_cast<StructTyped*>(inst->fType->clone(this)));
         }
 
         // Memory
@@ -1442,6 +1519,7 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual StatementInst* visit(AddButtonInst* inst) { return new AddButtonInst(inst->fLabel, inst->fZone, inst->fType); }
         virtual StatementInst* visit(AddSliderInst* inst) { return new AddSliderInst(inst->fLabel, inst->fZone, inst->fInit, inst->fMin, inst->fMax, inst->fStep, inst->fType); }
         virtual StatementInst* visit(AddBargraphInst* inst) { return new AddBargraphInst(inst->fLabel, inst->fZone, inst->fMin, inst->fMax, inst->fType); }
+        virtual StatementInst* visit(AddSoundfileInst* inst) { return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fVarname); }
         virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
         // Typed
@@ -1459,7 +1537,12 @@ class BasicCloneVisitor : public CloneVisitor {
         virtual Typed* visit(ArrayTyped* typed) { return new ArrayTyped(typed->fType->clone(this), typed->fSize); }
         virtual Typed* visit(StructTyped* typed)
         {
-            return new StructTyped(typed->fName, typed->clone(this));
+            vector<NamedTyped*> cloned;
+            vector<NamedTyped*>::const_iterator it;
+            for (it = typed->fFields.begin(); it != typed->fFields.end(); it++) {
+                cloned.push_back(static_cast<NamedTyped*>((*it)->clone(this)));
+            }
+            return new StructTyped(typed->fName, cloned);
         }
 
         virtual Typed* visit(VectorTyped* typed) { return new VectorTyped(static_cast<BasicTyped*>(typed->fType->clone(this)), typed->fSize); }
@@ -1791,7 +1874,10 @@ struct InstBuilder
 
     static AddBargraphInst* genAddHorizontalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal); }
-
+    
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& varname)
+        { return new AddSoundfileInst(label, url, varname); }
+  
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
         { return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kVertical); }
 
@@ -1806,12 +1892,12 @@ struct InstBuilder
         { return new DeclareVarInst(address, typed, value); }
 
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed, BlockInst* code)
-        {return new DeclareFunInst(name, typed, code);}
+        { return new DeclareFunInst(name, typed, code); }
     static DeclareFunInst* genDeclareFunInst(const string& name, FunTyped* typed)
-        {return new DeclareFunInst(name, typed);}
+        { return new DeclareFunInst(name, typed); }
 
-    static DeclareTypeInst* genDeclareTypeInst(Typed* type)
-        {return new DeclareTypeInst(type);}
+    static DeclareStructTypeInst* genDeclareStructTypeInst(StructTyped* type)
+        { return new DeclareStructTypeInst(type); }
 
     // Memory
     static LoadVarInst* genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
@@ -1827,15 +1913,7 @@ struct InstBuilder
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size);}
     static DoubleNumInst* genQuadNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }  // Use DoubleNumInst
 
-    static ValueInst* genTypedZero(Typed::VarType type)
-    {
-        return (type == Typed::kInt32 
-                || type == Typed::kInt32_ptr 
-                || type == Typed::kFloat_ptr
-                || type == Typed::kFloatMacro_ptr
-                || type == Typed::kDouble_ptr
-                || type == Typed::kObj_ptr) ? genInt32NumInst(0) : genRealNumInst(type, 0.);
-    }
+    static ValueInst* genTypedZero(Typed::VarType type);
     
     static ValueInst* genRealNumInst(Typed::VarType ctype, double num)
     {
@@ -1938,9 +2016,9 @@ struct InstBuilder
         return new BitcastInst(inst, typed, size);
     }
     
-    static ValueInst* genCastNumFloatInst(ValueInst* inst);
-    static ValueInst* genCastNumFloatMacroInst(ValueInst* inst);
-    static ValueInst* genCastNumIntInst(ValueInst* inst);
+    static ValueInst* genCastFloatInst(ValueInst* inst);
+    static ValueInst* genCastFloatMacroInst(ValueInst* inst);
+    static ValueInst* genCastInt32Inst(ValueInst* inst);
 
     // Control flow
     static RetInst* genRetInst(ValueInst* result = NULL) { return new RetInst(result); }
@@ -1983,10 +2061,11 @@ struct InstBuilder
     static NamedTyped* genNamedTyped(const string& name, Typed* type);
     static NamedTyped* genNamedTyped(const string& name, Typed::VarType type);
 
-    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault) { return new FunTyped(args, result, attribute); }
+    static FunTyped* genFunTyped(const list<NamedTyped*>& args, BasicTyped* result, FunTyped::FunAttribute attribute = FunTyped::kDefault)
+    { return new FunTyped(args, result, attribute); }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
     static ArrayTyped* genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
-    static StructTyped* genStructTyped(const string& name, Typed* type) { return new StructTyped(name, type); }
+    static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields) { return new StructTyped(name, fields); }
 
     // Addresses
     static NamedAddress* genNamedAddress(const string& name, Address::AccessType access) { return new NamedAddress(name, access); }
@@ -2002,6 +2081,11 @@ struct InstBuilder
     static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
+    }
+    // Actually same as genLoadArrayVar
+    static LoadVarInst* genLoadStructPtrVar(string vname, Address::AccessType var_access, ValueInst* index)
+    {
+        return genLoadArrayVar(vname, var_access, index);
     }
 
     static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index, ValueInst* exp)
@@ -2500,66 +2584,7 @@ private:
     
 };
 
-// Type checking
 
-inline bool isRealType(Typed::VarType type)
-{
-    return (type == Typed::kFloat
-            || type == Typed::kFloatMacro
-            || type == Typed::kFloatish
-            || type == Typed::kDouble
-            || type == Typed::kDoublish);
-}
-
-inline bool isRealPtrType(Typed::VarType type)
-{
-    return (type == Typed::kFloat_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kDouble_ptr);
-}
-
-inline bool isIntType(Typed::VarType type)
-{
-    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
-}
-
-inline bool isIntType32(Typed::VarType type)
-{
-    return (type == Typed::kInt32 || type == Typed::kInt32ish);
-}
-
-inline bool isIntType64(Typed::VarType type)
-{
-    return ( type == Typed::kInt64);
-}
-
-inline bool isIntPtrType(Typed::VarType type)
-{
-    return (type == Typed::kInt32_ptr || type == Typed::kInt64_ptr);
-}
-
-inline bool isPtrType(Typed::VarType type)
-{
-    return isRealPtrType(type) || isIntPtrType(type);
-}
-
-inline bool isBoolType(Typed::VarType type)
-{
-    return (type == Typed::kBool);
-}
-
-inline bool isIntOrPtrType(Typed::VarType type)
-{
-    return (type == Typed::kInt32
-            || type == Typed::kInt64
-            || type == Typed::kInt32_ptr
-            || type == Typed::kInt64_ptr
-            || type == Typed::kFloat_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kDouble_ptr
-            || type == Typed::kObj_ptr
-            || type == Typed::kVoid_ptr);
-}
 
 #endif
 

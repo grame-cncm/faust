@@ -382,7 +382,9 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineInt64Size = sizeof(long int);
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
-    gMachinePtrSize = sizeof(void*);
+    
+    // Assuming we are compiling for a 64 bits machine
+    gMachinePtrSize = 8;
 
     gMachineMaxStackSize = MAX_STACK_SIZE;
     gOutputLang = "";
@@ -542,7 +544,15 @@ void global::init()
 
     // source file injection
     gInjectFlag = false;    // inject an external source file into the architecture file
-    gInjectFile  = "";      // instead of a compiled dsp file
+    gInjectFile = "";       // instead of a compiled dsp file
+    
+    // Create type declaration for external 'soundfile' type
+    vector<NamedTyped*> sf_type_fields;
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fSampleRate", InstBuilder::genBasicTyped(Typed::kInt32)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
+    gExternalStructTypes[Typed::kSound] = InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }
 
 void global::printCompilationOptions(ostream& dst)

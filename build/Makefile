@@ -29,11 +29,11 @@ DESTDIR ?=
 
 MAKE ?= make
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
-BUILDOPT ?= --config Release
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
+#BUILDOPT ?= --config Release
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
-#BUILDOPT ?= --config Debug
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
+BUILDOPT ?= --config Debug
 
 #===============================================================
 # options
