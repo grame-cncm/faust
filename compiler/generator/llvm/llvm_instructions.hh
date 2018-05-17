@@ -1642,8 +1642,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         {
             // Result is in fCurValue;
             inst->fValue->accept(this);
-            
-            
                 
             if (named_address->fAccess & Address::kStruct) {
                 int field_index = fDSPFieldsNames[named_address->fName];
