@@ -513,32 +513,90 @@ numiter : expression;
 \end{rail}
 The number of iterations must be a constant expression. 
 
-\subsection{Numerical Expressions}
+%--------------------------------------------------------------------------------------------------------------
+\subsection{Infix Notation and Syntax Extensions}
+%--------------------------------------------------------------------------------------------------------------
 
-Numerical expressions are essentially syntactic sugar allowing to use a familiar infix notation to express mathematical expressions, bitwise operations and to compare signals. Please note that is this section only built-in primitives with an infix syntax are presented. A complete description of all the build-ins is available in the primitive section (see \ref{primitives}). 
+\marginpar{Infix notation is commonly used in mathematics. It consists in placing the operand between the arguments as in $2+3$}Besides its algebra-based core syntax, Faust provides some syntax extensions, in particular \emph{infix} notation. For example if you want to multiply two numbers, let say \lstinline'2' and \lstinline'3', you can write directly \lstinline'2*3' instead of the equivalent core-syntax expression \lstinline'2,3:*'.
+
+The \emph{infix} notation is not limited to numbers or numerical expressions. Arbitrary expressions \lstinline'A' and \lstinline'B' can be used, provided that \lstinline'A,B' has exactly two outputs. For example you can write \lstinline'_/2'. It is equivalent to \lstinline'_,2:/' and divides the incoming signal by \lstinline'2'. Exemples of equivalences are given table \ref{tab:infixrules}.
+
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|rcl|}
+	\hline
+	\lstinline'2-3' & $\equiv$ & \lstinline'2,3 : -'\\
+	\lstinline'2*3' & $\equiv$ & \lstinline'2,3 : *'\\
+	\lstinline'_@10' & $\equiv$ & \lstinline'_,10 : @'\\
+	\lstinline'_/2' & $\equiv$ & \lstinline'_,2 : /'\\
+	\lstinline'A<B' & $\equiv$ & \lstinline'A,B : <'\\
+	\hline
+	\end{tabular}
+	\end{center}
+	\caption{Infix and core syntax equivalences}
+	\label{tab:infixrules}
+\end{table}
+
+	
+\subsubsection{Built-in primitives with infix notation}
+Here is a list of binary primitives that can be used as infix operators. Please note that a complete description of all theses build-ins is available in the primitive section (see \ref{primitives}). 
+
 
 \begin{rail}
-numerical : math | bitwise | comparison;
-\end{rail}
-
-\subsubsection{Mathematical expressions} are the familiar 4 operations as well as the modulo and power operations
-\begin{rail}
+%%numerical : math | bitwise | comparison | time;
 math : expression ('+'|'-'|'*'|'/'|'\%'|hat) expression;
-\end{rail}
- 
-\subsubsection{Bitwise expressions} are the boolean operations and the left and right arithmetic shifts.
-
-\begin{rail}
 bitwise : expression (pipe|ampersand|'xor'|'<<' |'>>') expression;
-\end{rail}
-
-\subsubsection{Comparison} operations allow to compare signals and result in a boolean signal that is 1 when the condition is true and 0 when the condition is false.
-
-\begin{rail}
 comparison : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
+delay : expression arobase expression; 
 \end{rail}
 
+\subsubsection{Prefix Notation}
+Beside \emph{infix notation}, it is also possible to use \emph{prefix notation}. 
+The \emph{prefix notation} is the usual mathematical notation for functions $f(x,y,z,\ldots)$, but extended to binary operators. 
+It consists in first having the name ot the binary operator, for example \lstinline'/', followed by the arguments in parenthesis: \lstinline'/(2,3)' (see table \ref{tab:prefixrules}). 
+
+
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|rcl|}
+	\hline
+	\lstinline'-(2,3)' & $\equiv$ & \lstinline'2,3 : -'\\
+	\lstinline'*(2,3)' & $\equiv$ & \lstinline'2,3 : *'\\
+	\lstinline'@(_,10)' & $\equiv$ & \lstinline'_,10 : @'\\
+	\lstinline'-(_,2)' & $\equiv$ & \lstinline'_,2 : /'\\
+	\lstinline'<(A,B)' & $\equiv$ & \lstinline'A,B : <'\\
+	\hline
+	\end{tabular}
+	\end{center}
+	\caption{Prefix to core syntax translation rules}
+	\label{tab:prefixrules}
+\end{table}
+
+\subsubsection{Partial Application}
+
+The \emph{partial application} notation is a variant of prefix notation when not all the arguments are given. For instance  \lstinline'/(2)' and \lstinline'@(512)' are examples of partial applications where only one argument is given.
+
+These possibilities are summarized in table \ref{tab:partialrules}.
+
+\begin{table}[h]
+	\begin{center}
+	\begin{tabular}{|rcl|}
+	\hline
+	\lstinline'+(C)' & $\equiv$ & \lstinline'_,C:*'\\
+	\lstinline'-(C)' & $\equiv$ & \lstinline'_,C:-'\\
+	\lstinline'<(C)' & $\equiv$ & \lstinline'_,C:<'\\
+	\lstinline'/(C)' & $\equiv$ & \lstinline'_,C:/'\\
+	\hline
+	\end{tabular}
+	\end{center}
+	\caption{Faust Syntax Extensions}
+	\label{tab:partialrules}
+\end{table}
+
+
+%--------------------------------------------------------------------------------------------------------------
 \subsection{Time expressions}
+%--------------------------------------------------------------------------------------------------------------
 
 Time expressions are used to express delays. The notation \lstinline'X@10' represent the signal \lstinline'X' delayed by 10 samples. The notation \lstinline"X'" represent the signal X delayed by one sample and is therefore equivalent to \lstinline'X@1'.
 
