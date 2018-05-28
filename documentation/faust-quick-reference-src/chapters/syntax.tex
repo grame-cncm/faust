@@ -514,12 +514,14 @@ numiter : expression;
 The number of iterations must be a constant expression. 
 
 %--------------------------------------------------------------------------------------------------------------
-\subsection{Infix Notation and Syntax Extensions}
+\subsection{Infix Notation and Other Syntax Extensions}
 %--------------------------------------------------------------------------------------------------------------
 
-\marginpar{Infix notation is commonly used in mathematics. It consists in placing the operand between the arguments as in $2+3$}Besides its algebra-based core syntax, Faust provides some syntax extensions, in particular \emph{infix} notation. For example if you want to multiply two numbers, let say \lstinline'2' and \lstinline'3', you can write directly \lstinline'2*3' instead of the equivalent core-syntax expression \lstinline'2,3:*'.
+\marginpar{Infix notation is commonly used in mathematics. It consists in placing the operand between the arguments as in $2+3$}Besides its algebra-based core syntax, Faust provides some syntax extensions, in particular the familiar \emph{infix notation}. For example if you want to multiply two numbers, let say \lstinline'2' and \lstinline'3', you can write directly \lstinline'2*3' instead of the equivalent core-syntax expression \lstinline'2,3:*'.
 
-The \emph{infix} notation is not limited to numbers or numerical expressions. Arbitrary expressions \lstinline'A' and \lstinline'B' can be used, provided that \lstinline'A,B' has exactly two outputs. For example you can write \lstinline'_/2'. It is equivalent to \lstinline'_,2:/' and divides the incoming signal by \lstinline'2'. Exemples of equivalences are given table \ref{tab:infixrules}.
+The \emph{infix notation} is not limited to numbers or numerical expressions. Arbitrary expressions \lstinline'A' and \lstinline'B' can be used, provided that \lstinline'A,B' has exactly two outputs. For example you can write \lstinline'_/2'. It is equivalent to \lstinline'_,2:/' which divides the incoming signal by \lstinline'2'. 
+
+Examples of equivalences are given table \ref{tab:infixrules}.
 
 \begin{table}[h]
 	\begin{center}
@@ -537,9 +539,12 @@ The \emph{infix} notation is not limited to numbers or numerical expressions. Ar
 	\label{tab:infixrules}
 \end{table}
 
+In case of doubts on the meaning of an infix expression, for example \lstinline'_*_', it is useful to translate it to its core syntax equivalent, here \lstinline'_,_:*', which is equivalent to \lstinline'*'.
 	
-\subsubsection{Built-in primitives with infix notation}
-Here is a list of binary primitives that can be used as infix operators. Please note that a complete description of all theses build-ins is available in the primitive section (see \ref{primitives}). 
+\subsubsection{Infix Operators}
+%---------------------------------------------------------------------------------------
+
+Built-in primitives that can be used in infix notation are called \emph{infix operators} and are listed in this section. Please note that a more detailed description of these operators is available section \ref{primitives}. 
 
 
 \begin{rail}
@@ -551,19 +556,19 @@ delay : expression arobase expression;
 \end{rail}
 
 \subsubsection{Prefix Notation}
+%---------------------------------------------------------------------------------------
+
 Beside \emph{infix notation}, it is also possible to use \emph{prefix notation}. 
-The \emph{prefix notation} is the usual mathematical notation for functions $f(x,y,z,\ldots)$, but extended to binary operators. 
-It consists in first having the name ot the binary operator, for example \lstinline'/', followed by the arguments in parenthesis: \lstinline'/(2,3)' (see table \ref{tab:prefixrules}). 
-
-
-\begin{table}[h]
+The \emph{prefix notation} is the usual mathematical notation for functions $f(x,y,z,\ldots)$, but extended to \emph{infix operators}. 
+%
+\begin{table}[h!]
 	\begin{center}
 	\begin{tabular}{|rcl|}
 	\hline
-	\lstinline'-(2,3)' & $\equiv$ & \lstinline'2,3 : -'\\
+	%\lstinline'-(2,3)' & $\equiv$ & \lstinline'2,3 : -'\\
 	\lstinline'*(2,3)' & $\equiv$ & \lstinline'2,3 : *'\\
-	\lstinline'@(_,10)' & $\equiv$ & \lstinline'_,10 : @'\\
-	\lstinline'-(_,2)' & $\equiv$ & \lstinline'_,2 : /'\\
+	\lstinline'@(_,7)' & $\equiv$ & \lstinline'_,7 : @'\\
+	\lstinline'/(_,2)' & $\equiv$ & \lstinline'_,2 : /'\\
 	\lstinline'<(A,B)' & $\equiv$ & \lstinline'A,B : <'\\
 	\hline
 	\end{tabular}
@@ -572,11 +577,15 @@ It consists in first having the name ot the binary operator, for example \lstinl
 	\label{tab:prefixrules}
 \end{table}
 
+It consists in first having the operator, for example \lstinline'/', followed by its arguments between parentheses: \lstinline'/(2,3)' (see table \ref{tab:prefixrules}). 
+
 \subsubsection{Partial Application}
+%---------------------------------------------------------------------------------------
 
-The \emph{partial application} notation is a variant of prefix notation when not all the arguments are given. For instance  \lstinline'/(2)' and \lstinline'@(512)' are examples of partial applications where only one argument is given.
+The \emph{partial application} notation is a variant of \emph{prefix notation} in which not all arguments are given. For instance  \lstinline'/(2)' (divide by 2), \lstinline'^(3)'  (rise to the cube) and \lstinline'@(512)' (delay by 512 samples) are examples of partial applications where only one argument is given. The result of a partial application is a function that "waits" for the remaining arguments. 
 
-These possibilities are summarized in table \ref{tab:partialrules}.
+When doing partial application with an \emph{infix operator}, it is important to note that the supplied argument is not the first argument, but always the second one, as summarized table \ref{tab:partialrules}. 
+
 
 \begin{table}[h]
 	\begin{center}
@@ -589,10 +598,13 @@ These possibilities are summarized in table \ref{tab:partialrules}.
 	\hline
 	\end{tabular}
 	\end{center}
-	\caption{Faust Syntax Extensions}
+	\caption{Partial application of infix operators}
 	\label{tab:partialrules}
 \end{table}
 
+For commutative operations that doesn't matter. But for non-commutative ones, it is more ``natural'' to fix the second argument.  We use divide by 2 (\lstinline'/(2)') or rise to the cube (\lstinline'^(3)') more often than the other way around.
+
+Please note that this rule only applies to infix operators, not other primitives or functions. If you partially apply a regular function to a single argument, it will correspond to the first parameter.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{Time expressions}
