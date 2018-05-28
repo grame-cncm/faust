@@ -1629,7 +1629,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             } else {
                 // HACK : special case if we store a 0 (null pointer) in a adress (used in vec mode and in "allocate" function in scheduler mode...)
                 if ((store_ptr->getType() != PointerType::get(store->getType(), 0))
-                    && (store->getType() == llvm::Type::getInt32Ty(fModule->getContext()))) {
+                    && (store->getType() == llvm::Type::getInt32Ty(fModule->getContext())
+                        || store->getType() == llvm::Type::getInt64Ty(fModule->getContext()))) {
                         Value* casted_store = ConstantPointerNull::get((llvm::PointerType*)store_ptr->getType()->getContainedType(0));
                         fBuilder->CreateStore(casted_store, store_ptr, isvolatile);
                 } else {
@@ -1711,7 +1712,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
         virtual void visit(StoreVarInst* inst)
         {
-            
             //dump2FIR(inst);
             
             NamedAddress* named_address = dynamic_cast<NamedAddress*>(inst->fAddress);

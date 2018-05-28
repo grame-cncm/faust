@@ -82,7 +82,7 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
     }
     
     stringstream error;
-    error << "ERROR : loadOptimize failed for '" << function << "'";
+    error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
     throw faustexception(error.str());
 }
 

@@ -573,28 +573,34 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
             sfactory->addReference();
             return sfactory;
         } else {
-            llvm_dynamic_dsp_factory_aux* factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(compileFaustFactory(argc1, argv1,
-                                                                                                        name_app.c_str(),
-                                                                                                        dsp_content.c_str(),
-                                                                                                        error_msg,
-                                                                                                        true));
-            if (factory_aux) {
-                factory_aux->setTarget(target);
-                factory_aux->setOptlevel(opt_level);
-                factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
-                factory_aux->setName(name_app);
-                if (!factory_aux->initJIT(error_msg)) {
-                    goto error;
+            llvm_dynamic_dsp_factory_aux* factory_aux = nullptr;
+            try {
+                factory_aux = static_cast<llvm_dynamic_dsp_factory_aux*>(compileFaustFactory(argc1, argv1,
+                                                                                            name_app.c_str(),
+                                                                                            dsp_content.c_str(),
+                                                                                            error_msg,
+                                                                                            true));
+                if (factory_aux) {
+                    factory_aux->setTarget(target);
+                    factory_aux->setOptlevel(opt_level);
+                    factory_aux->setClassName(getParam(argc, argv, "-cn", "mydsp"));
+                    factory_aux->setName(name_app);
+                    if (!factory_aux->initJIT(error_msg)) {
+                        goto error;
+                    }
+                    factory = new llvm_dsp_factory(factory_aux);
+                    llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
+                    factory->setSHAKey(sha_key);
+                    factory->setDSPCode(expanded_dsp_content);
+                    return factory;
                 }
-                factory = new llvm_dsp_factory(factory_aux);
-                llvm_dsp_factory_aux::gLLVMFactoryTable.setFactory(factory);
-                factory->setSHAKey(sha_key);
-                factory->setDSPCode(expanded_dsp_content);
-                return factory;
+            } catch(faustexception& e){
+                error_msg = e.what();
+                goto error;
             }
         error:
             delete factory_aux;
-            return NULL;
+            return nullptr;
         }
     }
 }
@@ -834,16 +840,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
                                                    char* error_msg, int opt_level)
 {
     string error_msg_aux;
-    llvm_dsp_factory* factory = nullptr;
-    try
-    {
-        factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
-    }
-    catch(faustexception& e)
-    {
-        strncpy(error_msg, e.what(), 4096);
-        return nullptr;
-    }
+    llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
@@ -854,16 +851,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
                                                      char* error_msg, int opt_level)
 {
     string error_msg_aux;
-    llvm_dsp_factory* factory = nullptr;
-    try
-    {
-        factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
-    }
-    catch(faustexception& e)
-    {
-        strncpy(error_msg, e.what(), 4096);
-        return nullptr;
-    }
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }

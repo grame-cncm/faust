@@ -208,10 +208,10 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     echo "=============================================================================="
     echo "Impulse response tests in various compilation modes and double : LLVM backend "
     echo "=============================================================================="
-	check faust2impulse4 -double 
-	check faust2impulse4 -double -fm def -L fastmath.bc 
+    check faust2impulse4 -double
+    check faust2impulse4 -double -fm def -L fastmath.bc
 	check faust2impulse4bis -inpl -double
-	check faust2impulse4 -double -ftz 1 
+	check faust2impulse4 -double -ftz 1
 	check faust2impulse4 -double -ftz 2
 	check faust2impulse4 -double -vec -lv 0
 	check faust2impulse4 -double -vec -lv 1
