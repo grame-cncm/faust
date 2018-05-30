@@ -58,7 +58,7 @@ struct DispatchVisitor;
 class ASMJAVAScriptInstVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
-class DeclareStructTypeInst;
+struct DeclareStructTypeInst;
 
 struct Typed;
 struct BasicTyped;
