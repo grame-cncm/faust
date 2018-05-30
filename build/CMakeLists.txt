@@ -19,6 +19,7 @@ set (CMAKE_CXX_STANDARD 11)
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
+option ( INCLUDE_EXECUTABLE	"Include runtime executable"	on )
 option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
@@ -252,14 +253,16 @@ endmacro()
 ####################################
 # Add the different targets
 ####################################
-add_executable(faust ${SRC} ${HH})
-target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
-target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
-target_link_libraries (faust PRIVATE ${FAUST_LIBS})
-scan_backends (faust COMPILER)
-set_target_properties(faust  PROPERTIES
-	RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
-set (INSTALL_TARGETS faust)
+if (INCLUDE_EXECUTABLE)
+	add_executable(faust ${SRC} ${HH})
+	target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
+	target_include_directories (faust PRIVATE ${FAUST_INC} ${LLVM_INC})
+	target_link_libraries (faust PRIVATE ${FAUST_LIBS})
+	scan_backends (faust COMPILER)
+	set_target_properties(faust  PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY ${BINDIR})
+	set (INSTALL_TARGETS faust)
+endif()
 
 # static faust library
 if (INCLUDE_STATIC)
