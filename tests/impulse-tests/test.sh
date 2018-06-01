@@ -154,22 +154,22 @@ if [ $BACKEND = "cpp" ] || [ $BACKEND = "all" ]; then
     echo "============================================================================="
     echo "Impulse response tests in various compilation modes and double : C++ backend "
     echo "============================================================================="
-	check faust2impulse -double  $f > $D/$f.scal.ir
-	check faust2impulse -double -fm def $f > $D/$f.scal.ir
-	check faust2impulse1 -double $f > $D/$f.scal.ir
-	check faust2impulseter -inpl -double $f > $D/$f.scal.ir
-	check faust2impulseter -ftz 1 -double $f > $D/$f.scal.ir
-	check faust2impulseter -ftz 2 -double $f > $D/$f.scal.ir
+	check faust2impulse -double
+	check faust2impulse -double -fm def
+	check faust2impulse1 -double
+	check faust2impulseter -inpl -double
+	check faust2impulseter -ftz 1 -double
+	check faust2impulseter -ftz 2 -double
     #   faust2impulsebis -double $f > $D/$f.scal.ir
-	check faust2impulse -double -vec -lv 0 $f > $D/$f.vec.ir
+	check faust2impulse -double -vec -lv 0
     #   faust2impulsebis -double -vec -lv 0 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -vs 200 $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -g $f > $D/$f.vec.ir
-	check faust2impulse -double -vec -lv 1 -g -fun $f > $D/$f.vec.ir
-	check faust2impulse -double -sch $f > $D/$f.sch.ir
-	check faust2impulse -double -sch -vs 100 $f > $D/$f.sch.ir
-	check faust2impulse -double -sch -vs 100 -fun $f > $D/$f.sch.ir
+	check faust2impulse -double -vec -lv 1
+	check faust2impulse -double -vec -lv 1 -vs 200
+	check faust2impulse -double -vec -lv 1 -g
+	check faust2impulse -double -vec -lv 1 -g -fun
+	check faust2impulse -double -sch
+	check faust2impulse -double -sch -vs 100
+	check faust2impulse -double -sch -vs 100 -fun 
 
 fi
 

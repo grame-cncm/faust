@@ -1627,7 +1627,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
                 }
 
             } else {
-                // HACK : special case if we store a 0 (null pointer) in a adress (used in vec mode and in "allocate" function in scheduler mode...)
+                // HACK : special case if we store a 0 (null pointer) in a address (used in vec mode and in "allocate" function in scheduler mode...)
                 if ((store_ptr->getType() != PointerType::get(store->getType(), 0))
                     && (store->getType() == llvm::Type::getInt32Ty(fModule->getContext())
                         || store->getType() == llvm::Type::getInt64Ty(fModule->getContext()))) {
