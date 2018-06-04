@@ -71,7 +71,7 @@
 #endif
 
 #if 0
-#define linkcolor "#F57900" 
+#define linkcolor "#F57900"
 #define normalcolor "#4B71A1"
 #define uicolor "#47945E"
 #define slotcolor "#EDD400"
@@ -79,7 +79,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E" 
+#define linkcolor "#47945E"
 #define normalcolor "#4B71A1"
 #define uicolor "#f44800"
 #define slotcolor "#EDD400"
@@ -87,7 +87,7 @@
 #endif
 
 #if 0
-#define linkcolor "#47945E" 
+#define linkcolor "#47945E"
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -95,7 +95,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#816647"
 #define slotcolor "#EDD400"
@@ -103,7 +103,7 @@
 #endif
 
 #if 0
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#816647"
@@ -111,7 +111,7 @@
 #endif
 
 #if 1
-#define linkcolor "#003366" 
+#define linkcolor "#003366"
 #define normalcolor "#4B71A1"
 #define uicolor "#477881"
 #define slotcolor "#47945E"
@@ -147,7 +147,7 @@ void drawSchema(Tree bd, const char* projname, const char* dev)
 {
 	gGlobal->gDevSuffix 	= dev;
 	gGlobal->gFoldingFlag 	= boxComplexity(bd) > gGlobal->gFoldThreshold;
-   
+
 	mkchdir(projname); 			// create a directory to store files
 
 	scheduleDrawing(bd);		// schedule the initial drawing
@@ -208,11 +208,11 @@ static void writeSchemaFile(Tree bd)
 	gGlobal->gOccurrences = new Occurrences(bd);
     getBoxType(bd, &ins, &outs);
 
-	bool hasname = getDefNameProperty(bd, id); 
+	bool hasname = getDefNameProperty(bd, id);
 
 	//faustassert(hasname);
 	if (!hasname) {
-		// create an arbitrary name 
+		// create an arbitrary name
 		id = tree(Node(unique("diagram_")));
 	}
 
@@ -264,7 +264,7 @@ static char* legalFileName(Tree t, int n, char* dst)
 		}
 	}
 	dst[i] = 0;
-	if (strcmp(dst, "process") != 0) { 
+	if (strcmp(dst, "process") != 0) {
 		// if it is not process add the hex address to make the name unique
 		snprintf(&dst[i], n-i, "-%p", (void*)t);
 	}
@@ -417,6 +417,8 @@ static schema* generateInsideSchema(Tree t)
 	else if (isBoxHBargraph(t))		{ return generateBargraphSchema(t); }
 	else if (isBoxSoundfile(t))		{ return generateSoundfileSchema(t); }
 
+    else if (isBoxMetadata(t,a,b))  { return generateDiagramSchema(a); }
+
 	// don't draw group rectangle when labels are empty (ie "")
     else if (isBoxVGroup(t,l,a))	{ 	stringstream s; s << "vgroup(" << extractName(l) << ")";
 										schema* r = generateDiagramSchema(a);
@@ -442,9 +444,9 @@ static schema* generateInsideSchema(Tree t)
 		} else {
 			return makeDecorateSchema(generateAbstractionSchema(generateInputSlotSchema(a), b), 10, "Abstraction");
 		}
-        
-    } else if (isBoxEnvironment(t)) { 
-        return makeBlockSchema(0, 0, "environment{...}", normalcolor, ""); 
+
+    } else if (isBoxEnvironment(t)) {
+        return makeBlockSchema(0, 0, "environment{...}", normalcolor, "");
 
 	} else {
         stringstream error;
@@ -540,7 +542,7 @@ static schema* generateBargraphSchema(Tree t)
 }
 
 /**
- * Generate a 1->c+2 block schema for soundfile("toto",c) 
+ * Generate a 1->c+2 block schema for soundfile("toto",c)
  */
 static schema* generateSoundfileSchema(Tree t)
 {

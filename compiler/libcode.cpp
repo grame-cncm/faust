@@ -960,6 +960,7 @@ static void parseSourceFiles()
 static Tree evaluateBlockDiagram(Tree expandedDefList, int& numInputs, int& numOutputs)
 {
     startTiming("evaluation");
+    //cout << "expandedDefList " << *expandedDefList << endl;
 
     Tree process = evalprocess(expandedDefList);
     if (gGlobal->gErrorCount > 0) {

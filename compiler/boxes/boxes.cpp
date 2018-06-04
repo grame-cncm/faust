@@ -490,6 +490,21 @@ bool isBoxSoundfile(Tree s, Tree &label, Tree &chan)
     return isTree(s, gGlobal->BOXSOUNDFILE, label, chan);
 }
 
+
+/*****************************************************************************
+							 metadata (pattern matching)
+*****************************************************************************/
+Tree boxMetadata	(Tree exp, Tree mdlist)
+{
+    return tree(gGlobal->BOXMETADATA, exp, mdlist);
+}
+
+bool isBoxMetadata	(Tree s, Tree& exp, Tree& mdlist)
+{
+    return isTree(s, gGlobal->BOXMETADATA, exp, mdlist);
+}
+
+
 /*****************************************************************************
 							 pattern lmatching case
 *****************************************************************************/
@@ -641,9 +656,9 @@ Tree boxPatternVar(Tree id)             { return tree(gGlobal->BOXPATVAR, id); }
 bool isBoxPatternVar(Tree s, Tree& id)  { return isTree(s, gGlobal->BOXPATVAR, id); }
 
 Tree boxPatternMatcher(Automaton* a, int state, Tree env, Tree origRules, Tree revParamList)
-{ 
-	return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList); 
-} 					
+{
+	return tree(gGlobal->BOXPATMATCHER, tree((void*)a), tree(state), env, origRules, revParamList);
+}
 
 bool isBoxPatternMatcher(Tree s)
 {

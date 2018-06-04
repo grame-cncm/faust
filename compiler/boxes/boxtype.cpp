@@ -18,12 +18,12 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 /*****************************************************************************
 ******************************************************************************
-	
+
 							  Box Type System
-	
+
 ******************************************************************************
 *****************************************************************************/
 
@@ -58,7 +58,7 @@ bool getBoxType (Tree box, int* inum, int* onum)
 {
 	Tree t;
 	if (getProperty(box, gGlobal->BOXTYPEPROP, t)) {
-		
+
 		if (isNil(t)) {
 			return false;
 		} else {
@@ -66,9 +66,9 @@ bool getBoxType (Tree box, int* inum, int* onum)
 			*onum = tl(t)->node().getInt();
 			return true;
 		}
-		
+
 	} else {
-	
+
 		if (infereBoxType(box, inum, onum)) {
 			setProperty(box, gGlobal->BOXTYPEPROP, cons(tree(*inum), tree(*onum)));
 			return true;
@@ -94,44 +94,44 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 {
 	Tree a, b, ff, l, s, c;
 	//Tree abstr, genv, vis, lenv;
-	
+
 	xtended* p = (xtended*) getUserData(t);
 
 	if (p) 						{ *inum = p->arity(); *onum = 1; }
-	else if (isBoxInt(t)) 		{ *inum = 0; *onum = 1; } 
-	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; } 
-	
-	else if (isBoxWaveform(t)) 	{ *inum = 0; *onum = 2; } 
+	else if (isBoxInt(t)) 		{ *inum = 0; *onum = 1; }
+	else if (isBoxReal(t)) 		{ *inum = 0; *onum = 1; }
+
+	else if (isBoxWaveform(t)) 	{ *inum = 0; *onum = 2; }
 
 	else if (isBoxWire(t)) 		{ *inum = 1; *onum = 1; }
-	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; } 
+	else if (isBoxCut(t)) 		{ *inum = 1; *onum = 0; }
 
     else if (isBoxSlot(t))          { *inum = 0; *onum = 1; }
-	else if (isBoxSymbolic(t,s,b)) 	{ if (!getBoxType(b, inum, onum)) return false; *inum += 1; } 
-	
+	else if (isBoxSymbolic(t,s,b)) 	{ if (!getBoxType(b, inum, onum)) return false; *inum += 1; }
+
     else if (isBoxPatternVar(t,a))  { return false; }
 
     else if (isBoxPrim0(t)) 	{ *inum = 0; *onum = 1; }
-	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; } 
-	else if (isBoxPrim2(t)) 	{ *inum = 2; *onum = 1; } 
-	else if (isBoxPrim3(t)) 	{ *inum = 3; *onum = 1; } 
-	else if (isBoxPrim4(t)) 	{ *inum = 4; *onum = 1; } 
-	else if (isBoxPrim5(t)) 	{ *inum = 5; *onum = 1; } 
-		
-	else if (isBoxFFun(t,ff)) 	{ *inum = ffarity(ff); *onum = 1; } 
-    else if (isBoxFConst(t))    { *inum = 0; *onum = 1; } 
-    else if (isBoxFVar(t))      { *inum = 0; *onum = 1; } 
-	
-	else if (isBoxButton(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxCheckbox(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxVSlider(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxHSlider(t)) 	{ *inum = 0; *onum = 1; } 
-	else if (isBoxNumEntry(t)) 	{ *inum = 0; *onum = 1; } 
+	else if (isBoxPrim1(t)) 	{ *inum = 1; *onum = 1; }
+	else if (isBoxPrim2(t)) 	{ *inum = 2; *onum = 1; }
+	else if (isBoxPrim3(t)) 	{ *inum = 3; *onum = 1; }
+	else if (isBoxPrim4(t)) 	{ *inum = 4; *onum = 1; }
+	else if (isBoxPrim5(t)) 	{ *inum = 5; *onum = 1; }
+
+	else if (isBoxFFun(t,ff)) 	{ *inum = ffarity(ff); *onum = 1; }
+    else if (isBoxFConst(t))    { *inum = 0; *onum = 1; }
+    else if (isBoxFVar(t))      { *inum = 0; *onum = 1; }
+
+	else if (isBoxButton(t)) 	{ *inum = 0; *onum = 1; }
+	else if (isBoxCheckbox(t)) 	{ *inum = 0; *onum = 1; }
+	else if (isBoxVSlider(t)) 	{ *inum = 0; *onum = 1; }
+	else if (isBoxHSlider(t)) 	{ *inum = 0; *onum = 1; }
+	else if (isBoxNumEntry(t)) 	{ *inum = 0; *onum = 1; }
     else if (isBoxVGroup(t,l,a)){ return getBoxType(a, inum, onum); }
     else if (isBoxHGroup(t,l,a)){ return getBoxType(a, inum, onum); }
     else if (isBoxTGroup(t,l,a)){ return getBoxType(a, inum, onum); }
-	
-	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; } 
+
+	else if (isBoxVBargraph(t)) 	{ *inum = 1; *onum = 1; }
 	else if (isBoxHBargraph(t)) 	{ *inum = 1; *onum = 1; }
     else if (isBoxSoundfile(t, l, c)) {
         *inum = 1;
@@ -154,7 +154,7 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		}
 
 	} else if (isBoxPar(t, a, b)) {
-		
+
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
@@ -162,7 +162,7 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		*inum = u+x; *onum = v+y;
 
 	} else if (isBoxSplit(t, a, b)) {
-		
+
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
@@ -173,14 +173,14 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
                     << "The first expression : " << boxpp(a) << " has no outputs" << endl;
             throw faustexception(error.str());
         }
-        
+
         if (x == 0) {
             stringstream error;
             error   << "Connection error in : " << boxpp(t) << endl
                     << "The second expression : " << boxpp(b) << " has no inputs" << endl;
             throw faustexception(error.str());
         }
-		 
+
 		if (x % v != 0) {
             stringstream error;
             error   << "Connection error in : " << boxpp(t) << endl
@@ -189,11 +189,11 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 					<< " of the second expression" << endl;
 			throw faustexception(error.str());
 		}
-		
+
 		*inum = u; *onum = y;
 
 	} else if (isBoxMerge(t, a, b)) {
-		
+
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
@@ -204,15 +204,15 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
                     << "The first expression : " << boxpp(a) << " has no outputs" << endl;
             throw faustexception(error.str());
         }
-        
+
         if (x == 0) {
             stringstream error;
             error   << "Connection error in : " << boxpp(t) << endl
                     << "The second expression : " << boxpp(b) << " has no inputs" << endl;
             throw faustexception(error.str());
         }
-        
-		if (v % x != 0) { 
+
+		if (v % x != 0) {
 			stringstream error;
             error   << "Connection error in : " << boxpp(t) << endl
 					<< "The number of outputs " << v
@@ -224,15 +224,15 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 		*inum = u; *onum = y;
 
 	} else if (isBoxRec(t, a, b)) {
-		
+
 		int u,v,x,y;
 		if (!getBoxType(a, &u, &v)) return false;
 		if (!getBoxType(b, &x, &y)) return false;
-		if ( (x > v) | (y > u) ) { 
+		if ( (x > v) | (y > u) ) {
 			stringstream error;
             error << "Connection error in : " << boxpp(t) << endl;
-			if (x > v) error << "The number of outputs " << v 
-                            << " of the first expression should be greater or equal \n  to the number of inputs " << x 
+			if (x > v) error << "The number of outputs " << v
+                            << " of the first expression should be greater or equal \n  to the number of inputs " << x
 							<< " of the second expression" << endl;
 			if (y > u) error << "The number of inputs " << u
 							<< " of the first expression should be greater or equal \n  to the number of outputs " << y
@@ -240,10 +240,13 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
 			throw faustexception(error.str());
 		}
 		*inum = max(0,u-y); *onum = v;
-		
+
     } else if (isBoxEnvironment(t)) {
 		*inum = 0;
 		*onum = 0;
+
+	} else if (isBoxMetadata(t, a, b)) {
+		return getBoxType(a, inum, onum);
 
     } else {
         stringstream error;
@@ -251,7 +254,7 @@ static bool infereBoxType (Tree t, int* inum, int* onum)
         throw faustexception(error.str());
 	}
 	return true;
-}	
-		
-		
-	
+}
+
+
+

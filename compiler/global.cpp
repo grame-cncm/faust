@@ -308,6 +308,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     BOXINPUTS = symbol("BoxInputs");
     BOXOUTPUTS = symbol("BoxOutputs");
     BOXSOUNDFILE = symbol("boxSoundfile");
+    BOXMETADATA = symbol("boxMetadata");
 
     DOCEQN = symbol("DocEqn");
     DOCDGM = symbol("DocDgm");
@@ -382,7 +383,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gMachineInt64Size = sizeof(long int);
     gMachineDoubleSize = sizeof(double);
     gMachineBoolSize = sizeof(bool);
-    
+
     // Assuming we are compiling for a 64 bits machine
     gMachinePtrSize = 8;
 
@@ -545,7 +546,7 @@ void global::init()
     // source file injection
     gInjectFlag = false;    // inject an external source file into the architecture file
     gInjectFile = "";       // instead of a compiled dsp file
-    
+
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32)));
