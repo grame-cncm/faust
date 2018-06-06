@@ -321,6 +321,12 @@ Tree boxPatternVar	(Tree id);
 bool isBoxPatternVar(Tree s, Tree& id);
 
 /*****************************************************************************
+							 metadata (pattern matching)
+*****************************************************************************/
+Tree boxMetadata	(Tree exp, Tree mdlist);
+bool isBoxMetadata	(Tree s, Tree& exp, Tree& mdlist);
+
+/*****************************************************************************
 ******************************************************************************
 
 							    Box Algorithms

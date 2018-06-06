@@ -187,7 +187,7 @@ Tree copyEnvReplaceDefs(Tree anEnv, Tree ldefs, Tree visited, Tree curEnv)
     copyEnv = pushNewLayer(anEnv->branch(0));       // create new environment with same stack
     updateClosures(clos, anEnv, copyEnv);           // update the closures replacing oldEnv with newEnv
 
-	for (unsigned int i=0; i < clos.size(); i++) {           // transfers the updated definitions to the new environment
+	for (unsigned int i=0; i < clos.size(); i++) {  // transfers the updated definitions to the new environment
         setProperty(copyEnv, ids[i], clos[i]);
     }
 

@@ -488,6 +488,10 @@ static Tree realeval (Tree exp, Tree visited, Tree localValEnv)
 					tree(eval2double(lo, visited, localValEnv)),
 					tree(eval2double(hi, visited, localValEnv)));
 
+    } else if (isBoxMetadata(exp, e1, e2)) {
+        gGlobal->gMetaDataSet[hd(e2)].insert(tl(e2));
+        return eval(e1, visited, localValEnv);
+
 	} else if (isBoxVBargraph(exp, label, lo, hi)) {
         const char* l1 = tree2str(label);
         string l2 = evalLabel(l1, visited, localValEnv);
@@ -1572,6 +1576,11 @@ Tree insideBoxSimplification (Tree box)
         Tree s1 = boxSimplification(t1);
         Tree s2 = boxSimplification(t2);
         return boxRec(s1,s2);
+    }
+    else if (isBoxMetadata(box, t1, t2)) 	{
+        Tree s1 = boxSimplification(t1);
+        cout << "is this right?" << endl;
+        return boxMetadata(s1,t2);
     }
 
     stringstream error;

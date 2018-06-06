@@ -92,7 +92,20 @@ int main(int argc, char* argv[])
                 finterface.setButtons(false);
             }
             int nFrames = min(kFrames, nbsamples);
+            
             DSP->compute(nFrames, ichan->buffers(), ochan->buffers());
+            
+            /*
+            DSP->compute(5, ichan->buffers(0), ochan->buffers(0));
+            DSP->compute(nFrames - 5, ichan->buffers(5), ochan->buffers(5));
+            */
+            
+            /*
+            DSP->compute(5, ichan->buffers(0), ochan->buffers(0));
+            DSP->compute(5, ichan->buffers(5), ochan->buffers(5));
+            DSP->compute(nFrames - 10, ichan->buffers(10), ochan->buffers(10));
+            */
+            
             run++;
             for (int i = 0; i < nFrames; i++) {
                 printf("%6d : ", linenum++);

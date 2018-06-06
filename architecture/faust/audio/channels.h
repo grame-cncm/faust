@@ -25,6 +25,7 @@
 #define __audio_channels__
 
 #include <string.h>
+#include <assert.h>
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -37,12 +38,14 @@ class channels
         int fNumFrames;
         int fNumChannels;
         FAUSTFLOAT** fBuffers;
+        FAUSTFLOAT** fSliceBuffers;
 
     public:
 
         channels(int nframes, int nchannels)
         {
             fBuffers = new FAUSTFLOAT*[nchannels];
+            fSliceBuffers = new FAUSTFLOAT*[nchannels];
             fNumFrames = nframes;
             fNumChannels = nchannels;
 
@@ -89,9 +92,19 @@ class channels
                 delete [] fBuffers[chan];
             }
             delete [] fBuffers;
+            delete [] fSliceBuffers;
         }
 
         FAUSTFLOAT** buffers() { return fBuffers; }
+    
+        FAUSTFLOAT** buffers(int index)
+        {
+            assert(index < fNumFrames);
+            for (int chan = 0; chan < fNumChannels; chan++) {
+                fSliceBuffers[chan] = &fBuffers[chan][index];
+            }
+            return fSliceBuffers;
+        }
     
 };
 

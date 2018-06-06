@@ -58,7 +58,7 @@ struct DispatchVisitor;
 class ASMJAVAScriptInstVisitor;
 class WASTInstVisitor;
 class WASMInstVisitor;
-class DeclareStructTypeInst;
+struct DeclareStructTypeInst;
 
 struct Typed;
 struct BasicTyped;
@@ -77,6 +77,8 @@ struct comp_str
 
 typedef map<Tree, set<Tree>, comp_str> MetaDataSet;
 
+typedef map<Tree, set<Tree>> FunMDSet; // foo -> {(file/foo/key,value)...}
+
 struct global {
 
     Tree gResult;
@@ -85,6 +87,7 @@ struct global {
     SourceReader gReader;
 
     MetaDataSet gMetaDataSet;
+    FunMDSet    gFunMDSet;
     string gDocLang;
     tvec gWaveForm;
 
@@ -301,6 +304,7 @@ struct global {
     Sym BOXINPUTS;
     Sym BOXOUTPUTS;
     Sym BOXSOUNDFILE;
+    Sym BOXMETADATA;
     Sym DOCEQN;
     Sym DOCDGM;
     Sym DOCNTC;
@@ -376,10 +380,10 @@ struct global {
 
     // Memoized type contruction
     property<AudioType*>* gMemoizedTypes;
-    
+
     // The map of types and associated Structured types
     map<Typed::VarType, DeclareStructTypeInst*> gExternalStructTypes;
-   
+
     // Essential predefined types
     Type TINT;
     Type TREAL;

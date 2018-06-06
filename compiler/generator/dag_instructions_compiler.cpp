@@ -52,7 +52,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kObj_ptr)));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kFloatMacro_ptr)));
         }
 
         // "output" and "outputs" used as a name convention
@@ -62,7 +62,7 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             pushDeclare(InstBuilder::genDecStructVar(name1, type));
             pushComputeBlockMethod(InstBuilder::genStoreStructVar(name1,
                 InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
-            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kObj_ptr)));
+            pushComputeBlockMethod(InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kFloatMacro_ptr)));
         }
     }
 

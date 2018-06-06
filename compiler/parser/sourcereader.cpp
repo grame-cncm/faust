@@ -7,12 +7,12 @@
  it under the terms of the GNU General Public License as published by
  the Free Software Foundation; either version 2 of the License, or
  (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; if not, write to the Free Software
  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
@@ -29,11 +29,13 @@
 #include <map>
 #include <list>
 #include <string>
+#include <sstream>
+
 #ifndef _WIN32
 #include <unistd.h>
 #endif
 
-#ifdef EMCC 
+#ifdef EMCC
 #include <emscripten.h>
 #endif
 
@@ -64,11 +66,11 @@ extern int yylineno;
 extern const char* yyfilename;
 
 /**
- * Checks an argument list for containing only 
+ * Checks an argument list for containing only
  * standard identifiers, no patterns and
  * is linear.
  * @param args the argument list to check
- * @return true if it contains only identifiers 
+ * @return true if it contains only identifiers
  */
 
 static bool standardArgList(Tree args)
@@ -85,11 +87,11 @@ static bool standardArgList(Tree args)
 static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tree rhs2)
 {
     stringstream error;
-    
+
     if (symbol == NULL) {
         error << "ERROR : inconsistent number of parameters in pattern-matching rule: "
         << boxpp(reverse(lhs2)) << " => " << boxpp(rhs2) << ";"
-        << " previous rule was: " 
+        << " previous rule was: "
         << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
         << endl;
     } else {
@@ -100,7 +102,7 @@ static string printPatternError(Tree symbol, Tree lhs1, Tree rhs1, Tree lhs2, Tr
         << boxpp(reverse(lhs1)) << " => " << boxpp(rhs1) << ";"
         << endl;
     }
-    
+
     return error.str();
 }
 
@@ -115,7 +117,7 @@ Tree checkRulelist(Tree lr)
 	// first pattern used as a reference
 	Tree lhs1 = hd(hd(lrules));
 	Tree rhs1 = tl(hd(lrules));
-	int npat = len(lhs1); 
+	int npat = len(lhs1);
 	lrules = tl(lrules);
 	while (!isNil(lrules)) {
 		Tree lhs2 = hd(hd(lrules));
@@ -123,18 +125,18 @@ Tree checkRulelist(Tree lr)
 		if (npat != len(lhs2)) {
             throw faustexception(printPatternError(NULL, lhs1, rhs1, lhs2, rhs2));
 		}
-		
+
 		lhs1 = lhs2;
 		rhs1 = rhs2;
 		lrules = tl(lrules);
-	}	
+	}
 	return lr;
 }
 
 static string printRedefinitionError(Tree symbol, list<Tree>& variants)
 {
     stringstream error;
-    
+
     error << "ERROR (file " << yyfilename << ":" << yylineno << ") : multiple definitions of symbol " << boxpp(symbol) << endl;
     for (list<Tree>::iterator p = variants.begin(); p != variants.end(); p++) {
         Tree params = hd(*p);
@@ -145,16 +147,16 @@ static string printRedefinitionError(Tree symbol, list<Tree>& variants)
             error << boxpp(symbol) << boxpp(params) << " = " << boxpp(body) << ";" << endl;
         }
     }
-    
+
     return error.str();
 }
 
 /**
- * Transforms a list of variants (arglist.body) 
+ * Transforms a list of variants (arglist.body)
  * into an abstraction or a boxCase.
  * @param symbol name only used in case of error
  * @param variants list of variants (arglist.body)
- * @return the corresponding box expression 
+ * @return the corresponding box expression
  */
 
 static Tree makeDefinition(Tree symbol, list<Tree>& variants)
@@ -163,7 +165,7 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 		Tree rhs = *(variants.begin());
 		Tree args= hd(rhs);
 		Tree body= tl(rhs);
-		
+
 		if (isNil(args)) {
 			return body;
 		} else if (standardArgList(args)) {
@@ -176,11 +178,11 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
 		Tree l = gGlobal->nil;
 		Tree prev = *variants.begin();
 		int npat = len(hd(prev));
-        
+
         if (npat == 0) {
             throw faustexception(printRedefinitionError(symbol, variants));
         }
-        
+
 		for (p=variants.begin(); p!=variants.end(); p++) {
 			Tree cur = *p;
 			if ((npat == 0) || (npat != len(hd(cur)))) {
@@ -197,7 +199,7 @@ static Tree makeDefinition(Tree symbol, list<Tree>& variants)
  * Formats a list of raw definitions represented by triplets
  * <name, arglist, body> into abstractions or pattern
  * matching rules when appropriate.
- * 
+ *
  * @param rldef list of raw definitions in reverse order
  * @return the list of formatted definitions
  */
@@ -208,24 +210,24 @@ Tree formatDefinitions(Tree rldef)
 	map<Tree, list<Tree> >::iterator p;
 	Tree ldef2 = gGlobal->nil;
 	Tree file;
-   
+
 	// Collects the definitions in a dictionnary
 	while (!isNil(rldef)) {
-		Tree def = hd(rldef);		
+		Tree def = hd(rldef);
 		rldef = tl(rldef);
 		if (isImportFile(def, file)) {
 			ldef2 = cons(def,ldef2);
-		} else if (!isNil(def)) { 
-			//cout << " def : " << *def << endl; 
-			dic[hd(def)].push_front(tl(def)); 
+		} else if (!isNil(def)) {
+			//cout << " def : " << *def << endl;
+			dic[hd(def)].push_front(tl(def));
 		}
 	}
-	
+
 	// Produces the definitions
 	for (p = dic.begin(); p != dic.end(); p++) {
 		ldef2 = cons(cons(p->first, makeDefinition(p->first, p->second)), ldef2);
 	}
-	
+
 	return ldef2;
 }
 
@@ -243,7 +245,7 @@ void SourceReader::checkName()
 /**
  * Parse a single Faust source file, returns the list of
  * definitions it contains.
- * 
+ *
  * @param fname the name of the file to parse
  * @return the list of definitions it contains
  */
@@ -254,7 +256,7 @@ Tree SourceReader::parseFile(const char* fname)
     yylineno = 1;
     yyfilename = fname;
     string fullpath;
- 
+
     // We are requested to parse an URL file
     if (strstr(yyfilename, "http://") != 0 || strstr(yyfilename, "https://") != 0) {
         char* buffer = 0;
@@ -272,7 +274,7 @@ Tree SourceReader::parseFile(const char* fname)
             } catch(e) {}
             return allocate(intArrayFromString(dsp_code), 'i8', ALLOC_STACK);
         }, yyfilename);
-        
+
         Tree res = 0;
         if (strlen(buffer) == 0) {
             stringstream error;
@@ -295,14 +297,14 @@ Tree SourceReader::parseFile(const char* fname)
         free(buffer);
     #endif
         return res;
-        
+
     } else {
-        
+
         // Test for local url
 		if (strstr(yyfilename, "file://") != 0) {
 			yyfilename = &yyfilename[7]; // skip 'file://'
 		}
-        
+
     #ifdef EMCC
         // Try to open with the complete URL
         Tree res = 0;
@@ -335,9 +337,9 @@ Tree SourceReader::parseString(const char* fname)
     yyerr = 0;
     yylineno = 1;
     yyfilename = fname;
-    
+
     yy_scan_string(gGlobal->gInputString);
-    
+
     // Clear global "inputstring" so that imported files will be correctly parsed with "parse"
     gGlobal->gInputString = NULL;
     return parseLocal(fname);
@@ -348,7 +350,7 @@ Tree SourceReader::parseLocal(const char* fname)
     int r = yyparse();
     stringstream error;
 
-    if (r) { 
+    if (r) {
         error << "ERROR : parse code = " << r << endl;
         throw faustexception(error.str());
     }
@@ -367,7 +369,7 @@ Tree SourceReader::parseLocal(const char* fname)
 
 /**
  * Check if a file as been read and is in the "cache"
- * 
+ *
  * @param fname the name of the file to check
  * @return true if the file is in the cache
  */
@@ -377,9 +379,35 @@ bool SourceReader::cached(string fname)
 	return fFileCache.find(fname) != fFileCache.end();
 }
 
+// add function metadata (using a boxMetadata construction) to a list of definitions
+static Tree addFunctionMetadata(Tree ldef, FunMDSet& M)
+{
+    Tree lresult = gGlobal->nil; // the transformed list of definitions
+
+    // for each definition def of ldef
+	for ( ;!isNil(ldef); ldef = tl(ldef)) {
+
+		Tree def = hd(ldef);
+        Tree fname;
+		if (isNil(def)) {
+			// skip null definitions produced by declarations
+		} else if (isImportFile(def, fname)) {
+			lresult = cons(def, lresult);
+		} else {
+			Tree foo = hd(def);
+            Tree exp = tl(def);
+            for (auto m : M[foo]) {
+                exp = boxMetadata(exp, m);
+            }
+            lresult = cons(cons(foo,exp), lresult);
+		}
+    }
+	return lresult;
+}
+
 /**
  * Return the list of definitions file contains. Cache the result.
- * 
+ *
  * @param fname the name of the file to check
  * @return the list of definitions it contains
  */
@@ -387,22 +415,19 @@ bool SourceReader::cached(string fname)
 Tree SourceReader::getList(const char* fname)
 {
 	if (!cached(fname)) {
-        if (gGlobal->gInputString) {
-            fFileCache[fname] = parseString(fname);
-        } else {
-            fFileCache[fname] = parseFile(fname);
-        }
+        // Previous metadata need to be cleared before parsing a file
+        gGlobal->gFunMDSet.clear();
+
+        Tree ldef = (gGlobal->gInputString) ? parseString(fname) : parseFile(fname);
+
+        // Definitions with metadata have to be wrapped into a boxMetadata construction
+        fFileCache[fname] = addFunctionMetadata(ldef, gGlobal->gFunMDSet);
 	}
-    /* to remove ?
-    if (fFileCache[fname] == 0) {
-        throw faustexception("getlist");
-    }
-    */
     return fFileCache[fname];
 }
 
 /**
- * Return a vector of pathnames representing the list 
+ * Return a vector of pathnames representing the list
  * of all the source files that have been required
  * to evaluate process (those in fFileCache)
  */
@@ -414,7 +439,7 @@ vector<string> SourceReader::listSrcFiles()
 
 /**
  * Return the list of definitions where all imports have been expanded.
- * 
+ *
  * @param ldef the list of definitions to expand
  * @return the expanded list of definitions
  */
@@ -428,7 +453,7 @@ Tree SourceReader::expandList(Tree ldef)
 Tree SourceReader::expandRec(Tree ldef, set<string>& visited, Tree lresult)
 {
 	for (;!isNil(ldef); ldef = tl(ldef)) {
-		Tree d = hd(ldef); 
+		Tree d = hd(ldef);
 		Tree fname;
 		if (isNil(d)) {
 			// skill null definitions produced by declarations
@@ -438,7 +463,7 @@ Tree SourceReader::expandRec(Tree ldef, set<string>& visited, Tree lresult)
 				visited.insert(f);
 				lresult = expandRec(getList(f), visited, lresult);
 			}
-			
+
 		} else {
 			lresult = cons(d, lresult);
 		}
@@ -461,10 +486,22 @@ void declareMetadata(Tree key, Tree value)
     }
 }
 
-// Definition related metadata
+/*
+fun -> (file*fun -> {key*value,...})
+
+gGlobal->gFunMetaDataSet[fun].insert(file*fun*key*value);
+gFunMetaDataSet = map<tree, tuple<Tree,Tree,Tree,Tree>>
+*/
+
+// Called by parser to create function's metadata
 void declareDefinitionMetadata(Tree id, Tree key, Tree value)
 {
-    // not implemented yet
+    stringstream fullkeystream;
+    fullkeystream << yyfilename << "/" << tree2str(id) << ":" << tree2str(key);
+    string fullkey = fullkeystream.str();
+    Tree md = cons(tree(fullkey), value);
+    //cout << "Creation of a function metadata : " << *md << endl;
+    gGlobal->gFunMDSet[boxIdent(tree2str(id))].insert(md);
 }
 
 void declareDoc(Tree t)

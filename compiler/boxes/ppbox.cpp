@@ -119,20 +119,20 @@ static void printRule(ostream& fout, Tree rule)
 static string type2str(int type)
 {
 	switch (type) {
-    
+
         case 0:
             return "int";
-            
+
         case 1:
             return "float";
-            
+
         default:
             return "";
 
     }
-}	
+}
 
-// if t has a node of type symbol, return its name otherwise error		
+// if t has a node of type symbol, return its name otherwise error
 
 ostream& boxpp::print (ostream& fout) const
 {
@@ -243,6 +243,10 @@ ostream& boxpp::print (ostream& fout) const
              << boxpp(min) << ", "
              << boxpp(max) << ')';
     }
+    else if (isBoxMetadata(box, t1, t2)) 	{
+        fout << boxpp(t1,0)
+             << "/* md */";
+    }
     else if (isBoxVBargraph(box, label, min, max)) 	{
         fout << "vbargraph("
              << tree2quotedstr(label) << ", "
@@ -277,7 +281,7 @@ ostream& boxpp::print (ostream& fout) const
         fout << ')';
 
     } else if (isBoxWaveform(box)) {
-    
+
         fout << "waveform";
         char sep = '{';
         for (int i=0; i<box->arity(); i++) {
@@ -360,12 +364,12 @@ ostream& boxpp::print (ostream& fout) const
     else if (isBoxError(box)) {
         fout << "ERROR";
     }
-   
+
     //else if (isImportFile(box, filename)) {
     //    printf("filename %s\n", tree2str(filename));
     //    fout << tree2quotedstr(filename);
     //}
-   
+
     // None of the previous tests succeded, then it is not a valid box
 	else {
         stringstream error;
