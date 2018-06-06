@@ -21,6 +21,7 @@ install:
 	install faust2android $(dest)
 	install faust2androidunity $(dest)
 	install faust2api $(dest)
+	install faust2sam $(dest)
 	install faust2asmjs $(dest)
 	install faust2atomsnippets $(dest)
 	install faust2au $(dest)
@@ -103,6 +104,7 @@ uninstall:
 	rm -f $(dest)/faust2android
 	rm -f $(dest)/faust2androidunity
 	rm -f $(dest)/faust2api
+	rm -f $(dest)/faust2sam
 	rm -f $(dest)/faust2asmjs
 	rm -f $(dest)/faust2atomsnippets
 	rm -f $(dest)/faust2au

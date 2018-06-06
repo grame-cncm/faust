@@ -282,12 +282,12 @@ if (INCLUDE_STATIC)
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
-	endif()	
+	endif()
 	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
 	set (INSTALL_TARGETS ${INSTALL_TARGETS} staticlib)
 	scan_backends (staticlib STATIC)
-endif()	
+endif()
 
 
 # dynamic faust library
@@ -298,7 +298,7 @@ if (INCLUDE_DYNAMIC)
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
 	if (WIN32)
 		enable_language(RC)
-		set_target_properties(dynamiclib PROPERTIES 
+		set_target_properties(dynamiclib PROPERTIES
 			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
 			RUNTIME_OUTPUT_DIRECTORY  ${LIBDIR})
 		set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
@@ -309,9 +309,9 @@ if (INCLUDE_DYNAMIC)
 			set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust.ios)
 		else()
 			set_target_properties(dynamiclib PROPERTIES OUTPUT_NAME faust)
-		endif()	
+		endif()
 		set_target_properties(dynamiclib PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${LIBDIR})
-		set_target_properties(dynamiclib PROPERTIES 
+		set_target_properties(dynamiclib PROPERTIES
 			LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 			VERSION ${VERSION}
 			SOVERSION ${SOVERS})
@@ -352,8 +352,8 @@ message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
 # install the faust compiler and libraries
-install ( TARGETS ${INSTALL_TARGETS} 
-	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin 
+install ( TARGETS ${INSTALL_TARGETS}
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
@@ -429,7 +429,7 @@ install (
 )
 
 # install folders
-set (ARCHSRC android api AU iOS juce max-msp nodejs osclib smartKeyboard unity webaudio)
+set (ARCHSRC android api AU iOS juce max-msp nodejs osclib sam smartKeyboard unity webaudio)
 foreach (dir ${ARCHSRC})
 	set(ARCHFOLDERS ${ARCHFOLDERS} ${ARCHDIR}/${dir})
 endforeach()
