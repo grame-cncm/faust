@@ -1078,7 +1078,7 @@ EXPORT std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory,
-                                                    const std::string&       machine_code_path);
+                                                    const std::string& machine_code_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
 

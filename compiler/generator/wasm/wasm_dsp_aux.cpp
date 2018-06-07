@@ -174,7 +174,7 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
 EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
                                                  bool internal_memory)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
@@ -182,9 +182,8 @@ EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc,
 EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
                                                    const char* argv[], char* error_msg, bool internal_memory)
 {
-    string            error_msg_aux;
-    wasm_dsp_factory* factory =
-        createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
+    string error_msg_aux;
+    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 

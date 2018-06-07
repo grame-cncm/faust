@@ -29,7 +29,6 @@ MIDI="0"
 NODOC="0"
 EFFECT=""
 
-
 echoHelp ()
 {
     echo ""
@@ -90,7 +89,6 @@ createAPI ()
 	    -e 's/std::stringstream/std::ostringstream/' \
 	    -e 's/dynamic_cast/static_cast/' \
 	    > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
-
 }
 
 # dispatch command arguments

@@ -62,16 +62,16 @@ ztimedmap GUI::gTimedZoneMap;
 // constructor
 samFaustDSP::samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numOutputs)
 {
-    // create a new instace of the dsp object
-    aMyDSP = new mydsp;
-    aMyDSP->init(sampleRate);
+    // create a new instance of the dsp object
+    fDSP = new mydsp;
+    fDSP->init(sampleRate);
     
     // create a new instance of the audio driver.
-    samAudioDriver = new samAudio;
-    samAudioDriver->setDSP_Parameters(sampleRate, bufferSize, numInputs, numOutputs);
+    fAudioDriver = new samAudio;
+    fAudioDriver->setDSP_Parameters(sampleRate, bufferSize, numInputs, numOutputs);
     
     // create a new instance of the FaustPolyEngine
-    fPolyEngine = new FaustPolyEngine(aMyDSP, samAudioDriver);
+    fPolyEngine = new FaustPolyEngine(fDSP, fAudioDriver);
     // the constructor calls init
     
 #if MIDICTRL
@@ -81,7 +81,6 @@ samFaustDSP::samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numO
 #endif
 }
 
-
 // destructor
 samFaustDSP::~samFaustDSP()
 {
@@ -89,10 +88,7 @@ samFaustDSP::~samFaustDSP()
     // might need this
     //delete fMidiUI;
 #endif
-    delete aMyDSP;
-    delete samAudioDriver;
     delete fPolyEngine;
-
 }
 
 // setup the sampleRate and bufferSize
@@ -113,31 +109,29 @@ void samFaustDSP::setDSP_ChannelBuffers(FAUSTFLOAT *AudioChannelA_0_Left,
                        FAUSTFLOAT *AudioChannelB_2_Right,
                        FAUSTFLOAT *AudioChannelB_3_Left,
                        FAUSTFLOAT *AudioChannelB_3_Right)
-
 {
-    ((samAudio *)samAudioDriver)->setDSP_ChannelBuffers(AudioChannelA_0_Left,
-                                                    AudioChannelA_0_Right,
-                                                    AudioChannelA_1_Left,
-                                                    AudioChannelA_1_Right,
-                                                    AudioChannelA_2_Left,
-                                                    AudioChannelA_2_Right,
-                                                    AudioChannelA_3_Left,
-                                                    AudioChannelA_3_Right,
-                                                    AudioChannelB_0_Left,
-                                                    AudioChannelB_0_Right,
-                                                    AudioChannelB_1_Left,
-                                                    AudioChannelB_1_Right,
-                                                    AudioChannelB_2_Left,
-                                                    AudioChannelB_2_Right,
-                                                    AudioChannelB_3_Left,
-                                                    AudioChannelB_3_Right);
-
+    fAudioDriver->setDSP_ChannelBuffers(AudioChannelA_0_Left,
+                                        AudioChannelA_0_Right,
+                                        AudioChannelA_1_Left,
+                                        AudioChannelA_1_Right,
+                                        AudioChannelA_2_Left,
+                                        AudioChannelA_2_Right,
+                                        AudioChannelA_3_Left,
+                                        AudioChannelA_3_Right,
+                                        AudioChannelB_0_Left,
+                                        AudioChannelB_0_Right,
+                                        AudioChannelB_1_Left,
+                                        AudioChannelB_1_Right,
+                                        AudioChannelB_2_Left,
+                                        AudioChannelB_2_Right,
+                                        AudioChannelB_3_Left,
+                                        AudioChannelB_3_Right);
 }
 
 void samFaustDSP::processAudioCallback()
 {
     // ask the driver to process the audio callback
-    samAudioDriver->processAudioCallback();
+    fAudioDriver->processAudioCallback();
 }
 
 void samFaustDSP::propagateMidi(int count, double time, int type, int channel, int data1, int data2)

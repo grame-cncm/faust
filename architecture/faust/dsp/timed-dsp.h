@@ -137,21 +137,20 @@ class timed_dsp : public decorator_dsp {
         double fOffsetUsec;     // Compute call offset in usec
         bool fFirstCallback;
         ZoneUI fZoneUI;
-        
+    
+        FAUSTFLOAT** fInputsSlice;
+        FAUSTFLOAT** fOutputsSlice;
+    
         void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) 
         {
             if (slice > 0) {
-                FAUSTFLOAT** inputs_slice = (FAUSTFLOAT**)alloca(fDSP->getNumInputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < fDSP->getNumInputs(); chan++) {
-                    inputs_slice[chan] = &(inputs[chan][offset]);
+                    fInputsSlice[chan] = &(inputs[chan][offset]);
                 }
-                
-                FAUSTFLOAT** outputs_slice = (FAUSTFLOAT**)alloca(fDSP->getNumOutputs() * sizeof(FAUSTFLOAT*));
                 for (int chan = 0; chan < fDSP->getNumOutputs(); chan++) {
-                    outputs_slice[chan] = &(outputs[chan][offset]);
+                    fOutputsSlice[chan] = &(outputs[chan][offset]);
                 }
-                
-                fDSP->compute(slice, inputs_slice, outputs_slice);
+                fDSP->compute(slice, fInputsSlice, fOutputsSlice);
             } 
         }
         
@@ -219,9 +218,15 @@ class timed_dsp : public decorator_dsp {
     public:
 
         timed_dsp(dsp* dsp):decorator_dsp(dsp), fDateUsec(0), fOffsetUsec(0), fFirstCallback(true)
-        {}
+        {
+            fInputsSlice = new FAUSTFLOAT*[dsp->getNumInputs()];
+            fOutputsSlice = new FAUSTFLOAT*[dsp->getNumOutputs()];
+        }
         virtual ~timed_dsp() 
-        {}
+        {
+            delete [] fInputsSlice;
+            delete [] fOutputsSlice;
+        }
         
         virtual void init(int samplingRate)
         {
