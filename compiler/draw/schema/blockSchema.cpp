@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,10 +28,9 @@ using namespace std;
 
 static double quantize(int n)
 {
-	int q = 3;
-	return dLetter * (q *((n+q-1)/q));
+    int q = 3;
+    return dLetter * (q * ((n + q - 1) / q));
 }
-
 
 /**
  * Build a simple colored blockSchema with a certain number of
@@ -39,16 +38,13 @@ static double quantize(int n)
  * Computes the size of the box according to the length of the text
  * and the maximum number of ports.
  */
-schema* makeBlockSchema (unsigned int inputs,
-                        unsigned int outputs,
-                        const string& text,
-                        const string& color,
+schema* makeBlockSchema(unsigned int inputs, unsigned int outputs, const string& text, const string& color,
                         const string& link)
 {
     // determine the optimal size of the box
-    double minimal = 3*dWire;
-    double w = 2*dHorz + max( minimal, quantize((int)text.size()) );
-    double h = 2*dVert + max( minimal, max(inputs, outputs) * dWire );
+    double minimal = 3 * dWire;
+    double w       = 2 * dHorz + max(minimal, quantize((int)text.size()));
+    double h       = 2 * dVert + max(minimal, max(inputs, outputs) * dWire);
 
     return new blockSchema(inputs, outputs, w, h, text, color, link);
 }
@@ -59,21 +55,13 @@ schema* makeBlockSchema (unsigned int inputs,
  * The length of the text as well as th number of inputs and outputs
  * are used to compute the size of the blockSchema
  */
-blockSchema::blockSchema (unsigned int inputs,
-                        unsigned int outputs,
-                        double width,
-                        double height,
-                        const string& text,
-                        const string& color,
-                        const string& link)
+blockSchema::blockSchema(unsigned int inputs, unsigned int outputs, double width, double height, const string& text,
+                         const string& color, const string& link)
 
-	: 	schema( inputs, outputs, width, height ),
-	  	fText(text),
-	  	fColor(color),
-        fLink(link)
+    : schema(inputs, outputs, width, height), fText(text), fColor(color), fLink(link)
 {
-    for (unsigned int i=0; i<inputs; i++) 	fInputPoint.push_back(point(0,0));
-    for (unsigned int i=0; i<outputs; i++) 	fOutputPoint.push_back(point(0,0));
+    for (unsigned int i = 0; i < inputs; i++) fInputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < outputs; i++) fOutputPoint.push_back(point(0, 0));
 }
 
 /**
@@ -83,12 +71,12 @@ blockSchema::blockSchema (unsigned int inputs,
  */
 void blockSchema::place(double x, double y, int orientation)
 {
-	beginPlace(x, y, orientation);
+    beginPlace(x, y, orientation);
 
-	placeInputPoints();
-	placeOutputPoints();
+    placeInputPoints();
+    placeOutputPoints();
 
-	endPlace();
+    endPlace();
 }
 
 /**
@@ -96,9 +84,9 @@ void blockSchema::place(double x, double y, int orientation)
  */
 point blockSchema::inputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < inputs());
-	return fInputPoint[i];
+    faustassert(placed());
+    faustassert(i < inputs());
+    return fInputPoint[i];
 }
 
 /**
@@ -106,9 +94,9 @@ point blockSchema::inputPoint(unsigned int i) const
  */
 point blockSchema::outputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < outputs());
-	return fOutputPoint[i];
+    faustassert(placed());
+    faustassert(i < outputs());
+    return fOutputPoint[i];
 }
 
 /**
@@ -117,26 +105,24 @@ point blockSchema::outputPoint(unsigned int i) const
  */
 void blockSchema::placeInputPoints()
 {
-	int N = inputs();
+    int N = inputs();
 
-	if (orientation() == kLeftRight) {
+    if (orientation() == kLeftRight) {
+        double px = x();
+        double py = y() + (height() - dWire * (N - 1)) / 2;
 
-		double 	px = x();
-		double 	py = y() + (height() - dWire*(N-1))/2;
+        for (int i = 0; i < N; i++) {
+            fInputPoint[i] = point(px, py + i * dWire);
+        }
 
-		for (int i=0; i<N; i++) {
-			fInputPoint[i] = point(px, py+i*dWire);
-		}
+    } else {
+        double px = x() + width();
+        double py = y() + height() - (height() - dWire * (N - 1)) / 2;
 
-	} else {
-
-		double px = x() + width();
-		double py = y() + height() - (height() - dWire*(N-1))/2;
-
-		for (int i=0; i<N; i++) {
-			fInputPoint[i] = point(px, py-i*dWire);
-		}
-	}
+        for (int i = 0; i < N; i++) {
+            fInputPoint[i] = point(px, py - i * dWire);
+        }
+    }
 }
 
 /**
@@ -145,26 +131,24 @@ void blockSchema::placeInputPoints()
  */
 void blockSchema::placeOutputPoints()
 {
-	int N = outputs();
+    int N = outputs();
 
-	if (orientation() == kLeftRight) {
+    if (orientation() == kLeftRight) {
+        double px = x() + width();
+        double py = y() + (height() - dWire * (N - 1)) / 2;
 
-		double px = x() + width();
-		double py = y() + (height() - dWire*(N-1))/2;
+        for (int i = 0; i < N; i++) {
+            fOutputPoint[i] = point(px, py + i * dWire);
+        }
 
-		for (int i=0; i<N; i++) {
-			fOutputPoint[i] = point(px, py + i*dWire);
-		}
+    } else {
+        double px = x();
+        double py = y() + height() - (height() - dWire * (N - 1)) / 2;
 
-	} else {
-
-		double px = x();
-		double py = y() + height() - (height() - dWire*(N-1))/2;
-
-		for (int i=0; i<N; i++) {
-			fOutputPoint[i] = point(px, py - i*dWire);
-		}
-	}
+        for (int i = 0; i < N; i++) {
+            fOutputPoint[i] = point(px, py - i * dWire);
+        }
+    }
 }
 
 /**
@@ -173,10 +157,10 @@ void blockSchema::placeOutputPoints()
  */
 void blockSchema::draw(device& dev)
 {
-	faustassert(placed());
+    faustassert(placed());
 
-	drawRectangle(dev);
-	drawText(dev);
+    drawRectangle(dev);
+    drawText(dev);
     drawOrientationMark(dev);
     drawInputArrows(dev);
 }
@@ -186,13 +170,7 @@ void blockSchema::draw(device& dev)
  */
 void blockSchema::drawRectangle(device& dev)
 {
-	dev.rect(	x() + dHorz,
-				y() + dVert,
-				width() - 2*dHorz,
-				height() - 2*dVert,
-				fColor.c_str(),
-				fLink.c_str()
-			);
+    dev.rect(x() + dHorz, y() + dVert, width() - 2 * dHorz, height() - 2 * dVert, fColor.c_str(), fLink.c_str());
 }
 
 /**
@@ -200,11 +178,7 @@ void blockSchema::drawRectangle(device& dev)
  */
 void blockSchema::drawText(device& dev)
 {
-	dev.text( 	x() + width()/2,
-				y() + height()/2,
-                fText.c_str(),
-                fLink.c_str()
-			);
+    dev.text(x() + width() / 2, y() + height() / 2, fText.c_str(), fLink.c_str());
 }
 
 /**
@@ -213,17 +187,17 @@ void blockSchema::drawText(device& dev)
  */
 void blockSchema::drawOrientationMark(device& dev)
 {
-	double px, py;
+    double px, py;
 
-	if (orientation() == kLeftRight) {
-		px = x() + dHorz;
-		py = y() + dVert;
-	} else {
-		px = x() + width() - dHorz;
-		py = y() + height() - dVert;
-	}
+    if (orientation() == kLeftRight) {
+        px = x() + dHorz;
+        py = y() + dVert;
+    } else {
+        px = x() + width() - dHorz;
+        py = y() + height() - dVert;
+    }
 
-	dev.markSens( px, py, orientation() );
+    dev.markSens(px, py, orientation());
 }
 
 /**
@@ -234,9 +208,9 @@ void blockSchema::drawInputArrows(device& dev)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-    for (unsigned int i=0; i<inputs(); i++) {
+    for (unsigned int i = 0; i < inputs(); i++) {
         point p = fInputPoint[i];
-        dev.fleche(p.x+dx, p.y, 0, orientation());
+        dev.fleche(p.x + dx, p.y, 0, orientation());
     }
 }
 
@@ -258,10 +232,10 @@ void blockSchema::collectInputWires(collector& c)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-    for (unsigned int i=0; i<inputs(); i++) {
+    for (unsigned int i = 0; i < inputs(); i++) {
         point p = fInputPoint[i];
-        c.addTrait(trait(point(p.x, p.y), point(p.x+dx, p.y)));     // in->out direction
-        c.addInput(point(p.x+dx, p.y));
+        c.addTrait(trait(point(p.x, p.y), point(p.x + dx, p.y)));  // in->out direction
+        c.addInput(point(p.x + dx, p.y));
     }
 }
 
@@ -273,11 +247,9 @@ void blockSchema::collectOutputWires(collector& c)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-    for (unsigned int i=0; i<outputs(); i++) {
+    for (unsigned int i = 0; i < outputs(); i++) {
         point p = fOutputPoint[i];
-        c.addTrait(trait(point(p.x-dx, p.y), point(p.x, p.y)));     // in->out direction
-        c.addOutput(point(p.x-dx, p.y));
+        c.addTrait(trait(point(p.x - dx, p.y), point(p.x, p.y)));  // in->out direction
+        c.addOutput(point(p.x - dx, p.y));
     }
 }
-
-

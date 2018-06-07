@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@
 #ifndef _COMPILE_
 #define _COMPILE_
 
-#include "signals.hh"
-#include "klass.hh"
-#include "Text.hh"
-#include "uitree.hh"
-#include <string>
 #include <list>
-#include <stack>
 #include <map>
+#include <stack>
+#include <string>
+#include "Text.hh"
+#include "klass.hh"
+#include "signals.hh"
+#include "uitree.hh"
 
 #include "description.hh"
 #include "faust/gui/JSONUI.h"
@@ -44,51 +44,46 @@
 
 #define kMaxHeight 1024
 
-class Compiler
-{
-protected:
-    
-	Klass*			fClass;
-	bool			fNeedToDeleteClass;
-	Tree			fUIRoot;
-	Description*	fDescription;
-    JSONUI          fJSON;
+class Compiler {
+   protected:
+    Klass*       fClass;
+    bool         fNeedToDeleteClass;
+    Tree         fUIRoot;
+    Description* fDescription;
+    JSONUI       fJSON;
 
-public:
-    
-	Compiler (const string& name, const string& super, int numInputs, int numOutputs, bool vec);
-	Compiler (Klass* k);
+   public:
+    Compiler(const string& name, const string& super, int numInputs, int numOutputs, bool vec);
+    Compiler(Klass* k);
 
-	virtual ~Compiler();
+    virtual ~Compiler();
 
-	virtual void		compileMultiSignal  (Tree lsig) = 0;
-	virtual void		compileSingleSignal (Tree lsig) = 0;
+    virtual void compileMultiSignal(Tree lsig)  = 0;
+    virtual void compileSingleSignal(Tree lsig) = 0;
 
-	Klass*				getClass() { return (Klass*)fClass; }
+    Klass* getClass() { return (Klass*)fClass; }
 
-	void				setDescription(Description* descr)	{ fDescription = descr; }
-	Description*		getDescription()					{ return fDescription; }
+    void         setDescription(Description* descr) { fDescription = descr; }
+    Description* getDescription() { return fDescription; }
 
-protected:
-    
-  virtual Tree 		prepare(Tree L0) = 0;
-  virtual Tree 		prepare2(Tree L0) = 0;
+   protected:
+    virtual Tree prepare(Tree L0)  = 0;
+    virtual Tree prepare2(Tree L0) = 0;
 
     // gestion des includes et librairies
-	void 		addIncludeFile(const string& str) 	{ fClass->addIncludeFile(str); 	}
-	void 		addLibrary(const string& str) 		{ fClass->addLibrary(str); 		}
+    void addIncludeFile(const string& str) { fClass->addIncludeFile(str); }
+    void addLibrary(const string& str) { fClass->addLibrary(str); }
 
     // gestion de la description arborescente de l'IU
-    void 		addUIWidget(Tree path, Tree widget);
-    void 		generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
-    void        generateMetaData();
-    void 		generateUserInterfaceTree(Tree t, bool root = false);
-    void 		generateUserInterfaceElements(Tree elements);
-    Tree 		prepareUserInterfaceTree(Tree t);
-	void        generateMacroInterfaceTree(const string& pathname, Tree t);
-    void        generateMacroInterfaceElements(const string& pathname, Tree elements);
-    void        generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
-
+    void addUIWidget(Tree path, Tree widget);
+    void generateWidgetCode(Tree fulllabel, Tree varname, Tree sig);
+    void generateMetaData();
+    void generateUserInterfaceTree(Tree t, bool root = false);
+    void generateUserInterfaceElements(Tree elements);
+    Tree prepareUserInterfaceTree(Tree t);
+    void generateMacroInterfaceTree(const string& pathname, Tree t);
+    void generateMacroInterfaceElements(const string& pathname, Tree elements);
+    void generateWidgetMacro(const string& pathname, Tree fulllabel, Tree varname, Tree sig);
 };
 
 #define generateEquivRecGroup generateRecGroup

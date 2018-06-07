@@ -28,45 +28,39 @@
 using namespace std;
 
 class JAVAScriptCodeContainer : public virtual CodeContainer {
+   protected:
+    JAVAScriptInstVisitor fCodeProducer;
+    std::ostream*         fOut;
 
-    protected:
+   public:
+    JAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+        : fCodeProducer(out), fOut(out)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fKlassName = name;
+    }
+    virtual ~JAVAScriptCodeContainer() {}
 
-        JAVAScriptInstVisitor fCodeProducer;
-        std::ostream* fOut;
- 
-    public:
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
+    void         produceInternal();
 
-        JAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-        }
-        virtual ~JAVAScriptCodeContainer()
-        {}
+    virtual dsp_factory_base* produceFactory();
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-        void produceInternal();
-    
-        virtual dsp_factory_base* produceFactory();
-   
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs,
+                                          ostream* dst = new stringstream());
 };
 
 class JAVAScriptScalarCodeContainer : public JAVAScriptCodeContainer {
+   protected:
+   public:
+    JAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                                  int sub_container_type);
+    virtual ~JAVAScriptScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        JAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~JAVAScriptScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 #endif

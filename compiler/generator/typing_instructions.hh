@@ -31,26 +31,23 @@ using namespace std;
  */
 
 struct TypingVisitor : public InstVisitor {
-
     Typed::VarType fCurType;
 
-    TypingVisitor():fCurType(Typed::kNoType)
-    {}
-   
-    virtual ~TypingVisitor()
-    {}
+    TypingVisitor() : fCurType(Typed::kNoType) {}
+
+    virtual ~TypingVisitor() {}
 
     virtual void visit(LoadVarInst* inst)
     {
-        //dump2FIR(inst);
-        
+        // dump2FIR(inst);
+
         // Stack or struct variables
         if (gGlobal->hasVarType(inst->getName())) {
             fCurType = gGlobal->getVarType(inst->getName());
             if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
                 fCurType = Typed::getTypeFromPtr(fCurType);
             }
-        // Specific cases for FunArgs
+            // Specific cases for FunArgs
         } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "samplingFreq")) {
             fCurType = Typed::kInt32;
         } else {
@@ -73,30 +70,15 @@ struct TypingVisitor : public InstVisitor {
         faustassert(false);
     }
 
-    virtual void visit(FloatNumInst* inst)
-    {
-        fCurType = Typed::kFloat;
-    }
+    virtual void visit(FloatNumInst* inst) { fCurType = Typed::kFloat; }
 
-    virtual void visit(Int32NumInst* inst)
-    {
-        fCurType = Typed::kInt32;
-    }
+    virtual void visit(Int32NumInst* inst) { fCurType = Typed::kInt32; }
 
-    virtual void visit(Int64NumInst* inst)
-    {
-        fCurType = Typed::kInt64;
-    }
+    virtual void visit(Int64NumInst* inst) { fCurType = Typed::kInt64; }
 
-    virtual void visit(BoolNumInst* inst)
-    {
-        fCurType = Typed::kBool;
-    }
+    virtual void visit(BoolNumInst* inst) { fCurType = Typed::kBool; }
 
-    virtual void visit(DoubleNumInst* inst)
-    {
-        fCurType = Typed::kDouble;
-    }
+    virtual void visit(DoubleNumInst* inst) { fCurType = Typed::kDouble; }
 
     virtual void visit(BinopInst* inst)
     {
@@ -126,15 +108,9 @@ struct TypingVisitor : public InstVisitor {
         }
     }
 
-    virtual void visit(::CastInst* inst)
-    {
-        fCurType = inst->fType->getType();
-    }
+    virtual void visit(::CastInst* inst) { fCurType = inst->fType->getType(); }
 
-    virtual void visit(BitcastInst* inst)
-    {
-        fCurType = inst->fType->getType();
-    }
+    virtual void visit(BitcastInst* inst) { fCurType = inst->fType->getType(); }
 
     virtual void visit(Select2Inst* inst)
     {
@@ -149,7 +125,7 @@ struct TypingVisitor : public InstVisitor {
     }
 
     virtual void visit(FunCallInst* inst)
-    { 
+    {
         if (gGlobal->hasVarType(inst->fName)) {
             fCurType = gGlobal->getVarType(inst->fName);
         } else {
@@ -157,15 +133,12 @@ struct TypingVisitor : public InstVisitor {
             faustassert(false);
         }
     }
-        
 };
 
 struct BasicTypingCloneVisitor : public BasicCloneVisitor {
-    
     TypingVisitor fTypingVisitor;
 
-    BasicTypingCloneVisitor()
-    {}
+    BasicTypingCloneVisitor() {}
 
     // Memory
     virtual ValueInst* visit(LoadVarInst* inst)
@@ -173,7 +146,7 @@ struct BasicTypingCloneVisitor : public BasicCloneVisitor {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-   
+
     // Numbers
     virtual ValueInst* visit(FloatNumInst* inst)
     {
@@ -207,7 +180,7 @@ struct BasicTypingCloneVisitor : public BasicCloneVisitor {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    
+
     // Cast
     virtual ValueInst* visit(::CastInst* inst)
     {
@@ -219,7 +192,7 @@ struct BasicTypingCloneVisitor : public BasicCloneVisitor {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-    
+
     // Function call
     virtual ValueInst* visit(FunCallInst* inst)
     {
@@ -238,7 +211,6 @@ struct BasicTypingCloneVisitor : public BasicCloneVisitor {
         fTypingVisitor.visit(inst);
         return BasicCloneVisitor::visit(inst);
     }
-
 };
 
 #endif

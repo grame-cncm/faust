@@ -20,8 +20,8 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #ifndef _FAUST_EXCEPTION_
 #define _FAUST_EXCEPTION_
 
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 #ifndef WIN32
 #include <unistd.h>
 #else
@@ -33,42 +33,22 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #endif
 
 class faustexception : public std::runtime_error {
-
-public:
-
+   public:
 #ifdef EMCC
-	static const char* gJSExceptionMsg;
+    static const char* gJSExceptionMsg;
 
-	faustexception(const std::string& msg) :std::runtime_error(msg)
-	{
-		gJSExceptionMsg = strdup(msg.c_str());
-	}
-	faustexception(char* msg) :std::runtime_error(msg)
-	{
-		gJSExceptionMsg = strdup(msg);
-	}
-	faustexception(const char* msg) :std::runtime_error(msg)
-	{
-		gJSExceptionMsg = strdup(msg);
-	}
+    faustexception(const std::string& msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg.c_str()); }
+    faustexception(char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
+    faustexception(const char* msg) : std::runtime_error(msg) { gJSExceptionMsg = strdup(msg); }
 #else
-	faustexception(const std::string& msg) : std::runtime_error(msg)
-	{}
-	faustexception(char* msg) :std::runtime_error(msg)
-	{}
-	faustexception(const char* msg) :std::runtime_error(msg)
-	{}
+    faustexception(const std::string& msg) : std::runtime_error(msg) {}
+    faustexception(char* msg) : std::runtime_error(msg) {}
+    faustexception(const char* msg) : std::runtime_error(msg) {}
 #endif
 
-	std::string Message()
-	{
-		return what();
-	}
+    std::string Message() { return what(); }
 
-	void PrintMessage()
-	{
-		std::cerr << what();
-	}
+    void PrintMessage() { std::cerr << what(); }
 };
 
 inline void stacktrace(int val)

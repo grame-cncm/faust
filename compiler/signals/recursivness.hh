@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2006 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,10 +24,9 @@
 
 #include "signals.hh"
 
-void 	recursivnessAnnotation(Tree sig);
-int 	getRecursivness(Tree t);
+void recursivnessAnnotation(Tree sig);
+int  getRecursivness(Tree t);
 
-Tree    symlist(Tree sig);
+Tree symlist(Tree sig);
 
 #endif
-

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,33 +21,33 @@
 
 /*****************************************************************************
 ******************************************************************************
-							FAUST SIGNAL COMPILER
-						Y. Orlarey, (c) Grame 2002
+                            FAUST SIGNAL COMPILER
+                        Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
 Compile a list of FAUST signals into a C++ class.
 
  History :
  ---------
- 	2002-02-08 : First version
+    2002-02-08 : First version
 
 ******************************************************************************
 *****************************************************************************/
 
 #include <stdio.h>
 
-#include "compile_vect.hh"
 #include "compile_scal.hh"
-#include "sigtype.hh"
-#include "sigtyperules.hh"
-#include "sigprint.hh"
-#include "property.hh"
+#include "compile_vect.hh"
 #include "dcond.hh"
 #include "ppsig.hh"
+#include "property.hh"
+#include "sigprint.hh"
+#include "sigtype.hh"
+#include "sigtyperules.hh"
 
 /*****************************************************************************
 ******************************************************************************
 
-						   		SHARING ANALYSIS
+                                SHARING ANALYSIS
 
 ******************************************************************************
 *****************************************************************************/
@@ -58,21 +58,21 @@ Compile a list of FAUST signals into a C++ class.
 
 int ScalarCompiler::getSharingCount(Tree sig)
 {
-	//cerr << "getSharingCount of : " << *sig << " = ";
-	Tree c;
-	if (getProperty(sig, fSharingKey, c)) {
-		//cerr << c->node().getInt() << endl;
-		return c->node().getInt();
-	} else {
-		//cerr << 0 << endl;
-		return 0;
-	}
+    // cerr << "getSharingCount of : " << *sig << " = ";
+    Tree c;
+    if (getProperty(sig, fSharingKey, c)) {
+        // cerr << c->node().getInt() << endl;
+        return c->node().getInt();
+    } else {
+        // cerr << 0 << endl;
+        return 0;
+    }
 }
 
 void ScalarCompiler::setSharingCount(Tree sig, int count)
 {
-	//cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
-	setProperty(sig, fSharingKey, tree(count));
+    // cerr << "setSharingCount of : " << *sig << " <- " << count << endl;
+    setProperty(sig, fSharingKey, tree(count));
 }
 
 //------------------------------------------------------------------------------
@@ -81,15 +81,15 @@ void ScalarCompiler::setSharingCount(Tree sig, int count)
 
 void ScalarCompiler::sharingAnalysis(Tree t)
 {
-	fSharingKey = shprkey(t);
-	if (isList(t)) {
-		while (isList(t)) {
-			sharingAnnotation(kSamp, hd(t));
-			t = tl(t);
-		}
-	} else {
-		sharingAnnotation(kSamp, t);
-	}
+    fSharingKey = shprkey(t);
+    if (isList(t)) {
+        while (isList(t)) {
+            sharingAnnotation(kSamp, hd(t));
+            t = tl(t);
+        }
+    } else {
+        sharingAnnotation(kSamp, t);
+    }
 }
 
 //------------------------------------------------------------------------------
@@ -97,45 +97,45 @@ void ScalarCompiler::sharingAnalysis(Tree t)
 //------------------------------------------------------------------------------
 void ScalarCompiler::sharingAnnotation(int vctxt, Tree sig)
 {
-	Tree c, x, y, z;
+    Tree c, x, y, z;
 
-	//cerr << "START sharing annotation of " << *sig << endl;
-	int count = getSharingCount(sig);
+    // cerr << "START sharing annotation of " << *sig << endl;
+    int count = getSharingCount(sig);
 
-	if (count > 0) {
-		// it is not our first visit
-		setSharingCount(sig, count+1);
+    if (count > 0) {
+        // it is not our first visit
+        setSharingCount(sig, count + 1);
 
-	} else {
-		// it is our first visit,
-		int v = getCertifiedSigType(sig)->variability();
+    } else {
+        // it is our first visit,
+        int v = getCertifiedSigType(sig)->variability();
 
-		// check "time sharing" cases
-		if (v < vctxt) {
-			setSharingCount(sig, 2); 	// time sharing occurence : slower expression in faster context
-		} else {
-			setSharingCount(sig, 1);	// regular occurence
-		}
+        // check "time sharing" cases
+        if (v < vctxt) {
+            setSharingCount(sig, 2);  // time sharing occurence : slower expression in faster context
+        } else {
+            setSharingCount(sig, 1);  // regular occurence
+        }
 
-		if (isSigSelect3(sig,c,y,x,z)) {
-			// make a special case for select3 implemented with real if
-			// because the c expression will be used twice in the C++
-			// translation
-			sharingAnnotation(v, c);
-			sharingAnnotation(v, c);
-			sharingAnnotation(v, x);
-			sharingAnnotation(v, y);
-			sharingAnnotation(v, z);
-		} else {
-			// Annotate the sub signals
-			vector<Tree> subsig;
-			int n = getSubSignals(sig, subsig);
-			if (n>0 && ! isSigGen(sig)) {
-				for (int i=0; i<n; i++) sharingAnnotation(v, subsig[i]);
-			}
-		}
-	}
-	//cerr << "END sharing annotation of " << *sig << endl;
+        if (isSigSelect3(sig, c, y, x, z)) {
+            // make a special case for select3 implemented with real if
+            // because the c expression will be used twice in the C++
+            // translation
+            sharingAnnotation(v, c);
+            sharingAnnotation(v, c);
+            sharingAnnotation(v, x);
+            sharingAnnotation(v, y);
+            sharingAnnotation(v, z);
+        } else {
+            // Annotate the sub signals
+            vector<Tree> subsig;
+            int          n = getSubSignals(sig, subsig);
+            if (n > 0 && !isSigGen(sig)) {
+                for (int i = 0; i < n; i++) sharingAnnotation(v, subsig[i]);
+            }
+        }
+    }
+    // cerr << "END sharing annotation of " << *sig << endl;
 }
 
 //------------------------------------------------------------------------------
@@ -157,16 +157,15 @@ void ScalarCompiler::conditionStatistics(Tree l)
 
 void ScalarCompiler::conditionStatistics(Tree l)
 {
-    map<Tree, int> fConditionStatistics;           // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
+    map<Tree, int> fConditionStatistics;  // used with the new X,Y:enable --> sigEnable(X*Y,Y>0) primitive
     for (const auto& p : fConditionProperty) {
-        for (Tree lc= p.second; !isNil(lc); lc=tl(lc)) {
+        for (Tree lc = p.second; !isNil(lc); lc = tl(lc)) {
             fConditionStatistics[hd(lc)]++;
         }
     }
     std::cout << "\nConditions statistics" << std::endl;
     for (const auto& p : fConditionStatistics) {
         std::cout << ppsig(p.first) << ":" << p.second << std::endl;
-
     }
 }
 
@@ -197,14 +196,14 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     auto p = fConditionProperty.find(t);
     if (p != fConditionProperty.end()) {
         Tree cc = p->second;
-        Tree xc = _OR_(cc,nc);
+        Tree xc = _OR_(cc, nc);
         if (cc == xc) {
             // Tree t already correctly annotated, nothing to change
             return;
         } else {
             // we need to re-annotate the tree with a new condition
-            nc = xc;
-            p->second=nc;
+            nc        = xc;
+            p->second = nc;
         }
     } else {
         // first visit
@@ -214,19 +213,18 @@ void ScalarCompiler::conditionAnnotation(Tree t, Tree nc)
     // Annotate the subtrees with the new condition nc
     // which is either the nc passed as argument or nc <- (cc v nc)
 
-    Tree x,y;
+    Tree x, y;
     if (isSigEnable(t, x, y)) {
         // specific annotation case for sigEnable
-        conditionAnnotation(y,nc);
+        conditionAnnotation(y, nc);
         conditionAnnotation(x, _AND_(nc, _CND_(y)));
     } else {
         // general annotation case
         // Annotate the sub signals with nc
         vector<Tree> subsig;
-        int n = getSubSignals(t, subsig);
-        if (n>0 && ! isSigGen(t)) {
-            for (int i=0; i<n; i++) conditionAnnotation(subsig[i], nc);
+        int          n = getSubSignals(t, subsig);
+        if (n > 0 && !isSigGen(t)) {
+            for (int i = 0; i < n; i++) conditionAnnotation(subsig[i], nc);
         }
     }
-
 }

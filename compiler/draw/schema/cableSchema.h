@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #ifndef __CABLESCHEMA__
 #define __CABLESCHEMA__
 
-
 #include "schema.h"
 
 /**
@@ -31,23 +30,20 @@
  * same. The constructor is private to enforce the use of
  * makeCableSchema.
  */
-class cableSchema : public schema
-{
-	vector<point>	fPoint;
+class cableSchema : public schema {
+    vector<point> fPoint;
 
-  public:
-    friend schema*  makeCableSchema (unsigned int n);
+   public:
+    friend schema* makeCableSchema(unsigned int n);
 
-	virtual void 	place(double x, double y, int orientation);
-	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i)	const;
-	virtual point 	outputPoint(unsigned int i)	const;
-    virtual void    collectTraits(collector& c);
-  private:
-  	 cableSchema (unsigned int n);
+    virtual void  place(double x, double y, int orientation);
+    virtual void  draw(device& dev);
+    virtual point inputPoint(unsigned int i) const;
+    virtual point outputPoint(unsigned int i) const;
+    virtual void  collectTraits(collector& c);
 
+   private:
+    cableSchema(unsigned int n);
 };
 
 #endif
-
-

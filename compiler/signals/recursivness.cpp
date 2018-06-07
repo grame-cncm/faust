@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <set>
 
-#include "recursivness.hh"
-#include "property.hh"
 #include "exception.hh"
 #include "global.hh"
-#include "signals.hh"
 #include "ppsig.hh"
+#include "property.hh"
+#include "recursivness.hh"
+#include "signals.hh"
 
 using namespace std;
 
@@ -46,7 +46,7 @@ using namespace std;
 
 //--------------------------------------------------------------------------
 static int annotate(Tree env, Tree sig);
-static int position (Tree env, Tree t, int p = 1);
+static int position(Tree env, Tree t, int p = 1);
 //--------------------------------------------------------------------------
 
 /**
@@ -56,7 +56,7 @@ static int position (Tree env, Tree t, int p = 1);
  */
 void recursivnessAnnotation(Tree sig)
 {
-	annotate(gGlobal->nil, sig);
+    annotate(gGlobal->nil, sig);
 }
 
 /**
@@ -68,13 +68,13 @@ void recursivnessAnnotation(Tree sig)
  */
 int getRecursivness(Tree sig)
 {
-	Tree tr;
-	if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
+    Tree tr;
+    if (!getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
         stringstream error;
         error << "ERROR in getRecursivness of " << *sig << endl;
         throw faustexception(error.str());
-	}
-	return tree2int(tr);
+    }
+    return tree2int(tr);
 }
 
 //-------------------------------------- IMPLEMENTATION ------------------------------------
@@ -86,33 +86,32 @@ int getRecursivness(Tree sig)
  */
 static int annotate(Tree env, Tree sig)
 {
-	Tree tr, var, body;
+    Tree tr, var, body;
 
-	if (getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
-		return tree2int(tr);	// already annotated
-	} else if (isRec(sig, var, body)) {
-		int p = position(env, sig);
-		if (p > 0) {
-			return p;	// we are inside \x.(...)
-		} else {
-			int r = annotate(cons(sig, env), body) - 1;
-			if (r<0) r = 0;
-			setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
-			return r;
-		}
-	} else {
-		int rmax = 0;
-		vector<Tree> v; getSubSignals(sig, v);
-		for (unsigned int i = 0; i < v.size(); i++) {
-			int r = annotate(env, v[i]);
-			if (r>rmax) rmax = r;
-		}
-		setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
-		return rmax;
-	}
+    if (getProperty(sig, gGlobal->RECURSIVNESS, tr)) {
+        return tree2int(tr);  // already annotated
+    } else if (isRec(sig, var, body)) {
+        int p = position(env, sig);
+        if (p > 0) {
+            return p;  // we are inside \x.(...)
+        } else {
+            int r = annotate(cons(sig, env), body) - 1;
+            if (r < 0) r = 0;
+            setProperty(sig, gGlobal->RECURSIVNESS, tree(r));
+            return r;
+        }
+    } else {
+        int          rmax = 0;
+        vector<Tree> v;
+        getSubSignals(sig, v);
+        for (unsigned int i = 0; i < v.size(); i++) {
+            int r = annotate(env, v[i]);
+            if (r > rmax) rmax = r;
+        }
+        setProperty(sig, gGlobal->RECURSIVNESS, tree(rmax));
+        return rmax;
+    }
 }
-
-
 
 /**
  * return the position of a signal in the current recursive environment
@@ -122,9 +121,11 @@ static int annotate(Tree env, Tree sig)
  */
 static int position(Tree env, Tree t, int p)
 {
-	if (isNil(env)) return 0;	// was not in the environment
-	if (hd(env) == t) return p;
-	else return position (tl(env), t, p+1);
+    if (isNil(env)) return 0;  // was not in the environment
+    if (hd(env) == t)
+        return p;
+    else
+        return position(tl(env), t, p + 1);
 }
 
 //-----------------------------------list recursive symbols-----------------------
@@ -138,7 +139,7 @@ static int position(Tree env, Tree t, int p)
 Tree symlistVisit(Tree sig, set<Tree>& visited)
 {
     Tree S;
-    
+
     if (gGlobal->gSymListProp->get(sig, S)) {
         return S;
     } else if (visited.count(sig) > 0) {
@@ -149,13 +150,13 @@ Tree symlistVisit(Tree sig, set<Tree>& visited)
         if (isRec(sig, id, body)) {
             Tree U = singleton(sig);
             for (int i = 0; i < len(body); i++) {
-                U = setUnion(U, symlistVisit(nth(body,i), visited));
+                U = setUnion(U, symlistVisit(nth(body, i), visited));
             }
             return U;
         } else {
             vector<Tree> subsigs;
-            int n = getSubSignals(sig, subsigs, true); // il faut visiter aussi les tables
-            Tree U = gGlobal->nil;
+            int          n = getSubSignals(sig, subsigs, true);  // il faut visiter aussi les tables
+            Tree         U = gGlobal->nil;
             for (int i = 0; i < n; i++) {
                 U = setUnion(U, symlistVisit(subsigs[i], visited));
             }
@@ -167,12 +168,12 @@ Tree symlistVisit(Tree sig, set<Tree>& visited)
 Tree symlist(Tree sig)
 {
     Tree S;
-    
+
     if (!gGlobal->gSymListProp->get(sig, S)) {
         set<Tree> visited;
         S = symlistVisit(sig, visited);
         gGlobal->gSymListProp->set(sig, S);
     }
-    //cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
+    // cerr << "SYMLIST " << *S << " OF " << ppsig(sig) << endl;
     return S;
 }

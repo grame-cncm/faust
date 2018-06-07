@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,79 +21,75 @@
 
 #include <math.h>
 
-#include "xtended.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "xtended.hh"
 
-class LogPrim : public xtended
-{
+class LogPrim : public xtended {
+   public:
+    LogPrim() : xtended("log") {}
 
- public:
+    virtual unsigned int arity() { return 1; }
 
- 	LogPrim() : xtended("log") {}
+    virtual bool needCache() { return true; }
 
-	virtual unsigned int arity() { return 1; }
-
-	virtual bool needCache() { return true; }
-
-	virtual ::Type infereSigType(const vector< ::Type>& args)
-	{
-		faustassert(args.size() == arity());
-		interval i = args[0]->getInterval();
-		if (i.valid && i.lo>0) {
-			return castInterval(floatCast(args[0]), interval(log(i.lo), log(i.hi)));
-		} else {
-			return floatCast(args[0]);
-		}
-	}
-
-	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
-
-	virtual int infereSigOrder(const vector<int>& args)
-    {
-		faustassert(args.size() == arity());
-		return args[0];
-	}
-
-	virtual Tree computeSigOutput(const vector<Tree>& args)
-    {
-		num n;
-		faustassert(args.size() == arity());
-		if (isNum(args[0],n)) {
-			return tree(log(double(n)));
-		} else {
-			return tree(symbol(), args[0]);
-		}
-	}
-
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
+    virtual ::Type infereSigType(const vector< ::Type>& args)
     {
         faustassert(args.size() == arity());
-		faustassert(types.size() == arity());
-        
-        Typed::VarType result_type;
+        interval i = args[0]->getInterval();
+        if (i.valid && i.lo > 0) {
+            return castInterval(floatCast(args[0]), interval(log(i.lo), log(i.hi)));
+        } else {
+            return floatCast(args[0]);
+        }
+    }
+
+    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
+
+    virtual int infereSigOrder(const vector<int>& args)
+    {
+        faustassert(args.size() == arity());
+        return args[0];
+    }
+
+    virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
+        num n;
+        faustassert(args.size() == arity());
+        if (isNum(args[0], n)) {
+            return tree(log(double(n)));
+        } else {
+            return tree(symbol(), args[0]);
+        }
+    }
+
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+
+        Typed::VarType         result_type;
         vector<Typed::VarType> arg_types;
-        list<ValueInst*> casted_args;
+        list<ValueInst*>       casted_args;
         prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
 
         return container->pushFunction(subst("log$0", isuffix()), result_type, arg_types, casted_args);
     }
-    
+
     virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-        
+
         return subst("log$1($0)", args[0], isuffix());
     }
 
-	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
-	{
-		faustassert(args.size() == arity());
-		faustassert(types.size() == arity());
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
 
-		return subst("\\ln\\left( $0 \\right)", args[0]);
-	}
-
+        return subst("\\ln\\left( $0 \\right)", args[0]);
+    }
 };
-

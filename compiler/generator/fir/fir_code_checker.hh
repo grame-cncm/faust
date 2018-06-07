@@ -24,19 +24,19 @@
 
 using namespace std;
 
-#include <string>
+#include <string.h>
+#include <algorithm>
+#include <iostream>
 #include <list>
 #include <map>
-#include <vector>
-#include <stack>
-#include <iostream>
 #include <sstream>
-#include <algorithm>
-#include <string.h>
+#include <stack>
+#include <string>
+#include <vector>
 
-#include "instructions.hh"
-#include "global.hh"
 #include "exception.hh"
+#include "global.hh"
+#include "instructions.hh"
 
 /*
 
@@ -47,27 +47,26 @@ using namespace std;
  - vérifier que les Funcall correspondent à des fonctions existantes
  - vérifier que les variables de boucles (kLoop) sont bien à l'intérieur d'une boucle de même nom de variable
  - vérifier que les variables kStack sont bien utilisées dans un scope où elles sont définies (et pas en dehors)
- - vérifier que les variables kFunArgs sont bien utilisées dans un scope où elles sont définies (à l'intérieur d'une fonction avec les bons arguments)
+ - vérifier que les variables kFunArgs sont bien utilisées dans un scope où elles sont définies (à l'intérieur d'une
+ fonction avec les bons arguments)
  - vérifier la cohérence des accès Load/Store (entre 'struct', 'stack', 'loop'...)
 
 */
 
-struct FIRCodeChecker: public DispatchVisitor {
+struct FIRCodeChecker : public DispatchVisitor {
+    typedef map<string, pair<Address::AccessType, bool> > VarScope;
 
-    typedef map <string, pair <Address::AccessType, bool> > VarScope;
+    map<string, FunTyped*> fFunctionTable;
+    vector<VarScope>       fStackVarsTable;
+    VarScope               fCurVarScope;
+    int                    fError;
 
-    map <string, FunTyped*> fFunctionTable;
-    vector<VarScope> fStackVarsTable;
-    VarScope fCurVarScope;
-    int fError;
-
-    FIRCodeChecker():fError(0)
+    FIRCodeChecker() : fError(0)
     {
-        //cout << "CodeVerifier" << std::endl;
+        // cout << "CodeVerifier" << std::endl;
     }
-    virtual ~FIRCodeChecker()
-    {}
-    
+    virtual ~FIRCodeChecker() {}
+
     void printScope(VarScope scope)
     {
         VarScope::iterator it;
@@ -77,87 +76,88 @@ struct FIRCodeChecker: public DispatchVisitor {
         }
     }
 
-    bool getVarName(const string& name, pair <Address::AccessType, bool>& res) 
+    bool getVarName(const string& name, pair<Address::AccessType, bool>& res)
     {
-        //cout << "----getVarName : " << name << " ----" << endl;
-        //printScope(fCurVarScope);
-         
+        // cout << "----getVarName : " << name << " ----" << endl;
+        // printScope(fCurVarScope);
+
         if (fCurVarScope.find(name) != fCurVarScope.end()) {
-            //cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            // cout << "Variable \"" << name << "\" found in current scope" << std::endl;
             res = fCurVarScope[name];
             return true;
         } else {
-            vector<VarScope>::reverse_iterator rit; 
-            int scope_num = 1;
+            vector<VarScope>::reverse_iterator rit;
+            int                                scope_num = 1;
             for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
                 VarScope scope = *rit;
-                //cout << "SCOPE : "  << scope_num << std::endl;
-                //printScope(scope);
+                // cout << "SCOPE : "  << scope_num << std::endl;
+                // printScope(scope);
                 if (scope.find(name) != scope.end()) {
-                    //cout << "getVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
+                    // cout << "getVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
                     res = scope[name];
                     return true;
                 }
             }
-            
+
             return false;
         }
     }
-    
-    bool setVarName(const string& name) 
+
+    bool setVarName(const string& name)
     {
-        //cout << "----setVarName : " << name << " ----" << endl;
-        //printScope(fCurVarScope);
-         
+        // cout << "----setVarName : " << name << " ----" << endl;
+        // printScope(fCurVarScope);
+
         if (fCurVarScope.find(name) != fCurVarScope.end()) {
-            //cout << "Variable \"" << name << "\" found in current scope" << std::endl;
+            // cout << "Variable \"" << name << "\" found in current scope" << std::endl;
             fCurVarScope[name].second = true;
-            //cout << "setVarName Variable \"" << name << "\" found in CURRENT scope " << std::endl;
+            // cout << "setVarName Variable \"" << name << "\" found in CURRENT scope " << std::endl;
             return true;
         } else {
-            vector<VarScope>::reverse_iterator rit; 
-            int scope_num = 1;
+            vector<VarScope>::reverse_iterator rit;
+            int                                scope_num = 1;
             for (rit = fStackVarsTable.rbegin(); rit < fStackVarsTable.rend(); ++rit, scope_num++) {
-                //VarScope scope = *rit;
-                //cout << "SCOPE : "  << scope_num << std::endl;
-                //printScope(scope);
+                // VarScope scope = *rit;
+                // cout << "SCOPE : "  << scope_num << std::endl;
+                // printScope(scope);
                 if ((*rit).find(name) != (*rit).end()) {
                     (*rit)[name].second = true;
-                    //cout << "setVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
+                    // cout << "setVarName Variable \"" << name << "\" found in scope " << scope_num << std::endl;
                     return true;
                 }
             }
-            //cout << "setVarName Variable \"" << name << "\" NOT found in scope " << scope_num << std::endl;
+            // cout << "setVarName Variable \"" << name << "\" NOT found in scope " << scope_num << std::endl;
             return false;
         }
     }
 
     virtual void visit(DeclareVarInst* inst)
     {
-        string name = inst->fAddress->getName();
+        string name              = inst->fAddress->getName();
         fCurVarScope[name].first = inst->fAddress->getAccess();
-       
+
         if (inst->fValue) {
             inst->fValue->accept(this);
             // variable is initialized...
             fCurVarScope[name].second = true;
-            //cout << "DeclareVarInst Variable \"" << name << "\" SET VALUE" << std::endl;
+            // cout << "DeclareVarInst Variable \"" << name << "\" SET VALUE" << std::endl;
         } else {
             // variable is not initialized...
             fCurVarScope[name].second = false;
-            //cout << "DeclareVarInst Variable \"" << name << "\"" << std::endl;
+            // cout << "DeclareVarInst Variable \"" << name << "\"" << std::endl;
         }
     }
-    
+
     virtual void visit(LoadVarInst* inst)
     {
-        pair <Address::AccessType, bool> var_def;
-        string name = inst->fAddress->getName();
-        bool res = getVarName(name, var_def);
-        
+        pair<Address::AccessType, bool> var_def;
+        string                          name = inst->fAddress->getName();
+        bool                            res  = getVarName(name, var_def);
+
         if (!res) {
             if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+                     << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
@@ -171,16 +171,17 @@ struct FIRCodeChecker: public DispatchVisitor {
             }
         }
     }
-    
+
     virtual void visit(LoadVarAddressInst* inst)
     {
-        pair <Address::AccessType, bool> var_def;
-        string name = inst->fAddress->getName();
-        bool res = getVarName(name, var_def);
-        
+        pair<Address::AccessType, bool> var_def;
+        string                          name = inst->fAddress->getName();
+        bool                            res  = getVarName(name, var_def);
+
         if (!res) {
             if (inst->fAddress->getAccess() != Address::kFunArgs) {
-                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
+                cout << "Error load : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+                     << "\" with no enclosing definition" << std::endl;
                 fError++;
             }
         } else {
@@ -190,21 +191,22 @@ struct FIRCodeChecker: public DispatchVisitor {
             }
         }
     }
-   
+
     virtual void visit(StoreVarInst* inst)
     {
-        pair <Address::AccessType, bool> var_def;
-        string name = inst->fAddress->getName();
-        bool res = getVarName(name, var_def);
-        
+        pair<Address::AccessType, bool> var_def;
+        string                          name = inst->fAddress->getName();
+        bool                            res  = getVarName(name, var_def);
+
         if (!res) {
-            cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name << "\" with no enclosing definition" << std::endl;
+            cout << "Error store : " << Address::dumpString(inst->fAddress->getAccess()) << " variable \"" << name
+                 << "\" with no enclosing definition" << std::endl;
             fError++;
         } else {
             if (var_def.first != inst->fAddress->getAccess()) {
                 cout << "Error store : incoherency in variable access \"" << name << "\"" << std::endl;
                 fError++;
-            }        
+            }
         }
 
         inst->fValue->accept(this);
@@ -215,13 +217,14 @@ struct FIRCodeChecker: public DispatchVisitor {
     virtual void visit(FunCallInst* inst)
     {
         if (fFunctionTable.find(inst->fName) == fFunctionTable.end()) {
-             cout << "Error : function \"" << inst->fName << "\" not defined! " << std::endl;
+            cout << "Error : function \"" << inst->fName << "\" not defined! " << std::endl;
         } else {
-             FunTyped* type = fFunctionTable[inst->fName];
-             if (type->fArgsTypes.size() != inst->fArgs.size()) {
-                cout << "Error : function args list and actual args mismatch : args " << type->fArgsTypes.size() << " actual : " << inst->fArgs.size() << std::endl;
+            FunTyped* type = fFunctionTable[inst->fName];
+            if (type->fArgsTypes.size() != inst->fArgs.size()) {
+                cout << "Error : function args list and actual args mismatch : args " << type->fArgsTypes.size()
+                     << " actual : " << inst->fArgs.size() << std::endl;
                 fError++;
-             }
+            }
         }
     }
 
@@ -232,59 +235,57 @@ struct FIRCodeChecker: public DispatchVisitor {
         // Function arguments pushed in the variable table
         list<NamedTyped*>::const_iterator it1;
         for (it1 = inst->fType->fArgsTypes.begin(); it1 != inst->fType->fArgsTypes.end(); it1++) {
-           fCurVarScope[(*it1)->fName].first = Address::kFunArgs;
+            fCurVarScope[(*it1)->fName].first = Address::kFunArgs;
         }
 
         // Internal will start a new scope of variables
         inst->fCode->accept(this);
     }
-    
+
     virtual void visit(ForLoopInst* inst)
     {
-        //cout << "visit(ForLoopInst* inst) " << endl;
-        //printScope(fCurVarScope);
-        
-         // Keep current variable state, start an empty one
+        // cout << "visit(ForLoopInst* inst) " << endl;
+        // printScope(fCurVarScope);
+
+        // Keep current variable state, start an empty one
         fStackVarsTable.push_back(fCurVarScope);
         fCurVarScope.clear();
-        
+
         // Variable definition in a new scope...
         inst->fInit->accept(this);
         inst->fIncrement->accept(this);
         inst->fEnd->accept(this);
-        
+
         // And block is a new scope...
         inst->fCode->accept(this);
-        
+
         // Restore old variable state
         fCurVarScope = fStackVarsTable.back();
         fStackVarsTable.pop_back();
     }
-      
+
     virtual void visit(BlockInst* inst)
     {
-        //cout << "visit(BlockInst* inst) " << endl;
-        //printScope(fCurVarScope);
-        
-         // Keep current variable state, start an empty one
+        // cout << "visit(BlockInst* inst) " << endl;
+        // printScope(fCurVarScope);
+
+        // Keep current variable state, start an empty one
         fStackVarsTable.push_back(fCurVarScope);
         fCurVarScope.clear();
-        
+
         list<StatementInst*>::const_iterator it;
         for (it = inst->fCode.begin(); it != inst->fCode.end(); it++) {
             (*it)->accept(this);
         }
-        
+
         // Restore old variable state
         fCurVarScope = fStackVarsTable.back();
         fStackVarsTable.pop_back();
     }
-   
 };
 
 // Specialize all simple kStruct variables with a given value
 struct StructVarAnalyser : public DispatchVisitor {
-
     map<string, ValueInst*> fSpecializedValueTable;
 
     void visit(DeclareVarInst* inst)
@@ -292,9 +293,10 @@ struct StructVarAnalyser : public DispatchVisitor {
         DispatchVisitor::visit(inst);
 
         // Keep "simple" struct variables
-        if (inst->fAddress->getAccess() == Address::kStruct && (dynamic_cast<BasicTyped*>(inst->fType) || dynamic_cast<NamedTyped*>(inst->fType))) {
+        if (inst->fAddress->getAccess() == Address::kStruct &&
+            (dynamic_cast<BasicTyped*>(inst->fType) || dynamic_cast<NamedTyped*>(inst->fType))) {
             Typed::VarType type = inst->fType->getType();
-            ValueInst* init;
+            ValueInst*     init;
             if (type == Typed::kFloat) {
                 init = InstBuilder::genFloatNumInst(0.5);
             } else {
@@ -306,17 +308,13 @@ struct StructVarAnalyser : public DispatchVisitor {
 };
 
 struct ControlSpecializer : public DispatchVisitor {
-
     StatementInst* fResultCode;
 
     // Mark all simple kStruct variables
     struct VariableMarker : public DispatchVisitor {
-
         map<string, ValueInst*>& fSpecializedValueTable;
 
-        VariableMarker(map<string, ValueInst*>& valuetable)
-            :fSpecializedValueTable(valuetable)
-        {}
+        VariableMarker(map<string, ValueInst*>& valuetable) : fSpecializedValueTable(valuetable) {}
 
         void visit(StoreVarInst* inst)
         {
@@ -325,7 +323,7 @@ struct ControlSpecializer : public DispatchVisitor {
             if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                //cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer StoreVarInst " << inst->fAddress->getName() << endl;
             }
         }
 
@@ -336,19 +334,16 @@ struct ControlSpecializer : public DispatchVisitor {
             if (fSpecializedValueTable.find(inst->fAddress->getName()) != fSpecializedValueTable.end()) {
                 inst->fAddress->setAccess(Address::kLink);
             } else {
-                //cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
+                // cout << "ControlSpecializer LoadVarInst " << inst->fAddress->getName() << endl;
             }
         }
     };
 
     // To be used to clone the annotated code
     struct VariableSpecializer : public BasicCloneVisitor {
-
         map<string, ValueInst*>& fSpecializedValueTable;
 
-        VariableSpecializer(map<string, ValueInst*>& valuetable)
-            :fSpecializedValueTable(valuetable)
-        {}
+        VariableSpecializer(map<string, ValueInst*>& valuetable) : fSpecializedValueTable(valuetable) {}
 
         // Rewrite Load as an access to kept ValueInst
         ValueInst* visit(LoadVarInst* inst)
@@ -384,7 +379,6 @@ struct ControlSpecializer : public DispatchVisitor {
         VariableSpecializer specializer(valuetable);
         fResultCode = code->clone(&specializer);
     }
-
 };
 
 #endif

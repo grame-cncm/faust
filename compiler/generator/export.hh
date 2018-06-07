@@ -25,9 +25,9 @@
 #define FAUSTVERSION "2.6.00"
 
 #ifdef _WIN32
-	#define	EXPORT __declspec(dllexport)
+#define EXPORT __declspec(dllexport)
 #else
-	#define	EXPORT __attribute__ ((visibility("default")))
+#define EXPORT __attribute__((visibility("default")))
 #endif
 
 #endif

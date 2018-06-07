@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,33 +22,26 @@
 #ifndef __PARSCHEMA__
 #define __PARSCHEMA__
 
-
 #include "schema.h"
-
 
 /**
  * place two schemi in parallel
  */
 
-class parSchema : public schema
-{
-	schema*			fSchema1;
-	schema*			fSchema2;
-	unsigned int	fInputFrontier;
-	unsigned int	fOutputFrontier;
+class parSchema : public schema {
+    schema*      fSchema1;
+    schema*      fSchema2;
+    unsigned int fInputFrontier;
+    unsigned int fOutputFrontier;
 
-  public:
-	parSchema (schema* s1, schema* s2);
+   public:
+    parSchema(schema* s1, schema* s2);
 
-	virtual void 	place(double ox, double oy, int orientation);
-	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i)	const;
-	virtual point 	outputPoint(unsigned int i)	const;
-    virtual void 	collectTraits(collector& c);
+    virtual void  place(double ox, double oy, int orientation);
+    virtual void  draw(device& dev);
+    virtual point inputPoint(unsigned int i) const;
+    virtual point outputPoint(unsigned int i) const;
+    virtual void  collectTraits(collector& c);
 };
 
-
-
 #endif
-
-

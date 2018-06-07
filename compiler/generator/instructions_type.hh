@@ -22,26 +22,20 @@
 #ifndef _INSTRUCTIONS_TYPE_H
 #define _INSTRUCTIONS_TYPE_H
 
-
-#include "garbageable.hh"
 #include <string>
-
+#include "garbageable.hh"
 
 // ============================
 // Base class for instructions
 // ============================
 
-struct Printable : public virtual Garbageable
-{
+struct Printable : public virtual Garbageable {
     static std::ostream* fOut;
 
     int fTab;
 
-    Printable()
-    {}
-    virtual ~Printable()
-    {}
-
+    Printable() {}
+    virtual ~Printable() {}
 };
 
 // ==========================
@@ -50,28 +44,56 @@ struct Printable : public virtual Garbageable
 
 struct CloneVisitor;
 
-struct Typed : public Printable
-{
-    enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
-                kInt64, kInt64_ptr, kInt64_vec, kInt64_vec_ptr,
-                kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kFloat, kFloatish, kFloat_ptr, kFloat_ptr_ptr, kFloat_vec, kFloat_vec_ptr,
-                kFloatMacro, kFloatMacro_ptr, kFloatMacro_ptr_ptr,
-                kDouble, kDoublish, kDouble_ptr, kDouble_ptr_ptr, kDouble_vec, kDouble_vec_ptr,
-                kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr,
-                kObj, kObj_ptr,
-                kSound, kSound_ptr,
-                kUint_ptr,
-                kNoType
+struct Typed : public Printable {
+    enum VarType {
+        kInt32,
+        kInt32ish,
+        kInt32_ptr,
+        kInt32_vec,
+        kInt32_vec_ptr,
+        kInt64,
+        kInt64_ptr,
+        kInt64_vec,
+        kInt64_vec_ptr,
+        kBool,
+        kBool_ptr,
+        kBool_vec,
+        kBool_vec_ptr,
+        kFloat,
+        kFloatish,
+        kFloat_ptr,
+        kFloat_ptr_ptr,
+        kFloat_vec,
+        kFloat_vec_ptr,
+        kFloatMacro,
+        kFloatMacro_ptr,
+        kFloatMacro_ptr_ptr,
+        kDouble,
+        kDoublish,
+        kDouble_ptr,
+        kDouble_ptr_ptr,
+        kDouble_vec,
+        kDouble_vec_ptr,
+        kQuad,
+        kQuad_ptr,
+        kQuad_vec,
+        kQuad_vec_ptr,
+        kVoid,
+        kVoid_ptr,
+        kVoid_ptr_ptr,
+        kObj,
+        kObj_ptr,
+        kSound,
+        kSound_ptr,
+        kUint_ptr,
+        kNoType
     };
 
     static std::string gTypeString[];
 
     static void init();
 
-    Typed()
-    {}
+    Typed() {}
 
     virtual VarType getType() = 0;
 

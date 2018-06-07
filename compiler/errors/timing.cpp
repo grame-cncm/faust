@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,36 +19,39 @@
  ************************************************************************
  ************************************************************************/
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
 #include <cassert>
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #ifndef _WIN32
 #include <sys/time.h>
 #endif
-#include "compatibility.hh"
-#include "timing.hh"
-#include "global.hh"
 #include "Text.hh"
+#include "compatibility.hh"
+#include "global.hh"
+#include "timing.hh"
 
 // Timing can be used outside of the scope of 'gGlobal'
-bool gTimingSwitch;
-int gTimingIndex;
-double gStartTime[1024];
-double gEndTime[1024];
+bool     gTimingSwitch;
+int      gTimingIndex;
+double   gStartTime[1024];
+double   gEndTime[1024];
 ostream* gTimingLog = 0;
 
 #ifndef _WIN32
 double mysecond()
 {
-    struct timeval tp;
+    struct timeval  tp;
     struct timezone tzp;
-    gettimeofday(&tp,&tzp);
-    return ((double) tp.tv_sec + (double) tp.tv_usec * 1.e-6);
+    gettimeofday(&tp, &tzp);
+    return ((double)tp.tv_sec + (double)tp.tv_usec * 1.e-6);
 }
 
 #else
-double mysecond() { return 0; }
+double mysecond()
+{
+    return 0;
+}
 #endif
 
 void startTiming(const char* msg)
@@ -58,7 +61,7 @@ void startTiming(const char* msg)
     if (gTimingLog) {
         *gTimingLog << endl;
     }
-    
+
     if (gTimingSwitch) {
         faustassert(gTimingIndex < 1023);
         if (gTimingLog) {
@@ -82,7 +85,8 @@ void endTiming(const char* msg)
             gTimingLog->flush();
         } else {
             tab(gTimingIndex, cerr);
-            cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")" << endl;
+            cerr << "end " << msg << " (duration : " << gEndTime[gTimingIndex] - gStartTime[gTimingIndex] << ")"
+                 << endl;
         }
     }
 }

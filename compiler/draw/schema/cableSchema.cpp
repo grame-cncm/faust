@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,19 +29,18 @@ using namespace std;
 /**
  * Build n cables in parallel
  */
-schema* makeCableSchema (unsigned int n)
+schema* makeCableSchema(unsigned int n)
 {
-	faustassert(n>0);
-	return new cableSchema(n);
+    faustassert(n > 0);
+    return new cableSchema(n);
 }
 
 /**
  * Build n cables in parallel
  */
-cableSchema::cableSchema (unsigned int n)
-	: 	schema (n, n, 0, n*dWire)
+cableSchema::cableSchema(unsigned int n) : schema(n, n, 0, n * dWire)
 {
-    for (unsigned int i=0; i<n; i++) 	fPoint.push_back(point(0,0));
+    for (unsigned int i = 0; i < n; i++) fPoint.push_back(point(0, 0));
 }
 
 /**
@@ -49,17 +48,17 @@ cableSchema::cableSchema (unsigned int n)
  */
 void cableSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
-	if (orientation == kLeftRight) {
-		for (unsigned int i=0; i<inputs(); i++) {
-			fPoint[i] = point(ox, oy + dWire/2.0 + i*dWire);
-		}
-	} else {
-		for (unsigned int i=0; i<inputs(); i++) {
-			fPoint[i] = point(ox, oy + height() - dWire/2.0 - i*dWire);
-		}
-	}
-	endPlace();
+    beginPlace(ox, oy, orientation);
+    if (orientation == kLeftRight) {
+        for (unsigned int i = 0; i < inputs(); i++) {
+            fPoint[i] = point(ox, oy + dWire / 2.0 + i * dWire);
+        }
+    } else {
+        for (unsigned int i = 0; i < inputs(); i++) {
+            fPoint[i] = point(ox, oy + height() - dWire / 2.0 - i * dWire);
+        }
+    }
+    endPlace();
 }
 
 /**
@@ -67,22 +66,24 @@ void cableSchema::place(double ox, double oy, int orientation)
  * are enlargered
  */
 void cableSchema::draw(device& dev)
-{}
+{
+}
 
 /**
  * Nothing to collect. Actual collect will take place when the wires
  * are enlargered
  */
 void cableSchema::collectTraits(collector& c)
-{}
+{
+}
 
 /**
  *input and output points are the same as the width is 0
  */
 point cableSchema::inputPoint(unsigned int i) const
 {
-	faustassert(i<inputs());
-	return fPoint[i];
+    faustassert(i < inputs());
+    return fPoint[i];
 }
 
 /**
@@ -90,6 +91,6 @@ point cableSchema::inputPoint(unsigned int i) const
  */
 point cableSchema::outputPoint(unsigned int i) const
 {
-	faustassert(i<outputs());
-	return fPoint[i];
+    faustassert(i < outputs());
+    return fPoint[i];
 }

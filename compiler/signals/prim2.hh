@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,24 +18,24 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef _Prim2_
 #define _Prim2_
 
-#include "tlib.hh"
 #include "sigtype.hh"
+#include "tlib.hh"
 
 // fonction de gestion des foreign functions (ffun) dans FAUST (fonctions C externes)
 
-Tree ffunction (Tree signature, Tree incfile, Tree libfile);
+Tree ffunction(Tree signature, Tree incfile, Tree libfile);
 
-bool 		isffunction(Tree t);
+bool isffunction(Tree t);
 
-Tree 		ffsignature(Tree t);
+Tree        ffsignature(Tree t);
 const char* ffname(Tree t);
-int 		ffarity(Tree t);
-int 		ffrestype(Tree t);
-int 		ffargtype(Tree t, int i);
+int         ffarity(Tree t);
+int         ffrestype(Tree t);
+int         ffargtype(Tree t, int i);
 const char* ffincfile(Tree t);
 const char* fflibfile(Tree t);
 

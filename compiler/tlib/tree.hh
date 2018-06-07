@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
-
 
 /*****************************************************************************
 ******************************************************************************/
@@ -73,21 +72,21 @@
 #ifndef __TREE__
 #define __TREE__
 
-#include <vector>
 #include <map>
+#include <vector>
 
-#include "symbol.hh"
-#include "node.hh"
-#include "garbageable.hh"
 #include "exception.hh"
+#include "garbageable.hh"
+#include "node.hh"
+#include "symbol.hh"
 
 //---------------------------------API---------------------------------------
 
-class 	CTree ;
+class CTree;
 typedef CTree* Tree;
 
-typedef map<Tree, Tree>	plist;
-typedef vector<Tree>	tvec;
+typedef map<Tree, Tree> plist;
+typedef vector<Tree>    tvec;
 
 /**
  * A CTree = (Node x [CTree]) is a Node associated with a list of subtrees called branches.
@@ -106,114 +105,142 @@ typedef vector<Tree>	tvec;
  * WARNING : in the current implementation CTrees are allocated but never deleted
  **/
 
-class CTree : public virtual Garbageable
-{
- private:
-	static const int 	kHashTableSize = 400009; 	///< size of the hash table (prime number)
-	static Tree			gHashTable[kHashTableSize];	///< hash table used for "hash consing"
+class CTree : public virtual Garbageable {
+   private:
+    static const int kHashTableSize = 400009;     ///< size of the hash table (prime number)
+    static Tree      gHashTable[kHashTableSize];  ///< hash table used for "hash consing"
 
- public:
-	static bool			gDetails;					///< Ctree::print() print with more details when true
-    static unsigned int gVisitTime;                 ///< Should be incremented for each new visit to keep track of visited tree.
+   public:
+    static bool         gDetails;    ///< Ctree::print() print with more details when true
+    static unsigned int gVisitTime;  ///< Should be incremented for each new visit to keep track of visited tree.
 
- private:
-	// fields
-    Tree            fNext;				///< next tree in the same hashtable entry
-    Node            fNode;				///< the node content of the tree
-    void*           fType;				///< the type of a tree
-    plist           fProperties;		///< the properties list attached to the tree
-    size_t			fHashKey;			///< the hashtable key
-    int             fAperture;			///< how "open" is a tree (synthezised field)
-    unsigned int	fVisitTime;			///< keep track of visits
-    tvec            fBranch;			///< the subtrees
+   private:
+    // fields
+    Tree         fNext;        ///< next tree in the same hashtable entry
+    Node         fNode;        ///< the node content of the tree
+    void*        fType;        ///< the type of a tree
+    plist        fProperties;  ///< the properties list attached to the tree
+    size_t       fHashKey;     ///< the hashtable key
+    int          fAperture;    ///< how "open" is a tree (synthezised field)
+    unsigned int fVisitTime;   ///< keep track of visits
+    tvec         fBranch;      ///< the subtrees
 
-	CTree (size_t hk, const Node& n, const tvec& br); 						///< construction is private, uses tree::make instead
+    CTree(size_t hk, const Node& n, const tvec& br);  ///< construction is private, uses tree::make instead
 
-	bool 		equiv 				(const Node& n, const tvec& br) const;	///< used to check if an equivalent tree already exists
-	static size_t	calcTreeHash 		(const Node& n, const tvec& br);		///< compute the hash key of a tree according to its node and branches
-	static int	calcTreeAperture 	(const Node& n, const tvec& br);		///< compute how open is a tree
+    bool          equiv(const Node& n, const tvec& br) const;  ///< used to check if an equivalent tree already exists
+    static size_t calcTreeHash(const Node& n,
+                               const tvec& br);  ///< compute the hash key of a tree according to its node and branches
+    static int    calcTreeAperture(const Node& n, const tvec& br);  ///< compute how open is a tree
 
- public:
-	virtual ~CTree ();
+   public:
+    virtual ~CTree();
 
-	static Tree make (const Node& n, int ar, Tree br[]);		///< return a new tree or an existing equivalent one
-	static Tree make(const Node& n, const tvec& br);			///< return a new tree or an existing equivalent one
+    static Tree make(const Node& n, int ar, Tree br[]);  ///< return a new tree or an existing equivalent one
+    static Tree make(const Node& n, const tvec& br);     ///< return a new tree or an existing equivalent one
 
- 	// Accessors
- 	const Node& node() const		{ return fNode; 		}	///< return the content of the tree
- 	int 		arity() const		{ return (int)fBranch.size();}	///< return the number of branches (subtrees) of a tree
-    Tree 		branch(int i) const	{ return fBranch[i];	}	///< return the ith branch (subtree) of a tree
-    const tvec& branches() const	{ return fBranch;	}       ///< return all branches (subtrees) of a tree
-    size_t 		hashkey() const		{ return fHashKey; 		}	///< return the hashkey of the tree
- 	int 		aperture() const	{ return fAperture; 	}	///< return how "open" is a tree in terms of free variables
- 	void 		setAperture(int a) 	{ fAperture=a; 			}	///< modify the aperture of a tree
+    // Accessors
+    const Node& node() const { return fNode; }                 ///< return the content of the tree
+    int         arity() const { return (int)fBranch.size(); }  ///< return the number of branches (subtrees) of a tree
+    Tree        branch(int i) const { return fBranch[i]; }     ///< return the ith branch (subtree) of a tree
+    const tvec& branches() const { return fBranch; }           ///< return all branches (subtrees) of a tree
+    size_t      hashkey() const { return fHashKey; }           ///< return the hashkey of the tree
+    int         aperture() const { return fAperture; }  ///< return how "open" is a tree in terms of free variables
+    void        setAperture(int a) { fAperture = a; }   ///< modify the aperture of a tree
 
+    // Print a tree and the hash table (for debugging purposes)
+    ostream&    print(ostream& fout) const;  ///< print recursively the content of a tree on a stream
+    static void control();                   ///< print the hash table content (for debug purpose)
 
-	// Print a tree and the hash table (for debugging purposes)
-	ostream& 	print (ostream& fout) const; 					///< print recursively the content of a tree on a stream
-	static void control ();										///< print the hash table content (for debug purpose)
-    
-    static void init ();
-  
-	// type information
-	void		setType(void* t) 	{ fType = t; }
-	void*		getType() 			{ return fType; }
-	
+    static void init();
+
+    // type information
+    void  setType(void* t) { fType = t; }
+    void* getType() { return fType; }
+
     // Keep track of visited trees (WARNING : non reentrant)
-    static void     startNewVisit()                 { ++gVisitTime; }
-    bool            isAlreadyVisited()              { return fVisitTime==gVisitTime; }
-    void            setVisited()                    { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime=gVisitTime; }
+    static void startNewVisit() { ++gVisitTime; }
+    bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
+    void        setVisited() { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime = gVisitTime; }
 
+    // Property list of a tree
+    void setProperty(Tree key, Tree value) { fProperties[key] = value; }
+    void clearProperty(Tree key) { fProperties.erase(key); }
+    void clearProperties() { fProperties = plist(); }
 
-	// Property list of a tree
-	void		setProperty(Tree key, Tree value) { fProperties[key] = value; }
-	void		clearProperty(Tree key) { fProperties.erase(key); }
-	void		clearProperties()		{ fProperties = plist(); }
+    void exportProperties(vector<Tree>& keys, vector<Tree>& values);
 
-	void		exportProperties(vector<Tree>& keys, vector<Tree>& values);
-
-	Tree		getProperty(Tree key) {
-		plist::iterator i = fProperties.find(key);
-		if (i==fProperties.end()) {
-			return 0;
-		} else {
-			return i->second;
-		}
-	}
+    Tree getProperty(Tree key)
+    {
+        plist::iterator i = fProperties.find(key);
+        if (i == fProperties.end()) {
+            return 0;
+        } else {
+            return i->second;
+        }
+    }
 };
 
 //---------------------------------API---------------------------------------
 
 // to build trees
-inline Tree tree (const Node& n) { Tree br[1]; return CTree::make(n, 0, br); }
-inline Tree tree (const Node& n, const Tree& a) { Tree br[]= {a}; return CTree::make(n, 1, br); }
-inline Tree tree (const Node& n, const Tree& a, const Tree& b) { Tree br[]= {a,b}; return CTree::make(n, 2, br); }
-inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c) { Tree br[]= {a,b,c}; return CTree::make(n, 3, br); }
-inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d) { Tree br[]= {a,b,c,d}; return CTree::make(n, 4, br); }
+inline Tree tree(const Node& n)
+{
+    Tree br[1];
+    return CTree::make(n, 0, br);
+}
+inline Tree tree(const Node& n, const Tree& a)
+{
+    Tree br[] = {a};
+    return CTree::make(n, 1, br);
+}
+inline Tree tree(const Node& n, const Tree& a, const Tree& b)
+{
+    Tree br[] = {a, b};
+    return CTree::make(n, 2, br);
+}
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c)
+{
+    Tree br[] = {a, b, c};
+    return CTree::make(n, 3, br);
+}
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d)
+{
+    Tree br[] = {a, b, c, d};
+    return CTree::make(n, 4, br);
+}
 
-inline Tree tree (const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e) { Tree br[]= {a,b,c,d,e}; return CTree::make(n, 5, br); }
-inline Tree tree (const Node& n, const tvec& br) { return CTree::make(n, br); }
+inline Tree tree(const Node& n, const Tree& a, const Tree& b, const Tree& c, const Tree& d, const Tree& e)
+{
+    Tree br[] = {a, b, c, d, e};
+    return CTree::make(n, 5, br);
+}
+inline Tree tree(const Node& n, const tvec& br)
+{
+    return CTree::make(n, br);
+}
 
 // useful conversions
-int 		tree2int (Tree t);		///< if t has a node of type int, return it otherwise error
-double      tree2float (Tree t);    ///< if t has a node of type float, return it otherwise error
-double      tree2double (Tree t);    ///< if t has a node of type float, return it otherwise error
-const char* tree2str (Tree t);		///< if t has a node of type symbol, return its name otherwise error
-string      tree2quotedstr (Tree t);
-void*       tree2ptr (Tree t);		///< if t has a node of type ptr, return it otherwise error
-void*       getUserData(Tree t);	///< if t has a node of type symbol, return the associated user data
+int         tree2int(Tree t);     ///< if t has a node of type int, return it otherwise error
+double      tree2float(Tree t);   ///< if t has a node of type float, return it otherwise error
+double      tree2double(Tree t);  ///< if t has a node of type float, return it otherwise error
+const char* tree2str(Tree t);     ///< if t has a node of type symbol, return its name otherwise error
+string      tree2quotedstr(Tree t);
+void*       tree2ptr(Tree t);     ///< if t has a node of type ptr, return it otherwise error
+void*       getUserData(Tree t);  ///< if t has a node of type symbol, return the associated user data
 
 // pattern matching
-bool isTree (const Tree& t, const Node& n);
-bool isTree (const Tree& t, const Node& n, Tree& a);
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b);
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
-bool isTree (const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
+bool isTree(const Tree& t, const Node& n);
+bool isTree(const Tree& t, const Node& n, Tree& a);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d);
+bool isTree(const Tree& t, const Node& n, Tree& a, Tree& b, Tree& c, Tree& d, Tree& e);
 
-//printing
-inline ostream& operator << (ostream& s, const CTree& t) { return t.print(s); }
-
+// printing
+inline ostream& operator<<(ostream& s, const CTree& t)
+{
+    return t.print(s);
+}
 
 //-----------------------------------------------------------------------------
 // recursive trees
@@ -221,49 +248,71 @@ inline ostream& operator << (ostream& s, const CTree& t) { return t.print(s); }
 
 // creation a recursive trees
 
-Tree rec(Tree body);						///< create a de Bruijn recursive tree
-Tree rec(Tree id, Tree body);				///< create a symbolic recursive tree
+Tree rec(Tree body);           ///< create a de Bruijn recursive tree
+Tree rec(Tree id, Tree body);  ///< create a symbolic recursive tree
 
-bool isRec(Tree t, Tree& body);				///< is t a de Bruijn recursive tree
-bool isRec(Tree t, Tree& id, Tree& body);	///< is t a symbolic recursive tree
+bool isRec(Tree t, Tree& body);            ///< is t a de Bruijn recursive tree
+bool isRec(Tree t, Tree& id, Tree& body);  ///< is t a symbolic recursive tree
 
 // creation of recursive references
 
-Tree ref(int level);						///< create a de Bruijn recursive reference
-Tree ref(Tree id);							///< create a symbolic recursive reference
+Tree ref(int level);  ///< create a de Bruijn recursive reference
+Tree ref(Tree id);    ///< create a symbolic recursive reference
 
-bool isRef(Tree t, int& level);				///< is t a de Bruijn recursive reference
-bool isRef(Tree t, Tree& id);				///< is t a symbolic recursive reference
-
+bool isRef(Tree t, int& level);  ///< is t a de Bruijn recursive reference
+bool isRef(Tree t, Tree& id);    ///< is t a symbolic recursive reference
 
 // Open vs Closed regarding de Bruijn references
 
-inline bool isOpen(Tree t)	 { return t->aperture() > 0; }	///< t contains free de Bruijn references
-inline bool isClosed(Tree t) { return t->aperture() <= 0;}	///< t dont contain free de Bruijn ref
+inline bool isOpen(Tree t)
+{
+    return t->aperture() > 0;
+}  ///< t contains free de Bruijn references
+inline bool isClosed(Tree t)
+{
+    return t->aperture() <= 0;
+}  ///< t dont contain free de Bruijn ref
 
 // lift by 1 the free de Bruijn references
 
-Tree lift(Tree t); 							////< add 1 to the free de bruijn references of t
+Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 
-Tree deBruijn2Sym (Tree t);					////< transform a tree from deBruijn to symbolic notation
-void updateAperture (Tree t);				////< update aperture field of a tree in symbolic notation
+Tree deBruijn2Sym(Tree t);    ////< transform a tree from deBruijn to symbolic notation
+void updateAperture(Tree t);  ////< update aperture field of a tree in symbolic notation
 
 //---------------------------------------------------------------------------
 
-class Tabber
-{
-	int fIndent;
+class Tabber {
+    int fIndent;
     int fPostInc;
-  public:
-    Tabber(int n=0) : fIndent(n), fPostInc(0)	{}
-    Tabber& operator++() 			{ fPostInc++; return *this;}
-	Tabber& operator--() 			{ faustassert(fIndent > 0); fIndent--; return *this; }
 
-	ostream& print (ostream& fout)
-                        { for (int i=0; i<fIndent; i++) fout << '\t';  fIndent+=fPostInc; fPostInc=0; return fout; }
+   public:
+    Tabber(int n = 0) : fIndent(n), fPostInc(0) {}
+    Tabber& operator++()
+    {
+        fPostInc++;
+        return *this;
+    }
+    Tabber& operator--()
+    {
+        faustassert(fIndent > 0);
+        fIndent--;
+        return *this;
+    }
+
+    ostream& print(ostream& fout)
+    {
+        for (int i = 0; i < fIndent; i++) fout << '\t';
+        fIndent += fPostInc;
+        fPostInc = 0;
+        return fout;
+    }
 };
 
-//printing
-inline ostream& operator << (ostream& s, Tabber& t) { return t.print(s); }
+// printing
+inline ostream& operator<<(ostream& s, Tabber& t)
+{
+    return t.print(s);
+}
 
 #endif

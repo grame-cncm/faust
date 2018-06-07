@@ -40,7 +40,8 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
+    defined(LLVM_39) || defined(LLVM_40)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>
@@ -64,7 +65,7 @@ using namespace clang::driver;
 //#include "scheduler_exp.h"
 
 // Helper functions
-bool linkModules(Module* dst, Module* src, char* error_msg);
+bool    linkModules(Module* dst, Module* src, char* error_msg);
 Module* loadModule(const string& module_name, llvm::LLVMContext* context);
 Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 
@@ -73,26 +74,28 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 ClangCodeContainer::ClangCodeContainer(const string& name, int numInputs, int numOutputs)
 {
     fOut = new ofstream(getTempName());
-   
+
     if (gGlobal->gFloatSize == 2) {
-        *fOut << "#define FAUSTFLOAT double" << "\n\n";
+        *fOut << "#define FAUSTFLOAT double"
+              << "\n\n";
     }
-    
+
     *fOut << ___architecture_faust_gui_CUI_h;
-    //fOut << ___architecture_scheduler_cpp;
+    // fOut << ___architecture_scheduler_cpp;
     *fOut << endl;
     *fOut << "#define max(a,b) ((a < b) ? b : a)" << endl;
-    *fOut << "#define min(a,b) ((a < b) ? a : b)" << "\n\n";
+    *fOut << "#define min(a,b) ((a < b) ? a : b)"
+          << "\n\n";
     printHeader(*fOut);
-  
+
     fContainer = CCodeContainer::createContainer(name, numInputs, numOutputs, fOut);
-    
+
     if (gGlobal->gVectorSwitch) {
         fCompiler = new DAGInstructionsCompiler(fContainer);
     } else {
         fCompiler = new InstructionsCompiler(fContainer);
     }
-    
+
     if (gGlobal->gPrintXMLSwitch) fCompiler->setDescription(new Description());
     if (gGlobal->gPrintDocSwitch) fCompiler->setDescription(new Description());
 }
@@ -107,41 +110,42 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Compile DSP and generate C code
     fCompiler->compileMultiSignal(signals);
     fContainer->produceClass();
-    
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
+    defined(LLVM_39) || defined(LLVM_40)
     // Compile it with 'clang'
-    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts = new DiagnosticOptions();
-    TextDiagnosticPrinter* DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
-    
+    IntrusiveRefCntPtr<DiagnosticOptions> DiagOpts   = new DiagnosticOptions();
+    TextDiagnosticPrinter*                DiagClient = new TextDiagnosticPrinter(llvm::errs(), &*DiagOpts);
+
     IntrusiveRefCntPtr<DiagnosticIDs> DiagID(new DiagnosticIDs());
-    DiagnosticsEngine Diags(DiagID, &*DiagOpts, DiagClient);
-    Driver TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
+    DiagnosticsEngine                 Diags(DiagID, &*DiagOpts, DiagClient);
+    Driver                            TheDriver("", llvm::sys::getProcessTriple(), "a.out", Diags);
     TheDriver.setTitle("clang interpreter");
-    
-    int argc = 2;
+
+    int         argc = 2;
     const char* argv[argc + 1];
-    argv[0] = "clang";
-    argv[1] = getTempName();
+    argv[0]    = "clang";
+    argv[1]    = getTempName();
     argv[argc] = 0;  // NULL terminated argv
     SmallVector<const char*, 16> Args(argv, argv + argc);
     Args.push_back("-fsyntax-only");
-    //Args.push_back("-O3");
+    // Args.push_back("-O3");
     Args.push_back("-ffast-math");
-      
+
     list<string>::iterator it;
     for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
         string path = "-I" + (*it);
         Args.push_back(strdup(path.c_str()));
     }
-    
+
     OwningPtr<Compilation> C(TheDriver.BuildCompilation(Args));
     if (!C) {
         return NULL;
     }
 
-    const driver::JobList &Jobs = C->getJobs();
+    const driver::JobList& Jobs = C->getJobs();
     if (Jobs.size() != 1 || !isa<driver::Command>(*Jobs.begin())) {
-        SmallString<256> Msg;
+        SmallString<256>          Msg;
         llvm::raw_svector_ostream OS(Msg);
         Jobs.Print(OS, "; ", true);
         Diags.Report(diag::err_fe_expected_compiler_job) << OS.str();
@@ -155,10 +159,10 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     }
 
     // Initialize a compiler invocation object from the clang (-cc1) arguments.
-    const driver::ArgStringList &CCArgs = Cmd->getArguments();
+    const driver::ArgStringList&  CCArgs = Cmd->getArguments();
     OwningPtr<CompilerInvocation> CI(new CompilerInvocation);
     CompilerInvocation::CreateFromArgs(*CI, const_cast<const char**>(CCArgs.data()),
-                                            const_cast<const char**>(CCArgs.data()) + CCArgs.size(), Diags);
+                                       const_cast<const char**>(CCArgs.data()) + CCArgs.size(), Diags);
 
     // Create a compiler instance to handle the actual work.
     CompilerInstance Clang;
@@ -169,7 +173,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     if (!Clang.hasDiagnostics()) {
         return NULL;
     }
-    
+
     CompilerInvocation::setLangDefaults(Clang.getLangOpts(), IK_CXX, LangStandard::lang_unspecified);
 
     // Create and execute the frontend to generate an LLVM bitcode module.
@@ -181,14 +185,14 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
     // Get the compiled LLVM module
     if (llvm::Module* Module = Act->takeModule()) {
         LLVMResult* result = static_cast<LLVMResult*>(calloc(1, sizeof(LLVMResult)));
-        result->fModule = Module;
-        result->fContext = Act->takeLLVMContext();
-        
+        result->fModule    = Module;
+        result->fContext   = Act->takeLLVMContext();
+
         // Link LLVM modules defined in 'ffunction'
-        set<string> S;
+        set<string>           S;
         set<string>::iterator f;
-        char error_msg[512];
-        
+        char                  error_msg[512];
+
         collectLibrary(S);
         if (S.size() > 0) {
             for (f = S.begin(); f != S.end(); f++) {
@@ -202,7 +206,7 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
                 }
             }
         }
-        
+
         // Possibly link with additional LLVM modules
         char error[256];
         if (!linkAllModules(result->fContext, result->fModule, error)) {
@@ -210,17 +214,17 @@ LLVMResult* ClangCodeContainer::produceModule(Tree signals, const string& filena
             llvm_error << "ERROR : " << error << endl;
             throw faustexception(llvm_error.str());
         }
-        
+
         // Keep source files pathnames
         result->fPathnameList = gGlobal->gReader.listSrcFiles();
-        
+
         // Possibly output file
         if (filename != "") {
-            std::string err;
+            std::string    err;
             raw_fd_ostream out(filename.c_str(), err, sysfs_binary_flag);
             WriteBitcodeToFile(result->fModule, out);
         }
-        
+
         return result;
     } else {
         return NULL;
@@ -235,4 +239,4 @@ CodeContainer* ClangCodeContainer::createContainer(const string& name, int numIn
     return new ClangCodeContainer(name, numInputs, numOutputs);
 }
 
-#endif // CLANG_BUILD
+#endif  // CLANG_BUILD

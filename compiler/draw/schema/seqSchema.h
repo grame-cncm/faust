@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,10 +22,7 @@
 #ifndef __SEQSCHEMA__
 #define __SEQSCHEMA__
 
-
 #include "schema.h"
-
-
 
 /**
  * Sequential composition. Place and connect two diagrams in sequence.
@@ -33,29 +30,24 @@
  * function instead.
  */
 
-class seqSchema : public schema
-{
-	schema*			fSchema1;
-	schema*			fSchema2;
-	double			fHorzGap;
+class seqSchema : public schema {
+    schema* fSchema1;
+    schema* fSchema2;
+    double  fHorzGap;
 
-  public:
+   public:
+    friend schema* makeSeqSchema(schema* s1, schema* s2);
 
-  	friend schema * makeSeqSchema (schema* s1, schema* s2);
+    virtual void  place(double ox, double oy, int orientation);
+    virtual void  draw(device& dev);
+    virtual point inputPoint(unsigned int i) const;
+    virtual point outputPoint(unsigned int i) const;
+    virtual void  collectTraits(collector& c);
 
-	virtual void 	place(double ox, double oy, int orientation);
-	virtual void 	draw(device& dev);
-	virtual point	inputPoint(unsigned int i)	const;
-	virtual point 	outputPoint(unsigned int i)	const;
-    virtual void    collectTraits(collector& c);
-
-  private:
- 	seqSchema (schema* s1, schema* s2, double hgap);
-    void    drawInternalWires(device& dev);
-    void    collectInternalWires(collector& c);
+   private:
+    seqSchema(schema* s1, schema* s2, double hgap);
+    void drawInternalWires(device& dev);
+    void collectInternalWires(collector& c);
 };
 
-
 #endif
-
-

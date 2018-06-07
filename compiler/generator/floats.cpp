@@ -19,9 +19,9 @@
  ************************************************************************
  ************************************************************************/
 
+#include <stdlib.h>
 #include <iostream>
 #include <sstream>
-#include <stdlib.h>
 
 #include "floats.hh"
 #include "global.hh"
@@ -34,20 +34,41 @@
 //          2: double precision float
 //          3: long double precision float
 
-const char* mathsuffix[4];    // suffix for math functions
-const char* numsuffix[4];     // suffix for numeric constants
-const char* floatname[4];     // float types
-const char* castname[4];      // float castings
-double floatmin[4];           // minimum float values before denormals
+const char* mathsuffix[4];  // suffix for math functions
+const char* numsuffix[4];   // suffix for numeric constants
+const char* floatname[4];   // float types
+const char* castname[4];    // float castings
+double      floatmin[4];    // minimum float values before denormals
 
-const char* isuffix() { return mathsuffix[gGlobal->gFloatSize]; }   ///< suffix for math functions
-const char* inumix() { return numsuffix[gGlobal->gFloatSize]; }     ///< suffix for numeric constants
-const char* ifloat() { return floatname[gGlobal->gFloatSize]; }
-const char* icast() { return castname[gGlobal->gFloatSize]; }
-double inummin() { return floatmin[gGlobal->gFloatSize]; }
+const char* isuffix()
+{
+    return mathsuffix[gGlobal->gFloatSize];
+}  ///< suffix for math functions
+const char* inumix()
+{
+    return numsuffix[gGlobal->gFloatSize];
+}  ///< suffix for numeric constants
+const char* ifloat()
+{
+    return floatname[gGlobal->gFloatSize];
+}
+const char* icast()
+{
+    return castname[gGlobal->gFloatSize];
+}
+double inummin()
+{
+    return floatmin[gGlobal->gFloatSize];
+}
 
-const char* xfloat() { return floatname[0]; }
-const char* xcast() { return castname[0]; }
+const char* xfloat()
+{
+    return floatname[0];
+}
+const char* xcast()
+{
+    return castname[0];
+}
 
 Typed::VarType itfloat()
 {

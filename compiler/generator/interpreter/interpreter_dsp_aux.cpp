@@ -19,16 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-#include "compatibility.hh"
 #include "interpreter_dsp_aux.hh"
-#include "dsp_aux.hh"
 #include "Text.hh"
+#include "compatibility.hh"
+#include "dsp_aux.hh"
 #include "libfaust.h"
 
 using namespace std;
 
 typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
-static dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
+static dsp_factory_table<SDsp_factory>                gInterpreterFactoryTable;
 
 // External API
 
@@ -39,60 +39,54 @@ EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string&
 
 //#ifndef INTERP_PLUGIN
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, 
-                                                                  int argc, const char* argv[], 
-                                                                  string& error_msg)
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
+                                                                    const char* argv[], string& error_msg)
 {
     string base = basename((char*)filename.c_str());
-    size_t pos = filename.find(".dsp");
-    
+    size_t pos  = filename.find(".dsp");
+
     if (pos != string::npos) {
-        return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
+        return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv,
+                                                     error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
-    } 
+    }
 }
 
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app,
-                                                                    const string& dsp_content,
-                                                                    int argc, const char* argv[], 
-                                                                    string& error_msg)
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const string& name_app, const string& dsp_content,
+                                                                      int argc, const char* argv[], string& error_msg)
 {
     string expanded_dsp_content, sha_key;
-    
+
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
         return NULL;
     } else {
-        
-        int argc1 = 0;
+        int         argc1 = 0;
         const char* argv1[32];
-        
+
         argv1[argc1++] = "faust";
         argv1[argc1++] = "-lang";
         argv1[argc1++] = "interp";
         argv1[argc1++] = "-o";
         argv1[argc1++] = "string";
-        
+
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
-        
+
         argv1[argc1] = 0;  // NULL terminated argv
-        
+
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory* factory = 0;
-        
+        interpreter_dsp_factory*                          factory = 0;
+
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
-        } else  {
-            dsp_factory_base* dsp_factory_aux = compileFaustFactory(argc1, argv1,
-                                                                    name_app.c_str(),
-                                                                    dsp_content.c_str(),
-                                                                    error_msg,
-                                                                    true);
+        } else {
+            dsp_factory_base* dsp_factory_aux =
+                compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
             if (dsp_factory_aux) {
                 dsp_factory_aux->setName(name_app);
                 factory = new interpreter_dsp_factory(dsp_factory_aux);
@@ -111,7 +105,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
-    return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory): false;
+    return (factory) ? gInterpreterFactoryTable.deleteDSPFactory(factory) : false;
 }
 
 EXPORT vector<string> getInterpreterDSPFactoryLibraryList(interpreter_dsp_factory* factory)
@@ -134,7 +128,7 @@ EXPORT void deleteAllInterpreterDSPFactories()
 EXPORT interpreter_dsp::~interpreter_dsp()
 {
     gInterpreterFactoryTable.removeDSP(fFactory, this);
-    
+
     if (fFactory->getMemoryManager()) {
         fDSP->~interpreter_dsp_base();
         fFactory->getMemoryManager()->destroy(fDSP);
@@ -167,21 +161,21 @@ static std::string read_real_type(std::istream* in)
 {
     std::string type_line;
     getline(*in, type_line);
-    
-    std::stringstream  type_reader(type_line);
-    std::string dummy, type;
-    type_reader >> dummy;   // Read "interpreter_dsp_factory" token
+
+    std::stringstream type_reader(type_line);
+    std::string       dummy, type;
+    type_reader >> dummy;  // Read "interpreter_dsp_factory" token
     type_reader >> type;
-    
+
     return type;
 }
 
 static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::istream* in)
 {
     try {
-        std::string type = read_real_type(in);
+        std::string              type    = read_real_type(in);
         interpreter_dsp_factory* factory = 0;
-        
+
         if (type == "float") {
             factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, 0>::read(in));
         } else if (type == "double") {
@@ -189,7 +183,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
         } else {
             faustassert(false);
         }
-        
+
         gInterpreterFactoryTable.setFactory(factory);
         return factory;
     } catch (faustexception& e) {
@@ -214,10 +208,10 @@ EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* facto
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& machine_code_path)
 {
     string base = basename((char*)machine_code_path.c_str());
-    size_t pos = machine_code_path.find(".fbc");
-    
+    size_t pos  = machine_code_path.find(".fbc");
+
     if (pos != string::npos) {
-        //ifstream reader(machine_code_path);
+        // ifstream reader(machine_code_path);
         ifstream reader(machine_code_path.c_str());
         if (reader.is_open()) {
             return readInterpreterDSPFactoryFromMachineAux(&reader);
@@ -297,4 +291,3 @@ EXPORT void interpreter_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT**
 {
     fDSP->compute(count, input, output);
 }
-

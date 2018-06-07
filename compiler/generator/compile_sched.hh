@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef _COMPILE_SCHED_
 #define _COMPILE_SCHED_
 
@@ -31,24 +31,19 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-class SchedulerCompiler : public VectorCompiler
-{
+class SchedulerCompiler : public VectorCompiler {
+   public:
+    SchedulerCompiler(const string& name, const string& super, int numInputs, int numOutputs)
+        : VectorCompiler(name, super, numInputs, numOutputs)
+    {
+    }
 
-    public:
+    SchedulerCompiler(Klass* k) : VectorCompiler(k) {}
+    virtual void compileMultiSignal(Tree L);
 
-        SchedulerCompiler(const string& name, const string& super, int numInputs, int numOutputs)
-            : VectorCompiler(name,super,numInputs,numOutputs)
-            {}
-        
-        SchedulerCompiler (Klass* k) : VectorCompiler(k)
-        {}
-        virtual void compileMultiSignal (Tree L);
-        
-    protected:
-        
-        virtual void vectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
-        virtual void dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs);
-
+   protected:
+    virtual void vectorLoop(const string& tname, const string& dlname, const string& cexp, const string& ccs);
+    virtual void dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp, const string& ccs);
 };
 
 #endif

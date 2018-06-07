@@ -23,70 +23,58 @@
 #define _INTERPRETER_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "fir_to_fir.hh"
+#include "instructions_compiler.hh"
 #include "interpreter_dsp_aux.hh"
 #include "interpreter_instructions.hh"
-#include "instructions_compiler.hh"
-#include "fir_to_fir.hh"
 
-using namespace std;           
+using namespace std;
 
 template <class T>
 class InterpreterCodeContainer : public virtual CodeContainer {
+   protected:
+    static InterpreterInstVisitor<T>* gInterpreterVisitor;
 
-    protected:
+    FIRMetaBlockInstruction* produceMetadata(string& name);
 
-        static InterpreterInstVisitor<T>* gInterpreterVisitor;
-    
-        FIRMetaBlockInstruction* produceMetadata(string& name);
-    
-        virtual void generateSR()
-        {
-            if (!fGeneratedSR) {
-                pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
-            }
+    virtual void generateSR()
+    {
+        if (!fGeneratedSR) {
+            pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
         }
+    }
 
-    public:
+   public:
+    InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
 
-        InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
-    
-        virtual ~InterpreterCodeContainer()
-        {}
+    virtual ~InterpreterCodeContainer() {}
 
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
-    
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
 };
 
 template <class T>
 class InterpreterScalarCodeContainer : public InterpreterCodeContainer<T> {
+   protected:
+   public:
+    InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
+    virtual ~InterpreterScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
-        virtual ~InterpreterScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
+   public:
+    InterpreterInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container) {}
 
-    public:
-    
-        InterpreterInstructionsCompiler(CodeContainer* container):InstructionsCompiler(container)
-        {}
-    
-        StatementInst* generateShiftArray(const string& vname, int delay)
-        {
-            return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
-        }
+    StatementInst* generateShiftArray(const string& vname, int delay)
+    {
+        return InstBuilder::genShiftArrayVarInst(InstBuilder::genNamedAddress(vname, Address::kStruct), delay);
+    }
 };
 
 #endif

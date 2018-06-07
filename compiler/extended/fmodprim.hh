@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,82 +21,78 @@
 
 #include <math.h>
 
-#include "xtended.hh"
 #include "Text.hh"
 #include "floats.hh"
+#include "xtended.hh"
 
-class FmodPrim : public xtended
-{
+class FmodPrim : public xtended {
+   public:
+    FmodPrim() : xtended("fmod") {}
 
- public:
+    virtual unsigned int arity() { return 2; }
 
- 	FmodPrim() : xtended("fmod") {}
+    virtual bool needCache() { return true; }
 
-	virtual unsigned int arity() { return 2; }
-
-	virtual bool needCache() { return true; }
-
-	virtual ::Type infereSigType(const vector< ::Type>& args)
-	{
-		faustassert(args.size() == arity());
+    virtual ::Type infereSigType(const vector< ::Type>& args)
+    {
+        faustassert(args.size() == arity());
         interval i = args[0]->getInterval();
         interval j = args[1]->getInterval();
 
         if (j.haszero()) {
             // potential division by zero
-            //std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
+            // std::cerr << "potential division by zero in fmod(" << i << ", " << j << ")" << std::endl;
         }
-        
-		return castInterval(floatCast(args[0]|args[1]), fmod(i,j));
-	}
 
-	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
+        return castInterval(floatCast(args[0] | args[1]), fmod(i, j));
+    }
 
-	virtual int infereSigOrder(const vector<int>& args)
-    {
-		faustassert(args.size() == arity());
-		return max(args[0], args[1]);
-	}
+    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual Tree computeSigOutput(const vector<Tree>& args)
-    {
-		num n, m;
-		faustassert(args.size() == arity());
-		if (isNum(args[0],n) && isNum(args[1],m)) {
-			return tree(fmod(double(n), double(m)));
-		} else {
-			return tree(symbol(), args[0], args[1]);
-		}
-	}
-
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const& types)
+    virtual int infereSigOrder(const vector<int>& args)
     {
         faustassert(args.size() == arity());
-		faustassert(types.size() == arity());
-        
-        Typed::VarType result_type;
-        vector<Typed::VarType> arg_types;
-        list<ValueInst*> casted_args;
-        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
-     
-        return container->pushFunction(subst("fmod$0", isuffix()), result_type, arg_types, casted_args);
+        return max(args[0], args[1]);
     }
-    
-    virtual string old_generateCode (Klass* klass, const vector<string>& args, const vector<Type>& types)
+
+    virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
+        num n, m;
+        faustassert(args.size() == arity());
+        if (isNum(args[0], n) && isNum(args[1], m)) {
+            return tree(fmod(double(n), double(m)));
+        } else {
+            return tree(symbol(), args[0], args[1]);
+        }
+    }
+
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-        
+
+        Typed::VarType         result_type;
+        vector<Typed::VarType> arg_types;
+        list<ValueInst*>       casted_args;
+        prepareTypeArgsResult(result, args, types, result_type, arg_types, casted_args);
+
+        return container->pushFunction(subst("fmod$0", isuffix()), result_type, arg_types, casted_args);
+    }
+
+    virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
+
         return subst("fmod$2($0,$1)", args[0], args[1], isuffix());
     }
 
-	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
-	{
-		faustassert(args.size() == arity());
-		faustassert(types.size() == arity());
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
 
-		return subst("$0\\pmod{$1}", args[0], args[1]);
-	}
-
+        return subst("$0\\pmod{$1}", args[0], args[1]);
+    }
 };
-

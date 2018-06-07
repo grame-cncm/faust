@@ -25,29 +25,24 @@
 #include "code_container.hh"
 
 class VectorCodeContainer : public virtual CodeContainer {
+   private:
+    void moveStack2Struct();
 
-    private:
+    BlockInst* generateDAGLoopVariant0(const string& counter);
+    BlockInst* generateDAGLoopVariant1(const string& counter);
 
-        void moveStack2Struct();
-        
-        BlockInst* generateDAGLoopVariant0(const string& counter);
-        BlockInst* generateDAGLoopVariant1(const string& counter);
-        
-        void processFIR(void);
-        BlockInst* flattenFIR(void);
+    void       processFIR(void);
+    BlockInst* flattenFIR(void);
 
-    protected:
+   protected:
+    BlockInst* fDAGBlock;
 
-        BlockInst* fDAGBlock;
-
-    public:
-
-        VectorCodeContainer(int numInputs, int numOutputs)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "count";
-        }
-
+   public:
+    VectorCodeContainer(int numInputs, int numOutputs)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fFullCount = "count";
+    }
 };
 
 #endif

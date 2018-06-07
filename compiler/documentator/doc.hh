@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -24,52 +24,49 @@
 
 /*****************************************************************************
 ******************************************************************************
-							FAUST DOCUMENTATOR
-						K. Barkati & Y. Orlarey, (c) Grame 2009
+                            FAUST DOCUMENTATOR
+                        K. Barkati & Y. Orlarey, (c) Grame 2009
 ------------------------------------------------------------------------------
 
  History :
  ---------
- 	2009-07-19 : First version
+    2009-07-19 : First version
 
 ******************************************************************************
 *****************************************************************************/
 
-#include "tlib.hh"
 #include "eval.hh"
+#include "tlib.hh"
 
 /*****************************************************************************
 ******************************************************************************
 
-							    The Documentator
+                                The Documentator
 
 ******************************************************************************
 *****************************************************************************/
 
-
-
-
 /*****************************************************************************
-							  Doc Types Creation & Test
+                              Doc Types Creation & Test
 *****************************************************************************/
 
-Tree docTxt   (const char*);
-Tree docEqn   (Tree x);
-Tree docDgm	  (Tree x);
-Tree docNtc	  ();
-Tree docLst	  ();
-Tree docMtd	  (Tree x);
+Tree docTxt(const char*);
+Tree docEqn(Tree x);
+Tree docDgm(Tree x);
+Tree docNtc();
+Tree docLst();
+Tree docMtd(Tree x);
 
-bool isDocTxt	(Tree t);
-bool isDocTxt	(Tree t, const char**);
-bool isDocEqn	(Tree t, Tree& x);
-bool isDocDgm	(Tree t, Tree& x);
-bool isDocNtc	(Tree t);
-bool isDocLst	(Tree t);
-bool isDocMtd	(Tree t);
+bool isDocTxt(Tree t);
+bool isDocTxt(Tree t, const char**);
+bool isDocEqn(Tree t, Tree& x);
+bool isDocDgm(Tree t, Tree& x);
+bool isDocNtc(Tree t);
+bool isDocLst(Tree t);
+bool isDocMtd(Tree t);
 
 /*****************************************************************************
-							  Printing Public Function
+                              Printing Public Function
 *****************************************************************************/
 
 void printDoc(const char* projname, const char* docdev, const char* faustversion);

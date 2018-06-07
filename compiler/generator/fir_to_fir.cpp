@@ -32,17 +32,17 @@ bool sortArrayDeclarations(StatementInst* a, StatementInst* b)
 {
     DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
     DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
-      
+
     if (inst1) {
         ArrayTyped* array_typed1 = dynamic_cast<ArrayTyped*>(inst1->fType);
         if (array_typed1) {
             if (inst2) {
                 ArrayTyped* array_typed2 = dynamic_cast<ArrayTyped*>(inst2->fType);
                 if (array_typed2) {
-                    return (array_typed1->fSize == array_typed2->fSize) 
-                            ? (intptr_t)array_typed1 > (intptr_t)array_typed1
-                            : array_typed1->fSize > array_typed2->fSize;
-                } 
+                    return (array_typed1->fSize == array_typed2->fSize)
+                               ? (intptr_t)array_typed1 > (intptr_t)array_typed1
+                               : array_typed1->fSize > array_typed2->fSize;
+                }
             }
             return true;
         } else {
@@ -64,11 +64,10 @@ bool sortTypeDeclarations(StatementInst* a, StatementInst* b)
 {
     DeclareVarInst* inst1 = dynamic_cast<DeclareVarInst*>(a);
     DeclareVarInst* inst2 = dynamic_cast<DeclareVarInst*>(b);
-    
+
     if (inst1 && inst2) {
         return (inst1->fType->getType() == Typed::kInt32) || (inst1->fType->getType() == Typed::kInt32_ptr);
     } else {
         return false;
     }
 }
-

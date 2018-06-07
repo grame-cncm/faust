@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,28 +20,29 @@
  ************************************************************************/
 
 #include "loopDetector.hh"
-#include "ppbox.hh"
 #include "exception.hh"
+#include "ppbox.hh"
 
 bool loopDetector::detect(Tree t)
 {
     fPhase++;
-    int w = fPhase%fBuffersize;
+    int w      = fPhase % fBuffersize;
     fBuffer[w] = t;
-    if ((fPhase%fCheckperiod) == 0) {
+    if ((fPhase % fCheckperiod) == 0) {
         // time to check for a cycle
-        for (int i=1; i<fBuffersize; i++) {
-            int r = w-i; if (r < 0) { r += fBuffersize; }
-            faustassert(r>=0);
-            faustassert(r<fBuffersize);
+        for (int i = 1; i < fBuffersize; i++) {
+            int r = w - i;
+            if (r < 0) {
+                r += fBuffersize;
+            }
+            faustassert(r >= 0);
+            faustassert(r < fBuffersize);
             faustassert(r != w);
             if (fBuffer[r] == t) {
                 stringstream error;
-                error << "ERROR : after "
-                    << fPhase
-                    << " evaluation steps, the compiler has detected an endless evaluation cycle of "
-                    << i
-                    << " steps\n";
+                error << "ERROR : after " << fPhase
+                      << " evaluation steps, the compiler has detected an endless evaluation cycle of " << i
+                      << " steps\n";
                 throw faustexception(error.str());
             }
         }

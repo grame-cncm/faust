@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #include "files.hh"
 #include "compatibility.hh"
-#include "global.hh"
 #include "exception.hh"
+#include "global.hh"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,50 +40,50 @@ using namespace std;
 /**
  *Switch back to the previously stored current directory
  */
- 
-int	cholddir()
+
+int cholddir()
 {
     if (chdir(gGlobal->gCurrentDir.c_str()) == 0) {
-		return 0;
-	} else {
-	    stringstream error;
+        return 0;
+    } else {
+        stringstream error;
         error << "ERROR : cholddir : " << strerror(errno) << std::endl;
         throw faustexception(error.str());
-	}
+    }
 }
 
 /**
  * Create a new directory in the current one to store the diagrams.
  * The current directory is saved to be later restored.
  */
- 
+
 int mkchdir(string dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
-		int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname.c_str()) == 0) {
-				return 0;
-			}
-		}
-	}
-    
+        int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (status == 0 || errno == EEXIST) {
+            if (chdir(dirname.c_str()) == 0) {
+                return 0;
+            }
+        }
+    }
+
     stringstream error;
     error << "ERROR : mkchdir : " << strerror(errno) << std::endl;
     throw faustexception(error.str());
 }
 
-int	makedir(string dirname)
+int makedir(string dirname)
 {
     getCurrentDir();
     if (gGlobal->gCurrentDir != "") {
-		int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			return 0;
-		}
-	}
-    
+        int status = faust_mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (status == 0 || errno == EEXIST) {
+            return 0;
+        }
+    }
+
     stringstream error;
     error << "ERROR : makedir : " << strerror(errno) << std::endl;
     throw faustexception(error.str());
@@ -91,8 +91,7 @@ int	makedir(string dirname)
 
 void getCurrentDir()
 {
-    char buffer[FAUST_PATH_MAX];
-    char* current_dir = getcwd(buffer, FAUST_PATH_MAX);
+    char  buffer[FAUST_PATH_MAX];
+    char* current_dir    = getcwd(buffer, FAUST_PATH_MAX);
     gGlobal->gCurrentDir = (current_dir) ? current_dir : "";
 }
-

@@ -18,14 +18,14 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef _UITREE_
 #define _UITREE_
 
 #include <string>
 
-#include "tlib.hh"
 #include "global.hh"
+#include "tlib.hh"
 
 Tree uiFolder(Tree label, Tree elements = gGlobal->nil);
 Tree uiWidget(Tree label, Tree varname, Tree sig);
@@ -35,7 +35,10 @@ bool isUiFolder(Tree t, Tree& label, Tree& elements);
 
 bool isUiWidget(Tree t, Tree& label, Tree& varname, Tree& sig);
 
-inline Tree uiLabel(Tree t)	{ return t->branch(0); }
+inline Tree uiLabel(Tree t)
+{
+    return t->branch(0);
+}
 
 Tree putSubFolder(Tree folder, Tree path, Tree item);
 
@@ -43,4 +46,3 @@ std::string ptrToHex(Tree ptr);
 std::string checkNullLabel(Tree t, const std::string& label, bool bargraph = false);
 
 #endif
-
