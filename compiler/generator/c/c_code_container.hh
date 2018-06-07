@@ -34,36 +34,34 @@
 #endif
 
 
-using namespace std;
-
 class CCodeContainer : public virtual CodeContainer {
 
     protected:
 
         CInstVisitor fCodeProducer;
         std::ostream* fOut;
-        
+
         void produceMetadata(int tabs);
 
     public:
 
-        CCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+        CCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out)
             : fCodeProducer(out, name), fOut(out)
         {
             initializeCodeContainer(numInputs, numOutputs);
             fKlassName = name;
-            
+
             // For mathematical functions
             if (gGlobal->gFastMath) {
                 addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\"" : ("\"" + gGlobal->gFastMathLib + "\""));
             } else {
                 addIncludeFile("<math.h>");
             }
-            
+
             // For malloc/free
             addIncludeFile("<stdlib.h>");
         }
-    
+
         virtual ~CCodeContainer()
         {}
 
@@ -71,25 +69,25 @@ class CCodeContainer : public virtual CodeContainer {
         virtual void generateCompute(int tab) = 0;
         void produceInternal();
         virtual dsp_factory_base* produceFactory();
-    
+
         virtual void printHeader()
         {
             CodeContainer::printHeader(*fOut);
-            
+
             tab(0, *fOut); *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
             tab(0, *fOut); *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
         }
-    
+
         virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
-    
+
         virtual void printFooter()
         {
             tab(0, *fOut); *fOut << "#endif"<< std::endl;
         }
 
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+        CodeContainer* createScalarContainer(const std::string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
+        static CodeContainer* createContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* dst = new std::stringstream());
 
 };
 
@@ -99,7 +97,7 @@ class CScalarCodeContainer : public CCodeContainer {
 
     public:
 
-        CScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
+        CScalarCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
         virtual ~CScalarCodeContainer();
 
         void generateCompute(int tab);
@@ -112,7 +110,7 @@ class CVectorCodeContainer : public VectorCodeContainer, public CCodeContainer {
 
     public:
 
-        CVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        CVectorCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CVectorCodeContainer();
 
         void generateCompute(int n);
@@ -125,7 +123,7 @@ class COpenMPCodeContainer : public OpenMPCodeContainer, public CCodeContainer {
 
     public:
 
-        COpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out);
+        COpenMPCodeContainer(const std::string& name,int numInputs, int numOutputs, std::ostream* out);
         virtual ~COpenMPCodeContainer();
 
         void generateCompute(int tab);
@@ -138,7 +136,7 @@ class CWorkStealingCodeContainer : public WSSCodeContainer, public CCodeContaine
 
     public:
 
-        CWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+        CWorkStealingCodeContainer(const std::string& name, int numInputs, int numOutputs, std::ostream* out);
         virtual ~CWorkStealingCodeContainer();
 
         void generateCompute(int tab);

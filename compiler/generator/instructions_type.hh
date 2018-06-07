@@ -22,6 +22,11 @@
 #ifndef _INSTRUCTIONS_TYPE_H
 #define _INSTRUCTIONS_TYPE_H
 
+
+#include "garbageable.hh"
+#include <string>
+
+
 // ============================
 // Base class for instructions
 // ============================
@@ -60,16 +65,16 @@ struct Typed : public Printable
                 kUint_ptr,
                 kNoType
     };
-    
-    static string gTypeString[];
-    
+
+    static std::string gTypeString[];
+
     static void init();
 
     Typed()
     {}
 
     virtual VarType getType() = 0;
-    
+
     static int getSizeOf(VarType type)
     {
         switch (type) {
@@ -80,12 +85,12 @@ struct Typed : public Printable
                 return 8;
             default:
                 // Not supposed to happen
-                cerr << "getSizeOf " << type << endl;
+                std::cerr << "getSizeOf " << type << std::endl;
                 faustassert(false);
                 return -1;
         }
     }
-  
+
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
     {
@@ -124,7 +129,7 @@ struct Typed : public Printable
                 return kSound_ptr;
             default:
                 // Not supposed to happen
-                cerr << "getPtrFromType " << type << endl;
+                std::cerr << "getPtrFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -144,7 +149,7 @@ struct Typed : public Printable
                 return kBool_vec;
             default:
                 // Not supposed to happen
-                cerr << "getVecFromType " << type << endl;
+                std::cerr << "getVecFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -188,7 +193,7 @@ struct Typed : public Printable
                 return kSound;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
+                std::cerr << "getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -208,12 +213,12 @@ struct Typed : public Printable
                 return kBool;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
+                std::cerr << "getTypeFromVec " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
     }
-    
+
     virtual int getSize() = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;

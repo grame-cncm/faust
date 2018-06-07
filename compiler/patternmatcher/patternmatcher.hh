@@ -18,11 +18,10 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef __PATTERNMATCHER__
 #define __PATTERNMATCHER__
 
-using namespace std;
 #include <vector>
 #include "tlib.hh"
 
@@ -42,6 +41,6 @@ int apply_pattern_matcher(Automaton *A,	// automaton
                         int s,          // start state
                         Tree X,         // arg to be matched
                         Tree& C,        // output closure (if any)
-                        vector<Tree>& E);	// modified output environments
+                        std::vector<Tree>& E);	// modified output environments
 
 #endif

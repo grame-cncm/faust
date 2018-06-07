@@ -22,20 +22,22 @@
 #ifndef _C_INSTRUCTIONS_H
 #define _C_INSTRUCTIONS_H
 
-using namespace std;
-
+#include <string>
 #include "text_instructions.hh"
 
+using namespace std;
+
+
 class CInstVisitor : public TextInstVisitor {
-    
+
     private:
-    
+
         /*
          Global functions names table as a static variable in the visitor
          so that each function prototype is generated as most once in the module.
          */
         static map <string, bool> gFunctionSymbolTable;
-    
+
     public:
 		using TextInstVisitor::visit;
 
@@ -44,13 +46,13 @@ class CInstVisitor : public TextInstVisitor {
         {
             fTypeManager->fTypeDirectTable[Typed::kObj] = structname;
             fTypeManager->fTypeDirectTable[Typed::kObj_ptr] = structname + "*";
-            
+
             // Mark all math.h functions as generated...
             gFunctionSymbolTable["abs"] = true;
-            
+
             gFunctionSymbolTable["max"] = true;
             gFunctionSymbolTable["min"] = true;
-            
+
             // Float version
             gFunctionSymbolTable["absf"] = true;
             gFunctionSymbolTable["fabsf"] = true;
@@ -72,7 +74,7 @@ class CInstVisitor : public TextInstVisitor {
             gFunctionSymbolTable["sinf"] = true;
             gFunctionSymbolTable["sqrtf"] = true;
             gFunctionSymbolTable["tanf"] = true;
-            
+
             // Double version
             gFunctionSymbolTable["abs"] = true;
             gFunctionSymbolTable["fabs"] = true;
@@ -133,9 +135,9 @@ class CInstVisitor : public TextInstVisitor {
         {
             string name;
             if (inst->fType == AddButtonInst::kDefaultButton) {
-                name = "ui_interface->addButton("; 
+                name = "ui_interface->addButton(";
             } else {
-                name = "ui_interface->addCheckButton("; 
+                name = "ui_interface->addCheckButton(";
             }
             *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) << ", &dsp->" << inst->fZone << ")";
             EndLine();
@@ -170,13 +172,13 @@ class CInstVisitor : public TextInstVisitor {
                 case AddBargraphInst::kVertical:
                     name = "ui_interface->addVerticalBargraph("; break;
             }
-            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel) 
+            *fOut << name << "ui_interface->uiInterface, " << quote(inst->fLabel)
             << ", &dsp->" << inst->fZone
             << ", " << checkReal(inst->fMin)
-            << ", " << checkReal(inst->fMax) << ")";          
+            << ", " << checkReal(inst->fMax) << ")";
             EndLine();
         }
-    
+
         virtual void visit(AddSoundfileInst* inst)
         {
             *fOut << "ui_interface->addSoundFile(ui_interface->uiInterface, " << quote(inst->fLabel)
@@ -197,7 +199,7 @@ class CInstVisitor : public TextInstVisitor {
 
             *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
             if (inst->fValue) {
-                *fOut << " = "; inst->fValue->accept(this); 
+                *fOut << " = "; inst->fValue->accept(this);
             }
             EndLine();
         }
@@ -210,17 +212,17 @@ class CInstVisitor : public TextInstVisitor {
             } else {
                 gFunctionSymbolTable[inst->fName] = true;
             }
-            
+
             // Defined as macro in the architecture file...
             if (checkMinMax(inst->fName)) {
                 return;
             }
-      
+
             // Prototype
             if (inst->fType->fAttribute & FunTyped::kInline) {
                 *fOut << "inline ";
             }
-            
+
             if (inst->fType->fAttribute & FunTyped::kLocal
                 || inst->fType->fAttribute & FunTyped::kStatic) {
                 *fOut << "static ";
@@ -230,26 +232,26 @@ class CInstVisitor : public TextInstVisitor {
             generateFunDefArgs(inst);
             generateFunDefBody(inst);
         }
-        
+
         virtual void visit(NamedAddress* named)
-        {   
+        {
             if (named->getAccess() & Address::kStruct) {
                 *fOut << "dsp->";
             }
             *fOut << named->fName;
         }
-      
+
         virtual void visit(LoadVarAddressInst* inst)
         {
             *fOut << "&"; inst->fAddress->accept(this);
         }
-  
+
         virtual void visit(::CastInst* inst)
         {
             *fOut << "(" << fTypeManager->generateType(inst->fType) << ")";
             inst->fInst->accept(this);
         }
-    
+
         // TODO : does not work, put this code in a function
         virtual void visit(BitcastInst* inst)
         {
@@ -284,19 +286,19 @@ class CInstVisitor : public TextInstVisitor {
             } else {
                 name = inst->fName;
             }
-            
+
             *fOut << gGlobal->getMathFunction(name) << "(";
-           
+
             // Compile parameters
             generateFunCallArgs(inst->fArgs.begin(), inst->fArgs.end(), inst->fArgs.size());
             *fOut << ")";
         }
-        
+
         virtual void visit(ForLoopInst* inst)
         {
             // Don't generate empty loops...
             if (inst->fCode->size() == 0) return;
-            
+
             DeclareVarInst* c99_declare_inst = dynamic_cast<DeclareVarInst*>(inst->fInit);
             StoreVarInst* c99_init_inst = NULL;
 
@@ -343,7 +345,7 @@ class CInstVisitor : public TextInstVisitor {
                 tab(fTab, *fOut);
              }
         }
-        
+
         static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 
