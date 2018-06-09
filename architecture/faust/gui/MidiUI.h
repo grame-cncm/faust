@@ -29,6 +29,7 @@
 #include <utility>
 #include <iostream>
 #include <cstdlib>
+#include <cmath>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -303,12 +304,12 @@ class uiMidiPitchWheel : public uiMidiItem
 		// currently, the range is of pitchwheel if fixed (-2/2 semitones)
         FAUSTFLOAT wheel2bend(float v)
         {
-            return pow(2.0,(v/16383.0*4-2)/12);
+            return std::pow(2.0,(v/16383.0*4-2)/12);
         }
 
         int bend2wheel(float v)
         {
-            return (int)((12*log(v)/log(2.0)+2)/4*16383);
+            return (int)((12*std::log(v)/std::log(2.0)+2)/4*16383);
         }
  
     public:

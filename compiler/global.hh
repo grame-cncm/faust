@@ -158,7 +158,7 @@ struct global {
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     string gFastMathLib;           // The fastmath code mapping file
-    map<string, string> gFastMathLibTable;  // Mapping table for fastmtah functions
+    map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
 
     dsp_factory_base* gDSPFactory;
 

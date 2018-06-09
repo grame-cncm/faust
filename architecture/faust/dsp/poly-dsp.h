@@ -26,13 +26,13 @@
 
 #include <stdio.h>
 #include <string>
-#include <math.h>
-#include <float.h>
+#include <cmath>
 #include <algorithm>
 #include <ostream>
 #include <sstream>
 #include <vector>
 #include <limits.h>
+#include <float.h>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/MapUI.h"
@@ -59,7 +59,7 @@ static inline bool endsWith(std::string const& str, std::string const& end)
 
 static inline double midiToFreq(double note)
 {
-    return 440.0 * pow(2.0, (note-69.0)/12.0);
+    return 440.0 * std::pow(2.0, (note-69.0)/12.0);
 }
 
 /**

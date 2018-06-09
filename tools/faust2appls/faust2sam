@@ -79,7 +79,7 @@ createAPI ()
     sed -e 's/std::cerr/\/\/std::cerr/' \
 	    -e 's/std::cout/\/\/std::cout/' \
 	    #-e 's/atoi(/std::atoi(/'
-	    -e 's/pow(/std::pow(/' \
+	    #-e 's/pow(/std::pow(/' 
 	    #-e 's/strtod(/std::strtod(/'
 	    #-e 's/log(2)/log(2.0)/'
 	    -e 's/getCPULoad(void/faustGetCPULoad(void/' \
