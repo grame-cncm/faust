@@ -33,6 +33,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <cstdlib>
 
 #include "faust/gui/UI.h"
 
@@ -235,7 +236,7 @@ public:
 					exit(1);
 				}
 				char* end;
-				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
+                *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
 				i++;
 			} else {
 				fFiles.push_back(fArgv[i]);
@@ -267,7 +268,7 @@ public:
 					exit(1);
 				}
 				char* end;
-				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
+                *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
 				i++;
 			}
 		}

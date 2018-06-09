@@ -41,7 +41,6 @@ struct MemoryDesc {
 /*
  Compute all fields addresses and DSP structure size
  */
-
 struct StructMemoryInstVisitor : public DispatchVisitor {
     int                     fStructOffset;  // Keep the offset in bytes of the structure
     map<string, MemoryDesc> fFieldTable;    // Table : field_name, { offset, size, type }

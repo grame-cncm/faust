@@ -53,7 +53,7 @@ class PathBuilder
                 res += "/";
             }
             res += label;
-            replace(res.begin(), res.end(), ' ', '_');
+            std::replace(res.begin(), res.end(), ' ', '_');
             return res;
         }
     

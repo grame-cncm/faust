@@ -28,6 +28,7 @@
 #include <string>
 #include <utility>
 #include <iostream>
+#include <cstdlib>
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
@@ -78,7 +79,7 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
         MidiMeta meta;
         tmp_dsp->metadata(&meta);
         std::string numVoices = meta.get("nvoices", "0");
-        nvoices = atoi(numVoices.c_str());
+        nvoices = std::atoi(numVoices.c_str());
         if (nvoices < 0) nvoices = 0;
     #endif
     }
@@ -307,7 +308,7 @@ class uiMidiPitchWheel : public uiMidiItem
 
         int bend2wheel(float v)
         {
-            return (int)((12*log(v)/log(2)+2)/4*16383);
+            return (int)((12*log(v)/log(2.0)+2)/4*16383);
         }
  
     public:
