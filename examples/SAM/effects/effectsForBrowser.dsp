@@ -8,8 +8,6 @@ process = _,_ : +
 	: component_chorus
 	: component_freeverb;
 
-import("stdfaust.lib");
-
 component_echo = environment {
 
 echo_group(x) = x; // Let layout2.dsp lay us out
