@@ -84,12 +84,14 @@ int main(int argc, char *argv[])
     char rcfilename[256];
     char* home = getenv("HOME");
 
-    int	celt = lopt(argv, "--celt", -1);
+    int celt = lopt(argv, "--c", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
-    int mtu = lopt(argv, "--m", DEFAULT_MTU);
+    int mtu = lopt(argv, "--M", DEFAULT_MTU);
     int latency = lopt(argv, "--l", 2);
-
+    int midi_in = lopt(argv, "--i", 0);
+    int midi_out = lopt(argv, "--o", 0);
+  
     snprintf(appname, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
@@ -108,7 +110,7 @@ int main(int argc, char *argv[])
     DSP.buildUserInterface(httpdinterface);
  #endif
 
-    netjackaudio audio(celt, master_ip, master_port, mtu, latency);
+    netjackaudio audio(celt, master_ip, master_port, mtu, latency, midi_in, midi_out);
     if (!audio.init(appname, &DSP)) {
         return 0;
     }
