@@ -44,6 +44,10 @@
 #include "faust/gui/GUI.h"
 #include "faust/audio/netjack-dsp.h"
 
+#ifdef MIDICTRL
+#include "faust/gui/MidiUI.h"
+#endif
+
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #endif
@@ -106,7 +110,7 @@ int main(int argc, char *argv[])
 #ifdef HTTPCTRL
     httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
     DSP.buildUserInterface(httpdinterface);
- #endif
+#endif
 
     netjackaudio_midicontrol audio(celt, master_ip, master_port, mtu, latency);
     if (!audio.init(appname, &DSP)) {
@@ -116,6 +120,12 @@ int main(int argc, char *argv[])
     if (!audio.start()) {
         return 0;
     }
+    
+#ifdef MIDICTRL
+    MidiUI* midiinterface = new MidiUI(&audio);
+    DSP.buildUserInterface(midiinterface);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
     httpdinterface->run();
@@ -124,10 +134,21 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
     oscinterface->run();
 #endif
+    
+#ifdef MIDICTRL
+    if (!midiinterface->run()) {
+        std::cerr << "MidiUI run error\n";
+    }
+#endif
+    
     interface->run();
 
     audio.stop();
     finterface->saveState(rcfilename);
+    
+#ifdef MIDICTRL
+    midiinterface->stop();
+#endif
     
     // desallocation
     delete interface;
@@ -137,6 +158,10 @@ int main(int argc, char *argv[])
 #endif
 #ifdef OSCCTRL
 	 delete oscinterface;
+#endif
+    
+#ifdef MIDICTRL
+    delete midiinterface;
 #endif
 
     return 0;

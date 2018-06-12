@@ -12,10 +12,20 @@ CXXFLAGS=$MYGCCFLAGS
 #
 
 for p in $@; do
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2netjackconsole [-httpd] [-midi] [-osc] <file.dsp>"
+        echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        exit
+    fi
     if [ $p = "-osc" ]; then
 	 	OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
 	 	HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -30,7 +40,7 @@ done
 #
 for f in $FILES; do
     faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp || exit
-    $CXX $CXXFLAGS $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet -ljack $OSCDEFS $HTTPDEFS -o  ${f%.dsp} || exit
+    $CXX $CXXFLAGS $f.cpp $FAUSTTOOLSFLAGS -I/usr/local/include -L/usr/local/lib -ljacknet -ljack $OSCDEFS $HTTPDEFS $MIDIDEFS -o ${f%.dsp} || exit
     rm $f.cpp
 
     # collect binary file name for FaustGIDE
