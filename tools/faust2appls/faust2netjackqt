@@ -13,7 +13,7 @@
 CXXFLAGS=$MYCXXFLAGS
 
 ARCHFILE="netjack-qt.cpp"
-ARCHLIB="-L/usr/local/lib -ljacknet"
+ARCHLIB="-L/usr/local/lib -ljacknet -ljack"
 
 #-------------------------------------------------------------------------------
 # Search for qmake or qmake-qt4
