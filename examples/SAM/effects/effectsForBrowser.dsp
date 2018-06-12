@@ -58,10 +58,10 @@ warp = warpRaw : t60smoother(dEchoT60);
 dTapSamplesRaw = dEchoSamplesRaw * (1.0 + warp + scrubPhase * scrubAmp) + float(counter);
 dTapSamples = dTapSamplesRaw : t60smoother(dEchoT60*(1-triggerScrubOff));
 
-process = _ <: _, amp * echo_mono(dmax,dEchoSamples,dTapSamples,fb,fbspr(fbs),gi) : +;
+echo_process = _ <: _, amp * echo_mono(dmax,dEchoSamples,dTapSamples,fb,fbspr(fbs),gi) : +;
 
 
-}.process;
+}.echo_process;
 
 component_flanger = environment {
 
@@ -73,7 +73,7 @@ flanger_mono(dmax,curdel,depth,fb,invert,lfoshape)
 : + : *(1/(1+depth));           // ideal for dc and reinforced sinusoids (in-phase summed signals)
 
 
-process = ba.bypass1(fbp,flanger_mono_gui);
+flanger_process = ba.bypass1(fbp,flanger_mono_gui);
 
 // Kill the groups to save vertical space:
 meter_group(x) = flsg(x);
@@ -110,13 +110,13 @@ invert = flsg(vslider("[1] Invert [midi:ctrl 49][style:knob]",0,0,1,1):int);
 
 
 
-}.process;
+}.flanger_process;
 
 component_chorus = environment {
 
 
 voices = 8; // MUST BE EVEN
-process = bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
+chorus_process = bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
 
 // to become ba.bypass1to2 in Faust's basics.lib:
 bypass1to2(bpc,e) = _ <: ((inswitch:e),_,_) : ba.select2stereo(bpc) with {inswitch = select2(bpc,_,0);};
@@ -185,7 +185,7 @@ oscp(rates(i),i*2*pi/voices);
 };
 
 
-}.process;
+}.chorus_process;
 
 component_freeverb = environment {
 
@@ -303,10 +303,10 @@ rbp = 1-int(rsg(vslider("[0] Enable [midi:ctrl 104][style:knob]",0,0,1,1)));
 //JOS:freeverb = fxctrl(fixedgain, wetSlider, stereoReverb(combfeed, allpassfeed, dampSlider, stereospread));
 freeverb = fxctrl(fixedgain, wetSlider, monoReverbToStereo(combfeed, allpassfeed, dampSlider, stereospread));
 
-process = ba.bypass2(rbp,freeverb);
+freeverb_process = ba.bypass2(rbp,freeverb);
 
 
-}.process;
+}.freeverb_process;
 
 
 // This layout loosely follows the MiniMoog-V
