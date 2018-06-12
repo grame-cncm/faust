@@ -355,7 +355,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
         string target_suffix = "-elf";
 #else
-    string        target_suffix = "";
+        string target_suffix = "";
 #endif
 
         string triple, cpu;
@@ -411,10 +411,9 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
             TargetLibraryInfo* tli = new TargetLibraryInfo(Triple(fModule->getTargetTriple()));
             pm.add(tli);
 #else
-        TargetLibraryInfoImpl TLII(Triple(fModule->getTargetTriple()));
-        pm.add(new TargetLibraryInfoWrapperPass(TLII));
+            TargetLibraryInfoImpl TLII(Triple(fModule->getTargetTriple()));
+            pm.add(new TargetLibraryInfoWrapperPass(TLII));
 #endif
-
             fModule->setDataLayout(fJIT->getDataLayout());
 
             // Add internal analysis passes from the target machine (mandatory for vectorization to work)
@@ -423,7 +422,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 #if defined(LLVM_35)
             tm->addAnalysisPasses(pm);
 #else
-        pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
+            pm.add(createTargetTransformInfoWrapperPass(tm->getTargetIRAnalysis()));
 #endif
 
             if (fOptLevel > 0) {
@@ -669,11 +668,9 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         LLVMContext* context = new LLVMContext();
         SMDiagnostic err;
 #if defined(LLVM_35)
-        Module* module =
-            ParseIR(buffer, err, *context);  // ParseIR takes ownership of the given buffer, so don't delete it
+        Module* module = ParseIR(buffer, err, *context);  // ParseIR takes ownership of the given buffer, so don't delete it
 #else
-        Module* module = parseIR(buffer, err, *context)
-                             .release();  // parseIR takes ownership of the given buffer, so don't delete it
+        Module* module = parseIR(buffer, err, *context).release();  // parseIR takes ownership of the given buffer, so don't delete it
 #endif
         if (!module) return nullptr;
 

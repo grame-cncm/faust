@@ -73,7 +73,8 @@ echo "Compiling with :" $OPTIONS
 #
 
 if [ $POLY = "true" ]; then
-
+    echo "The mixer32.wasm code is copied"
+    cp $FAUSTLIB/webaudio/mixer32.wasm .
     if [ $EMCC = "true" ]; then
         echo "Compiled with 'emcc' in polyphonic mode"
         CODE_WRAPPER1=webaudio-asm-poly.cpp
