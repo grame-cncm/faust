@@ -127,7 +127,6 @@ for p in $FILES; do
     mkdir "$TMP"
 
     # compile faust to c++
-    
     if [ $POLY = "POLY2" ]; then
         if [ $EFFECT = "auto" ]; then
             cat > $TMP/effect.dsp << EndOfCode
