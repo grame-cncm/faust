@@ -36,7 +36,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-debug] [-deploy] <file.dsp>"
+        echo "faust2caqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset] [-debug] [-deploy] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -45,17 +45,18 @@ do
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI or OSC"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
+        echo "Use '-preset' to add a preset manager on top of GUI"
         echo "Use '-debug' to print all the build steps"
         echo "Use '-deploy' to create a self-contained application using 'macdeployqt'"
         exit
     fi
 
     if [ "$p" = -debug ]; then
-    	DEBUG=true
+        DEBUG=true
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
     elif [ "$p" = -icc ]; then
-    	ignore=" "
+        ignore=" "
     elif [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
@@ -74,19 +75,21 @@ do
         SOUNDFILEDEFS="DEFINES += SOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
     elif [ $p = "-osc" ]; then
-		 OSCDEFS="DEFINES += OSCCTRL"
-		 OSCLIBS="-lOSCFaust"
-	elif [ "$p" = "-httpd" ]; then
-		HTTPDEFS="DEFINES += HTTPCTRL"
-		HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
-	elif [ "$p" = "-qrcode" ]; then # requires -httpd
-		QRDEFS="DEFINES += QRCODECTRL"
+         OSCDEFS="DEFINES += OSCCTRL"
+         OSCLIBS="-lOSCFaust"
+    elif [ "$p" = "-httpd" ]; then
+        HTTPDEFS="DEFINES += HTTPCTRL"
+        HTTPLIBS="-lHTTPDFaust -lmicrohttpd"
+    elif [ "$p" = "-preset" ]; then
+        PRESETDEFS="DEFINES += PRESETUI"
+    elif [ "$p" = "-qrcode" ]; then # requires -httpd
+        QRDEFS="DEFINES += QRCODECTRL"
     elif [ ${p:0:1} = "-" ]; then
-	    OPTIONS="$OPTIONS $p"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"        
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
 	fi
 
 shift
@@ -153,7 +156,7 @@ EndOfCode
     # compile c++ to binary
     (
 	    cd "$TMP"
-	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS"
+	    qmake -project "QT += widgets printsupport network" "CONFIG+=warn_off" "$CLANGOPT" "INCLUDEPATH+=$CUR" "INCLUDEPATH+=$FAUSTINC /opt/local/include" "QMAKE_CXXFLAGS= $CXXFLAGS -Wno-unused-parameter $FAUSTTOOLSFLAGS" "LIBS+=$ARCHLIB $SOUNDFILELIBS $OSCLIBS $HTTPLIBS" "HEADERS+=$FAUSTINC/faust/gui/faustqt.h" "RESOURCES+= $FAUSTINC/faust/gui/Styles/Grey.qrc" "$OSCDEFS" "$HTTPDEFS" "$QRDEFS" "$POLYDEFS" "$MIDIDEFS" "$SOUNDFILEDEFS" "$PRESETDEFS"
 	    qmake $SPEC
         make
     ) > /dev/null || exit
