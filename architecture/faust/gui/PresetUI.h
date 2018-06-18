@@ -26,6 +26,7 @@
 
 #include <string>
 #include <iostream>
+#include <sstream>
 #include <stdio.h>
 
 #include "faust/gui/DecoratorUI.h"
@@ -54,6 +55,7 @@ class PresetUI : public DecoratorUI
         FAUSTFLOAT fSave;
         FUI fFileUI;
         LoaderUI fLoaderUI;
+        std::string fRootFolder;
     
         static void load(FAUSTFLOAT val, void* arg)
         {
@@ -73,8 +75,8 @@ class PresetUI : public DecoratorUI
         {
             if (fGroupCount++ == 0) {
                 fUI->openVerticalBox("Presets");
-                fUI->openHorizontalBox("Loader");
-                fUI->addNumEntry("Num", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
+                fUI->openHorizontalBox("Manager");
+                fUI->addNumEntry("Preset number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Save", &fSave);
                 fUI->addButton("Load", &fLoad);
                 fUI->closeBox();
@@ -83,13 +85,14 @@ class PresetUI : public DecoratorUI
     
     public:
     
-        PresetUI(UI* ui):
+        PresetUI(UI* ui, const std::string& root_folfer):
             DecoratorUI(ui),
             fGroupCount(0),
             fPreset(FAUSTFLOAT(0)),
             fSave(FAUSTFLOAT(0)),
             fLoad(FAUSTFLOAT(0)),
-            fLoaderUI(this)
+            fLoaderUI(this),
+            fRootFolder(root_folfer)
         {}
     
         virtual ~PresetUI()
@@ -97,16 +100,16 @@ class PresetUI : public DecoratorUI
     
         virtual void saveState()
         {
-            char buffer[32];
-            snprintf(buffer, 32, "faust_preset%d", int(fPreset));
-            fFileUI.saveState(buffer);
+            std::stringstream str;
+            str << fRootFolder << "_preset" << int(fPreset);
+            fFileUI.saveState(str.str().c_str());
         }
     
         virtual void loadState()
         {
-            char buffer[32];
-            snprintf(buffer, 32, "faust_preset%d", int(fPreset));
-            fFileUI.recallState(buffer);
+            std::stringstream str;
+            str << fRootFolder << "_preset" << int(fPreset);
+            fFileUI.recallState(str.str().c_str());
         }
     
         // -- widget's layouts

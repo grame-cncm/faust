@@ -36,6 +36,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <string>
 #include <list>
 
 #include "faust/dsp/proxy-dsp.h"
@@ -322,7 +323,7 @@ int main(int argc, char *argv[])
     QTGUI* interface = new QTGUI();
     
 #ifdef PRESETUI
-    PresetUI* pinterface = new PresetUI(interface);
+    PresetUI* pinterface = new PresetUI(interface, "/var/tmp/" + std::string(name));
     DSP->buildUserInterface(pinterface);
 #else
     DSP->buildUserInterface(interface);
