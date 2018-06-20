@@ -74,12 +74,16 @@ class FUI : public UI, public PathBuilder
             std::ofstream file(filename);
             std::map<std::string, FAUSTFLOAT*>::iterator it;
             
-            for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
-                file << *(*it).second << ' ' << (*it).first << std::endl;
-            }
+            if (file.is_open()) {
+                for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
+                    file << *(*it).second << ' ' << (*it).first << std::endl;
+                }
 
-            file << std::endl;
-            file.close();
+                file << std::endl;
+                file.close();
+            } else {
+                 std::cout << "Error opening " << filename << " file";
+            }
         }
 
         // recall the zones values and full names
@@ -88,18 +92,22 @@ class FUI : public UI, public PathBuilder
             std::ifstream file(filename);
             FAUSTFLOAT value;
             std::string path1, path2;
-            while (file.good()) {
-                file >> value >> path1;
-                path2 = "/" + path1;
-                if (fName2Zone.count(path1) > 0) {          // Old path system
-                    *(fName2Zone[path1]) = value;
-                } else if (fName2Zone.count(path2) > 0) {   // New path system with the starting '/'
-                    *(fName2Zone[path2]) = value;
-                } else if (path1.size() > 0) {
-                    std::cerr << "recallState : parameter not found : " << path1 << " with value : " << value << std::endl;
+            if (file.is_open()) {
+                while (file.good()) {
+                    file >> value >> path1;
+                    path2 = "/" + path1;
+                    if (fName2Zone.count(path1) > 0) {          // Old path system
+                        *(fName2Zone[path1]) = value;
+                    } else if (fName2Zone.count(path2) > 0) {   // New path system with the starting '/'
+                        *(fName2Zone[path2]) = value;
+                    } else if (path1.size() > 0) {
+                        std::cerr << "recallState : parameter not found : " << path1 << " with value : " << value << std::endl;
+                    }
                 }
+                file.close();
+            } else {
+                std::cout << "Error opening " << filename << " file";
             }
-            file.close();
         }
 
         void setButtons(bool state)
