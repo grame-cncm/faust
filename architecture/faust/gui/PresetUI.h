@@ -76,8 +76,8 @@ class PresetUI : public DecoratorUI
             if (fGroupCount++ == 0) {
                 fUI->openVerticalBox("Presets");
                 fUI->openHorizontalBox("Manager");
-                fUI->addNumEntry("Preset number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Save", &fSave);
+                fUI->addNumEntry("Preset number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Load", &fLoad);
                 fUI->closeBox();
             }

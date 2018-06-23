@@ -627,11 +627,7 @@ void CodeContainer::produceInfoFunctions(int tabs, const string& classname, cons
 
 void CodeContainer::generateDAGLoopInternal(CodeLoop* loop, BlockInst* block, DeclareVarInst* count, bool omp)
 {
-    if (gGlobal->gVecLoopSize > 0 && !loop->fIsRecursive) {
-        loop->generateDAGVectorLoop(block, count, omp, gGlobal->gVecLoopSize);
-    } else {
-        loop->generateDAGScalarLoop(block, count, omp);
-    }
+    loop->generateDAGScalarLoop(block, count, omp);
 }
 
 void CodeContainer::generateDAGLoopAux(CodeLoop* loop, BlockInst* loop_code, DeclareVarInst* count, int loop_num,

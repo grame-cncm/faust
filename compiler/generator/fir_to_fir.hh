@@ -44,6 +44,14 @@ inline void dump2FIR(ValueInst* value, std::ostream* out = &cerr)
     *out << "\n========== dump2FIR value end ==========" << std::endl;
 }
 
+inline void dump2FIR(Address* address, std::ostream* out = &cerr)
+{
+    *out << "========== dump2FIR " << address << " address begin ========== " << std::endl;
+    FIRInstVisitor fir_visitor(out);
+    address->accept(&fir_visitor);
+    *out << "\n========== dump2FIR address end ==========" << std::endl;
+}
+
 bool sortArrayDeclarations(StatementInst* a, StatementInst* b);
 bool sortTypeDeclarations(StatementInst* a, StatementInst* b);
 

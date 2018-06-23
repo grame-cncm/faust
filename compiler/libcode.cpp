@@ -397,10 +397,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVectorSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-vls", "--vec-loop-size") && (i + 1 < argc)) {
-            gGlobal->gVecLoopSize = atoi(argv[i + 1]);
-            i += 2;
-
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
             gGlobal->gVectorSwitch = false;
             i += 1;
@@ -635,13 +631,6 @@ static bool processCmdline(int argc, const char* argv[])
         throw faustexception(error.str());
     }
 
-    if (gGlobal->gVecLoopSize > gGlobal->gVecSize) {
-        stringstream error;
-        error << "ERROR : invalid vector loop size [-vls = " << gGlobal->gVecLoopSize
-              << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
-        throw faustexception(error.str());
-    }
-
     if (gGlobal->gFastMath) {
         if (!(gGlobal->gOutputLang == "c" || gGlobal->gOutputLang == "cpp" || gGlobal->gOutputLang == "llvm" ||
               startWith(gGlobal->gOutputLang, "wast") || startWith(gGlobal->gOutputLang, "wasm"))) {
@@ -715,7 +704,6 @@ static void printHelp()
             "file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
-    cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";

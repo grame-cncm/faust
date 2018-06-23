@@ -363,7 +363,7 @@ DeclareFunInst* InstBuilder::genFunction6(const string& name, Typed::VarType res
 
 void ScalVecDispatcherVisitor::Dispatch2Visitor(ValueInst* inst)
 {
-    printf("Dispatch2Visitor %d\n", inst->fSize);
+    std::cout << "Dispatch2Visitor %d\n";
     fScalarVisitor->visit(inst);
 
     /*

@@ -93,6 +93,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fNumOutputs = numOutputs;
     fInputRates.resize(numInputs);
     fOutputRates.resize(numOutputs);
+    
+    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
+    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
@@ -118,6 +121,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #endif
 
     fAllocaBuilder = new IRBuilder<>(getContext());
+    
+    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
+    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -192,8 +198,6 @@ void LLVMCodeContainer::generateFillBegin(const string& counter)
     Value* arg4 = GET_ITERATOR(llvm_fill_args_it++);
     arg4->setName("output");
 
-    // llvm_fill->dump();
-
     // Add a first block
     fBuilder->SetInsertPoint(BasicBlock::Create(getContext(), "entry_block", llvm_fill));
 }
@@ -210,7 +214,6 @@ void LLVMCodeContainer::generateFillEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_fill->dump();
     verifyFunction(*llvm_fill);
     fBuilder->ClearInsertionPoint();
 }
@@ -265,7 +268,6 @@ void LLVMCodeContainer::generateComputeEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_compute->dump();
     verifyFunction(*llvm_compute);
     fBuilder->ClearInsertionPoint();
     fAllocaBuilder->ClearInsertionPoint();
@@ -347,7 +349,6 @@ void LLVMCodeContainer::generateClassInitEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_classInit->dump();
     verifyFunction(*llvm_classInit);
     fBuilder->ClearInsertionPoint();
 }
@@ -387,7 +388,6 @@ void LLVMCodeContainer::generateInstanceInitEnd(const string& funname)
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_instanceInit->dump();
     verifyFunction(*llvm_instanceInit);
     fBuilder->ClearInsertionPoint();
 }
@@ -424,7 +424,6 @@ void LLVMCodeContainer::generateInstanceClearEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_instanceClear->dump();
     verifyFunction(*llvm_instanceClear);
     fBuilder->ClearInsertionPoint();
 }
@@ -461,7 +460,6 @@ void LLVMCodeContainer::generateInstanceResetUserInterfaceEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_instanceResetUserInterface->dump();
     verifyFunction(*llvm_instanceResetUserInterface);
     fBuilder->ClearInsertionPoint();
 }
@@ -487,7 +485,6 @@ void LLVMCodeContainer::generateDestroyEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_destroy->dump();
     verifyFunction(*llvm_destroy);
     fBuilder->ClearInsertionPoint();
 }
@@ -513,7 +510,6 @@ void LLVMCodeContainer::generateAllocateEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_allocate->dump();
     verifyFunction(*llvm_allocate);
     fBuilder->ClearInsertionPoint();
 }
@@ -783,7 +779,7 @@ void LLVMCodeContainer::produceInternal()
     string counter = "count";
     generateFillBegin(counter);
 
-    // dumpLLVM(fModule);
+    //dumpLLVM(fModule);
 
     generateComputeBlock(fCodeProducer);
 
@@ -1231,7 +1227,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadEnd()
         fBuilder->CreateBr(return_block);
     }
 
-    // llvm_computethread->dump();
     verifyFunction(*llvm_computethread);
     fBuilder->ClearInsertionPoint();
 }
@@ -1265,7 +1260,6 @@ void LLVMWorkStealingCodeContainer::generateComputeThreadExternal()
     call_inst->setCallingConv(CallingConv::C);
     fBuilder->CreateRetVoid();
 
-    // llvm_computethread->dump();
     verifyFunction(*llvm_computethread);
     fBuilder->ClearInsertionPoint();
 }

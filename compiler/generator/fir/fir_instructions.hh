@@ -399,11 +399,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(LoadVarInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "LoadVarInstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "LoadVarInst(";
-        }
+        *fOut << "LoadVarInst(";
         generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ")";
@@ -411,11 +407,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(LoadVarAddressInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "LoadVarAddressInstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "LoadVarAddressInst(";
-        }
+        *fOut << "LoadVarAddressInst(";
         generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ")";
@@ -423,11 +415,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(StoreVarInst* inst)
     {
-        if (inst->fValue->fSize > 1) {
-            *fOut << "StoreVarInstVec<" << inst->fValue->fSize << ">(";
-        } else {
-            *fOut << "StoreVarInst(";
-        }
+        *fOut << "StoreVarInst(";
         generateAccess(inst->fAddress);
         inst->fAddress->accept(this);
         *fOut << ", ";
@@ -438,11 +426,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(FloatNumInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "FloatVec<" << inst->fSize << ">(" << checkFloat(inst->fNum) << ")";
-        } else {
-            *fOut << "Float(" << checkFloat(inst->fNum) << ")";
-        }
+        *fOut << "Float(" << checkFloat(inst->fNum) << ")";
     }
 
     virtual void visit(FloatArrayNumInst* inst)
@@ -457,20 +441,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(Int32NumInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "Int32Vec<" << inst->fSize << ">(" << inst->fNum << ")";
-        } else {
-            *fOut << "Int32(" << inst->fNum << ")";
-        }
+        *fOut << "Int32(" << inst->fNum << ")";
     }
 
     virtual void visit(Int64NumInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "Int64Vec<" << inst->fSize << ">(" << inst->fNum << ")";
-        } else {
-            *fOut << "Int64(" << inst->fNum << ")";
-        }
+        *fOut << "Int64(" << inst->fNum << ")";
     }
 
     virtual void visit(Int32ArrayNumInst* inst)
@@ -485,20 +461,12 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(BoolNumInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "BoolVec<" << inst->fSize << ">(" << inst->fNum << ")";
-        } else {
-            *fOut << "Bool(" << inst->fNum << ")";
-        }
+        *fOut << "Bool(" << inst->fNum << ")";
     }
 
     virtual void visit(DoubleNumInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "DoubleVec<" << inst->fSize << ">(" << checkDouble(inst->fNum) << ")";
-        } else {
-            *fOut << "Double(" << checkDouble(inst->fNum) << ")";
-        }
+        *fOut << "Double(" << checkDouble(inst->fNum) << ")";
     }
 
     virtual void visit(DoubleArrayNumInst* inst)
@@ -513,11 +481,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(BinopInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "BinopInstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "BinopInst(";
-        }
+        *fOut << "BinopInst(";
         *fOut << "\"";
         *fOut << gBinOpTable[inst->fOpcode]->fName;
         *fOut << "\"";
@@ -532,11 +496,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(::CastInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "CastInstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "CastInst(";
-        }
+        *fOut << "CastInst(";
         *fOut << generateType(inst->fType);
         *fOut << ", ";
         inst->fInst->accept(this);
@@ -545,11 +505,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(BitcastInst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "BitcastInstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "Bitcast(";
-        }
+        *fOut << "Bitcast(";
         *fOut << generateType(inst->fType);
         *fOut << ", ";
         inst->fInst->accept(this);
@@ -558,14 +514,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(FunCallInst* inst)
     {
-        if (inst->fSize > 1) {
-            string fun_name = (inst->fMethod) ? "MethodFunCallInstVec<" : "FunCallInstVec<";
-            *fOut << fun_name << inst->fSize << ">(";
-        } else {
-            string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
-            *fOut << fun_name;
-        }
-
+        string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
+        *fOut << fun_name;
+     
         *fOut << "\"" << inst->fName << "\"";
         list<ValueInst*>::const_iterator it;
 
@@ -581,11 +532,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(Select2Inst* inst)
     {
-        if (inst->fSize > 1) {
-            *fOut << "Select2InstVec<" << inst->fSize << ">(";
-        } else {
-            *fOut << "Select2Inst(";
-        }
+        *fOut << "Select2Inst(";
         inst->fCond->accept(this);
         *fOut << " ";
         inst->fThen->accept(this);

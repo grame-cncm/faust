@@ -126,8 +126,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
-    gVecLoopSize       = 0;
-
+ 
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
     gSchedulerSwitch = false;
