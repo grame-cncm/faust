@@ -210,7 +210,8 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
 
 llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&                   sha_key,
                                                            const std::vector<std::string>& pathname_list,
-                                                           Module* module, LLVMContext* context, const string& target,
+                                                           Module* module, LLVMContext* context,
+                                                           const string& target,
                                                            int opt_level)
     : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", pathname_list)
 {
@@ -233,7 +234,9 @@ llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&        
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& FPM, unsigned OptLevel,
+static void AddOptimizationPasses(PassManagerBase& MPM,
+                                  FUNCTION_PASS_MANAGER& FPM,
+                                  unsigned OptLevel,
                                   unsigned SizeLevel)
 {
     FPM.add(createVerifierPass());  // Verify that input is correct
@@ -500,8 +503,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
 // Public C++ API
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                  const string& target, string& error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
+                                                  int argc,
+                                                  const char* argv[],
+                                                  const string& target,
+                                                  string& error_msg,
+                                                  int opt_level)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
@@ -588,7 +595,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 // Bitcode <==> string
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -633,7 +640,7 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     if (error_code ec = buffer.getError()) {
         std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
@@ -655,7 +662,7 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -721,7 +728,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-
     if (factory) {
         factory->writeDSPFactoryToIRFile(ir_code_path);
     }
@@ -733,7 +739,8 @@ EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& 
     return factory->writeDSPFactoryToMachine(target);
 }
 
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory,
+                                         const string& machine_code_path,
                                          const string& target)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
@@ -817,8 +824,12 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 
 // Public C interface : lock management is done by called C++ API
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
-                                                   const char* target, char* error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
+                                                   int argc,
+                                                   const char* argv[],
+                                                   const char* target,
+                                                   char* error_msg,
+                                                   int opt_level)
 {
     string            error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
@@ -826,8 +837,12 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                     const char* argv[], const char* target, char* error_msg,
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
+                                                     const char* dsp_content,
+                                                     int argc,
+                                                     const char* argv[],
+                                                     const char* target,
+                                                     char* error_msg,
                                                      int opt_level)
 {
     string            error_msg_aux;

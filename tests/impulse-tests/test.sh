@@ -210,14 +210,14 @@ if [ $BACKEND = "llvm" ] || [ $BACKEND = "all" ]; then
     echo "=============================================================================="
     check faust2impulse4 -double
     check faust2impulse4 -double -fm def -L fastmath.bc
-	check faust2impulse4bis -inpl -double
-	check faust2impulse4 -double -ftz 1
-	check faust2impulse4 -double -ftz 2
-	check faust2impulse4 -double -vec -lv 0
-	check faust2impulse4 -double -vec -lv 1
-	check faust2impulse4 -double -vec -lv 1 -vs 200
-	check faust2impulse4 -double -vec -lv 1 -g 
-	check faust2impulse4 -double -vec -lv 1 -g -fun 
+    check faust2impulse4bis -inpl -double
+    check faust2impulse4 -double -ftz 1
+    check faust2impulse4 -double -ftz 2
+    check faust2impulse4 -double -vec -lv 0
+    check faust2impulse4 -double -vec -lv 1
+    check faust2impulse4 -double -vec -lv 1 -vs 200
+    check faust2impulse4 -double -vec -lv 1 -g 
+    check faust2impulse4 -double -vec -lv 1 -g -fun 
 fi
 
 if [ $BACKEND = "ajs" ] || [ $BACKEND = "all" ]; then

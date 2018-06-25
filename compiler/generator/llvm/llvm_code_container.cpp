@@ -36,20 +36,13 @@ using namespace std;
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
 
-#if defined(LLVM_35)
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#else
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-#endif
-
 // Helper functions
 bool      linkModules(Module* dst, ModulePTR src, char* error_msg);
 ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
 Module*   linkAllModules(llvm::LLVMContext* context, Module* dst, char* error);
 
 list<string> LLVMInstVisitor::gMathLibTable;
+MAP_OF_TYPES LLVMTypeHelper::fTypeMap;
 
 CodeContainer* LLVMCodeContainer::createScalarContainer(const string& name, int sub_container_type)
 {
@@ -95,7 +88,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fOutputRates.resize(numOutputs);
     
     // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
-    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+    pushGlobalDeclare(InstBuilder::genDecExtGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr), InstBuilder::genTypedZero(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
@@ -123,7 +116,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fAllocaBuilder = new IRBuilder<>(getContext());
     
     // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
-    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
+    pushGlobalDeclare(InstBuilder::genDecExtGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr), InstBuilder::genTypedZero(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -708,7 +701,7 @@ void LLVMCodeContainer::generateGetSize(LLVMValue size)
 {
     VECTOR_OF_TYPES llvm_getSize_args;
     FunctionType*   llvm_getSize_type =
-        FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
+        FunctionType::get(fBuilder->getInt64Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
     Function* llvm_getSize =
         Function::Create(llvm_getSize_type, GlobalValue::ExternalLinkage, "getSize" + fKlassName, fModule);
 

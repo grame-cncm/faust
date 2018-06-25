@@ -74,10 +74,9 @@ class PresetUI : public DecoratorUI
         void checkOpenFirstBox(const char* label)
         {
             if (fGroupCount++ == 0) {
-                fUI->openVerticalBox("Presets");
-                fUI->openHorizontalBox("Manager");
+                fUI->openHorizontalBox("Preset manager");
                 fUI->addButton("Save", &fSave);
-                fUI->addNumEntry("Preset number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
+                fUI->addNumEntry("Number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Load", &fLoad);
                 fUI->closeBox();
             }
@@ -133,9 +132,7 @@ class PresetUI : public DecoratorUI
         }
         virtual void closeBox()
         {
-            if (--fGroupCount == 0) {
-                fUI->closeBox();
-            }
+            fGroupCount--;
             fUI->closeBox();
             fFileUI.closeBox();
         }

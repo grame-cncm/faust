@@ -41,12 +41,16 @@
 
 #define MIN_CHAN(a,b) ((a) < (b) ? (a) : (b))
 
+#define PRE_PACKED_STRUCTURE
+#define POST_PACKED_STRUCTURE __attribute__((__packed__))
+
+PRE_PACKED_STRUCTURE
 struct Soundfile {
     
+    FAUSTFLOAT** fBuffers;
     int fLength;
     int fSampleRate;
     int fChannels;
-    FAUSTFLOAT** fBuffers;
     
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
     
@@ -132,7 +136,7 @@ struct Soundfile {
             for (int chan = fChannels; chan < max_chan; chan++) {
                 fBuffers[chan] = fBuffers[chan % snd_info.channels];
             }
-      
+       
             sf_close(snd_file);
             
         } else {
@@ -159,7 +163,7 @@ struct Soundfile {
         }
     }
     
-    virtual ~Soundfile()
+    ~Soundfile()
     {
         // Free the real channels only
         for (int chan = 0; chan < fChannels; chan++) {
@@ -168,6 +172,6 @@ struct Soundfile {
         delete [] fBuffers;
     }
     
-};
+} POST_PACKED_STRUCTURE;
 
 #endif

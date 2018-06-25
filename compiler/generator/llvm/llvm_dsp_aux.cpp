@@ -84,11 +84,11 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
     void* fun = (void*)fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
+    } else {
+        stringstream error;
+        error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
+        throw faustexception(error.str());
     }
-
-    stringstream error;
-    error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
-    throw faustexception(error.str());
 }
 
 bool llvm_dsp_factory_aux::crossCompile(const string& target)

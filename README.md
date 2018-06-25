@@ -48,11 +48,11 @@ This is an overview of the content of the top-level folders of the Faust distrib
 
 ## Libraries
 
-Faust libraries are now in a separated subproject [located here](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main Faust repository using the following commands:
+Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main Faust repository using the following commands:
 
     git submodule update --remote --merge
     git add libraries
-    git commit -m "project updated to the latest version of the libraries"
+    git commit -m "Project updated to the latest version of the libraries"
     git push
 
 ## Compilation and Installation

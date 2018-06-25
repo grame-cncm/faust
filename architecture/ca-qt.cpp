@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
     QTGUI* interface = new QTGUI();
     
 #ifdef PRESETUI
-    PresetUI* pinterface = new PresetUI(interface, std::string(PRESETDIR) + std::string(name));
+    PresetUI* pinterface = new PresetUI(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
     DSP->buildUserInterface(pinterface);
 #else
     DSP->buildUserInterface(interface);

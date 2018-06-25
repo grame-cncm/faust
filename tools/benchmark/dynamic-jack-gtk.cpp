@@ -47,6 +47,7 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SoundUI.h"
 
 #include "faust/misc.h"
 
@@ -183,6 +184,9 @@ int main(int argc, char* argv[])
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
+    
+    SoundUI* soundinterface = new SoundUI();
+    DSP->buildUserInterface(soundinterface);
    
     if (!audio.init(filename, DSP)) {
         return 0;
@@ -236,6 +240,7 @@ int main(int argc, char* argv[])
     delete midiinterface;
     delete httpdinterface;
     delete oscinterface;
+    delete soundinterface;
   
 #ifdef INTERP_PLUGIN
     deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
