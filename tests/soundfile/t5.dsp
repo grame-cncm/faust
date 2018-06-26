@@ -36,7 +36,8 @@ so_loop_rate_speed(s, speed, volume) = float(speed*srate(s))/ma.SR : (+,length(s
 	
 speed = hslider("speed", 1, 0, 4, 0.01);
 
-process = so_loop_rate(soundfile("tango.flac",1), speed),so_loop_rate(soundfile("levot.flac",1), speed) : dm.freeverb_demo;
+//process = so_loop_rate(soundfile("tango.flac",1), speed),so_loop_rate(soundfile("levot.flac",1), speed) : dm.freeverb_demo;
+process = so_loop_rate(soundfile("tango.flac",1), speed),so_loop_rate(soundfile("levot.flac",1), speed);
 
 //process = so_loop_rate(soundfile("tango.wav",1), speed),so_loop_rate(soundfile("levot.wav",1), speed);
 

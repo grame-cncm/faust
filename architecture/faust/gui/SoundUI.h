@@ -35,7 +35,7 @@
 #include "faust/gui/soundfile.h"
 
 // To be used by dsp code if no SoundUI is used or when soundfile is not found
-static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+extern "C" Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
 
 class SoundUI : public GenericUI
 {

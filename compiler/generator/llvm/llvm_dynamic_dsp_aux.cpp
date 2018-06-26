@@ -491,6 +491,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fCompute            = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetSampleSize      = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
+        fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
+     
+        // Set the default sound
+        fSetDefaultSound(llvm_defaultsound);
+        
         endTiming("initJIT");
         return true;
     } catch (

@@ -131,7 +131,7 @@
 					"style" : "",
 					"text" : "faustgen~",
 					"varname" : "faustgen-482b0c0",
-					"version" : "1.20"
+					"version" : "1.23"
 				}
 
 			}

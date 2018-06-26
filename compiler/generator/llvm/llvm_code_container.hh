@@ -98,7 +98,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     void generateBuildUserInterfaceEnd();
 
     void generateGetSize(LLVMValue size);
-
+  
     LLVMContext& getContext();
 
     // To be used for mathematical function mapping (-fm and exp10 on OSX)

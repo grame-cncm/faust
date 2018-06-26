@@ -1393,7 +1393,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-
+   
     BlockInst* block = InstBuilder::genBlockInst();
     block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
 
@@ -1439,7 +1439,6 @@ ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* 
 
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
 {
-    
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 

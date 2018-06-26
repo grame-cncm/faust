@@ -187,11 +187,11 @@ int main(int argc, char* argv[])
     
     SoundUI* soundinterface = new SoundUI();
     DSP->buildUserInterface(soundinterface);
-   
+    
     if (!audio.init(filename, DSP)) {
         return 0;
     }
-
+  
     // After audio.init that calls 'init'
     finterface->recallState(rcfilename);
     

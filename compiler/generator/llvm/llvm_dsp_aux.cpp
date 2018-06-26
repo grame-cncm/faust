@@ -71,6 +71,8 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 
 #endif
 
+Soundfile* llvm_defaultsound = new Soundfile(64);
+
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
@@ -238,6 +240,11 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fCompute            = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetSampleSize      = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
+        fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
+         
+        // Set the default sound
+        fSetDefaultSound(llvm_defaultsound);
+     
         return true;
     } catch (
         faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...

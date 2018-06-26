@@ -26,7 +26,7 @@ faust.theSliders = new Array(128);
 faust.theMessages = new Array(128);
 faust.thenumberBoxes = new Array(128);
 
-faust.ui = function (json, name, patcher) {
+faust.ui = function (json, patcher) {
  
     var widgHeight = 30;
     var hBase = 150;
@@ -190,7 +190,7 @@ faust.ui = function (json, name, patcher) {
             parse_ui(parsed_json.ui, dsp_object2, patcher);
         } else {
             // Tries to find the compiled object from the "name" argument (used with faustgen~)
-            var dsp_object = get_dsp_name(patcher, name);
+            var dsp_object = get_dsp_name(patcher, "faustgen");
             if (dsp_object !== patcher.getnamed("null_object")) {
                 parse_ui(parsed_json.ui, dsp_object, patcher);
             } else {
@@ -203,6 +203,6 @@ faust.ui = function (json, name, patcher) {
 function anything()
 {	
     var args = arrayfromargs(messagename, arguments);
-    dsp_ui_table.push(faust.ui(args[1], args[2], this.patcher));
+    dsp_ui_table.push(faust.ui(args[1], this.patcher));
 }
 
