@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,26 +22,25 @@
 #ifndef __OCCURRENCES__
 #define __OCCURRENCES__
 
-#include "tlib.hh"
 #include "garbageable.hh"
+#include "tlib.hh"
 
 /**
  * Count subtree occurences
  * Count the number of occurences of each subtree of a root tree.
  */
 
-class Occurrences : public virtual Garbageable
-{
-	Tree	fKey;					// specific property key
+class Occurrences : public virtual Garbageable {
+    Tree fKey;  // specific property key
 
- public:
-	Occurrences(Tree root);			// count the occurrences of each subtree of root
-	int getCount(Tree t);			// return the number of occurrences of t in root
+   public:
+    Occurrences(Tree root);  // count the occurrences of each subtree of root
+    int getCount(Tree t);    // return the number of occurrences of t in root
 
- private:
-	Tree specificKey(Tree root);	// specific key for occurences counting in root
-	void countOccurrences(Tree t);	// increment the occurrences of t and its subtrees
-	void setCount(Tree t, int c);	// set the number of occurrences of t
+   private:
+    Tree specificKey(Tree root);    // specific key for occurences counting in root
+    void countOccurrences(Tree t);  // increment the occurrences of t and its subtrees
+    void setCount(Tree t, int c);   // set the number of occurrences of t
 };
 
 #endif

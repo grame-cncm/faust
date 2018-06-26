@@ -23,94 +23,76 @@
 #define _RUST_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "dsp_factory.hh"
+#include "omp_code_container.hh"
 #include "rust_instructions.hh"
 #include "vec_code_container.hh"
-#include "omp_code_container.hh"
 #include "wss_code_container.hh"
-#include "dsp_factory.hh"
 
 using namespace std;
 
 class RustCodeContainer : public virtual CodeContainer {
+   protected:
+    RustInstVisitor fCodeProducer;
+    std::ostream*   fOut;
 
-    protected:
+    void produceMetadata(int tabs);
 
-        RustInstVisitor fCodeProducer;
-        std::ostream* fOut;
-        
-        void produceMetadata(int tabs);
+   public:
+    RustCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
+        : fCodeProducer(out, name), fOut(out)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fKlassName = name;
+    }
+    virtual ~RustCodeContainer() {}
 
-    public:
+    virtual void              produceClass();
+    virtual void              generateCompute(int tab) = 0;
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
 
-        RustCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out)
-            : fCodeProducer(out, name), fOut(out)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-        }
-        virtual ~RustCodeContainer()
-        {}
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
-
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs,
+                                          ostream* dst = new stringstream());
 };
 
 class RustScalarCodeContainer : public RustCodeContainer {
+   protected:
+   public:
+    RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                            int sub_container_type);
+    virtual ~RustScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        RustScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~RustScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class RustVectorCodeContainer : public VectorCodeContainer, public RustCodeContainer {
+   protected:
+   public:
+    RustVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~RustVectorCodeContainer();
 
-    protected:
-
-    public:
-
-        RustVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~RustVectorCodeContainer();
-
-        void generateCompute(int n);
-
+    void generateCompute(int n);
 };
 
 class RustOpenMPCodeContainer : public OpenMPCodeContainer, public RustCodeContainer {
+   protected:
+   public:
+    RustOpenMPCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~RustOpenMPCodeContainer();
 
-    protected:
-
-    public:
-
-        RustOpenMPCodeContainer(const string& name,int numInputs, int numOutputs, std::ostream* out);
-        virtual ~RustOpenMPCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class RustWorkStealingCodeContainer : public WSSCodeContainer, public RustCodeContainer {
+   protected:
+   public:
+    RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~RustWorkStealingCodeContainer();
 
-    protected:
-
-    public:
-
-        RustWorkStealingCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~RustWorkStealingCodeContainer();
-
-        void generateCompute(int tab);
+    void generateCompute(int tab);
 };
 
 #endif

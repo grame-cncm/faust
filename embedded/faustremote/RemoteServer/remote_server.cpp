@@ -86,7 +86,7 @@ class netjackaudio_slave : public netjackaudio_midicontrol {
     public:
     
         netjackaudio_slave(int celt, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency)
+            :netjackaudio_midicontrol(celt, master_ip, master_port, mtu, latency, 2, 2)
         {
             fNumberRestartAttempts = 0;
         }

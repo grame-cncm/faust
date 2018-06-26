@@ -26,13 +26,13 @@
 
 #include <stdio.h>
 #include <string>
-#include <math.h>
-#include <float.h>
+#include <cmath>
 #include <algorithm>
 #include <ostream>
 #include <sstream>
 #include <vector>
 #include <limits.h>
+#include <float.h>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/MapUI.h"
@@ -59,7 +59,7 @@ static inline bool endsWith(std::string const& str, std::string const& end)
 
 static inline double midiToFreq(double note)
 {
-    return 440.0 * pow(2.0, (note-69.0)/12.0);
+    return 440.0 * std::pow(2.0, (note-69.0)/12.0);
 }
 
 /**
@@ -167,7 +167,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     std::string fGatePath;  // Path of 'gate' control
     std::string fGainPath;  // Path of 'gain' control
     std::string fFreqPath;  // Path of 'freq' control
-
+    FAUSTFLOAT** fInputsSlice;
+    FAUSTFLOAT** fOutputsSlice;
+ 
     dsp_voice(dsp* dsp):decorator_dsp(dsp)
     {
         dsp->buildUserInterface(this);
@@ -176,6 +178,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fDate = 0;
         fTrigger = false;
         extractPaths(fGatePath, fFreqPath, fGainPath);
+        fInputsSlice = new FAUSTFLOAT*[dsp->getNumInputs()];
+        fOutputsSlice = new FAUSTFLOAT*[dsp->getNumOutputs()];
+    }
+    virtual ~dsp_voice()
+    {
+        delete [] fInputsSlice;
+        delete [] fOutputsSlice;
     }
 
     void extractPaths(std::string& gate, std::string& freq, std::string& gain)
@@ -248,17 +257,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void computeSlice(int offset, int slice, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
         if (slice > 0) {
-            FAUSTFLOAT** inputs_slice = (FAUSTFLOAT**)alloca(getNumInputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < getNumInputs(); chan++) {
-                inputs_slice[chan] = &(inputs[chan][offset]);
+                fInputsSlice[chan] = &(inputs[chan][offset]);
             }
-
-            FAUSTFLOAT** outputs_slice = (FAUSTFLOAT**)alloca(getNumOutputs() * sizeof(FAUSTFLOAT*));
             for (int chan = 0; chan < getNumOutputs(); chan++) {
-                outputs_slice[chan] = &(outputs[chan][offset]);
+                fOutputsSlice[chan] = &(outputs[chan][offset]);
             }
-
-            compute(slice, inputs_slice, outputs_slice);
+            compute(slice, fInputsSlice, fOutputsSlice);
         }
     }
 

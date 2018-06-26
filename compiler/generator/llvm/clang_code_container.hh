@@ -22,53 +22,53 @@
 #ifndef _CLANG_CODE_CONTAINER_H
 #define _CLANG_CODE_CONTAINER_H
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
-#include "dag_instructions_compiler.hh"
 #include "c_code_container.hh"
 #include "cpp_code_container.hh"
+#include "dag_instructions_compiler.hh"
 
 using namespace std;
 
 struct LLVMResult;
 
 class ClangCodeContainer : public virtual CodeContainer {
+   protected:
+    InstructionsCompiler* fCompiler;
+    CodeContainer*        fContainer;
+    std::ofstream*        fOut;
+    string                fTmpFile;
 
-    protected:
-     
-        InstructionsCompiler* fCompiler;
-        CodeContainer* fContainer;
-        std::ofstream* fOut;
-        string fTmpFile;
-        
-        const char* getTempName() 
-        {
-            /*
-            if (fTmpFile == "") {
-                char path[256];
-                fTmpFile = string(tmpnam(path)) + ".c"; 
-            }
-            return fTmpFile.c_str(); 
-            */
-            // TODO
-            return "";
+    const char* getTempName()
+    {
+        /*
+        if (fTmpFile == "") {
+            char path[256];
+            fTmpFile = string(tmpnam(path)) + ".c";
         }
-    
-    public:
+        return fTmpFile.c_str();
+        */
+        // TODO
+        return "";
+    }
 
-        ClangCodeContainer(const string& name, int numInputs, int numOutputs);
-        virtual ~ClangCodeContainer();
-      
-        virtual LLVMResult* produceModule(Tree signals, const string& filename);
-        
-        virtual void produceInternal() { fContainer->produceInternal(); }
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type) { faustassert(false); return NULL; } // Not used
+   public:
+    ClangCodeContainer(const string& name, int numInputs, int numOutputs);
+    virtual ~ClangCodeContainer();
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
+    virtual LLVMResult* produceModule(Tree signals, const string& filename);
 
+    virtual void produceInternal() { fContainer->produceInternal(); }
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type)
+    {
+        faustassert(false);
+        return NULL;
+    }  // Not used
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs);
 };
 
 #endif

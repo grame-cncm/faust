@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,20 +18,25 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
-#include "node.hh"
-#include "math.h"
-#include <stdlib.h>
 
-ostream& Node::print (ostream& fout) const 					///< print a node on a stream
+#include "node.hh"
+#include <stdlib.h>
+#include "math.h"
+
+ostream& Node::print(ostream& fout) const  ///< print a node on a stream
 {
-	switch (fType) {
-		case kIntNode : 	return fout << fData.i;
-		case kDoubleNode : 	return fout << fData.f;
-		case kSymNode : 	return fout << *(fData.s);
-		case kPointerNode : return fout << "ptr:" << fData.p;
-		default : 			return fout << "badnode";
-	}
+    switch (fType) {
+        case kIntNode:
+            return fout << fData.i;
+        case kDoubleNode:
+            return fout << fData.f;
+        case kSymNode:
+            return fout << *(fData.s);
+        case kPointerNode:
+            return fout << "ptr:" << fData.p;
+        default:
+            return fout << "badnode";
+    }
 }
 
 //-----------------------------------------------------------------------------

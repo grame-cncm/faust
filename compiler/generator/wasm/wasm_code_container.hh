@@ -23,69 +23,62 @@
 #define _WASM_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "wasm_instructions.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "wasm_instructions.hh"
 
 using namespace std;
 
 class WASMCodeContainer : public virtual CodeContainer {
+   protected:
+    std::ostream*          fOut;
+    BufferWithRandomAccess fBinaryOut;
+    std::stringstream      fHelper;
+    int                    fInternalMemory;  // Whether memory is allocated inside wasm module or JS
 
-    protected:
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
+                                            bool addreturn);
+    DeclareFunInst* generateClassInit(const string& name);
+    DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
+    DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
+                                                       bool isvirtual);
 
-        std::ostream* fOut;
-        BufferWithRandomAccess fBinaryOut;
-        std::stringstream fHelper;
-        int fInternalMemory; // Whether memory is allocated inside wasm module or JS
-    
-        DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
-        DeclareFunInst* generateClassInit(const string& name);
-        DeclareFunInst* generateInstanceClear(const string& name, const string& obj, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
-        DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod, bool isvirtual);
-   
-    public:
+   public:
+    WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                      bool internal_memory = true);
+    virtual ~WASMCodeContainer() {}
 
-        WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory = true);
-        virtual ~WASMCodeContainer()
-        {}
+    virtual void produceClass();
+    virtual void generateCompute() = 0;
 
-        virtual void produceClass();
-        virtual void generateCompute() = 0;
-    
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
+                                          bool internal_memory);
 };
 
 class WASMScalarCodeContainer : public WASMCodeContainer {
+   protected:
+   public:
+    WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                            int sub_container_type, bool internal_memory);
+    virtual ~WASMScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory);
-        virtual ~WASMScalarCodeContainer();
-
-        void generateCompute();
-
+    void generateCompute();
 };
 
 class WASMVectorCodeContainer : public WASMCodeContainer {
-    
-    protected:
-        
-    public:
-        
-        WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-        virtual ~WASMVectorCodeContainer();
-        
-        void generateCompute();
-    
+   protected:
+   public:
+    WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    virtual ~WASMVectorCodeContainer();
+
+    void generateCompute();
 };
 
 #endif

@@ -21,14 +21,14 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
-#include "compatibility.hh"
-#include "wasm_dsp_aux.hh"
-#include "dsp_factory.hh"
 #include "Text.hh"
+#include "compatibility.hh"
+#include "dsp_factory.hh"
+#include "wasm_dsp_aux.hh"
 
 typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
@@ -39,57 +39,85 @@ wasm_dsp_factory::~wasm_dsp_factory()
     delete fFactory;
 }
 
-std::string wasm_dsp_factory::getName() { return fFactory->getName(); }
+std::string wasm_dsp_factory::getName()
+{
+    return fFactory->getName();
+}
 
-std::string wasm_dsp_factory::getSHAKey() { return fFactory->getSHAKey(); }
-void wasm_dsp_factory::setSHAKey(std::string sha_key) { fFactory->setSHAKey(sha_key); }
+std::string wasm_dsp_factory::getSHAKey()
+{
+    return fFactory->getSHAKey();
+}
+void wasm_dsp_factory::setSHAKey(std::string sha_key)
+{
+    fFactory->setSHAKey(sha_key);
+}
 
-std::string wasm_dsp_factory::getDSPCode() { return fFactory->getDSPCode(); }
-void wasm_dsp_factory::setDSPCode(std::string code) { fFactory->setDSPCode(code); }
+std::string wasm_dsp_factory::getDSPCode()
+{
+    return fFactory->getDSPCode();
+}
+void wasm_dsp_factory::setDSPCode(std::string code)
+{
+    fFactory->setDSPCode(code);
+}
 
-wasm_dsp* wasm_dsp_factory::createDSPInstance() { return nullptr; }
+wasm_dsp* wasm_dsp_factory::createDSPInstance()
+{
+    return nullptr;
+}
 
-void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager) {}
-dsp_memory_manager* wasm_dsp_factory::getMemoryManager() { return nullptr; }
+void wasm_dsp_factory::setMemoryManager(dsp_memory_manager* manager)
+{
+}
+dsp_memory_manager* wasm_dsp_factory::getMemoryManager()
+{
+    return nullptr;
+}
 
-void wasm_dsp_factory::write(std::ostream* out, bool binary, bool small) { fFactory->write(out, binary, small); }
-void wasm_dsp_factory::writeAux(std::ostream* out, bool binary, bool small) { fFactory->writeAux(out, binary, small); }
+void wasm_dsp_factory::write(std::ostream* out, bool binary, bool small)
+{
+    fFactory->write(out, binary, small);
+}
+void wasm_dsp_factory::writeAux(std::ostream* out, bool binary, bool small)
+{
+    fFactory->writeAux(out, binary, small);
+}
 
-std::string wasm_dsp_factory::getBinaryCode() { return fFactory->getBinaryCode(); }
+std::string wasm_dsp_factory::getBinaryCode()
+{
+    return fFactory->getBinaryCode();
+}
 
 // C++ API
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename,
-                                                      int argc, const char* argv[],
-                                                      string& error_msg,
-                                                      bool internal_memory)
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
+                                                      string& error_msg, bool internal_memory)
 {
     string base = basename((char*)filename.c_str());
-    size_t pos = filename.find(".dsp");
-    
+    size_t pos  = filename.find(".dsp");
+
     if (pos != string::npos) {
-        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg, internal_memory);
+        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg,
+                                              internal_memory);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)";
         return NULL;
     }
 }
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
-                                                        const string& dsp_content,
-                                                        int argc, const char* argv[],
-                                                        string& error_msg,
-                                                        bool internal_memory)
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
+                                                        const char* argv[], string& error_msg, bool internal_memory)
 {
     string expanded_dsp_content = "";
-    string sha_key = "";
-   
-    int argc1 = 0;
+    string sha_key              = "";
+
+    int         argc1 = 0;
     const char* argv1[64];
 
     argv1[argc1++] = "faust";
     argv1[argc1++] = "-lang";
-    //argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
+    // argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
     argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
     argv1[argc1++] = "-o";
     argv1[argc1++] = "binary";
@@ -99,11 +127,8 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
     }
     argv1[argc1] = 0;  // NULL terminated argv
 
-    dsp_factory_base* dsp_factory_aux = compileFaustFactory(argc1, argv1,
-                                                            name_app.c_str(),
-                                                            dsp_content.c_str(),
-                                                            error_msg,
-                                                            true);
+    dsp_factory_base* dsp_factory_aux =
+        compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
     if (dsp_factory_aux) {
         dsp_factory_aux->setName(name_app);
         wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
@@ -118,7 +143,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app,
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 {
-    return (factory) ? gWasmFactoryTable.deleteDSPFactory(factory): false;
+    return (factory) ? gWasmFactoryTable.deleteDSPFactory(factory) : false;
 }
 
 // C API
@@ -128,17 +153,17 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     if (factory) {
         WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
-        
+
         // 'Binary' string, so directly copy its raw content
-        string code = factory->getBinaryCode();
+        string code    = factory->getBinaryCode();
         res->fCodeSize = code.size();
-        res->fCode = (char*)malloc(res->fCodeSize);
+        res->fCode     = (char*)malloc(res->fCodeSize);
         memcpy(res->fCode, code.c_str(), res->fCodeSize);
-        
+
         stringstream dst2;
         factory->writeAux(&dst2, false, false);
         res->fHelpers = strdup(flatten(dst2.str()).c_str());
-        
+
         return res;
         // And keep factory...
     } else {
@@ -146,14 +171,16 @@ static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const str
     }
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg, bool internal_memory)
+EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
+                                                 bool internal_memory)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
     return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
 }
 
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[], char* error_msg, bool internal_memory)
+EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
+                                                   const char* argv[], char* error_msg, bool internal_memory)
 {
     string error_msg_aux;
     wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
@@ -181,4 +208,3 @@ EXPORT void freeWasmCModule(WasmModule* module)
     free((void*)module->fHelpers);
     free(module);
 }
-

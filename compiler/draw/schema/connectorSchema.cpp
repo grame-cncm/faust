@@ -39,8 +39,8 @@ schema* makeConnectorSchema()
  */
 connectorSchema::connectorSchema() : schema(1, 1, dWire, dWire)
 {
-    fInputPoint.push_back(point(0,0));
-    fOutputPoint.push_back(point(0,0));
+    fInputPoint.push_back(point(0, 0));
+    fOutputPoint.push_back(point(0, 0));
 }
 
 /**
@@ -87,21 +87,19 @@ void connectorSchema::placeInputPoints()
     int N = inputs();
 
     if (orientation() == kLeftRight) {
+        double px = x();
+        double py = y() + (height() - dWire * (N - 1)) / 2;
 
-        double 	px = x();
-        double 	py = y() + (height() - dWire*(N-1))/2;
-
-        for (int i=0; i<N; i++) {
-            fInputPoint[i] = point(px, py+i*dWire);
+        for (int i = 0; i < N; i++) {
+            fInputPoint[i] = point(px, py + i * dWire);
         }
 
     } else {
-
         double px = x() + width();
-        double py = y() + height() - (height() - dWire*(N-1))/2;
+        double py = y() + height() - (height() - dWire * (N - 1)) / 2;
 
-        for (int i=0; i<N; i++) {
-            fInputPoint[i] = point(px, py-i*dWire);
+        for (int i = 0; i < N; i++) {
+            fInputPoint[i] = point(px, py - i * dWire);
         }
     }
 }
@@ -115,21 +113,19 @@ void connectorSchema::placeOutputPoints()
     int N = outputs();
 
     if (orientation() == kLeftRight) {
-
         double px = x() + width();
-        double py = y() + (height() - dWire*(N-1))/2;
+        double py = y() + (height() - dWire * (N - 1)) / 2;
 
-        for (int i=0; i<N; i++) {
-            fOutputPoint[i] = point(px, py + i*dWire);
+        for (int i = 0; i < N; i++) {
+            fOutputPoint[i] = point(px, py + i * dWire);
         }
 
     } else {
-
         double px = x();
-        double py = y() + height() - (height() - dWire*(N-1))/2;
+        double py = y() + height() - (height() - dWire * (N - 1)) / 2;
 
-        for (int i=0; i<N; i++) {
-            fOutputPoint[i] = point(px, py - i*dWire);
+        for (int i = 0; i < N; i++) {
+            fOutputPoint[i] = point(px, py - i * dWire);
         }
     }
 }
@@ -162,10 +158,10 @@ void connectorSchema::collectInputWires(collector& c)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-    for (unsigned int i=0; i<inputs(); i++) {
+    for (unsigned int i = 0; i < inputs(); i++) {
         point p = fInputPoint[i];
-        c.addTrait(trait(point(p.x, p.y), point(p.x+dx, p.y)));     // in->out direction
-        c.addInput(point(p.x+dx, p.y));
+        c.addTrait(trait(point(p.x, p.y), point(p.x + dx, p.y)));  // in->out direction
+        c.addInput(point(p.x + dx, p.y));
     }
 }
 
@@ -177,9 +173,9 @@ void connectorSchema::collectOutputWires(collector& c)
 {
     double dx = (orientation() == kLeftRight) ? dHorz : -dHorz;
 
-    for (unsigned int i=0; i<outputs(); i++) {
+    for (unsigned int i = 0; i < outputs(); i++) {
         point p = fOutputPoint[i];
-        c.addTrait(trait(point(p.x-dx, p.y), point(p.x, p.y)));     // in->out direction
-        c.addOutput(point(p.x-dx, p.y));
+        c.addTrait(trait(point(p.x - dx, p.y), point(p.x, p.y)));  // in->out direction
+        c.addOutput(point(p.x - dx, p.y));
     }
 }

@@ -19,12 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-
 #ifndef _ENSURE_
 #define _ENSURE_
 
 #include <cassert>
 
-#define ensure(EXPRESSION) do { bool success = EXPRESSION; faustassert(success); } while(0);
+#define ensure(EXPRESSION)         \
+    do {                           \
+        bool success = EXPRESSION; \
+        faustassert(success);      \
+    } while (0);
 
 #endif

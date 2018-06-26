@@ -172,7 +172,7 @@ function saveDSPState()
 {
     var params = node.getParams();
     for (var i = 0; i < params.length; i++) {
-        setStorageItemValue('DSP', params[i], node.getParamValue(params[i]));
+        setStorageItemValue('DSP_poly', params[i], node.getParamValue(params[i]));
     }
 }
 
@@ -180,7 +180,7 @@ function loadDSPState()
 {
     var params = node.getParams();
     for (var i = 0; i < params.length; i++) {
-        var value = getStorageItemValue('DSP', params[i]);
+        var value = getStorageItemValue('DSP_poly', params[i]);
         if (value) {
             // Restore DSP state
             node.setParamValue(params[i], Number(value));

@@ -47,27 +47,8 @@ class samAudio : public audio {
         int iBufferSize;
         int iNumInputs;
         int iNumOutputs;
-      
-        // sam convention for pointers to audio buffers.
-        FAUSTFLOAT *fAudioChannelA_0_Left;
-        FAUSTFLOAT *fAudioChannelA_0_Right;
-        FAUSTFLOAT *fAudioChannelA_1_Left;
-        FAUSTFLOAT *fAudioChannelA_1_Right;
-        FAUSTFLOAT *fAudioChannelA_2_Left;
-        FAUSTFLOAT *fAudioChannelA_2_Right;
-        FAUSTFLOAT *fAudioChannelA_3_Left;
-        FAUSTFLOAT *fAudioChannelA_3_Right;
     
-        FAUSTFLOAT *fAudioChannelB_0_Left;
-        FAUSTFLOAT *fAudioChannelB_0_Right;
-        FAUSTFLOAT *fAudioChannelB_1_Left;
-        FAUSTFLOAT *fAudioChannelB_1_Right;
-        FAUSTFLOAT *fAudioChannelB_2_Left;
-        FAUSTFLOAT *fAudioChannelB_2_Right;
-        FAUSTFLOAT *fAudioChannelB_3_Left;
-        FAUSTFLOAT *fAudioChannelB_3_Right;
-    
-        // faust convention for input array
+        // Faust convention for input/output arrays
         FAUSTFLOAT *inputsArray[8];
         FAUSTFLOAT *outputsArray[8];
 
@@ -82,7 +63,6 @@ class samAudio : public audio {
         {
             // nothing for now
         }
-    
     
         virtual void setDSP_Parameters(int sampleRate, int bufferSize, int numInputs, int numOutputs)
         {
@@ -110,42 +90,24 @@ class samAudio : public audio {
                                        FAUSTFLOAT *AudioChannelB_3_Left,
                                        FAUSTFLOAT *AudioChannelB_3_Right)
         {
-            
-            fAudioChannelA_0_Left  = AudioChannelA_0_Left;
-            fAudioChannelA_0_Right = AudioChannelA_0_Right;
-            fAudioChannelA_1_Left  = AudioChannelA_1_Left;
-            fAudioChannelA_1_Right = AudioChannelA_1_Right;
-            fAudioChannelA_2_Left  = AudioChannelA_2_Left;
-            fAudioChannelA_2_Right = AudioChannelA_2_Right;
-            fAudioChannelA_3_Left  = AudioChannelA_3_Left;
-            fAudioChannelA_3_Right = AudioChannelA_3_Right;
-            fAudioChannelB_0_Left  = AudioChannelB_0_Left;
-            fAudioChannelB_0_Right = AudioChannelB_0_Right;
-            fAudioChannelB_1_Left  = AudioChannelB_1_Left;
-            fAudioChannelB_1_Right = AudioChannelB_1_Right;
-            fAudioChannelB_2_Left  = AudioChannelB_2_Left;
-            fAudioChannelB_2_Right = AudioChannelB_2_Right;
-            fAudioChannelB_3_Left  = AudioChannelB_3_Left;
-            fAudioChannelB_3_Right = AudioChannelB_3_Right;
-            
             // set the pointers, generalized for the sam's 8 channels.
-            inputsArray [0] = fAudioChannelB_0_Left;
-            inputsArray [1] = fAudioChannelB_0_Right;
-            inputsArray [2] = fAudioChannelB_1_Left;
-            inputsArray [3] = fAudioChannelB_1_Right;
-            inputsArray [4] = fAudioChannelB_2_Left;
-            inputsArray [5] = fAudioChannelB_2_Right;
-            inputsArray [6] = fAudioChannelB_3_Left;
-            inputsArray [7] = fAudioChannelB_3_Right;
+            inputsArray[0] = AudioChannelB_0_Left;
+            inputsArray[1] = AudioChannelB_0_Right;
+            inputsArray[2] = AudioChannelB_1_Left;
+            inputsArray[3] = AudioChannelB_1_Right;
+            inputsArray[4] = AudioChannelB_2_Left;
+            inputsArray[5] = AudioChannelB_2_Right;
+            inputsArray[6] = AudioChannelB_3_Left;
+            inputsArray[7] = AudioChannelB_3_Right;
             
-            outputsArray[0] = fAudioChannelA_0_Left;
-            outputsArray[1] = fAudioChannelA_0_Right;
-            outputsArray[2] = fAudioChannelA_1_Left;
-            outputsArray[3] = fAudioChannelA_1_Right;
-            outputsArray[4] = fAudioChannelA_2_Left;
-            outputsArray[5] = fAudioChannelA_2_Right;
-            outputsArray[6] = fAudioChannelA_3_Left;
-            outputsArray[7] = fAudioChannelA_3_Right;
+            outputsArray[0] = AudioChannelA_0_Left;
+            outputsArray[1] = AudioChannelA_0_Right;
+            outputsArray[2] = AudioChannelA_1_Left;
+            outputsArray[3] = AudioChannelA_1_Right;
+            outputsArray[4] = AudioChannelA_2_Left;
+            outputsArray[5] = AudioChannelA_2_Right;
+            outputsArray[6] = AudioChannelA_3_Left;
+            outputsArray[7] = AudioChannelA_3_Right;
         }
     
         virtual bool init(const char* name, dsp* dsp)
@@ -157,21 +119,20 @@ class samAudio : public audio {
 
         virtual bool start()
         {
-            // Nothing for now   Will want to find the sam way to start.
+            // Nothing for now. Will want to find the sam way to start.
             return true;
         }
 
         virtual void stop()
         {
-            // nothing for now.   Will want to find the sam way to stop.
+            // nothing for now. Will want to find the sam way to stop.
         }
-
-         
-         void 	processAudioCallback( )
-         {
+    
+        void processAudioCallback()
+        {
             // faust compute function
-           fDSP->compute(iBufferSize, inputsArray, outputsArray);
-         }
+            fDSP->compute(iBufferSize, inputsArray, outputsArray);
+        }
          
         virtual int getBufferSize() { return iBufferSize; }
         virtual int getSampleRate() { return iSampleRate; }

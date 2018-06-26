@@ -24,126 +24,113 @@
 
 #include "code_container.hh"
 #include "cpp_instructions.hh"
-#include "opencl_instructions.hh"
+#include "dsp_factory.hh"
 #include "omp_code_container.hh"
+#include "opencl_instructions.hh"
 #include "vec_code_container.hh"
 #include "wss_code_container.hh"
-#include "dsp_factory.hh"
 
 #ifdef WIN32
-#pragma warning (disable: 4250)
+#pragma warning(disable : 4250)
 #endif
 
 using namespace std;
 
 class CPPCodeContainer : public virtual CodeContainer {
+   protected:
+    CPPInstVisitor fCodeProducer;
+    std::ostream*  fOut;
+    string         fSuperKlassName;
 
-    protected:
+    void produceMetadata(int tabs);
+    void produceInit(int tabs);
 
-        CPPInstVisitor fCodeProducer;
-        std::ostream* fOut;
-        string fSuperKlassName;
+   public:
+    CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+        : fCodeProducer(out), fOut(out), fSuperKlassName(super)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fKlassName = name;
 
-        void produceMetadata(int tabs);
-        void produceInit(int tabs);
-
-    public:
-
-        CPPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            : fCodeProducer(out), fOut(out), fSuperKlassName(super)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-            
-            // For mathematical functions
-            if (gGlobal->gFastMath) {
-                addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\"" : ("\"" + gGlobal->gFastMathLib + "\""));
-            } else {
-                addIncludeFile("<cmath>");
-            }
+        // For mathematical functions
+        if (gGlobal->gFastMath) {
+            addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
+                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
+        } else {
+            addIncludeFile("<cmath>");
+            addIncludeFile("<algorithm>");
         }
-        
-        virtual ~CPPCodeContainer()
-        {}
+    }
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-        virtual void produceInternal();
-    
-        virtual dsp_factory_base* produceFactory();
-    
-        virtual void printHeader()
-        {
-            CodeContainer::printHeader(*fOut);
-            
-            tab(0, *fOut); *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
-            tab(0, *fOut); *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
-        }
-    
-        virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
-        
-        virtual void printFooter()
-        {
-            tab(0, *fOut); *fOut << "#endif"<< std::endl;
-        }
+    virtual ~CPPCodeContainer() {}
 
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
+    virtual void produceInternal();
 
-        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst = new stringstream());
+    virtual dsp_factory_base* produceFactory();
 
+    virtual void printHeader()
+    {
+        CodeContainer::printHeader(*fOut);
+
+        tab(0, *fOut);
+        *fOut << "#ifndef  __" << gGlobal->gClassName << "_H__";
+        tab(0, *fOut);
+        *fOut << "#define  __" << gGlobal->gClassName << "_H__" << std::endl << std::endl;
+    }
+
+    virtual void printFloatDef() { printfloatdef(*fOut, (gGlobal->gFloatSize == 3)); }
+
+    virtual void printFooter()
+    {
+        tab(0, *fOut);
+        *fOut << "#endif" << std::endl;
+    }
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+
+    static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
+                                          ostream* dst = new stringstream());
 };
 
 class CPPScalarCodeContainer : public CPPCodeContainer {
+   protected:
+   public:
+    CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                           int sub_container_type);
+    virtual ~CPPScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        CPPScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~CPPScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class CPPVectorCodeContainer : public VectorCodeContainer, public CPPCodeContainer {
+   protected:
+   public:
+    CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~CPPVectorCodeContainer();
 
-    protected:
-
-    public:
-
-        CPPVectorCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~CPPVectorCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class CPPOpenMPCodeContainer : public OpenMPCodeContainer, public CPPCodeContainer {
+   protected:
+   public:
+    CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~CPPOpenMPCodeContainer();
 
-    protected:
-
-    public:
-
-        CPPOpenMPCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~CPPOpenMPCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class CPPWorkStealingCodeContainer : public WSSCodeContainer, public CPPCodeContainer {
+   protected:
+   public:
+    CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs,
+                                 std::ostream* out);
+    virtual ~CPPWorkStealingCodeContainer();
 
-    protected:
-
-    public:
-
-        CPPWorkStealingCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~CPPWorkStealingCodeContainer();
-
-        void produceClass();
-        void generateCompute(int tab);
-
+    void produceClass();
+    void generateCompute(int tab);
 };
 
 #endif

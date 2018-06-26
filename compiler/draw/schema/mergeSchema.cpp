@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,11 +19,11 @@
  ************************************************************************
  ************************************************************************/
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
-#include "mergeSchema.h"
 #include "exception.hh"
+#include "mergeSchema.h"
 
 using namespace std;
 
@@ -32,13 +32,13 @@ using namespace std;
  * The horizontal gap between the two subschema is such that
  * the connections are not too slopy.
  */
-schema* makeMergeSchema (schema* s1, schema* s2)
+schema* makeMergeSchema(schema* s1, schema* s2)
 {
-	// avoid ugly diagram by ensuring at least dWire width
-	schema * a = makeEnlargedSchema(s1, dWire);
-	schema * b = makeEnlargedSchema(s2, dWire);
-	double	hgap = (a->height()+b->height())/4;
-	return new mergeSchema(a,b,hgap);
+    // avoid ugly diagram by ensuring at least dWire width
+    schema* a    = makeEnlargedSchema(s1, dWire);
+    schema* b    = makeEnlargedSchema(s2, dWire);
+    double  hgap = (a->height() + b->height()) / 4;
+    return new mergeSchema(a, b, hgap);
 }
 
 /**
@@ -46,15 +46,13 @@ schema* makeMergeSchema (schema* s1, schema* s2)
  * of s1 are merged to the inputs of s2. The constructor is
  * private in order to enforce the usage of makeMergeSchema
  */
-mergeSchema::mergeSchema (schema* s1, schema* s2, double hgap)
-	: 	schema(	s1->inputs(),
-				s2->outputs(),
-				s1->width() + s2->width() + hgap,
-				max(s1->height(), s2->height()) ),
-		fSchema1(s1),
-		fSchema2(s2),
-		fHorzGap(hgap)
-{}
+mergeSchema::mergeSchema(schema* s1, schema* s2, double hgap)
+    : schema(s1->inputs(), s2->outputs(), s1->width() + s2->width() + hgap, max(s1->height(), s2->height())),
+      fSchema1(s1),
+      fSchema2(s2),
+      fHorzGap(hgap)
+{
+}
 
 /**
  * Places the two subschema horizontaly, centered, with enough gap for
@@ -62,19 +60,19 @@ mergeSchema::mergeSchema (schema* s1, schema* s2, double hgap)
  */
 void mergeSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
+    beginPlace(ox, oy, orientation);
 
-	double dy1 = max(0.0, fSchema2->height()-fSchema1->height()) / 2.0;
-	double dy2 = max(0.0, fSchema1->height()-fSchema2->height()) / 2.0;
+    double dy1 = max(0.0, fSchema2->height() - fSchema1->height()) / 2.0;
+    double dy2 = max(0.0, fSchema1->height() - fSchema2->height()) / 2.0;
 
-	if (orientation == kLeftRight) {
-		fSchema1->place(ox, oy+dy1, orientation);
-		fSchema2->place(ox+fSchema1->width()+fHorzGap, oy+dy2, orientation);
-	} else {
-		fSchema2->place(ox, oy+dy2, orientation);
-		fSchema1->place(ox+fSchema2->width()+fHorzGap, oy+dy1, orientation);
-	}
-	endPlace();
+    if (orientation == kLeftRight) {
+        fSchema1->place(ox, oy + dy1, orientation);
+        fSchema2->place(ox + fSchema1->width() + fHorzGap, oy + dy2, orientation);
+    } else {
+        fSchema2->place(ox, oy + dy2, orientation);
+        fSchema1->place(ox + fSchema2->width() + fHorzGap, oy + dy1, orientation);
+    }
+    endPlace();
 }
 
 /**
@@ -82,7 +80,7 @@ void mergeSchema::place(double ox, double oy, int orientation)
  */
 point mergeSchema::inputPoint(unsigned int i) const
 {
-	return fSchema1->inputPoint(i);
+    return fSchema1->inputPoint(i);
 }
 
 /**
@@ -90,7 +88,7 @@ point mergeSchema::inputPoint(unsigned int i) const
  */
 point mergeSchema::outputPoint(unsigned int i) const
 {
-	return fSchema2->outputPoint(i);
+    return fSchema2->outputPoint(i);
 }
 
 /**
@@ -129,12 +127,12 @@ void mergeSchema::collectTraits(collector& c)
     fSchema2->collectTraits(c);
 
     unsigned int r = fSchema2->inputs();
-    faustassert(r>0);
+    faustassert(r > 0);
 
     // draw the connections between them
-    for (unsigned int i=0; i<fSchema1->outputs(); i++) {
+    for (unsigned int i = 0; i < fSchema1->outputs(); i++) {
         point p = fSchema1->outputPoint(i);
-        point q = fSchema2->inputPoint(i%r);
-        c.addTrait(trait(p,q));
+        point q = fSchema2->inputPoint(i % r);
+        c.addTrait(trait(p, q));
     }
 }

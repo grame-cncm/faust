@@ -1,4 +1,4 @@
-version := 2.6.00
+version := 2.6.2
 
 system	?= $(shell uname -s)
 
@@ -123,7 +123,7 @@ backends :
 sound2faust :
 	$(MAKE) -C tools/sound2faust
 
-.PHONY: clean install uninstall dist parser help
+.PHONY: clean install uninstall dist parser help format
 
 help :
 	@echo "===== Faust main makefile ====="
@@ -161,6 +161,7 @@ help :
 	@echo " 'uninstall'        : undo what install did"
 	@echo " 'dist'             : make a Faust distribution as a .zip file"
 	@echo " 'log'              : make a changelog file"
+	@echo " 'format'           : clang-format all src files"
 	@echo
 	@echo "Obsolete targets:"
 	@echo " 'plugin'           : builds the libfaustplugin.a library"
@@ -203,6 +204,10 @@ clean :
 doc :
 	$(MAKE) -C compiler -f $(MAKEFILE) doc
 
+format :
+	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format-mp-5.0 -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format-mp-5.0 -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format-mp-5.0 -i -style=file {} \;
 
 # the target 'lib' can be used to init and update the libraries submodule
 updatesubmodules :

@@ -25,39 +25,33 @@
 #include "code_container.hh"
 
 class WSSCodeContainer : public virtual CodeContainer {
+   private:
+    string fObjName;
 
-    private:
+    void moveCompute2ComputeThread();
 
-        string fObjName;
-   
-        void moveCompute2ComputeThread();
+    void generateLocalInputs(BlockInst* loop_code, const string& index_string);
+    void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
 
-        void generateLocalInputs(BlockInst* loop_code, const string& index_string);
-        void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
+    StatementInst* generateDAGLoopWSS(lclgraph dag);
+    void           generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
+    void           generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
+    void           generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
 
-        StatementInst* generateDAGLoopWSS(lclgraph dag);
-        void generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
-        void generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
-        void generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
+    void       processFIR(void);
+    BlockInst* flattenFIR(void);
 
-        void processFIR(void);
-        BlockInst* flattenFIR(void);
+   protected:
+    StatementInst* fThreadLoopBlock;
+    BlockInst*     fComputeThreadBlockInstructions;
 
-    protected:
-    
-        StatementInst* fThreadLoopBlock;
-        BlockInst* fComputeThreadBlockInstructions;
-
-    public:
-
-        WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
-            : fObjName(objName),
-            fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "count";
-        }
-    
+   public:
+    WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
+        : fObjName(objName), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fFullCount = "count";
+    }
 };
 
 #endif

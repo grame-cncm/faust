@@ -22,21 +22,17 @@
 #include "xtended.hh"
 #include "floats.hh"
 
-void xtended::prepareTypeArgsResult(::Type result,
-                                    const list<ValueInst*>& args,
-                                    vector< ::Type> const& types,
-                                    Typed::VarType& result_type,
-                                    vector<Typed::VarType>& arg_types,
+void xtended::prepareTypeArgsResult(::Type result, const list<ValueInst*>& args, vector< ::Type> const& types,
+                                    Typed::VarType& result_type, vector<Typed::VarType>& arg_types,
                                     list<ValueInst*>& casted_args)
 {
     result_type = (result->nature() == kInt) ? Typed::kInt32 : itfloat();
-    vector< ::Type>::const_iterator it1;
+    vector< ::Type>::const_iterator  it1;
     list<ValueInst*>::const_iterator it2 = args.begin();
-    
+
     for (it1 = types.begin(); it1 != types.end(); it1++, it2++) {
         casted_args.push_back(promote2real((*it1)->nature(), (*it2)));
         // Force type to float/double
         arg_types.push_back(itfloat());
     }
 }
-

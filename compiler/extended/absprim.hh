@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,64 +21,63 @@
 
 #include <math.h>
 
-#include "xtended.hh"
 #include "Text.hh"
-#include "sigtyperules.hh"
-#include "floats.hh"
 #include "code_container.hh"
+#include "floats.hh"
+#include "sigtyperules.hh"
+#include "xtended.hh"
 
-class AbsPrim : public xtended
-{
+class AbsPrim : public xtended {
+   public:
+    AbsPrim() : xtended("abs") {}
 
- public:
+    virtual unsigned int arity() { return 1; }
 
- 	AbsPrim() : xtended("abs") {}
+    virtual bool needCache() { return true; }
 
-	virtual unsigned int arity() { return 1; }
+    virtual ::Type infereSigType(const vector< ::Type>& types)
+    {
+        faustassert(types.size() == arity());
+        Type t = types[0];
+        return castInterval(t, abs(t->getInterval()));
+        return t;
+    }
 
-	virtual bool needCache() { return true; }
+    virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
 
-	virtual ::Type infereSigType(const vector< ::Type>& types)
-	{
-		faustassert(types.size() == arity());
-		Type t = types[0];
-		return castInterval(t, abs(t->getInterval()));
-		return t;
-	}
+    virtual int infereSigOrder(const vector<int>& args)
+    {
+        faustassert(args.size() == arity());
+        return args[0];
+    }
 
-	virtual void sigVisit(Tree sig, sigvisitor* visitor) {}
+    virtual Tree computeSigOutput(const vector<Tree>& args)
+    {
+        double f;
+        int    i;
 
-	virtual int infereSigOrder(const vector<int>& args)
-	{
-		faustassert(args.size() == arity());
-		return args[0];
-	}
+        faustassert(args.size() == arity());
 
-	virtual Tree computeSigOutput(const vector<Tree>& args)
-	{
-		double f; int i;
+        if (isDouble(args[0]->node(), &f)) {
+            return tree(fabs(f));
 
-		faustassert(args.size() == arity());
+        } else if (isInt(args[0]->node(), &i)) {
+            return tree(abs(i));
 
-		if (isDouble(args[0]->node(),&f)) {
-			return tree(fabs(f));
+        } else {
+            return tree(symbol(), args[0]);
+        }
+    }
 
-		} else if (isInt(args[0]->node(),&i)) {
-			return tree(abs(i));
-
-		} else {
-			return tree(symbol(), args[0]);
-		}
-	}
-    
-    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result, vector< ::Type> const & types)
+    virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
+                                    vector< ::Type> const& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-        
-        Typed::VarType result_type;
+
+        Typed::VarType         result_type;
         vector<Typed::VarType> arg_types;
-       
+
         ::Type t = infereSigType(types);
         if (t->nature() == kReal) {
             list<ValueInst*> casted_args;
@@ -91,12 +90,12 @@ class AbsPrim : public xtended
             return container->pushFunction("abs", result_type, arg_types, args);
         }
     }
-    
+
     virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
     {
         faustassert(args.size() == arity());
         faustassert(types.size() == arity());
-        
+
         Type t = infereSigType(types);
         if (t->nature() == kReal) {
             return subst("fabs$1($0)", args[0], isuffix());
@@ -105,15 +104,12 @@ class AbsPrim : public xtended
         }
     }
 
-	virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
-	{
-		faustassert(args.size() == arity());
-		faustassert(types.size() == arity());
+    virtual string generateLateq(Lateq* lateq, const vector<string>& args, const vector< ::Type>& types)
+    {
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
 
-		::Type t = infereSigType(types);
-		return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
-	}
-    
+        ::Type t = infereSigType(types);
+        return subst("\\left\\lvert{$0}\\right\\rvert", args[0]);
+    }
 };
-
-

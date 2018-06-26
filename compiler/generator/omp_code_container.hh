@@ -25,22 +25,18 @@
 #include "code_container.hh"
 
 class OpenMPCodeContainer : public virtual CodeContainer {
+   private:
+    StatementInst* generateDAGLoopOMP(const string& counter);
+    void           processFIR();
 
-    private:
+   public:
+    StatementInst* fGlobalLoopBlock;
 
-        StatementInst* generateDAGLoopOMP(const string& counter);
-        void processFIR();
-
-    public:
-
-        StatementInst* fGlobalLoopBlock;
-
-        OpenMPCodeContainer(int numInputs, int numOutputs)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fFullCount = "fullcount";
-        }
-
+    OpenMPCodeContainer(int numInputs, int numOutputs)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fFullCount = "fullcount";
+    }
 };
 
 #endif

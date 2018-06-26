@@ -22,18 +22,15 @@
 #ifndef GET_CACHE_LINE_SIZE_H_INCLUDED
 #define GET_CACHE_LINE_SIZE_H_INCLUDED
 
-#include <iostream>
 #include <stddef.h>
+#include <iostream>
 
 using namespace std;
 
 template <typename T>
 void print_type(char const* name)
 {
-    cout << name
-    << " sizeof = " << sizeof (T)
-    << " alignof = " << __alignof__ (T)
-    << endl;
+    cout << name << " sizeof = " << sizeof(T) << " alignof = " << __alignof__(T) << endl;
 }
 
 // Author: Nick Strupat
@@ -43,4 +40,3 @@ void print_type(char const* name)
 size_t cache_line_size();
 
 #endif
-

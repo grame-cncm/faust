@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,39 +18,39 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef __SHLYSIS__
 #define __SHLYSIS__
 /*****************************************************************************
 ******************************************************************************
-								Tree Sharing Analysis
-						Y. Orlarey, (c) Grame 2002
+                                Tree Sharing Analysis
+                        Y. Orlarey, (c) Grame 2002
 ------------------------------------------------------------------------------
-The sharing analysis of tree t is the annotation of all its subtrees t' 
+The sharing analysis of tree t is the annotation of all its subtrees t'
 with their number of occurences in t. As this annotation of t' depends of
 a context (the tree t for which t' is a subtree) a specific property key
 unique to each sharing analysis must be generated.
 
  API:
- ---- 
-	
-	shprkey(t) -> k		= unique sharing property key of t
-	shcount(k,t') -> n	= returns the number of occurences of t' in t (where k = shprkey(t))
-	shlysis(t)	-> k	= annotated the subtrees of t with prop (key sharing-count)
-						  (0 if t' is not a subtree of t)
+ ----
+
+    shprkey(t) -> k		= unique sharing property key of t
+    shcount(k,t') -> n	= returns the number of occurences of t' in t (where k = shprkey(t))
+    shlysis(t)	-> k	= annotated the subtrees of t with prop (key sharing-count)
+                          (0 if t' is not a subtree of t)
 
  History :
  ---------
- 	2002-04-08 : First version
-	
+    2002-04-08 : First version
+
 ******************************************************************************
 *****************************************************************************/
 
-#include    <string.h>
-#include    <stdlib.h>
-#include    <stdio.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include 	"list.hh"
+#include "list.hh"
 
 typedef bool (*barrier)(const Tree& t);
 

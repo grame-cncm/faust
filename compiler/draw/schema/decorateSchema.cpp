@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include "decorateSchema.h"
 #include "exception.hh"
@@ -30,11 +30,10 @@ using namespace std;
 /**
  * Creates a new decorated schema
  */
-schema* makeDecorateSchema ( schema* s, double margin, const string& text )
+schema* makeDecorateSchema(schema* s, double margin, const string& text)
 {
-	return new decorateSchema (s, margin, text);
+    return new decorateSchema(s, margin, text);
 }
-
 
 /**
  * A decorateSchema is a schema surrounded by a dashed rectangle with a
@@ -42,16 +41,15 @@ schema* makeDecorateSchema ( schema* s, double margin, const string& text )
  * parameter. The constructor is made private to enforce the usage of
  * makeDecorateSchema
  */
-decorateSchema::decorateSchema( schema* s, double margin, const string& text )
-	: 	schema(s->inputs(), s->outputs(), s->width()+2*margin, s->height()+2*margin),
-	 	fSchema(s),
-	 	fMargin(margin),
-	 	fText(text)
+decorateSchema::decorateSchema(schema* s, double margin, const string& text)
+    : schema(s->inputs(), s->outputs(), s->width() + 2 * margin, s->height() + 2 * margin),
+      fSchema(s),
+      fMargin(margin),
+      fText(text)
 {
-    for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
-    for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0,0));
+    for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));
 }
-
 
 /**
  * Define the graphic position of the schema. Computes the graphic
@@ -60,26 +58,26 @@ decorateSchema::decorateSchema( schema* s, double margin, const string& text )
  */
 void decorateSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
+    beginPlace(ox, oy, orientation);
 
-	fSchema->place(ox+fMargin, oy+fMargin, orientation);
+    fSchema->place(ox + fMargin, oy + fMargin, orientation);
 
-	double m = fMargin;
-	if (orientation == kRightLeft) {
-		m = -m;
-	}
+    double m = fMargin;
+    if (orientation == kRightLeft) {
+        m = -m;
+    }
 
-	for (unsigned int i=0; i < inputs(); i++) {
-		point p = fSchema->inputPoint(i);
-        fInputPoint[i] = point(p.x-m, p.y); //, p.z);
-	}
+    for (unsigned int i = 0; i < inputs(); i++) {
+        point p        = fSchema->inputPoint(i);
+        fInputPoint[i] = point(p.x - m, p.y);  //, p.z);
+    }
 
-	for (unsigned int i=0; i < outputs(); i++) {
-		point p = fSchema->outputPoint(i);
-        fOutputPoint[i] = point(p.x+m, p.y); //, p.z);
-	}
+    for (unsigned int i = 0; i < outputs(); i++) {
+        point p         = fSchema->outputPoint(i);
+        fOutputPoint[i] = point(p.x + m, p.y);  //, p.z);
+    }
 
-	endPlace();
+    endPlace();
 }
 
 /**
@@ -87,9 +85,9 @@ void decorateSchema::place(double ox, double oy, int orientation)
  */
 point decorateSchema::inputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < inputs());
-	return fInputPoint[i];
+    faustassert(placed());
+    faustassert(i < inputs());
+    return fInputPoint[i];
 }
 
 /**
@@ -97,9 +95,9 @@ point decorateSchema::inputPoint(unsigned int i) const
  */
 point decorateSchema::outputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < outputs());
-	return fOutputPoint[i];
+    faustassert(placed());
+    faustassert(i < outputs());
+    return fOutputPoint[i];
 }
 
 /**
@@ -127,24 +125,24 @@ void decorateSchema::draw(device& dev)
     }
 #endif
     // define the coordinates of the frame
-    double tw = (2+fText.size())*dLetter*0.75;
-    double x0 = x() + fMargin/2;				// left
-    double y0 = y() + fMargin/2;				// top
-    double x1 = x() + width() - fMargin/2;		// right
-    double y1 = y() + height() - fMargin/2;		// bottom
-    //double tl = x0 + 2*dWire;					// left of text zone
-    double tl = x() + fMargin;					// left of text zone
-    double tr = min(tl+tw, x1);					// right of text zone
+    double tw = (2 + fText.size()) * dLetter * 0.75;
+    double x0 = x() + fMargin / 2;             // left
+    double y0 = y() + fMargin / 2;             // top
+    double x1 = x() + width() - fMargin / 2;   // right
+    double y1 = y() + height() - fMargin / 2;  // bottom
+    // double tl = x0 + 2*dWire;					// left of text zone
+    double tl = x() + fMargin;     // left of text zone
+    double tr = min(tl + tw, x1);  // right of text zone
 
     // draw the surronding frame
-    dev.dasharray(x0, y0, x0, y1);				// left line
-    dev.dasharray(x0, y1, x1, y1);				// bottom line
-    dev.dasharray(x1, y1, x1, y0);				// right line
-    dev.dasharray(x0, y0, tl, y0);				// top segment before text
-    dev.dasharray(tr, y0, x1, y0);				// top segment after text
+    dev.dasharray(x0, y0, x0, y1);  // left line
+    dev.dasharray(x0, y1, x1, y1);  // bottom line
+    dev.dasharray(x1, y1, x1, y0);  // right line
+    dev.dasharray(x0, y0, tl, y0);  // top segment before text
+    dev.dasharray(tr, y0, x1, y0);  // top segment after text
 
     // draw the label
-    dev.label(tl, y0, fText.c_str());	//
+    dev.label(tl, y0, fText.c_str());  //
 }
 
 /**
@@ -158,16 +156,16 @@ void decorateSchema::collectTraits(collector& c)
     fSchema->collectTraits(c);
 
     // draw enlarge input wires
-    for (unsigned int i=0; i<inputs(); i++) {
+    for (unsigned int i = 0; i < inputs(); i++) {
         point p = inputPoint(i);
         point q = fSchema->inputPoint(i);
-        c.addTrait(trait(p,q));     // in->out direction
+        c.addTrait(trait(p, q));  // in->out direction
     }
 
     // draw enlarge output wires
-    for (unsigned int i=0; i<outputs(); i++) {
+    for (unsigned int i = 0; i < outputs(); i++) {
         point p = fSchema->outputPoint(i);
         point q = outputPoint(i);
-        c.addTrait(trait(p,q));     // in->out direction
+        c.addTrait(trait(p, q));  // in->out direction
     }
 }

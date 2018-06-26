@@ -38,10 +38,10 @@
 #include <iostream>
 #include <cmath>
 
+#include "faust/dsp/timed-dsp.h"
 #include "faust/misc.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/console.h"
-#include "faust/gui/GUI.h"
 #include "faust/audio/netjack-dsp.h"
 
 #ifdef OSCCTRL
@@ -51,6 +51,9 @@
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
 #endif
+
+// Always include this file, otherwise -poly only mode does not compile....
+#include "faust/gui/MidiUI.h"
 
 /**************************BEGIN USER SECTION **************************/
 
@@ -66,11 +69,18 @@
 
 <<includeclass>>
 
+#include "faust/dsp/poly-dsp.h"
+
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
+#endif
+
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
 ztimedmap GUI::gTimedZoneMap;
@@ -83,39 +93,104 @@ int main(int argc, char *argv[])
     char appname[256];
     char rcfilename[256];
     char* home = getenv("HOME");
+    bool midi_sync = false;
+    int nvoices = 0;
+    mydsp_poly* dsp_poly = NULL;
 
-    int	celt = lopt(argv, "--celt", -1);
+    int celt = lopt(argv, "--c", -1);
     const char* master_ip = lopts(argv, "--a", DEFAULT_MULTICAST_IP);
     int master_port = lopt(argv, "--p", DEFAULT_PORT);
-    int mtu = lopt(argv, "--m", DEFAULT_MTU);
+    int mtu = lopt(argv, "--M", DEFAULT_MTU);
     int latency = lopt(argv, "--l", 2);
-
+    
+    mydsp* tmp_dsp = new mydsp();
+    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    delete tmp_dsp;
+    
     snprintf(appname, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, appname);
+    
+#ifdef POLY2
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    
+#if MIDICTRL
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
+    } else {
+        DSP = new dsp_sequencer(dsp_poly, new effect());
+    }
+#else
+    DSP = new dsp_sequencer(dsp_poly, new effect());
+#endif
+    
+#else
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    
+    if (nvoices > 0) {
+        std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(dsp_poly);
+        } else {
+            DSP = dsp_poly;
+        }
+#else
+        DSP = dsp_poly;
+#endif
+    } else {
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+#else
+        DSP = new mydsp();
+#endif
+    }
+#endif
+    
+    if (DSP == 0) {
+        std::cerr << "Unable to allocate Faust DSP object" << std::endl;
+        exit(1);
+    }
 
     CMDUI* interface = new CMDUI(argc, argv);
-    FUI* finterface	= new FUI();
-    DSP.buildUserInterface(interface);
-    DSP.buildUserInterface(finterface);
+    FUI* finterface = new FUI();
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(finterface);
+
+#ifdef HTTPCTRL
+    httpdUI* httpdinterface = new httpdUI(appname, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
+    DSP->buildUserInterface(httpdinterface);
+#endif
 
 #ifdef OSCCTRL
     GUI* oscinterface = new OSCUI(appname, argc, argv);
-    DSP.buildUserInterface(oscinterface);
+    DSP->buildUserInterface(oscinterface);
 #endif
 
-#ifdef HTTPCTRL
-    httpdUI* httpdinterface = new httpdUI(appname, DSP.getNumInputs(), DSP.getNumOutputs(), argc, argv);
-    DSP.buildUserInterface(httpdinterface);
- #endif
-
-    netjackaudio audio(celt, master_ip, master_port, mtu, latency);
-    if (!audio.init(appname, &DSP)) {
+    netjackaudio_midicontrol audio(celt, master_ip, master_port, mtu, latency);
+    if (!audio.init(appname, DSP)) {
         return 0;
     }
     finterface->recallState(rcfilename);
     if (!audio.start()) {
         return 0;
     }
+    
+#ifdef MIDICTRL
+    MidiUI* midiinterface = new MidiUI(&audio);
+    DSP->buildUserInterface(midiinterface);
+    audio.addMidiIn(dsp_poly);
+    std::cout << "MIDI is on" << std::endl;
+#endif
 
 #ifdef HTTPCTRL
     httpdinterface->run();
@@ -124,10 +199,21 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
     oscinterface->run();
 #endif
+    
+#ifdef MIDICTRL
+    if (!midiinterface->run()) {
+        std::cerr << "MidiUI run error\n";
+    }
+#endif
+    
     interface->run();
 
     audio.stop();
     finterface->saveState(rcfilename);
+    
+#ifdef MIDICTRL
+    midiinterface->stop();
+#endif
     
     // desallocation
     delete interface;
@@ -138,10 +224,12 @@ int main(int argc, char *argv[])
 #ifdef OSCCTRL
 	 delete oscinterface;
 #endif
+#ifdef MIDICTRL
+    delete midiinterface;
+#endif
 
     return 0;
 }
-
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
 

@@ -21,16 +21,16 @@
 
 #include "fir_code_container.hh"
 #include "fir_to_fir.hh"
-#include "instructions_complexity.hh"
 #include "global.hh"
+#include "instructions_complexity.hh"
 
 using namespace std;
 
 dsp_factory_base* FirCodeContainer::produceFactory()
 {
-    return new text_dsp_factory_aux(fKlassName, "", "",
-                                    gGlobal->gReader.listSrcFiles(),
-                                    ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
+    return new text_dsp_factory_aux(
+        fKlassName, "", "", gGlobal->gReader.listSrcFiles(),
+        ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)
@@ -38,7 +38,8 @@ CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int s
     return new FirScalarCodeContainer(name, 0, 1, sub_container_type, fOut, false);
 }
 
-CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst, bool top_level)
+CodeContainer* FirCodeContainer::createContainer(const string& name, int numInputs, int numOutputs, ostream* dst,
+                                                 bool top_level)
 {
     CodeContainer* container;
 
@@ -99,7 +100,7 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         fDeclarationInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
-    
+
     generateGetInputs(subst("$0::getNumInputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
     generateGetOutputs(subst("$0::getNumOutputs", fKlassName), "dsp", true, true)->accept(&firvisitor);
@@ -108,7 +109,7 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
     *dst << std::endl;
     generateGetOutputRate(subst("$0::getOutputRate", fKlassName), "dsp", true, true)->accept(&firvisitor);
     *dst << std::endl;
- 
+
     if (fStaticInitInstructions->fCode.size() > 0) {
         *dst << "======= Static Init ==========" << std::endl;
         *dst << std::endl;
@@ -118,14 +119,14 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         }
         *dst << std::endl;
     }
-    
+
     if (fInitInstructions->fCode.size() > 0) {
         *dst << "======= Init ==========" << std::endl;
         *dst << std::endl;
         fInitInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
-    
+
     if (fResetUserInterfaceInstructions->fCode.size() > 0) {
         *dst << "======= ResetUI ==========" << std::endl;
         *dst << std::endl;
@@ -139,14 +140,14 @@ void FirCodeContainer::dumpGlobalsAndInit(FIRInstVisitor& firvisitor, ostream* d
         fClearInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
- 
+
     if (fDestroyInstructions->fCode.size() > 0) {
         *dst << "======= Destroy ==========" << std::endl;
         *dst << std::endl;
         fDestroyInstructions->accept(&firvisitor);
         *dst << std::endl;
     }
-    
+
     if (fAllocateInstructions->fCode.size() > 0) {
         *dst << "======= Allocate ==========" << std::endl;
         *dst << std::endl;
@@ -187,34 +188,37 @@ void FirCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
-    
-        int total_heap_size = 0;
+        int                                  total_heap_size = 0;
         list<CodeContainer*>::const_iterator it;
-        
+
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             (*it)->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
-        
-        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32);
+
+        VariableSizeCounter heap_counter1(Address::AccessType(Address::kStruct | Address::kStaticStruct),
+                                          Typed::kInt32);
         generateDeclarations(&heap_counter1);
-        
-        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct), Typed::kInt32_ptr);
+
+        VariableSizeCounter heap_counter2(Address::AccessType(Address::kStruct | Address::kStaticStruct),
+                                          Typed::kInt32_ptr);
         generateDeclarations(&heap_counter2);
-        
+
         VariableSizeCounter heap_counter3(Address::AccessType(Address::kStruct | Address::kStaticStruct));
         generateDeclarations(&heap_counter3);
-        
+
         VariableSizeCounter stack_counter(Address::kStack);
         generateComputeBlock(&stack_counter);
-        
+
         *dst << "======= Object memory footprint ==========" << std::endl << std::endl;
         *dst << "Heap size int = " << heap_counter1.fSizeBytes << " bytes" << std::endl;
         *dst << "Heap size int* = " << heap_counter2.fSizeBytes << " bytes" << std::endl;
-        *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes) << " bytes" << std::endl;
+        *dst << "Heap size real = " << heap_counter3.fSizeBytes - (heap_counter1.fSizeBytes + heap_counter2.fSizeBytes)
+             << " bytes" << std::endl;
         *dst << "Heap size = " << heap_counter3.fSizeBytes + total_heap_size << " bytes" << std::endl;
-        *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes" << "\n\n";
+        *dst << "Stack size in compute = " << stack_counter.fSizeBytes << " bytes"
+             << "\n\n";
     }
 }
 
@@ -223,7 +227,7 @@ void FirCodeContainer::produceInternal()
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Sub container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
-    
+
     dumpGlobalsAndInit(firvisitor, fOut);
     dumpComputeBlock(firvisitor, fOut);
     dumpCompute(firvisitor, fOut);
@@ -234,7 +238,7 @@ void FirCodeContainer::produceClass()
     FIRInstVisitor firvisitor(fOut);
     *fOut << "======= Container \"" << fKlassName << "\" ==========" << std::endl;
     *fOut << std::endl;
-    
+
     *fOut << "======= External types declaration ==========" << std::endl;
     *fOut << std::endl;
     map<Typed::VarType, DeclareStructTypeInst*>::const_iterator it;
@@ -243,7 +247,7 @@ void FirCodeContainer::produceClass()
         *fOut << std::endl;
     }
     *fOut << std::endl;
-    
+
     dumpSubContainers(firvisitor, fOut);
     dumpUserInterface(firvisitor, fOut);
     dumpGlobalsAndInit(firvisitor, fOut);
@@ -269,10 +273,10 @@ void FirScalarCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     // Complexity estimation
     dumpCost(loop, dst);
     loop->accept(&firvisitor);
-    
+
     // Currently for soundfile management
     generatePostComputeBlock(&firvisitor);
-    
+
     *dst << std::endl;
 }
 
@@ -303,7 +307,7 @@ void FirOpenMPCodeContainer::dumpCompute(FIRInstVisitor& firvisitor, ostream* ds
     dumpCost(fGlobalLoopBlock, dst);
     // Generate it
     fGlobalLoopBlock->accept(&firvisitor);
- 
+
     // Possibly generate separated functions
     if (fComputeFunctions->fCode.size() > 0) {
         *dst << std::endl;
@@ -334,29 +338,29 @@ void FirWorkStealingCodeContainer::dumpMemory(ostream* dst)
 {
     // Compute memory footprint
     if (fTopLevel) {
-    
-        int total_heap_size = 0;
+        int                                  total_heap_size = 0;
         list<CodeContainer*>::const_iterator it;
-        
+
         for (it = fSubContainers.begin(); it != fSubContainers.end(); it++) {
             VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
             (*it)->generateDeclarations(&heap_counter);
             total_heap_size += heap_counter.fSizeBytes;
         }
-        
+
         VariableSizeCounter heap_counter(Address::AccessType(Address::kStruct | Address::kStaticStruct));
         generateDeclarations(&heap_counter);
-        
+
         VariableSizeCounter stack_counter_compute(Address::kStack);
         generateComputeBlock(&stack_counter_compute);
-        
+
         VariableSizeCounter stack_counter_compute_thread(Address::kStack);
         fComputeThreadBlockInstructions->accept(&stack_counter_compute_thread);
-        
+
         *dst << "======= Object memory footprint ==========\n\n";
         *dst << "Heap size = " << heap_counter.fSizeBytes + total_heap_size << " bytes" << std::endl;
-        *dst << "Stack size in compute = " << stack_counter_compute.fSizeBytes << " bytes"<< std::endl;
-        *dst << "Stack size in computeThread = " << stack_counter_compute_thread.fSizeBytes << " bytes" << "\n\n";
+        *dst << "Stack size in compute = " << stack_counter_compute.fSizeBytes << " bytes" << std::endl;
+        *dst << "Stack size in computeThread = " << stack_counter_compute_thread.fSizeBytes << " bytes"
+             << "\n\n";
     }
 }
 

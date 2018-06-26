@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,37 +18,37 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef __NAMES__
 #define __NAMES__
- 
-#include "tlib.hh"
-#include "propagate.hh"
+
 #include <string>
+#include "propagate.hh"
+#include "tlib.hh"
 
 using namespace std;
 
-/** 						
- * \file names.hh 
+/**
+ * \file names.hh
  *
  * Interface for names management.
  *
  **/
- 
+
 /**
  * Indicates the identifier (if any) the expression was a definition of.
- * @param t the expression 
- * @param id reference to the identifier 
+ * @param t the expression
+ * @param id reference to the identifier
  * @return true if the expression t was a definition of id
  **/
- 
+
 bool getDefNameProperty(Tree t, Tree& id);
 
 void setDefNameProperty(Tree t, Tree id);
 void setDefNameProperty(Tree t, const string& name);
 
-//bool getSigListNickName (Tree t, Tree& id);
-//void setSigListNickName (const siglist&  lsig, const string& nickname);
+// bool getSigListNickName (Tree t, Tree& id);
+// void setSigListNickName (const siglist&  lsig, const string& nickname);
 
 void setSigListNickName(Tree lsig, const string& nickname);
 
@@ -65,6 +65,6 @@ bool getSigNickname(Tree t, Tree& id);
 Tree pushValueDef(Tree id, Tree def, Tree lenv);
 
 /* numeric simplification of pattern arguments */
-Tree simplifyPattern (Tree pattern);
+Tree simplifyPattern(Tree pattern);
 
 #endif

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,17 +20,17 @@
  ************************************************************************/
 
 #include "seqSchema.h"
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 #include "exception.hh"
 
 using namespace std;
 
-enum {kHorDir, kUpDir, kDownDir}; ///< directions of connections
+enum { kHorDir, kUpDir, kDownDir };  ///< directions of connections
 
 static double computeHorzGap(schema* a, schema* b);
-static int direction(const point& a, const point& b);
+static int    direction(const point& a, const point& b);
 
 //----------------------------INTERFACE--------------------------------
 
@@ -40,15 +40,15 @@ static int direction(const point& a, const point& b);
  * Compute an horizontal gap based on the number of upward and
  * downward connections.
  */
-schema* makeSeqSchema (schema* s1, schema* s2)
+schema* makeSeqSchema(schema* s1, schema* s2)
 {
-	unsigned int o = s1->outputs();
-	unsigned int i = s2->inputs();
+    unsigned int o = s1->outputs();
+    unsigned int i = s2->inputs();
 
-	schema* a = (o < i) ? makeParSchema(s1, makeCableSchema(i-o)) : s1;
-	schema* b = (o > i) ? makeParSchema(s2, makeCableSchema(o-i)) : s2;
+    schema* a = (o < i) ? makeParSchema(s1, makeCableSchema(i - o)) : s1;
+    schema* b = (o > i) ? makeParSchema(s2, makeCableSchema(o - i)) : s2;
 
-	return new seqSchema(a, b, computeHorzGap(a,b));
+    return new seqSchema(a, b, computeHorzGap(a, b));
 }
 
 //-----------------------IMPLEMENTATION------------------------------
@@ -57,20 +57,16 @@ schema* makeSeqSchema (schema* s1, schema* s2)
  * Constructor for a sequential schema (s1:s2). The components s1 and s2
  * are supposed to be "compatible" (s1 : n->m and s2 : m->q)
  */
-seqSchema::seqSchema (schema* s1, schema* s2, double hgap)
-	: 	schema(	s1->inputs(),
-				s2->outputs(),
-				s1->width() + hgap + s2->width(),
-				max(s1->height(), s2->height()) ),
-		fSchema1(s1),
-		fSchema2(s2),
-		fHorzGap(hgap)
+seqSchema::seqSchema(schema* s1, schema* s2, double hgap)
+    : schema(s1->inputs(), s2->outputs(), s1->width() + hgap + s2->width(), max(s1->height(), s2->height())),
+      fSchema1(s1),
+      fSchema2(s2),
+      fHorzGap(hgap)
 {
-	faustassert(s1->outputs() == s2->inputs());
+    faustassert(s1->outputs() == s2->inputs());
 }
 
 //-----------------------placement------------------------------
-
 
 /**
  * Place the two components horizontally with enough space
@@ -78,19 +74,19 @@ seqSchema::seqSchema (schema* s1, schema* s2, double hgap)
  */
 void seqSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
+    beginPlace(ox, oy, orientation);
 
-	double y1 = max(0.0, 0.5*(fSchema2->height() - fSchema1->height()));
-	double y2 = max(0.0, 0.5*(fSchema1->height() - fSchema2->height()));
+    double y1 = max(0.0, 0.5 * (fSchema2->height() - fSchema1->height()));
+    double y2 = max(0.0, 0.5 * (fSchema1->height() - fSchema2->height()));
 
-	if (orientation == kLeftRight) {
-		fSchema1->place(ox, oy+y1, orientation);
-		fSchema2->place(ox+fSchema1->width()+fHorzGap, oy+y2, orientation);
-	} else {
-		fSchema2->place(ox, oy+y2, orientation);
-		fSchema1->place(ox+fSchema2->width()+fHorzGap, oy+y1, orientation);
-	}
-	endPlace();
+    if (orientation == kLeftRight) {
+        fSchema1->place(ox, oy + y1, orientation);
+        fSchema2->place(ox + fSchema1->width() + fHorzGap, oy + y2, orientation);
+    } else {
+        fSchema2->place(ox, oy + y2, orientation);
+        fSchema1->place(ox + fSchema2->width() + fHorzGap, oy + y1, orientation);
+    }
+    endPlace();
 }
 
 /**
@@ -98,7 +94,7 @@ void seqSchema::place(double ox, double oy, int orientation)
  */
 point seqSchema::inputPoint(unsigned int i) const
 {
-	return fSchema1->inputPoint(i);
+    return fSchema1->inputPoint(i);
 }
 
 /**
@@ -106,7 +102,7 @@ point seqSchema::inputPoint(unsigned int i) const
  */
 point seqSchema::outputPoint(unsigned int i) const
 {
-	return fSchema2->outputPoint(i);
+    return fSchema2->outputPoint(i);
 }
 
 //--------------------------drawing------------------------------
@@ -120,7 +116,7 @@ void seqSchema::draw(device& dev)
 
     fSchema1->draw(dev);
     fSchema2->draw(dev);
-    //drawInternalWires(dev);
+    // drawInternalWires(dev);
 }
 
 /**
@@ -143,74 +139,90 @@ void seqSchema::collectTraits(collector& c)
 
 void seqSchema::drawInternalWires(device& dev)
 {
-	faustassert(fSchema1->outputs() == fSchema2->inputs());
+    faustassert(fSchema1->outputs() == fSchema2->inputs());
 
-	const int 	N 	= fSchema1->outputs();
-	double 		dx 	= 0;
-	double		mx 	= 0;
-	int			dir	=-1;
+    const int N   = fSchema1->outputs();
+    double    dx  = 0;
+    double    mx  = 0;
+    int       dir = -1;
 
-	if (orientation() == kLeftRight) {
-		// draw left right cables
-		for (int i=0; i<N; i++) {
-			point src = fSchema1->outputPoint(i);
-			point dst = fSchema2->inputPoint(i);
+    if (orientation() == kLeftRight) {
+        // draw left right cables
+        for (int i = 0; i < N; i++) {
+            point src = fSchema1->outputPoint(i);
+            point dst = fSchema2->inputPoint(i);
 
-            int d = direction(src,dst);
+            int d = direction(src, dst);
             if (d != dir) {
                 // compute attributes of new direction
                 switch (d) {
-                    case kUpDir 	: mx = 0; dx = dWire; break;
-                    case kDownDir	: mx = fHorzGap; dx = -dWire; break;
-                    default			: mx = 0; dx = 0; break;
+                    case kUpDir:
+                        mx = 0;
+                        dx = dWire;
+                        break;
+                    case kDownDir:
+                        mx = fHorzGap;
+                        dx = -dWire;
+                        break;
+                    default:
+                        mx = 0;
+                        dx = 0;
+                        break;
                 }
                 dir = d;
             } else {
                 // move in same direction
-                mx = mx +dx;
+                mx = mx + dx;
             }
             if (src.y == dst.y) {
                 // draw straight cable
                 dev.trait(src.x, src.y, dst.x, dst.y);
             } else {
                 // draw zizag cable
-                dev.trait(src.x, src.y, src.x+mx, src.y);
-                dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-                dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+                dev.trait(src.x, src.y, src.x + mx, src.y);
+                dev.trait(src.x + mx, src.y, src.x + mx, dst.y);
+                dev.trait(src.x + mx, dst.y, dst.x, dst.y);
             }
-
         }
-	} else {
-		// draw right left cables
-		for (int i=0; i<N; i++) {
-			point src = fSchema1->outputPoint(i);
-			point dst = fSchema2->inputPoint(i);
+    } else {
+        // draw right left cables
+        for (int i = 0; i < N; i++) {
+            point src = fSchema1->outputPoint(i);
+            point dst = fSchema2->inputPoint(i);
 
-            int d = direction(src,dst);
+            int d = direction(src, dst);
             if (d != dir) {
                 // compute attributes of new direction
                 switch (d) {
-                    case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
-                    case kDownDir	: mx = 0; dx = -dWire; break;
-                    default			: mx = 0; dx = 0; break;
+                    case kUpDir:
+                        mx = -fHorzGap;
+                        dx = dWire;
+                        break;
+                    case kDownDir:
+                        mx = 0;
+                        dx = -dWire;
+                        break;
+                    default:
+                        mx = 0;
+                        dx = 0;
+                        break;
                 }
                 dir = d;
             } else {
                 // move in same direction
-                mx = mx +dx;
+                mx = mx + dx;
             }
             if (src.y == dst.y) {
                 // draw straight cable
                 dev.trait(src.x, src.y, dst.x, dst.y);
             } else {
                 // draw zizag cable
-                dev.trait(src.x, src.y, src.x+mx, src.y);
-                dev.trait(src.x+mx, src.y, src.x+mx, dst.y);
-                dev.trait(src.x+mx, dst.y, dst.x, dst.y);
+                dev.trait(src.x, src.y, src.x + mx, src.y);
+                dev.trait(src.x + mx, src.y, src.x + mx, dst.y);
+                dev.trait(src.x + mx, dst.y, dst.x, dst.y);
             }
-
         }
-	}
+    }
 }
 
 /**
@@ -222,70 +234,86 @@ void seqSchema::collectInternalWires(collector& c)
 {
     faustassert(fSchema1->outputs() == fSchema2->inputs());
 
-    const int 	N 	= fSchema1->outputs();
-    double 		dx 	= 0;
-    double		mx 	= 0;
-    int			dir	=-1;
+    const int N   = fSchema1->outputs();
+    double    dx  = 0;
+    double    mx  = 0;
+    int       dir = -1;
 
     if (orientation() == kLeftRight) {
         // draw left right cables
-        for (int i=0; i<N; i++) {
+        for (int i = 0; i < N; i++) {
             point src = fSchema1->outputPoint(i);
             point dst = fSchema2->inputPoint(i);
 
-            int d = direction(src,dst);
+            int d = direction(src, dst);
             if (d != dir) {
                 // compute attributes of new direction
                 switch (d) {
-                    case kUpDir 	: mx = 0; dx = dWire; break;
-                    case kDownDir	: mx = fHorzGap; dx = -dWire; break;
-                    default			: mx = 0; dx = 0; break;
+                    case kUpDir:
+                        mx = 0;
+                        dx = dWire;
+                        break;
+                    case kDownDir:
+                        mx = fHorzGap;
+                        dx = -dWire;
+                        break;
+                    default:
+                        mx = 0;
+                        dx = 0;
+                        break;
                 }
                 dir = d;
             } else {
                 // move in same direction
-                mx = mx +dx;
+                mx = mx + dx;
             }
             if (src.y == dst.y) {
                 // draw straight cable
                 c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
             } else {
                 // draw zizag cable
-                c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
-                c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
-                c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
+                c.addTrait(trait(point(src.x, src.y), point(src.x + mx, src.y)));
+                c.addTrait(trait(point(src.x + mx, src.y), point(src.x + mx, dst.y)));
+                c.addTrait(trait(point(src.x + mx, dst.y), point(dst.x, dst.y)));
             }
-
         }
     } else {
         // draw right left cables
-        for (int i=0; i<N; i++) {
+        for (int i = 0; i < N; i++) {
             point src = fSchema1->outputPoint(i);
             point dst = fSchema2->inputPoint(i);
 
-            int d = direction(src,dst);
+            int d = direction(src, dst);
             if (d != dir) {
                 // compute attributes of new direction
                 switch (d) {
-                    case kUpDir 	: mx = -fHorzGap; dx = dWire; break;
-                    case kDownDir	: mx = 0; dx = -dWire; break;
-                    default			: mx = 0; dx = 0; break;
+                    case kUpDir:
+                        mx = -fHorzGap;
+                        dx = dWire;
+                        break;
+                    case kDownDir:
+                        mx = 0;
+                        dx = -dWire;
+                        break;
+                    default:
+                        mx = 0;
+                        dx = 0;
+                        break;
                 }
                 dir = d;
             } else {
                 // move in same direction
-                mx = mx +dx;
+                mx = mx + dx;
             }
             if (src.y == dst.y) {
                 // draw straight cable
                 c.addTrait(trait(point(src.x, src.y), point(dst.x, dst.y)));
             } else {
                 // draw zizag cable
-                c.addTrait(trait(point(src.x, src.y), point(src.x+mx, src.y)));
-                c.addTrait(trait(point(src.x+mx, src.y), point(src.x+mx, dst.y)));
-                c.addTrait(trait(point(src.x+mx, dst.y), point(dst.x, dst.y)));
+                c.addTrait(trait(point(src.x, src.y), point(src.x + mx, src.y)));
+                c.addTrait(trait(point(src.x + mx, src.y), point(src.x + mx, dst.y)));
+                c.addTrait(trait(point(src.x + mx, dst.y), point(dst.x, dst.y)));
             }
-
         }
     }
 }
@@ -297,9 +325,9 @@ void seqSchema::collectInternalWires(collector& c)
  */
 static int direction(const point& a, const point& b)
 {
-	if (a.y > b.y) return kUpDir; 		// upward connections
-	if (a.y < b.y) return kDownDir; 	// downward connection
-	return kHorDir;						// horizontal connections
+    if (a.y > b.y) return kUpDir;    // upward connections
+    if (a.y < b.y) return kDownDir;  // downward connection
+    return kHorDir;                  // horizontal connections
 }
 
 /**
@@ -309,40 +337,41 @@ static int direction(const point& a, const point& b)
  */
 static double computeHorzGap(schema* a, schema* b)
 {
-	faustassert(a->outputs() == b->inputs());
+    faustassert(a->outputs() == b->inputs());
 
-	if (a->outputs() == 0) {
-		return 0;
-	} else {
-		// store here the size of the largest group for each direction
-		int	MaxGroupSize[3]; for(int i=0; i<3; i++) MaxGroupSize[i]=0;
+    if (a->outputs() == 0) {
+        return 0;
+    } else {
+        // store here the size of the largest group for each direction
+        int MaxGroupSize[3];
+        for (int i = 0; i < 3; i++) MaxGroupSize[i] = 0;
 
-		// place a and b to have valid connection points
-		double ya = max(0.0, 0.5*(b->height() - a->height()));
-		double yb = max(0.0, 0.5*(a->height() - b->height()));
-		a->place(0,ya,kLeftRight);
-		b->place(0,yb,kLeftRight);
+        // place a and b to have valid connection points
+        double ya = max(0.0, 0.5 * (b->height() - a->height()));
+        double yb = max(0.0, 0.5 * (a->height() - b->height()));
+        a->place(0, ya, kLeftRight);
+        b->place(0, yb, kLeftRight);
 
-		// init current group direction and size
-		int	gdir 	= direction(a->outputPoint(0), b->inputPoint(0));
-		int	gsize 	= 1;
+        // init current group direction and size
+        int gdir  = direction(a->outputPoint(0), b->inputPoint(0));
+        int gsize = 1;
 
-		// analyze direction of remaining points
-		for (unsigned int i=1; i<a->outputs(); i++) {
-			int d = direction(a->outputPoint(i), b->inputPoint(i));
-			if (d == gdir) {
-				gsize++;
-			} else {
-				if (gsize > MaxGroupSize[gdir])  MaxGroupSize[gdir]=gsize;
-				gsize = 1;
-				gdir = d;
-			}
-		}
+        // analyze direction of remaining points
+        for (unsigned int i = 1; i < a->outputs(); i++) {
+            int d = direction(a->outputPoint(i), b->inputPoint(i));
+            if (d == gdir) {
+                gsize++;
+            } else {
+                if (gsize > MaxGroupSize[gdir]) MaxGroupSize[gdir] = gsize;
+                gsize = 1;
+                gdir  = d;
+            }
+        }
 
-		// update for last group
-		if (gsize > MaxGroupSize[gdir])  MaxGroupSize[gdir]=gsize;
+        // update for last group
+        if (gsize > MaxGroupSize[gdir]) MaxGroupSize[gdir] = gsize;
 
-		// the gap required for the connections
-		return dWire * max(MaxGroupSize[kUpDir],MaxGroupSize[kDownDir]);
-	}
+        // the gap required for the connections
+        return dWire * max(MaxGroupSize[kUpDir], MaxGroupSize[kDownDir]);
+    }
 }

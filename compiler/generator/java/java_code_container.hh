@@ -23,57 +23,48 @@
 #define _JAVA_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "java_instructions.hh"
 #include "dsp_factory.hh"
+#include "java_instructions.hh"
 
-using namespace std;           
+using namespace std;
 
 class JAVACodeContainer : public virtual CodeContainer {
+   protected:
+    JAVAInstVisitor fCodeProducer;
+    std::ostream*   fOut;
+    string          fSuperKlassName;
 
-    protected:
+   public:
+    JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
+        : fCodeProducer(out), fOut(out), fSuperKlassName(super)
+    {
+        initializeCodeContainer(numInputs, numOutputs);
+        fKlassName = name;
+    }
+    virtual ~JAVACodeContainer() {}
 
-        JAVAInstVisitor fCodeProducer;
-        std::ostream* fOut;
-        string fSuperKlassName;
-    
-    public:
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
+    void         produceInternal();
 
-        JAVACodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out)
-            :fCodeProducer(out), fOut(out), fSuperKlassName(super)
-        {
-            initializeCodeContainer(numInputs, numOutputs);
-            fKlassName = name;
-        }
-        virtual ~JAVACodeContainer()
-        {}
+    virtual dsp_factory_base* produceFactory();
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-        void produceInternal();
-    
-        virtual dsp_factory_base* produceFactory();
-    
-        virtual void printHeader()
-        {
-             CodeContainer::printHeader(*fOut);
-        }
+    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
 
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
 
-        static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs, ostream* dst = new stringstream());
+    static CodeContainer* createContainer(const string& name, const string& super, int numInputs, int numOutputs,
+                                          ostream* dst = new stringstream());
 };
 
 class JAVAScalarCodeContainer : public JAVACodeContainer {
+   protected:
+   public:
+    JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out,
+                            int sub_container_type);
+    virtual ~JAVAScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        JAVAScalarCodeContainer(const string& name, const string& super, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~JAVAScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 #endif

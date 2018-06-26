@@ -170,20 +170,20 @@ function setStorageItemValue(item_key, key, value)
 
 function saveDSPState()
 {
-   var params = DSP.getParams();
+   var params = DSP_poly.getParams();
     for (var i = 0; i < params.length; i++) {
-        setStorageItemValue('DSP', params[i], DSP.getParamValue(params[i]));
+        setStorageItemValue('DSP_poly', params[i], DSP_poly.getParamValue(params[i]));
     }
 }
 
 function loadDSPState()
 {
-    var params = DSP.getParams();
+    var params = DSP_poly.getParams();
     for (var i = 0; i < params.length; i++) {
-        var value = getStorageItemValue('DSP', params[i]);
+        var value = getStorageItemValue('DSP_poly', params[i]);
         if (value) {
             // Restore DSP state
-            DSP.setParamValue(params[i], Number(value));
+            DSP_poly.setParamValue(params[i], Number(value));
             // Restore GUI state
             output_handler(params[i], Number(value));
         }

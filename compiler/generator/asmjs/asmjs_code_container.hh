@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,79 +22,65 @@
 #ifndef _ASMJAVASCRIPT_CODE_CONTAINER_H
 #define _ASMJAVASCRIPT_CODE_CONTAINER_H
 
-#ifdef WIN32 
-#pragma warning (disable: 4250)
+#ifdef WIN32
+#pragma warning(disable : 4250)
 #endif
 
-#include "code_container.hh"
-#include "vec_code_container.hh"
 #include "asmjs_instructions.hh"
+#include "code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "vec_code_container.hh"
 
 using namespace std;
 
-
 class ASMJAVAScriptCodeContainer : public virtual CodeContainer {
+   protected:
+    std::ostream* fOut;
 
-    protected:
+    void generateASMBlock(BlockInst* instructions)
+    {
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront2 mover;
+        BlockInst*            block = mover.getCode(instructions);
+        block->accept(gGlobal->gASMJSVisitor);
+    }
 
-        std::ostream* fOut;
-    
-        void generateASMBlock(BlockInst* instructions)
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront2 mover;
-            BlockInst* block = mover.getCode(instructions);
-            block->accept(gGlobal->gASMJSVisitor);
-        }
- 
-    public:
+   public:
+    ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~ASMJAVAScriptCodeContainer() {}
 
-        ASMJAVAScriptCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~ASMJAVAScriptCodeContainer()
-        {}
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
+    void         produceInternal();
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-        void produceInternal();
-    
-        virtual dsp_factory_base* produceFactory();
-    
-        virtual void printHeader()
-        {
-            CodeContainer::printHeader(*fOut);
-        }
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    virtual dsp_factory_base* produceFactory();
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, ostream* dst = new stringstream());
+    virtual void printHeader() { CodeContainer::printHeader(*fOut); }
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs,
+                                          ostream* dst = new stringstream());
 };
 
 class ASMJAVAScriptScalarCodeContainer : public ASMJAVAScriptCodeContainer {
+   protected:
+   public:
+    ASMJAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                                     int sub_container_type);
+    virtual ~ASMJAVAScriptScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        ASMJAVAScriptScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type);
-        virtual ~ASMJAVAScriptScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class ASMJAVAScriptVectorCodeContainer : public VectorCodeContainer, public ASMJAVAScriptCodeContainer {
+   protected:
+   public:
+    ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
+    virtual ~ASMJAVAScriptVectorCodeContainer();
 
-    protected:
-
-    public:
-
-        ASMJAVAScriptVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out);
-        virtual ~ASMJAVAScriptVectorCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 #endif

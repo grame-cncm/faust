@@ -28,6 +28,7 @@
 #include <map>
 #include <string.h>
 #include <stdlib.h>
+#include <cstdlib>
 
 #include "faust/gui/meta.h"
 
@@ -51,7 +52,7 @@ inline int int2pow2(int x)		{ int r = 0; while ((1<<r) < x) r++; return r; }
 inline long lopt(char* argv[], const char* name, long def)
 {
 	int	i;
-	for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return atoi(argv[i+1]);
+    for (i = 0; argv[i]; i++) if (!strcmp(argv[i], name)) return std::atoi(argv[i+1]);
 	return def;
 }
 

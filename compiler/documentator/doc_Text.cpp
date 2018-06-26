@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,18 +20,18 @@
  ************************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <string>
-#include <vector>
+#include <cmath>
 #include <iostream>
 #include <sstream>
-#include <cmath>
-#include <stdlib.h>
+#include <string>
+#include <vector>
 
-#include "floats.hh"
-#include "doc_Text.hh"
 #include "compatibility.hh"
+#include "doc_Text.hh"
 #include "exception.hh"
+#include "floats.hh"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -49,7 +49,7 @@
 #define M_E 2.71828182845904523536
 #endif
 
-const string symbolicNumber (double n);
+const string symbolicNumber(double n);
 
 #if 0
 /**
@@ -69,10 +69,26 @@ static void zdel(char* c)
 }
 #endif
 
-string docT(char* c){ return string(c); }
-string docT(int n) { char c[64]; snprintf(c, 63, "%d", n);  return string(c); }
-string docT(long n) { char c[64]; snprintf(c, 63, "%ld", n); return string(c); }
-string docT(double n) { return symbolicNumber(n); }
+string docT(char* c)
+{
+    return string(c);
+}
+string docT(int n)
+{
+    char c[64];
+    snprintf(c, 63, "%d", n);
+    return string(c);
+}
+string docT(long n)
+{
+    char c[64];
+    snprintf(c, 63, "%ld", n);
+    return string(c);
+}
+string docT(double n)
+{
+    return symbolicNumber(n);
+}
 
 //
 //*****************************SYMBOLIC NUMBER REPRESENTATION*******************
@@ -84,13 +100,12 @@ string docT(double n) { return symbolicNumber(n); }
  */
 float fltEpsilon()
 {
-   float machEps = 1.0f;
-   do {
-      machEps /= 2.0f;
-   } while ((float)(1.0 + (machEps/2.0)) != 1.0);
-   return machEps;
+    float machEps = 1.0f;
+    do {
+        machEps /= 2.0f;
+    } while ((float)(1.0 + (machEps / 2.0)) != 1.0);
+    return machEps;
 }
-
 
 /**
  * Compute the smallest double representable
@@ -98,13 +113,12 @@ float fltEpsilon()
  */
 double dblEpsilon()
 {
-   double machEps = 1.0f;
-   do {
-      machEps /= 2.0f;
-   } while ((1.0 + (machEps/2.0)) != 1.0);
-   return machEps;
+    double machEps = 1.0f;
+    do {
+        machEps /= 2.0f;
+    } while ((1.0 + (machEps / 2.0)) != 1.0);
+    return machEps;
 }
-
 
 /**
  * Check if two floating point numbers are (almost) equal
@@ -112,56 +126,51 @@ double dblEpsilon()
  */
 static bool AlmostEqual(double A, double B)
 {
-    double maxRelativeError = 2*dblEpsilon();
+    double maxRelativeError = 2 * dblEpsilon();
     double maxAbsoluteError = maxRelativeError;
 
-
-    if (fabs(A - B) < maxAbsoluteError)
-        return true;
+    if (fabs(A - B) < maxAbsoluteError) return true;
     double relativeError;
     if (fabs(B) > fabs(A))
         relativeError = fabs((A - B) / B);
     else
         relativeError = fabs((A - B) / A);
-    if (relativeError <= maxRelativeError)
-        return true;
+    if (relativeError <= maxRelativeError) return true;
     return false;
 }
-
 
 /**
  * Return true if n>0 is equal to PI^k for some small integer k.
  * k = log(n)/log(pi) is integer => n = exp(int(k)*log(pi))
  * The latex representation \pi^{k} is returned in string s
  */
-bool isPiPower (double n, string& s)
+bool isPiPower(double n, string& s)
 {
-    faustassert(n>0);
-    stringstream ss (stringstream::out|stringstream::in);
-    int k = (int)floor(log(n)/log(M_PI));
-    if ( AlmostEqual(n, exp(k * log(M_PI))) && (k!=0) && (abs(k)<5.0) ) {
+    faustassert(n > 0);
+    stringstream ss(stringstream::out | stringstream::in);
+    int          k = (int)floor(log(n) / log(M_PI));
+    if (AlmostEqual(n, exp(k * log(M_PI))) && (k != 0) && (abs(k) < 5.0)) {
         ss << "\\pi";
-        if (k!=1)  ss << "^{"<< k <<"}";
+        if (k != 1) ss << "^{" << k << "}";
         s = ss.str();
         return true;
     } else {
         return false;
     }
 }
-
 
 /**
  * Return true if n>0 is equal to e^k for some small integer k.
  * The latex representation e^{k} is returned in string s
  */
-bool isExpPower (double n, string& s)
+bool isExpPower(double n, string& s)
 {
-    faustassert(n>0);
-    stringstream ss (stringstream::out|stringstream::in);
-    int k = (int)floor(log(n));
-    if ( AlmostEqual(n, exp(float(k))) && (k!=0) && (abs(k)<5.0) ) {
+    faustassert(n > 0);
+    stringstream ss(stringstream::out | stringstream::in);
+    int          k = (int)floor(log(n));
+    if (AlmostEqual(n, exp(float(k))) && (k != 0) && (abs(k) < 5.0)) {
         ss << "e";
-        if (k!=1)  ss << "^{"<< k <<"}";
+        if (k != 1) ss << "^{" << k << "}";
         s = ss.str();
         return true;
     } else {
@@ -169,43 +178,40 @@ bool isExpPower (double n, string& s)
     }
 }
 
-
 /**
  * Return true if n>0 is equal to e^k or PI^k for some integer k
  * The symbolic latex representation is returned in string s
  */
-bool isSymbolicPower (double n, string& s)
+bool isSymbolicPower(double n, string& s)
 {
-    faustassert(n>0);
-    if (isPiPower(n,s)) {
+    faustassert(n > 0);
+    if (isPiPower(n, s)) {
         return true;
-    } else if (isExpPower(n,s)) {
+    } else if (isExpPower(n, s)) {
         return true;
     } else {
         return false;
     }
 }
 
-
 /**
  * Return exp or num.exp, or exp/denom, or num/denom.exp
  */
-const string addFraction (int num, int denom, const string& exp)
+const string addFraction(int num, int denom, const string& exp)
 {
-    stringstream ss (stringstream::out|stringstream::in);
+    stringstream ss(stringstream::out | stringstream::in);
 
-    if ((num==1) & (denom==1)) {
+    if ((num == 1) & (denom == 1)) {
         ss << exp;
-    } else if ((num==1) & (denom!=1)) {
-        ss << "\\frac{"<< exp <<  "}{" << denom << "}";
-    } else if ((num!=1) & (denom==1)) {
+    } else if ((num == 1) & (denom != 1)) {
+        ss << "\\frac{" << exp << "}{" << denom << "}";
+    } else if ((num != 1) & (denom == 1)) {
         ss << num << "*" << exp;
     } else {
-        ss << "\\frac{"<< num <<  "}{" << denom << "}*" << exp;
+        ss << "\\frac{" << num << "}{" << denom << "}*" << exp;
     }
     return ss.str();
 }
-
 
 /**
  * Return symbolic or numerical representation of n>0
@@ -213,14 +219,14 @@ const string addFraction (int num, int denom, const string& exp)
 const string positiveSymbolicNumber(double n)
 {
     string s;
-    faustassert(n>0);
+    faustassert(n > 0);
 
     // Try to find a symbolic representation
 
-    for (int i=1; i<10; i++) {
-        for(int j=1; j<10; j++) {
-            if (isSymbolicPower(i*n/j,s)) {
-                return addFraction(j,i,s);
+    for (int i = 1; i < 10; i++) {
+        for (int j = 1; j < 10; j++) {
+            if (isSymbolicPower(i * n / j, s)) {
+                return addFraction(j, i, s);
             }
         }
     }
@@ -228,13 +234,13 @@ const string positiveSymbolicNumber(double n)
     // No symbolic representation,
     // Then numerical representation x.10^k
 
-    char tmp[64];
-    string entree = " * 10^{";
-    char sortie = '}';
+    char              tmp[64];
+    string            entree = " * 10^{";
+    char              sortie = '}';
     string::size_type ps;
 
-    snprintf(tmp, 63, "%.15g", n); // Warning: over 15 decimals, results are wrong !!
-    s = tmp;
+    snprintf(tmp, 63, "%.15g", n);  // Warning: over 15 decimals, results are wrong !!
+    s  = tmp;
     ps = s.find('e');
 
     if (ps != string::npos) {
@@ -249,11 +255,11 @@ const string positiveSymbolicNumber(double n)
 /**
  * Return symbolic or numerical representation of n
  */
-const string symbolicNumber (double n)
+const string symbolicNumber(double n)
 {
-    if (n>0.0) {
+    if (n > 0.0) {
         return positiveSymbolicNumber(n);
-    } else if (n<0.0) {
+    } else if (n < 0.0) {
         return string("-") + positiveSymbolicNumber(-n);
     } else {
         return "0";

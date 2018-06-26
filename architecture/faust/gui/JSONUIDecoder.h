@@ -28,6 +28,7 @@
 #include <map>
 #include <utility>
 #include <assert.h>
+#include <cstdlib>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -38,7 +39,7 @@
 #define snprintf _snprintf
 #endif
 
-inline FAUSTFLOAT STR2REAL(const std::string& s) { return (strtod(s.c_str(), NULL)); }
+inline FAUSTFLOAT STR2REAL(const std::string& s) { return (std::strtod(s.c_str(), NULL)); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
@@ -109,21 +110,21 @@ struct JSONUIDecoder {
         }
         
         if (fMetadatas.find("size") != fMetadatas.end()) {
-            fDSPSize = atoi(fMetadatas["size"].c_str());
+            fDSPSize = std::atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");
         } else {
             fDSPSize = -1;
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
-            fNumInputs = atoi(fMetadatas["inputs"].c_str());
+            fNumInputs = std::atoi(fMetadatas["inputs"].c_str());
             fMetadatas.erase("inputs");
         } else {
             fNumInputs = -1;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
-            fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+            fNumOutputs = std::atoi(fMetadatas["outputs"].c_str());
             fMetadatas.erase("outputs");
         } else {
             fNumOutputs = -1;
@@ -154,7 +155,7 @@ struct JSONUIDecoder {
             // Meta data declaration for input items
             if (isInput(type)) {
                 if ((*it)->address != "") {
-                    fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                    fPathInputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
                 fInControl[counterIn] = STR2REAL((*it)->init);
                 counterIn++;
@@ -162,7 +163,7 @@ struct JSONUIDecoder {
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 if ((*it)->address != "") {
-                    fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                    fPathOutputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
                 fOutControl[counterOut] = FAUSTFLOAT(0);
                 counterOut++;

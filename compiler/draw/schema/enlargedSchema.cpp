@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,25 +30,24 @@ using namespace std;
  * Returns an enlarged schema, but only if really needed
  * that is if the requiered width is greater that the schema width.
  */
-schema* makeEnlargedSchema ( schema* s, double width )
+schema* makeEnlargedSchema(schema* s, double width)
 {
-	if (width > s->width()) {
-		return new enlargedSchema(s, width);
-	} else {
-		return s;
-	}
+    if (width > s->width()) {
+        return new enlargedSchema(s, width);
+    } else {
+        return s;
+    }
 }
 
 /**
  * Put additional space left and right of a schema so that the result has
  * a certain width. The wires are prolonged accordingly.
  */
-enlargedSchema::enlargedSchema( schema* s, double width )
-	: 	schema(s->inputs(), s->outputs(), width, s->height()),
-	 	fSchema(s)
+enlargedSchema::enlargedSchema(schema* s, double width)
+    : schema(s->inputs(), s->outputs(), width, s->height()), fSchema(s)
 {
-    for (unsigned int i=0; i<inputs(); i++) 	fInputPoint.push_back(point(0,0));
-    for (unsigned int i=0; i<outputs(); i++) 	fOutputPoint.push_back(point(0,0));
+    for (unsigned int i = 0; i < inputs(); i++) fInputPoint.push_back(point(0, 0));
+    for (unsigned int i = 0; i < outputs(); i++) fOutputPoint.push_back(point(0, 0));
 }
 
 /**
@@ -58,46 +57,46 @@ enlargedSchema::enlargedSchema( schema* s, double width )
  */
 void enlargedSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
+    beginPlace(ox, oy, orientation);
 
-	double dx = (width() - fSchema->width())/2;
-	fSchema->place(ox+dx, oy, orientation);
+    double dx = (width() - fSchema->width()) / 2;
+    fSchema->place(ox + dx, oy, orientation);
 
-	if (orientation == kRightLeft) {
-		dx = -dx;
-	}
+    if (orientation == kRightLeft) {
+        dx = -dx;
+    }
 
-	for (unsigned int i=0; i < inputs(); i++) {
-		point p = fSchema->inputPoint(i);
-        fInputPoint[i] = point(p.x-dx, p.y); //, p.z);
-	}
+    for (unsigned int i = 0; i < inputs(); i++) {
+        point p        = fSchema->inputPoint(i);
+        fInputPoint[i] = point(p.x - dx, p.y);  //, p.z);
+    }
 
-	for (unsigned int i=0; i < outputs(); i++) {
-		point p = fSchema->outputPoint(i);
-        fOutputPoint[i] = point(p.x+dx, p.y); //, p.z);
-	}
+    for (unsigned int i = 0; i < outputs(); i++) {
+        point p         = fSchema->outputPoint(i);
+        fOutputPoint[i] = point(p.x + dx, p.y);  //, p.z);
+    }
 
-	endPlace();
+    endPlace();
 }
 
 /**
  * Returns an input point
  */
-point enlargedSchema::inputPoint(unsigned int i)	const
+point enlargedSchema::inputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < inputs());
-	return fInputPoint[i];
+    faustassert(placed());
+    faustassert(i < inputs());
+    return fInputPoint[i];
 }
 
 /**
  * Returns an output point
  */
-point enlargedSchema::outputPoint(unsigned int i)	const
+point enlargedSchema::outputPoint(unsigned int i) const
 {
-	faustassert(placed());
-	faustassert(i < outputs());
-	return fOutputPoint[i];
+    faustassert(placed());
+    faustassert(i < outputs());
+    return fOutputPoint[i];
 }
 
 /**
@@ -137,16 +136,16 @@ void enlargedSchema::collectTraits(collector& c)
     fSchema->collectTraits(c);
 
     // draw enlarge input wires
-    for (unsigned int i=0; i<inputs(); i++) {
+    for (unsigned int i = 0; i < inputs(); i++) {
         point p = inputPoint(i);
         point q = fSchema->inputPoint(i);
-        c.addTrait(trait(p,q));     // in->out direction
+        c.addTrait(trait(p, q));  // in->out direction
     }
 
     // draw enlarge output wires
-    for (unsigned int i=0; i<outputs(); i++) {
+    for (unsigned int i = 0; i < outputs(); i++) {
         point q = fSchema->outputPoint(i);
         point p = outputPoint(i);
-        c.addTrait(trait(q,p));     // in->out direction
+        c.addTrait(trait(q, p));  // in->out direction
     }
 }

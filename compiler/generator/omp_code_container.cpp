@@ -27,7 +27,6 @@ using namespace std;
 
 // Analysis to discover which stack variables have to be used in the "firstprivate" list
 struct StackVarAnalyser : public DispatchVisitor {
-
     list<string> fFirstPrivateTable;
 
     virtual void visit(DeclareVarInst* inst)
@@ -36,7 +35,8 @@ struct StackVarAnalyser : public DispatchVisitor {
         ArrayTyped* array_typed;
 
         // Keep "simple" stack variables and pointers on simple variables (that is everything but arrays)
-        if (inst->fAddress->getAccess() == Address::kStack && !((array_typed = dynamic_cast<ArrayTyped*>(inst->fType)) && array_typed->fSize > 0)) {
+        if (inst->fAddress->getAccess() == Address::kStack &&
+            !((array_typed = dynamic_cast<ArrayTyped*>(inst->fType)) && array_typed->fSize > 0)) {
             fFirstPrivateTable.push_back(inst->fAddress->getName());
         }
     }
@@ -46,7 +46,7 @@ struct StackVarAnalyser : public DispatchVisitor {
 StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
     BlockInst* result_code = InstBuilder::genBlockInst();
-    string index = "index";
+    string     index       = "index";
 
     // Setup "firstprivate" list
     StackVarAnalyser analyser;
@@ -55,11 +55,13 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     if (analyser.fFirstPrivateTable.size() == 0) {
         result_code->pushBackInst(InstBuilder::genLabelInst("#pragma omp parallel"));
     } else {
-        std::ostringstream firstprivate; firstprivate << "\t" << "firstprivate(";
+        std::ostringstream firstprivate;
+        firstprivate << "\t"
+                     << "firstprivate(";
         list<string>::const_iterator it1;
         for (it1 = analyser.fFirstPrivateTable.begin(); it1 != analyser.fFirstPrivateTable.end(); it1++) {
             firstprivate << (*it1);
-            if (++it1 != analyser.fFirstPrivateTable.end()) firstprivate<< ", ";
+            if (++it1 != analyser.fFirstPrivateTable.end()) firstprivate << ", ";
             it1--;
         }
         firstprivate << ")";
@@ -77,20 +79,20 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     generateLocalOutputs(loop_code, index);
 
     // Generate : int count = min(32, (fullcount - index))
-    ValueInst* init1 = InstBuilder::genLoadFunArgsVar(counter);
-    ValueInst* init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
+    ValueInst*       init1 = InstBuilder::genLoadFunArgsVar(counter);
+    ValueInst*       init2 = InstBuilder::genSub(init1, InstBuilder::genLoadLoopVar(index));
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG
     lclgraph dag;
     CodeLoop::sortGraph(fCurLoop, dag);
-    int loop_num = 0;
-    bool is_single = false; // Generates "#pragma omp single" once when we stay if a sequence of "single" loops
+    int  loop_num  = 0;
+    bool is_single = false;  // Generates "#pragma omp single" once when we stay if a sequence of "single" loops
 
     for (int l = int(dag.size()) - 1; l >= 0; l--) {
         BlockInst* omp_sections_block = InstBuilder::genBlockInst();
@@ -100,7 +102,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
         }
         for (lclset::const_iterator p = dag[l].begin(); p != dag[l].end(); p++) {
             BlockInst* omp_section_block = InstBuilder::genBlockInst();
-            if (dag[l].size() == 1) { // Only one loop
+            if (dag[l].size() == 1) {  // Only one loop
                 if (!(*p)->isRecursive() && gGlobal->gOpenMPLoop) {
                     generateDAGLoopAux(*p, omp_section_block, count_dec, loop_num++, true);
                 } else {
@@ -125,8 +127,9 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     }
 
     // Generates the DAG enclosing loop
-    DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
-    ValueInst* loop_end = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
+    DeclareVarInst* loop_decl =
+        InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32), InstBuilder::genInt32NumInst(0));
+    ValueInst*    loop_end       = InstBuilder::genLessThan(loop_decl->load(), InstBuilder::genLoadFunArgsVar(counter));
     StoreVarInst* loop_increment = loop_decl->store(InstBuilder::genAdd(loop_decl->load(), gGlobal->gVecSize));
 
     StatementInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, loop_code);

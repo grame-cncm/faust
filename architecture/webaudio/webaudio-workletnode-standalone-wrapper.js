@@ -2,7 +2,6 @@
  faust2wasm: GRAME 2017-2018
 */
 
-
 'use strict';
 
 if (typeof (AudioWorkletNode) === "undefined") {
@@ -64,6 +63,21 @@ class mydspNode extends AudioWorkletNode {
                        || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
+                // Decode MIDI
+                if (item.meta !== undefined) {
+                    for (var i = 0; i < item.meta.length; i++) {
+                        if (item.meta[i].midi !== undefined) {
+                            if (item.meta[i].midi.trim() === "pitchwheel") {
+                                obj.fPitchwheelLabel.push(item.address);
+                            } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
+                                obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
+                                .push({ path:item.address,
+                                      min:parseFloat(item.min),
+                                      max:parseFloat(item.max) });
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -74,6 +88,11 @@ class mydspNode extends AudioWorkletNode {
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
+        
+        // MIDI
+        this.fPitchwheelLabel = [];
+        this.fCtrlLabel = new Array(128);
+        for (var i = 0; i < this.fCtrlLabel.length; i++) { this.fCtrlLabel[i] = []; }
 
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
@@ -109,8 +128,6 @@ class mydspNode extends AudioWorkletNode {
      */
     setParamValue(path, val)
     {
-        //this.port.postMessage({ type:"param", key:path, value:val });
-
         // Needed for sample accurate control
         this.parameters.get(path).setValueAtTime(val, 0);
     }
@@ -172,7 +189,15 @@ class mydspNode extends AudioWorkletNode {
      */
     ctrlChange(channel, ctrl, value)
     {
-        this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
+        if (this.fCtrlLabel[ctrl] !== []) {
+            for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
+                var path = this.fCtrlLabel[ctrl][i].path;
+                this.setParamValue(path, mydspNode.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
+                if (this.output_handler) {
+                    this.output_handler(path, this.getParamValue(path));
+                }
+            }
+        }
     }
 
     /**
@@ -183,7 +208,13 @@ class mydspNode extends AudioWorkletNode {
      */
     pitchWheel(channel, wheel)
     {
-        this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
+        for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
+            var path = this.fPitchwheelLabel[i];
+            this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+            if (this.output_handler) {
+                this.output_handler(path, this.getParamValue(path));
+            }
+        }
     }
 
     /**
@@ -191,9 +222,24 @@ class mydspNode extends AudioWorkletNode {
      */
     midiMessage(data)
     {
-        this.port.postMessage({ type:"midi", data:data });
+        var cmd = data[0] >> 4;
+        var channel = data[0] & 0xf;
+        var data1 = data[1];
+        var data2 = data[2];
+        
+        if (channel === 9) {
+            return;
+        } else if (cmd === 11) {
+            this.ctrlChange(channel, data1, data2);
+        } else if (cmd === 14) {
+            this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        }
     }
-
+    
+    static remap(v, mn0, mx0, mn1, mx1)
+    {
+        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+    }
 }
 
 // Factory class

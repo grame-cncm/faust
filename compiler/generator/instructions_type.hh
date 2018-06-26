@@ -22,21 +22,20 @@
 #ifndef _INSTRUCTIONS_TYPE_H
 #define _INSTRUCTIONS_TYPE_H
 
+#include <string>
+#include "garbageable.hh"
+
 // ============================
 // Base class for instructions
 // ============================
 
-struct Printable : public virtual Garbageable
-{
+struct Printable : public virtual Garbageable {
     static std::ostream* fOut;
 
     int fTab;
 
-    Printable()
-    {}
-    virtual ~Printable()
-    {}
-
+    Printable() {}
+    virtual ~Printable() {}
 };
 
 // ==========================
@@ -45,31 +44,59 @@ struct Printable : public virtual Garbageable
 
 struct CloneVisitor;
 
-struct Typed : public Printable
-{
-    enum VarType { kInt32, kInt32ish, kInt32_ptr, kInt32_vec, kInt32_vec_ptr,
-                kInt64, kInt64_ptr, kInt64_vec, kInt64_vec_ptr,
-                kBool, kBool_ptr, kBool_vec, kBool_vec_ptr,
-                kFloat, kFloatish, kFloat_ptr, kFloat_ptr_ptr, kFloat_vec, kFloat_vec_ptr,
-                kFloatMacro, kFloatMacro_ptr, kFloatMacro_ptr_ptr,
-                kDouble, kDoublish, kDouble_ptr, kDouble_ptr_ptr, kDouble_vec, kDouble_vec_ptr,
-                kQuad, kQuad_ptr, kQuad_vec, kQuad_vec_ptr,
-                kVoid, kVoid_ptr, kVoid_ptr_ptr,
-                kObj, kObj_ptr,
-                kSound, kSound_ptr,
-                kUint_ptr,
-                kNoType
+struct Typed : public Printable {
+    enum VarType {
+        kInt32,
+        kInt32ish,
+        kInt32_ptr,
+        kInt32_vec,
+        kInt32_vec_ptr,
+        kInt64,
+        kInt64_ptr,
+        kInt64_vec,
+        kInt64_vec_ptr,
+        kBool,
+        kBool_ptr,
+        kBool_vec,
+        kBool_vec_ptr,
+        kFloat,
+        kFloatish,
+        kFloat_ptr,
+        kFloat_ptr_ptr,
+        kFloat_vec,
+        kFloat_vec_ptr,
+        kFloatMacro,
+        kFloatMacro_ptr,
+        kFloatMacro_ptr_ptr,
+        kDouble,
+        kDoublish,
+        kDouble_ptr,
+        kDouble_ptr_ptr,
+        kDouble_vec,
+        kDouble_vec_ptr,
+        kQuad,
+        kQuad_ptr,
+        kQuad_vec,
+        kQuad_vec_ptr,
+        kVoid,
+        kVoid_ptr,
+        kVoid_ptr_ptr,
+        kObj,
+        kObj_ptr,
+        kSound,
+        kSound_ptr,
+        kUint_ptr,
+        kNoType
     };
-    
-    static string gTypeString[];
-    
+
+    static std::string gTypeString[];
+
     static void init();
 
-    Typed()
-    {}
+    Typed() {}
 
     virtual VarType getType() = 0;
-    
+
     static int getSizeOf(VarType type)
     {
         switch (type) {
@@ -80,12 +107,12 @@ struct Typed : public Printable
                 return 8;
             default:
                 // Not supposed to happen
-                cerr << "getSizeOf " << type << endl;
+                std::cerr << "getSizeOf " << type << std::endl;
                 faustassert(false);
                 return -1;
         }
     }
-  
+
     // Returns the pointer type version of a primitive type
     static VarType getPtrFromType(VarType type)
     {
@@ -124,7 +151,7 @@ struct Typed : public Printable
                 return kSound_ptr;
             default:
                 // Not supposed to happen
-                cerr << "getPtrFromType " << type << endl;
+                std::cerr << "getPtrFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -144,7 +171,7 @@ struct Typed : public Printable
                 return kBool_vec;
             default:
                 // Not supposed to happen
-                cerr << "getVecFromType " << type << endl;
+                std::cerr << "getVecFromType " << type << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -188,7 +215,7 @@ struct Typed : public Printable
                 return kSound;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromPtr " << Typed::gTypeString[type] << endl;
+                std::cerr << "getTypeFromPtr " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
@@ -208,12 +235,12 @@ struct Typed : public Printable
                 return kBool;
             default:
                 // Not supposed to happen
-                cerr << "getTypeFromVec " << Typed::gTypeString[type] << endl;
+                std::cerr << "getTypeFromVec " << Typed::gTypeString[type] << std::endl;
                 faustassert(false);
                 return kNoType;
         }
     }
-    
+
     virtual int getSize() = 0;
 
     virtual Typed* clone(CloneVisitor* cloner) = 0;

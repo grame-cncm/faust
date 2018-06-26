@@ -23,73 +23,64 @@
 #define _WAST_CODE_CONTAINER_H
 
 #include "code_container.hh"
-#include "wast_instructions.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
+#include "wast_instructions.hh"
 
 using namespace std;
 
 class WASTCodeContainer : public virtual CodeContainer {
+   protected:
+    std::ostream*     fOut;
+    std::stringstream fOutAux;
+    std::stringstream fHelper;
+    int               fInternalMemory;
 
-    protected:
+    void generateWASTBlock(BlockInst* instructions)
+    {
+        // Moves all variables declaration at the beginning of the block
+        MoveVariablesInFront3 mover;
+        BlockInst*            block = mover.getCode(instructions);
+        block->accept(gGlobal->gWASTVisitor);
+    }
 
-        std::ostream* fOut;
-        std::stringstream fOutAux;
-        std::stringstream fHelper;
-        int fInternalMemory;
-    
-        void generateWASTBlock(BlockInst* instructions)
-        {
-            // Moves all variables declaration at the beginning of the block
-            MoveVariablesInFront3 mover;
-            BlockInst* block = mover.getCode(instructions);
-            block->accept(gGlobal->gWASTVisitor);
-        }
-    
-        DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual, bool addreturn);
-    
-    public:
+    DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
+                                            bool addreturn);
 
-        WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-        virtual ~WASTCodeContainer()
-        {}
+   public:
+    WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    virtual ~WASTCodeContainer() {}
 
-        virtual void produceClass();
-        virtual void generateCompute(int tab) = 0;
-    
-        void produceInternal();
-        virtual dsp_factory_base* produceFactory();
-    
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type);
-        CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+    virtual void produceClass();
+    virtual void generateCompute(int tab) = 0;
 
-        static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst, bool internal_memory);
+    void                      produceInternal();
+    virtual dsp_factory_base* produceFactory();
+
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type);
+    CodeContainer* createScalarContainer(const string& name, int sub_container_type, bool internal_memory = true);
+
+    static CodeContainer* createContainer(const string& name, int numInputs, int numOutputs, std::ostream* dst,
+                                          bool internal_memory);
 };
 
 class WASTScalarCodeContainer : public WASTCodeContainer {
+   protected:
+   public:
+    WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
+                            int sub_container_type, bool internal_memory);
+    virtual ~WASTScalarCodeContainer();
 
-    protected:
-
-    public:
-
-        WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, int sub_container_type, bool internal_memory);
-        virtual ~WASTScalarCodeContainer();
-
-        void generateCompute(int tab);
-
+    void generateCompute(int tab);
 };
 
 class WASTVectorCodeContainer : public WASTCodeContainer {
-    
-    protected:
-        
-    public:
-        
-        WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-        virtual ~WASTVectorCodeContainer();
-        
-        void generateCompute(int tab);
-    
+   protected:
+   public:
+    WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
+    virtual ~WASTVectorCodeContainer();
+
+    void generateCompute(int tab);
 };
 
 #endif

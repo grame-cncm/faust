@@ -43,13 +43,13 @@ class samFaustDSP
     private:
     
         // the dsp object
-        mydsp* aMyDSP;
+        mydsp* fDSP;
     
         // the polyphonic engine
         FaustPolyEngine* fPolyEngine;
     
         // the audio driver
-        samAudio* samAudioDriver;
+        samAudio* fAudioDriver;
     
 // not sure if this is needed
 #if MIDICTRL
@@ -58,14 +58,11 @@ class samFaustDSP
     
     public:
     
-         //--------------`DspFaust()`----------------
-         // Default constructor,  The audio driver will set
-         // the sampleRate and buffer size 
-         ///
-         //
-         //----
-         samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numOutputs);
-
+        //--------------`samFaustDSP()`----------------
+        // Default constructor, the audio driver will set
+        // the sampleRate and buffer size
+        //----
+        samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numOutputs);
     
         // destructor
         ~samFaustDSP();

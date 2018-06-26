@@ -22,10 +22,10 @@
 #ifndef SIGTOGRAPH_HH
 #define SIGTOGRAPH_HH
 
-#include "signals.hh"
-#include <string>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <string>
+#include "signals.hh"
 
 using namespace std;
 
@@ -33,6 +33,6 @@ using namespace std;
  * Draw a list of signals L as a directed graph using
  * graphviz's dot language
  */
-void sigToGraph (Tree sig, ofstream& fout);
+void sigToGraph(Tree sig, ofstream& fout);
 
-#endif // SIGTOGRAPH_HH
+#endif  // SIGTOGRAPH_HH

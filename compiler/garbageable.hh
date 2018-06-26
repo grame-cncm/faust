@@ -28,42 +28,29 @@
 #include "exception.hh"
 
 class Garbageable {
+   public:
+    Garbageable();
+    virtual ~Garbageable();
 
-    public:
+    void* operator new(size_t size);
+    void* operator new[](size_t size);
+    void  operator delete(void* ptr);
+    void  operator delete[](void* ptr);
 
-        Garbageable();
-        virtual ~Garbageable();
-        
-        void* operator new(size_t size);
-        void* operator new[](size_t size);
-        void operator delete(void* ptr);
-        void operator delete[](void* ptr);
-        
-        static void cleanup();
-   
+    static void cleanup();
 };
 
-template<class P> class GarbageablePtr : public virtual Garbageable
-{
-       
-    private:
-    
-         P* fPtr;
-        
-    public:
-    
-        GarbageablePtr(const P& data)
-        {
-            fPtr = new P(data);
-        }
-        
-        virtual ~GarbageablePtr()
-        {
-            delete(fPtr);
-        }
-        
-        P* getPointer() { return fPtr; }
+template <class P>
+class GarbageablePtr : public virtual Garbageable {
+   private:
+    P* fPtr;
+
+   public:
+    GarbageablePtr(const P& data) { fPtr = new P(data); }
+
+    virtual ~GarbageablePtr() { delete (fPtr); }
+
+    P* getPointer() { return fPtr; }
 };
 
 #endif
-
