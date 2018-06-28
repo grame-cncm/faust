@@ -78,13 +78,17 @@ struct Soundfile {
     }
     
     // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::string& soundfile_dir_str, const std::string& file_name_str, std::string& sha_key)
+    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
     {
         std::string path_name_str = CheckAux(file_name_str, sha_key);
         if (path_name_str != "") {
             return path_name_str;
         } else {
-            return CheckAux(soundfile_dir_str + "/" + file_name_str, sha_key);
+            for (int i = 0; i < sound_directories.size(); i++) {
+                std::string res = CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
+                if (res != "") { return res; }
+            }
+            return "";
         }
     }
     

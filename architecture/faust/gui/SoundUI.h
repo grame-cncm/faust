@@ -25,6 +25,7 @@
 #define __SoundUI_H__
 
 #include <map>
+#include <vector>
 #include <string>
 
 #ifdef __APPLE__
@@ -42,12 +43,17 @@ class SoundUI : public GenericUI
 		
     private:
     
-        std::string fSoundfileDir;                     // The soundfile directory
+        std::vector<std::string> fSoundfileDir;        // The soundfile directories
         std::map<std::string, Soundfile*> fSFMap;      // Map to share loaded soundfiles
     
      public:
             
-        SoundUI(const std::string& sound_dir = ""):fSoundfileDir(sound_dir)
+        SoundUI(const std::string& sound_directory = "")
+        {
+            fSoundfileDir.push_back(sound_directory);
+        }
+    
+        SoundUI(const std::vector<std::string>& sound_directories):fSoundfileDir(sound_directories)
         {}
     
         virtual ~SoundUI()
