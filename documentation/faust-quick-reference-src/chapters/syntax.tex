@@ -1129,11 +1129,13 @@ process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
 
 The  \lstinline'soundfile("label[url:path]", n)' primitive allows to access an externally defined sound resource. A soundfile has one input (the read index in the sound), three fixed outputs (the first one is the sound length in frames, the second one is the sound nominal sample rate, the third one is the sound number of channels) and several more outputs for the sound channels themselves. 
 
-If more outputs than the actual number of channels in the sound are used, the sound channels will be automatically duplicated up to the output number (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).
+If more outputs than the actual number of channels in the soundfile are used, the sound channels will be automatically duplicated up to the wanted number of outputs (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).
 
-If the sound resource cannot be loaded for whatever reason, a default soundfile with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
+If the soundfile cannot be loaded for whatever reason, a default sound with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
 
-Architecture files are responsible to load the actual soundfile. If {\it label} if used without any {\it url} metadata, it will be considered as the soundfile pathname. 
+Architecture files are responsible to load the actual soundfile. The \lstinline'SoundUI' C++ class located in the \lstinline'faust/gui/SoundUI.h' file implements the \lstinline'void  addSoundfile(label, file_name, sf_zone)' method, which loads the actual soundfiles using the {\it libsndfile} library, and set up the \lstinline'sf_zone' sound memory pointers. If {\it label} is used without any {\it url} metadata, it will be considered as the soundfile pathname. 
+
+Note that a special architecture file can perfectly decide to access and use sound resources created by another means (that is, not directly loaded from a soundfile). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge to actually setup all sound memory pointers when \lstinline'void  addSoundfile(label, file_name, sf_zone)'  is called by the \lstinline'buidUserInterface' mechanism.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}
@@ -1142,7 +1144,7 @@ Architecture files are responsible to load the actual soundfile. If {\it label} 
 Most \faust primitives are analogue to their C counterpart but lifted to signal processing.
 For example \lstinline|+| is a function of type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ that transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)+x_{2}(t)$. The function \lstinline|-| has type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ and transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)-x_{2}(t)$. 
 
-Please be aware that the unary \lstinline|-| only exists in a limited form\marginpar{Warning: unlinke other programming languages the unary operatior \lstinline|-| only exists in limited form in \faust}. It can be used with numbers: \lstinline|-0.5| and variables: \lstinline|-myvar|, but not with expressions surrounded by parenthesis, because in this case it represents a partial application.  For instance   \lstinline|-(a * b)| is a partial application. It is syntactic sugar for \lstinline|_,(a * b) : -|. If you want to negate a complex term in parenthesis, you'll have to use \lstinline|0 - (a * b)| instead.
+Please be aware that the unary \lstinline|-| only exists in a limited form\marginpar{Warning: unlike other programming languages the unary operatior \lstinline|-| only exists in limited form in \faust}. It can be used with numbers: \lstinline|-0.5| and variables: \lstinline|-myvar|, but not with expressions surrounded by parenthesis, because in this case it represents a partial application.  For instance   \lstinline|-(a * b)| is a partial application. It is syntactic sugar for \lstinline|_,(a * b) : -|. If you want to negate a complex term in parenthesis, you'll have to use \lstinline|0 - (a * b)| instead.
 
 \bigskip
 

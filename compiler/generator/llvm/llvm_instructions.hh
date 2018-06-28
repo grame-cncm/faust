@@ -66,10 +66,10 @@
 #endif
 
 #if defined(_WIN32) && defined(LLVM_MEM)
-#define LLVM_MALLOC "llvm_calloc"
+#define LLVM_CALLOC "llvm_calloc"
 #define LLVM_FREE "llvm_free"
 #else
-#define LLVM_MALLOC "calloc"
+#define LLVM_CALLOC "calloc"
 #define LLVM_FREE "free"
 #endif
 
@@ -244,6 +244,7 @@ struct LLVMTypeHelper {
   
     static llvm::StructType* createStructType(Module* module, string name, VECTOR_OF_TYPES types)
     {
+        // We want to have a unique creation for struct types: check if the given type has already been created
         StructType* struct_type = module->getTypeByName(name);
         if (!struct_type) {
             StructType* struct_type1 = StructType::create(module->getContext(), name);
@@ -328,18 +329,18 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
     void generateMemory(llvm::StructType* dsp_type, llvm::PointerType* dsp_type_ptr, bool internal)
     {
         // malloc
-        PointerType*    malloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
-        VECTOR_OF_TYPES malloc_args;
-        malloc_args.push_back(llvm::Type::getInt64Ty(fModule->getContext()));
-        malloc_args.push_back(llvm::Type::getInt64Ty(fModule->getContext()));
-        FunctionType* malloc_type = FunctionType::get(malloc_ptr, MAKE_VECTOR_OF_TYPES(malloc_args), false);
+        PointerType*    calloc_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
+        VECTOR_OF_TYPES calloc_args;
+        calloc_args.push_back(llvm::Type::getInt64Ty(fModule->getContext()));
+        calloc_args.push_back(llvm::Type::getInt64Ty(fModule->getContext()));
+        FunctionType* calloc_type = FunctionType::get(calloc_ptr, MAKE_VECTOR_OF_TYPES(calloc_args), false);
 
-        Function* func_malloc = nullptr;
-        if (!fModule->getFunction(LLVM_MALLOC)) {
-            func_malloc = Function::Create(malloc_type, GlobalValue::ExternalLinkage, LLVM_MALLOC, fModule);
-            func_malloc->setCallingConv(CallingConv::C);
+        Function* func_calloc = nullptr;
+        if (!fModule->getFunction(LLVM_CALLOC)) {
+            func_calloc = Function::Create(calloc_type, GlobalValue::ExternalLinkage, LLVM_CALLOC, fModule);
+            func_calloc->setCallingConv(CallingConv::C);
         } else {
-            func_malloc = fModule->getFunction(LLVM_MALLOC);
+            func_calloc = fModule->getFunction(LLVM_CALLOC);
         }
 
         VECTOR_OF_TYPES allocate_args;
@@ -376,11 +377,11 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         BasicBlock* entry_func_llvm_create_dsp =
             BasicBlock::Create(fModule->getContext(), "entry", func_llvm_create_dsp);
    
-        vector<LLVMValue> malloc_fun_args;
-        malloc_fun_args.push_back( genInt64(fModule, 1));
-        malloc_fun_args.push_back(fSize);
+        vector<LLVMValue> calloc_fun_args;
+        calloc_fun_args.push_back( genInt64(fModule, 1));
+        calloc_fun_args.push_back(fSize);
         
-        llvm::CallInst* call_inst1  = CREATE_CALL1(func_malloc, malloc_fun_args, "", entry_func_llvm_create_dsp);
+        llvm::CallInst* call_inst1  = CREATE_CALL1(func_calloc, calloc_fun_args, "", entry_func_llvm_create_dsp);
         call_inst1->setCallingConv(CallingConv::C);
         llvm::CastInst* call_inst2 = new BitCastInst(call_inst1, dsp_type_ptr, "", entry_func_llvm_create_dsp);
 
@@ -711,15 +712,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         if (generate_ui) {
             generateBuildUserInterface(dsp_type_ptr);
         }
-       
-        //std::cout << "getTypeSizeInBits kSound " << fDataLayout->getTypeSizeInBits(fTypeMap[Typed::kSound])/8 << std::endl;
-        /*
-        std::cout << "getTypeStoreSize kSound " << fDataLayout->getTypeStoreSize(fTypeMap[Typed::kSound]) << std::endl;
-        std::cout << "getTypeStoreSizeInBits kSound " << fDataLayout->getTypeStoreSizeInBits(fTypeMap[Typed::kSound])/8 << std::endl;
-        std::cout << "getTypeAllocSize kSound " << fDataLayout->getTypeAllocSize(fTypeMap[Typed::kSound]) << std::endl;
-        */
+        
         // dumpLLVM(dsp_type);
-
         return dsp_type_ptr;
     }
 
@@ -782,8 +776,8 @@ class LLVMTypeInstVisitor1 : public LLVMTypeInstVisitor {
         func_llvm_free_dsp->setCallingConv(CallingConv::C);
 
         // llvm_free_dsp block
-        Function::arg_iterator args    = func_llvm_free_dsp->arg_begin();
-        Value*                 dsp = GET_ITERATOR(args++);
+        Function::arg_iterator args = func_llvm_free_dsp->arg_begin();
+        Value*                  dsp = GET_ITERATOR(args++);
         dsp->setName("dsp");
 
         BasicBlock*  entry_func_llvm_free_dsp = BasicBlock::Create(fModule->getContext(), "entry", func_llvm_free_dsp);
@@ -966,23 +960,8 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     Value* loadArrayAsPointer(Value* variable, bool isvolatile = false)
     {
-        /*
-        std::cout << "loadArrayAsPointer \n";
-        faustassert(variable);
-        dumpLLVM(variable);
-        */
-        
         Value*    load_ptr;
         LoadInst* tmp_load = new LoadInst(variable);
-        
-        /*
-        dumpLLVM(tmp_load);
-        dumpLLVM(tmp_load->getType());
-        dumpLLVM(PointerType::get(tmp_load->getType(), 0));
-        
-        std::cout << "loadArrayAsPointer ArrayType " << isa<ArrayType>(tmp_load->getType()) << "\n";
-        std::cout << "loadArrayAsPointer StructType " << isa<StructType>(tmp_load->getType()) << "\n";
-        */
         
         if (isa<ArrayType>(tmp_load->getType())) {
             Value* idx[2];
@@ -1270,9 +1249,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         
         CallInst* call_inst = fBuilder->CreateCall(mth, MAKE_IXD(idx2, idx2 + 4));
         call_inst->setCallingConv(CallingConv::C);
-        
-        //dumpLLVM(soundfile_ptr);
-        //dumpLLVM(call_inst);
     }
 
     virtual void visit(DeclareVarInst* inst)
@@ -1550,17 +1526,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
         
-        /*
-        std::cout << "visitIndexedAddressAux END \n";
-        
-        dumpLLVM(fCurValue);
-        dumpLLVM(res_load_ptr);
-        dumpLLVM(fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue));
-        dumpLLVM(fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue)->getType());
-        */
-        
         if (isStructType(indexed_address->getName())) {
-            //std::cout << "visitIndexedAddressAux struct_type " << named_address->fName << "\n";
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);
             idx[1] = fCurValue;
@@ -1568,23 +1534,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         } else {
             return fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue);
         }
-
-        //return fBuilder->CreateInBoundsGEP(res_load_ptr, fCurValue);
-    }
+   }
 
     void visitIndexedAddress(LoadVarInst* inst, IndexedAddress* indexed_address)
     {
-        //std::cout << "visitIndexedAddress\n";
-        //dump2FIR(inst);
-        //dump2FIR(indexed_address);
-    
         fCurValue = fBuilder->CreateLoad(visitIndexedAddressAux(indexed_address));
-        
-        /*
-        std::cout << "visitIndexedAddress END \n";
-        dumpLLVM(fCurValue);
-        dumpLLVM(fCurValue->getType());
-        */
     }
 
     virtual void visit(LoadVarInst* inst)
@@ -1838,13 +1792,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     void visitCastAux(Typed::VarType type)
     {
-        /*
-        std::cerr <<"visitCastAux(Typed::VarType)\n";
-        dumpLLVM(fCurValue);
-        dumpLLVM(fCurValue->getType());
-        dumpLLVM(fTypeMap[Typed::kSound_ptr]);
-        std::cerr << Typed::gTypeString[type] << std::endl;
-        */
         //dumpLLVM(fModule);
        
         switch (type) {
@@ -2316,9 +2263,6 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
     LLVMValue generateBinopAux(int opcode, LLVMValue arg1, LLVMValue arg2)
     {
-        //dumpLLVM(arg1);
-        //dumpLLVM(arg2);
-
         faustassert(arg1);
         faustassert(arg2);
 
