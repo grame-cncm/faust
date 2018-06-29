@@ -48,6 +48,10 @@
 #define INTEGER_OVERFLOW -1
 #define DIV_BY_ZERO -2
 
+//#define interp_assert(exp) faustassert(exp)
+
+#define interp_assert(exp)
+
 template <class T, int TRACE>
 struct interpreter_dsp_factory_aux;
 
@@ -59,9 +63,11 @@ class FIRInterpreter {
 
     int* fIntHeap;
     T*   fRealHeap;
+    Soundfile** fSoundHeap;
 
     int fRealStackSize;
     int fIntStackSize;
+    int fSoundStackSize;
 
     T** fInputs;
     T** fOutputs;
@@ -226,6 +232,20 @@ class FIRInterpreter {
             return index;
         }
     }
+    
+    inline int assert_sound_heap(InstructionIT it, int index, int size = -1)
+    {
+        if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fSoundHeapSize) || (size > 0 && index >= size))) {
+            std::cout << "-------- Interpreter crash trace start --------" << std::endl;
+            std::cout << "assert_sound_heap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index << " size "
+            << size << std::endl;
+            fTraceContext.write(&std::cout);
+            std::cout << "-------- Interpreter crash trace end --------\n\n";
+            throw faustexception("");
+        } else {
+            return index;
+        }
+    }
 
     inline int assert_real_heap(InstructionIT it, int index, int size = -1)
     {
@@ -244,13 +264,16 @@ class FIRInterpreter {
     inline T check_real(InstructionIT it, T val) { return (TRACE > 0) ? check_real_aux(it, val) : val; }
 
 #define push_int(val) (int_stack[int_stack_index++] = val)
-#define push_addr(addr) (address_stack[addr_stack_index++] = addr)
-
 #define pop_int() (int_stack[--int_stack_index])
-#define pop_addr() (address_stack[--addr_stack_index])
-
+    
 #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
 #define pop_real(it) check_real(it, real_stack[--real_stack_index])
+
+#define push_sound(val) (sound_stack[sound_stack_index++] = val)
+#define pop_sound() (sound_stack[--sound_stack_index])
+    
+#define push_addr(addr) (address_stack[addr_stack_index++] = addr)
+#define pop_addr() (address_stack[--addr_stack_index])
 
     void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
     {
@@ -298,6 +321,10 @@ class FIRInterpreter {
                     glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin,
                                       (*it)->fMax, (*it)->fStep);
                     break;
+                    
+                case FIRInstruction::kAddSoundFile:
+                    glue->addSoundFile((*it)->fLabel.c_str(), (*it)->fKey.c_str(), &fSoundHeap[(*it)->fOffset]);
+                    break;
 
                 case FIRInstruction::kAddHorizontalBargraph:
                     glue->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
@@ -332,11 +359,18 @@ class FIRInterpreter {
             &&do_kRealValue, &&do_kInt32Value,
 
             // Memory
-            &&do_kLoadReal, &&do_kLoadInt, &&do_kStoreReal, &&do_kStoreInt, &&do_kStoreRealValue, &&do_kStoreIntValue,
-            &&do_kLoadIndexedReal, &&do_kLoadIndexedInt, &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
-            &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal, &&do_kMoveInt, &&do_kPairMoveReal,
-            &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt, &&do_kBlockShiftReal,
-            &&do_kBlockShiftInt, &&do_kLoadInput, &&do_kStoreOutput,
+            &&do_kLoadReal, &&do_kLoadInt,
+            &&do_kLoadSound, &&do_kLoadSoundField,
+            &&do_kStoreReal, &&do_kStoreInt, &&do_kStoreSound,
+            &&do_kStoreRealValue, &&do_kStoreIntValue,
+            &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
+            &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
+            &&do_kBlockStoreReal, &&do_kBlockStoreInt,
+            &&do_kMoveReal, &&do_kMoveInt,
+            &&do_kPairMoveReal, &&do_kPairMoveInt,
+            &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
+            &&do_kBlockShiftReal, &&do_kBlockShiftInt,
+            &&do_kLoadInput, &&do_kStoreOutput,
 
             // Cast/bitcast
             &&do_kCastReal, &&do_kCastInt, &&do_kCastRealHeap, &&do_kCastIntHeap, &&do_kBitcastInt, &&do_kBitcastReal,
@@ -427,10 +461,12 @@ class FIRInterpreter {
 
         int real_stack_index = 0;
         int int_stack_index  = 0;
+        int sound_stack_index  = 0;
         int addr_stack_index = 0;
 
         T             real_stack[fRealStackSize];
         int           int_stack[fIntStackSize];
+        Soundfile*    sound_stack[fSoundStackSize];
         InstructionIT address_stack[64];
 
 #define dispatch_first()                      \
@@ -478,13 +514,14 @@ class FIRInterpreter {
         // Check block coherency
         InstructionIT it1 = block->fInstructions.end();
         it1--;
-        faustassert((*it1)->fOpcode == FIRInstruction::kReturn);
+        interp_assert((*it1)->fOpcode == FIRInstruction::kReturn);
 
         try {
             InstructionIT it = block->fInstructions.begin();
             dispatch_first();
 
             while (true) {
+                
             // Number operations
             do_kRealValue : {
                 push_real(it, (*it)->fRealValue);
@@ -515,6 +552,26 @@ class FIRInterpreter {
                 }
                 dispatch_next();
             }
+                
+            do_kLoadSound : {
+                if (TRACE) {
+                    push_sound(fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)]);
+                } else {
+                    push_sound(fSoundHeap[(*it)->fOffset1]);
+                }
+                dispatch_next();
+            }
+                
+            do_kLoadSoundField : {
+                /*
+                if (TRACE) {
+                    push_sound(fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)]);
+                } else {
+                    push_sound(fSoundHeap[(*it)->fOffset1]);
+                }
+                dispatch_next();
+                */
+            }
 
             do_kStoreReal : {
                 if (TRACE) {
@@ -530,6 +587,15 @@ class FIRInterpreter {
                     fIntHeap[assert_int_heap(it, (*it)->fOffset1)] = pop_int();
                 } else {
                     fIntHeap[(*it)->fOffset1] = pop_int();
+                }
+                dispatch_next();
+            }
+                
+            do_kStoreSound : {
+                if (TRACE) {
+                    fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)] = pop_sound();
+                } else {
+                    fSoundHeap[(*it)->fOffset1] = pop_sound();
                 }
                 dispatch_next();
             }
@@ -594,7 +660,7 @@ class FIRInterpreter {
 
             do_kBlockStoreReal : {
                 FIRBlockStoreRealInstruction<T>* inst = static_cast<FIRBlockStoreRealInstruction<T>*>(*it);
-                faustassert(inst);
+                interp_assert(inst);
                 for (int i = 0; i < inst->fOffset2; i++) {
                     fRealHeap[inst->fOffset1 + i] = inst->fNumTable[i];
                 }
@@ -603,7 +669,7 @@ class FIRInterpreter {
 
             do_kBlockStoreInt : {
                 FIRBlockStoreIntInstruction<T>* inst = static_cast<FIRBlockStoreIntInstruction<T>*>(*it);
-                faustassert(inst);
+                interp_assert(inst);
                 for (int i = 0; i < inst->fOffset2; i++) {
                     fIntHeap[inst->fOffset1 + i] = inst->fNumTable[i];
                 }
@@ -2129,12 +2195,12 @@ class FIRInterpreter {
 
                 if (pop_int()) {
                     // Execute new block
-                    faustassert((*it)->fBranch1);
+                    interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                     // No value (If)
                 } else {
                     // Execute new block
-                    faustassert((*it)->fBranch2);
+                    interp_assert((*it)->fBranch2);
                     dispatch_branch2();
                     // No value (If)
                 }
@@ -2146,12 +2212,12 @@ class FIRInterpreter {
 
                 if (pop_int()) {
                     // Execute new block
-                    faustassert((*it)->fBranch1);
+                    interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                     // Real value
                 } else {
                     // Execute new block
-                    faustassert((*it)->fBranch2);
+                    interp_assert((*it)->fBranch2);
                     dispatch_branch2();
                     // Real value
                 }
@@ -2163,12 +2229,12 @@ class FIRInterpreter {
 
                 if (pop_int()) {
                     // Execute new block
-                    faustassert((*it)->fBranch1);
+                    interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                     // Int value
                 } else {
                     // Execute new block
-                    faustassert((*it)->fBranch2);
+                    interp_assert((*it)->fBranch2);
                     dispatch_branch2();
                     // Int value
                 }
@@ -2177,7 +2243,7 @@ class FIRInterpreter {
             do_kCondBranch : {
                 // If condition is true, just branch back on the block beginning
                 if (pop_int()) {
-                    faustassert((*it)->fBranch1);
+                    interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                 } else {
                     // Just continue after 'loop block'
@@ -2190,19 +2256,19 @@ class FIRInterpreter {
                 save_return();
 
                 // Push branch2 (loop content)
-                faustassert((*it)->fBranch2);
+                interp_assert((*it)->fBranch2);
                 push_branch2();
 
                 // And start branch1 loop variable declaration block
-                faustassert((*it)->fBranch1);
+                interp_assert((*it)->fBranch1);
                 dispatch_branch1();
             }
             }
 
-            // printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
 
             // Check stack coherency
-            faustassert(real_stack_index == 0 && int_stack_index == 0);
+            interp_assert(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
 
         } catch (faustexception& e) {
             std::cout << e.Message();
@@ -2225,9 +2291,11 @@ class FIRInterpreter {
         if (fFactory->getMemoryManager()) {
             fRealHeap = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
             fIntHeap  = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
+            fSoundHeap = static_cast<Soundfile**>(fFactory->allocate(sizeof(Soundfile*) * fFactory->fSoundHeapSize));
         } else {
             fRealHeap = new T[fFactory->fRealHeapSize];
             fIntHeap  = new int[fFactory->fIntHeapSize];
+            fSoundHeap  = new Soundfile*[fFactory->fSoundHeapSize];
         }
 
         // Initialise HEAP with 0
@@ -2237,6 +2305,7 @@ class FIRInterpreter {
         // Stack
         fRealStackSize = 512;
         fIntStackSize  = 512;
+        fSoundStackSize  = 512;
 
         fRealStats[INTEGER_OVERFLOW] = 0;
         fRealStats[DIV_BY_ZERO]      = 0;

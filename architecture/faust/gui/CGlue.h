@@ -407,7 +407,14 @@ class UITemplate
         {
             addNumEntryGlueDouble(fCPPInterface, label, zone, init, min, max, step);
         }
+    
+        // -- soundfiles
         
+        virtual void addSoundFile(const char* label, const char* url, Soundfile** sf_zone)
+        {
+            addSoundFileGlueFloat(fCPPInterface, label, url, sf_zone);
+        }
+    
         // -- passive widgets
         
         virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max)
@@ -426,13 +433,7 @@ class UITemplate
         {
             declareGlueDouble(fCPPInterface, zone, key, val);
         }
-    
-        // -- soundfiles
-    
-        virtual void addSoundFile(const char* label, const char* url, Soundfile** sf_zone)
-        {
-            addSoundFileGlueFloat(fCPPInterface, label, url, sf_zone);
-        }
+
     
 };
 

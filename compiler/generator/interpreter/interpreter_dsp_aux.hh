@@ -53,6 +53,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     int fIntHeapSize;
     int fRealHeapSize;
+    int fSoundHeapSize;
     int fSROffset;
     int fCountOffset;
     int fIOTAOffset;
@@ -71,7 +72,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key,
                                 const std::vector<std::string>& pathname_list, int version_num, int inputs, int outputs,
-                                int int_heap_size, int real_heap_size, int sr_offset, int count_offset, int iota_offset,
+                                int int_heap_size, int real_heap_size, int sound_heap_size,
+                                int sr_offset, int count_offset, int iota_offset,
                                 int opt_level, FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* firinterface, FIRBlockInstruction<T>* static_init,
                                 FIRBlockInstruction<T>* init, FIRBlockInstruction<T>* resetui,
@@ -83,6 +85,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fNumOutputs(outputs),
           fIntHeapSize(int_heap_size),
           fRealHeapSize(real_heap_size),
+          fSoundHeapSize(sound_heap_size),
           fSROffset(sr_offset),
           fCountOffset(count_offset),
           fIOTAOffset(iota_offset),
@@ -141,7 +144,12 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "o " << fOptLevel << std::endl;
 
             *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
-            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSROffset << " c " << fCountOffset
+            
+            *out << "i " << fIntHeapSize
+                 << " r " << fRealHeapSize
+                 << " s " << fSoundHeapSize
+                 << " s " << fSROffset
+                 << " c " << fCountOffset
                  << " i " << fIOTAOffset << std::endl;
 
             *out << "m" << std::endl;
@@ -176,8 +184,13 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "opt_level " << fOptLevel << std::endl;
 
             *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
-            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sr_offset "
-                 << fSROffset << " count_offset " << fCountOffset << " iota_offset " << fIOTAOffset << std::endl;
+            
+            *out << "int_heap_size " << fIntHeapSize
+                 << " real_heap_size " << fRealHeapSize
+                 << " sound_heap_size " << fSoundHeapSize
+                 << " sr_offset " << fSROffset
+                 << " count_offset " << fCountOffset
+                 << " iota_offset " << fIOTAOffset << std::endl;
 
             *out << "meta_block" << std::endl;
             fMetaBlock->write(out, small);
@@ -269,7 +282,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         // Read int/real heap size and sr offset
         std::string heap_size;
-        int         int_heap_size, real_heap_size, sr_offset, count_offset, iota_offset;
+        int         int_heap_size, real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset;
         getline(*in, heap_size);
 
         std::stringstream heap_size_reader(heap_size);
@@ -279,6 +292,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         heap_size_reader >> dummy;  // Read "real_heap_size" token
         heap_size_reader >> real_heap_size;
+        
+        heap_size_reader >> dummy;  // Read "sound_heap_size" token
+        heap_size_reader >> sound_heap_size;
 
         heap_size_reader >> dummy;  // Read "sr_offet" token
         heap_size_reader >> sr_offset;
@@ -323,7 +339,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         std::vector<std::string> dummy_list;
         return new interpreter_dsp_factory_aux(factory_name, sha_key, dummy_list, file_num, inputs, outputs,
-                                               int_heap_size, real_heap_size, sr_offset, count_offset, iota_offset,
+                                               int_heap_size, real_heap_size, sound_heap_size,
+                                               sr_offset, count_offset, iota_offset,
                                                opt_level, meta_block, ui_block, static_init_block, init_block,
                                                resetui_block, clear_block, compute_control_block, compute_dsp_block);
     }

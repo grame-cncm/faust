@@ -1234,7 +1234,7 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
         LoadInst* mth     = fBuilder->CreateLoad(mth_ptr);
         
         // Generates access to zone
-        int field_index = fDSPFieldsNames[inst->fName];
+        int field_index = fDSPFieldsNames[inst->fSFZone];
 #if defined(LLVM_35)
         Value* soundfile_ptr = fBuilder->CreateStructGEP(dsp, field_index);
 #else

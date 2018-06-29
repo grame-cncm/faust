@@ -667,9 +667,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -677,8 +676,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);
@@ -695,8 +694,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             fFunctionSymbolTable[inst->fName] = 1;
         }
 
-        // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually
-        // generated
+        // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
+        // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
 
@@ -817,10 +816,10 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         for (auto& import : fFunImports) {
             *out << import.second.first;  // module
-            // Possibly map fastmath functions, , emcc compiled functions are prefixed with '_'
-            *out << ("_" + gGlobal->getMathFunction(import.first));  // base
+            // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
+            *out << ("_" + gGlobal->getMathFunction(import.first)); // base
             *out << U32LEB(int32_t(ExternalKind::Function));
-            *out << U32LEB(getFunctionTypeIndex(import.first));  // function type index
+            *out << U32LEB(getFunctionTypeIndex(import.first));     // function type index
         }
 
         finishSectionAux(out, start);
@@ -860,7 +859,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     void generateMemoryAccess(int offset = 0)
     {
-        //*fOut << U32LEB(offStrNum);   // Makes V8 return : 'invalid alignment; expected maximum alignment is 2, actual
+        //*fOut << U32LEB(offStrNum); // Makes V8 return: 'invalid alignment; expected maximum alignment is 2, actual
         //alignment is 3'
         *fOut << U32LEB(2);
         *fOut << U32LEB(offset);
@@ -1026,9 +1025,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -1036,8 +1034,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);

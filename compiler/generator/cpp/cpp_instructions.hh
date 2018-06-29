@@ -240,7 +240,7 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
-              << inst->fName << ")";
+              << inst->fSFZone << ")";
         EndLine();
     }
 

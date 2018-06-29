@@ -37,8 +37,11 @@ struct FIRInstruction {
         // Memory
         kLoadReal,
         kLoadInt,
+        kLoadSound,
+        kLoadSoundField,
         kStoreReal,
         kStoreInt,
+        kStoreSound,
         kStoreRealValue,
         kStoreIntValue,
         kLoadIndexedReal,
@@ -319,9 +322,7 @@ struct FIRInstruction {
         kFmodfValueInvert,
         kPowfValueInvert,
 
-        //==========
         // Control
-        //==========
         kLoop,
         kReturn,
 
@@ -341,6 +342,7 @@ struct FIRInstruction {
         kAddHorizontalSlider,
         kAddVerticalSlider,
         kAddNumEntry,
+        kAddSoundFile,
         kAddHorizontalBargraph,
         kAddVerticalBargraph,
         kDeclare,
@@ -385,7 +387,7 @@ static std::string gFIRInstructionTable[] = {
     "kRealValue", "kInt32Value",
 
     // Memory
-    "kLoadReal", "kLoadInt", "kStoreReal", "kStoreInt", "kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal",
+    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound","kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal",
     "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt", "kBlockStoreReal", "kBlockStoreInt", "kMoveReal",
     "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal", "kBlockPairMoveInt", "kBlockShiftReal",
     "kBlockShiftInt", "kLoadInput", "kStoreOutput",
@@ -458,10 +460,7 @@ static std::string gFIRInstructionTable[] = {
     // Extended binary math (Value version) : non commutative operations
     "kAtan2fValueInvert", "kFmodfValueInvert", "kPowfValueInvert",
 
-    //==========
     // Control
-    //==========
-
     "kLoop", "kReturn",
 
     // Select/if
@@ -469,11 +468,12 @@ static std::string gFIRInstructionTable[] = {
 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton", "kAddChecButton",
-    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddHorizontalBargraph", "kAddVerticalBargraph",
+    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundFile",
+    "kAddHorizontalBargraph", "kAddVerticalBargraph",
     "kDeclare",
 
     "kNop"};
 
-#define INTERP_FILE_VERSION 4
+#define INTERP_FILE_VERSION 5
 
 #endif

@@ -184,7 +184,7 @@ class CInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         *fOut << "ui_interface->addSoundFile(ui_interface->uiInterface, " << quote(inst->fLabel) << ", "
-              << quote(inst->fURL) << ", &dsp->" << inst->fName << ")";
+              << quote(inst->fURL) << ", &dsp->" << inst->fSFZone << ")";
         EndLine();
     }
 

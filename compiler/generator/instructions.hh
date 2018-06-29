@@ -710,10 +710,10 @@ struct AddBargraphInst : public StatementInst {
 struct AddSoundfileInst : public StatementInst {
     string fLabel;
     string fURL;
-    string fName;
+    string fSFZone;
 
-    AddSoundfileInst(const string& label, const string& url, const string& (name))
-        : fLabel(label), fURL(url), fName(name)
+    AddSoundfileInst(const string& label, const string& url, const string& sf_zone)
+        : fLabel(label), fURL(url), fSFZone(sf_zone)
     {
     }
 
@@ -1386,7 +1386,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(AddSoundfileInst* inst)
     {
-        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fName);
+        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone);
     }
     virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
@@ -1690,9 +1690,9 @@ struct InstBuilder {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
 
-    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& varname)
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& sf_zone)
     {
-        return new AddSoundfileInst(label, url, varname);
+        return new AddSoundfileInst(label, url, sf_zone);
     }
 
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
