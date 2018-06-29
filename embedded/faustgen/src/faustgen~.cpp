@@ -172,6 +172,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
     fPolyphonic = false;
+    fSoundInterface = NULL;
     
     fMidiHandler.start_midi();
     
@@ -320,7 +321,11 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, fOptLevel);
 #endif
-
+    
+    // Reset fSoundInterface with the new factory getDSPFactoryIncludePathnames
+    delete fSoundInterface;
+    fSoundInterface = new SoundUI(factory->getDSPFactoryIncludePathnames());
+   
     if (factory) {
         return factory;
     } else {
@@ -1515,7 +1520,7 @@ void faustgen::create_dsp(bool init)
         fDSP->buildUserInterface(fMidiUI);
         
         // Soundfile handling
-        fDSP->buildUserInterface(&fDSPfactory->fSoundInterface);
+        if (fDSPfactory->fSoundInterface) fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
         
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());

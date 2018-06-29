@@ -26,8 +26,12 @@
 
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
    public:
-    llvm_dynamic_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& pathname_list,
-                                 llvm::Module* module, llvm::LLVMContext* context, const std::string& target,
+    llvm_dynamic_dsp_factory_aux(const std::string& sha_key,
+                                 const std::vector<std::string>& library_list,
+                                 const std::vector<std::string>& include_pathnames,
+                                 llvm::Module* module,
+                                 llvm::LLVMContext* context,
+                                 const std::string& target,
                                  int opt_level = 0);
 
     llvm_dynamic_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target)
@@ -114,6 +118,8 @@ EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
 EXPORT char* getCDSPMachineTarget();
 
 EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+    
+EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
 
 EXPORT void deleteAllCDSPFactories();
 

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <list>
+#include <vector>
 #include <map>
 #include <set>
 #include <stack>
@@ -94,9 +95,9 @@ struct global {
     string       gMasterDirectory;
     string       gMasterName;
     string       gDocName;
-    list<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
-    list<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
-    list<string> gLibraryList;
+    vector<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    vector<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
+    vector<string> gLibraryList;
     string       gOutputDir;
     string       gImportFilename;
     Tree         gExpandedDefList;

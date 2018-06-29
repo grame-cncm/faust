@@ -95,7 +95,7 @@ class faustgen_factory {
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
         midi_handler fMidiHandler;      // Generic MIDI handler
     
-        SoundUI fSoundInterface;        // Generic Soundfile interface
+        SoundUI* fSoundInterface;       // Generic Soundfile interface
    
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string

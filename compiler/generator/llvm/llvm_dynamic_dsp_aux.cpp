@@ -208,12 +208,14 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
     out.flush();
 }
 
-llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&                   sha_key,
-                                                           const std::vector<std::string>& pathname_list,
-                                                           Module* module, LLVMContext* context,
+llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string& sha_key,
+                                                           const std::vector<std::string>& library_list,
+                                                           const std::vector<std::string>& include_pathnames,
+                                                           Module* module,
+                                                           LLVMContext* context,
                                                            const string& target,
                                                            int opt_level)
-    : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", pathname_list)
+    : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", library_list, include_pathnames)
 {
     startLLVMLibrary();
 
@@ -613,9 +615,10 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         Module*      module  = ParseBitcodeFile(buffer, *context, &error_msg);
         if (!module) return nullptr;
 
-        std::vector<std::string>      dummy_list;
+        std::vector<std::string> dummy_list;
+        std::vector<std::string> dummy_include;
         llvm_dynamic_dsp_factory_aux* factory_aux =
-            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, module, context, target, opt_level);
+            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, dummy_include, module, context, target, opt_level);
 
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -687,10 +690,12 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         if (!module) return nullptr;
 
         setlocale(LC_ALL, tmp_local);
-        string                        error_msg;
-        std::vector<std::string>      dummy_list;
+        string error_msg;
+        std::vector<std::string> dummy_list;
+        std::vector<std::string> dummy_include;
+        
         llvm_dynamic_dsp_factory_aux* factory_aux =
-            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, module, context, target, opt_level);
+            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, dummy_include, module, context, target, opt_level);
 
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -780,9 +785,8 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
         return module;
     } else {
         // Otherwise use import directories
-        list<string>::iterator it;
-        for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-            string file_name = *it + '/' + module_name;
+        for (int i = 0; i < gGlobal->gImportDirList.size(); i++) {
+            string file_name = gGlobal->gImportDirList[i] + '/' + module_name;
             if (ModulePTR module = loadSingleModule(file_name, context)) {
                 return module;
             }
@@ -810,11 +814,9 @@ bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 
 Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 {
-    list<string>::iterator it;
-
-    for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
-        string    module_name = *it;
-        ModulePTR src         = loadModule(module_name, context);
+    for (int i = 0; i < gGlobal->gLibraryList.size(); i++) {
+        string module_name = gGlobal->gLibraryList[i];
+        ModulePTR src = loadModule(module_name, context);
         if (!src) {
             sprintf(error, "cannot load module : %s", module_name.c_str());
             return nullptr;
@@ -836,7 +838,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
                                                    char* error_msg,
                                                    int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
@@ -850,7 +852,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
                                                      char* error_msg,
                                                      int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory =
         createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
@@ -954,6 +956,25 @@ EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
         // Last element is NULL
         library_list2[i] = nullptr;
         return library_list2;
+    } else {
+        return nullptr;
+    }
+}
+    
+EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        vector<string> include_list1 = factory->getDSPFactoryIncludePathnames();
+        const char**   include_list2 = (const char**)malloc(sizeof(char*) * (include_list1.size() + 1));
+        
+        size_t i;
+        for (i = 0; i < include_list1.size(); i++) {
+            include_list2[i] = strdup(include_list1[i].c_str());
+        }
+        
+        // Last element is NULL
+        include_list2[i] = nullptr;
+        return include_list2;
     } else {
         return nullptr;
     }

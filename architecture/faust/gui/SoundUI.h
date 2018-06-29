@@ -88,6 +88,7 @@ class SoundUI : public GenericUI
                 *sf_zone = fSFMap[file_key];
             } else {
                 // Take the defaultsound
+                std::cout << "addSoundfile : defaultsound\n";
                 *sf_zone = defaultsound;
             }
         }
