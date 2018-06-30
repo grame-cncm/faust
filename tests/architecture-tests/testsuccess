@@ -101,6 +101,14 @@ if [ "$system" = "Darwin" ]; then
         ($scriptname -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
         rm -rf good
     done
+    
+    for scriptname in $OSXSOUND; do
+        ($scriptname -soundfile sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
+        rm -rf good
+    done
+    
+    (faust2juce -soundfile -standalone sound.dsp &> LOG)&&(echo "OK: faust2juce -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce -soundfile -standalone failed")
+    rm -rf good
 
     for scriptname in $OSXHTTPD; do
         ($scriptname -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -httpd succeeded !")||(echo "ERROR: $scriptname -httpd failed")

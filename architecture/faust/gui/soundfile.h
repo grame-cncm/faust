@@ -35,9 +35,9 @@
 #define FAUSTFLOAT float
 #endif
 
-#define BUFFER_SIZE     1024
-#define SAMPLE_RATE     44100
-#define MAX_CHAN        64
+#define BUFFER_SIZE 1024
+#define SAMPLE_RATE 44100
+#define MAX_CHAN    64
 
 #define MIN_CHAN(a,b) ((a) < (b) ? (a) : (b))
 
