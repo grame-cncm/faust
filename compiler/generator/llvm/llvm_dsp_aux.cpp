@@ -71,8 +71,6 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 
 #endif
 
-Soundfile* llvm_defaultsound = new Soundfile(64);
-
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
@@ -248,7 +246,7 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
          
         // Set the default sound
-        fSetDefaultSound(llvm_defaultsound);
+        fSetDefaultSound(dynamic_defaultsound);
      
         return true;
     } catch (

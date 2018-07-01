@@ -39,6 +39,9 @@
 
 using namespace std;
 
+// Used by LLVM backend (for now)
+Soundfile* dynamic_defaultsound = new Soundfile(64);
+
 // Look for 'key' in 'options' and modify the parameter 'position' if found
 static bool parseKey(vector<string> options, const string& key, int& position)
 {
@@ -56,8 +59,11 @@ static bool parseKey(vector<string> options, const string& key, int& position)
  *  Add 'key' if existing in 'options', otherwise add 'defaultKey' (if different from "")
  * return true if 'key' was added
  */
-static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions, const string& key,
-                             const string& defaultKey, int& position)
+static bool addKeyIfExisting(vector<string>& options,
+                             vector<string>& newoptions,
+                             const string& key,
+                             const string& defaultKey,
+                             int& position)
 {
     if (parseKey(options, key, position)) {
         newoptions.push_back(options[position]);
@@ -72,7 +78,9 @@ static bool addKeyIfExisting(vector<string>& options, vector<string>& newoptions
 }
 
 // Add 'key' & it's associated value if existing in 'options', otherwise add 'defaultValue' (if different from "")
-static void addKeyValueIfExisting(vector<string>& options, vector<string>& newoptions, const string& key,
+static void addKeyValueIfExisting(vector<string>& options,
+                                  vector<string>& newoptions,
+                                  const string& key,
                                   const string& defaultValue)
 {
     int position = 0;
@@ -211,7 +219,10 @@ string reorganizeCompilationOptions(int argc, const char* argv[])
 
 // External C++ libfaust API
 
-EXPORT string expandDSPFromFile(const string& filename, int argc, const char* argv[], string& sha_key,
+EXPORT string expandDSPFromFile(const string& filename,
+                                int argc,
+                                const char* argv[],
+                                string& sha_key,
                                 string& error_msg)
 {
     string base = basename((char*)filename.c_str());
@@ -222,8 +233,12 @@ EXPORT string expandDSPFromFile(const string& filename, int argc, const char* ar
 /*
 Same DSP code and same normalized compilation options will generate the same SHA key.
 */
-EXPORT string expandDSPFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
-                                  string& sha_key, string& error_msg)
+EXPORT string expandDSPFromString(const string& name_app,
+                                  const string& dsp_content,
+                                  int argc,
+                                  const char* argv[],
+                                  string& sha_key,
+                                  string& error_msg)
 {
     if (dsp_content == "") {
         error_msg = "Unable to read file";
@@ -256,14 +271,20 @@ EXPORT string expandDSPFromString(const string& name_app, const string& dsp_cont
     }
 }
 
-EXPORT bool generateAuxFilesFromFile(const string& filename, int argc, const char* argv[], string& error_msg)
+EXPORT bool generateAuxFilesFromFile(const string& filename,
+                                     int argc,
+                                     const char* argv[],
+                                     string& error_msg)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
     return generateAuxFilesFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg);
 }
 
-EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp_content, int argc, const char* argv[],
+EXPORT bool generateAuxFilesFromString(const string& name_app,
+                                       const string& dsp_content,
+                                       int argc,
+                                       const char* argv[],
                                        string& error_msg)
 {
     if (dsp_content == "") {
@@ -295,7 +316,10 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
 extern "C" {
 #endif
 
-EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char* argv[], char* sha_key,
+EXPORT const char* expandCDSPFromFile(const char* filename,
+                                      int argc,
+                                      const char* argv[],
+                                      char* sha_key,
                                       char* error_msg)
 {
     string sha_key_aux;
@@ -306,8 +330,12 @@ EXPORT const char* expandCDSPFromFile(const char* filename, int argc, const char
     return strdup(res.c_str());
 }
 
-EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
-                                        char* sha_key, char* error_msg)
+EXPORT const char* expandCDSPFromString(const char* name_app,
+                                        const char* dsp_content,
+                                        int argc,
+                                        const char* argv[],
+                                        char* sha_key,
+                                        char* error_msg)
 {
     string sha_key_aux;
     string error_msg_aux;
@@ -317,7 +345,10 @@ EXPORT const char* expandCDSPFromString(const char* name_app, const char* dsp_co
     return strdup(res.c_str());
 }
 
-EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char* argv[], char* error_msg)
+EXPORT bool generateCAuxFilesFromFile(const char* filename,
+                                      int argc,
+                                      const char* argv[],
+                                      char* error_msg)
 {
     string error_msg_aux;
     bool   res = generateAuxFilesFromFile(filename, argc, argv, error_msg_aux);
@@ -325,7 +356,10 @@ EXPORT bool generateCAuxFilesFromFile(const char* filename, int argc, const char
     return res;
 }
 
-EXPORT bool generateCAuxFilesFromString(const char* name_app, const char* dsp_content, int argc, const char* argv[],
+EXPORT bool generateCAuxFilesFromString(const char* name_app,
+                                        const char* dsp_content,
+                                        int argc,
+                                        const char* argv[],
                                         char* error_msg)
 {
     string error_msg_aux;

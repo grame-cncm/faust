@@ -496,7 +496,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
      
         // Set the default sound
-        fSetDefaultSound(llvm_defaultsound);
+        fSetDefaultSound(dynamic_defaultsound);
         
         endTiming("initJIT");
         return true;

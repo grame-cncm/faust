@@ -303,6 +303,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
             string          num;
+            // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
                 fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
             } else {
@@ -391,6 +392,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 indexed->accept(this);
                 // Indexed
                 string num;
+                // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
                     fCurrentBlock->push(
                         new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));

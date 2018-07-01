@@ -100,7 +100,7 @@ typedef llvm::Value* LLVMValue;
 // Helper class
 
 struct LLVMTypeHelper {
-    MAP_OF_TYPES fTypeMap; // A unique typemap is needed
+    MAP_OF_TYPES fTypeMap; 
 
     LLVMTypeHelper() {}
 
