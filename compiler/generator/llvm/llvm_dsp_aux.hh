@@ -80,54 +80,6 @@ class ExecutionEngine;
 class Module;
 }
 
-// We take the largest sample size here, to cover 'float' and 'double' cases
-#define LLVM_FAUSTFLOAT double
-
-#define BUFFER_SIZE 1024
-#define SAMPLE_RATE 44100
-#define MAX_CHAN    64
-
-#define PRE_PACKED_STRUCTURE
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-
-PRE_PACKED_STRUCTURE
-struct Soundfile {
-    
-    LLVM_FAUSTFLOAT** fBuffers;
-    int fLength;
-    int fSampleRate;
-    int fChannels;
-    
-    Soundfile(int max_chan)
-    {
-        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
-        fChannels = 1;
-        fLength = BUFFER_SIZE;
-        fSampleRate = SAMPLE_RATE;
-        
-        // Allocate 1 channel
-        fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
-        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
-        
-        // Share the same buffer for all other channels so that we have max_chan channels available
-        for (int chan = fChannels; chan < max_chan; chan++) {
-            fBuffers[chan] = fBuffers[0];
-        }
-    }
-    
-    ~Soundfile()
-    {
-        // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete fBuffers[chan];
-        }
-        delete [] fBuffers;
-    }
-    
-} POST_PACKED_STRUCTURE;
-
-extern Soundfile* llvm_defaultsound;
-
 class llvm_dsp_factory;
 
 // Public C++ interface

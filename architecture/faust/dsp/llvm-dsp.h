@@ -204,7 +204,7 @@ bool deleteDSPFactory(llvm_dsp_factory* factory);
  * Get the Faust DSP factory list of library dependancies.
  *
  * @deprecated : use factory getDSPFactoryLibraryList method.
-
+ *
  * @param factory - the DSP factory
  * 
  * @return the list as a vector of strings.
