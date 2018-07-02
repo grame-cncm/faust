@@ -102,9 +102,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -112,12 +111,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
-                // Local variable declaration has been previsouly separated as 'pure declaration' first, followed by
-                // 'store' later on (done in MoveVariablesInFront3)
+                // Local variable declaration has been previously separated as 'pure declaration' first,
+                // followed by 'store' later on (done in MoveVariablesInFront3)
                 faustassert(inst->fValue == nullptr);
                 EndLine();
             }
@@ -186,8 +185,10 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 tab(fTab, *fOut);
                 if (desc.fMode == MathFunDesc::Gen::kExtMath || desc.fMode == MathFunDesc::Gen::kExtWAS) {
                     // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
-                    *fOut << "(import $" << inst->fName << " \"env\" \""
-                          << "_" << gGlobal->getMathFunction(inst->fName) << "\" (param ";
+                    *fOut << "(import $" << inst->fName
+                          << " \"env\" \""
+                          << "_" << gGlobal->getMathFunction(inst->fName)
+                          << "\" (param ";
                 } else {
                     faustassert(false);
                 }

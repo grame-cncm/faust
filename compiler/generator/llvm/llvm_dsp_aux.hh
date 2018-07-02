@@ -73,11 +73,60 @@
 #define llvmcreatePrintModulePass(out) createPrintModulePass(out)
 #define GET_CPU_NAME llvm::sys::getHostCPUName().str()
 
+// namespace llvm
 namespace llvm {
 class LLVMContext;
 class ExecutionEngine;
 class Module;
-}  // namespace llvm
+}
+
+// We take the largest sample size here, to cover 'float' and 'double' cases
+#define LLVM_FAUSTFLOAT double
+
+#define BUFFER_SIZE 1024
+#define SAMPLE_RATE 44100
+#define MAX_CHAN    64
+
+#define PRE_PACKED_STRUCTURE
+#define POST_PACKED_STRUCTURE __attribute__((__packed__))
+
+PRE_PACKED_STRUCTURE
+struct Soundfile {
+    
+    LLVM_FAUSTFLOAT** fBuffers;
+    int fLength;
+    int fSampleRate;
+    int fChannels;
+    
+    Soundfile(int max_chan)
+    {
+        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
+        fChannels = 1;
+        fLength = BUFFER_SIZE;
+        fSampleRate = SAMPLE_RATE;
+        
+        // Allocate 1 channel
+        fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
+        memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
+        
+        // Share the same buffer for all other channels so that we have max_chan channels available
+        for (int chan = fChannels; chan < max_chan; chan++) {
+            fBuffers[chan] = fBuffers[0];
+        }
+    }
+    
+    ~Soundfile()
+    {
+        // Free the real channels only
+        for (int chan = 0; chan < fChannels; chan++) {
+            delete fBuffers[chan];
+        }
+        delete [] fBuffers;
+    }
+    
+} POST_PACKED_STRUCTURE;
+
+extern Soundfile* llvm_defaultsound;
 
 class llvm_dsp_factory;
 
@@ -181,6 +230,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     computeFun            fCompute;
     metadataFun           fMetadata;
     getSampleSizeFun      fGetSampleSize;
+    setDefaultSoundFun    fSetDefaultSound;
 
     void* loadOptimize(const std::string& function);
 
@@ -196,15 +246,22 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string writeDSPFactoryToMachineAux(const std::string& target);
 
    public:
-    llvm_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& pathname_list,
-                         llvm::Module* module, llvm::LLVMContext* context, const std::string& target,
+    llvm_dsp_factory_aux(const std::string& sha_key,
+                         const std::vector<std::string>& library_list,
+                         const std::vector<std::string>& include_pathnames,
+                         llvm::Module* module,
+                         llvm::LLVMContext* context,
+                         const std::string& target,
                          int opt_level = 0);
 
     llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
 
-    llvm_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
-                         const std::vector<std::string>& pathname_list)
-        : dsp_factory_imp(name, sha_key, dsp, pathname_list)
+    llvm_dsp_factory_aux(const std::string& name,
+                         const std::string& sha_key,
+                         const std::string& dsp,
+                         const std::vector<std::string>& library_list,
+                         const std::vector<std::string>& include_pathnames)
+        : dsp_factory_imp(name, sha_key, dsp, library_list, include_pathnames)
     {
     }
 
@@ -287,6 +344,8 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     void write(std::ostream* out, bool binary, bool small = false) {}
 
     std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
+    
+    std::vector<std::string> getDSPFactoryIncludePathnames() { return fFactory->getDSPFactoryIncludePathnames(); }
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 

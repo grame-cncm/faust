@@ -376,11 +376,10 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SYMRECREF = symbol("SYMRECREF");
     SYMLIFTN  = symbol("LIFTN");
 
-    // Use real values
-    gMachineFloatSize  = sizeof(float);
-    gMachineInt32Size  = sizeof(int);
-    gMachineInt64Size  = sizeof(long int);
-    gMachineDoubleSize = sizeof(double);
+    gMachineFloatSize  = 4;
+    gMachineInt32Size  = 4;
+    gMachineInt64Size  = 8;
+    gMachineDoubleSize = 8;
     gMachineBoolSize   = sizeof(bool);
 
     // Assuming we are compiling for a 64 bits machine
@@ -548,11 +547,10 @@ void global::init()
 
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
+    sf_type_fields.push_back(InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fSampleRate", InstBuilder::genBasicTyped(Typed::kInt32)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));
-    sf_type_fields.push_back(
-        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }

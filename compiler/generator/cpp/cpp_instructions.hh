@@ -112,7 +112,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cosf"]       = "std::cos";
         gPolyMathLibTable["expf"]       = "std::exp";
         gPolyMathLibTable["exp2f"]      = "std::exp2";
-        gPolyMathLibTable["exp10f"]     = "std::exp10";
+        gPolyMathLibTable["exp10f"]     = "exp10f";
         gPolyMathLibTable["floorf"]     = "std::floor";
         gPolyMathLibTable["fmodf"]      = "std::fmod";
         gPolyMathLibTable["logf"]       = "std::log";
@@ -138,7 +138,7 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["cos"]       = "std::cos";
         gPolyMathLibTable["exp"]       = "std::exp";
         gPolyMathLibTable["exp2"]      = "std::exp2";
-        gPolyMathLibTable["exp10"]     = "std::exp10";
+        gPolyMathLibTable["exp10"]     = "exp10";
         gPolyMathLibTable["floor"]     = "std::floor";
         gPolyMathLibTable["fmod"]      = "std::fmod";
         gPolyMathLibTable["log"]       = "std::log";
@@ -240,7 +240,7 @@ class CPPInstVisitor : public TextInstVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         *fOut << "ui_interface->addSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &"
-              << inst->fVarname << ")";
+              << inst->fSFZone << ")";
         EndLine();
     }
 

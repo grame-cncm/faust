@@ -34,7 +34,7 @@ map<string, bool> CPPInstVisitor::gFunctionSymbolTable;
 dsp_factory_base* CPPCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(),
+        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 

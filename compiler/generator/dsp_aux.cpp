@@ -141,8 +141,8 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
      addKeyIfExisting(options, newoptions, "-svg", "", position);
 
      if (addKeyIfExisting(options, newoptions, "-mdoc", "", position)) {
-     addKeyValueIfExisting(options, newoptions, "-mdlang", "");
-     addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
+        addKeyValueIfExisting(options, newoptions, "-mdlang", "");
+        addKeyValueIfExisting(options, newoptions, "-stripdoc", "");
      }
 
      addKeyIfExisting(options, newoptions, "-sd", "", position);
@@ -165,14 +165,14 @@ static vector<string> reorganizeCompilationOptionsAux(vector<string>& options)
      addKeyIfExisting(options, newoptions, "-flist", "", position);
      addKeyValueIfExisting(options, newoptions, "-l", "");
      addKeyValueIfExisting(options, newoptions, "-O", "");
+    */
 
-     //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
-     while (options.size() != 0) {
+    //-------Add Other Options that are possibily passed to the compiler (-I, -blabla, ...)
+    while (options.size() != 0) {
         if (options[0] != "faust") newoptions.push_back(options[0]); // "faust" first argument
         options.erase(options.begin());
-     }
-     */
-
+    }
+ 
     return newoptions;
 }
 

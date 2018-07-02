@@ -34,8 +34,12 @@
 
 #if defined(LLVM_35)
 #define STREAM_ERROR string
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
 #else
 #define STREAM_ERROR std::error_code
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 #endif
 
 using namespace std;
@@ -94,7 +98,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     void generateBuildUserInterfaceEnd();
 
     void generateGetSize(LLVMValue size);
-
+  
     LLVMContext& getContext();
 
     // To be used for mathematical function mapping (-fm and exp10 on OSX)

@@ -18,7 +18,7 @@ faustbench-llvm-interp: faustbench-llvm-interp.cpp $(LIB)/libfaust.a
 	$(CXX) -std=c++11 -O3 faustbench-llvm-interp.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` -lz -lncurses -lpthread -o faustbench-llvm-interp
 
 dynamic-jack-gtk: dynamic-jack-gtk.cpp $(LIB)/libfaust.a
-	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0`  -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
+	$(CXX) -std=c++11 -O3 dynamic-jack-gtk.cpp -I $(INC) $(LIB)/libfaust.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack sndfile gtk+-2.0`  -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-jack-gtk
 
 dynamic-machine-jack-gtk: dynamic-machine-jack-gtk.cpp $(LIB)/libfaustmachine.a
 	$(CXX) -std=c++11 -O3 dynamic-machine-jack-gtk.cpp -I $(INC) $(LIB)/libfaustmachine.a  `llvm-config --ldflags --libs all --system-libs` `pkg-config --cflags --libs jack gtk+-2.0` -dead_strip -lOSCFaust -lHTTPDFaust -lmicrohttpd -o dynamic-machine-jack-gtk

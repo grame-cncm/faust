@@ -25,6 +25,7 @@
 #define __SoundUI_H__
 
 #include <map>
+#include <vector>
 #include <string>
 
 #ifdef __APPLE__
@@ -35,24 +36,29 @@
 #include "faust/gui/soundfile.h"
 
 // To be used by dsp code if no SoundUI is used or when soundfile is not found
-static Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+extern "C" Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
 		
     private:
     
-        std::string fSoundfileDir;                     // The soundfile directory
+        std::vector<std::string> fSoundfileDir;        // The soundfile directories
         std::map<std::string, Soundfile*> fSFMap;      // Map to share loaded soundfiles
     
      public:
             
-        SoundUI(const std::string& sound_dir = ""):fSoundfileDir(sound_dir)
+        SoundUI(const std::string& sound_directory = "")
+        {
+            fSoundfileDir.push_back(sound_directory);
+        }
+    
+        SoundUI(const std::vector<std::string>& sound_directories):fSoundfileDir(sound_directories)
         {}
     
         virtual ~SoundUI()
         {   
-            // delete all soundfiles
+            // Delete all soundfiles
             std::map<std::string, Soundfile*>::iterator it;
             for (it = fSFMap.begin(); it != fSFMap.end(); it++) {
                 delete (*it).second;
@@ -82,6 +88,7 @@ class SoundUI : public GenericUI
                 *sf_zone = fSFMap[file_key];
             } else {
                 // Take the defaultsound
+                std::cout << "addSoundfile : defaultsound\n";
                 *sf_zone = defaultsound;
             }
         }

@@ -71,6 +71,8 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 
 #endif
 
+Soundfile* llvm_defaultsound = new Soundfile(64);
+
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
@@ -84,11 +86,11 @@ void* llvm_dsp_factory_aux::loadOptimize(const string& function)
     void* fun = (void*)fJIT->getFunctionAddress(function);
     if (fun) {
         return fun;
+    } else {
+        stringstream error;
+        error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
+        throw faustexception(error.str());
     }
-
-    stringstream error;
-    error << "ERROR : loadOptimize failed for '" << function << "'" << endl;
-    throw faustexception(error.str());
 }
 
 bool llvm_dsp_factory_aux::crossCompile(const string& target)
@@ -140,9 +142,14 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
 #endif
 }
 
-llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const std::vector<std::string>& pathname_list,
-                                           Module* module, LLVMContext* context, const string& target, int opt_level)
-    : dsp_factory_imp("BitcodeDSP", sha_key, "", pathname_list)
+llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
+                                           const std::vector<std::string>& library_list,
+                                           const std::vector<std::string>& include_pathnames,
+                                           Module* module,
+                                           LLVMContext* context,
+                                           const string& target,
+                                           int opt_level)
+    : dsp_factory_imp("BitcodeDSP", sha_key, "", library_list, include_pathnames)
 {
     startLLVMLibrary();
 
@@ -238,6 +245,11 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fCompute            = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetSampleSize      = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
+        fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
+         
+        // Set the default sound
+        fSetDefaultSound(llvm_defaultsound);
+     
         return true;
     } catch (
         faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...

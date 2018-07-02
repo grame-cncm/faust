@@ -208,11 +208,14 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
     out.flush();
 }
 
-llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&                   sha_key,
-                                                           const std::vector<std::string>& pathname_list,
-                                                           Module* module, LLVMContext* context, const string& target,
+llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string& sha_key,
+                                                           const std::vector<std::string>& library_list,
+                                                           const std::vector<std::string>& include_pathnames,
+                                                           Module* module,
+                                                           LLVMContext* context,
+                                                           const string& target,
                                                            int opt_level)
-    : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", pathname_list)
+    : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", library_list, include_pathnames)
 {
     startLLVMLibrary();
 
@@ -233,7 +236,9 @@ llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&        
 /// duplicates llvm-gcc behaviour.
 ///
 /// OptLevel - Optimization Level
-static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& FPM, unsigned OptLevel,
+static void AddOptimizationPasses(PassManagerBase& MPM,
+                                  FUNCTION_PASS_MANAGER& FPM,
+                                  unsigned OptLevel,
                                   unsigned SizeLevel)
 {
     FPM.add(createVerifierPass());  // Verify that input is correct
@@ -488,6 +493,11 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         fCompute            = (computeFun)loadOptimize("compute" + fClassName);
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetSampleSize      = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
+        fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
+     
+        // Set the default sound
+        fSetDefaultSound(llvm_defaultsound);
+        
         endTiming("initJIT");
         return true;
     } catch (
@@ -500,8 +510,12 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
 // Public C++ API
 
-EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                  const string& target, string& error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createDSPFactoryFromFile(const string& filename,
+                                                  int argc,
+                                                  const char* argv[],
+                                                  const string& target,
+                                                  string& error_msg,
+                                                  int opt_level)
 {
     string base = basename((char*)filename.c_str());
     size_t pos  = filename.find(".dsp");
@@ -588,7 +602,7 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 // Bitcode <==> string
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -601,9 +615,10 @@ static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, cons
         Module*      module  = ParseBitcodeFile(buffer, *context, &error_msg);
         if (!module) return nullptr;
 
-        std::vector<std::string>      dummy_list;
+        std::vector<std::string> dummy_list;
+        std::vector<std::string> dummy_include;
         llvm_dynamic_dsp_factory_aux* factory_aux =
-            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, module, context, target, opt_level);
+            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, dummy_include, module, context, target, opt_level);
 
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -633,7 +648,7 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
     if (error_code ec = buffer.getError()) {
         std::cerr << "readDSPFactoryFromBitcodeFile failed : " << ec.message() << std::endl;
@@ -655,7 +670,7 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -675,10 +690,12 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         if (!module) return nullptr;
 
         setlocale(LC_ALL, tmp_local);
-        string                        error_msg;
-        std::vector<std::string>      dummy_list;
+        string error_msg;
+        std::vector<std::string> dummy_list;
+        std::vector<std::string> dummy_include;
+        
         llvm_dynamic_dsp_factory_aux* factory_aux =
-            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, module, context, target, opt_level);
+            new llvm_dynamic_dsp_factory_aux(sha_key, dummy_list, dummy_include, module, context, target, opt_level);
 
         if (factory_aux->initJIT(error_msg)) {
             llvm_dsp_factory* factory = new llvm_dsp_factory(factory_aux);
@@ -721,7 +738,6 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, co
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const string& ir_code_path)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-
     if (factory) {
         factory->writeDSPFactoryToIRFile(ir_code_path);
     }
@@ -733,7 +749,8 @@ EXPORT string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const string& 
     return factory->writeDSPFactoryToMachine(target);
 }
 
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const string& machine_code_path,
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory,
+                                         const string& machine_code_path,
                                          const string& target)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
@@ -768,9 +785,8 @@ ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context)
         return module;
     } else {
         // Otherwise use import directories
-        list<string>::iterator it;
-        for (it = gGlobal->gImportDirList.begin(); it != gGlobal->gImportDirList.end(); it++) {
-            string file_name = *it + '/' + module_name;
+        for (int i = 0; i < gGlobal->gImportDirList.size(); i++) {
+            string file_name = gGlobal->gImportDirList[i] + '/' + module_name;
             if (ModulePTR module = loadSingleModule(file_name, context)) {
                 return module;
             }
@@ -798,11 +814,9 @@ bool linkModules(Module* dst, ModulePTR src, char* error_msg)
 
 Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 {
-    list<string>::iterator it;
-
-    for (it = gGlobal->gLibraryList.begin(); it != gGlobal->gLibraryList.end(); it++) {
-        string    module_name = *it;
-        ModulePTR src         = loadModule(module_name, context);
+    for (int i = 0; i < gGlobal->gLibraryList.size(); i++) {
+        string module_name = gGlobal->gLibraryList[i];
+        ModulePTR src = loadModule(module_name, context);
         if (!src) {
             sprintf(error, "cannot load module : %s", module_name.c_str());
             return nullptr;
@@ -817,20 +831,28 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 
 // Public C interface : lock management is done by called C++ API
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
-                                                   const char* target, char* error_msg, int opt_level)
+EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename,
+                                                   int argc,
+                                                   const char* argv[],
+                                                   const char* target,
+                                                   char* error_msg,
+                                                   int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory = createDSPFactoryFromFile(filename, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
 
-EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                     const char* argv[], const char* target, char* error_msg,
+EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app,
+                                                     const char* dsp_content,
+                                                     int argc,
+                                                     const char* argv[],
+                                                     const char* target,
+                                                     char* error_msg,
                                                      int opt_level)
 {
-    string            error_msg_aux;
+    string error_msg_aux;
     llvm_dsp_factory* factory =
         createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg_aux, opt_level);
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
@@ -934,6 +956,25 @@ EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
         // Last element is NULL
         library_list2[i] = nullptr;
         return library_list2;
+    } else {
+        return nullptr;
+    }
+}
+    
+EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        vector<string> include_list1 = factory->getDSPFactoryIncludePathnames();
+        const char**   include_list2 = (const char**)malloc(sizeof(char*) * (include_list1.size() + 1));
+        
+        size_t i;
+        for (i = 0; i < include_list1.size(); i++) {
+            include_list2[i] = strdup(include_list1[i].c_str());
+        }
+        
+        // Last element is NULL
+        include_list2[i] = nullptr;
+        return include_list2;
     } else {
         return nullptr;
     }

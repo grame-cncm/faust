@@ -150,7 +150,7 @@ EndOfCode
             faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
             rm "$TMP/effect.dsp"
         else
-            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}}_tmp.cpp" || exit
+            faust -i -json -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}_tmp.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
         fi
     else

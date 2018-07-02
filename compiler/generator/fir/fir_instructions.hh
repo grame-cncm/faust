@@ -287,7 +287,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(AddSoundfileInst* inst)
     {
-        *fOut << "AddSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &" << inst->fVarname << ")";
+        *fOut << "AddSoundfile(" << quote(inst->fLabel) << ", " << quote(inst->fURL) << ", &" << inst->fSFZone << ")";
         EndLine();
     }
 
@@ -629,6 +629,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }
+
 };
 
 #endif

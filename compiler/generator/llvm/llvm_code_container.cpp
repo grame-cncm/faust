@@ -36,14 +36,6 @@ using namespace std;
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time
 */
 
-#if defined(LLVM_35)
-#define ModulePTR Module*
-#define MovePTR(ptr) ptr
-#else
-#define ModulePTR std::unique_ptr<Module>
-#define MovePTR(ptr) std::move(ptr)
-#endif
-
 // Helper functions
 bool      linkModules(Module* dst, ModulePTR src, char* error_msg);
 ModulePTR loadModule(const string& module_name, llvm::LLVMContext* context);
@@ -93,9 +85,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fNumOutputs = numOutputs;
     fInputRates.resize(numInputs);
     fOutputRates.resize(numOutputs);
-    
-    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
-    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numOutputs, Module* module,
@@ -121,9 +110,6 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 #endif
 
     fAllocaBuilder = new IRBuilder<>(getContext());
-    
-    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
-    // TODO : pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 }
 
 LLVMCodeContainer::~LLVMCodeContainer()
@@ -531,14 +517,13 @@ void LLVMCodeContainer::generateInitFun()
     Value* arg2 = GET_ITERATOR(llvm_init_args_it++);
     arg2->setName("samplingFreq");
 
-    /// llvm_init block
-    BasicBlock*    return_block2 = BasicBlock::Create(getContext(), "entry_block", llvm_init);
+    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
     Function* llvm_classInit = fModule->getFunction("classInit" + fKlassName);
     faustassert(llvm_classInit);
-    CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", return_block2);
+    CallInst* call_inst1 = CREATE_CALL1(llvm_classInit, params1, "", entry_block);
     call_inst1->setCallingConv(CallingConv::C);
 
     vector<Value*> params2;
@@ -547,10 +532,10 @@ void LLVMCodeContainer::generateInitFun()
 
     Function* llvm_instanceInit = fModule->getFunction("instanceInit" + fKlassName);
     faustassert(llvm_instanceInit);
-    CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
+    CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", entry_block);
     call_inst2->setCallingConv(CallingConv::C);
 
-    ReturnInst::Create(getContext(), return_block2);
+    ReturnInst::Create(getContext(), entry_block);
     verifyFunction(*llvm_init);
     fBuilder->ClearInsertionPoint();
 }
@@ -573,8 +558,7 @@ void LLVMCodeContainer::generateInstanceInitFun()
     Value* arg2 = GET_ITERATOR(llvm_init_args_it++);
     arg2->setName("samplingFreq");
 
-    /// llvm_init block
-    BasicBlock*    return_block2 = BasicBlock::Create(getContext(), "entry_block", llvm_init);
+    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
@@ -584,24 +568,24 @@ void LLVMCodeContainer::generateInstanceInitFun()
 
     Function* llvm_instanceInit = fModule->getFunction("instanceConstants" + fKlassName);
     faustassert(llvm_instanceInit);
-    CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", return_block2);
+    CallInst* call_inst2 = CREATE_CALL1(llvm_instanceInit, params2, "", entry_block);
     call_inst2->setCallingConv(CallingConv::C);
 
     vector<Value*> params3;
     params3.push_back(arg1);
     Function* llvm_instanceResetUserInterface = fModule->getFunction("instanceResetUserInterface" + fKlassName);
     faustassert(llvm_instanceResetUserInterface);
-    CallInst* call_inst3 = CREATE_CALL1(llvm_instanceResetUserInterface, params3, "", return_block2);
+    CallInst* call_inst3 = CREATE_CALL1(llvm_instanceResetUserInterface, params3, "", entry_block);
     call_inst3->setCallingConv(CallingConv::C);
 
     vector<Value*> params4;
     params4.push_back(arg1);
     Function* llvm_instanceClear = fModule->getFunction("instanceClear" + fKlassName);
     faustassert(llvm_instanceClear);
-    CallInst* call_inst4 = CREATE_CALL1(llvm_instanceClear, params4, "", return_block2);
+    CallInst* call_inst4 = CREATE_CALL1(llvm_instanceClear, params4, "", entry_block);
     call_inst4->setCallingConv(CallingConv::C);
 
-    ReturnInst::Create(getContext(), return_block2);
+    ReturnInst::Create(getContext(), entry_block);
     verifyFunction(*llvm_init);
     fBuilder->ClearInsertionPoint();
 }
@@ -708,13 +692,14 @@ void LLVMCodeContainer::generateGetSize(LLVMValue size)
 {
     VECTOR_OF_TYPES llvm_getSize_args;
     FunctionType*   llvm_getSize_type =
-        FunctionType::get(fBuilder->getInt32Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
+        FunctionType::get(fBuilder->getInt64Ty(), MAKE_VECTOR_OF_TYPES(llvm_getSize_args), false);
     Function* llvm_getSize =
         Function::Create(llvm_getSize_type, GlobalValue::ExternalLinkage, "getSize" + fKlassName, fModule);
 
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getSize);
     ReturnInst::Create(getContext(), size, return_block);
     verifyFunction(*llvm_getSize);
+    fBuilder->ClearInsertionPoint();
 }
 
 void LLVMCodeContainer::generateFunMaps()
@@ -822,13 +807,16 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Creates DSP structure
     LLVMTypeInstVisitor1 fTypeBuilder(fModule, fKlassName);
-
+    
+    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
+    pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr), InstBuilder::genTypedZero(Typed::kSound_ptr)));
+   
     // Sort arrays to be at the begining
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
     fStructDSP = fTypeBuilder.getDSPType(false);
-
+  
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
@@ -874,7 +862,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateBuildUserInterfaceEnd();
 
     generateGetSize(fTypeBuilder.getSize());
-
+  
     // Generate getSampleSize()
     {
         list<NamedTyped*> args;
@@ -896,6 +884,9 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
     generateInstanceInitFun();
     generateInitFun();
+    
+    // Generate setDefaultSound
+    fTypeBuilder.generateSetDefaultSound();
 
     // Link LLVM modules defined in 'ffunction'
     set<string>           S;
@@ -924,7 +915,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         throw faustexception(llvm_error.str());
     }
 
-    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), fModule, fContext, "", -1);
+    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, fModule, fContext, "", -1);
 }
 
 // Scalar

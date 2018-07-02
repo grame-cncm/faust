@@ -112,8 +112,11 @@ struct IndexedAddress;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kFloatish || type == Typed::kDouble ||
-            type == Typed::kDoublish);
+    return (type == Typed::kFloat
+            || type == Typed::kFloatMacro
+            || type == Typed::kFloatish
+            || type == Typed::kDouble
+            || type == Typed::kDoublish);
 }
 
 inline bool isRealPtrType(Typed::VarType type)
@@ -153,9 +156,15 @@ inline bool isBoolType(Typed::VarType type)
 
 inline bool isIntOrPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt64 || type == Typed::kInt32_ptr || type == Typed::kInt64_ptr ||
-            type == Typed::kFloat_ptr || type == Typed::kFloatMacro_ptr || type == Typed::kDouble_ptr ||
-            type == Typed::kObj_ptr || type == Typed::kVoid_ptr);
+    return (type == Typed::kInt32
+            || type == Typed::kInt64
+            || type == Typed::kInt32_ptr
+            || type == Typed::kInt64_ptr
+            || type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr
+            || type == Typed::kObj_ptr
+            || type == Typed::kVoid_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);
@@ -495,7 +504,8 @@ struct Address : public Printable {
         kLoop         = 0x40,
         kVolatile     = 0x80,
         kReference    = 0x100,  // Access by reference
-        kMutable      = 0x200   // Mutable access
+        kMutable      = 0x200,  // Mutable access
+        kExternal     = 0x400
     };
 
     Address() {}
@@ -528,6 +538,8 @@ struct Address : public Printable {
             *fOut << "kReference";
         } else if (access & kMutable) {
             *fOut << "kMutable";
+        } else if (access & kExternal) {
+            *fOut << "kExternal";
         }
     }
 
@@ -553,6 +565,8 @@ struct Address : public Printable {
             return "kReference";
         } else if (access & kMutable) {
             return "kMutable";
+        } else if (access & kExternal) {
+            return "kExternal";
         } else {
             return "";
         }
@@ -696,10 +710,10 @@ struct AddBargraphInst : public StatementInst {
 struct AddSoundfileInst : public StatementInst {
     string fLabel;
     string fURL;
-    string fVarname;
+    string fSFZone;
 
-    AddSoundfileInst(const string& label, const string& url, const string& varname)
-        : fLabel(label), fURL(url), fVarname(varname)
+    AddSoundfileInst(const string& label, const string& url, const string& sf_zone)
+        : fLabel(label), fURL(url), fSFZone(sf_zone)
     {
     }
 
@@ -1372,7 +1386,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(AddSoundfileInst* inst)
     {
-        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fVarname);
+        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone);
     }
     virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
@@ -1676,9 +1690,9 @@ struct InstBuilder {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
 
-    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& varname)
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& sf_zone)
     {
-        return new AddSoundfileInst(label, url, varname);
+        return new AddSoundfileInst(label, url, sf_zone);
     }
 
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
@@ -2189,6 +2203,11 @@ struct InstBuilder {
     static DeclareVarInst* genDecGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
+    }
+    
+    static DeclareVarInst* genDecExtGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)), type, exp);
     }
 
     static LoadVarInst* genLoadGlobalVar(string vname)

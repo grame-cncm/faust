@@ -308,7 +308,7 @@ Tree SourceReader::parseFile(const char* fname)
     #ifdef EMCC
         // Try to open with the complete URL
         Tree res = 0;
-        for (list<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
+        for (vector<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
             // Keep the created filename in the global state, so that the 'yyfilename'
             // global variable always points to a valid string
             gGlobal->gImportFilename = *i + fname;

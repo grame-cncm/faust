@@ -9,8 +9,8 @@
     </GROUP>
   </MAINGROUP>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -DNVOICES=NUM_VOICES"
-               extraDefs="PreProcDef">
+    <XCODE_MAC targetFolder="Builds/MacOSX" extraCompilerFlags="-I /usr/local/include/ -I /opt/local/include -DNVOICES=NUM_VOICES"
+               extraDefs="PreProcDef" externalLibraries="LIBSNDFILE" extraLinkerFlags="-L /opt/local/lib">
       <CONFIGURATIONS>
         <CONFIGURATION name="Debug" isDebug="1" optimisation="1" targetName="APPL_NAME"
                        osxSDK="default" osxCompatibility="default"/>

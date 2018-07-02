@@ -548,7 +548,6 @@ void faust_anything(t_faust* obj, t_symbol* s, short ac, t_atom* av)
     // Check if no argument is there, consider it is a toggle message for a button
     if (ac == 0 && obj->m_dspUI->isValue(name)) {
         
-        string name = string((s)->s_name);
         float off = 0.0f;
         float on = 1.0f;
         obj->m_dspUI->setValue(name, off);

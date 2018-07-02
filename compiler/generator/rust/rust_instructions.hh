@@ -371,13 +371,11 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(FunCallInst* inst)
     {
-        string fun_name;
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
-            fun_name = fMathLibTable[inst->fName];
+            generateFunCall(inst, fMathLibTable[inst->fName]);
         } else {
-            fun_name = inst->fName;
+            generateFunCall(inst, inst->fName);
         }
-        generateFunCall(inst, fun_name);
     }
 
     virtual void visit(Select2Inst* inst)

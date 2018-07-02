@@ -33,26 +33,24 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <map>
 #include <ostream>
-#include <set>
 #include <sstream>
+#include <map>
+#include <set>
 #include <stack>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "boxes.hh"
 #include "global.hh"
 #include "ppbox.hh"
 #include "prim2.hh"
-
-#include <vector>
 #include "boxcomplexity.hh"
 #include "devLib.h"
 #include "occurrences.hh"
 #include "ppbox.hh"
 #include "xtended.hh"
-
 #include "compatibility.hh"
 #include "description.hh"
 #include "drawschema.hh"
