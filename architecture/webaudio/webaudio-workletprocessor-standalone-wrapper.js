@@ -61,6 +61,10 @@ class mydspProcessor extends AudioWorkletProcessor {
             // Keep bargraph adresses
             obj.outputs_items.push(item.address);
             obj.pathTable[item.address] = parseInt(item.index);
+        } else if (item.type === "soundfile") {
+            // Keep soundfile adresses
+            obj.soundfile_items.push(item.address);
+            obj.pathTable[item.address] = parseInt(item.index);
         } else if (item.type === "vslider"
                    || item.type === "hslider"
                    || item.type === "button"
@@ -158,6 +162,9 @@ class mydspProcessor extends AudioWorkletProcessor {
 
         // input items
         this.inputs_items = [];
+        
+        // soundfile items
+        this.soundfile_items = [];
 
         // Start of HEAP index
 
@@ -171,6 +178,9 @@ class mydspProcessor extends AudioWorkletProcessor {
         // Setup buffer offset
         this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
         this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydspProcessor.buffer_size * this.sample_size);
+        
+        // Setup soundfile offset
+        this.soundfile_ptr = this.audio_heap_outputs + (this.numOut * mydspProcessor.buffer_size * this.sample_size);
 
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;

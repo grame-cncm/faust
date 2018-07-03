@@ -121,12 +121,16 @@ inline bool isRealType(Typed::VarType type)
 
 inline bool isRealPtrType(Typed::VarType type)
 {
-    return (type == Typed::kFloat_ptr || type == Typed::kFloatMacro_ptr || type == Typed::kDouble_ptr);
+    return (type == Typed::kFloat_ptr
+            || type == Typed::kFloatMacro_ptr
+            || type == Typed::kDouble_ptr);
 }
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
+    return (type == Typed::kInt32
+            || type == Typed::kInt32ish
+            || type == Typed::kInt64);
 }
 
 inline bool isIntType32(Typed::VarType type)
@@ -161,10 +165,13 @@ inline bool isIntOrPtrType(Typed::VarType type)
             || type == Typed::kInt32_ptr
             || type == Typed::kInt64_ptr
             || type == Typed::kFloat_ptr
+            || type == Typed::kFloat_ptr_ptr
             || type == Typed::kFloatMacro_ptr
+            || type == Typed::kFloatMacro_ptr_ptr
             || type == Typed::kDouble_ptr
             || type == Typed::kObj_ptr
-            || type == Typed::kVoid_ptr);
+            || type == Typed::kVoid_ptr
+            || type == Typed::kSound_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);
@@ -455,7 +462,8 @@ struct StructTyped : public Typed {
     virtual ~StructTyped() {}
 
     VarType getType() { return kObj_ptr; }
-
+    VarType getType(int index) { return fFields[index]->getType(); }
+    
     int getSize()
     {
         int                           size = 0;
