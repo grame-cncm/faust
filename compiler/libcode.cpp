@@ -29,6 +29,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <cstdlib>
 
 #include "Text.hh"
 #include "compatibility.hh"
@@ -354,11 +355,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
-            gGlobal->gFoldThreshold = atoi(argv[i + 1]);
+            gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mns", "--max-name-size") && (i + 1 < argc)) {
-            gGlobal->gMaxNameSize = atoi(argv[i + 1]);
+            gGlobal->gMaxNameSize = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-sn", "--simple-names")) {
@@ -382,7 +383,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
-            gGlobal->gMaxCopyDelay = atoi(argv[i + 1]);
+            gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -406,11 +407,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-vs", "--vec-size") && (i + 1 < argc)) {
-            gGlobal->gVecSize = atoi(argv[i + 1]);
+            gGlobal->gVecSize = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
-            gGlobal->gVectorLoopVariant = atoi(argv[i + 1]);
+            gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
@@ -447,7 +448,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
-            gGlobal->gTimeout = atoi(argv[i + 1]);
+            gGlobal->gTimeout = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-time", "--compilation-time")) {
@@ -508,7 +509,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
-            gGlobal->gFTZMode = atoi(argv[i + 1]);
+            gGlobal->gFTZMode = std::atoi(argv[i + 1]);
             if ((gGlobal->gFTZMode > 2) || (gGlobal->gFTZMode < 0)) {
                 stringstream error;
                 error << "ERROR : invalid -ftz option: " << gGlobal->gFTZMode << endl;
@@ -576,7 +577,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
-            gGlobal->gEnableFlag = atoi(argv[i + 1]) == 1;
+            gGlobal->gEnableFlag = std::atoi(argv[i + 1]) == 1;
             i += 2;
 
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
@@ -1241,6 +1242,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
+            
+            gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
@@ -1279,6 +1282,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
+            
+            gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once

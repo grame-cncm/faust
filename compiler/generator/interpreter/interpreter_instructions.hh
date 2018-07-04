@@ -22,6 +22,8 @@
 #ifndef _INTERPRETER_INSTRUCTIONS_H
 #define _INTERPRETER_INSTRUCTIONS_H
 
+#include <cstdlib>
+
 #include "exception.hh"
 #include "fir_interpreter.hh"
 #include "instructions.hh"
@@ -302,12 +304,11 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         } else {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string          num;
+            string num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, atoi(num.c_str()), 0));
+                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
             } else {
-                
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
                     Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
@@ -394,8 +395,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 string num;
                 // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
-                    fCurrentBlock->push(
-                        new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, atoi(num.c_str()), 0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, std::atoi(num.c_str()), 0));
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                                                        ? FIRInstruction::kStoreIndexedInt

@@ -155,9 +155,11 @@ struct global {
     bool   gHasExp10;              // If the 'exp10' math function is available
     bool   gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
     bool   gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
+    bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     string gFastMathLib;           // The fastmath code mapping file
+    
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
 
     dsp_factory_base* gDSPFactory;

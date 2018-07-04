@@ -22,6 +22,12 @@
 #ifndef INTERPRETER_DSP_H
 #define INTERPRETER_DSP_H
 
+#ifdef _WIN32
+#define DEPRECATED(fun) __declspec(deprecated) fun
+#else
+#define DEPRECATED(fun) fun __attribute__ ((deprecated));
+#endif
+
 #include <string>
 #include <vector>
 #include "faust/dsp/dsp.h"

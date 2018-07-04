@@ -73,21 +73,11 @@ samFaustDSP::samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numO
     // create a new instance of the FaustPolyEngine
     fPolyEngine = new FaustPolyEngine(fDSP, fAudioDriver);
     // the constructor calls init
-    
-#if MIDICTRL
-    // might need a version of these.
-    //fMidiUI = new MidiUI(new rt_midi());
-    //fPolyEngine->buildUserInterface(fMidiUI);
-#endif
 }
 
 // destructor
 samFaustDSP::~samFaustDSP()
 {
-#if MIDICTRL
-    // might need this
-    //delete fMidiUI;
-#endif
     delete fPolyEngine;
 }
 

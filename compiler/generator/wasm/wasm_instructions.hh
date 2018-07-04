@@ -1085,8 +1085,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         Typed::VarType type = fTypingVisitor.fCurType;
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (inst->fAddress->getAccess() & Address::kStruct
+            || inst->fAddress->getAccess() & Address::kStaticStruct
+            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -1095,7 +1096,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Otherwise generate address expression
                 inst->fAddress->accept(this);
             }
-            if (isRealType(type) || isRealPtrType(type)) {
+            //if (isRealType(type) || isRealPtrType(type)) {
+            if (isRealType(type)) {
                 *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem)
                                                      : int8_t(BinaryConsts::F64LoadMem));
             } else {
@@ -1209,34 +1211,53 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(WasmOp::I32Add);
             }
         } else {
-            // Fields in struct are accessed using 'dsp' and an offset
-            faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                // Index can be computed at compile time
-                if (fFastMemory) {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+            /*
+             Fields in DSP struct are accessed using 'dsp' and an offset
+             IndexedAddress is also used for soudfiles (pointer + field index)
+            */
+            if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc    tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Index can be computed at compile time
+                    if (fFastMemory) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+                        *fOut << int8_t(WasmOp::I32Add);
+                    }
                 } else {
-                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
-                    *fOut << int8_t(WasmOp::I32Add);
+                    // Otherwise generate index computation code
+                    if (fFastMemory) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                        indexed->fIndex->accept(this);
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                        *fOut << int8_t(WasmOp::I32Shl);
+                        *fOut << int8_t(WasmOp::I32Add);
+                    } else {
+                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                        indexed->fIndex->accept(this);
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                        *fOut << int8_t(WasmOp::I32Shl);
+                        *fOut << int8_t(WasmOp::I32Add);
+                        *fOut << int8_t(WasmOp::I32Add);
+                    }
                 }
             } else {
-                // Otherwise generate index computation code
-                if (fFastMemory) {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                    indexed->fIndex->accept(this);
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
-                    *fOut << int8_t(WasmOp::I32Shl);
+                // Local variable
+                LocalVarDesc local = fLocalVarTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
-                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
                     indexed->fIndex->accept(this);
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                     *fOut << int8_t(WasmOp::I32Shl);
-                    *fOut << int8_t(WasmOp::I32Add);
                     *fOut << int8_t(WasmOp::I32Add);
                 }
             }

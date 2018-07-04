@@ -163,6 +163,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gHasExp10             = false;
     gLoopVarInBytes       = false;
     gWaveformInDSP        = false;
+    gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gFastMath             = false;
     gFastMathLib          = "default";

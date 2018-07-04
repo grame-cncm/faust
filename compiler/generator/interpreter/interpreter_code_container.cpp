@@ -19,6 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
+#include <cstdlib>
+
 #include "interpreter_code_container.hh"
 #include "Text.hh"
 #include "exception.hh"
@@ -201,7 +203,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     // Then create factory depending of the trace mode
     const char* trace = getenv("FAUST_INTERP_TRACE");
-    int         mode  = (trace) ? atoi(trace) : 0;
+    int         mode  = (trace) ? std::atoi(trace) : 0;
 
     if (mode == 1) {
         return new interpreter_dsp_factory_aux<T, 1>(

@@ -50,12 +50,7 @@ class samFaustDSP
     
         // the audio driver
         samAudio* fAudioDriver;
-    
-// not sure if this is needed
-#if MIDICTRL
-    MidiUI* fMidiUI;
-#endif
-    
+     
     public:
     
         //--------------`samFaustDSP()`----------------

@@ -1394,14 +1394,16 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
    
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+    if (gGlobal->gUseDefaultSound) {
+        BlockInst* block = InstBuilder::genBlockInst();
+        block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
 
-    pushResetUIInstructions(InstBuilder::genIfInst(
-        InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
-                                                       InstBuilder::genBasicTyped(Typed::kUint_ptr)),
-                              InstBuilder::genTypedZero(Typed::kSound_ptr)),
-        block, InstBuilder::genBlockInst()));
+        pushResetUIInstructions(InstBuilder::genIfInst(
+            InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
+                                                           InstBuilder::genBasicTyped(Typed::kUint_ptr)),
+                                  InstBuilder::genTypedZero(Typed::kSound_ptr)),
+            block, InstBuilder::genBlockInst()));
+    }
 
     pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                        InstBuilder::genLoadStructVar(varname)));

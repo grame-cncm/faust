@@ -80,9 +80,9 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     virtual void visit(AddButtonInst* inst)
     {
         if (inst->fType == AddButtonInst::kDefaultButton) {
-            addButton(inst->fLabel.c_str(), NULL);
+            addButton(inst->fLabel.c_str(), nullptr);
         } else {
-            addCheckButton(inst->fLabel.c_str(), NULL);
+            addCheckButton(inst->fLabel.c_str(), nullptr);
         }
 
         fPathTable[inst->fZone] = buildPath(inst->fLabel);
@@ -92,13 +92,13 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     {
         switch (inst->fType) {
             case AddSliderInst::kHorizontal:
-                addHorizontalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                addHorizontalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kVertical:
-                addVerticalSlider(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                addVerticalSlider(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             case AddSliderInst::kNumEntry:
-                addNumEntry(inst->fLabel.c_str(), NULL, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
+                addNumEntry(inst->fLabel.c_str(), nullptr, inst->fInit, inst->fMin, inst->fMax, inst->fStep);
                 break;
             default:
                 faustassert(false);
@@ -112,10 +112,10 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
     {
         switch (inst->fType) {
             case AddBargraphInst::kHorizontal:
-                addHorizontalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
+                addHorizontalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             case AddBargraphInst::kVertical:
-                addVerticalBargraph(inst->fLabel.c_str(), NULL, inst->fMin, inst->fMax);
+                addVerticalBargraph(inst->fLabel.c_str(), nullptr, inst->fMin, inst->fMax);
                 break;
             default:
                 faustassert(false);
@@ -125,7 +125,11 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
         fPathTable[inst->fZone] = buildPath(inst->fLabel);
     }
 
-    virtual void visit(AddSoundfileInst* inst) { addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr); }
+    virtual void visit(AddSoundfileInst* inst)
+    {
+        addSoundfile(inst->fLabel.c_str(), inst->fURL.c_str(), nullptr);
+        fPathTable[inst->fSFZone] = buildPath(inst->fLabel);
+    }
 
     void setInputs(int input) { fInputs = input; }
     void setOutputs(int output) { fOutputs = output; }

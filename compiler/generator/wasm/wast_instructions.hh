@@ -33,6 +33,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
     string type2String(Typed::VarType type)
     {
+        //std::cout << "Typed::gTypeString " << Typed::gTypeString[type] << std::endl;
+        
         if (isIntOrPtrType(type)) {
             return "i32";
         } else if (type == Typed::kFloat) {
@@ -110,6 +112,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
+                
+                std::cout << "isit(DeclareVarInst* inst)" << inst->fAddress->getName() << " " << Typed::gTypeString[inst->fType->getType()] << std::endl;
+                
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
@@ -135,7 +140,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void generateFunDefArgs(DeclareFunInst* inst)
     {
         list<NamedTyped*>::const_iterator it;
-        size_t                            size = inst->fType->fArgsTypes.size(), i = 0;
+        size_t size = inst->fType->fArgsTypes.size(), i = 0;
         for (it = inst->fType->fArgsTypes.begin(); it != inst->fType->fArgsTypes.end(); it++, i++) {
             *fOut << "(param $" << (*it)->fName << " " << type2String((*it)->getType()) << ")";
             if (i < size - 1) *fOut << " ";
@@ -157,7 +162,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                                      int size)
     {
         list<ValueInst*>::const_iterator it = beg;
-        int                              i  = 0;
+        int i  = 0;
         for (it = beg; it != end; it++, i++) {
             // Compile argument
             (*it)->accept(this);
@@ -217,19 +222,26 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         fTypingVisitor.visit(inst);
         Typed::VarType type = fTypingVisitor.fCurType;
+        
+        //dump2FIR(inst);
+        //std::cout << "visit(LoadVarInst* inst) " <<  inst->fAddress->getName() << " Typed::gTypeString " << Typed::gTypeString[type] << std::endl;
+        //std::cout << "visit(LoadVarInst* inst) isRealType(type) " << isRealType(type) << " " << "isRealPtrType(type) " << isRealPtrType(type) << std::endl;
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (inst->fAddress->getAccess() & Address::kStruct
+            || inst->fAddress->getAccess() & Address::kStaticStruct
+            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
-                if (isRealType(type) || isRealPtrType(type)) {
+                //if (isRealType(type) || isRealPtrType(type)) {
+                if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load offset=";
                 } else {
                     *fOut << "(i32.load offset=";
                 }
                 *fOut << offset << " (i32.const 0))";
             } else {
-                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
+                //if (isRealType(type) || isRealPtrType(type)) {
+                if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load ";
                 } else {
                     *fOut << "(i32.load ";
@@ -237,7 +249,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fAddress->accept(this);
                 *fOut << ")";
             }
-
         } else {
             *fOut << "(get_local $" << inst->fAddress->getName() << ")";
         }
@@ -262,8 +273,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         inst->fValue->accept(&fTypingVisitor);
         Typed::VarType type = fTypingVisitor.fCurType;
 
-        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
-            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (inst->fAddress->getAccess() & Address::kStruct
+            || inst->fAddress->getAccess() & Address::kStaticStruct
+            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 if (isRealType(type) || isRealPtrType(type)) {
@@ -285,7 +297,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fValue->accept(this);
                 *fOut << ")";
             }
-
         } else {
             *fOut << "(set_local $" << inst->fAddress->getName() << " ";
             inst->fValue->accept(this);
@@ -313,6 +324,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(IndexedAddress* indexed)
     {
         // TO CHECK : size of memory ptr ?
+        //dump2FIR(indexed);
 
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
@@ -338,28 +350,43 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
             }
         } else {
-            // Fields in struct are accessed using 'dsp' and an offset
-            faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                // Index can be computed at compile time
-                if (fFastMemory) {
-                    *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
+            /*
+             Fields in DSP struct are accessed using 'dsp' and an offset
+             IndexedAddress is also used for soudfiles (pointer + field index)
+            */
+            if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc    tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Index can be computed at compile time
+                    if (fFastMemory) {
+                        *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.const "
+                              << (tmp.fOffset + (num->fNum << offStrNum))
+                              << "))";
+                    }
                 } else {
-                    *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
-                          << "))";
+                    // Otherwise generate index computation code
+                    if (fFastMemory) {
+                        *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << ")))";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << "))))";
+                    }
                 }
             } else {
-                // Otherwise generate index computation code
-                if (fFastMemory) {
-                    *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                // Local variable
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum) << "))";
+                } else {
+                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.shl ";
                     indexed->fIndex->accept(this);
                     *fOut << " (i32.const " << offStr << ")))";
-                } else {
-                    *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                    indexed->fIndex->accept(this);
-                    *fOut << " (i32.const " << offStr << "))))";
                 }
             }
         }
@@ -519,7 +546,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     void generateMinMax(const list<ValueInst*>& args, const string& fun)
     {
         list<ValueInst*>::iterator it;
-        ValueInst*                 arg1 = *(args.begin());
+        ValueInst* arg1 = *(args.begin());
         arg1->accept(&fTypingVisitor);
         if (isIntType(fTypingVisitor.fCurType)) {
             // Using manually generated min/max
@@ -636,6 +663,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         *fOut << ")";
         tab(fTab, *fOut);
     }
+    
 };
 
 #endif
