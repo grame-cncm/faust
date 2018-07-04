@@ -33,8 +33,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
    private:
     string type2String(Typed::VarType type)
     {
-        //std::cout << "Typed::gTypeString " << Typed::gTypeString[type] << std::endl;
-        
         if (isIntOrPtrType(type)) {
             return "i32";
         } else if (type == Typed::kFloat) {
@@ -112,9 +110,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
-                
-                std::cout << "isit(DeclareVarInst* inst)" << inst->fAddress->getName() << " " << Typed::gTypeString[inst->fType->getType()] << std::endl;
-                
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
@@ -222,17 +217,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         fTypingVisitor.visit(inst);
         Typed::VarType type = fTypingVisitor.fCurType;
-        
-        //dump2FIR(inst);
-        //std::cout << "visit(LoadVarInst* inst) " <<  inst->fAddress->getName() << " Typed::gTypeString " << Typed::gTypeString[type] << std::endl;
-        //std::cout << "visit(LoadVarInst* inst) isRealType(type) " << isRealType(type) << " " << "isRealPtrType(type) " << isRealPtrType(type) << std::endl;
-
+     
         if (inst->fAddress->getAccess() & Address::kStruct
             || inst->fAddress->getAccess() & Address::kStaticStruct
             || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
-                //if (isRealType(type) || isRealPtrType(type)) {
                 if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load offset=";
                 } else {
@@ -240,7 +230,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
                 *fOut << offset << " (i32.const 0))";
             } else {
-                //if (isRealType(type) || isRealPtrType(type)) {
                 if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load ";
                 } else {
@@ -324,8 +313,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     virtual void visit(IndexedAddress* indexed)
     {
         // TO CHECK : size of memory ptr ?
-        //dump2FIR(indexed);
-
+     
         // HACK : completely adhoc code for inputs/outputs...
         if ((startWith(indexed->getName(), "inputs") || startWith(indexed->getName(), "outputs"))) {
             // Since indexed->fIndex is always a known constant value, offset can be directly generated
@@ -352,7 +340,7 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         } else {
             /*
              Fields in DSP struct are accessed using 'dsp' and an offset
-             IndexedAddress is also used for soudfiles (pointer + field index)
+             IndexedAddress is also used for soundfiles (pointer + field index)
             */
             if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
                 MemoryDesc    tmp = fFieldTable[indexed->getName()];

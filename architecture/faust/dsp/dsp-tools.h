@@ -181,9 +181,9 @@ class AudioChannels
         {
             assert(length <= fNumFrames);
             unsigned int C = std::min(inchannels, fNumChannels);
-            unsigned int L = std::min(length, fNumFrames);
+            unsigned int F = std::min(length, fNumFrames);
             
-            for (unsigned int f = 0; f < L; f++) {
+            for (unsigned int f = 0; f < F; f++) {
                 unsigned int p = f * inchannels;
                 for (unsigned int c = 0; c < C; c++) {
                     fChannels[c][f] = inbuffer[p++];

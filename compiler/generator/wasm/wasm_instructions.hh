@@ -1096,7 +1096,6 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Otherwise generate address expression
                 inst->fAddress->accept(this);
             }
-            //if (isRealType(type) || isRealPtrType(type)) {
             if (isRealType(type)) {
                 *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem)
                                                      : int8_t(BinaryConsts::F64LoadMem));
@@ -1213,7 +1212,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         } else {
             /*
              Fields in DSP struct are accessed using 'dsp' and an offset
-             IndexedAddress is also used for soudfiles (pointer + field index)
+             IndexedAddress is also used for soundfiles (pointer + field index)
             */
             if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
                 MemoryDesc    tmp = fFieldTable[indexed->getName()];

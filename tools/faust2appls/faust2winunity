@@ -16,15 +16,21 @@
 
 . faustpath
 
+NVOICES=-1
+
 #-----------------------------------------------------------------------
 # Dispatch command arguments
 
-for p in $@; do
+while [ $1 ] 
+do
+    p=$1
+    
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2unitywin -32 -64 <file1.dsp> [<file2.dsp>]"
         echo "Create Microsoft 32/64bits library for faust unity plugin."
         echo "Mingw crosscompiler should be installed ('mingw32' package on Ubuntu)"
         echo "Use 'faust2unity -w32 -w64' to also create the C# and JSON files"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "See architecture/unity/README.md for more info"
         exit
     fi
@@ -33,6 +39,9 @@ for p in $@; do
         BITS="$BITS 32"
     elif [ $p = "-64" ]; then
         BITS="$BITS 64"
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
@@ -40,6 +49,8 @@ for p in $@; do
     else
         OPTIONS="$OPTIONS $p"
     fi
+    
+shift
 done
 
 # Check at least one bit setting has been specified
@@ -64,7 +75,7 @@ for p in $FILES; do
     CUR=$(pwd)
     f=$(basename "$p")
     NAME=${f%.dsp}
-    FNAME=libFaustPlugin_$NAME
+    FNAME=FaustPlugin_$NAME
     LIBNAME=$FNAME$EXT
 
     SRCDIR=$(dirname "$p")
@@ -82,14 +93,14 @@ for p in $FILES; do
         # mingw crosscompiler should be installed ('mingw32' package on Ubuntu)
         # the exact prefix should be specified in the environment variable MINGW
         if [ $BIT = "32" ]; then
-            FIN=$FNAME/x86
+            FIN=$FNAME/Windows/x86
             MINGWPREFIX="i686-w64-mingw32-"
         elif [ $BIT = "64" ]; then
-            FIN=$FNAME/x64
+            FIN=$FNAME/Windows/x64
             MINGWPREFIX="x86_64-w64-mingw32-"
         fi
 
-        # checks if final dir exists, if not creates i
+        # checks if final dir exists, if not creates it
         if [ ! -d "$FIN" ]; then
             mkdir -p "$FIN"
         fi
@@ -98,16 +109,19 @@ for p in $FILES; do
         (which "$CXX" >/dev/null) || (echo "MingW compiler $CXX not found. See -help for more info"; exit 1)
 
         # compile c++ to binary
-        (
+       	(
             cd "$TMP"
-            $CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+            if [ $NVOICES == -1 ]; then
+            	$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+            else
+            	$CXX $CXXFLAGS $PROCARCH $LIB $OMP -static-libstdc++ -static-libgcc -DPOLY -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+            fi
         ) > /dev/null || (echo "$f : C++ to win$BIT library compilation failed in faust2unitywin"; exit 1)
-
+		 
         # moves binary to final dir
         mv "$TMP/$LIBNAME" "$FIN/$LIBNAME"
         echo "$f : w$BIT compilation completed"
     done
-
 
     # remove intermediary files
     rm -rf "$SRCDIR/$LIBNAME"

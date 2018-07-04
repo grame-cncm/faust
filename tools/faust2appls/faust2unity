@@ -88,7 +88,6 @@ do
     fi
     
 shift
-
 done
 
 #-------------------------------------
@@ -143,14 +142,15 @@ for p in $FILES; do
     if [ $W64 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -64"
     fi
+    
     # w32
     if [ $W32 = "1" ] || [ $ALL = "1" ]; then
         WINBITS="$WINBITS -32"
     fi
+    
     # win
     if [ -n "$WINBITS" ]; then
-        #faust2unitywin -nvoices $NVOICES $WINBITS $f || exit
-        faust2unitywin $WINBITS $f || exit
+        faust2winunity -nvoices $NVOICES $WINBITS $f || exit
     fi
 
     # macos
@@ -165,14 +165,12 @@ for p in $FILES; do
 
     # android
     if [ $ANDROID = "1" ] || [ $ALL = "1" ]; then
-        #faust2androidunity -nvoices $NVOICES $f || exit
-        faust2androidunity $f || exit
+        faust2androidunity -nvoices $NVOICES $f || exit
     fi
 
     # Linux
     if [ $LINUX = "1" ] || [ $ALL = "1" ]; then
-        #faust2linuxunity -nvoices $NVOICES $f || exit
-        faust2linuxunity $f || exit
+        faust2linuxunity -nvoices $NVOICES $f || exit
     fi
 
     # Dispatch files in Unity hierarchy

@@ -8,7 +8,7 @@ midigate	= button ("gate");                             	// MIDI keyon-keyoff
 midifreq	= hslider("freq[unit:Hz]", 440, 20, 20000, 1); 	// MIDI keyon key
 midigain	= hslider("gain", 0.5, 0, 10, 0.01);	       	// MIDI keyon velocity
 
-process 	= voice(midigate, midigain, midifreq) * hslider("volume", 0.5, 0, 1, 0.01);
+process 	= voice(midigate, midigain, midifreq) * hslider("volume", 0.5, 0, 1, 0.01) <:(_,_);
 
 // Implementation
 

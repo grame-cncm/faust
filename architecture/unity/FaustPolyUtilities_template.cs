@@ -343,19 +343,19 @@ namespace FaustUtilities_MODEL {
 			return Faust_getParamMax(_context, param);
 		}
 		
-		public void keyOn(int channel, int pitch, int velocity);
+		public void keyOn(int channel, int pitch, int velocity) {
 			Faust_keyOn(_context, channel, pitch, velocity);
 		}
 		
-		public void keyOff(int channel, int pitch, int velocity);
+		public void keyOff(int channel, int pitch, int velocity) {
 			Faust_keyOff(_context, channel, pitch, velocity);
 		}
 		
-		public void ctrlChange(int channel, int ctrl, int value);
+		public void ctrlChange(int channel, int ctrl, int value) {
 			Faust_ctrlChange(_context, channel, ctrl, value);
 		}
 		
-		public void allNotesOff();
+		public void allNotesOff() {
 			Faust_allNotesOff(_context);
 		}
 

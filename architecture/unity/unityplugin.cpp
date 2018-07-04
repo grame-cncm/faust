@@ -1,6 +1,6 @@
 //
 // UnityPLugin.cpp
-// 
+//
 //
 //  Created by Théophile Dupré on 07/06/2017.
 //  Copyright © 2017 Théophile Dupré. All rights reserved.
@@ -47,14 +47,15 @@ class unitypolydsp : public decorator_dsp
     
     public:
         
-        unitypolydsp(int dspbuffersize = 0, int nvoices = 32)
+        unitypolydsp(int dspbuffersize, int nvoices)
         {
+            /*
             bool midi_sync = false;
-            
             // Analyse NVOICES
             mydsp* tmp_dsp = new mydsp();
             MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
             delete tmp_dsp;
+            */
             
             fDSP = new mydsp_poly(new mydsp(), nvoices, true, true);
             fDSP->buildUserInterface(&fUI);
@@ -111,11 +112,11 @@ class unitypolydsp : public decorator_dsp
 
 };
 
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
+
 extern "C"
 {
-    std::list<GUI*> GUI::fGuiList;
-    ztimedmap GUI::gTimedZoneMap;
-    
     DllExport unitypolydsp* Faust_contextNew(int bufferSize, int nvoices)
     {
         return new unitypolydsp(bufferSize, nvoices);
@@ -180,7 +181,7 @@ class unitydsp : public mydsp
         
     public:
         
-        unitydsp(int dspbuffersize = 0)
+        unitydsp(int dspbuffersize)
         {
             buildUserInterface(&fUI);
             fInputs = 0;
@@ -221,6 +222,7 @@ extern "C"
     {
         return new unitydsp(bufferSize);
     }
+    
     DllExport void Faust_contextInit(unitydsp* ctx, int sampleRate) { ctx->init(sampleRate); }
     
     DllExport void Faust_process(unitydsp* ctx, FAUSTFLOAT* inbuffer, FAUSTFLOAT* oubuffer, int nframes, int channels)
