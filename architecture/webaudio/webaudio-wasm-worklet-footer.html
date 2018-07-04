@@ -203,7 +203,7 @@ function startDSP()
 function startNewDSP()
 {
      if (isWasm && workletAvailable()) {
-        factory = new DSP(context, "");
+        factory = new window.DSP(context, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))
         .catch((error) => { console.log(error); console.log("Faust mydsp cannot be loaded or compiled"); });

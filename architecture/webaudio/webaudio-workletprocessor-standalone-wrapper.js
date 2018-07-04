@@ -179,54 +179,6 @@ class mydspProcessor extends AudioWorkletProcessor {
         this.audio_heap_inputs = this.audio_heap_ptr_outputs + (this.numOut * this.ptr_size);
         this.audio_heap_outputs = this.audio_heap_inputs + (this.numIn * mydspProcessor.buffer_size * this.sample_size);
         
-        // Setup soundfile offset
-        this.soundfile_ptr = this.audio_heap_outputs + (this.numOut * mydspProcessor.buffer_size * this.sample_size);
-        
-        // Setup Soundfile
-        /*
-			Soundfile layout
-			FAUSTFLOAT** fBuffers;
-			int fLength;
-			int fSampleRate;
-			int fChannels;
-		*/
-        var size_of_soundfile = this.ptr_size + (4 * 3);
-        
-        // end of sounfile
-        var end_of_soundfile = this.soundfile_ptr + size_of_soundfile; // One Soundfile struct for now
-        
-        this.HEAP32[this.soundfile_ptr >> 2] = end_of_soundfile;
-        this.HEAP32[(this.soundfile_ptr + 4) >> 2] = 4096; 	// fLength
-        this.HEAP32[(this.soundfile_ptr + 8) >> 2] = 44100; // fSampleRate
-        this.HEAP32[(this.soundfile_ptr + 12) >> 2] = 8; 	// fChannels
-        
-        // Setup soundfile pointers
-    	var start_of_soundfile_ptr = end_of_soundfile + this.ptr_size * 8;
-        for (var i = 0; i < 8, i++) {
-        	this.HEAP32[(end_of_soundfile + (i * this.ptr_size)) >> 2)] = start_of_soundfile_ptr + (i * this.ptr_size);
-        }
-        
-     	// Setup soundfile buffer
-     	var end_of_soundfile_ptr = start_of_soundfile_ptr + this.ptr_size * 8;
-        for (var i = 0; i < 8, i++) {
-			for (var j = 0; j < 4096, ij++) {
-				this.HEAPF32[(end_of_soundfile_ptr + (i * this.ptr_size) + j) >> 2)] = Math.Sin(...);
-			}
-        }
-        
-        /*
-        for (var i = 0; i < soundfile_items.size(), i++) {
-         	this.soundfile_ptr += this.ptr_size * 8;	// fBuffers with 8 channels
-        	this.soundfile_ptr += 4 * 3; 				// fLength, fSampleRate, fChannels
-        }
-        
-    	// Setup fBuffers content
-        for (var i = 0; i < soundfile_items.size(), i++) {
-        	this.soundfile_ptr += this.ptr_size;	// fBuffers
-        	this.soundfile_ptr += 4 * 3; 			// fLength, fSampleRate, fChannels
-        }
-        */
-
         // Start of DSP memory : DSP is placed first with index 0
         this.dsp = 0;
 
