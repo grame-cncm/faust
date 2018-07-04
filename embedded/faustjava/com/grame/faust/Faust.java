@@ -9,6 +9,26 @@
 package com.grame.faust;
 
 public class Faust {
+  public static void sha1_transform(SHA1_CTX ctx, SWIGTYPE_p_unsigned_char data) {
+    FaustJNI.sha1_transform(SHA1_CTX.getCPtr(ctx), ctx, SWIGTYPE_p_unsigned_char.getCPtr(data));
+  }
+
+  public static void sha1_init(SHA1_CTX ctx) {
+    FaustJNI.sha1_init(SHA1_CTX.getCPtr(ctx), ctx);
+  }
+
+  public static void sha1_update(SHA1_CTX ctx, SWIGTYPE_p_unsigned_char data, long len) {
+    FaustJNI.sha1_update(SHA1_CTX.getCPtr(ctx), ctx, SWIGTYPE_p_unsigned_char.getCPtr(data), len);
+  }
+
+  public static void sha1_final(SHA1_CTX ctx, SWIGTYPE_p_unsigned_char hash) {
+    FaustJNI.sha1_final(SHA1_CTX.getCPtr(ctx), ctx, SWIGTYPE_p_unsigned_char.getCPtr(hash));
+  }
+
+  public static void generateCSHA1(String data, String sha_key) {
+    FaustJNI.generateCSHA1(data, sha_key);
+  }
+
   public static String expandCDSPFromFile(String filename, int argc, SWIGTYPE_p_p_char argv, String sha_key, String error_msg) {
     return FaustJNI.expandCDSPFromFile(filename, argc, SWIGTYPE_p_p_char.getCPtr(argv), sha_key, error_msg);
   }
@@ -23,10 +43,6 @@ public class Faust {
 
   public static boolean generateCAuxFilesFromString(String name_app, String dsp_content, int argc, SWIGTYPE_p_p_char argv, String error_msg) {
     return FaustJNI.generateCAuxFilesFromString(name_app, dsp_content, argc, SWIGTYPE_p_p_char.getCPtr(argv), error_msg);
-  }
-
-  public static void generateCSHA1(String data, String key) {
-    FaustJNI.generateCSHA1(data, key);
   }
 
   public static void freeCMemory(SWIGTYPE_p_void ptr) {
@@ -78,6 +94,11 @@ public class Faust {
 
   public static SWIGTYPE_p_p_char getCDSPFactoryLibraryList(llvm_dsp_factory factory) {
     long cPtr = FaustJNI.getCDSPFactoryLibraryList(llvm_dsp_factory.getCPtr(factory), factory);
+    return (cPtr == 0) ? null : new SWIGTYPE_p_p_char(cPtr, false);
+  }
+
+  public static SWIGTYPE_p_p_char getCDSPFactoryIncludePathnames(llvm_dsp_factory factory) {
+    long cPtr = FaustJNI.getCDSPFactoryIncludePathnames(llvm_dsp_factory.getCPtr(factory), factory);
     return (cPtr == 0) ? null : new SWIGTYPE_p_p_char(cPtr, false);
   }
 

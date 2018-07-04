@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Compile a Faust program has a java audio engine
+# Compile a Faust program as a java audio engine
 
 mkdir -p ./com
 mkdir -p ./com/grame
