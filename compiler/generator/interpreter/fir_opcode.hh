@@ -387,10 +387,10 @@ static std::string gFIRInstructionTable[] = {
     "kRealValue", "kInt32Value",
 
     // Memory
-    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound","kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal",
-    "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt", "kBlockStoreReal", "kBlockStoreInt", "kMoveReal",
-    "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal", "kBlockPairMoveInt", "kBlockShiftReal",
-    "kBlockShiftInt", "kLoadInput", "kStoreOutput",
+    "kLoadReal", "kLoadInt", "kLoadSound", "kLoadSoundField", "kStoreReal", "kStoreInt", "kStoreSound",
+    "kStoreRealValue", "kStoreIntValue", "kLoadIndexedReal", "kLoadIndexedInt", "kStoreIndexedReal", "kStoreIndexedInt",
+    "kBlockStoreReal", "kBlockStoreInt", "kMoveReal", "kMoveInt", "kPairMoveReal", "kPairMoveInt", "kBlockPairMoveReal",
+    "kBlockPairMoveInt", "kBlockShiftReal", "kBlockShiftInt", "kLoadInput", "kStoreOutput",
 
     // Cast/Bitcast
     "kCastReal", "kCastInt", "kCastRealHeap", "kCastIntHeap", "kBitcastInt", "kBitcastReal",
@@ -468,9 +468,8 @@ static std::string gFIRInstructionTable[] = {
 
     // User Interface
     "kOpenVerticalBox", "kOpenHorizontalBox", "kOpenTabBox", "kCloseBox", "kAddButton", "kAddChecButton",
-    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundFile",
-    "kAddHorizontalBargraph", "kAddVerticalBargraph",
-    "kDeclare",
+    "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundFile", "kAddHorizontalBargraph",
+    "kAddVerticalBargraph", "kDeclare",
 
     "kNop"};
 

@@ -61,8 +61,8 @@ class FIRInterpreter {
    protected:
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
 
-    int* fIntHeap;
-    T*   fRealHeap;
+    int*        fIntHeap;
+    T*          fRealHeap;
     Soundfile** fSoundHeap;
 
     int fRealStackSize;
@@ -232,13 +232,13 @@ class FIRInterpreter {
             return index;
         }
     }
-    
+
     inline int assert_sound_heap(InstructionIT it, int index, int size = -1)
     {
         if (TRACE >= 4 && ((index < 0) || (index >= fFactory->fSoundHeapSize) || (size > 0 && index >= size))) {
             std::cout << "-------- Interpreter crash trace start --------" << std::endl;
-            std::cout << "assert_sound_heap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index << " size "
-            << size << std::endl;
+            std::cout << "assert_sound_heap : fSoundHeapSize " << fFactory->fSoundHeapSize << " index " << index
+                      << " size " << size << std::endl;
             fTraceContext.write(&std::cout);
             std::cout << "-------- Interpreter crash trace end --------\n\n";
             throw faustexception("");
@@ -265,13 +265,13 @@ class FIRInterpreter {
 
 #define push_int(val) (int_stack[int_stack_index++] = val)
 #define pop_int() (int_stack[--int_stack_index])
-    
+
 #define push_real(it, val) (real_stack[real_stack_index++] = check_real(it, val))
 #define pop_real(it) check_real(it, real_stack[--real_stack_index])
 
 #define push_sound(val) (sound_stack[sound_stack_index++] = val)
 #define pop_sound() (sound_stack[--sound_stack_index])
-    
+
 #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
 #define pop_addr() (address_stack[--addr_stack_index])
 
@@ -321,7 +321,7 @@ class FIRInterpreter {
                     glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin,
                                       (*it)->fMax, (*it)->fStep);
                     break;
-                    
+
                 case FIRInstruction::kAddSoundFile:
                     glue->addSoundFile((*it)->fLabel.c_str(), (*it)->fKey.c_str(), &fSoundHeap[(*it)->fOffset]);
                     break;
@@ -359,18 +359,11 @@ class FIRInterpreter {
             &&do_kRealValue, &&do_kInt32Value,
 
             // Memory
-            &&do_kLoadReal, &&do_kLoadInt,
-            &&do_kLoadSound, &&do_kLoadSoundField,
-            &&do_kStoreReal, &&do_kStoreInt, &&do_kStoreSound,
-            &&do_kStoreRealValue, &&do_kStoreIntValue,
-            &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
-            &&do_kStoreIndexedReal, &&do_kStoreIndexedInt,
-            &&do_kBlockStoreReal, &&do_kBlockStoreInt,
-            &&do_kMoveReal, &&do_kMoveInt,
-            &&do_kPairMoveReal, &&do_kPairMoveInt,
-            &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
-            &&do_kBlockShiftReal, &&do_kBlockShiftInt,
-            &&do_kLoadInput, &&do_kStoreOutput,
+            &&do_kLoadReal, &&do_kLoadInt, &&do_kLoadSound, &&do_kLoadSoundField, &&do_kStoreReal, &&do_kStoreInt,
+            &&do_kStoreSound, &&do_kStoreRealValue, &&do_kStoreIntValue, &&do_kLoadIndexedReal, &&do_kLoadIndexedInt,
+            &&do_kStoreIndexedReal, &&do_kStoreIndexedInt, &&do_kBlockStoreReal, &&do_kBlockStoreInt, &&do_kMoveReal,
+            &&do_kMoveInt, &&do_kPairMoveReal, &&do_kPairMoveInt, &&do_kBlockPairMoveReal, &&do_kBlockPairMoveInt,
+            &&do_kBlockShiftReal, &&do_kBlockShiftInt, &&do_kLoadInput, &&do_kStoreOutput,
 
             // Cast/bitcast
             &&do_kCastReal, &&do_kCastInt, &&do_kCastRealHeap, &&do_kCastIntHeap, &&do_kBitcastInt, &&do_kBitcastReal,
@@ -459,10 +452,10 @@ class FIRInterpreter {
 
         };
 
-        int real_stack_index = 0;
-        int int_stack_index  = 0;
-        int sound_stack_index  = 0;
-        int addr_stack_index = 0;
+        int real_stack_index  = 0;
+        int int_stack_index   = 0;
+        int sound_stack_index = 0;
+        int addr_stack_index  = 0;
 
         T             real_stack[fRealStackSize];
         int           int_stack[fIntStackSize];
@@ -521,7 +514,6 @@ class FIRInterpreter {
             dispatch_first();
 
             while (true) {
-                
             // Number operations
             do_kRealValue : {
                 push_real(it, (*it)->fRealValue);
@@ -552,7 +544,7 @@ class FIRInterpreter {
                 }
                 dispatch_next();
             }
-                
+
             do_kLoadSound : {
                 if (TRACE) {
                     push_sound(fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)]);
@@ -561,7 +553,7 @@ class FIRInterpreter {
                 }
                 dispatch_next();
             }
-                
+
             do_kLoadSoundField : {
                 /*
                 if (TRACE) {
@@ -590,7 +582,7 @@ class FIRInterpreter {
                 }
                 dispatch_next();
             }
-                
+
             do_kStoreSound : {
                 if (TRACE) {
                     fSoundHeap[assert_sound_heap(it, (*it)->fOffset1)] = pop_sound();
@@ -2265,7 +2257,7 @@ class FIRInterpreter {
             }
             }
 
-            //printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
+            // printf("END real_stack_index = %d, int_stack_index = %d\n", real_stack_index, int_stack_index);
 
             // Check stack coherency
             interp_assert(real_stack_index == 0 && int_stack_index == 0 && sound_stack_index == 0);
@@ -2289,13 +2281,13 @@ class FIRInterpreter {
         fFactory = factory;
 
         if (fFactory->getMemoryManager()) {
-            fRealHeap = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
-            fIntHeap  = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
+            fRealHeap  = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
+            fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
             fSoundHeap = static_cast<Soundfile**>(fFactory->allocate(sizeof(Soundfile*) * fFactory->fSoundHeapSize));
         } else {
-            fRealHeap = new T[fFactory->fRealHeapSize];
-            fIntHeap  = new int[fFactory->fIntHeapSize];
-            fSoundHeap  = new Soundfile*[fFactory->fSoundHeapSize];
+            fRealHeap  = new T[fFactory->fRealHeapSize];
+            fIntHeap   = new int[fFactory->fIntHeapSize];
+            fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
         }
 
         // Initialise HEAP with 0
@@ -2303,9 +2295,9 @@ class FIRInterpreter {
         memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
 
         // Stack
-        fRealStackSize = 512;
-        fIntStackSize  = 512;
-        fSoundStackSize  = 512;
+        fRealStackSize  = 512;
+        fIntStackSize   = 512;
+        fSoundStackSize = 512;
 
         fRealStats[INTEGER_OVERFLOW] = 0;
         fRealStats[DIV_BY_ZERO]      = 0;

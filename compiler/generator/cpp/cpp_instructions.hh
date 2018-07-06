@@ -34,7 +34,7 @@ class CPPInstVisitor : public TextInstVisitor {
      so that each function prototype is generated at most once in the module.
      */
     static map<string, bool> gFunctionSymbolTable;
-    
+
     // Polymorphic math functions
     map<string, string> gPolyMathLibTable;
 
@@ -93,16 +93,16 @@ class CPPInstVisitor : public TextInstVisitor {
         gFunctionSymbolTable["sin"]       = true;
         gFunctionSymbolTable["sqrt"]      = true;
         gFunctionSymbolTable["tan"]       = true;
-        
+
         // Polymath mapping int version
-        gPolyMathLibTable["abs"]    = "std::abs";
-        gPolyMathLibTable["max_i"]  = "std::max";
-        gPolyMathLibTable["min_i"]  = "std::min";
-        
+        gPolyMathLibTable["abs"]   = "std::abs";
+        gPolyMathLibTable["max_i"] = "std::max";
+        gPolyMathLibTable["min_i"] = "std::min";
+
         // Polymath mapping float version
-        gPolyMathLibTable["max_f"]       = "std::max";
-        gPolyMathLibTable["min_f"]       = "std::min";
-        
+        gPolyMathLibTable["max_f"] = "std::max";
+        gPolyMathLibTable["min_f"] = "std::min";
+
         gPolyMathLibTable["fabsf"]      = "std::fabs";
         gPolyMathLibTable["acosf"]      = "std::acos";
         gPolyMathLibTable["asinf"]      = "std::asin";
@@ -124,11 +124,11 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["sinf"]       = "std::sin";
         gPolyMathLibTable["sqrtf"]      = "std::sqrt";
         gPolyMathLibTable["tanf"]       = "std::tan";
-        
+
         // Polymath mapping double version
-        gPolyMathLibTable["max_"]       = "std::max";
-        gPolyMathLibTable["min_"]       = "std::min";
-        
+        gPolyMathLibTable["max_"] = "std::max";
+        gPolyMathLibTable["min_"] = "std::min";
+
         gPolyMathLibTable["fabs"]      = "std::fabs";
         gPolyMathLibTable["acos"]      = "std::acos";
         gPolyMathLibTable["asin"]      = "std::asin";

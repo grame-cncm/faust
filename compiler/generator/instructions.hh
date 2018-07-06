@@ -112,25 +112,18 @@ struct IndexedAddress;
 
 inline bool isRealType(Typed::VarType type)
 {
-    return (type == Typed::kFloat
-            || type == Typed::kFloatMacro
-            || type == Typed::kFloatish
-            || type == Typed::kDouble
-            || type == Typed::kDoublish);
+    return (type == Typed::kFloat || type == Typed::kFloatMacro || type == Typed::kFloatish || type == Typed::kDouble ||
+            type == Typed::kDoublish);
 }
 
 inline bool isRealPtrType(Typed::VarType type)
 {
-    return (type == Typed::kFloat_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kDouble_ptr);
+    return (type == Typed::kFloat_ptr || type == Typed::kFloatMacro_ptr || type == Typed::kDouble_ptr);
 }
 
 inline bool isIntType(Typed::VarType type)
 {
-    return (type == Typed::kInt32
-            || type == Typed::kInt32ish
-            || type == Typed::kInt64);
+    return (type == Typed::kInt32 || type == Typed::kInt32ish || type == Typed::kInt64);
 }
 
 inline bool isIntType32(Typed::VarType type)
@@ -160,18 +153,10 @@ inline bool isBoolType(Typed::VarType type)
 
 inline bool isIntOrPtrType(Typed::VarType type)
 {
-    return (type == Typed::kInt32
-            || type == Typed::kInt64
-            || type == Typed::kInt32_ptr
-            || type == Typed::kInt64_ptr
-            || type == Typed::kFloat_ptr
-            || type == Typed::kFloat_ptr_ptr
-            || type == Typed::kFloatMacro_ptr
-            || type == Typed::kFloatMacro_ptr_ptr
-            || type == Typed::kDouble_ptr
-            || type == Typed::kObj_ptr
-            || type == Typed::kVoid_ptr
-            || type == Typed::kSound_ptr);
+    return (type == Typed::kInt32 || type == Typed::kInt64 || type == Typed::kInt32_ptr || type == Typed::kInt64_ptr ||
+            type == Typed::kFloat_ptr || type == Typed::kFloat_ptr_ptr || type == Typed::kFloatMacro_ptr ||
+            type == Typed::kFloatMacro_ptr_ptr || type == Typed::kDouble_ptr || type == Typed::kObj_ptr ||
+            type == Typed::kVoid_ptr || type == Typed::kSound_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);
@@ -345,8 +330,7 @@ struct ValueInst : public Printable {
 
     virtual ValueInst* clone(CloneVisitor* cloner) = 0;
 
-    ValueInst()
-    {}
+    ValueInst() {}
 
     virtual int size() { return 1; }
 
@@ -463,7 +447,7 @@ struct StructTyped : public Typed {
 
     VarType getType() { return kObj_ptr; }
     VarType getType(int index) { return fFields[index]->getType(); }
-    
+
     int getSize()
     {
         int                           size = 0;
@@ -1251,10 +1235,7 @@ class BasicCloneVisitor : public CloneVisitor {
 
     // Memory
     virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this)); }
-    virtual ValueInst* visit(LoadVarAddressInst* inst)
-    {
-        return new LoadVarAddressInst(inst->fAddress->clone(this));
-    }
+    virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
     virtual ValueInst* visit(TeeVarInst* inst)
     {
         return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
@@ -1735,11 +1716,8 @@ struct InstBuilder {
 
     // Memory
     static LoadVarInst*        genLoadVarInst(Address* address) { return new LoadVarInst(address); }
-    static LoadVarAddressInst* genLoadVarAddressInst(Address* address)
-    {
-        return new LoadVarAddressInst(address);
-    }
-    static TeeVarInst* genTeeVar(const string& vname, ValueInst* value)
+    static LoadVarAddressInst* genLoadVarAddressInst(Address* address) { return new LoadVarAddressInst(address); }
+    static TeeVarInst*         genTeeVar(const string& vname, ValueInst* value)
     {
         return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value);
     }
@@ -1757,10 +1735,7 @@ struct InstBuilder {
     static FloatArrayNumInst*  genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
     static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size); }
-    static DoubleNumInst*      genQuadNumInst(double num)
-    {
-        return new DoubleNumInst(num);
-    }  // Use DoubleNumInst
+    static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
 
     static ValueInst* genTypedZero(Typed::VarType type);
 
@@ -1860,10 +1835,7 @@ struct InstBuilder {
         }
     }
 
-    static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed)
-    {
-        return new BitcastInst(inst, typed);
-    }
+    static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
 
     static ValueInst* genCastFloatInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
@@ -2212,10 +2184,11 @@ struct InstBuilder {
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
-    
+
     static DeclareVarInst* genDecExtGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
     {
-        return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)), type, exp);
+        return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)),
+                                 type, exp);
     }
 
     static LoadVarInst* genLoadGlobalVar(string vname)

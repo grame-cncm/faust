@@ -53,8 +53,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
     llvm::PointerType* fStructDSP;
 
     IRBuilder<>* fBuilder;
-    IRBuilder<>* fAllocaBuilder;  // To be used for "alloca", which have to be added in the first "entry" block of the function.
-    
+    IRBuilder<>*
+        fAllocaBuilder;  // To be used for "alloca", which have to be added in the first "entry" block of the function.
+
     LLVMInstVisitor* fCodeProducer;
 
     Module*      fModule;
@@ -98,7 +99,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     void generateBuildUserInterfaceEnd();
 
     void generateGetSize(LLVMValue size);
-  
+
     LLVMContext& getContext();
 
     // To be used for mathematical function mapping (-fm and exp10 on OSX)

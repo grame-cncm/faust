@@ -209,7 +209,7 @@ struct WASInst {
 
     static DeclareFunInst* generateIntMin();
     static DeclareFunInst* generateIntMax();
-    
+
     virtual void visit(AddSoundfileInst* inst)
     {
         // TODO

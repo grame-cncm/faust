@@ -25,10 +25,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <list>
-#include <vector>
 #include <map>
 #include <set>
 #include <stack>
+#include <vector>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -88,19 +88,19 @@ struct global {
     tvec        gWaveForm;
 
     //-- globals
-    string       gFaustSuperSuperDirectory;
-    string       gFaustSuperDirectory;
-    string       gFaustDirectory;
-    string       gMasterDocument;
-    string       gMasterDirectory;
-    string       gMasterName;
-    string       gDocName;
+    string         gFaustSuperSuperDirectory;
+    string         gFaustSuperDirectory;
+    string         gFaustDirectory;
+    string         gMasterDocument;
+    string         gMasterDirectory;
+    string         gMasterName;
+    string         gDocName;
     vector<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
     vector<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
     vector<string> gLibraryList;
-    string       gOutputDir;
-    string       gImportFilename;
-    Tree         gExpandedDefList;
+    string         gOutputDir;
+    string         gImportFilename;
+    Tree           gExpandedDefList;
 
     //-- command line arguments
     bool   gDetailsSwitch;
@@ -120,7 +120,7 @@ struct global {
     bool gDeepFirstSwitch;
     int  gVecSize;
     int  gVectorLoopVariant;
- 
+
     bool gOpenMPSwitch;
     bool gOpenMPLoop;
     bool gSchedulerSwitch;
@@ -159,7 +159,7 @@ struct global {
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     string gFastMathLib;           // The fastmath code mapping file
-    
+
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
 
     dsp_factory_base* gDSPFactory;

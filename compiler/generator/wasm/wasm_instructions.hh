@@ -817,9 +817,9 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         for (auto& import : fFunImports) {
             *out << import.second.first;  // module
             // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
-            *out << ("_" + gGlobal->getMathFunction(import.first)); // base
+            *out << ("_" + gGlobal->getMathFunction(import.first));  // base
             *out << U32LEB(int32_t(ExternalKind::Function));
-            *out << U32LEB(getFunctionTypeIndex(import.first));     // function type index
+            *out << U32LEB(getFunctionTypeIndex(import.first));  // function type index
         }
 
         finishSectionAux(out, start);
@@ -860,7 +860,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     void generateMemoryAccess(int offset = 0)
     {
         //*fOut << U32LEB(offStrNum); // Makes V8 return: 'invalid alignment; expected maximum alignment is 2, actual
-        //alignment is 3'
+        // alignment is 3'
         *fOut << U32LEB(2);
         *fOut << U32LEB(offset);
     }
@@ -1085,9 +1085,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         fTypingVisitor.visit(inst);
         Typed::VarType type = fTypingVisitor.fCurType;
 
-        if (inst->fAddress->getAccess() & Address::kStruct
-            || inst->fAddress->getAccess() & Address::kStaticStruct
-            || dynamic_cast<IndexedAddress*>(inst->fAddress)) {
+        if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
+            dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
                 // Generate 0
@@ -1222,7 +1221,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                     if (fFastMemory) {
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
                     } else {
-                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::GetLocal)
+                              << U32LEB(0);  // Assuming $dsp is at 0 local variable index
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
                         *fOut << int8_t(WasmOp::I32Add);
                     }
@@ -1235,7 +1235,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                         *fOut << int8_t(WasmOp::I32Shl);
                         *fOut << int8_t(WasmOp::I32Add);
                     } else {
-                        *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::GetLocal)
+                              << U32LEB(0);  // Assuming $dsp is at 0 local variable index
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
                         indexed->fIndex->accept(this);
                         *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
@@ -1246,7 +1247,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 }
             } else {
                 // Local variable
-                LocalVarDesc local = fLocalVarTable[indexed->getName()];
+                LocalVarDesc  local = fLocalVarTable[indexed->getName()];
                 Int32NumInst* num;
                 if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
                     *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);

@@ -483,17 +483,17 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
 
     else if (isSigSoundfile(sig, label)) {
-        return generateSoundfile(sig, label); }
-    else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf))); }
-    else if (isSigSoundfileRate(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf))); }
-    else if (isSigSoundfileChannels(sig, sf)) {
+        return generateSoundfile(sig, label);
+    } else if (isSigSoundfileLength(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf)));
+    } else if (isSigSoundfileRate(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
+    } else if (isSigSoundfileChannels(sig, sf)) {
         return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf),CS(x), CS(y)));
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)));
     }
-    
+
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
@@ -1393,7 +1393,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-   
+
     if (gGlobal->gUseDefaultSound) {
         BlockInst* block = InstBuilder::genBlockInst();
         block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));

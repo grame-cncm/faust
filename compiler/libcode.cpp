@@ -23,13 +23,13 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
 #include <vector>
-#include <cstdlib>
 
 #include "Text.hh"
 #include "compatibility.hh"
@@ -1242,7 +1242,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
-            
+
             gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
@@ -1282,7 +1282,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
-            
+
             gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
