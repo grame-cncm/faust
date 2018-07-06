@@ -132,7 +132,7 @@ class JuceOSCUI : private OSCReceiver, private OSCReceiver::Listener<OSCReceiver
         void openTabBox(const char* label) override { fAPIUI.openTabBox(label); }
         void openHorizontalBox(const char* label) override { fAPIUI.openHorizontalBox(label); }
         void openVerticalBox(const char* label) override { fAPIUI.openVerticalBox(label); }
-        void closeBox() override  { fAPIUI.closeBox(); }
+        void closeBox() override { fAPIUI.closeBox(); }
         
         // -- active widgets
         

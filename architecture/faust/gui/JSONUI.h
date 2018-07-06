@@ -347,11 +347,10 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"";
             }
-            addMeta(fTab + 1, false);
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }

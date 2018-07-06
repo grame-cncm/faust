@@ -66,18 +66,10 @@ class SoundUI : public GenericUI
         }
 
         // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* file_name, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
-            // If no filename was given, assume label is the filename
-            std::string file_name_str;
-            if (strlen(file_name) == 0) {
-                file_name_str = label;
-            } else {
-                file_name_str = file_name;
-            }
-            
             std::string sha_key;
-            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str, sha_key);
+            std::string path_name_str = Soundfile::Check(fSoundfileDir, url, sha_key);
             if (path_name_str != "") {
                 std::string file_key = (sha_key == "") ? path_name_str : sha_key;
                 // Check if 'file_key' is already loaded
