@@ -49,16 +49,15 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-
 /******************************************************************************
 *******************************************************************************
 
-								USER INTERFACE
+                                USER INTERFACE
 
 *******************************************************************************
 *******************************************************************************/
@@ -69,26 +68,26 @@
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
-#endif  
-
+#endif
 
 #ifndef FAUSTCLASS
 #define FAUSTCLASS mydsp
 #endif
 
 class mydsp : public dsp {
-private:
-    float 	fConst0;
-    float 	fTempPerm0;
-    float 	fRec0[2];
-    FAUSTFLOAT 	fbargraph0;
-    float 	fTempPerm1;
-    float 	fRec1[2];
-    FAUSTFLOAT 	fbargraph1;
-    int fSamplingFreq;
-    
-public:
-    virtual void metadata(Meta* m) 	{
+   private:
+    float      fConst0;
+    float      fTempPerm0;
+    float      fRec0[2];
+    FAUSTFLOAT fbargraph0;
+    float      fTempPerm1;
+    float      fRec1[2];
+    FAUSTFLOAT fbargraph1;
+    int        fSamplingFreq;
+
+   public:
+    virtual void metadata(Meta* m)
+    {
         m->declare("name", "vumeter");
         m->declare("version", "1.0");
         m->declare("author", "Grame");
@@ -105,30 +104,28 @@ public:
         m->declare("music.lib/version", "1.0");
         m->declare("music.lib/license", "LGPL with exception");
     }
-    
-    virtual int getNumInputs() 	{ return 2; }
-    virtual int getNumOutputs() 	{ return 2; }
-    static void classInit(int samplingFreq) {
-    }
-    virtual void instanceInit(int samplingFreq) {
+
+    virtual int  getNumInputs() { return 2; }
+    virtual int  getNumOutputs() { return 2; }
+    static void  classInit(int samplingFreq) {}
+    virtual void instanceInit(int samplingFreq)
+    {
         fSamplingFreq = samplingFreq;
-        fConst0 = (1.0f / min(1.92e+05f, max(1.0f, (float)fSamplingFreq)));
-        fTempPerm0 = 0;
-        for (int i=0; i<2; i++) fRec0[i] = 0;
+        fConst0       = (1.0f / min(1.92e+05f, max(1.0f, (float)fSamplingFreq)));
+        fTempPerm0    = 0;
+        for (int i = 0; i < 2; i++) fRec0[i] = 0;
         fTempPerm1 = 0;
-        for (int i=0; i<2; i++) fRec1[i] = 0;
+        for (int i = 0; i < 2; i++) fRec1[i] = 0;
     }
-    virtual void init(int samplingFreq) {
+    virtual void init(int samplingFreq)
+    {
         classInit(samplingFreq);
         instanceInit(samplingFreq);
     }
-    virtual dsp* clone() {
-        return new mydsp();
-    }
-    virtual int getSampleRate() {
-        return fSamplingFreq;
-    }
-    virtual void buildUserInterface(UI* interface) {
+    virtual dsp* clone() { return new mydsp(); }
+    virtual int  getSampleRate() { return fSamplingFreq; }
+    virtual void buildUserInterface(UI* interface)
+    {
         interface->openVerticalBox("0x00");
         interface->declare(&fbargraph0, "2", "");
         interface->declare(&fbargraph0, "unit", "dB");
@@ -138,23 +135,24 @@ public:
         interface->addHorizontalBargraph("0x7fdd89d69520", &fbargraph1, -7e+01f, 5.0f);
         interface->closeBox();
     }
-    virtual void compute (int count, FAUSTFLOAT** input, FAUSTFLOAT** output) {
-        //zone1
-        //zone2
-        //zone2b
-        //zone3
-        FAUSTFLOAT* input0 = input[0];
-        FAUSTFLOAT* input1 = input[1];
+    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+    {
+        // zone1
+        // zone2
+        // zone2b
+        // zone3
+        FAUSTFLOAT* input0  = input[0];
+        FAUSTFLOAT* input1  = input[1];
         FAUSTFLOAT* output0 = output[0];
         FAUSTFLOAT* output1 = output[1];
-        //LoopGraphScalar
-        for (int i=0; i<count; i++) {
+        // LoopGraphScalar
+        for (int i = 0; i < count; i++) {
             fTempPerm0 = (float)input0[i];
-            fRec0[0] = max((fRec0[1] - fConst0), fabsf(fTempPerm0));
+            fRec0[0]   = max((fRec0[1] - fConst0), fabsf(fTempPerm0));
             fbargraph0 = (20 * log10f(max(0.00031622776f, fRec0[0])));
             output0[i] = (FAUSTFLOAT)fTempPerm0;
             fTempPerm1 = (float)input1[i];
-            fRec1[0] = max((fRec1[1] - fConst0), fabsf(fTempPerm1));
+            fRec1[0]   = max((fRec1[1] - fConst0), fabsf(fTempPerm1));
             fbargraph1 = (20 * log10f(max(0.00031622776f, fRec1[0])));
             output1[i] = (FAUSTFLOAT)fTempPerm1;
             // post processing
@@ -163,7 +161,6 @@ public:
         }
     }
 };
-
 
 /***************************END USER SECTION ***************************/
 

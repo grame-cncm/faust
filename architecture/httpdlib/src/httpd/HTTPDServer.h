@@ -21,65 +21,66 @@
 
 */
 
-
 #ifndef __HTTPDServer__
 #define __HTTPDServer__
 
-#include <string>
 #include <ostream>
+#include <string>
 #include <vector>
 
 #ifdef _WIN32
-#include <winsock2.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdarg.h>
 #include <stddef.h>
-#include <sys/types.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
 #include <time.h>
+#include <winsock2.h>
 #endif
 
 #include <microhttpd.h>
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class Message;
 class MessageProcessor;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a specific thread to listen incoming osc packets
+    \brief a specific thread to listen incoming osc packets
 */
-class HTTPDServer
-{
-	MessageProcessor*	fProcessor;
-	struct MHD_Daemon *	fServer;
-	bool				fDebug;
-	
-	int send (struct MHD_Connection *connection, std::vector<Message*> msgs);
-	int page (struct MHD_Connection *connection, const char *page);
-	const char* getMIMEType (const std::string& page);
+class HTTPDServer {
+    MessageProcessor * fProcessor;
+    struct MHD_Daemon *fServer;
+    bool               fDebug;
 
-	public:
-				 HTTPDServer(MessageProcessor* mp);
-		virtual ~HTTPDServer();
+    int         send(struct MHD_Connection *connection, std::vector<Message *> msgs);
+    int         page(struct MHD_Connection *connection, const char *page);
+    const char *getMIMEType(const std::string &page);
 
-		/// \brief starts the httpd server
-		bool start (int port);
-		void stop ()			{ if (fServer) MHD_stop_daemon (fServer); fServer=0; }
-		int answer (struct MHD_Connection *connection, const char *url, const char *method, const char *version, 
-					const char *upload_data, size_t *upload_data_size, void **con_cls);
+   public:
+    HTTPDServer(MessageProcessor *mp);
+    virtual ~HTTPDServer();
 
-		static int send (struct MHD_Connection *connection, const char *page, const char *type, int status=MHD_HTTP_OK);
+    /// \brief starts the httpd server
+    bool start(int port);
+    void stop()
+    {
+        if (fServer) MHD_stop_daemon(fServer);
+        fServer = 0;
+    }
+    int answer(struct MHD_Connection *connection, const char *url, const char *method, const char *version,
+               const char *upload_data, size_t *upload_data_size, void **con_cls);
+
+    static int send(struct MHD_Connection *connection, const char *page, const char *type, int status = MHD_HTTP_OK);
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

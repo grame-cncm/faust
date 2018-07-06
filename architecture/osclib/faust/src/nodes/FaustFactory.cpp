@@ -24,68 +24,81 @@
 #include <iostream>
 #include <sstream>
 
+#include "OSCAddress.h"
 #include "faust/osc/FaustFactory.h"
 #include "faust/osc/FaustNode.h"
 #include "faust/osc/MessageDriven.h"
 #include "faust/osc/RootNode.h"
-#include "OSCAddress.h"
 
 using namespace std;
 
-namespace oscfaust
-{
+namespace oscfaust {
 
-FaustFactory::FaustFactory(GUI* ui, OSCIO * io) : fIO(io), fGUI(ui) {}
-FaustFactory::~FaustFactory() {}
+FaustFactory::FaustFactory(GUI* ui, OSCIO* io) : fIO(io), fGUI(ui)
+{
+}
+FaustFactory::~FaustFactory()
+{
+}
 
 /**
- * Open a group in the current group and place it on the top of the stack. 
- * Takes into account that due to alias, a group can been previously created.  
+ * Open a group in the current group and place it on the top of the stack.
+ * Takes into account that due to alias, a group can been previously created.
  */
 void FaustFactory::opengroup(const char* label)
 {
-	if (fNodes.size() == 0) {	
-		// the stack is empty: creates a root node 
-		// and gives the root node a possible OSCIO controler
-		fRoot = RootNode::create(label, fIO);	
-		fNodes.push(fRoot);					
-		
-	} else {
-		// only create a group if not previously created
-		SMessageDriven node = fNodes.top();
-		int i = 0; while ((i < node->size()) && (node->subnode(i)->name() != label)) i++;
-		
-		if (i < node->size()) {
-			// found, make it top of stack
-			fNodes.push(node->subnode(i));
-		} else {
-			// not found, create a new group and make it top of stack
-			SMessageDriven group = MessageDriven::create(label, node->getOSCAddress().c_str());
-			node->add(group);
-			fNodes.push(group);
-		}
-	}
+    if (fNodes.size() == 0) {
+        // the stack is empty: creates a root node
+        // and gives the root node a possible OSCIO controler
+        fRoot = RootNode::create(label, fIO);
+        fNodes.push(fRoot);
+
+    } else {
+        // only create a group if not previously created
+        SMessageDriven node = fNodes.top();
+        int            i    = 0;
+        while ((i < node->size()) && (node->subnode(i)->name() != label)) i++;
+
+        if (i < node->size()) {
+            // found, make it top of stack
+            fNodes.push(node->subnode(i));
+        } else {
+            // not found, create a new group and make it top of stack
+            SMessageDriven group = MessageDriven::create(label, node->getOSCAddress().c_str());
+            node->add(group);
+            fNodes.push(group);
+        }
+    }
 }
 
 //--------------------------------------------------------------------------
-SRootNode FaustFactory::root() const	{ return fRoot; }
+SRootNode FaustFactory::root() const
+{
+    return fRoot;
+}
 
 //--------------------------------------------------------------------------
 // add an alias to the root node
 //--------------------------------------------------------------------------
 void FaustFactory::addAlias(const char* alias, const char* address, float imin, float imax, float omin, float omax)
 {
-	if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
+    if (fRoot) fRoot->addAlias(alias, address, imin, imax, omin, omax);
 }
 
 //--------------------------------------------------------------------------
-std::string FaustFactory::addressFirst(const std::string& address) const    { return OSCAddress::addressFirst(address); }
-std::string FaustFactory::addressTail(const std::string& address) const     { return OSCAddress::addressTail(address); }
+std::string FaustFactory::addressFirst(const std::string& address) const
+{
+    return OSCAddress::addressFirst(address);
+}
+std::string FaustFactory::addressTail(const std::string& address) const
+{
+    return OSCAddress::addressTail(address);
+}
 
 //--------------------------------------------------------------------------
 void FaustFactory::closegroup()
 {
-	fNodes.pop();
+    fNodes.pop();
 }
 
-} // end namespoace
+}  // namespace oscfaust

@@ -16,41 +16,62 @@
  ************************************************************************
  ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
-#include "faust/dsp/dsp.h"
 
 using namespace std;
 
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-//----------------------------------------------------------------
-//  Signal processor definition
-//----------------------------------------------------------------
+    //----------------------------------------------------------------
+    //  Signal processor definition
+    //----------------------------------------------------------------
 
-<<includeclass>>
+    << includeclass >>
 
-extern "C" dsp* newDsp() 									{ return new mydsp(); }
-extern "C" void deleteDsp(dsp* self) 						{ delete self; }
+    extern "C" dsp* newDsp()
+{
+    return new mydsp();
+}
+extern "C" void deleteDsp(dsp* self)
+{
+    delete self;
+}
 
-extern "C" int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
-extern "C" int getNumOutputs(dsp* self) 					{ return self->getNumOutputs(); }
-extern "C" void buildUserInterface(dsp* self,UI* interface) { self->buildUserInterface(interface); }
-extern "C" void init(dsp* self, int freq) 					{ self->init(freq); }
-extern "C" void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
+extern "C" int getNumInputs(dsp* self)
+{
+    return self->getNumInputs();
+}
+extern "C" int getNumOutputs(dsp* self)
+{
+    return self->getNumOutputs();
+}
+extern "C" void buildUserInterface(dsp* self, UI* interface)
+{
+    self->buildUserInterface(interface);
+}
+extern "C" void init(dsp* self, int freq)
+{
+    self->init(freq);
+}
+extern "C" void compute(dsp* self, int len, float** inputs, float** outputs)
+{
+    self->compute(len, inputs, outputs);
+}

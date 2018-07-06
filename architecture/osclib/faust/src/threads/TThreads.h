@@ -21,58 +21,54 @@
 
 */
 
-
 #ifndef __TThreads__
 #define __TThreads__
 
 #ifdef WIN32
 
-	#include <windows.h>
-	#define ThreadAPI(proc, arg) DWORD WINAPI proc(LPVOID arg)
+#include <windows.h>
+#define ThreadAPI(proc, arg) DWORD WINAPI proc(LPVOID arg)
 
-	typedef LPTHREAD_START_ROUTINE ThreadProcPtr;
-	typedef HANDLE	ThreadHandle;
-	
+typedef LPTHREAD_START_ROUTINE ThreadProcPtr;
+typedef HANDLE                 ThreadHandle;
+
 #else
 
-	#include <pthread.h>
-	#define ThreadAPI(proc, arg) void* proc (void* arg)
-	
-	typedef void* (* ThreadProcPtr) (void* ptr);
-	typedef	pthread_t	ThreadHandle;
+#include <pthread.h>
+#define ThreadAPI(proc, arg) void* proc(void* arg)
+
+typedef void* (*ThreadProcPtr)(void* ptr);
+typedef pthread_t ThreadHandle;
 
 #endif
 
 //___________________________________________________________________
 /*!
-	\brief cross platform threads support
+    \brief cross platform threads support
 
-	Based on pthread on linux and mac and 
-	Windows native threads on Windows
+    Based on pthread on linux and mac and
+    Windows native threads on Windows
 */
-class TThreads
-{
-    public:
-    
-        enum { kNormalPriority = 0 };
+class TThreads {
+   public:
+    enum { kNormalPriority = 0 };
 
-        TThreads();
-        virtual ~TThreads()	{ quit (); }
+    TThreads();
+    virtual ~TThreads() { quit(); }
 
-        virtual void	run() = 0;
+    virtual void run() = 0;
 
-        bool start(int priority = kNormalPriority);
-        bool isRunning() const	{ return fRunning; }
-        void quit();
+    bool start(int priority = kNormalPriority);
+    bool isRunning() const { return fRunning; }
+    void quit();
 
-        void running(bool state)	{ fRunning = state; }
+    void running(bool state) { fRunning = state; }
 
-    private:
-    
-        int SetPriority(int priority);
+   private:
+    int SetPriority(int priority);
 
-        bool fRunning;
-        ThreadHandle fThread;	// the thread handler
+    bool         fRunning;
+    ThreadHandle fThread;  // the thread handler
 };
 
 #endif

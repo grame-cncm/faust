@@ -25,76 +25,79 @@
    http://purelang.bitbucket.org for a Pure module which can load these
    extensions. */
 
-#include <stdlib.h>
 #include <math.h>
+#include <stdlib.h>
 #include <list>
 #include <map>
 
 using namespace std;
 
-typedef pair<const char*,const char*> strpair;
+typedef pair<const char*, const char*> strpair;
 
-struct Meta
-{
-  list< strpair > data;
-  void declare (const char* key, const char* value)
-  { data.push_back(strpair(key, value)); }
+struct Meta {
+    list<strpair> data;
+    void          declare(const char* key, const char* value) { data.push_back(strpair(key, value)); }
 };
 
 // abs is now predefined
-//template<typename T> T abs (T a)		{ return (a<T(0)) ? -a : a; }
+// template<typename T> T abs (T a)		{ return (a<T(0)) ? -a : a; }
 
-inline int	lsr (int x, int n)		{ return int(((unsigned int)x) >> n); }
-
-/******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
-<<includeIntrinsic>>
-
-/******************************************************************************
-*******************************************************************************
-
-			ABSTRACT USER INTERFACE
-
-*******************************************************************************
-*******************************************************************************/
-
-class UI
+inline int lsr(int x, int n)
 {
-  bool	fStopped;
-public:
+    return int(((unsigned int)x) >> n);
+}
 
-  UI() : fStopped(false) {}
-  virtual ~UI() {}
+/******************************************************************************
+*******************************************************************************
 
-  virtual void addButton(const char* label, double* zone) = 0;
-  virtual void addCheckButton(const char* label, double* zone) = 0;
-  virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
-  virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step) = 0;
-  virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step) = 0;
+                                   VECTOR INTRINSICS
 
-  virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max) = 0;
-  virtual void addVerticalBargraph(const char* label, double* zone, double min, double max) = 0;
+*******************************************************************************
+*******************************************************************************/
 
-  virtual void openTabBox(const char* label) = 0;
-  virtual void openHorizontalBox(const char* label) = 0;
-  virtual void openVerticalBox(const char* label) = 0;
-  virtual void closeBox() = 0;
+// inline void *aligned_calloc(size_t nmemb, size_t size) { return
+// (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }  inline void *aligned_calloc(size_t nmemb,
+// size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
 
-  virtual void run() = 0;
+<< includeIntrinsic >>
 
-  void stop() { fStopped = true; }
-  bool stopped() { return fStopped; }
+    /******************************************************************************
+    *******************************************************************************
 
-  virtual void declare(double* zone, const char* key, const char* value) {}
+                ABSTRACT USER INTERFACE
+
+    *******************************************************************************
+    *******************************************************************************/
+
+    class UI {
+    bool fStopped;
+
+   public:
+    UI() : fStopped(false) {}
+    virtual ~UI() {}
+
+    virtual void addButton(const char* label, double* zone)                                                     = 0;
+    virtual void addCheckButton(const char* label, double* zone)                                                = 0;
+    virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max,
+                                   double step)                                                                 = 0;
+    virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max,
+                                     double step)                                                               = 0;
+    virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step) = 0;
+
+    virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max) = 0;
+    virtual void addVerticalBargraph(const char* label, double* zone, double min, double max)   = 0;
+
+    virtual void openTabBox(const char* label)        = 0;
+    virtual void openHorizontalBox(const char* label) = 0;
+    virtual void openVerticalBox(const char* label)   = 0;
+    virtual void closeBox()                           = 0;
+
+    virtual void run() = 0;
+
+    void stop() { fStopped = true; }
+    bool stopped() { return fStopped; }
+
+    virtual void declare(double* zone, const char* key, const char* value) {}
 };
 
 /***************************************************************************
@@ -102,183 +105,211 @@ public:
  ***************************************************************************/
 
 enum ui_elem_type_t {
-  UI_BUTTON, UI_CHECK_BUTTON,
-  UI_V_SLIDER, UI_H_SLIDER, UI_NUM_ENTRY,
-  UI_V_BARGRAPH, UI_H_BARGRAPH,
-  UI_END_GROUP, UI_V_GROUP, UI_H_GROUP, UI_T_GROUP
+    UI_BUTTON,
+    UI_CHECK_BUTTON,
+    UI_V_SLIDER,
+    UI_H_SLIDER,
+    UI_NUM_ENTRY,
+    UI_V_BARGRAPH,
+    UI_H_BARGRAPH,
+    UI_END_GROUP,
+    UI_V_GROUP,
+    UI_H_GROUP,
+    UI_T_GROUP
 };
 
 struct ui_elem_t {
-  ui_elem_type_t type;
-  const char *label;
-  double *zone;
-  void *ref;
-  double init, min, max, step;
+    ui_elem_type_t type;
+    const char*    label;
+    double*        zone;
+    void*          ref;
+    double         init, min, max, step;
 };
 
-class PureUI : public UI
-{
-public:
-  int nelems;
-  ui_elem_t *elems;
-  map< int, list<strpair> > metadata;
+class PureUI : public UI {
+   public:
+    int                      nelems;
+    ui_elem_t*               elems;
+    map<int, list<strpair> > metadata;
 
-  PureUI();
-  virtual ~PureUI();
+    PureUI();
+    virtual ~PureUI();
 
-protected:
-  void add_elem(ui_elem_type_t type, const char *label = NULL);
-  void add_elem(ui_elem_type_t type, const char *label, double *zone);
-  void add_elem(ui_elem_type_t type, const char *label, double *zone,
-		double init, double min, double max, double step);
-  void add_elem(ui_elem_type_t type, const char *label, double *zone,
-		double min, double max);
+   protected:
+    void add_elem(ui_elem_type_t type, const char* label = NULL);
+    void add_elem(ui_elem_type_t type, const char* label, double* zone);
+    void add_elem(ui_elem_type_t type, const char* label, double* zone, double init, double min, double max,
+                  double step);
+    void add_elem(ui_elem_type_t type, const char* label, double* zone, double min, double max);
 
-public:
-  virtual void addButton(const char* label, double* zone);
-  virtual void addCheckButton(const char* label, double* zone);
-  virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step);
-  virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step);
-  virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step);
+   public:
+    virtual void addButton(const char* label, double* zone);
+    virtual void addCheckButton(const char* label, double* zone);
+    virtual void addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step);
+    virtual void addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step);
+    virtual void addNumEntry(const char* label, double* zone, double init, double min, double max, double step);
 
-  virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max);
-  virtual void addVerticalBargraph(const char* label, double* zone, double min, double max);
+    virtual void addHorizontalBargraph(const char* label, double* zone, double min, double max);
+    virtual void addVerticalBargraph(const char* label, double* zone, double min, double max);
 
-  virtual void openTabBox(const char* label);
-  virtual void openHorizontalBox(const char* label);
-  virtual void openVerticalBox(const char* label);
-  virtual void closeBox();
+    virtual void openTabBox(const char* label);
+    virtual void openHorizontalBox(const char* label);
+    virtual void openVerticalBox(const char* label);
+    virtual void closeBox();
 
-  virtual void run();
+    virtual void run();
 
-  virtual void declare(double* zone, const char* key, const char* value);
+    virtual void declare(double* zone, const char* key, const char* value);
 };
 
 PureUI::PureUI()
 {
-  nelems = 0;
-  elems = NULL;
+    nelems = 0;
+    elems  = NULL;
 }
 
 PureUI::~PureUI()
 {
-  if (elems) free(elems);
+    if (elems) free(elems);
 }
 
 void PureUI::declare(double* zone, const char* key, const char* value)
 {
-  map< int, list<strpair> >::iterator it = metadata.find(nelems);
-  if (it != metadata.end())
-    it->second.push_back(strpair(key, value));
-  else
-    metadata[nelems] = list<strpair>(1, strpair(key, value));
+    map<int, list<strpair> >::iterator it = metadata.find(nelems);
+    if (it != metadata.end())
+        it->second.push_back(strpair(key, value));
+    else
+        metadata[nelems] = list<strpair>(1, strpair(key, value));
 }
 
-inline void PureUI::add_elem(ui_elem_type_t type, const char *label)
+inline void PureUI::add_elem(ui_elem_type_t type, const char* label)
 {
-  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
-  if (elems1)
-    elems = elems1;
-  else
-    return;
-  elems[nelems].type = type;
-  elems[nelems].label = label;
-  elems[nelems].zone = NULL;
-  elems[nelems].ref = NULL;
-  elems[nelems].init = 0.0;
-  elems[nelems].min = 0.0;
-  elems[nelems].max = 0.0;
-  elems[nelems].step = 0.0;
-  nelems++;
+    ui_elem_t* elems1 = (ui_elem_t*)realloc(elems, (nelems + 1) * sizeof(ui_elem_t));
+    if (elems1)
+        elems = elems1;
+    else
+        return;
+    elems[nelems].type  = type;
+    elems[nelems].label = label;
+    elems[nelems].zone  = NULL;
+    elems[nelems].ref   = NULL;
+    elems[nelems].init  = 0.0;
+    elems[nelems].min   = 0.0;
+    elems[nelems].max   = 0.0;
+    elems[nelems].step  = 0.0;
+    nelems++;
 }
 
-inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zone)
+inline void PureUI::add_elem(ui_elem_type_t type, const char* label, double* zone)
 {
-  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
-  if (elems1)
-    elems = elems1;
-  else
-    return;
-  elems[nelems].type = type;
-  elems[nelems].label = label;
-  elems[nelems].zone = zone;
-  elems[nelems].ref = NULL;
-  elems[nelems].init = 0.0;
-  elems[nelems].min = 0.0;
-  elems[nelems].max = 0.0;
-  elems[nelems].step = 0.0;
-  nelems++;
+    ui_elem_t* elems1 = (ui_elem_t*)realloc(elems, (nelems + 1) * sizeof(ui_elem_t));
+    if (elems1)
+        elems = elems1;
+    else
+        return;
+    elems[nelems].type  = type;
+    elems[nelems].label = label;
+    elems[nelems].zone  = zone;
+    elems[nelems].ref   = NULL;
+    elems[nelems].init  = 0.0;
+    elems[nelems].min   = 0.0;
+    elems[nelems].max   = 0.0;
+    elems[nelems].step  = 0.0;
+    nelems++;
 }
 
-inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zone,
-			     double init, double min, double max, double step)
+inline void PureUI::add_elem(ui_elem_type_t type, const char* label, double* zone, double init, double min, double max,
+                             double step)
 {
-  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
-  if (elems1)
-    elems = elems1;
-  else
-    return;
-  elems[nelems].type = type;
-  elems[nelems].label = label;
-  elems[nelems].zone = zone;
-  elems[nelems].ref = NULL;
-  elems[nelems].init = init;
-  elems[nelems].min = min;
-  elems[nelems].max = max;
-  elems[nelems].step = step;
-  nelems++;
+    ui_elem_t* elems1 = (ui_elem_t*)realloc(elems, (nelems + 1) * sizeof(ui_elem_t));
+    if (elems1)
+        elems = elems1;
+    else
+        return;
+    elems[nelems].type  = type;
+    elems[nelems].label = label;
+    elems[nelems].zone  = zone;
+    elems[nelems].ref   = NULL;
+    elems[nelems].init  = init;
+    elems[nelems].min   = min;
+    elems[nelems].max   = max;
+    elems[nelems].step  = step;
+    nelems++;
 }
 
-inline void PureUI::add_elem(ui_elem_type_t type, const char *label, double *zone,
-			     double min, double max)
+inline void PureUI::add_elem(ui_elem_type_t type, const char* label, double* zone, double min, double max)
 {
-  ui_elem_t *elems1 = (ui_elem_t*)realloc(elems, (nelems+1)*sizeof(ui_elem_t));
-  if (elems1)
-    elems = elems1;
-  else
-    return;
-  elems[nelems].type = type;
-  elems[nelems].label = label;
-  elems[nelems].zone = zone;
-  elems[nelems].ref = NULL;
-  elems[nelems].init = 0.0;
-  elems[nelems].min = min;
-  elems[nelems].max = max;
-  elems[nelems].step = 0.0;
-  nelems++;
+    ui_elem_t* elems1 = (ui_elem_t*)realloc(elems, (nelems + 1) * sizeof(ui_elem_t));
+    if (elems1)
+        elems = elems1;
+    else
+        return;
+    elems[nelems].type  = type;
+    elems[nelems].label = label;
+    elems[nelems].zone  = zone;
+    elems[nelems].ref   = NULL;
+    elems[nelems].init  = 0.0;
+    elems[nelems].min   = min;
+    elems[nelems].max   = max;
+    elems[nelems].step  = 0.0;
+    nelems++;
 }
 
 void PureUI::addButton(const char* label, double* zone)
-{ add_elem(UI_BUTTON, label, zone); }
+{
+    add_elem(UI_BUTTON, label, zone);
+}
 void PureUI::addCheckButton(const char* label, double* zone)
-{ add_elem(UI_CHECK_BUTTON, label, zone); }
+{
+    add_elem(UI_CHECK_BUTTON, label, zone);
+}
 void PureUI::addVerticalSlider(const char* label, double* zone, double init, double min, double max, double step)
-{ add_elem(UI_V_SLIDER, label, zone, init, min, max, step); }
+{
+    add_elem(UI_V_SLIDER, label, zone, init, min, max, step);
+}
 void PureUI::addHorizontalSlider(const char* label, double* zone, double init, double min, double max, double step)
-{ add_elem(UI_H_SLIDER, label, zone, init, min, max, step); }
+{
+    add_elem(UI_H_SLIDER, label, zone, init, min, max, step);
+}
 void PureUI::addNumEntry(const char* label, double* zone, double init, double min, double max, double step)
-{ add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step); }
+{
+    add_elem(UI_NUM_ENTRY, label, zone, init, min, max, step);
+}
 
 void PureUI::addHorizontalBargraph(const char* label, double* zone, double min, double max)
-{ add_elem(UI_H_BARGRAPH, label, zone, min, max); }
+{
+    add_elem(UI_H_BARGRAPH, label, zone, min, max);
+}
 void PureUI::addVerticalBargraph(const char* label, double* zone, double min, double max)
-{ add_elem(UI_V_BARGRAPH, label, zone, min, max); }
+{
+    add_elem(UI_V_BARGRAPH, label, zone, min, max);
+}
 
 void PureUI::openTabBox(const char* label)
-{ add_elem(UI_T_GROUP, label); }
+{
+    add_elem(UI_T_GROUP, label);
+}
 void PureUI::openHorizontalBox(const char* label)
-{ add_elem(UI_H_GROUP, label); }
+{
+    add_elem(UI_H_GROUP, label);
+}
 void PureUI::openVerticalBox(const char* label)
-{ add_elem(UI_V_GROUP, label); }
+{
+    add_elem(UI_V_GROUP, label);
+}
 void PureUI::closeBox()
-{ add_elem(UI_END_GROUP); }
+{
+    add_elem(UI_END_GROUP);
+}
 
-void PureUI::run() {}
+void PureUI::run()
+{
+}
 
 /******************************************************************************
 *******************************************************************************
 
-			    FAUST DSP
+                FAUST DSP
 
 *******************************************************************************
 *******************************************************************************/
@@ -288,18 +319,19 @@ void PureUI::run() {}
 //----------------------------------------------------------------
 
 class dsp {
- protected:
-  int fSamplingFreq;
- public:
-  // internal freelist for custom voice allocation
-  dsp *prev, *next;
-  dsp() {}
-  virtual ~dsp() {}
-  virtual int getNumInputs() = 0;
-  virtual int getNumOutputs() = 0;
-  virtual void buildUserInterface(UI* interface) = 0;
-  virtual void init(int samplingRate) = 0;
-  virtual void compute(int len, double** inputs, double** outputs) = 0;
+   protected:
+    int fSamplingFreq;
+
+   public:
+    // internal freelist for custom voice allocation
+    dsp *prev, *next;
+    dsp() {}
+    virtual ~dsp() {}
+    virtual int  getNumInputs()                                      = 0;
+    virtual int  getNumOutputs()                                     = 0;
+    virtual void buildUserInterface(UI* interface)                   = 0;
+    virtual void init(int samplingRate)                              = 0;
+    virtual void compute(int len, double** inputs, double** outputs) = 0;
 };
 
 //----------------------------------------------------------------------------
@@ -312,8 +344,7 @@ class dsp {
 
 #define FAUSTFLOAT double
 
-<<includeclass>>
-
+<< includeclass >>
 #include <assert.h>
 
 // Define this to get some debugging output.
@@ -343,18 +374,18 @@ class dsp {
 #endif
 
 // Make sure that NVOICES is at least 1.
-#if NVOICES<1
+#if NVOICES < 1
 #undefine NVOICES
 #define NVOICES 1
 #endif
 
-struct dspmem_t {
-  char x[sizeof(mydsp)];
+    struct dspmem_t {
+    char x[sizeof(mydsp)];
 };
 
 struct mem_t {
-  dspmem_t mem[NVOICES];
-  mem_t *next;
+    dspmem_t mem[NVOICES];
+    mem_t*   next;
 };
 
 // statically and dynamically allocated dsp instances
@@ -365,95 +396,105 @@ static mydsp *first, *last;
 /* This is supposed to be executed when the module gets unloaded. You'll need
    a recent gcc version (or compatible) to make this work. */
 
-void __attribute__ ((destructor)) mydsp_fini(void)
+void __attribute__((destructor)) mydsp_fini(void)
 {
-  if (!mem) return;
-  mem = mem->next;
-  while (mem) {
-    mem_t *mem1 = mem->next;
-    free(mem); mem = mem1;
-  }
+    if (!mem) return;
+    mem = mem->next;
+    while (mem) {
+        mem_t* mem1 = mem->next;
+        free(mem);
+        mem = mem1;
+    }
 }
 
-/* The class factory, used to create and destroy mydsp objects in the client.
-   This is implemented using C linkage to facilitate dlopen access. */
+    /* The class factory, used to create and destroy mydsp objects in the client.
+       This is implemented using C linkage to facilitate dlopen access. */
 
 #include <new>
 
-extern "C" mydsp *newdsp()
+extern "C" mydsp* newdsp()
 {
-  if (!mem) {
-    mem = &mem0; mem->next = 0;
-    // initialize the freelist with the statically allocated voices
-    mydsp *prev = 0, *next = (mydsp*)&mem->mem[0];
-    first = next;
-    for (int i = 0; i < NVOICES; i++) {
-      void *p = &mem->mem[i];
-      mydsp *d = new(p) mydsp;
-      d->prev = prev; prev = d;
-      d->next = ++next;
+    if (!mem) {
+        mem       = &mem0;
+        mem->next = 0;
+        // initialize the freelist with the statically allocated voices
+        mydsp *prev = 0, *next = (mydsp*)&mem->mem[0];
+        first = next;
+        for (int i = 0; i < NVOICES; i++) {
+            void*  p = &mem->mem[i];
+            mydsp* d = new (p) mydsp;
+            d->prev  = prev;
+            prev     = d;
+            d->next  = ++next;
+        }
+        last       = prev;
+        last->next = 0;
+#ifdef DEBUG
+        fprintf(stderr, ">>> %s: preallocated %d voices\n", FAUST_CN, NVOICES);
+#endif
     }
-    last = prev; last->next = 0;
+    assert(mem);
+    if (!first) {
+        // allocate a new chunk of voices and add them to the freelist
+        mem_t* block = (mem_t*)calloc(1, sizeof(mem_t));
+        block->next  = mem->next;
+        mem->next    = block;
+        mydsp *prev = 0, *next = (mydsp*)&block->mem[0];
+        first = next;
+        for (int i = 0; i < NVOICES; i++) {
+            void* p = &block->mem[i];
+            ;
+            mydsp* d = new (p) mydsp;
+            d->prev  = prev;
+            prev     = d;
+            d->next  = ++next;
+        }
+        last       = prev;
+        last->next = 0;
 #ifdef DEBUG
-    fprintf(stderr, ">>> %s: preallocated %d voices\n", FAUST_CN, NVOICES);
+        fprintf(stderr, ">>> %s: allocated %d voices\n", FAUST_CN, NVOICES);
 #endif
-  }
-  assert(mem);
-  if (!first) {
-    // allocate a new chunk of voices and add them to the freelist
-    mem_t *block = (mem_t*)calloc(1, sizeof(mem_t));
-    block->next = mem->next; mem->next = block;
-    mydsp *prev = 0, *next = (mydsp*)&block->mem[0];
-    first = next;
-    for (int i = 0; i < NVOICES; i++) {
-      void *p = &block->mem[i];;
-      mydsp *d = new(p) mydsp;
-      d->prev = prev; prev = d;
-      d->next = ++next;
     }
-    last = prev; last->next = 0;
+    assert(first && last);
+    mydsp* d = first;
+    if (first == last) {
+        // freelist is now empty
+        first = last = 0;
+    } else {
+        // remove d from the freelist
+        first = (mydsp*)first->next;
+    }
+    d->prev = d->next = 0;
 #ifdef DEBUG
-    fprintf(stderr, ">>> %s: allocated %d voices\n", FAUST_CN, NVOICES);
+    fprintf(stderr, ">>> %s: allocating instance %p\n", FAUST_CN, d);
 #endif
-  }
-  assert(first && last);
-  mydsp *d = first;
-  if (first == last) {
-    // freelist is now empty
-    first = last = 0;
-  } else {
-    // remove d from the freelist
-    first = (mydsp*)first->next;
-  }
-  d->prev = d->next = 0;
-#ifdef DEBUG
-  fprintf(stderr, ">>> %s: allocating instance %p\n", FAUST_CN, d);
-#endif
-  return d;
+    return d;
 }
 
 extern "C" void deldsp(mydsp* d)
 {
 #ifdef DEBUG
-  fprintf(stderr, ">>> %s: freeing instance %p\n", FAUST_CN, d);
+    fprintf(stderr, ">>> %s: freeing instance %p\n", FAUST_CN, d);
 #endif
-  // add d to the freelist
-  assert(!d->prev && !d->next);
-  if (last) {
-    last->next = d; d->prev = last; last = d;
-  } else
-    first = last = d;
+    // add d to the freelist
+    assert(!d->prev && !d->next);
+    if (last) {
+        last->next = d;
+        d->prev    = last;
+        last       = d;
+    } else
+        first = last = d;
 }
 
-extern "C" Meta *newmeta()
+extern "C" Meta* newmeta()
 {
-  Meta *m = new Meta;
-  mydsp tmp_dsp;
-  tmp_dsp.metadata(m);
-  return m;
+    Meta* m = new Meta;
+    mydsp tmp_dsp;
+    tmp_dsp.metadata(m);
+    return m;
 }
 
 extern "C" void delmeta(Meta* m)
 {
-  delete m;
+    delete m;
 }

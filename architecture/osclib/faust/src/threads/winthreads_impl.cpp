@@ -26,46 +26,47 @@
 #include "TThreads.h"
 
 //_____________________________________________________________________
-static DWORD WINAPI  baseThreadProc (LPVOID  ptr)
+static DWORD WINAPI baseThreadProc(LPVOID ptr)
 {
-	TThreads* thread = (TThreads*)ptr;
-	thread->running (true);
-	thread->run();
-	thread->running (false);
-	return 0;
+    TThreads* thread = (TThreads*)ptr;
+    thread->running(true);
+    thread->run();
+    thread->running(false);
+    return 0;
 }
 
 //_____________________________________________________________________
-TThreads::TThreads () : fThread(0) {}
-
-//_____________________________________________________________________
-int	TThreads::SetPriority (int priority)
+TThreads::TThreads() : fThread(0)
 {
-	if (!SetThreadPriority (fThread, priority))
-		return TRUE;
-	return FALSE;
 }
 
 //_____________________________________________________________________
-bool TThreads::start (int priority)
+int TThreads::SetPriority(int priority)
 {
-	DWORD id;
-	fThread = CreateThread(NULL, 0, baseThreadProc, this, 0, &id);
-	if (fThread) {
-		SetPriority (priority);
-		return true;	
-	}
-	return false;	
+    if (!SetThreadPriority(fThread, priority)) return TRUE;
+    return FALSE;
 }
 
 //_____________________________________________________________________
-void TThreads::quit ()
+bool TThreads::start(int priority)
 {
-	if (fThread) {
-		WaitForSingleObject (fThread, 1000);
-		CloseHandle (fThread);
-		fThread = 0;
-	}
+    DWORD id;
+    fThread = CreateThread(NULL, 0, baseThreadProc, this, 0, &id);
+    if (fThread) {
+        SetPriority(priority);
+        return true;
+    }
+    return false;
+}
+
+//_____________________________________________________________________
+void TThreads::quit()
+{
+    if (fThread) {
+        WaitForSingleObject(fThread, 1000);
+        CloseHandle(fThread);
+        fThread = 0;
+    }
 }
 
 #endif

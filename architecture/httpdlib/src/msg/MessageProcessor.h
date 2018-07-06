@@ -26,21 +26,19 @@
 
 #include <vector>
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class Message;
 //--------------------------------------------------------------------------
 /*!
-	\brief an abstract class for objects able to process OSC messages	
+    \brief an abstract class for objects able to process OSC messages
 */
-class MessageProcessor
-{
-	public:
-		virtual		~MessageProcessor() {}
-		virtual bool processMessage( const Message* msg, std::vector<Message*>& outMsg ) = 0;
+class MessageProcessor {
+   public:
+    virtual ~MessageProcessor() {}
+    virtual bool processMessage(const Message* msg, std::vector<Message*>& outMsg) = 0;
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

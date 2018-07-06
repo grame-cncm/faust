@@ -24,40 +24,38 @@
 #ifndef __OSCSetup__
 #define __OSCSetup__
 
-#include <string>
 #include <ostream>
+#include <string>
 #include "OSCStream.h"
 
-typedef void (*ErrorCallback)(void*);  
+typedef void (*ErrorCallback)(void*);
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 class OscThread;
 class MessageProcessor;
 //--------------------------------------------------------------------------
 /*!
-	\brief network management utility
+    \brief network management utility
 */
-class OSCSetup
-{
-    private:
-    
-        OscThread*fOSCThread;		// a thread that is listening to the osc in socket
-        ErrorCallback fErrCallback;
-        void* fArg;
-    
-	public:
-    
-        OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg) {}
-		virtual ~OSCSetup();
+class OSCSetup {
+   private:
+    OscThread*    fOSCThread;  // a thread that is listening to the osc in socket
+    ErrorCallback fErrCallback;
+    void*         fArg;
 
-		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);
-        void stop();
-        
-		bool running() const;
+   public:
+    OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg)
+    {
+    }
+    virtual ~OSCSetup();
+
+    bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);
+    void stop();
+
+    bool running() const;
 };
 
-} // end namespoace
+}  // namespace oscfaust
 
 #endif

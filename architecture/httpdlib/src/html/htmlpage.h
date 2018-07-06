@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __htmlpage__
 #define __htmlpage__
 
@@ -29,32 +28,30 @@
 #include <sstream>
 #include <string>
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a faust root is a terminal node and represents a faust parameter controler
+    \brief a faust root is a terminal node and represents a faust parameter controler
 */
-class htmlpage : public std::stringstream
-{
-	std::string fName;		// the faust program name
-	std::string fAddress;	// its address (DN or IP address)
-	std::string fRoot;		// the address space root (the faust program name)
-	int			fPort;		// the listening TCP port
-	
-	std::string	getUrl () const;
+class htmlpage : public std::stringstream {
+    std::string fName;     // the faust program name
+    std::string fAddress;  // its address (DN or IP address)
+    std::string fRoot;     // the address space root (the faust program name)
+    int         fPort;     // the listening TCP port
 
-	public:
-				 htmlpage(const char *name, const char* address, int port);
-		virtual ~htmlpage() {}
-		
-		void	print(std::ostream& out, std::string s) const;
-		void	print(std::ostream& out) const;
-		void	setPort(int port)					{ fPort = port; }
-		void	setRoot(const std::string& root)	{ fRoot = root; }
+    std::string getUrl() const;
+
+   public:
+    htmlpage(const char* name, const char* address, int port);
+    virtual ~htmlpage() {}
+
+    void print(std::ostream& out, std::string s) const;
+    void print(std::ostream& out) const;
+    void setPort(int port) { fPort = port; }
+    void setRoot(const std::string& root) { fRoot = root; }
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

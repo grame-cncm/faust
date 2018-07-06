@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -36,10 +36,10 @@
 #include <libgen.h>
 #include <iostream>
 
-#include "faust/gui/FUI.h"
-#include "faust/misc.h"
 #include "faust/audio/portaudio-dsp.h"
+#include "faust/gui/FUI.h"
 #include "faust/gui/faustgtk.h"
+#include "faust/misc.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -49,22 +49,22 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-<<includeclass>>
+    << includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp		DSP;
-list<GUI*>	GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+    mydsp  DSP;
+list<GUI*> GUI::fGuiList;
+ztimedmap  GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
@@ -106,50 +106,49 @@ int main(int argc, char *argv[])
 }
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-	char appname[256];
-	char rcfilename[256];
-	char* home = getenv("HOME");
+    char  appname[256];
+    char  rcfilename[256];
+    char* home = getenv("HOME");
 
-	snprintf(appname, 256, "%s", basename(argv[0]));
-	snprintf(rcfilename, 256, "%s/.%src", home, appname);
+    snprintf(appname, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, appname);
 
-	GUI* interface = new GTKUI (appname, &argc, &argv);
-	FUI* finterface	= new FUI();
-	DSP.buildUserInterface(interface);
-	DSP.buildUserInterface(finterface);
+    GUI* interface  = new GTKUI(appname, &argc, &argv);
+    FUI* finterface = new FUI();
+    DSP.buildUserInterface(interface);
+    DSP.buildUserInterface(finterface);
 
 #ifdef OSCCTRL
-	GUI* oscinterface = new OSCUI(appname, argc, argv);
-	DSP.buildUserInterface(oscinterface);
+    GUI* oscinterface = new OSCUI(appname, argc, argv);
+    DSP.buildUserInterface(oscinterface);
 #endif
 
     long srate = (long)lopt(argv, "--frequency", 44100);
-    int	fpb = lopt(argv, "--buffer", 128);
+    int  fpb   = lopt(argv, "--buffer", 128);
 
-	portaudio audio (srate, fpb);
-	audio.init(appname, &DSP);
-	finterface->recallState(rcfilename);
-	audio.start();
+    portaudio audio(srate, fpb);
+    audio.init(appname, &DSP);
+    finterface->recallState(rcfilename);
+    audio.start();
 
 #ifdef OSCCTRL
-	oscinterface->run();
+    oscinterface->run();
 #endif
-	interface->run();
+    interface->run();
 
-	audio.stop();
-	finterface->saveState(rcfilename);
-    
-   // desallocation
+    audio.stop();
+    finterface->saveState(rcfilename);
+
+    // desallocation
     delete interface;
     delete finterface;
 #ifdef OSCCTRL
-	 delete oscinterface;
+    delete oscinterface;
 #endif
 
-  	return 0;
+    return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-

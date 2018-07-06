@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __jsongroup__
 #define __jsongroup__
 
@@ -31,31 +30,32 @@
 
 #include "jsonnode.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a faust group is a terminal node and represents a faust parameter controler
+    \brief a faust group is a terminal node and represents a faust parameter controler
 */
-class jsongroup : public jsonnode
-{
-	std::string fName;
-	std::string fType;
-    TMetas fMeta;
-	std::vector<Sjsonnode> fContent;
-	
-	protected:
-				 jsongroup(const char *name, const char* type, const TMetas& m)  : fName(name), fType(type), fMeta(m) {}
-		virtual ~jsongroup() {}
-		
-	public:
-	static Sjsonnode create (const char *name, const char* type, const TMetas& m) { return new jsongroup (name, type, m); }
+class jsongroup : public jsonnode {
+    std::string            fName;
+    std::string            fType;
+    TMetas                 fMeta;
+    std::vector<Sjsonnode> fContent;
 
-		virtual void	add (const Sjsonnode& node)		{ fContent.push_back(node); }
-		virtual void	print(std::ostream& out, jsonendl& eol) const;
+   protected:
+    jsongroup(const char* name, const char* type, const TMetas& m) : fName(name), fType(type), fMeta(m) {}
+    virtual ~jsongroup() {}
+
+   public:
+    static Sjsonnode create(const char* name, const char* type, const TMetas& m)
+    {
+        return new jsongroup(name, type, m);
+    }
+
+    virtual void add(const Sjsonnode& node) { fContent.push_back(node); }
+    virtual void print(std::ostream& out, jsonendl& eol) const;
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

@@ -20,45 +20,42 @@
 
 */
 
-
 #include "OSCAddress.h"
 
 using namespace std;
 
-namespace oscfaust
-{
+namespace oscfaust {
 
-#define kAddressSep	'/'
+#define kAddressSep '/'
 //--------------------------------------------------------------------------
-string OSCAddress::addressFirst (const string& a)
+string OSCAddress::addressFirst(const string& a)
 {
-	if (a[0] == kAddressSep) {
-		size_t n = a.find_first_of(kAddressSep, 1);
-		if (n == string::npos) n = a.size();
-		return a.substr(1, n-1);
-	}
-	return "";
+    if (a[0] == kAddressSep) {
+        size_t n = a.find_first_of(kAddressSep, 1);
+        if (n == string::npos) n = a.size();
+        return a.substr(1, n - 1);
+    }
+    return "";
 }
 
 //--------------------------------------------------------------------------
-string OSCAddress::addressLast (const string& a)
+string OSCAddress::addressLast(const string& a)
 {
-	size_t n = a.find_last_of(kAddressSep);
-	if (n == string::npos) return "";
-	return a.substr(n+1);
+    size_t n = a.find_last_of(kAddressSep);
+    if (n == string::npos) return "";
+    return a.substr(n + 1);
 }
 
 //--------------------------------------------------------------------------
-string OSCAddress::addressTail (const string& a)
+string OSCAddress::addressTail(const string& a)
 {
-	if (a[0] == kAddressSep) {
-		size_t n = a.find_first_of(kAddressSep, 1);
-		if (n != string::npos) {
-			return a.substr(n, a.size() - n);
-		}
-	}
-	return "";
+    if (a[0] == kAddressSep) {
+        size_t n = a.find_first_of(kAddressSep, 1);
+        if (n != string::npos) {
+            return a.substr(n, a.size() - n);
+        }
+    }
+    return "";
 }
 
-
-} // end namespoace
+}  // end namespoace

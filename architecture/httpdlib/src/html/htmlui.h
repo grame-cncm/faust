@@ -24,37 +24,37 @@
 #ifndef __htmlui__
 #define __htmlui__
 
+namespace httpdfaust {
+class htmlfactory;
+}
 
-namespace httpdfaust { class htmlfactory; }
+class htmlui {
+    httpdfaust::htmlfactory* fFactory;
 
-class htmlui
-{
-	httpdfaust::htmlfactory* fFactory;
+   public:
+    htmlui(const char* name, const char* address, int port);
+    virtual ~htmlui();
 
-	public:
-				 htmlui(const char *name, const char* address, int port);
-		virtual ~htmlui();
+    // -- widget's layouts
+    virtual void openTabBox(const char* label);
+    virtual void openHorizontalBox(const char* label);
+    virtual void openVerticalBox(const char* label);
+    virtual void closeBox();
 
-		// -- widget's layouts
-		virtual void openTabBox(const char* label);
-		virtual void openHorizontalBox(const char* label);
-		virtual void openVerticalBox(const char* label);
-		virtual void closeBox();
+    // -- active widgets
+    virtual void addButton(const char* label, float* zone);
+    virtual void addCheckButton(const char* label, float* zone);
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
 
-		// -- active widgets
-		virtual void addButton(const char* label, float* zone);
-		virtual void addCheckButton(const char* label, float* zone);
-		virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step);
-		virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step);
-		virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step);
+    // -- passive widgets
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
 
-		// -- passive widgets
-		virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max);
-		virtual void addVerticalBargraph(const char* label, float* zone, float min, float max);
+    // -- metadata declarations
 
-		// -- metadata declarations
-
-		virtual void declare(float*, const char*, const char*) {}
+    virtual void declare(float*, const char*, const char*) {}
 };
 
 #endif

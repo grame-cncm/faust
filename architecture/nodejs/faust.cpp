@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File 
+ FAUST API Architecture File
  Copyright (C) 2017 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -22,8 +22,9 @@
 
 using namespace v8;
 
-void InitAll(Handle<Object> exports) {
-  DspFaustNode::Init(exports);
+void InitAll(Handle<Object> exports)
+{
+    DspFaustNode::Init(exports);
 }
 
 NODE_MODULE(faust, InitAll)

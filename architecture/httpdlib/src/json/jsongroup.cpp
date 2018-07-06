@@ -25,35 +25,38 @@
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
 void jsongroup::print(std::ostream& out, jsonendl& eol) const
 {
-	out << eol << "{"; eol++;
-	out << eol << "\"type\": \"" << fType << "\",";
-	out << eol << "\"label\": \"" << fName << "\",";
-//	out << eol << "\"address\": \"" << getAddress() << "\"";
+    out << eol << "{";
+    eol++;
+    out << eol << "\"type\": \"" << fType << "\",";
+    out << eol << "\"label\": \"" << fName << "\",";
+    //	out << eol << "\"address\": \"" << getAddress() << "\"";
     if (fMeta.size()) {
-        out << eol << "\"meta\": " << "[ "; eol++;
-        TMetas::const_iterator i=fMeta.begin();
+        out << eol << "\"meta\": "
+            << "[ ";
+        eol++;
+        TMetas::const_iterator i = fMeta.begin();
         while (true) {
             out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
             if (++i == fMeta.end()) break;
-            out << ",";			
+            out << ",";
         }
         out << --eol << "],";
     }
-	out << eol << "\"items\": ["; eol++;
-	const char* sep = "";
-	for (unsigned int i=0; i< fContent.size(); i++) {
-		out << sep;
-		sep = ",";
-		fContent[i]->print(out, eol);
-	}
-	out << --eol << "]";
-	out << --eol << "}";
+    out << eol << "\"items\": [";
+    eol++;
+    const char* sep = "";
+    for (unsigned int i = 0; i < fContent.size(); i++) {
+        out << sep;
+        sep = ",";
+        fContent[i]->print(out, eol);
+    }
+    out << --eol << "]";
+    out << --eol << "}";
 }
 
-} // end namespoace
+}  // namespace httpdfaust

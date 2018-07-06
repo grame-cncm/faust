@@ -26,11 +26,10 @@
 #ifndef __HTTPDControler__
 #define __HTTPDControler__
 
-#include <string>
 #include <map>
+#include <string>
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class HTTPDSetup;
 class JSONDesc;
@@ -40,58 +39,60 @@ class htmlfactory;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief the main Faust HTTPD Lib API
-	
-	The HTTPDControler is essentially a glue between the memory representation (in charge of the FaustFactory), 
-	and the network services (in charge of HTTPDSetup).
+    \brief the main Faust HTTPD Lib API
+
+    The HTTPDControler is essentially a glue between the memory representation (in charge of the FaustFactory),
+    and the network services (in charge of HTTPDSetup).
 */
-class HTTPDControler
-{
-	int fTCPPort;				// the tcp port number
-	FaustFactory*	fFactory;	// a factory to build the memory representation
-	jsonfactory*	fJson;
-	htmlfactory*	fHtml;
-	HTTPDSetup*		fHttpd;		// the network manager
-	std::string		fHTML;		// the corresponding HTML page
-	std::map<std::string, std::string>	fCurrentMeta;	// the current meta declarations 
+class HTTPDControler {
+    int                                fTCPPort;  // the tcp port number
+    FaustFactory*                      fFactory;  // a factory to build the memory representation
+    jsonfactory*                       fJson;
+    htmlfactory*                       fHtml;
+    HTTPDSetup*                        fHttpd;        // the network manager
+    std::string                        fHTML;         // the corresponding HTML page
+    std::map<std::string, std::string> fCurrentMeta;  // the current meta declarations
 
-    bool            fInit;
-    
-	public:
-		/*
-			base udp port is chosen in an unassigned range from IANA PORT NUMBERS (last updated 2011-01-24)
-			see at http://www.iana.org/assignments/port-numbers
-			5507-5552  Unassigned
-		*/
-		enum { kTCPBasePort = 5510};
+    bool fInit;
 
-				 HTTPDControler(int argc, char *argv[], const char* applicationname, bool init = true);
-		virtual ~HTTPDControler();
-	
-		//--------------------------------------------------------------------------
-		// addnode, opengroup and closegroup are simply relayed to the factory
-		//--------------------------------------------------------------------------
-		template <typename C> void addnode(const char* type, const char* label, C* zone);
-		template <typename C> void addnode(const char* type, const char* label, C* zone, C min, C max);
-		template <typename C> void addnode(const char* type, const char* label, C* zone, C init, C min, C max, C step);
-							  void declare(const char* key, const char* val ) { fCurrentMeta[key] = val; }
+   public:
+    /*
+        base udp port is chosen in an unassigned range from IANA PORT NUMBERS (last updated 2011-01-24)
+        see at http://www.iana.org/assignments/port-numbers
+        5507-5552  Unassigned
+    */
+    enum { kTCPBasePort = 5510 };
 
-		void opengroup(const char* type, const char* label);
-		void closegroup();
+    HTTPDControler(int argc, char* argv[], const char* applicationname, bool init = true);
+    virtual ~HTTPDControler();
 
-		//--------------------------------------------------------------------------
-		void run();				// start the httpd server
-		void stop();			// stop the httpd server
-		
-		int	getTCPPort()			{ return fTCPPort; }
-        std::string getJSON();
-        void        setInputs(int numInputs);
-        void        setOutputs(int numOutputs);
+    //--------------------------------------------------------------------------
+    // addnode, opengroup and closegroup are simply relayed to the factory
+    //--------------------------------------------------------------------------
+    template <typename C>
+    void addnode(const char* type, const char* label, C* zone);
+    template <typename C>
+    void addnode(const char* type, const char* label, C* zone, C min, C max);
+    template <typename C>
+    void addnode(const char* type, const char* label, C* zone, C init, C min, C max, C step);
+    void declare(const char* key, const char* val) { fCurrentMeta[key] = val; }
 
-		static float version();				// the Faust httpd library version number
-		static const char* versionstr();	// the Faust httpd library version number as a string
+    void opengroup(const char* type, const char* label);
+    void closegroup();
+
+    //--------------------------------------------------------------------------
+    void run();   // start the httpd server
+    void stop();  // stop the httpd server
+
+    int         getTCPPort() { return fTCPPort; }
+    std::string getJSON();
+    void        setInputs(int numInputs);
+    void        setOutputs(int numOutputs);
+
+    static float       version();     // the Faust httpd library version number
+    static const char* versionstr();  // the Faust httpd library version number as a string
 };
 
-}
+}  // namespace httpdfaust
 
 #endif

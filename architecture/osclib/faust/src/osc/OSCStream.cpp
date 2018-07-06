@@ -16,22 +16,21 @@
 
   Grame Research Laboratory, 9, rue du Garet 69001 Lyon - France
   research@grame.fr
-  
+
 */
 
-#include <iostream>
 #include "OSCStream.h"
+#include <iostream>
 
 using namespace std;
 
-namespace oscfaust
-{
+namespace oscfaust {
 
-OSCStream* _oscout = 0;				// OSC standard output stream
-OSCStream* _oscerr = 0;				// OSC standard error stream
+OSCStream* _oscout = 0;  // OSC standard output stream
+OSCStream* _oscerr = 0;  // OSC standard error stream
 
-static UdpSocket* _socket = 0;		// a shared transmit socket
-int OSCStream::fRefCount = 0;
+static UdpSocket* _socket              = 0;  // a shared transmit socket
+int               OSCStream::fRefCount = 0;
 
 //--------------------------------------------------------------------------
 void OSCStream::start()
@@ -62,51 +61,62 @@ void OSCStream::stop()
 //--------------------------------------------------------------------------
 void OSCStream::setAddress(const string& address)
 {
-	IpEndpointName dst(address.c_str());
-	setAddress(dst.address);
+    IpEndpointName dst(address.c_str());
+    setAddress(dst.address);
 }
 
 //--------------------------------------------------------------------------
 OSCStream& OSCStream::start(const char* address)
-{ 
-	stream().Clear();
-	if (!stream().IsReady()) cerr << "OSCStream OutboundPacketStream not ready" << endl;
-	stream() << osc::BeginMessage(address); 
-	fState = kInProgress;
-	return *this;
+{
+    stream().Clear();
+    if (!stream().IsReady()) cerr << "OSCStream OutboundPacketStream not ready" << endl;
+    stream() << osc::BeginMessage(address);
+    fState = kInProgress;
+    return *this;
 }
 
 //--------------------------------------------------------------------------
 OSCStream& OSCStream::end()
 {
-	send (fAddress, fPort);
-	return *this;
+    send(fAddress, fPort);
+    return *this;
 }
 
 //--------------------------------------------------------------------------
 void OSCStream::send(unsigned long ipdest, int port)
 {
-	if (state() == kInProgress) {
-		stream() << osc::EndMessage;
-		if (fSocket) {
-			fSocket->SendTo(IpEndpointName (ipdest, port), stream().Data(), stream().Size());
+    if (state() == kInProgress) {
+        stream() << osc::EndMessage;
+        if (fSocket) {
+            fSocket->SendTo(IpEndpointName(ipdest, port), stream().Data(), stream().Size());
         }
-		fState = kIdle;
-	}
+        fState = kIdle;
+    }
 }
 
 //--------------------------------------------------------------------------
-OSCStream& operator <<(OSCStream& s, const string& val)	
-{ 
-	s.stream() << val.c_str();
-	return s; 
+OSCStream& operator<<(OSCStream& s, const string& val)
+{
+    s.stream() << val.c_str();
+    return s;
 }
 
 //--------------------------------------------------------------------------
-OSCStream& operator <<(OSCStream& s, const OSCErr& val)		{ return s.start(val.fAddress); }
-OSCStream& operator <<(OSCStream& s, const OSCWarn& val)	{ return s.start(val.fAddress); }
-OSCStream& operator <<(OSCStream& s, const OSCStart& val)	{ return s.start(val.fAddress); }
-OSCStream& operator <<(OSCStream& s, const OSCEnd val)		{ return s.end(); }
+OSCStream& operator<<(OSCStream& s, const OSCErr& val)
+{
+    return s.start(val.fAddress);
+}
+OSCStream& operator<<(OSCStream& s, const OSCWarn& val)
+{
+    return s.start(val.fAddress);
+}
+OSCStream& operator<<(OSCStream& s, const OSCStart& val)
+{
+    return s.start(val.fAddress);
+}
+OSCStream& operator<<(OSCStream& s, const OSCEnd val)
+{
+    return s.end();
+}
 
-} // end namespace
-
+}  // namespace oscfaust

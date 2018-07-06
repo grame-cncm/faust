@@ -21,44 +21,41 @@
 
 */
 
-
 #ifndef __OSCIO__
 #define __OSCIO__
 
 #include <string>
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
 // build in support
 //--------------------------------------------------------------------------
 //--------------------------------------------------------------------------
 /*!
-	\brief build in support for osc audio input / output
+    \brief build in support for osc audio input / output
 */
-class OSCIO
-{	
-	std::string	fDest;			// the output destination osc address
-	public:
-				 OSCIO(const char *dst) : fDest(dst) {}
-		virtual ~OSCIO() {} 
+class OSCIO {
+    std::string fDest;  // the output destination osc address
+   public:
+    OSCIO(const char *dst) : fDest(dst) {}
+    virtual ~OSCIO() {}
 
-		virtual void	receive( int nframes, float * val ) = 0;
-		virtual int		numOutputs() const = 0;
-		virtual int		numInputs() const = 0;
-		
-		/*!
-			\brief send audio frames on osc out
-			\param nframes the frames count
-			\param val		a pointer to the frames values
-			\param chan		the current channel number (used as part of the dest osc address)
-		*/
-		virtual void 	send ( int nframes, float * val, int chan ) const;
-		const char* 	dest () const				{ return fDest.c_str(); }
-		void			setDest (const char *dst)	{ fDest = dst; }
+    virtual void receive(int nframes, float *val) = 0;
+    virtual int  numOutputs() const               = 0;
+    virtual int  numInputs() const                = 0;
+
+    /*!
+        \brief send audio frames on osc out
+        \param nframes the frames count
+        \param val		a pointer to the frames values
+        \param chan		the current channel number (used as part of the dest osc address)
+    */
+    virtual void send(int nframes, float *val, int chan) const;
+    const char * dest() const { return fDest.c_str(); }
+    void         setDest(const char *dst) { fDest = dst; }
 };
 
-} // end namespoace
+}  // namespace oscfaust
 
 #endif

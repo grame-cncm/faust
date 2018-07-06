@@ -25,54 +25,56 @@
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //______________________________________________________________________________
-ostream& operator<< (ostream& os, const jsonendl& endl)
+ostream& operator<<(ostream& os, const jsonendl& endl)
 {
     endl.print(os);
     return os;
 }
 
 //______________________________________________________________________________
-void jsonendl::print(std::ostream& os) const { 
-	int i = fIndent;
+void jsonendl::print(std::ostream& os) const
+{
+    int i = fIndent;
     os << std::endl;
-    while (i-- > 0)  os << "	";
+    while (i-- > 0) os << "	";
 }
 
 //--------------------------------------------------------------------------
 void jsonroot::print(std::ostream& out) const
 {
-	jsonendl eol;
-	out << "{" << eol++;
-	out << "\"name\": \"" << fName << "\"," << eol;
-	out << "\"address\": \"" << fAddress << "\"," << eol;
-	out << "\"port\": \"" << fPort << "\"," << eol;
-	out << "\"inputs\": \"" << fInputs << "\"," << eol;
-	out << "\"outputs\": \"" << fOutputs << "\"," << eol;
+    jsonendl eol;
+    out << "{" << eol++;
+    out << "\"name\": \"" << fName << "\"," << eol;
+    out << "\"address\": \"" << fAddress << "\"," << eol;
+    out << "\"port\": \"" << fPort << "\"," << eol;
+    out << "\"inputs\": \"" << fInputs << "\"," << eol;
+    out << "\"outputs\": \"" << fOutputs << "\"," << eol;
 
-	if (fMeta.size()) {
-		out << "\"meta\": [ "; eol++;
-		map<string, string>::const_iterator i=fMeta.begin();
-		while (true) {
-			out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
-			if (++i == fMeta.end()) break;
-			out << ",";			
-		}
-		out << --eol << "]," << eol;
-	}
+    if (fMeta.size()) {
+        out << "\"meta\": [ ";
+        eol++;
+        map<string, string>::const_iterator i = fMeta.begin();
+        while (true) {
+            out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
+            if (++i == fMeta.end()) break;
+            out << ",";
+        }
+        out << --eol << "]," << eol;
+    }
 
-	out << "\"ui\": ["; eol++;
-	const char* sep = "";
-	for (unsigned int i=0; i< fUi.size(); i++) {
-		out << sep;
-		sep = ",";
-		fUi[i]->print(out, eol);
-	}
-	out << --eol << "]";
-	out << --eol << "}" << eol;
+    out << "\"ui\": [";
+    eol++;
+    const char* sep = "";
+    for (unsigned int i = 0; i < fUi.size(); i++) {
+        out << sep;
+        sep = ",";
+        fUi[i]->print(out, eol);
+    }
+    out << --eol << "]";
+    out << --eol << "}" << eol;
 }
 
-} // end namespoace
+}  // namespace httpdfaust

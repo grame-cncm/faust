@@ -48,20 +48,20 @@
  ************************************************************************
  ************************************************************************/
 
-#include <stdlib.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
 #include "AUInstrumentBase.h"
+#include "FaustAU.h"
 #include "FaustAUVersion.h"
 #include "faust/misc.h"
-#include "FaustAU.h"
 
 using namespace std;
 
-static const UInt32 kNumNotes = 32;
+static const UInt32 kNumNotes       = 32;
 static const UInt32 kMaxActiveNotes = 32;
 
 /******************************************************************************
@@ -72,121 +72,97 @@ static const UInt32 kMaxActiveNotes = 32;
  *******************************************************************************
  *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-class FaustAUInstrument;
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    class FaustAUInstrument;
 
-struct FaustAUInstrumentNote : public SynthNote
-{
-
+struct FaustAUInstrumentNote : public SynthNote {
     FaustAUInstrumentNote();
     virtual ~FaustAUInstrumentNote();
 
-    virtual OSStatus Initialize();
-    virtual bool Attack(const MusicDeviceNoteParams &inParams);
-    virtual void Kill(UInt32 inFrame); // voice is being stolen.
-    virtual void Release(UInt32 inFrame);
-    virtual void FastRelease(UInt32 inFrame);
-    void ReleaseAux();
-    virtual Float32 Amplitude()
-    {
-        return amp;
-    } // used for finding quietest note for voice stealing.
-    virtual OSStatus Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames,
-                            AudioBufferList** inBufferList, UInt32 inOutBusCount);
+    virtual OSStatus   Initialize();
+    virtual bool       Attack(const MusicDeviceNoteParams& inParams);
+    virtual void       Kill(UInt32 inFrame);  // voice is being stolen.
+    virtual void       Release(UInt32 inFrame);
+    virtual void       FastRelease(UInt32 inFrame);
+    void               ReleaseAux();
+    virtual Float32    Amplitude() { return amp; }  // used for finding quietest note for voice stealing.
+    virtual OSStatus   Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames, AudioBufferList** inBufferList,
+                              UInt32 inOutBusCount);
     FaustAUInstrument* synth;
-    double amp;
-   
-    auUI* dspUI = NULL;
-    mydsp* dsp = NULL;
-    double fSampleRate = -1;
+    double             amp;
 
+    auUI*  dspUI       = NULL;
+    mydsp* dsp         = NULL;
+    double fSampleRate = -1;
 };
 
-class FaustAUInstrument: public AUMonotimbralInstrumentBase
-{
-
-public:
-
+class FaustAUInstrument : public AUMonotimbralInstrumentBase {
+   public:
     FaustAUInstrument(ComponentInstance inComponentInstance);
     virtual ~FaustAUInstrument();
 
     virtual OSStatus Initialize();
-    virtual void Cleanup();
-    virtual OSStatus Version()
-    {
-        return kFaustAUVersion;
-    }
+    virtual void     Cleanup();
+    virtual OSStatus Version() { return kFaustAUVersion; }
 
-    virtual AUElement* CreateElement(AudioUnitScope scope,
-                                     AudioUnitElement element);
+    virtual AUElement* CreateElement(AudioUnitScope scope, AudioUnitElement element);
 
-    virtual OSStatus GetPropertyInfo (AudioUnitPropertyID inID,
-                                      AudioUnitScope inScope,
-                                      AudioUnitElement inElement,
-                                      UInt32& outDataSize,
-                                      Boolean& outWritable);
+    virtual OSStatus GetPropertyInfo(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                     UInt32& outDataSize, Boolean& outWritable);
 
-    virtual OSStatus GetProperty(AudioUnitPropertyID inID,
-                                 AudioUnitScope inScope,
-                                 AudioUnitElement inElement,
+    virtual OSStatus GetProperty(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
                                  void* outData);
 
-    virtual OSStatus GetParameterInfo(AudioUnitScope inScope,
-                                      AudioUnitParameterID inParameterID,
+    virtual OSStatus GetParameterInfo(AudioUnitScope inScope, AudioUnitParameterID inParameterID,
                                       AudioUnitParameterInfo& outParameterInfo);
 
-    void SetParameter(AudioUnitParameterID paramID,
-                      AudioUnitParameterValue value);
+    void SetParameter(AudioUnitParameterID paramID, AudioUnitParameterValue value);
 
-    virtual OSStatus SetParameter(AudioUnitParameterID inID,
-                                  AudioUnitScope inScope, AudioUnitElement inElement,
+    virtual OSStatus SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope, AudioUnitElement inElement,
                                   AudioUnitParameterValue inValue, UInt32);
 
     MidiControls* GetControls(MusicDeviceGroupID inChannel)
     {
-        SynthGroupElement *group = GetElForGroupID(inChannel);
-        return (MidiControls *) group->GetMIDIControlHandler();
+        SynthGroupElement* group = GetElForGroupID(inChannel);
+        return (MidiControls*)group->GetMIDIControlHandler();
     }
 
     mydsp* dsp = NULL;
-    
+
     float freqMin = 0.0;
     float freqMax = 1.0;
-    
+
     int frequencyParameterID = -1;
-    int gateParameterID = -1;
-    int gainParameterID = -1;
+    int gateParameterID      = -1;
+    int gainParameterID      = -1;
 
-private:
-
+   private:
     FaustAUInstrumentNote mNotes[kNumNotes];
-    auUI* dspUI = NULL;
-
+    auUI*                 dspUI = NULL;
 };
 
 bool FaustAUInstrumentNote::Attack(const MusicDeviceNoteParams& inParams)
 {
     amp = inParams.mVelocity / 127.;
-    if (synth->gateParameterID != -1)
-    {
+    if (synth->gateParameterID != -1) {
         double sr = SampleRate();
         if (fSampleRate != sr) {
             dsp->init(int(sr));
             fSampleRate = sr;
         }
-        auUIObject* gate = (auUIObject*) dspUI->fUITable[synth->gateParameterID];
+        auUIObject* gate = (auUIObject*)dspUI->fUITable[synth->gateParameterID];
         if (gate) {
-            gate->SetValue(1.0); // Tell Faust code to enter "attack" phase
+            gate->SetValue(1.0);  // Tell Faust code to enter "attack" phase
         }
     }
     return true;
@@ -196,42 +172,32 @@ bool FaustAUInstrumentNote::Attack(const MusicDeviceNoteParams& inParams)
 
 AUDIOCOMPONENT_ENTRY(AUMusicDeviceFactory, FaustAU)
 
-//TODO set the output channels
+// TODO set the output channels
 FaustAUInstrument::FaustAUInstrument(ComponentInstance inComponentInstance)
     : AUMonotimbralInstrumentBase(inComponentInstance, 0, 1)
 {
     CreateElements();
 
     dspUI = new auUI();
-    dsp = new mydsp();
+    dsp   = new mydsp();
 
-    //int inChannels = dsp->getNumInputs();
-    //int outChannels = dsp->getNumOutputs();
-    //SetParamHasSampleRateDependency(true);
+    // int inChannels = dsp->getNumInputs();
+    // int outChannels = dsp->getNumOutputs();
+    // SetParamHasSampleRateDependency(true);
 
     dsp->buildUserInterface(dspUI);
     Globals()->UseIndexedParameters(dspUI->fUITable.size());
 
-    if (dspUI)
-    {
-        for (int i = 0; i < dspUI->fUITable.size(); i++)
-        {
-            if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
-            {
-                if (dynamic_cast<auButton*>(dspUI->fUITable[i]))
-                {
+    if (dspUI) {
+        for (int i = 0; i < dspUI->fUITable.size(); i++) {
+            if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone) {
+                if (dynamic_cast<auButton*>(dspUI->fUITable[i])) {
                     Globals()->SetParameter(i, 0);
-                }
-                else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[i]))
-                {
+                } else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[i])) {
                     Globals()->SetParameter(i, 0);
-                }
-                else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[i]))
-                {
+                } else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[i])) {
                     Globals()->SetParameter(i, 0);
-                }
-                else
-                {
+                } else {
                     auSlider* slider = (auSlider*)dspUI->fUITable[i];
                     Globals()->SetParameter(i, slider->fInit);
                 }
@@ -247,14 +213,14 @@ FaustAUInstrument::~FaustAUInstrument()
 }
 
 void FaustAUInstrument::Cleanup()
-{}
+{
+}
 
 OSStatus FaustAUInstrument::Initialize()
 {
     OSStatus result = AUMonotimbralInstrumentBase::Initialize();
 
-    for (int i = 0; i < kNumNotes; i++)
-    {
+    for (int i = 0; i < kNumNotes; i++) {
         mNotes[i].Initialize();
         mNotes[i].synth = this;
     }
@@ -265,8 +231,7 @@ OSStatus FaustAUInstrument::Initialize()
 
 AUElement* FaustAUInstrument::CreateElement(AudioUnitScope scope, AudioUnitElement element)
 {
-    switch (scope)
-    {
+    switch (scope) {
         case kAudioUnitScope_Group:
             return new SynthGroupElement(this, element, new MidiControls);
         case kAudioUnitScope_Part:
@@ -276,109 +241,89 @@ AUElement* FaustAUInstrument::CreateElement(AudioUnitScope scope, AudioUnitEleme
     }
 }
 
-OSStatus FaustAUInstrument::GetPropertyInfo(AudioUnitPropertyID inID,
-        AudioUnitScope inScope,
-        AudioUnitElement inElement,
-        UInt32& outDataSize,
-        Boolean& outWritable)
+OSStatus FaustAUInstrument::GetPropertyInfo(AudioUnitPropertyID inID, AudioUnitScope inScope,
+                                            AudioUnitElement inElement, UInt32& outDataSize, Boolean& outWritable)
 {
     if (inScope == kAudioUnitScope_Global) {
-
-        switch (inID)
-        {
+        switch (inID) {
             case kAudioUnitProperty_CocoaUI:
                 outWritable = false;
-                outDataSize = sizeof (AudioUnitCocoaViewInfo);
+                outDataSize = sizeof(AudioUnitCocoaViewInfo);
                 return noErr;
 
-            case kAudioUnitCustomProperty_dspUI:
-            {
-                if (inScope != kAudioUnitScope_Global ) return kAudioUnitErr_InvalidScope;
+            case kAudioUnitCustomProperty_dspUI: {
+                if (inScope != kAudioUnitScope_Global) return kAudioUnitErr_InvalidScope;
                 outWritable = false;
-                outDataSize = sizeof (int*);
+                outDataSize = sizeof(int*);
                 return noErr;
             }
         }
     }
 
-    return AUInstrumentBase::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
+    return AUInstrumentBase::GetPropertyInfo(inID, inScope, inElement, outDataSize, outWritable);
 }
 
-OSStatus FaustAUInstrument::GetProperty(AudioUnitPropertyID inID,
-        AudioUnitScope inScope,
-        AudioUnitElement inElement,
-        void* outData)
+OSStatus FaustAUInstrument::GetProperty(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                        void* outData)
 {
-    switch (inID)
-    {
-
+    switch (inID) {
         // This property allows the host application to find the UI associated with this AudioUnit
-        case kAudioUnitProperty_CocoaUI:
-        {
+        case kAudioUnitProperty_CocoaUI: {
             // Look for a resource in the main bundle by name and type.
-            CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("com.grame.audiounit.FaustAU") );
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.audiounit.FaustAU"));
 
             if (bundle == NULL) return fnfErr;
 
-            CFURLRef bundleURL = CFBundleCopyResourceURL(bundle,
-                                 CFSTR("FaustAUCustomView"),	// this is the name of the cocoa bundle as specified in the CocoaViewFactory.plist
-                                 CFSTR("bundle"),			// this is the extension of the cocoa bundle
-                                 NULL);
+            CFURLRef bundleURL =
+                CFBundleCopyResourceURL(bundle,
+                                        CFSTR("FaustAUCustomView"),  // this is the name of the cocoa bundle as
+                                                                     // specified in the CocoaViewFactory.plist
+                                        CFSTR("bundle"),             // this is the extension of the cocoa bundle
+                                        NULL);
 
             if (bundleURL == NULL) return fnfErr;
 
-            CFStringRef className = CFSTR("FaustAU_CustomViewFactory");	// name of the main class that implements the AUCocoaUIBase protocol
-            AudioUnitCocoaViewInfo cocoaInfo = { bundleURL, { className }};
-            *((AudioUnitCocoaViewInfo *)outData) = cocoaInfo;
+            CFStringRef className = CFSTR(
+                "FaustAU_CustomViewFactory");  // name of the main class that implements the AUCocoaUIBase protocol
+            AudioUnitCocoaViewInfo cocoaInfo    = {bundleURL, {className}};
+            *((AudioUnitCocoaViewInfo*)outData) = cocoaInfo;
             return noErr;
         }
 
         // This is our custom property which reports the dspUI
-        case kAudioUnitCustomProperty_dspUI:
-        {
-            if(inScope != kAudioUnitScope_Global)
-                return kAudioUnitErr_InvalidScope;
+        case kAudioUnitCustomProperty_dspUI: {
+            if (inScope != kAudioUnitScope_Global) return kAudioUnitErr_InvalidScope;
 
             // the kernels are only created if we are initialized
             // since we're using the kernels to get the curve info, let
             // the caller know we can't do it if we're un-initialized
             // the UI should check for the error and not draw the curve in this case
             if (!IsInitialized()) return kAudioUnitErr_Uninitialized;
-            *((auUI**)outData)= mNotes[0].dspUI; //TODO
+            *((auUI**)outData) = mNotes[0].dspUI;  // TODO
             return noErr;
         }
     }
 
     // if we've gotten this far, handles the standard properties
-    return AUInstrumentBase::GetProperty (inID, inScope, inElement, outData);
+    return AUInstrumentBase::GetProperty(inID, inScope, inElement, outData);
 }
 
-OSStatus FaustAUInstrument::GetParameterInfo(AudioUnitScope inScope,
-        AudioUnitParameterID inParameterID,
-        AudioUnitParameterInfo& outParameterInfo)
+OSStatus FaustAUInstrument::GetParameterInfo(AudioUnitScope inScope, AudioUnitParameterID inParameterID,
+                                             AudioUnitParameterInfo& outParameterInfo)
 {
-
-    OSStatus result = noErr;
-    char name[100];
+    OSStatus    result = noErr;
+    char        name[100];
     CFStringRef str;
 
-    outParameterInfo.flags = kAudioUnitParameterFlag_IsWritable
-                             + kAudioUnitParameterFlag_IsReadable;
+    outParameterInfo.flags = kAudioUnitParameterFlag_IsWritable + kAudioUnitParameterFlag_IsReadable;
 
-    if (inScope == kAudioUnitScope_Global)
-    {
-
-        if (dspUI && dspUI->fUITable[inParameterID]
-                && dspUI->fUITable[inParameterID]->fZone)
-        {
-
+    if (inScope == kAudioUnitScope_Global) {
+        if (dspUI && dspUI->fUITable[inParameterID] && dspUI->fUITable[inParameterID]->fZone) {
             if (dynamic_cast<auButton*>(dspUI->fUITable[inParameterID]) ||
                 dynamic_cast<auToggleButton*>(dspUI->fUITable[inParameterID]) ||
-                dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID]))
-            {
+                dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID])) {
                 dspUI->fUITable[inParameterID]->GetName(name);
-                if (strcmp(name, "gate") == 0)
-                {
+                if (strcmp(name, "gate") == 0) {
                     // Faust synth modules use "gate" as the name for the parameter
                     // to be set to 1 by MIDI-in NoteOn and set to 0 by NoteOff.
                     // We leave it in the AU GUI for manual testing w/o MIDI.
@@ -386,84 +331,70 @@ OSStatus FaustAUInstrument::GetParameterInfo(AudioUnitScope inScope,
                 }
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-                outParameterInfo.minValue = 0;
-                outParameterInfo.maxValue = 1;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Boolean;
+                outParameterInfo.minValue     = 0;
+                outParameterInfo.maxValue     = 1;
                 outParameterInfo.defaultValue = 0;
-            }
-            else
-            {
-                auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
+            } else {
+                auSlider* slider = (auSlider*)dspUI->fUITable[inParameterID];
                 slider->GetName(name);
-                if (strcmp(name, "gain") == 0)
-                {
+                if (strcmp(name, "gain") == 0) {
                     // Faust synth modules use "gain" as the name for the parameter
                     // to be set by MIDI-in NoteOn key velocity:
                     // We leave it in the AU GUI for manual testing w/o MIDI.
                     gainParameterID = inParameterID;
                     // gainMin = slider->fMin;
                     // gainMax = slider->fMax;
-                }
-                else if (strcmp(name, "freq") == 0)
-                {
+                } else if (strcmp(name, "freq") == 0) {
                     frequencyParameterID = inParameterID;
-                    freqMin = slider->fMin;
-                    freqMax = slider->fMax;
+                    freqMin              = slider->fMin;
+                    freqMax              = slider->fMax;
                 }
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-                outParameterInfo.minValue = slider->fMin;
-                outParameterInfo.maxValue = slider->fMax;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Generic;
+                outParameterInfo.minValue     = slider->fMin;
+                outParameterInfo.maxValue     = slider->fMax;
                 outParameterInfo.defaultValue = slider->fInit;
             }
         }
-    }
-    else
-    {
+    } else {
         result = kAudioUnitErr_InvalidParameter;
     }
     return result;
 }
 
-OSStatus FaustAUInstrument::SetParameter(AudioUnitParameterID inID,
-        AudioUnitScope inScope, AudioUnitElement inElement,
-        AudioUnitParameterValue inValue, UInt32 inBufferOffsetInFrames)
+OSStatus FaustAUInstrument::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                         AudioUnitParameterValue inValue, UInt32 inBufferOffsetInFrames)
 {
-    if (inScope == kAudioUnitScope_Global)
-    {
-
-        if (dspUI)
-        {
+    if (inScope == kAudioUnitScope_Global) {
+        if (dspUI) {
             if (dspUI->fUITable[inID] && dspUI->fUITable[inID]->fZone)
 
-                *(dspUI->fUITable[inID]->fZone) = (FAUSTFLOAT) inValue;
+                *(dspUI->fUITable[inID]->fZone) = (FAUSTFLOAT)inValue;
 
-            for (int i = 0; i < kNumNotes; i++)
-            {
-                if (mNotes[i].dspUI)
-                    *(mNotes[i].dspUI->fUITable[inID]->fZone) =
-                        (FAUSTFLOAT) inValue;
+            for (int i = 0; i < kNumNotes; i++) {
+                if (mNotes[i].dspUI) *(mNotes[i].dspUI->fUITable[inID]->fZone) = (FAUSTFLOAT)inValue;
             }
         }
     }
 
-    return AUMonotimbralInstrumentBase::SetParameter(inID, inScope, inElement,
-            inValue, inBufferOffsetInFrames);
+    return AUMonotimbralInstrumentBase::SetParameter(inID, inScope, inElement, inValue, inBufferOffsetInFrames);
 }
 
 /**********************************************************************************/
 
-FaustAUInstrumentNote::FaustAUInstrumentNote():SynthNote()
-{}
+FaustAUInstrumentNote::FaustAUInstrumentNote() : SynthNote()
+{
+}
 
 OSStatus FaustAUInstrumentNote::Initialize()
 {
     dspUI = new auUI();
-    dsp = new mydsp();
+    dsp   = new mydsp();
     dsp->buildUserInterface(dspUI);
     // SampleRate() cannot be used here, to moved in Attack
- 
+
     return noErr;
 }
 
@@ -475,13 +406,11 @@ FaustAUInstrumentNote::~FaustAUInstrumentNote()
 
 void FaustAUInstrumentNote::ReleaseAux()
 {
-    if (synth->gateParameterID != -1)
-    {
-        if (dspUI)
-        {
-            auUIObject* gate = (auUIObject*) dspUI->fUITable[synth->gateParameterID];
+    if (synth->gateParameterID != -1) {
+        if (dspUI) {
+            auUIObject* gate = (auUIObject*)dspUI->fUITable[synth->gateParameterID];
             if (gate) {
-                gate->SetValue(0.0); // Tell Faust code to enter "release" phase
+                gate->SetValue(0.0);  // Tell Faust code to enter "release" phase
             }
         }
     }
@@ -493,20 +422,19 @@ void FaustAUInstrumentNote::Release(UInt32 inFrame)
     SynthNote::Release(inFrame);
 }
 
-void FaustAUInstrumentNote::FastRelease(UInt32 inFrame) // voice is being stolen.
+void FaustAUInstrumentNote::FastRelease(UInt32 inFrame)  // voice is being stolen.
 {
     ReleaseAux();
     SynthNote::Release(inFrame);
 }
 
-void FaustAUInstrumentNote::Kill(UInt32 inFrame) // voice is being stolen.
+void FaustAUInstrumentNote::Kill(UInt32 inFrame)  // voice is being stolen.
 {
     ReleaseAux();
     SynthNote::Kill(inFrame);
 }
 
-OSStatus FaustAUInstrumentNote::Render(UInt64 inAbsoluteSampleFrame,
-                                       UInt32 inNumFrames, AudioBufferList** inBufferList,
+OSStatus FaustAUInstrumentNote::Render(UInt64 inAbsoluteSampleFrame, UInt32 inNumFrames, AudioBufferList** inBufferList,
                                        UInt32 inOutBusCount)
 {
     int MAX_OUT_CHANNELS = 1000;
@@ -514,44 +442,37 @@ OSStatus FaustAUInstrumentNote::Render(UInt64 inAbsoluteSampleFrame,
     float* outBuffer[MAX_OUT_CHANNELS];
     float* audioData[MAX_OUT_CHANNELS];
 
-    int inChannels = dsp->getNumInputs();
+    int inChannels  = dsp->getNumInputs();
     int outChannels = dsp->getNumOutputs();
 
     // bus number is assumed to be zero
-    for (int i = 0; i < outChannels; i++)
-    {
+    for (int i = 0; i < outChannels; i++) {
         outBuffer[i] = new float[inNumFrames];
         audioData[i] = (float*)inBufferList[0]->mBuffers[i].mData;
     }
 
-    if (synth)
-    {
+    if (synth) {
         auSlider* frequencySlider = NULL;
-        if (synth->frequencyParameterID != -1)
-        {
+        if (synth->frequencyParameterID != -1) {
             if (dspUI) {
-                frequencySlider = (auSlider*) dspUI->fUITable[synth->frequencyParameterID];
+                frequencySlider = (auSlider*)dspUI->fUITable[synth->frequencyParameterID];
             }
             if (frequencySlider) {
-                //TODO change the SetValue function call accordingly
+                // TODO change the SetValue function call accordingly
                 frequencySlider->SetValue((Frequency() - synth->freqMin) / (synth->freqMax - synth->freqMin));
-                //frequencySlider->SetValue((float) GetMidiKey() / 88.0);
+                // frequencySlider->SetValue((float) GetMidiKey() / 88.0);
             }
         }
 
         dsp->compute(inNumFrames, audioData, outBuffer);
     }
-    switch (GetState())
-    {
+    switch (GetState()) {
         case kNoteState_Attacked:
         case kNoteState_Sostenutoed:
         case kNoteState_ReleasedButSostenutoed:
-        case kNoteState_ReleasedButSustained:
-        {
-            for (int i = 0; i < outChannels; i++)
-            {
-                for (UInt32 frame = 0; frame < inNumFrames; ++frame)
-                {
+        case kNoteState_ReleasedButSustained: {
+            for (int i = 0; i < outChannels; i++) {
+                for (UInt32 frame = 0; frame < inNumFrames; ++frame) {
                     audioData[i][frame] += outBuffer[i][frame] * amp;
                 }
             }
@@ -559,8 +480,7 @@ OSStatus FaustAUInstrumentNote::Render(UInt64 inAbsoluteSampleFrame,
         }
 
         case kNoteState_Released:
-        case kNoteState_FastReleased:
-        {
+        case kNoteState_FastReleased: {
             NoteEnded(0xFFFFFFFF);
             break;
         }

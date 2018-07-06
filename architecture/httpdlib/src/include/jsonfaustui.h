@@ -24,63 +24,64 @@
 #ifndef __jsonfaustui__
 #define __jsonfaustui__
 
-#include "faust/gui/meta.h"
-#include "faust/gui/UI.h"
 #include <string>
+#include "faust/gui/UI.h"
+#include "faust/gui/meta.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
-template <typename C> class jsonui;
- 
-class jsonfaustui : public UI, public Meta
-{
-	jsonui<FAUSTFLOAT>* fJSON;
-    
-	public:
+template <typename C>
+class jsonui;
 
-        jsonfaustui(const char *name, const char* address, int port);
-		virtual ~jsonfaustui();
+class jsonfaustui : public UI, public Meta {
+    jsonui<FAUSTFLOAT>* fJSON;
 
-		//--------------------------------------------
-		// UI methods
-		//--------------------------------------------
-		// -- widget's layouts
-		virtual void openTabBox(const char* label);
-		virtual void openHorizontalBox(const char* label);
-		virtual void openVerticalBox(const char* label);
-		virtual void closeBox();
+   public:
+    jsonfaustui(const char* name, const char* address, int port);
+    virtual ~jsonfaustui();
 
-		// -- active widgets
-		void addButton(const char* label, FAUSTFLOAT* zone);
-		void addCheckButton(const char* label, FAUSTFLOAT* zone);
-		void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-		void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
-		void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step);
+    //--------------------------------------------
+    // UI methods
+    //--------------------------------------------
+    // -- widget's layouts
+    virtual void openTabBox(const char* label);
+    virtual void openHorizontalBox(const char* label);
+    virtual void openVerticalBox(const char* label);
+    virtual void closeBox();
 
-		// -- passive widgets
-		void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
-		void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max);
-    
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+    // -- active widgets
+    void addButton(const char* label, FAUSTFLOAT* zone);
+    void addCheckButton(const char* label, FAUSTFLOAT* zone);
+    void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                           FAUSTFLOAT step);
+    void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                             FAUSTFLOAT step);
+    void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                     FAUSTFLOAT step);
 
-		// -- metadata declarations
-		void declare(FAUSTFLOAT*, const char*, const char*);
+    // -- passive widgets
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max);
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, float min, float max);
 
-		//--------------------------------------------
-		// additionnal methods (not part of UI)
-		//--------------------------------------------
-		void numInput(int n);			// should be called with the inputs number
-		void numOutput(int n);          // should be called with the outputs number
-		void declare(const char* , const char*); // global metadata declaration
+    // -- soundfiles
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
-		//--------------------------------------------
-		// and eventually how to get the json as a string
-		//--------------------------------------------
-		std::string	json(bool flatten);
+    // -- metadata declarations
+    void declare(FAUSTFLOAT*, const char*, const char*);
+
+    //--------------------------------------------
+    // additionnal methods (not part of UI)
+    //--------------------------------------------
+    void numInput(int n);                    // should be called with the inputs number
+    void numOutput(int n);                   // should be called with the outputs number
+    void declare(const char*, const char*);  // global metadata declaration
+
+    //--------------------------------------------
+    // and eventually how to get the json as a string
+    //--------------------------------------------
+    std::string json(bool flatten);
 };
 
-} //end namespace
+}  // namespace httpdfaust
 
 #endif

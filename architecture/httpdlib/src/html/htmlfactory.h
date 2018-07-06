@@ -21,7 +21,6 @@
 
 */
 
-
 #ifndef __htmlfactory__
 #define __htmlfactory__
 
@@ -30,35 +29,33 @@
 
 #include "htmlpage.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a factory to build a OSC UI hierarchy
-	
-	Actually, makes use of a stack to build the UI hierarchy.
-	It includes a pointer to a OSCIO controler, but just to give it to the root node.
+    \brief a factory to build a OSC UI hierarchy
+
+    Actually, makes use of a stack to build the UI hierarchy.
+    It includes a pointer to a OSCIO controler, but just to give it to the root node.
 */
-class htmlfactory
-{
-	std::stack<std::string>	fGroups;	///< maintains the current hierarchy level
-	htmlpage	fPage;					///< the resulting html page
-	int			fSerial;				///< for html UI objects unique ids
+class htmlfactory {
+    std::stack<std::string> fGroups;  ///< maintains the current hierarchy level
+    htmlpage                fPage;    ///< the resulting html page
+    int                     fSerial;  ///< for html UI objects unique ids
 
-	public:
-				 htmlfactory(const char *name, const char* address, int port);
-		virtual ~htmlfactory() {}
+   public:
+    htmlfactory(const char* name, const char* address, int port);
+    virtual ~htmlfactory() {}
 
-		void addnode(const char* type, const char* label);
-		void addnode(const char* type, const char* label, float init, float min, float max, float step);
-		void addnode(const char* type, const char* label, float min, float max);
-		void opengroup(const char* type, const char* label);
-		void closegroup();
+    void addnode(const char* type, const char* label);
+    void addnode(const char* type, const char* label, float init, float min, float max, float step);
+    void addnode(const char* type, const char* label, float min, float max);
+    void opengroup(const char* type, const char* label);
+    void closegroup();
 
-		htmlpage& root() { return fPage; }
+    htmlpage& root() { return fPage; }
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

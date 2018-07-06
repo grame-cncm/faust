@@ -33,53 +33,54 @@
 #include "TThreads.h"
 
 //_____________________________________________________________________
-static void * baseThreadProc (void * ptr)
+static void* baseThreadProc(void* ptr)
 {
-	TThreads* thread = (TThreads*)ptr;
-	thread->running (true);
-	thread->run();
-	thread->running (false);
-	pthread_exit(NULL);
-	return 0;
+    TThreads* thread = (TThreads*)ptr;
+    thread->running(true);
+    thread->run();
+    thread->running(false);
+    pthread_exit(NULL);
+    return 0;
 }
 
 //_____________________________________________________________________
-TThreads::TThreads () : fRunning(false), fThread(0) {}
-
-//_____________________________________________________________________
-int	TThreads::SetPriority (int priority)
+TThreads::TThreads() : fRunning(false), fThread(0)
 {
-	if (fThread) {
-		struct sched_param param;
-		
-		param.sched_priority = priority;
-		if (!pthread_setschedparam (fThread, SCHED_OTHER, &param)) 
-			return true;
-	}
-	return false;
 }
 
 //_____________________________________________________________________
-bool TThreads::start (int priority)
+int TThreads::SetPriority(int priority)
 {
-	int ret = pthread_create(&fThread, NULL, baseThreadProc, this);
-	if (!ret) {
-		SetPriority (priority);
-		return true;	
-	}
-	return false;	
+    if (fThread) {
+        struct sched_param param;
+
+        param.sched_priority = priority;
+        if (!pthread_setschedparam(fThread, SCHED_OTHER, &param)) return true;
+    }
+    return false;
 }
 
 //_____________________________________________________________________
-void TThreads::quit ()
+bool TThreads::start(int priority)
+{
+    int ret = pthread_create(&fThread, NULL, baseThreadProc, this);
+    if (!ret) {
+        SetPriority(priority);
+        return true;
+    }
+    return false;
+}
+
+//_____________________________________________________________________
+void TThreads::quit()
 {
 #ifndef android
-	if (fThread) {
-		void *threadRet; 
-		pthread_cancel (fThread);
-		pthread_join (fThread, &threadRet);
-		fThread = 0;
-	}
+    if (fThread) {
+        void* threadRet;
+        pthread_cancel(fThread);
+        pthread_join(fThread, &threadRet);
+        fThread = 0;
+    }
 #else
 #warning "pthread_cancel not implemented on android"
 #endif

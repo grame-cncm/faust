@@ -24,21 +24,19 @@
 #ifndef __MessageProcessor__
 #define __MessageProcessor__
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 class Message;
 //--------------------------------------------------------------------------
 /*!
-	\brief an abstract class for objects able to process OSC messages	
+    \brief an abstract class for objects able to process OSC messages
 */
-class MessageProcessor
-{
-	public:
-		virtual		~MessageProcessor() {}
-		virtual void processMessage( const Message* msg ) = 0;
+class MessageProcessor {
+   public:
+    virtual ~MessageProcessor() {}
+    virtual void processMessage(const Message* msg) = 0;
 };
 
-} // end namespoace
+}  // namespace oscfaust
 
 #endif

@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -34,19 +34,19 @@
  ************************************************************************/
 
 #include <math.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
-#include <stack>
-#include <string>
 #include <iostream>
 #include <map>
+#include <stack>
+#include <string>
 
-#include "ladspa.h"
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
-#include "faust/dsp/dsp.h"
+#include "ladspa.h"
 
 #define sym(name) xsym(name)
 #define xsym(name) #name
@@ -54,18 +54,18 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -82,250 +82,237 @@
 //--------------------------------useful constants--------------------------------------
 
 #define MAXPORT 1024
-static const int ICONTROL 	= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
-static const int OCONTROL 	= LADSPA_PORT_OUTPUT|LADSPA_PORT_CONTROL;
-static const int RANGE 		= LADSPA_PORT_INPUT|LADSPA_PORT_CONTROL;
+    static const int ICONTROL = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
+static const int     OCONTROL = LADSPA_PORT_OUTPUT | LADSPA_PORT_CONTROL;
+static const int     RANGE    = LADSPA_PORT_INPUT | LADSPA_PORT_CONTROL;
 
-static const char* inames[] = {
-					"input00", "input01", "input02", "input03", "input04",
-					"input05", "input06", "input07", "input08", "input09",
-					"input10", "input11", "input12", "input13", "input14",
-					"input15", "input16", "input17", "input18", "input19",
-					"input20", "input21", "input22", "input23", "input24",
-					"input25", "input26", "input27", "input28", "input29",
-					"input30", "input31", "input32", "input33", "input34",
-					"input35", "input36", "input37", "input38", "input39"
-};
+static const char* inames[] = {"input00", "input01", "input02", "input03", "input04", "input05", "input06", "input07",
+                               "input08", "input09", "input10", "input11", "input12", "input13", "input14", "input15",
+                               "input16", "input17", "input18", "input19", "input20", "input21", "input22", "input23",
+                               "input24", "input25", "input26", "input27", "input28", "input29", "input30", "input31",
+                               "input32", "input33", "input34", "input35", "input36", "input37", "input38", "input39"};
 
-static const char* onames[] = {
-					"output00", "output01", "output02", "output03", "output04",
-					"output05", "output06", "output07", "output08", "output09",
-					"output10", "output11", "output12", "output13", "output14",
-					"output15", "output16", "output17", "output18", "output19",
-					"output20", "output21", "output22", "output23", "output24",
-					"output25", "output26", "output27", "output28", "output29",
-					"output30", "output31", "output32", "output33", "output34",
-					"output35", "output36", "output37", "output38", "output39"
-};
+static const char* onames[] = {"output00", "output01", "output02", "output03", "output04", "output05", "output06",
+                               "output07", "output08", "output09", "output10", "output11", "output12", "output13",
+                               "output14", "output15", "output16", "output17", "output18", "output19", "output20",
+                               "output21", "output22", "output23", "output24", "output25", "output26", "output27",
+                               "output28", "output29", "output30", "output31", "output32", "output33", "output34",
+                               "output35", "output36", "output37", "output38", "output39"};
 
-class portCollector : public UI
-{
- private:
+class portCollector : public UI {
+   private:
+    //--------------------------------------------------------------------------------------
 
-	//--------------------------------------------------------------------------------------
+    const int fInsCount;   // number of audio input ports
+    const int fOutsCount;  // number of audio output ports
+    int       fCtrlCount;  // number of control ports
 
-	const int				fInsCount;					// number of audio input ports
-	const int				fOutsCount;					// number of audio output ports
-	int						fCtrlCount;					// number of control ports
+    LADSPA_PortDescriptor fPortDescs[MAXPORT];  // table of port descriptors to be used in a LADSPA_Descriptor
+    const char*           fPortNames[MAXPORT];  // table of port names to be used in a LADSPA_Descriptor
+    LADSPA_PortRangeHint  fPortHints[MAXPORT];  // table of port hints to be used in a LADSPA_Descriptor
 
-	LADSPA_PortDescriptor 	fPortDescs[MAXPORT];		// table of port descriptors to be used in a LADSPA_Descriptor
-	const char* 			fPortNames[MAXPORT];		// table of port names to be used in a LADSPA_Descriptor
-	LADSPA_PortRangeHint 	fPortHints[MAXPORT];		// table of port hints to be used in a LADSPA_Descriptor
+    std::string             fPluginName;  // toplevel prefix used as plugin name
+    std::stack<std::string> fPrefix;      // current prefix for controls name
 
-    std::string					fPluginName;				// toplevel prefix used as plugin name
-    std::stack<std::string>			fPrefix;					// current prefix for controls name
-
-
-	//--------------------------------------------------------------------------------------
+    //--------------------------------------------------------------------------------------
     std::string simplify(const std::string& src)
-	{
-		int		i=0;
-		int		level=2;
-        std::string	dst;
+    {
+        int         i     = 0;
+        int         level = 2;
+        std::string dst;
 
-		while (src[i] ) {
+        while (src[i]) {
+            switch (level) {
+                case 0:
+                case 1:
+                case 2:
+                    // Skip the begin of the label "--foo-"
+                    // until 3 '-' have been read
+                    if (src[i] == '-') {
+                        level++;
+                    }
+                    break;
 
-			switch (level) {
+                case 3:
+                    // copy the content, but skip non alphnum
+                    // and content in parenthesis
+                    switch (src[i]) {
+                        case '(':
+                        case '[':
+                            level++;
+                            break;
 
-				case 0 :
-				case 1 :
-				case 2 :
-					// Skip the begin of the label "--foo-"
-					// until 3 '-' have been read
-					if (src[i]=='-') { level++; }
-					break;
+                        case '-':
+                            dst += '-';
+                            break;
 
-				case 3 :
-					// copy the content, but skip non alphnum
-					// and content in parenthesis
-					switch (src[i]) {
-						case '(' :
-						case '[' :
-							level++;
-							break;
+                        default:
+                            if (isalnum(src[i])) {
+                                dst += tolower(src[i]);
+                            }
+                    }
+                    break;
 
-						case '-' :
-							dst += '-';
-							break;
+                default:
+                    // here we are inside parenthesis and
+                    // we skip the content until we are back to
+                    // level 3
+                    switch (src[i]) {
+                        case '(':
+                        case '[':
+                            level++;
+                            break;
 
-						default :
-							if (isalnum(src[i])) {
-								dst+= tolower(src[i]);
-							}
+                        case ')':
+                        case ']':
+                            level--;
+                            break;
 
-					}
-					break;
+                        default:
+                            break;
+                    }
+            }
+            i++;
+        }
+        return (dst.size() > 0) ? dst : src;
+    }
 
-				default :
-					// here we are inside parenthesis and
-					// we skip the content until we are back to
-					// level 3
-					switch (src[i]) {
-
-						case '(' :
-						case '[' :
-							level++;
-							break;
-
-						case ')' :
-						case ']' :
-							level--;
-							break;
-
-						default :
-							break;
-					}
-
-			}
-			i++;
-		}
-		return (dst.size() > 0) ? dst :src;
-	}
-
-	void addPortDescr(int type, const char* label, int hint, float min=0.0, float max=0.0)
-	{
+    void addPortDescr(int type, const char* label, int hint, float min = 0.0, float max = 0.0)
+    {
         std::string fullname = simplify(fPrefix.top() + "-" + label);
-		char * str = strdup(fullname.c_str());
+        char*       str      = strdup(fullname.c_str());
 
-		fPortDescs[fInsCount + fOutsCount + fCtrlCount] = type;
-		fPortNames[fInsCount + fOutsCount + fCtrlCount] = str;
-		fPortHints[fInsCount + fOutsCount + fCtrlCount].HintDescriptor = hint;
-		fPortHints[fInsCount + fOutsCount + fCtrlCount].LowerBound = min;
-		fPortHints[fInsCount + fOutsCount + fCtrlCount].UpperBound = max;
-		fCtrlCount++;
-	}
+        fPortDescs[fInsCount + fOutsCount + fCtrlCount]                = type;
+        fPortNames[fInsCount + fOutsCount + fCtrlCount]                = str;
+        fPortHints[fInsCount + fOutsCount + fCtrlCount].HintDescriptor = hint;
+        fPortHints[fInsCount + fOutsCount + fCtrlCount].LowerBound     = min;
+        fPortHints[fInsCount + fOutsCount + fCtrlCount].UpperBound     = max;
+        fCtrlCount++;
+    }
 
-	void openAnyBox(const char* label)
-	{
-		if (fPrefix.size() == 0) {
-			// top level label is used as plugin name
-			fPluginName = label;
-			fPrefix.push(label);
+    void openAnyBox(const char* label)
+    {
+        if (fPrefix.size() == 0) {
+            // top level label is used as plugin name
+            fPluginName = label;
+            fPrefix.push(label);
 
-		} else {
+        } else {
             std::string s;
-			if (label && label[0]) {
-				s = fPrefix.top() + "-" + label;
-			} else {
-				s = fPrefix.top();
-			}
-			fPrefix.push(s);
-		}
-	}
+            if (label && label[0]) {
+                s = fPrefix.top() + "-" + label;
+            } else {
+                s = fPrefix.top();
+            }
+            fPrefix.push(s);
+        }
+    }
 
- public:
+   public:
+    //--------------------------------Collect the audio ports-------------------------------
 
-	//--------------------------------Collect the audio ports-------------------------------
+    portCollector(int ins, int outs) : UI(), fInsCount(ins), fOutsCount(outs), fCtrlCount(0)
+    {
+        for (int i = 0; i < ins; i++) {
+            fPortDescs[i]                = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
+            fPortNames[i]                = inames[i];
+            fPortHints[i].HintDescriptor = 0;
+        }
+        for (int j = 0; j < outs; j++) {
+            fPortDescs[ins + j]                = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
+            fPortNames[ins + j]                = onames[j];
+            fPortHints[ins + j].HintDescriptor = 0;
+        }
+    };
 
-	portCollector(int ins, int outs) : UI(), fInsCount(ins), fOutsCount(outs), fCtrlCount(0)
-	{
-		for (int i = 0; i < ins; i++) {
-			fPortDescs[i] = LADSPA_PORT_INPUT | LADSPA_PORT_AUDIO;
-			fPortNames[i] = inames[i];
-			fPortHints[i].HintDescriptor = 0;
-		}
-		for (int j = 0; j < outs; j++) {
-			fPortDescs[ins + j] = LADSPA_PORT_OUTPUT | LADSPA_PORT_AUDIO;
-			fPortNames[ins + j] = onames[j];
-			fPortHints[ins + j].HintDescriptor = 0;
-		}
-	};
+    virtual ~portCollector() {}
 
-	virtual ~portCollector() {}
+    //------------------------------Collect the control ports-------------------------------
 
-	//------------------------------Collect the control ports-------------------------------
+    virtual void addButton(const char* label, float* zone) { addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); }
 
-	virtual void addButton(const char* label, float* zone) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED);
-	}
+    virtual void addToggleButton(const char* label, float* zone) { addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); }
 
-	virtual void addToggleButton(const char* label, float* zone) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED);
-	}
+    virtual void addCheckButton(const char* label, float* zone) { addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED); }
 
-	virtual void addCheckButton(const char* label, float* zone) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_TOGGLED);
-	}
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
 
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
 
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
 
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) {
-		addPortDescr(ICONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
+    // -- passive widgets
 
-	// -- passive widgets
+    virtual void addNumDisplay(const char* label, float* zone, int precision)
+    {
+        addPortDescr(OCONTROL, label, 0, -10000, +10000);
+    }
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)
+    {
+        addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
 
-	virtual void addNumDisplay(const char* label, float* zone, int precision) {
-		addPortDescr(OCONTROL, label, 0, -10000, +10000);
-	}
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {
-		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
-    
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-    
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {
-		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max){
-		addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
-	}
-    
-	virtual void openFrameBox(const char* label)		{ openAnyBox(label); }
-	virtual void openTabBox(const char* label)		{ openAnyBox(label); }
-	virtual void openHorizontalBox(const char* label)	{ openAnyBox(label); }
-	virtual void openVerticalBox(const char* label)	{ openAnyBox(label); }
 
-	virtual void closeBox() 					{ fPrefix.pop(); }
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max)
+    {
+        addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)
+    {
+        addPortDescr(OCONTROL, label, LADSPA_HINT_BOUNDED_BELOW | LADSPA_HINT_BOUNDED_ABOVE, min, max);
+    }
 
-	virtual void show() {}
-	virtual void run() 	{}
+    virtual void openFrameBox(const char* label) { openAnyBox(label); }
+    virtual void openTabBox(const char* label) { openAnyBox(label); }
+    virtual void openHorizontalBox(const char* label) { openAnyBox(label); }
+    virtual void openVerticalBox(const char* label) { openAnyBox(label); }
 
-	//---------------------------------Fill the LADSPA descriptor---------------------------
+    virtual void closeBox() { fPrefix.pop(); }
 
-	// generate an ID from a plugin name
-	int makeID (const char* s) {
-		int h = 0;
-		for (int i = 0; s[i]; i++) {
-			h = (h << 3) + (s[i] & 7);
-		}
-		return 1+h%1000;
-	}
+    virtual void show() {}
+    virtual void run() {}
 
-	// fill a ladspa descriptor with the information collected on ports
-	void fillPortDescription (LADSPA_Descriptor * descriptor) {
-		const char* name = sym(mydsp);
-		descriptor->PortCount 			= fCtrlCount+fInsCount+fOutsCount;
-		descriptor->PortDescriptors 	= fPortDescs;
-		descriptor->PortNames 			= fPortNames;
-		descriptor->PortRangeHints 		= fPortHints;
+    //---------------------------------Fill the LADSPA descriptor---------------------------
 
-		descriptor->Label = strdup(name);
-		descriptor->UniqueID = makeID(name);
-//		descriptor->Label = strdup(fPluginName.c_str());
-//		descriptor->UniqueID = makeID(fPluginName.c_str());
-		descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-		descriptor->Name = name;
-//		descriptor->Name = strdup(fPluginName.c_str());
-		descriptor->Maker = "undefined";
-		descriptor->Copyright = "undefined";
-	}
+    // generate an ID from a plugin name
+    int makeID(const char* s)
+    {
+        int h = 0;
+        for (int i = 0; s[i]; i++) {
+            h = (h << 3) + (s[i] & 7);
+        }
+        return 1 + h % 1000;
+    }
+
+    // fill a ladspa descriptor with the information collected on ports
+    void fillPortDescription(LADSPA_Descriptor* descriptor)
+    {
+        const char* name            = sym(mydsp);
+        descriptor->PortCount       = fCtrlCount + fInsCount + fOutsCount;
+        descriptor->PortDescriptors = fPortDescs;
+        descriptor->PortNames       = fPortNames;
+        descriptor->PortRangeHints  = fPortHints;
+
+        descriptor->Label    = strdup(name);
+        descriptor->UniqueID = makeID(name);
+        //		descriptor->Label = strdup(fPluginName.c_str());
+        //		descriptor->UniqueID = makeID(fPluginName.c_str());
+        descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
+        descriptor->Name       = name;
+        //		descriptor->Name = strdup(fPluginName.c_str());
+        descriptor->Maker     = "undefined";
+        descriptor->Copyright = "undefined";
+    }
 };
 
 //--------------------------------------portData----------------------------------------
@@ -334,80 +321,84 @@ class portCollector : public UI
 //
 //--------------------------------------------------------------------------------------
 
-class portData : public UI
-{
+class portData : public UI {
+   private:
+    //--------------------------------------------------------------------------------------
 
- private:
+    const int fInsCount;   // number of audio input ports
+    const int fOutsCount;  // number of audio output ports
+    int       fCtrlCount;  // number of control ports
 
-	//--------------------------------------------------------------------------------------
+    float* fPortZone[MAXPORT];  //
+    float* fPortData[MAXPORT];
 
-	const int				fInsCount;					// number of audio input ports
-	const int				fOutsCount;					// number of audio output ports
-	int						fCtrlCount;					// number of control ports
+    //--------------------------------------------------------------------------------------
 
-	float* 					fPortZone[MAXPORT];			//
-	float* 					fPortData[MAXPORT];
+    void addZone(float* zone)
+    {
+        fPortZone[fInsCount + fOutsCount + fCtrlCount] = zone;
+        fCtrlCount++;
+    }
 
-	//--------------------------------------------------------------------------------------
+   public:
+    //--------------------------------Collect the audio ports-------------------------------
 
-	void addZone(float* zone)
-	{
-		fPortZone[fInsCount + fOutsCount + fCtrlCount] = zone;
-		fCtrlCount++;
-	}
+    portData(int ins, int outs) : UI(), fInsCount(ins), fOutsCount(outs), fCtrlCount(0){};
+    virtual ~portData() {}
 
- public:
+    //------------------------------Collect the control zones-------------------------------
 
-	//--------------------------------Collect the audio ports-------------------------------
+    virtual void addButton(const char* label, float* zone) { addZone(zone); }
+    virtual void addToggleButton(const char* label, float* zone) { addZone(zone); }
+    virtual void addCheckButton(const char* label, float* zone) { addZone(zone); }
 
-	portData(int ins, int outs) : UI(), fInsCount(ins), fOutsCount(outs), fCtrlCount(0) {};
-	virtual ~portData() {}
+    virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addZone(zone);
+    }
+    virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addZone(zone);
+    }
+    virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+    {
+        addZone(zone);
+    }
 
-	//------------------------------Collect the control zones-------------------------------
+    // -- passive widgets
 
-	virtual void addButton(const char* label, float* zone) 			{ addZone(zone); }
-	virtual void addToggleButton(const char* label, float* zone)  	{ addZone(zone); }
-	virtual void addCheckButton(const char* label, float* zone)  		{ addZone(zone); }
-
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) 		{ addZone(zone); }
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) 	{ addZone(zone); }
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step)  			{ addZone(zone); }
-
-	// -- passive widgets
-
-	virtual void addNumDisplay(const char* label, float* zone, int precision) 						{ addZone(zone); }
-	virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) 	{ addZone(zone); }
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) 			{ addZone(zone); }
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max)			{ addZone(zone); }
+    virtual void addNumDisplay(const char* label, float* zone, int precision) { addZone(zone); }
+    virtual void addTextDisplay(const char* label, float* zone, const char* names[], float min, float max)
+    {
+        addZone(zone);
+    }
+    virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) { addZone(zone); }
+    virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) { addZone(zone); }
 
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
-	virtual void openFrameBox(const char* label)		{ }
-	virtual void openTabBox(const char* label)		{ }
-	virtual void openHorizontalBox(const char* label)	{ }
-	virtual void openVerticalBox(const char* label)	{ }
-	virtual void closeBox() 					{ }
+    virtual void openFrameBox(const char* label) {}
+    virtual void openTabBox(const char* label) {}
+    virtual void openHorizontalBox(const char* label) {}
+    virtual void openVerticalBox(const char* label) {}
+    virtual void closeBox() {}
 
-	virtual void show() {}
-	virtual void run() 	{}
+    virtual void show() {}
+    virtual void run() {}
 
-	//---------------------------------interaction with LADSPA------------------------------
+    //---------------------------------interaction with LADSPA------------------------------
 
-	void setPortData (unsigned long port, LADSPA_Data* data) {
-		fPortData[port] = data;
-	}
+    void setPortData(unsigned long port, LADSPA_Data* data) { fPortData[port] = data; }
 
-	void updateCtrlZones() {
-		for (int i = fInsCount+fOutsCount; i < fInsCount+fOutsCount+fCtrlCount; i++)	*fPortZone[i] = *fPortData[i];
-	}
+    void updateCtrlZones()
+    {
+        for (int i = fInsCount + fOutsCount; i < fInsCount + fOutsCount + fCtrlCount; i++)
+            *fPortZone[i] = *fPortData[i];
+    }
 
-	float** getInputs() {
-		return &fPortData[0];
-	}
+    float** getInputs() { return &fPortData[0]; }
 
-	float** getOutputs() {
-		return &fPortData[fInsCount];
-	}
+    float** getOutputs() { return &fPortData[fInsCount]; }
 };
 
 //--------------------------------Faust-LADSPA plugin-----------------------------------
@@ -416,107 +407,104 @@ class portData : public UI
 //
 //--------------------------------------------------------------------------------------
 
-LADSPA_Descriptor* 	gDescriptor = 0;
+LADSPA_Descriptor* gDescriptor = 0;
 
-struct PLUGIN
-{
-	unsigned long	fSampleRate;
-	portData*		fPortData;
-	dsp*			fDsp;
+struct PLUGIN {
+    unsigned long fSampleRate;
+    portData*     fPortData;
+    dsp*          fDsp;
 
-	PLUGIN(unsigned long r, portData* d, dsp* p) : fSampleRate(r), fPortData(d), fDsp(p) {}
+    PLUGIN(unsigned long r, portData* d, dsp* p) : fSampleRate(r), fPortData(d), fDsp(p) {}
 };
 
-LADSPA_Handle instantiate_method (const struct _LADSPA_Descriptor * Descriptor, unsigned long SampleRate)
+LADSPA_Handle instantiate_method(const struct _LADSPA_Descriptor* Descriptor, unsigned long SampleRate)
 {
-	dsp*		p = new mydsp();
-	portData* 	d = new portData(p->getNumInputs(), p->getNumOutputs());
+    dsp*      p = new mydsp();
+    portData* d = new portData(p->getNumInputs(), p->getNumOutputs());
 
-	p->buildUserInterface(d);
-	return new PLUGIN (SampleRate, d, p);
+    p->buildUserInterface(d);
+    return new PLUGIN(SampleRate, d, p);
 }
 
-void connect_method (LADSPA_Handle Instance, unsigned long Port, LADSPA_Data * DataLocation)
+void connect_method(LADSPA_Handle Instance, unsigned long Port, LADSPA_Data* DataLocation)
 {
-	PLUGIN* p = (PLUGIN*) Instance;
-	p->fPortData->setPortData(Port, DataLocation);
+    PLUGIN* p = (PLUGIN*)Instance;
+    p->fPortData->setPortData(Port, DataLocation);
 }
 
-void activate_method (LADSPA_Handle Instance)
+void activate_method(LADSPA_Handle Instance)
 {
-	PLUGIN* p = (PLUGIN*) Instance;
-	p->fDsp->init(p->fSampleRate);
+    PLUGIN* p = (PLUGIN*)Instance;
+    p->fDsp->init(p->fSampleRate);
 }
 
-void run_method (LADSPA_Handle Instance, unsigned long SampleCount)
+void run_method(LADSPA_Handle Instance, unsigned long SampleCount)
 {
-	PLUGIN* p = (PLUGIN*) Instance;
-	p->fPortData->updateCtrlZones();
-	AVOIDDENORMALS;
-	p->fDsp->compute(SampleCount, p->fPortData->getInputs(), p->fPortData->getOutputs());
+    PLUGIN* p = (PLUGIN*)Instance;
+    p->fPortData->updateCtrlZones();
+    AVOIDDENORMALS;
+    p->fDsp->compute(SampleCount, p->fPortData->getInputs(), p->fPortData->getOutputs());
 }
 
-void deactivate_method (LADSPA_Handle Instance)
-{}
-
-void cleanup_method (LADSPA_Handle Instance)
+void deactivate_method(LADSPA_Handle Instance)
 {
-	PLUGIN* p = (PLUGIN*) Instance;
-	delete p->fPortData;
-	delete p->fDsp;
-	delete p;
+}
+
+void cleanup_method(LADSPA_Handle Instance)
+{
+    PLUGIN* p = (PLUGIN*)Instance;
+    delete p->fPortData;
+    delete p->fDsp;
+    delete p;
 }
 
 //--------------------------------------------------------------------------------------
 
 void init_descriptor(LADSPA_Descriptor* descriptor)
 {
-	descriptor->UniqueID = 123456;
-	descriptor->Label = "none";
-	descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
-	descriptor->Name = "none";
-	descriptor->Maker = "Yann Orlarey";
-	descriptor->Copyright = "GPL";
+    descriptor->UniqueID   = 123456;
+    descriptor->Label      = "none";
+    descriptor->Properties = LADSPA_PROPERTY_HARD_RT_CAPABLE;
+    descriptor->Name       = "none";
+    descriptor->Maker      = "Yann Orlarey";
+    descriptor->Copyright  = "GPL";
 
-	descriptor->ImplementationData = 0;
+    descriptor->ImplementationData = 0;
 
-	// description des methods
-	descriptor->instantiate = instantiate_method;
-	descriptor->connect_port = connect_method;
-	descriptor->activate = activate_method;
-	descriptor->run = run_method;
-	descriptor->run_adding = 0;
-	descriptor->set_run_adding_gain = 0;
-	descriptor->deactivate = deactivate_method;
-	descriptor->cleanup = cleanup_method;
+    // description des methods
+    descriptor->instantiate         = instantiate_method;
+    descriptor->connect_port        = connect_method;
+    descriptor->activate            = activate_method;
+    descriptor->run                 = run_method;
+    descriptor->run_adding          = 0;
+    descriptor->set_run_adding_gain = 0;
+    descriptor->deactivate          = deactivate_method;
+    descriptor->cleanup             = cleanup_method;
 }
 
 //--------------------------------------------------------------------------------------
 
-const LADSPA_Descriptor * ladspa_descriptor(unsigned long Index)
+const LADSPA_Descriptor* ladspa_descriptor(unsigned long Index)
 {
     if (Index == 0) {
-		if (gDescriptor == 0)
-		{
-			// allocate temporaries dsp and portCollector to build the plugin description
-			mydsp* p = new mydsp();
-			if (p) {
-				portCollector*	c=new portCollector(p->getNumInputs(), p->getNumOutputs());
-				p->buildUserInterface(c);
-				gDescriptor = new LADSPA_Descriptor;
-				init_descriptor(gDescriptor);
-				c->fillPortDescription(gDescriptor);
-				delete p;
-			} else {
-				printf("Memory Error : unable to allocate the dsp object\n");
-			}
-		}
-		return gDescriptor;
-	} else {
-		return NULL;
-	}
+        if (gDescriptor == 0) {
+            // allocate temporaries dsp and portCollector to build the plugin description
+            mydsp* p = new mydsp();
+            if (p) {
+                portCollector* c = new portCollector(p->getNumInputs(), p->getNumOutputs());
+                p->buildUserInterface(c);
+                gDescriptor = new LADSPA_Descriptor;
+                init_descriptor(gDescriptor);
+                c->fillPortDescription(gDescriptor);
+                delete p;
+            } else {
+                printf("Memory Error : unable to allocate the dsp object\n");
+            }
+        }
+        return gDescriptor;
+    } else {
+        return NULL;
+    }
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

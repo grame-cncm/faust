@@ -23,37 +23,51 @@
 
 #include "OSCRegexp.h"
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
-OSCRegexp::OSCRegexp(const char* oscre) : fRegexp (OSCRe2Re(oscre).c_str()) {}
+OSCRegexp::OSCRegexp(const char* oscre) : fRegexp(OSCRe2Re(oscre).c_str())
+{
+}
 
 //--------------------------------------------------------------------------
 // translates an OSC regexp into a regexp
 // see OSC documentation
-std::string OSCRegexp::OSCRe2Re (const char* re)
+std::string OSCRegexp::OSCRe2Re(const char* re)
 {
-	std::string outstr;
-	bool inlist = false;
-	while (*re) {
-		switch (*re) {
-			case '{':	outstr += '('; inlist = true; break;
-			case ',':	outstr += (inlist ? '|' : ','); break;
-			case '}':	outstr += ')'; inlist = false; break;
-			case '*':	outstr += ".*"; break;
-			case '?':	outstr += '.'; break;
-			default:	outstr += *re;
-		}
-		re++;
-	}
-	return outstr;
+    std::string outstr;
+    bool        inlist = false;
+    while (*re) {
+        switch (*re) {
+            case '{':
+                outstr += '(';
+                inlist = true;
+                break;
+            case ',':
+                outstr += (inlist ? '|' : ',');
+                break;
+            case '}':
+                outstr += ')';
+                inlist = false;
+                break;
+            case '*':
+                outstr += ".*";
+                break;
+            case '?':
+                outstr += '.';
+                break;
+            default:
+                outstr += *re;
+        }
+        re++;
+    }
+    return outstr;
 }
 
 //--------------------------------------------------------------------------
-bool OSCRegexp::match (const char* str) const
+bool OSCRegexp::match(const char* str) const
 {
-	return fRegexp.MatchExact(str) != 0;
+    return fRegexp.MatchExact(str) != 0;
 }
 
-}
+}  // namespace oscfaust

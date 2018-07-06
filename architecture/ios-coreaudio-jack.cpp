@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -36,41 +36,38 @@
 #define JACK_IOS 1
 
 #import "FICocoaUI.h"
-#include "faust/audio/jack-dsp.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
+#include "faust/audio/jack-dsp.h"
 #include "faust/misc.h"
 
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/******************************************************************************
-*******************************************************************************
+    /******************************************************************************
+    *******************************************************************************
 
-								USER INTERFACE
+                                    USER INTERFACE
 
-*******************************************************************************
-*******************************************************************************/
+    *******************************************************************************
+    *******************************************************************************/
 
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /**************************BEGIN USER SECTION **************************/
 
-/**************************BEGIN USER SECTION **************************/
+    << includeclass >>
 
-<<includeclass>>
+    /***************************END USER SECTION ***************************/
 
-/***************************END USER SECTION ***************************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-
-mydsp DSP;
+    mydsp DSP;
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

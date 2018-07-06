@@ -25,11 +25,10 @@
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
-//void jsoncontrol::print(std::ostream& out, jsonendl& eol) const
+// void jsoncontrol::print(std::ostream& out, jsonendl& eol) const
 //{
 //	bool button = (fType == "button");
 //	bool bargraph = (fType == "vbargraph") || (fType == "hbargraph");
@@ -45,7 +44,7 @@ namespace httpdfaust
 //		while (true) {
 //			out << eol << "{ \"" << i->first << "\": \"" << i->second << "\"}";
 //			if (++i == fMeta.end()) break;
-//			out << ",";			
+//			out << ",";
 //		}
 //		out << --eol << "]";
 //	}
@@ -61,4 +60,4 @@ namespace httpdfaust
 //	out << --eol << "}";
 //}
 
-} // end namespoace
+}  // namespace httpdfaust

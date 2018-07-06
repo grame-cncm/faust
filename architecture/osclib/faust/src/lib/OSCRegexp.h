@@ -27,28 +27,25 @@
 #include <string>
 #include "deelx.h"
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a wrapper over the deelx regexp library
-	
-	
+    \brief a wrapper over the deelx regexp library
+
+
 */
-class OSCRegexp
-{
-	CRegexpT<char>	fRegexp;
-	
-	static std::string OSCRe2Re (const char* oscre); // translates an OSC regexp into a regexp
-	public:
-				 OSCRegexp (const char* oscre);
-		virtual ~OSCRegexp() {}
-		
-		bool match (const char* str) const;
+class OSCRegexp {
+    CRegexpT<char> fRegexp;
+
+    static std::string OSCRe2Re(const char* oscre);  // translates an OSC regexp into a regexp
+   public:
+    OSCRegexp(const char* oscre);
+    virtual ~OSCRegexp() {}
+
+    bool match(const char* str) const;
 };
 
-}
+}  // namespace oscfaust
 
 #endif
-

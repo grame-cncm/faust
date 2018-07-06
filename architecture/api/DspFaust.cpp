@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File 
+ FAUST API Architecture File
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -20,11 +20,11 @@
 #include <math.h>
 #include <cmath>
 
-#include "faust/misc.h"
-#include "faust/gui/UI.h"
-#include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
+#include "faust/dsp/dsp.h"
+#include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
+#include "faust/misc.h"
 
 //**************************************************************
 // Soundfile handling
@@ -40,17 +40,17 @@
 // OSC configuration (hardcoded for now...)
 //**************************************************************
 
-#define OSC_IP_ADDRESS  "192.168.1.112"
-#define OSC_IN_PORT     "5510"
-#define OSC_OUT_PORT    "5511"
+#define OSC_IP_ADDRESS "192.168.1.112"
+#define OSC_IN_PORT "5510"
+#define OSC_OUT_PORT "5511"
 
 //**************************************************************
 // Intrinsic
 //**************************************************************
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-<<includeclass>>
+    << includeclass >>
 
 //**************************************************************
 // Polyphony
@@ -63,59 +63,59 @@
 //**************************************************************
 
 #if COREAUDIO_DRIVER
-    #include "faust/audio/coreaudio-dsp.h"
+#include "faust/audio/coreaudio-dsp.h"
 #elif IOS_DRIVER
-    #include "faust/audio/coreaudio-ios-dsp.h"
+#include "faust/audio/coreaudio-ios-dsp.h"
 #elif ANDROID_DRIVER
-    #include <android/log.h>
-    #include "faust/audio/android-dsp.h"
+#include <android/log.h>
+#include "faust/audio/android-dsp.h"
 #elif ALSA_DRIVER
-    #include "faust/audio/alsa-dsp.h"
+#include "faust/audio/alsa-dsp.h"
 #elif JACK_DRIVER
-    #include "faust/audio/jack-dsp.h"
+#include "faust/audio/jack-dsp.h"
 #elif PORTAUDIO_DRIVER
-    #include "faust/audio/portaudio-dsp.h"
+#include "faust/audio/portaudio-dsp.h"
 #elif RTAUDIO_DRIVER
-    #include "faust/audio/rtaudio-dsp.h"
+#include "faust/audio/rtaudio-dsp.h"
 #elif OPEN_FRAMEWORK_DRIVER
-    #include "faust/audio/ofaudio-dsp.h"
+#include "faust/audio/ofaudio-dsp.h"
 #elif JUCE_DRIVER
-    #include "faust/audio/juce-dsp.h"
+#include "faust/audio/juce-dsp.h"
 #elif DUMMY_DRIVER
-    #include "faust/audio/dummy-audio.h"
+#include "faust/audio/dummy-audio.h"
 #endif
 
 //**************************************************************
 // Interface
 //**************************************************************
 
-#if MIDICTRL 
+#if MIDICTRL
 #if JACK_DRIVER
-    // Nothing to add since jack-dsp.h contains MIDI
+// Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
-    #include "faust/midi/juce-midi.h"
+#include "faust/midi/juce-midi.h"
 #else
-    #include "faust/midi/rt-midi.h"
-    #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
 #endif
 #endif
 
 #if OSCCTRL
 #if JUCE_DRIVER
-    #include "faust/gui/JuceOSCUI.h"
+#include "faust/gui/JuceOSCUI.h"
 #else
-    #include "faust/gui/OSCUI.h"
+#include "faust/gui/OSCUI.h"
 #endif
 #endif
 
 #if DYNAMIC_DSP
-    #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/llvm-dsp.h"
 #endif
 
 #include "DspFaust.h"
 
-std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+    std::list<GUI*> GUI::fGuiList;
+ztimedmap           GUI::gTimedZoneMap;
 
 DspFaust::DspFaust()
 {
@@ -125,11 +125,11 @@ DspFaust::DspFaust()
 #if MIDICTRL
     driver = new jackaudio_midi();
 #else
-    driver = new jackaudio();
+    driver         = new jackaudio();
 #endif
 #elif JUCE_DRIVER
     // JUCE audio device has its own sample rate and buffer size
-    driver = new juceaudio();
+    driver        = new juceaudio();
 #else
     std::cout << "You are not setting 'sample_rate' and 'buffer_size', but the audio driver needs it !\n";
     throw std::bad_alloc();
@@ -146,7 +146,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
 DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
 {
     string error_msg;
-    
+
     // Is dsp_content a filename ?
     fFactory = createDSPFactoryFromFile(dsp_content, 0, NULL, "", error_msg, -1);
     if (!fFactory) {
@@ -158,7 +158,7 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
             throw bad_alloc();
         }
     }
-  
+
     dsp* dsp = fFactory->createDSPInstance();
     if (!dsp) {
         std::cerr << "Cannot allocate DSP instance\n";
@@ -207,40 +207,40 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #if MIDICTRL
     midi_handler* midi;
 #if JACK_DRIVER
-    midi = static_cast<jackaudio_midi*>(driver);
+    midi           = static_cast<jackaudio_midi*>(driver);
     fMidiInterface = new MidiUI(midi);
 #elif JUCE_DRIVER
-    midi = new juce_midi();
+    midi           = new juce_midi();
     fMidiInterface = new MidiUI(midi, true);
 #else
-    midi = new rt_midi();
+    midi           = new rt_midi();
     fMidiInterface = new MidiUI(midi, true);
 #endif
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver, midi);
     fPolyEngine->buildUserInterface(fMidiInterface);
 #else
-    fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
+    fPolyEngine   = new FaustPolyEngine(mono_dsp, driver);
 #endif
-    
+
 #if OSCCTRL
 #if JUCE_DRIVER
     fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
 #else
     const char* argv[9];
-    argv[0] = "Faust";  // TODO may be should retrieve the actual name
-    argv[1] = "-xmit";
-    argv[2] = "1";      // TODO retrieve that from command line or somewhere
-    argv[3] = "-desthost";
-    argv[4] = OSC_IP_ADDRESS;   // TODO same
-    argv[5] = "-port";
-    argv[6] = OSC_IN_PORT;      // TODO same
-    argv[7] = "-outport";
-    argv[8] = OSC_OUT_PORT;     // TODO same
-    fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+    argv[0]       = "Faust";  // TODO may be should retrieve the actual name
+    argv[1]       = "-xmit";
+    argv[2]       = "1";  // TODO retrieve that from command line or somewhere
+    argv[3]       = "-desthost";
+    argv[4]       = OSC_IP_ADDRESS;  // TODO same
+    argv[5]       = "-port";
+    argv[6]       = OSC_IN_PORT;  // TODO same
+    argv[7]       = "-outport";
+    argv[8]       = OSC_OUT_PORT;                         // TODO same
+    fOSCInterface = new OSCUI("Faust", 9, (char**)argv);  // TODO fix name
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
-    
+
 #if SOUNDFILE
     // Use bundle path
     fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
@@ -275,7 +275,7 @@ bool DspFaust::start()
         std::cerr << "MIDI run error...\n";
     }
 #endif
-	return fPolyEngine->start();
+    return fPolyEngine->start();
 }
 
 void DspFaust::stop()
@@ -286,7 +286,7 @@ void DspFaust::stop()
 #if MIDICTRL
     fMidiInterface->stop();
 #endif
-	fPolyEngine->stop();
+    fPolyEngine->stop();
 }
 
 bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, const char* address)
@@ -314,27 +314,27 @@ bool DspFaust::configureOSC(bool xmit, int inport, int outport, int errport, con
 
 bool DspFaust::isRunning()
 {
-	return fPolyEngine->isRunning();
+    return fPolyEngine->isRunning();
 }
 
 unsigned long DspFaust::keyOn(int pitch, int velocity)
 {
-	return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
+    return (unsigned long)fPolyEngine->keyOn(pitch, velocity);
 }
 
 int DspFaust::keyOff(int pitch)
 {
-	return fPolyEngine->keyOff(pitch);
+    return fPolyEngine->keyOff(pitch);
 }
 
 unsigned long DspFaust::newVoice()
 {
-	return (unsigned long)fPolyEngine->newVoice();
+    return (unsigned long)fPolyEngine->newVoice();
 }
 
 int DspFaust::deleteVoice(unsigned long voice)
 {
-	return fPolyEngine->deleteVoice(voice);
+    return fPolyEngine->deleteVoice(voice);
 }
 
 void DspFaust::allNotesOff()
@@ -349,104 +349,104 @@ void DspFaust::propagateMidi(int count, double time, int type, int channel, int 
 
 const char* DspFaust::getJSONUI()
 {
-	return fPolyEngine->getJSONUI();
+    return fPolyEngine->getJSONUI();
 }
 
 const char* DspFaust::getJSONMeta()
 {
-	return fPolyEngine->getJSONMeta();
+    return fPolyEngine->getJSONMeta();
 }
 
 int DspFaust::getParamsCount()
 {
-	return fPolyEngine->getParamsCount();
+    return fPolyEngine->getParamsCount();
 }
 
 void DspFaust::setParamValue(const char* address, float value)
 {
-	fPolyEngine->setParamValue(address, value);
+    fPolyEngine->setParamValue(address, value);
 }
 
 void DspFaust::setParamValue(int id, float value)
 {
-	fPolyEngine->setParamValue(id, value);
+    fPolyEngine->setParamValue(id, value);
 }
 
 float DspFaust::getParamValue(const char* address)
 {
-	return fPolyEngine->getParamValue(address);
+    return fPolyEngine->getParamValue(address);
 }
 
 float DspFaust::getParamValue(int id)
 {
-	return fPolyEngine->getParamValue(id);
+    return fPolyEngine->getParamValue(id);
 }
 
 void DspFaust::setVoiceParamValue(const char* address, unsigned long voice, float value)
 {
-	fPolyEngine->setVoiceParamValue(address, voice, value);
+    fPolyEngine->setVoiceParamValue(address, voice, value);
 }
 
 void DspFaust::setVoiceParamValue(int id, unsigned long voice, float value)
 {
-	fPolyEngine->setVoiceParamValue(id, voice, value);
+    fPolyEngine->setVoiceParamValue(id, voice, value);
 }
 
 float DspFaust::getVoiceParamValue(const char* address, unsigned long voice)
 {
-	return fPolyEngine->getVoiceParamValue(address, voice);
+    return fPolyEngine->getVoiceParamValue(address, voice);
 }
 
 float DspFaust::getVoiceParamValue(int id, unsigned long voice)
 {
-	return fPolyEngine->getVoiceParamValue(id, voice);
+    return fPolyEngine->getVoiceParamValue(id, voice);
 }
 
 const char* DspFaust::getParamAddress(int id)
 {
-	return fPolyEngine->getParamAddress(id);
+    return fPolyEngine->getParamAddress(id);
 }
 
 const char* DspFaust::getVoiceParamAddress(int id, unsigned long voice)
 {
-	return fPolyEngine->getVoiceParamAddress(id, voice);
+    return fPolyEngine->getVoiceParamAddress(id, voice);
 }
 
 float DspFaust::getParamMin(const char* address)
 {
     return fPolyEngine->getParamMin(address);
 }
-      
+
 float DspFaust::getParamMin(int id)
 {
     return fPolyEngine->getParamMin(id);
 }
-      
+
 float DspFaust::getParamMax(const char* address)
 {
     return fPolyEngine->getParamMax(address);
 }
-      
+
 float DspFaust::getParamMax(int id)
 {
     return fPolyEngine->getParamMax(id);
 }
-      
+
 float DspFaust::getParamInit(const char* address)
 {
     return fPolyEngine->getParamInit(address);
 }
-      
+
 float DspFaust::getParamInit(int id)
 {
     return fPolyEngine->getParamInit(id);
 }
-      
+
 const char* DspFaust::getMetadata(const char* address, const char* key)
 {
     return fPolyEngine->getMetadata(address, key);
 }
-      
+
 const char* DspFaust::getMetadata(int id, const char* key)
 {
     return fPolyEngine->getMetadata(id, key);
@@ -454,32 +454,32 @@ const char* DspFaust::getMetadata(int id, const char* key)
 
 void DspFaust::propagateAcc(int acc, float v)
 {
-	fPolyEngine->propagateAcc(acc, v);
+    fPolyEngine->propagateAcc(acc, v);
 }
 
 void DspFaust::setAccConverter(int p, int acc, int curve, float amin, float amid, float amax)
 {
-	fPolyEngine->setAccConverter(p, acc, curve, amin, amid, amax);
+    fPolyEngine->setAccConverter(p, acc, curve, amin, amid, amax);
 }
 
 void DspFaust::propagateGyr(int acc, float v)
 {
-	fPolyEngine->propagateGyr(acc, v);
+    fPolyEngine->propagateGyr(acc, v);
 }
 
 void DspFaust::setGyrConverter(int p, int gyr, int curve, float amin, float amid, float amax)
 {
-	fPolyEngine->setGyrConverter(p, gyr, curve, amin, amid, amax);
+    fPolyEngine->setGyrConverter(p, gyr, curve, amin, amid, amax);
 }
 
 float DspFaust::getCPULoad()
 {
-	return fPolyEngine->getCPULoad();
+    return fPolyEngine->getCPULoad();
 }
 
 int DspFaust::getScreenColor()
 {
-	return fPolyEngine->getScreenColor();
+    return fPolyEngine->getScreenColor();
 }
 
 #ifdef BUILD
@@ -495,7 +495,9 @@ int main(int argc, char* argv[])
     dsp->start();
     std::cout << "Type 'q' to quit\n";
     char c;
-    while ((c = getchar()) && (c != 'q')) { usleep(100000); }
+    while ((c = getchar()) && (c != 'q')) {
+        usleep(100000);
+    }
     dsp->stop();
     delete dsp;
 }

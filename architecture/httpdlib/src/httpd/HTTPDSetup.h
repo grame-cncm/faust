@@ -21,35 +21,32 @@
 
 */
 
-
 #ifndef __HTTPDSetup__
 #define __HTTPDSetup__
 
-#include <string>
 #include <ostream>
+#include <string>
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class HTTPDServer;
 class MessageProcessor;
 //--------------------------------------------------------------------------
 /*!
-	\brief network management utility
+    \brief network management utility
 */
-class HTTPDSetup
-{
-	HTTPDServer*	fServer;		// the server thread
-	public:
-		 		 HTTPDSetup() : fServer(0) {} 
-		virtual ~HTTPDSetup();
+class HTTPDSetup {
+    HTTPDServer* fServer;  // the server thread
+   public:
+    HTTPDSetup() : fServer(0) {}
+    virtual ~HTTPDSetup();
 
-		bool start(MessageProcessor* mp, int& port);
+    bool start(MessageProcessor* mp, int& port);
 
-		void stop();
-		bool running() const;
+    void stop();
+    bool running() const;
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

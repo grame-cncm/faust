@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -33,27 +33,27 @@
  ************************************************************************
  ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
-#include <errno.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <time.h>
-#include <map>
 #include <list>
+#include <map>
 
 using namespace std;
 
+#include "faust/dsp/dsp.h"
 #include "faust/gui/GUI.h"
 #include "faust/misc.h"
-#include "faust/dsp/dsp.h"
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+<< includeclass >>
 
 /***************************END USER SECTION ***************************/
 
@@ -61,16 +61,34 @@ using namespace std;
 
 #define EXPORT __declspec(dllexport)
 
-extern "C" EXPORT dsp*  newDsp() 									{ return new mydsp(); }
-extern "C" EXPORT void EXPORT deleteDsp(dsp* self) 					{ delete self; }
+    extern "C" EXPORT dsp* newDsp()
+{
+    return new mydsp();
+}
+extern "C" EXPORT void EXPORT deleteDsp(dsp* self)
+{
+    delete self;
+}
 
-extern "C" EXPORT int getNumInputs(dsp* self) 						{ return self->getNumInputs(); }
-extern "C" EXPORT int getNumOutputs(dsp* self) 						{ return self->getNumOutputs(); }
-extern "C" EXPORT void buildUserInterface(dsp* self,UI* interface) 	{ self->buildUserInterface(interface); }
-extern "C" EXPORT void init(dsp* self, int freq) 					{ self->init(freq); }
-extern "C" EXPORT void compute(dsp* self, int len, float** inputs, float** outputs) { self->compute(len, inputs, outputs); }
+extern "C" EXPORT int getNumInputs(dsp* self)
+{
+    return self->getNumInputs();
+}
+extern "C" EXPORT int getNumOutputs(dsp* self)
+{
+    return self->getNumOutputs();
+}
+extern "C" EXPORT void buildUserInterface(dsp* self, UI* interface)
+{
+    self->buildUserInterface(interface);
+}
+extern "C" EXPORT void init(dsp* self, int freq)
+{
+    self->init(freq);
+}
+extern "C" EXPORT void compute(dsp* self, int len, float** inputs, float** outputs)
+{
+    self->compute(len, inputs, outputs);
+}
 
 /***END ARCHITECTURE SECTION (part 2/2)****************/
-
-
-

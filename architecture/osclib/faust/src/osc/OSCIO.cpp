@@ -24,23 +24,22 @@
 #include <sstream>
 #include <string>
 
-#include "faust/OSCIO.h"
 #include "OSCStream.h"
+#include "faust/OSCIO.h"
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
 void OSCIO::send(int nframes, float* val, int chan) const
 {
     std::stringstream dst;
-    dst << dest() << chan;					// first set the destination osc address
+    dst << dest() << chan;  // first set the destination osc address
     std::string res = dst.str();
-    oscout << OSCStart(res.c_str());        // then starts the osc out stream
+    oscout << OSCStart(res.c_str());  // then starts the osc out stream
     for (int n = 0; n < nframes; n++) {
-        oscout << val[n];					// and send the values
+        oscout << val[n];  // and send the values
     }
-    oscout << OSCEnd();						// end of stream (and actual transmission)
+    oscout << OSCEnd();  // end of stream (and actual transmission)
 }
 
-} // end namespoace
+}  // namespace oscfaust

@@ -24,23 +24,22 @@
 #include <sstream>
 
 #include "FaustNode.h"
-#include "Message.h"
 #include "HTTPDServer.h"
+#include "Message.h"
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
-//bool FaustNode::store( float val )
+// bool FaustNode::store( float val )
 //{
 //	*fZone = fMapping.scale(val);
 //	return true;
 //}
 
 //--------------------------------------------------------------------------
-//bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
+// bool FaustNode::accept( const Message* msg, vector<Message*>& outMsg )
 //{
 //	if (msg->size() == 2) {			// checks for the message parameters count
 //									// messages with a param count other than 2 are rejected
@@ -57,13 +56,12 @@ namespace httpdfaust
 //	return MessageDriven::accept(msg, outMsg);
 //}
 
-
 //--------------------------------------------------------------------------
-//void FaustNode::get (vector<Message*>& outMsg ) const
+// void FaustNode::get (vector<Message*>& outMsg ) const
 //{
 //	Message * msg = new Message (getAddress());
 //	msg->add (*fZone);
 //	outMsg.push_back(msg);
 //}
 
-} // end namespoace
+}  // namespace httpdfaust

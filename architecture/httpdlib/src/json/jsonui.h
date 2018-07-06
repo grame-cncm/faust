@@ -26,56 +26,92 @@
 
 #include "jsonfactory.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class jsonfactory;
 
-template <typename C> class jsonui
-{
-	jsonfactory* fFactory;
-	std::map<std::string, std::string>	fMeta;	// the current meta declarations
+template <typename C>
+class jsonui {
+    jsonfactory*                       fFactory;
+    std::map<std::string, std::string> fMeta;  // the current meta declarations
 
-	public:
-				 jsonui(const char *name, const char* address, int port) { fFactory = new jsonfactory(name, address, port); }
-		virtual ~jsonui()				{ delete fFactory; }
+   public:
+    jsonui(const char* name, const char* address, int port) { fFactory = new jsonfactory(name, address, port); }
+    virtual ~jsonui() { delete fFactory; }
 
-		// -- widget's layouts
-		virtual void openTabBox(const char* label)					{ fFactory->opengroup("tgroup", label, fMeta); fMeta.clear(); }
-		virtual void openHorizontalBox(const char* label)			{ fFactory->opengroup("hgroup", label, fMeta); fMeta.clear(); }
-		virtual void openVerticalBox(const char* label)				{ fFactory->opengroup("vgroup", label, fMeta); fMeta.clear(); }
-		virtual void closeBox()										{ fFactory->closegroup(); }
+    // -- widget's layouts
+    virtual void openTabBox(const char* label)
+    {
+        fFactory->opengroup("tgroup", label, fMeta);
+        fMeta.clear();
+    }
+    virtual void openHorizontalBox(const char* label)
+    {
+        fFactory->opengroup("hgroup", label, fMeta);
+        fMeta.clear();
+    }
+    virtual void openVerticalBox(const char* label)
+    {
+        fFactory->opengroup("vgroup", label, fMeta);
+        fMeta.clear();
+    }
+    virtual void closeBox() { fFactory->closegroup(); }
 
-		// -- active widgets
-		virtual void addButton(const char* label, C* zone)			{ fFactory->addnode<C>( "button", label, fMeta); fMeta.clear(); }
-		virtual void addCheckButton(const char* label, C* zone)		{ fFactory->addnode<C>( "checkbox", label, fMeta); fMeta.clear(); }
-		virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "vslider", label, init, min, max, step, fMeta); fMeta.clear(); }
-		virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "hslider", label, init, min, max, step, fMeta); fMeta.clear(); }
-		virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
-							{ fFactory->addnode<C>( "nentry", label, init, min, max, step, fMeta); fMeta.clear(); }
+    // -- active widgets
+    virtual void addButton(const char* label, C* zone)
+    {
+        fFactory->addnode<C>("button", label, fMeta);
+        fMeta.clear();
+    }
+    virtual void addCheckButton(const char* label, C* zone)
+    {
+        fFactory->addnode<C>("checkbox", label, fMeta);
+        fMeta.clear();
+    }
+    virtual void addVerticalSlider(const char* label, C* zone, C init, C min, C max, C step)
+    {
+        fFactory->addnode<C>("vslider", label, init, min, max, step, fMeta);
+        fMeta.clear();
+    }
+    virtual void addHorizontalSlider(const char* label, C* zone, C init, C min, C max, C step)
+    {
+        fFactory->addnode<C>("hslider", label, init, min, max, step, fMeta);
+        fMeta.clear();
+    }
+    virtual void addNumEntry(const char* label, C* zone, C init, C min, C max, C step)
+    {
+        fFactory->addnode<C>("nentry", label, init, min, max, step, fMeta);
+        fMeta.clear();
+    }
 
-		// -- passive widgets
-		virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)		{ fFactory->addnode<C>( "hbargraph", label, min, max, fMeta); fMeta.clear();}
-		virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)	{ fFactory->addnode<C>( "vbargraph", label, min, max, fMeta); fMeta.clear();}
+    // -- passive widgets
+    virtual void addHorizontalBargraph(const char* label, C* zone, C min, C max)
+    {
+        fFactory->addnode<C>("hbargraph", label, min, max, fMeta);
+        fMeta.clear();
+    }
+    virtual void addVerticalBargraph(const char* label, C* zone, float min, float max)
+    {
+        fFactory->addnode<C>("vbargraph", label, min, max, fMeta);
+        fMeta.clear();
+    }
 
-		// -- metadata declarations
-		virtual void declare(C* , const char* key, const char* val)		{ fMeta[key] = val; }
+    // -- metadata declarations
+    virtual void declare(C*, const char* key, const char* val) { fMeta[key] = val; }
 
-		//--------------------------------------------
-		// additionnal methods (not part of UI)
-		//--------------------------------------------
-		void numInput(int n)								{ fFactory->root().setInputs(n); }
-		void numOutput(int n)								{ fFactory->root().setOutputs(n); }
-		void declare(const char* key, const char* val)		{ fFactory->root().declare(key, val);}
+    //--------------------------------------------
+    // additionnal methods (not part of UI)
+    //--------------------------------------------
+    void numInput(int n) { fFactory->root().setInputs(n); }
+    void numOutput(int n) { fFactory->root().setOutputs(n); }
+    void declare(const char* key, const char* val) { fFactory->root().declare(key, val); }
 
-		//--------------------------------------------
-		// and eventually how to get the json as a string
-		//--------------------------------------------
-		std::string json(bool flatten)				{ return fFactory->root().json(flatten); }
+    //--------------------------------------------
+    // and eventually how to get the json as a string
+    //--------------------------------------------
+    std::string json(bool flatten) { return fFactory->root().json(flatten); }
 };
 
-} //end namespace
+}  // namespace httpdfaust
 
 #endif

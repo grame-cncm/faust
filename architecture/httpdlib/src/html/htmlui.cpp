@@ -24,27 +24,57 @@
 #include "htmlui.h"
 #include "htmlfactory.h"
 
-htmlui::htmlui(const char *name, const char* address, int port) 
-					: fFactory(0) { fFactory = new httpdfaust::htmlfactory(name, address, port); }
-htmlui::~htmlui() { delete fFactory; }
+htmlui::htmlui(const char* name, const char* address, int port) : fFactory(0)
+{
+    fFactory = new httpdfaust::htmlfactory(name, address, port);
+}
+htmlui::~htmlui()
+{
+    delete fFactory;
+}
 
-void htmlui::openTabBox(const char* label)			{ fFactory->opengroup( "tgroup", label); }
-void htmlui::openHorizontalBox(const char* label)	{ fFactory->opengroup( "hgroup", label); }
-void htmlui::openVerticalBox(const char* label)		{ fFactory->opengroup( "vgroup", label); }
-void htmlui::closeBox()								{ fFactory->closegroup(); }
+void htmlui::openTabBox(const char* label)
+{
+    fFactory->opengroup("tgroup", label);
+}
+void htmlui::openHorizontalBox(const char* label)
+{
+    fFactory->opengroup("hgroup", label);
+}
+void htmlui::openVerticalBox(const char* label)
+{
+    fFactory->opengroup("vgroup", label);
+}
+void htmlui::closeBox()
+{
+    fFactory->closegroup();
+}
 
 void htmlui::addButton(const char* label, float*)
-					{ fFactory->addnode( "button", label); }
+{
+    fFactory->addnode("button", label);
+}
 void htmlui::addCheckButton(const char* label, float*)
-					{ fFactory->addnode( "checkbox", label); }
+{
+    fFactory->addnode("checkbox", label);
+}
 
 void htmlui::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
-					{ fFactory->addnode( "vslider", label, init, min, max, step); }
+{
+    fFactory->addnode("vslider", label, init, min, max, step);
+}
 void htmlui::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
-					{ fFactory->addnode( "hslider", label, init, min, max, step); }
+{
+    fFactory->addnode("hslider", label, init, min, max, step);
+}
 void htmlui::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
-					{ fFactory->addnode( "nentry", label, init, min, max, step); }
+{
+    fFactory->addnode("nentry", label, init, min, max, step);
+}
 
-void htmlui::addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
-void htmlui::addVerticalBargraph(const char* label, float* zone, float min, float max) {}
-
+void htmlui::addHorizontalBargraph(const char* label, float* zone, float min, float max)
+{
+}
+void htmlui::addVerticalBargraph(const char* label, float* zone, float min, float max)
+{
+}

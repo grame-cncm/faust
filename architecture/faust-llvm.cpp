@@ -24,19 +24,19 @@
 #define __faust_llvm_h__
 
 #include <libgen.h>
-#include <iostream>
 #include <stdlib.h>
+#include <iostream>
 
 #include "faust/audio/dummy-audio.h"
-#include "faust/gui/PrintUI.h"
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/gui/PrintUI.h"
 
 #define BUFFER_TO_RENDER 10
-	
+
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     char jackname[256];
     snprintf(jackname, 256, "%s", basename(argv[0]));
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     // Another possibility by directly giving the Faust program as a string
 
     // Additional parameters given to the compiler
-    int argc1 = 3;
+    int         argc1 = 3;
     const char* argv1[argc];
     argv1[0] = "-vec";
     argv1[1] = "-lv";
@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
     dummyaudio audio(BUFFER_TO_RENDER);
     audio.init(jackname, DSP);
     audio.start();
-    
+
     // Render BUFFER_TO_RENDER buffers...
     audio.stop();
     return 0;
@@ -86,10 +86,9 @@ Compilation :
 g++ faust-llvm.cpp /usr/local/lib/libfaust.a `llvm-config --ldflags --libs all` -lz -lcurses -o faust-llvm-static
 g++ faust-llvm.cpp -lfaust -L /usr/local/lib `llvm-config --ldflags --libs all` -lz -lcurses -o faust-llvm-shared
 
-Usage (possibly with explicit parameters given to the compiler) : 
+Usage (possibly with explicit parameters given to the compiler) :
 
 ./faust-llvm-static karplus.dsp
 ./faust-llvm-static -vec -lv 1 karplus.dsp
 ./faust-llvm-static -double -vec -lv 0 -vs 64 karplus.dsp
 */
-

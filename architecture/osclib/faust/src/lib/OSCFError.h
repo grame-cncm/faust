@@ -16,7 +16,7 @@
 
   Grame Research Laboratory, 9, rue du Garet 69001 Lyon - France
   research@grame.fr
-  
+
 */
 
 #ifndef __OSCFError__
@@ -25,53 +25,52 @@
 #include <iostream>
 #include "OSCStream.h"
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
 /*!
 \brief	OSC error stream
 
-	Combines the \c cerr and \c oscerr streams
+    Combines the \c cerr and \c oscerr streams
 */
 typedef struct OSCFError {
-	bool oscpending;
-	OSCFError() { oscpending = false; }
+    bool oscpending;
+    OSCFError() { oscpending = false; }
 } OSCFError;
 
 typedef struct OSCFErrorEnd {
 } OSCFErrEnd;
 
-
-inline OSCFError& operator << (OSCFError& err, OSCFErrEnd end)
+inline OSCFError& operator<<(OSCFError& err, OSCFErrEnd end)
 {
-	std::cerr << std::endl;
+    std::cerr << std::endl;
 #ifndef NO_OSC
-	oscerr <<  OSCEnd();
-	err.oscpending = false;
+    oscerr << OSCEnd();
+    err.oscpending = false;
 #endif
-	return err;
+    return err;
 }
 
-template <typename T>	OSCFError& operator << (OSCFError& err, const T& arg)
+template <typename T>
+OSCFError& operator<<(OSCFError& err, const T& arg)
 {
-	std::cerr << arg;
+    std::cerr << arg;
 #ifndef NO_OSC
-	if (!err.oscpending) {
-		oscerr << OSCErr();
-		err.oscpending = true;
-	}
-	oscerr << arg;
+    if (!err.oscpending) {
+        oscerr << OSCErr();
+        err.oscpending = true;
+    }
+    oscerr << arg;
 #endif
-	return err;
+    return err;
 }
 
 class Message;
-OSCFError& operator <<  (OSCFError& err, const Message* arg);
+OSCFError& operator<<(OSCFError& err, const Message* arg);
 
-extern OSCFError	OSCFErr;		// static OSC error output stream
-extern OSCFErrEnd	OSCFEndl;		// static OSC error output stream end
+extern OSCFError  OSCFErr;   // static OSC error output stream
+extern OSCFErrEnd OSCFEndl;  // static OSC error output stream end
 
-} // end namespace
+}  // namespace oscfaust
 
 #endif

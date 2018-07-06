@@ -26,48 +26,46 @@
 
 #include "FaustFactory.h"
 #include "FaustNode.h"
-#include "RootNode.h"
 #include "MessageDriven.h"
+#include "RootNode.h"
 
 using namespace std;
 
-namespace httpdfaust
-{
-
+namespace httpdfaust {
 
 /**
- * Open a group in the current group and place it on the top of the stack. 
- * Takes into account that due to alias, a group can been previously created.  
+ * Open a group in the current group and place it on the top of the stack.
+ * Takes into account that due to alias, a group can been previously created.
  */
-void FaustFactory::opengroup (const char* label)
+void FaustFactory::opengroup(const char* label)
 {
-	if (fNodes.size() == 0) {	
-		// the stack is empty: creates a root node 
-		fRoot = RootNode::create (label);	
-		fNodes.push (fRoot);					
-		
-	} else {
-		// only create a group if not previously created
-		SMessageDriven node = fNodes.top();
-		int i=0; while ( (i < node->size()) && (node->subnode(i)->name() != label) ) i++;
-		
-		if (i < node->size()) {
-			// found, make it top of stack
-			fNodes.push(node->subnode(i));
-		} else {
-			// not found, create a new group and make it top of stack
-			SMessageDriven group = MessageDriven::create (label, node->getAddress().c_str());
-			node->add( group );
-			fNodes.push (group);
-		}
+    if (fNodes.size() == 0) {
+        // the stack is empty: creates a root node
+        fRoot = RootNode::create(label);
+        fNodes.push(fRoot);
 
-	}
+    } else {
+        // only create a group if not previously created
+        SMessageDriven node = fNodes.top();
+        int            i    = 0;
+        while ((i < node->size()) && (node->subnode(i)->name() != label)) i++;
+
+        if (i < node->size()) {
+            // found, make it top of stack
+            fNodes.push(node->subnode(i));
+        } else {
+            // not found, create a new group and make it top of stack
+            SMessageDriven group = MessageDriven::create(label, node->getAddress().c_str());
+            node->add(group);
+            fNodes.push(group);
+        }
+    }
 }
 
 //--------------------------------------------------------------------------
-void FaustFactory::closegroup ()
+void FaustFactory::closegroup()
 {
-	fNodes.pop ();
+    fNodes.pop();
 }
 
-} // end namespoace
+}  // namespace httpdfaust

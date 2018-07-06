@@ -16,30 +16,29 @@
 
   Grame Research Laboratory, 9, rue du Garet 69001 Lyon - France
   research@grame.fr
-  
+
 */
 
 #include "OSCFError.h"
 #include "faust/osc/Message.h"
 
-namespace oscfaust
-{
+namespace oscfaust {
 
-OSCFError	OSCFErr;		// static OSC error output stream
-OSCFErrEnd	OSCFEndl;		// static OSC error output stream end
+OSCFError  OSCFErr;   // static OSC error output stream
+OSCFErrEnd OSCFEndl;  // static OSC error output stream end
 
-OSCFError& operator << (OSCFError& err, const Message* arg)
+OSCFError& operator<<(OSCFError& err, const Message* arg)
 {
-	arg->print (std::cerr);
+    arg->print(std::cerr);
 #ifndef NO_OSC
-	if (!err.oscpending) {
-		oscerr << OSCErr();
-		err.oscpending = true;
-	}
-	oscerr << arg->address().c_str();
-	arg->printArgs(oscerr);
+    if (!err.oscpending) {
+        oscerr << OSCErr();
+        err.oscpending = true;
+    }
+    oscerr << arg->address().c_str();
+    arg->printArgs(oscerr);
 #endif
-	return err;
+    return err;
 }
 
-} // end namespace
+}  // namespace oscfaust

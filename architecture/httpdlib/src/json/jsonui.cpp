@@ -24,32 +24,31 @@
 #include "jsonui.h"
 #include "jsonfactory.h"
 
-//jsonui::jsonui(const char *name, const char* address, int port) 
+// jsonui::jsonui(const char *name, const char* address, int port)
 //					: fFactory(0) { fFactory = new httpdfaust::jsonfactory(name, address, port); }
-//jsonui::~jsonui() { delete fFactory; }
+// jsonui::~jsonui() { delete fFactory; }
 
-//void jsonui::openFrameBox(const char* label)		{ fFactory->opengroup( "framebox", label); }
-//void jsonui::openTabBox(const char* label)			{ fFactory->opengroup( "tabbox", label); }
-//void jsonui::openHorizontalBox(const char* label)	{ fFactory->opengroup( "horizontalbox", label); }
-//void jsonui::openVerticalBox(const char* label)		{ fFactory->opengroup( "verticalbox", label); }
-//void jsonui::closeBox()								{ fFactory->closegroup(); }
+// void jsonui::openFrameBox(const char* label)		{ fFactory->opengroup( "framebox", label); }
+// void jsonui::openTabBox(const char* label)			{ fFactory->opengroup( "tabbox", label); }
+// void jsonui::openHorizontalBox(const char* label)	{ fFactory->opengroup( "horizontalbox", label); }
+// void jsonui::openVerticalBox(const char* label)		{ fFactory->opengroup( "verticalbox", label); }
+// void jsonui::closeBox()								{ fFactory->closegroup(); }
 //
-//void jsonui::addButton(const char* label, float*)
+// void jsonui::addButton(const char* label, float*)
 //					{ fFactory->addnode( "button", label); }
-//void jsonui::addToggleButton(const char* label, float*)
+// void jsonui::addToggleButton(const char* label, float*)
 //					{ fFactory->addnode( "togglebutton", label); }
-//void jsonui::addCheckButton(const char* label, float*)
+// void jsonui::addCheckButton(const char* label, float*)
 //					{ fFactory->addnode( "checkbutton", label); }
 //
-//void jsonui::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
+// void jsonui::addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step)
 //					{ fFactory->addnode( "verticalslider", label, init, min, max, step); }
-//void jsonui::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
+// void jsonui::addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step)
 //					{ fFactory->addnode( "horizontalslider", label, init, min, max, step); }
-//void jsonui::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
+// void jsonui::addNumEntry(const char* label, float* zone, float init, float min, float max, float step)
 //					{ fFactory->addnode( "numentry", label, init, min, max, step); }
 
-//void jsonui::addNumDisplay(const char* label, float* zone, int precision) {}
-//void jsonui::addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {}
-//void jsonui::addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
-//void jsonui::addVerticalBargraph(const char* label, float* zone, float min, float max) {}
-
+// void jsonui::addNumDisplay(const char* label, float* zone, int precision) {}
+// void jsonui::addTextDisplay(const char* label, float* zone, const char* names[], float min, float max) {}
+// void jsonui::addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
+// void jsonui::addVerticalBargraph(const char* label, float* zone, float min, float max) {}

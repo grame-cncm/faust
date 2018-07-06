@@ -12,15 +12,12 @@
 #include <string>
 #include <vector>
 
-#include "faust/dsp/dsp.h"
 #include "faust/au/AUUI.h"
+#include "faust/dsp/dsp.h"
 
 #define FaustAU _FaustAUClass_
 
-enum
-{
-    kAudioUnitCustomProperty_dspUI = 65536
-};
+enum { kAudioUnitCustomProperty_dspUI = 65536 };
 
 #define CUSTOM_VIEW_BUNDLE_ID "FaustAUCustomView"
 #define CUSTOM_VIEW_BUNDLE_NAME "com.grame.audiounit.FaustAU"

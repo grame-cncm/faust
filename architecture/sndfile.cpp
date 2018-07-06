@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -33,28 +33,28 @@
 ************************************************************************
 ************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <errno.h>
 #include <limits.h>
 #include <math.h>
-#include <errno.h>
-#include <time.h>
 #include <sndfile.h>
-#include <vector>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+#include <iostream>
+#include <map>
 #include <stack>
 #include <string>
-#include <map>
-#include <iostream>
+#include <vector>
 
-#include "faust/gui/console.h"
-#include "faust/gui/FUI.h"
 #include "faust/dsp/dsp.h"
+#include "faust/gui/FUI.h"
+#include "faust/gui/console.h"
 #include "faust/misc.h"
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
-#endif  
+#endif
 
 #define READ_SAMPLE sf_readf_float
 //#define READ_SAMPLE sf_readf_double
@@ -70,211 +70,205 @@ VECTOR INTRINSICS
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+    mydsp DSP;
 
-class Separator
-{
-  int fNumFrames;
-  int fNumInputs;
-  int fNumOutputs;
+class Separator {
+    int fNumFrames;
+    int fNumInputs;
+    int fNumOutputs;
 
-  FAUSTFLOAT* fInput;
-  FAUSTFLOAT* fOutputs[256];
+    FAUSTFLOAT* fInput;
+    FAUSTFLOAT* fOutputs[256];
 
-public:
+   public:
+    Separator(int numFrames, int numInputs, int numOutputs)
+    {
+        fNumFrames  = numFrames;
+        fNumInputs  = numInputs;
+        fNumOutputs = max(numInputs, numOutputs);
 
-  Separator(int numFrames, int numInputs, int numOutputs)
-  {
-    fNumFrames 	= numFrames;
-    fNumInputs 	= numInputs;
-    fNumOutputs = max(numInputs, numOutputs);
+        // allocate interleaved input channel
+        fInput = (FAUSTFLOAT*)calloc(fNumFrames * fNumInputs, sizeof(FAUSTFLOAT));
 
-    // allocate interleaved input channel
-    fInput = (FAUSTFLOAT*) calloc(fNumFrames * fNumInputs, sizeof(FAUSTFLOAT));
-
-    // allocate separate output channels
-    for (int i = 0; i < fNumOutputs; i++) {
-      fOutputs[i] = (FAUSTFLOAT*) calloc (fNumFrames, sizeof(FAUSTFLOAT));
+        // allocate separate output channels
+        for (int i = 0; i < fNumOutputs; i++) {
+            fOutputs[i] = (FAUSTFLOAT*)calloc(fNumFrames, sizeof(FAUSTFLOAT));
+        }
     }
-  }
 
-  ~Separator()
-  {
-    // free interleaved input channel
-    free(fInput);
+    ~Separator()
+    {
+        // free interleaved input channel
+        free(fInput);
 
-    // free separate output channels
-    for (int i = 0; i < fNumOutputs; i++) {
-      free(fOutputs[i]);
+        // free separate output channels
+        for (int i = 0; i < fNumOutputs; i++) {
+            free(fOutputs[i]);
+        }
     }
-  }
 
-  FAUSTFLOAT* input()		{ return fInput; }
+    FAUSTFLOAT* input() { return fInput; }
 
-  FAUSTFLOAT** outputs()	{ return fOutputs; }
+    FAUSTFLOAT** outputs() { return fOutputs; }
 
-  void separate()
-  {
-    for (int s = 0; s < fNumFrames; s++) {
-      for (int c = 0; c < fNumInputs; c++) {
-        fOutputs[c][s] = fInput[c + s*fNumInputs];
-      }
+    void separate()
+    {
+        for (int s = 0; s < fNumFrames; s++) {
+            for (int c = 0; c < fNumInputs; c++) {
+                fOutputs[c][s] = fInput[c + s * fNumInputs];
+            }
+        }
     }
-  }
 };
 
-class Interleaver
-{
-  int fNumFrames;
-  int fNumChans;
+class Interleaver {
+    int fNumFrames;
+    int fNumChans;
 
-  FAUSTFLOAT* fInputs[256];
-  FAUSTFLOAT* fOutput;
+    FAUSTFLOAT* fInputs[256];
+    FAUSTFLOAT* fOutput;
 
-public:
+   public:
+    Interleaver(int numFrames, int numChans)
+    {
+        fNumFrames = numFrames;
+        fNumChans  = numChans;
 
-  Interleaver(int numFrames, int numChans)
-  {
-    fNumFrames = numFrames;
-    fNumChans = numChans;
+        // allocate separate input channels
+        for (int i = 0; i < fNumChans; i++) {
+            fInputs[i] = (FAUSTFLOAT*)calloc(fNumFrames, sizeof(FAUSTFLOAT));
+        }
 
-    // allocate separate input channels
-    for (int i = 0; i < fNumChans; i++) {
-      fInputs[i] = (FAUSTFLOAT*) calloc (fNumFrames, sizeof(FAUSTFLOAT));
+        // allocate interleaved output channel
+        fOutput = (FAUSTFLOAT*)calloc(fNumFrames * fNumChans, sizeof(FAUSTFLOAT));
     }
 
-    // allocate interleaved output channel
-    fOutput = (FAUSTFLOAT*) calloc(fNumFrames * fNumChans, sizeof(FAUSTFLOAT));
+    ~Interleaver()
+    {
+        // free separate input channels
+        for (int i = 0; i < fNumChans; i++) {
+            free(fInputs[i]);
+        }
 
-  }
-
-  ~Interleaver()
-  {
-    // free separate input channels
-    for (int i = 0; i < fNumChans; i++) {
-      free(fInputs[i]);
+        // free interleaved output channel
+        free(fOutput);
     }
 
-    // free interleaved output channel
-    free(fOutput);
-  }
+    FAUSTFLOAT** inputs() { return fInputs; }
 
-  FAUSTFLOAT** inputs()		{ return fInputs; }
+    FAUSTFLOAT* output() { return fOutput; }
 
-  FAUSTFLOAT* output()		{ return fOutput; }
-
-  void interleave()
-  {
-    for (int s = 0; s < fNumFrames; s++) {
-      for (int c = 0; c < fNumChans; c++) {
-        fOutput[c + s*fNumChans] = max(min(fInputs[c][s], FAUSTFLOAT(1.0)),FAUSTFLOAT(-1.0));
-      }
+    void interleave()
+    {
+        for (int s = 0; s < fNumFrames; s++) {
+            for (int c = 0; c < fNumChans; c++) {
+                fOutput[c + s * fNumChans] = max(min(fInputs[c][s], FAUSTFLOAT(1.0)), FAUSTFLOAT(-1.0));
+            }
+        }
     }
-  }
-    
 };
 
 #define kFrames 512
 
 // loptrm : Scan command-line arguments and remove and return long int value when found
-long loptrm(int *argcP, char *argv[], const char* longname, const char* shortname, long def)
+long loptrm(int* argcP, char* argv[], const char* longname, const char* shortname, long def)
 {
-  int argc = *argcP;
-  for (int i=2; i<argc; i++) {
-    if (strcmp(argv[i-1], shortname) == 0 || strcmp(argv[i-1], longname) == 0) {
-      int optval = atoi(argv[i]);
-      for (int j=i-1; j<argc-2; j++) {  // make it go away for sake of "faust/gui/console.h"
-        argv[j] = argv[j+2];
-      }
-      *argcP -= 2;
-      return optval;
+    int argc = *argcP;
+    for (int i = 2; i < argc; i++) {
+        if (strcmp(argv[i - 1], shortname) == 0 || strcmp(argv[i - 1], longname) == 0) {
+            int optval = atoi(argv[i]);
+            for (int j = i - 1; j < argc - 2; j++) {  // make it go away for sake of "faust/gui/console.h"
+                argv[j] = argv[j + 2];
+            }
+            *argcP -= 2;
+            return optval;
+        }
     }
-  }
-  return def;
+    return def;
 }
 
 int main(int argc, char* argv[])
 {
-  SNDFILE* in_sf;
-  SNDFILE* out_sf;
-  SF_INFO in_info;
-  SF_INFO out_info;
-  unsigned int nAppend = 0; // number of frames to append beyond input file
+    SNDFILE*     in_sf;
+    SNDFILE*     out_sf;
+    SF_INFO      in_info;
+    SF_INFO      out_info;
+    unsigned int nAppend = 0;  // number of frames to append beyond input file
 
-  if (argc < 3) {
-    fprintf(stderr,"*** USAGE: %s input_soundfile output_soundfile\n", argv[0]);
-    exit(1);
-  }
+    if (argc < 3) {
+        fprintf(stderr, "*** USAGE: %s input_soundfile output_soundfile\n", argv[0]);
+        exit(1);
+    }
 
-  nAppend = loptrm(&argc, argv, "--continue", "-c", 0);
-    
-  CMDUI* interface = new CMDUI(argc, argv);
-  DSP.buildUserInterface(interface);
-  interface->process_command();
+    nAppend = loptrm(&argc, argv, "--continue", "-c", 0);
 
-  // open input file
-  in_info.format = 0;
-  in_sf = sf_open(interface->input_file(), SFM_READ, &in_info);
-  if (in_sf == NULL) {
-    fprintf(stderr, "*** Input file not found.\n");
-    sf_perror(in_sf); 
-    exit(1); 
-  }
+    CMDUI* interface = new CMDUI(argc, argv);
+    DSP.buildUserInterface(interface);
+    interface->process_command();
 
-  // open output file
-  out_info = in_info;
-  out_info.format = in_info.format;
-  out_info.channels = DSP.getNumOutputs();
-  out_sf = sf_open(interface->output_file(), SFM_WRITE, &out_info);
-  if (out_sf == NULL) { 
-    fprintf(stderr, "*** Cannot write output file.\n");
-    sf_perror(out_sf); 
-    exit(1); 
-  }
+    // open input file
+    in_info.format = 0;
+    in_sf          = sf_open(interface->input_file(), SFM_READ, &in_info);
+    if (in_sf == NULL) {
+        fprintf(stderr, "*** Input file not found.\n");
+        sf_perror(in_sf);
+        exit(1);
+    }
 
-  // create separator and interleaver
-  Separator sep(kFrames, in_info.channels, DSP.getNumInputs());
-  Interleaver ilv(kFrames, DSP.getNumOutputs());
+    // open output file
+    out_info          = in_info;
+    out_info.format   = in_info.format;
+    out_info.channels = DSP.getNumOutputs();
+    out_sf            = sf_open(interface->output_file(), SFM_WRITE, &out_info);
+    if (out_sf == NULL) {
+        fprintf(stderr, "*** Cannot write output file.\n");
+        sf_perror(out_sf);
+        exit(1);
+    }
 
-  // init signal processor
-  DSP.init(in_info.samplerate);
-  interface->process_init();
+    // create separator and interleaver
+    Separator   sep(kFrames, in_info.channels, DSP.getNumInputs());
+    Interleaver ilv(kFrames, DSP.getNumOutputs());
 
-  // process all samples
-  int nbf;
-  do {
-    nbf = READ_SAMPLE(in_sf, sep.input(), kFrames);
-    sep.separate();
-    DSP.compute(nbf, sep.outputs(), ilv.inputs());
-    ilv.interleave();
-    WRITE_SAMPLE(out_sf, ilv.output(), nbf);
-  } while (nbf == kFrames);
+    // init signal processor
+    DSP.init(in_info.samplerate);
+    interface->process_init();
 
-  sf_close(in_sf);
+    // process all samples
+    int nbf;
+    do {
+        nbf = READ_SAMPLE(in_sf, sep.input(), kFrames);
+        sep.separate();
+        DSP.compute(nbf, sep.outputs(), ilv.inputs());
+        ilv.interleave();
+        WRITE_SAMPLE(out_sf, ilv.output(), nbf);
+    } while (nbf == kFrames);
 
-  // compute tail, if any
-  if (nAppend>0) {
-    FAUSTFLOAT *input = (FAUSTFLOAT*) calloc(nAppend * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
-    FAUSTFLOAT *inputs[1] = { input };
-    Interleaver ailv(nAppend, DSP.getNumOutputs());
-    DSP.compute(nAppend, inputs, ailv.inputs());
-    ailv.interleave();
-    WRITE_SAMPLE(out_sf, ailv.output(), nAppend);
-  }
+    sf_close(in_sf);
 
-  sf_close(out_sf);
+    // compute tail, if any
+    if (nAppend > 0) {
+        FAUSTFLOAT* input     = (FAUSTFLOAT*)calloc(nAppend * DSP.getNumInputs(), sizeof(FAUSTFLOAT));
+        FAUSTFLOAT* inputs[1] = {input};
+        Interleaver ailv(nAppend, DSP.getNumOutputs());
+        DSP.compute(nAppend, inputs, ailv.inputs());
+        ailv.interleave();
+        WRITE_SAMPLE(out_sf, ailv.output(), nAppend);
+    }
+
+    sf_close(out_sf);
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/

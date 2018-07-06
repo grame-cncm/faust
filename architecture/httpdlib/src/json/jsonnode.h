@@ -21,64 +21,79 @@
 
 */
 
-
 #ifndef __jsonnode__
 #define __jsonnode__
 
+#include <map>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "smartpointer.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class jsonnode;
-typedef SMARTP<jsonnode>	Sjsonnode;
+typedef SMARTP<jsonnode> Sjsonnode;
 
-typedef std::map<std::string, std::string>	TMetas;
+typedef std::map<std::string, std::string> TMetas;
 
 //______________________________________________________________________________
 /*!
 \internal
 \brief to be used in place of std::endl
-	to provide indentation of the json output.
+    to provide indentation of the json output.
 */
 class jsonendl {
-	private:
-		int fIndent;
-	public:
-				 jsonendl() : fIndent(0) {}
-		virtual ~jsonendl() {}
+   private:
+    int fIndent;
 
-		//! increase the indentation
-		jsonendl& operator++ (int)  { fIndent++; return *this; }	// prefix
-		jsonendl& operator++ ()		{ fIndent++; return *this; }	// postfix
-		//! decrease the indentation
-		jsonendl& operator-- (int)  { fIndent--; return *this; }	// prefix
-		jsonendl& operator-- ()		{ fIndent--; return *this; }	// postfix
-		//! reset the indentation to none
-		void print(std::ostream& os) const;
+   public:
+    jsonendl() : fIndent(0) {}
+    virtual ~jsonendl() {}
+
+    //! increase the indentation
+    jsonendl& operator++(int)
+    {
+        fIndent++;
+        return *this;
+    }  // prefix
+    jsonendl& operator++()
+    {
+        fIndent++;
+        return *this;
+    }  // postfix
+    //! decrease the indentation
+    jsonendl& operator--(int)
+    {
+        fIndent--;
+        return *this;
+    }  // prefix
+    jsonendl& operator--()
+    {
+        fIndent--;
+        return *this;
+    }  // postfix
+    //! reset the indentation to none
+    void print(std::ostream& os) const;
 };
-std::ostream& operator<< (std::ostream& os, const jsonendl& eol);
+std::ostream& operator<<(std::ostream& os, const jsonendl& eol);
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a faust node is a terminal node and represents a faust parameter controler
+    \brief a faust node is a terminal node and represents a faust parameter controler
 */
-class jsonnode : public smartable
-{
-	std::string fAddress;
-	public:
-		virtual ~jsonnode() {}
+class jsonnode : public smartable {
+    std::string fAddress;
 
-		virtual void	add (const Sjsonnode& node)		{}
-		virtual void	print(std::ostream& out, jsonendl& eol) const = 0;
-		virtual const std::string&	getAddress() const							{ return fAddress; }
-		virtual void				setAddress( const std::string& address) 	{ fAddress = address; }
+   public:
+    virtual ~jsonnode() {}
+
+    virtual void               add(const Sjsonnode& node) {}
+    virtual void               print(std::ostream& out, jsonendl& eol) const = 0;
+    virtual const std::string& getAddress() const { return fAddress; }
+    virtual void               setAddress(const std::string& address) { fAddress = address; }
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif

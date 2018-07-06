@@ -48,19 +48,19 @@
  ************************************************************************
  ************************************************************************/
 
-#include <stdlib.h>
-#include <math.h>
 #include <assert.h>
+#include <math.h>
+#include <stdlib.h>
 #include <string>
 #include <vector>
 
-#include "AUEffectBase.h"
 #include <AudioToolbox/AudioUnitUtilities.h>
+#include "AUEffectBase.h"
 #include "FaustAUVersion.h"
 #include "faust/misc.h"
 
 #ifndef FaustAU_FaustAUEffect_h
-#include "FaustAU.h" //TODO
+#include "FaustAU.h"  //TODO
 #endif
 
 using namespace std;
@@ -73,128 +73,97 @@ using namespace std;
  *******************************************************************************
  *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
+    /********************END ARCHITECTURE SECTION (part 2/2)****************/
 
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-static const int kPreset_One = 0;
-static const int kNumberPresets = 1;
-static AUPreset kPresets[kNumberPresets] =
-{ { kPreset_One, CFSTR("Default") }, };
-
+    static const int kPreset_One              = 0;
+static const int     kNumberPresets           = 1;
+static AUPreset      kPresets[kNumberPresets] = {
+    {kPreset_One, CFSTR("Default")},
+};
 
 #define MAX_OUT_CHANNELS 1000
 
-class FaustAUEffect: public AUEffectBase
-{
-
-public:
-
+class FaustAUEffect : public AUEffectBase {
+   public:
     FaustAUEffect(AudioUnit component);
 
     ~FaustAUEffect();
 
-    virtual OSStatus Version()
-    {
-        return kFaustAUVersion;
-    }
+    virtual OSStatus Version() { return kFaustAUVersion; }
 
     virtual OSStatus Initialize();
 
-    virtual OSStatus GetPropertyInfo(AudioUnitPropertyID inID,
-                                     AudioUnitScope inScope, AudioUnitElement inElement,
-                                     UInt32 & outDataSize, Boolean & outWritable);
+    virtual OSStatus GetPropertyInfo(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                     UInt32& outDataSize, Boolean& outWritable);
 
-    virtual OSStatus GetProperty(AudioUnitPropertyID inID,
-                                 AudioUnitScope inScope, AudioUnitElement inElement, void * outData);
+    virtual OSStatus GetProperty(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                 void* outData);
 
-    virtual OSStatus GetParameterInfo(AudioUnitScope inScope,
-                                      AudioUnitParameterID inParameterID,
-                                      AudioUnitParameterInfo &outParameterInfo);
+    virtual OSStatus GetParameterInfo(AudioUnitScope inScope, AudioUnitParameterID inParameterID,
+                                      AudioUnitParameterInfo& outParameterInfo);
 
-    void SetParameter(AudioUnitParameterID paramID,
-                      AudioUnitParameterValue value);
+    void SetParameter(AudioUnitParameterID paramID, AudioUnitParameterValue value);
 
-    virtual OSStatus SetParameter(AudioUnitParameterID inID,
-                                  AudioUnitScope inScope, AudioUnitElement inElement,
+    virtual OSStatus SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope, AudioUnitElement inElement,
                                   AudioUnitParameterValue inValue, UInt32);
 
-    virtual OSStatus GetPresets(CFArrayRef *outData) const;
+    virtual OSStatus GetPresets(CFArrayRef* outData) const;
 
-    virtual OSStatus NewFactoryPresetSet(const AUPreset & inNewFactoryPreset);
+    virtual OSStatus NewFactoryPresetSet(const AUPreset& inNewFactoryPreset);
 
-    virtual bool SupportsTail()
-    {
-        return true;
-    }
+    virtual bool SupportsTail() { return true; }
 
-    virtual Float64 GetTailTime()
-    {
-        return 3.0;
-    }
+    virtual Float64 GetTailTime() { return 3.0; }
 
-    //For example, a lookahead compressor or FFT-based processor should report the true latency in seconds
-    virtual Float64 GetLatency()
-    {
-        return 0.0;
-    }
+    // For example, a lookahead compressor or FFT-based processor should report the true latency in seconds
+    virtual Float64 GetLatency() { return 0.0; }
 
-    virtual OSStatus ProcessBufferLists(AudioUnitRenderActionFlags &ioActionFlags,
-                                        const AudioBufferList &inBuffer, AudioBufferList &outBuffer,
-                                        UInt32 inFramesToProcess);
+    virtual OSStatus ProcessBufferLists(AudioUnitRenderActionFlags& ioActionFlags, const AudioBufferList& inBuffer,
+                                        AudioBufferList& outBuffer, UInt32 inFramesToProcess);
 
-private:
+   private:
     auUI* dspUI;
 
-public:
+   public:
     mydsp* dsp;
 };
 
 /**********************************************************************************/
 
-
 AUDIOCOMPONENT_ENTRY(AUBaseFactory, FaustAU)
 
-FaustAUEffect::FaustAUEffect(AudioUnit component)
-    : AUEffectBase(component)
+FaustAUEffect::FaustAUEffect(AudioUnit component) : AUEffectBase(component)
 {
     CreateElements();
     dspUI = new auUI();
-    dsp = new mydsp();
+    dsp   = new mydsp();
     SetParamHasSampleRateDependency(true);
     dsp->buildUserInterface(dspUI);
 
     if (dspUI) {
         for (int i = 0; i < dspUI->fUITable.size(); i++) {
-            if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone)
-            {
-                if (dynamic_cast<auButton*>(dspUI->fUITable[i]))
-                {
+            if (dspUI->fUITable[i] && dspUI->fUITable[i]->fZone) {
+                if (dynamic_cast<auButton*>(dspUI->fUITable[i])) {
                     SetParameter(i, 0);
-                }
-                else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[i]))
-                {
+                } else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[i])) {
                     SetParameter(i, 0);
-                }
-                else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[i]))
-                {
+                } else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[i])) {
                     SetParameter(i, 0);
-                }
-                else
-                {
+                } else {
                     auSlider* slider = (auSlider*)dspUI->fUITable[i];
-                    SetParameter(i, slider->fInit );
+                    SetParameter(i, slider->fInit);
                 }
             }
         }
@@ -214,126 +183,98 @@ OSStatus FaustAUEffect::Initialize()
     return result;
 }
 
-OSStatus FaustAUEffect::GetParameterInfo(AudioUnitScope inScope,
-        AudioUnitParameterID inParameterID,
-        AudioUnitParameterInfo &outParameterInfo)
+OSStatus FaustAUEffect::GetParameterInfo(AudioUnitScope inScope, AudioUnitParameterID inParameterID,
+                                         AudioUnitParameterInfo& outParameterInfo)
 {
     OSStatus result = noErr;
 
-    char name[100];
+    char        name[100];
     CFStringRef str;
 
     outParameterInfo.flags = kAudioUnitParameterFlag_IsWritable + kAudioUnitParameterFlag_IsReadable;
 
-    if (inScope == kAudioUnitScope_Global)
-    {
-
-        if (dspUI && dspUI->fUITable[inParameterID]
-                && dspUI->fUITable[inParameterID]->fZone)
-        {
-
-            if (dynamic_cast<auButton*>(dspUI->fUITable[inParameterID]))
-            {
-                auToggleButton* toggle = (auToggleButton*) dspUI->fUITable[inParameterID];
+    if (inScope == kAudioUnitScope_Global) {
+        if (dspUI && dspUI->fUITable[inParameterID] && dspUI->fUITable[inParameterID]->fZone) {
+            if (dynamic_cast<auButton*>(dspUI->fUITable[inParameterID])) {
+                auToggleButton* toggle = (auToggleButton*)dspUI->fUITable[inParameterID];
                 toggle->GetName(name);
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
 
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-                outParameterInfo.minValue = 0;
-                outParameterInfo.maxValue = 1;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Boolean;
+                outParameterInfo.minValue     = 0;
+                outParameterInfo.maxValue     = 1;
                 outParameterInfo.defaultValue = 0;
-            }
-            else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[inParameterID]))
-            {
-                auToggleButton* toggle = (auToggleButton*) dspUI->fUITable[inParameterID];
+            } else if (dynamic_cast<auToggleButton*>(dspUI->fUITable[inParameterID])) {
+                auToggleButton* toggle = (auToggleButton*)dspUI->fUITable[inParameterID];
                 toggle->GetName(name);
 
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
 
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-                outParameterInfo.minValue = 0;
-                outParameterInfo.maxValue = 1;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Boolean;
+                outParameterInfo.minValue     = 0;
+                outParameterInfo.maxValue     = 1;
                 outParameterInfo.defaultValue = 0;
 
-            }
-            else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID]))
-            {
-                auCheckButton* check = (auCheckButton*) dspUI->fUITable[inParameterID];
+            } else if (dynamic_cast<auCheckButton*>(dspUI->fUITable[inParameterID])) {
+                auCheckButton* check = (auCheckButton*)dspUI->fUITable[inParameterID];
                 check->GetName(name);
 
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
 
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Boolean;
-                outParameterInfo.minValue = 0;
-                outParameterInfo.maxValue = 1;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Boolean;
+                outParameterInfo.minValue     = 0;
+                outParameterInfo.maxValue     = 1;
                 outParameterInfo.defaultValue = 0;
-            }
-            else
-            {
-                auSlider* slider = (auSlider*) dspUI->fUITable[inParameterID];
+            } else {
+                auSlider* slider = (auSlider*)dspUI->fUITable[inParameterID];
                 slider->GetName(name);
                 str = CFStringCreateWithCString(kCFAllocatorDefault, name, 0);
 
                 AUBase::FillInParameterName(outParameterInfo, str, false);
-                outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-                outParameterInfo.minValue = slider->fMin;
-                outParameterInfo.maxValue = slider->fMax;
+                outParameterInfo.unit         = kAudioUnitParameterUnit_Generic;
+                outParameterInfo.minValue     = slider->fMin;
+                outParameterInfo.maxValue     = slider->fMax;
                 outParameterInfo.defaultValue = slider->fInit;
             }
-
         }
-    }
-    else
-    {
+    } else {
         result = kAudioUnitErr_InvalidParameter;
     }
 
     return result;
 }
 
-void FaustAUEffect::SetParameter(AudioUnitParameterID paramID,
-                                 AudioUnitParameterValue value)
+void FaustAUEffect::SetParameter(AudioUnitParameterID paramID, AudioUnitParameterValue value)
 {
     AUEffectBase::SetParameter(paramID, value);
 }
 
-OSStatus FaustAUEffect::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope,
-                                     AudioUnitElement inElement, AudioUnitParameterValue inValue,
-                                     UInt32 inBufferOffsetInFrames)
+OSStatus FaustAUEffect::SetParameter(AudioUnitParameterID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                     AudioUnitParameterValue inValue, UInt32 inBufferOffsetInFrames)
 {
-    if (inScope == kAudioUnitScope_Global)
-    {
-
-        if (dspUI)
-        {
+    if (inScope == kAudioUnitScope_Global) {
+        if (dspUI) {
             if (dspUI->fUITable[inID] && dspUI->fUITable[inID]->fZone)
-                *(dspUI->fUITable[inID]->fZone) = (FAUSTFLOAT) inValue;
+                *(dspUI->fUITable[inID]->fZone) = (FAUSTFLOAT)inValue;
 
             if (dynamic_cast<auButton*>(dspUI->fUITable[inID]))
-                return AUEffectBase::SetParameter(inID, inScope, inElement, 0,
-                                                  inBufferOffsetInFrames);
-
+                return AUEffectBase::SetParameter(inID, inScope, inElement, 0, inBufferOffsetInFrames);
         }
     }
 
-    return AUEffectBase::SetParameter(inID, inScope, inElement, inValue,
-                                      inBufferOffsetInFrames);
+    return AUEffectBase::SetParameter(inID, inScope, inElement, inValue, inBufferOffsetInFrames);
 }
 
-
-OSStatus FaustAUEffect::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset)
+OSStatus FaustAUEffect::NewFactoryPresetSet(const AUPreset& inNewFactoryPreset)
 {
     SInt32 chosenPreset = inNewFactoryPreset.presetNumber;
 
-    for (int i = 0; i < kNumberPresets; ++i)
-    {
-        if (chosenPreset == kPresets[i].presetNumber)
-        {
-            switch (chosenPreset)
-            {
+    for (int i = 0; i < kNumberPresets; ++i) {
+        if (chosenPreset == kPresets[i].presetNumber) {
+            switch (chosenPreset) {
                 case kPreset_One:
                     break;
             }
@@ -346,85 +287,73 @@ OSStatus FaustAUEffect::NewFactoryPresetSet(const AUPreset & inNewFactoryPreset)
     return kAudioUnitErr_InvalidPropertyValue;
 }
 
-OSStatus FaustAUEffect::GetPresets(CFArrayRef * outData) const
+OSStatus FaustAUEffect::GetPresets(CFArrayRef* outData) const
 {
-
     if (outData == NULL) {
         return noErr;
     }
 
-    CFMutableArrayRef theArray = CFArrayCreateMutable(NULL, kNumberPresets,
-                                 NULL);
-    for (int i = 0; i < kNumberPresets; ++i)
-    {
+    CFMutableArrayRef theArray = CFArrayCreateMutable(NULL, kNumberPresets, NULL);
+    for (int i = 0; i < kNumberPresets; ++i) {
         CFArrayAppendValue(theArray, &kPresets[i]);
     }
 
-    *outData = (CFArrayRef) theArray;
+    *outData = (CFArrayRef)theArray;
     return noErr;
 }
 
-OSStatus FaustAUEffect::GetPropertyInfo(AudioUnitPropertyID inID,
-        AudioUnitScope inScope,
-        AudioUnitElement inElement,
-        UInt32& outDataSize,
-        Boolean& outWritable)
+OSStatus FaustAUEffect::GetPropertyInfo(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
+                                        UInt32& outDataSize, Boolean& outWritable)
 
 {
-    if (inScope == kAudioUnitScope_Global)
-    {
-        switch (inID)
-        {
+    if (inScope == kAudioUnitScope_Global) {
+        switch (inID) {
             case kAudioUnitProperty_CocoaUI:
                 outWritable = false;
-                outDataSize = sizeof (AudioUnitCocoaViewInfo);
+                outDataSize = sizeof(AudioUnitCocoaViewInfo);
                 return noErr;
 
-            case kAudioUnitCustomProperty_dspUI:
-            {
-                if(inScope != kAudioUnitScope_Global ) return kAudioUnitErr_InvalidScope;
+            case kAudioUnitCustomProperty_dspUI: {
+                if (inScope != kAudioUnitScope_Global) return kAudioUnitErr_InvalidScope;
                 outWritable = false;
-                outDataSize = sizeof (int*);
+                outDataSize = sizeof(int*);
                 return noErr;
             }
         }
     }
 
-    return AUEffectBase::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
+    return AUEffectBase::GetPropertyInfo(inID, inScope, inElement, outDataSize, outWritable);
 }
 
-OSStatus FaustAUEffect::GetProperty(AudioUnitPropertyID inID,
-                                    AudioUnitScope inScope,
-                                    AudioUnitElement inElement,
+OSStatus FaustAUEffect::GetProperty(AudioUnitPropertyID inID, AudioUnitScope inScope, AudioUnitElement inElement,
                                     void* outData)
 {
-    switch (inID)
-    {
-
+    switch (inID) {
         // This property allows the host application to find the UI associated with this AudioUnit
-        case kAudioUnitProperty_CocoaUI:
-        {
+        case kAudioUnitProperty_CocoaUI: {
             // Look for a resource in the main bundle by name and type.
-            CFBundleRef bundle = CFBundleGetBundleWithIdentifier( CFSTR("com.grame.audiounit.FaustAU") );
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFSTR("com.grame.audiounit.FaustAU"));
             if (bundle == NULL) return fnfErr;
 
-            CFURLRef bundleURL = CFBundleCopyResourceURL( bundle,
-                                 CFSTR("FaustAUCustomView"),	// this is the name of the cocoa bundle as specified in the CocoaViewFactory.plist
-                                 CFSTR("bundle"),			// this is the extension of the cocoa bundle
-                                 NULL);
+            CFURLRef bundleURL =
+                CFBundleCopyResourceURL(bundle,
+                                        CFSTR("FaustAUCustomView"),  // this is the name of the cocoa bundle as
+                                                                     // specified in the CocoaViewFactory.plist
+                                        CFSTR("bundle"),             // this is the extension of the cocoa bundle
+                                        NULL);
 
             if (bundleURL == NULL) return fnfErr;
 
-            CFStringRef className = CFSTR("FaustAU_CustomViewFactory");	// name of the main class that implements the AUCocoaUIBase protocol
-            AudioUnitCocoaViewInfo cocoaInfo = { bundleURL, { className }};
-            *((AudioUnitCocoaViewInfo *)outData) = cocoaInfo;
+            CFStringRef className = CFSTR(
+                "FaustAU_CustomViewFactory");  // name of the main class that implements the AUCocoaUIBase protocol
+            AudioUnitCocoaViewInfo cocoaInfo    = {bundleURL, {className}};
+            *((AudioUnitCocoaViewInfo*)outData) = cocoaInfo;
 
             return noErr;
         }
 
         // This is our custom property which reports the dspUI
-        case kAudioUnitCustomProperty_dspUI:
-        {
+        case kAudioUnitCustomProperty_dspUI: {
             if (inScope != kAudioUnitScope_Global) {
                 return kAudioUnitErr_InvalidScope;
             }
@@ -433,8 +362,8 @@ OSStatus FaustAUEffect::GetProperty(AudioUnitPropertyID inID,
             // since we're using the kernels to get the curve info, let
             // the caller know we can't do it if we're un-initialized
             // the UI should check for the error and not draw the curve in this case
-            if(!IsInitialized() ) return kAudioUnitErr_Uninitialized;
-            *((auUI**)outData)= dspUI;
+            if (!IsInitialized()) return kAudioUnitErr_Uninitialized;
+            *((auUI**)outData) = dspUI;
             return noErr;
         }
     }
@@ -443,36 +372,31 @@ OSStatus FaustAUEffect::GetProperty(AudioUnitPropertyID inID,
     return AUEffectBase::GetProperty(inID, inScope, inElement, outData);
 }
 
-OSStatus FaustAUEffect::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags,
-        const AudioBufferList& inBufferList, AudioBufferList& outBufferList,
-        UInt32 iFrames)
+OSStatus FaustAUEffect::ProcessBufferLists(AudioUnitRenderActionFlags& iFlags, const AudioBufferList& inBufferList,
+                                           AudioBufferList& outBufferList, UInt32 iFrames)
 {
-
-    int inChannels = dsp->getNumInputs();
+    int inChannels  = dsp->getNumInputs();
     int outChannels = dsp->getNumOutputs();
 
     // audio data type conversion before faust computation
     FAUSTFLOAT* inputData[inChannels];
     FAUSTFLOAT* outputData[outChannels];
-    for (int i = 0; i < inChannels; i++)
-    {
-        inputData[i] = (FAUSTFLOAT*) inBufferList.mBuffers[i].mData;
+    for (int i = 0; i < inChannels; i++) {
+        inputData[i] = (FAUSTFLOAT*)inBufferList.mBuffers[i].mData;
     }
 
-    for (int i=0; i < outChannels; i++)
-    {
-        outputData[i] = (FAUSTFLOAT*) outBufferList.mBuffers[i].mData;
+    for (int i = 0; i < outChannels; i++) {
+        outputData[i] = (FAUSTFLOAT*)outBufferList.mBuffers[i].mData;
     }
 
     dsp->compute(iFrames, inputData, outputData);
 
     // give data back to AU
-    for (int i = 0; i < outChannels; i++)
-    {
+    for (int i = 0; i < outChannels; i++) {
         outBufferList.mBuffers[i].mData = outputData[i];
     }
 
-    //TODO
+    // TODO
     /*
      AudioUnitEvent myEvent;
      myEvent.mArgument.mParameter.mAudioUnit = mComponentInstance;

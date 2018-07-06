@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -36,22 +36,22 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
-#include <string>
 #include <list>
+#include <string>
 
+#include "faust/audio/audio.h"
+#include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
 #include "faust/dsp/timed-dsp.h"
-#include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/PresetUI.h"
 #include "faust/gui/faustqt.h"
-#include "faust/audio/audio.h"
 #include "faust/misc.h"
 
 #ifdef IOS
-#include "faust/gui/APIUI.h"
 #include "faust/audio/coreaudio-ios-dsp.h"
+#include "faust/gui/APIUI.h"
 #else
 #include "faust/audio/coreaudio-dsp.h"
 #endif
@@ -72,8 +72,8 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
 #endif
 
 #include "faust/dsp/dsp-combiner.h"
@@ -86,29 +86,29 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-<<includeclass>>
+    << includeclass >>
 
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
 #endif
 
-dsp* DSP;
+    dsp* DSP;
 
 /***************************END USER SECTION ***************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap       GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -119,68 +119,75 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************/
 #ifdef IOS
 #include <QAccelerometer>
-#include <QGyroscope>
 #include <QAccelerometerReading>
+#include <QGyroscope>
 #include <QGyroscopeReading>
 #include <QTimer>
 
 //------------------------------------------------------------------------
-class Sensor
-{
-    private:
+class Sensor {
+   private:
+    QSensor*        fSensor;
+    int             fType;
+    QSensorReading* fReader;
+    QSensor*        create(int type) const;
 
-        QSensor* fSensor;
-        int fType;
-        QSensorReading* fReader;
-        QSensor* create(int type) const;
+   public:
+    enum { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
 
-    public:
-        enum { kSensorStart = 1, kAccelerometer = 1, kGyroscope, kSensorMax };
+    Sensor(int type) : fSensor(0), fType(type), fReader(0)
+    {
+        fSensor = create(type);
+        fSensor->connectToBackend();
+    }
+    virtual ~Sensor()
+    {
+        if (available()) activate(false);
+        delete fSensor;
+    }
 
-        Sensor(int type) : fSensor(0), fType(type), fReader(0)
-        { fSensor = create (type); fSensor->connectToBackend(); }
-        virtual ~Sensor() { if (available()) activate (false); delete fSensor; }
-
-        int isAccel() const { return fType == kAccelerometer; }
-        int isGyro () const { return fType == kGyroscope; }
-        bool available() const { return fSensor->isConnectedToBackend(); }
-        bool active() const { return fSensor->isActive(); }
-        void activate(bool state){ fSensor->setActive(state); fReader = fSensor->reading(); }
-        int count() { return fReader ? fReader->valueCount() : 0; }
-        float value(int i) const { return fReader->value(i).value<float>(); }
+    int  isAccel() const { return fType == kAccelerometer; }
+    int  isGyro() const { return fType == kGyroscope; }
+    bool available() const { return fSensor->isConnectedToBackend(); }
+    bool active() const { return fSensor->isActive(); }
+    void activate(bool state)
+    {
+        fSensor->setActive(state);
+        fReader = fSensor->reading();
+    }
+    int   count() { return fReader ? fReader->valueCount() : 0; }
+    float value(int i) const { return fReader->value(i).value<float>(); }
 };
 
 //------------------------------------------------------------------------
 QSensor* Sensor::create(int type) const
 {
     switch (type) {
-        case kAccelerometer: return new QAccelerometer();
-        case kGyroscope: return new QGyroscope();
-        default: cerr << "unknown sensor type " << type << endl;
+        case kAccelerometer:
+            return new QAccelerometer();
+        case kGyroscope:
+            return new QGyroscope();
+        default:
+            cerr << "unknown sensor type " << type << endl;
     }
     return 0;
 }
 
 //------------------------------------------------------------------------
-class Sensors : public QObject
-{
-    private:
+class Sensors : public QObject {
+   private:
+    APIUI* fUI;
+    Sensor fAccel, fGyro;
+    int    fTimerID;
 
-        APIUI* fUI;
-        Sensor fAccel, fGyro;
-        int fTimerID;
+   public:
+    typedef std::map<int, Sensor*> TSensors;
+    Sensors(APIUI* ui) : fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
+    virtual ~Sensors() { killTimer(fTimerID); }
+    void start();
 
-    public:
-
-        typedef std::map<int, Sensor*> TSensors;
-        Sensors(APIUI* ui)
-            : fUI(ui), fAccel(Sensor::kAccelerometer), fGyro(Sensor::kGyroscope), fTimerID(0) {}
-        virtual ~Sensors() { killTimer(fTimerID); }
-        void start();
-
-        protected:
-
-        void timerEvent(QTimerEvent*);
+   protected:
+    void timerEvent(QTimerEvent*);
 };
 
 //------------------------------------------------------------------------
@@ -188,72 +195,78 @@ void Sensors::timerEvent(QTimerEvent*)
 {
     if (fAccel.active()) {
         int count = fAccel.count();
-        for (int i = 0; (i< count) && (i < 3); i++) {
+        for (int i = 0; (i < count) && (i < 3); i++) {
             fUI->propagateAcc(i, fAccel.value(i));
         }
     }
     if (fGyro.active()) {
         int count = fGyro.count();
-        for (int i = 0; (i< count) && (i < 3); i++) {
+        for (int i = 0; (i < count) && (i < 3); i++) {
             fUI->propagateGyr(i, fGyro.value(i));
         }
     }
 }
 
 //------------------------------------------------------------------------
-void Sensors::start() 
+void Sensors::start()
 {
     bool activate = false;
-    if (fAccel.available()) { fAccel.activate(true); activate = true; }
-    if (fGyro.available()) { fGyro.activate(true); activate = true; }
+    if (fAccel.available()) {
+        fAccel.activate(true);
+        activate = true;
+    }
+    if (fGyro.available()) {
+        fGyro.activate(true);
+        activate = true;
+    }
     if (activate) fTimerID = startTimer(10);
 }
 #endif
 
-/******************************************************************************
-*******************************************************************************
+    /******************************************************************************
+    *******************************************************************************
 
-                                MAIN PLAY THREAD
+                                    MAIN PLAY THREAD
 
-*******************************************************************************
-*******************************************************************************/
+    *******************************************************************************
+    *******************************************************************************/
 
 #ifdef IOS
-#define lopt(a,b,val)	val
-#define coreaudio		iosaudio
+#define lopt(a, b, val) val
+#define coreaudio iosaudio
 #endif
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    char name[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    bool midi_sync = false;
-    int nvoices = 0;
-    mydsp_poly* dsp_poly = NULL;
-    
+    char        name[256];
+    char        rcfilename[256];
+    char*       home      = getenv("HOME");
+    bool        midi_sync = false;
+    int         nvoices   = 0;
+    mydsp_poly* dsp_poly  = NULL;
+
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
-      
+
 #ifdef IOS
-    APIUI apiui;
+    APIUI   apiui;
     Sensors sensors(&apiui);
 #endif
 
-	snprintf(name, 256, "%s", basename(argv[0]));
-	snprintf(rcfilename, 256, "%s/.%src", home, name);
-    
+    snprintf(name, 256, "%s", basename(argv[0]));
+    snprintf(rcfilename, 256, "%s/.%src", home, name);
+
     if (isopt(argv, "-h")) {
         std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
         exit(1);
     }
-    
+
     long srate = (long)lopt(argv, "--frequency", -1);
-    int fpb = lopt(argv, "--buffer", 512);
-    
+    int  fpb   = lopt(argv, "--buffer", 512);
+
 #ifdef POLY2
-    nvoices = lopt(argv, "--nvoices", nvoices);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
@@ -269,31 +282,31 @@ int main(int argc, char *argv[])
 #endif
 
 #else
-    nvoices = lopt(argv, "--nvoices", nvoices);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    
+
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
-        
-    #if MIDICTRL
+
+#if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(dsp_poly);
         } else {
             DSP = dsp_poly;
         }
-    #else
+#else
         DSP = dsp_poly;
-    #endif
-        
+#endif
+
     } else {
-    #if MIDICTRL
+#if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(new mydsp());
         } else {
             DSP = new mydsp();
         }
-    #else
+#else
         // We possibly have a file...
         /*
         try {
@@ -303,38 +316,39 @@ int main(int argc, char *argv[])
         }
         */
         DSP = new mydsp();
-    #endif
-    }
-    
 #endif
-    
+    }
+
+#endif
+
     // To test dsp_sample_adapter
-    //DSP = new dsp_sample_adapter<float>(DSP);
-    
+    // DSP = new dsp_sample_adapter<float>(DSP);
+
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
     }
- 
-	QApplication myApp(argc, argv);
-    
-    FUI finterface;    
+
+    QApplication myApp(argc, argv);
+
+    FUI    finterface;
     QTGUI* interface = new QTGUI();
-    
+
 #ifdef PRESETUI
-    PresetUI* pinterface = new PresetUI(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
+    PresetUI* pinterface =
+        new PresetUI(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
     DSP->buildUserInterface(pinterface);
 #else
     DSP->buildUserInterface(interface);
     DSP->buildUserInterface(&finterface);
 #endif
-    
+
 #ifdef SOUNDFILE
     // Use bundle path
     SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
-    
+
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif
@@ -351,45 +365,45 @@ int main(int argc, char *argv[])
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
     std::cout << "HTTPD is on" << std::endl;
- #endif
+#endif
 
 #ifdef OSCCTRL
-	OSCUI oscinterface(name, argc, argv);
+    OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
     std::cout << "OSC is on" << std::endl;
 #endif
 
-	coreaudio audio(srate, fpb);
-	audio.init(name, DSP);
-	finterface.recallState(rcfilename);
-	audio.start();
+    coreaudio audio(srate, fpb);
+    audio.init(name, DSP);
+    finterface.recallState(rcfilename);
+    audio.start();
 #ifdef IOS
-	sensors.start();
+    sensors.start();
 #endif
-	
+
     printf("ins %d\n", audio.getNumInputs());
     printf("outs %d\n", audio.getNumOutputs());
 
 #ifdef HTTPCTRL
-	httpdinterface.run();
+    httpdinterface.run();
 #ifdef QRCODECTRL
     interface.displayQRCode(httpdinterface.getTCPPort());
 #endif
 #endif
 
 #ifdef OSCCTRL
-	oscinterface.run();
+    oscinterface.run();
 #endif
 #ifdef MIDICTRL
     if (!midiinterface.run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface->run();
+    interface->run();
 
     myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
-    
+
 #ifdef MIDICTRL
     midiinterface.stop();
 #endif
@@ -397,10 +411,8 @@ int main(int argc, char *argv[])
 
     audio.stop();
     finterface.saveState(rcfilename);
-    
+
     return 0;
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

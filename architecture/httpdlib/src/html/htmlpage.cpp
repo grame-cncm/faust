@@ -21,72 +21,74 @@
 
 */
 
+#include "htmlpage.h"
 #include <sstream>
 #include "deelx.h"
-#include "htmlpage.h"
 #include "jsscripts.h"
 #include "stylesheet.h"
 
 using namespace std;
 
-void find_and_replace(string &source, const string find, string replace)
+void find_and_replace(string& source, const string find, string replace)
 {
-	size_t j;
-	for (; (j = source.find(find)) != string::npos;) {
-		source.replace(j, find.length(), replace);
-	}
+    size_t j;
+    for (; (j = source.find(find)) != string::npos;) {
+        source.replace(j, find.length(), replace);
+    }
 }
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
-static const char * kPortNumberHandler = "__port_number__handler__";
+static const char* kPortNumberHandler = "__port_number__handler__";
 
 //--------------------------------------------------------------------------
-htmlpage::htmlpage(const char *name, const char* address, int port) 
-					: fName(name), fAddress(address), fPort(port)
-{}
+htmlpage::htmlpage(const char* name, const char* address, int port) : fName(name), fAddress(address), fPort(port)
+{
+}
 
 //--------------------------------------------------------------------------
 string htmlpage::getUrl() const
 {
-	stringstream url;
-	url << "http://" << fAddress << ":" << kPortNumberHandler;
-	return url.str();
+    stringstream url;
+    url << "http://" << fAddress << ":" << kPortNumberHandler;
+    return url.str();
 }
 
 //--------------------------------------------------------------------------
 void htmlpage::print(std::ostream& out) const
 {
-	if (false) {
-		out << "<html>\n<head>\n";
-		out << "	<link id='css' rel='stylesheet' type='text/css' href='css/style1.css' />\n";
-		out << "	<script src='js/jquery-1.7.1.min.js' language='javascript'></script>\n";
-		out << "	<script src='js/faust.js' language='javascript'></script>\n";
-		out << "	<title id=titre>" << fName << "</title>";
-		out << "</head>\n<body>\n";
-		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','css/style'+num+'.css');}";
-		out << "\n</script>\n";
-		out << "<center>\n\n";
-	} else {
-		out << "<html>\n<head>\n";
-		out << "	<link id='css' rel='stylesheet' type='text/css' href='https://faust.grame.fr/userinterface/css/style1.css' />\n";
-		out << "	<script src='https://faust.grame.fr/userinterface/js/jquery-1.7.1.min.js' language='javascript'></script>\n";
-		out << "	<script src='https://faust.grame.fr/userinterface/js/faust.js' language='javascript'></script>\n";
-		out << "	<title id=titre>" << fName << "</title>";
-		out << "</head>\n<body>\n";
-		out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','https://faust.grame.fr/userinterface/css/style'+num+'.css');}";
-		out << "\n</script>\n";
-		out << "<center>\n\n";
-	}
-	
-	out << "<input type='hidden' id='root' value='" << fRoot << "'>\n";
-	out << "<table class='ui'>\n";
-	out << "<tr><td class='name'>karplus</td>\n";
-	out << "<td class='url'>" << fAddress << "</td>\n";
-	out << "<td class='port'>: " << fPort << "</td>\n";
-	out << "</tr>\n";
-	out << "<tr><td colspan=3 class='sep'><hr/></td></tr>\n";
+    if (false) {
+        out << "<html>\n<head>\n";
+        out << "	<link id='css' rel='stylesheet' type='text/css' href='css/style1.css' />\n";
+        out << "	<script src='js/jquery-1.7.1.min.js' language='javascript'></script>\n";
+        out << "	<script src='js/faust.js' language='javascript'></script>\n";
+        out << "	<title id=titre>" << fName << "</title>";
+        out << "</head>\n<body>\n";
+        out << "<script>\n\tfunction setStyle(num) { $(\"#css\").attr('href','css/style'+num+'.css');}";
+        out << "\n</script>\n";
+        out << "<center>\n\n";
+    } else {
+        out << "<html>\n<head>\n";
+        out << "	<link id='css' rel='stylesheet' type='text/css' "
+               "href='https://faust.grame.fr/userinterface/css/style1.css' />\n";
+        out << "	<script src='https://faust.grame.fr/userinterface/js/jquery-1.7.1.min.js' "
+               "language='javascript'></script>\n";
+        out << "	<script src='https://faust.grame.fr/userinterface/js/faust.js' language='javascript'></script>\n";
+        out << "	<title id=titre>" << fName << "</title>";
+        out << "</head>\n<body>\n";
+        out << "<script>\n\tfunction setStyle(num) { "
+               "$(\"#css\").attr('href','https://faust.grame.fr/userinterface/css/style'+num+'.css');}";
+        out << "\n</script>\n";
+        out << "<center>\n\n";
+    }
+
+    out << "<input type='hidden' id='root' value='" << fRoot << "'>\n";
+    out << "<table class='ui'>\n";
+    out << "<tr><td class='name'>karplus</td>\n";
+    out << "<td class='url'>" << fAddress << "</td>\n";
+    out << "<td class='port'>: " << fPort << "</td>\n";
+    out << "</tr>\n";
+    out << "<tr><td colspan=3 class='sep'><hr/></td></tr>\n";
 
 #if 0
     stringstream port;
@@ -96,61 +98,91 @@ void htmlpage::print(std::ostream& out) const
     string res2 = port.str();
     out << regexp.Replace(res1.c_str(), res2.c_str());
 #else
-	out << this->str();		// the ui itself, generated byt htmlfactory
+    out << this->str();  // the ui itself, generated byt htmlfactory
 #endif
 
-	out << "<tr><td colspan=3 class='sep'><hr/></td></tr>\n";
-	out << "</table>\n\n";
-	
-	out << "<div id='style'>Style:\n";
-	out << "	<input type='radio' id='style1' name='style' value=1 checked onclick= setStyle(this.value) >\n";
-	out << "	<input type='radio' id='style2' name='style' value=2 onclick= setStyle(this.value) >\n";
-	out << "</div>\n";
-	out << "</center></body>\n</html>\n";
+    out << "<tr><td colspan=3 class='sep'><hr/></td></tr>\n";
+    out << "</table>\n\n";
+
+    out << "<div id='style'>Style:\n";
+    out << "	<input type='radio' id='style1' name='style' value=1 checked onclick= setStyle(this.value) >\n";
+    out << "	<input type='radio' id='style2' name='style' value=2 onclick= setStyle(this.value) >\n";
+    out << "</div>\n";
+    out << "</center></body>\n</html>\n";
 }
 
 //--------------------------------------------------------------------------
 void htmlpage::print(std::ostream& out, string s) const
 {
-	(void) find_and_replace(s, "\n", " ");
-	(void) find_and_replace(s, "\t", " ");
-	(void) find_and_replace(s, "'", "&rsquo;");
-	out << "<html>" << endl;
-	out << "  <head>" << endl;
-    
+    (void)find_and_replace(s, "\n", " ");
+    (void)find_and_replace(s, "\t", " ");
+    (void)find_and_replace(s, "'", "&rsquo;");
+    out << "<html>" << endl;
+    out << "  <head>" << endl;
+
 #ifdef LOADSCRIPTS
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svgdom.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_jquery_svg_backend.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_mobile.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_builder.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>" << endl;
-	out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_server_communication.js\"></script>" << endl;
-	out << "    <link rel=\"stylesheet\" type=\"text/css\" href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>" << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/jquery-1.7.1.min.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svg.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/jquerysvg/jquery.svgdom.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_proto.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_jquery_svg_backend.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" src=\"http://www.mikesolomon.org/faust/svg/faust_mobile.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_ui_inits.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_load_external_file.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_ui_objects.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_ui_builder.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_ui_interact.js\"></script>"
+        << endl;
+    out << "    <script type=\"text/javascript\" "
+           "src=\"http://www.mikesolomon.org/faust/svg/faust_server_communication.js\"></script>"
+        << endl;
+    out << "    <link rel=\"stylesheet\" type=\"text/css\" "
+           "href=\"http://www.mikesolomon.org/faust/svg/faust_css.css\"></link>"
+        << endl;
 #else
-	out << "<style type=\"text/css\">" << endl;
-        for (unsigned int i = 0; i < stylesheet_len; i++) { out << stylesheet[i]; } out << endl;
+    out << "<style type=\"text/css\">" << endl;
+    for (unsigned int i = 0; i < stylesheet_len; i++) {
+        out << stylesheet[i];
+    }
+    out << endl;
     out << "</style>" << endl;
 
     out << "    <script type=\"text/javascript\" >" << endl;
-        for (unsigned int i = 0; i < jsscripts_len; i++) { out << jsscripts[i]; } out << endl;
+    for (unsigned int i = 0; i < jsscripts_len; i++) {
+        out << jsscripts[i];
+    }
+    out << endl;
     out << "    </script>" << endl;
 #endif
 
-	out << "  </head>" << endl;
-	out << "  <body>" << endl;
-	out << "    <script type=\"text/javascript\">" << endl;
-	out << "      _f4u$t.server_update_function = _f4u$t.main('";
-	out << s;
-	out << "', null, _f4u$t.faust_server_handler);" << endl;
-	out << "    </script>" << endl;
-	out << "  </body>" << endl;
-	out << "</html>";
+    out << "  </head>" << endl;
+    out << "  <body>" << endl;
+    out << "    <script type=\"text/javascript\">" << endl;
+    out << "      _f4u$t.server_update_function = _f4u$t.main('";
+    out << s;
+    out << "', null, _f4u$t.faust_server_handler);" << endl;
+    out << "    </script>" << endl;
+    out << "  </body>" << endl;
+    out << "</html>";
 }
 
-} // end namespoace
+}  // namespace httpdfaust

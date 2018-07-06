@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections : 
-	the ARCHITECTURE section (in two parts) and the USER section. Each section 
-	is governed by its own copyright and license. Please check individually 
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -12,9 +12,9 @@
     FAUST Architecture File
     Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
-    This Architecture section is free software; you can redistribute it 
-    and/or modify it under the terms of the GNU General Public License 
-    as published by the Free Software Foundation; either version 3 of 
+    This Architecture section is free software; you can redistribute it
+    and/or modify it under the terms of the GNU General Public License
+    as published by the Free Software Foundation; either version 3 of
     the License, or (at your option) any later version.
 
     This program is distributed in the hope that it will be useful,
@@ -22,13 +22,13 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
     GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License 
+    You should have received a copy of the GNU General Public License
     along with this program; If not, see <http://www.gnu.org/licenses/>.
 
-    EXCEPTION : As a special exception, you may create a larger work 
-    that contains this FAUST architecture section and distribute  
-    that work under terms of your choice, so long as this FAUST 
-    architecture section is not modified. 
+    EXCEPTION : As a special exception, you may create a larger work
+    that contains this FAUST architecture section and distribute
+    that work under terms of your choice, so long as this FAUST
+    architecture section is not modified.
 
  ************************************************************************
  ************************************************************************/
@@ -39,12 +39,12 @@
 #include <list>
 #include <vector>
 
+#include "faust/audio/jack-dsp.h"
 #include "faust/dsp/timed-dsp.h"
 #include "faust/gui/FUI.h"
-#include "faust/misc.h"
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
-#include "faust/audio/jack-dsp.h"
+#include "faust/misc.h"
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"
@@ -62,50 +62,50 @@
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
-#include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
+#include "faust/midi/rt-midi.h"
 #endif
 
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
-		
-<<includeclass>>
+<< includeIntrinsic >>
+
+    << includeclass >>
 
 #include "faust/dsp/poly-dsp.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
 #endif
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
-					
-dsp* DSP;
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+
+    dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap       GUI::gTimedZoneMap;
 
 //-------------------------------------------------------------------------
 // 									MAIN
 //-------------------------------------------------------------------------
-int main(int argc, char *argv[] )
+int main(int argc, char* argv[])
 {
-    char name[256];
-    char rcfilename[256];
-    char* home = getenv("HOME");
-    bool midi_sync = false;
-    int nvoices = 0;
-    mydsp_poly* dsp_poly = NULL;
-    
+    char        name[256];
+    char        rcfilename[256];
+    char*       home      = getenv("HOME");
+    bool        midi_sync = false;
+    int         nvoices   = 0;
+    mydsp_poly* dsp_poly  = NULL;
+
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
@@ -114,14 +114,14 @@ int main(int argc, char *argv[] )
     snprintf(rcfilename, 256, "%s/.%src", home, name);
 
     CMDUI interface(argc, argv);
-    FUI finterface;
-    
+    FUI   finterface;
+
 #ifdef POLY2
-    nvoices = lopt(argv, "--nvoices", nvoices);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
-    
+
 #if MIDICTRL
     if (midi_sync) {
         DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
@@ -131,15 +131,15 @@ int main(int argc, char *argv[] )
 #else
     DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
-    
+
 #else
-    nvoices = lopt(argv, "--nvoices", nvoices);
+    nvoices   = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-    
+
     if (nvoices > 0) {
         std::cout << "Started with " << nvoices << " voices\n";
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
-        
+
 #if MIDICTRL
         if (midi_sync) {
             DSP = new timed_dsp(dsp_poly);
@@ -161,7 +161,7 @@ int main(int argc, char *argv[] )
 #endif
     }
 #endif
-    
+
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -173,7 +173,7 @@ int main(int argc, char *argv[] )
 #endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
- 
+
 #ifdef OSCCTRL
     OSCUI oscinterface(name, argc, argv);
     DSP->buildUserInterface(&oscinterface);
@@ -183,8 +183,7 @@ int main(int argc, char *argv[] )
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
 #endif
-    
-    
+
 #ifdef MIDICTRL
     jackaudio_midi audio;
     audio.init(name, DSP);
@@ -195,7 +194,7 @@ int main(int argc, char *argv[] )
 
 #ifdef MIDICTRL
     bool rtmidi = isopt(argv, "--rtmidi");
-    
+
     MidiUI* midiinterface;
     if (rtmidi) {
         rt_midi midi_handler(name);
@@ -207,14 +206,14 @@ int main(int argc, char *argv[] )
         audio.addMidiIn(dsp_poly);
         printf("JACK MIDI is used\n");
     }
-    
+
     DSP->buildUserInterface(midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
-    
+
     interface.process_command();
     audio.start();
- 
+
 #ifdef HTTPCTRL
     httpdinterface.run();
 #endif
@@ -222,15 +221,15 @@ int main(int argc, char *argv[] )
 #ifdef OSCCTRL
     oscinterface.run();
 #endif
-    
+
 #ifdef MIDICTRL
     if (!midiinterface->run()) {
         std::cerr << "MidiUI run error\n";
     }
 #endif
-    
+
     interface.run();
-    
+
 #ifdef MIDICTRL
     midiinterface->stop();
 #endif
@@ -242,4 +241,3 @@ int main(int argc, char *argv[] )
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-

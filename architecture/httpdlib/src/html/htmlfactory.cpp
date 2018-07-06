@@ -28,74 +28,74 @@
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
-htmlfactory::htmlfactory(const char *name, const char* address, int port) 
-	: fPage(name, address, port), fSerial(1) 
+htmlfactory::htmlfactory(const char* name, const char* address, int port) : fPage(name, address, port), fSerial(1)
 {
-	fGroups.push("");
+    fGroups.push("");
 }
 
 void htmlfactory::addnode(const char* type, const char* label)
 {
-	string stype (type);
-	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
-	url += label;
-	stringstream id; id << "button" << fSerial++;	// computes slider id
-	if (stype == "button") {
-		fPage << "<tr><td class='label'></td>\n";
-		fPage << "<td class='control'><button id='"<< id.str() << "' name='" << url
-			  << "' onmousedown='fausthandler(\"" << url << "\", 1)'"
-			  << " onmouseup='fausthandler(\"" << url << "\", 0)'>play</button></td>\n";
-		fPage << "<td class='value'></td>\n";
-	}
-	else if ((stype == "togglebutton") ||  (stype == "checkbutton")) {
-		fPage << "<tr><td class='label'></td>\n";
-		fPage << "<td class='control'><input type='checkbox' id='"<< id.str() << "' name='" << url
-			  << "'  value=0 onchange='fausthandler(\"" << url << "\", this.value)'\n";
-		fPage << "<td class='value'></td>\n";
-	}
+    string stype(type);
+    string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
+    url += label;
+    stringstream id;
+    id << "button" << fSerial++;  // computes slider id
+    if (stype == "button") {
+        fPage << "<tr><td class='label'></td>\n";
+        fPage << "<td class='control'><button id='" << id.str() << "' name='" << url << "' onmousedown='fausthandler(\""
+              << url << "\", 1)'"
+              << " onmouseup='fausthandler(\"" << url << "\", 0)'>play</button></td>\n";
+        fPage << "<td class='value'></td>\n";
+    } else if ((stype == "togglebutton") || (stype == "checkbutton")) {
+        fPage << "<tr><td class='label'></td>\n";
+        fPage << "<td class='control'><input type='checkbox' id='" << id.str() << "' name='" << url
+              << "'  value=0 onchange='fausthandler(\"" << url << "\", this.value)'\n";
+        fPage << "<td class='value'></td>\n";
+    }
 }
 
 void htmlfactory::addnode(const char* type, const char* label, float init, float min, float max, float step)
 {
-	string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
-	url += label;
-	stringstream id; id << "slider" << fSerial++;	// computes slider id
-	string vid = "v"; vid += id.str();				// computes text value id
-	fPage << "<tr><td class='label'>" << label << "</td>\n";
-	fPage << "<td class='control'><input type='range' id='" << id.str() << "' name='" << url
-		  << "' min=" << min << " max=" << max << " step=" << step << " value=" << init 
-		  << " onchange='sliderhandler(\"" << url << "\", this.value, \"#" << vid << "\")'></td>\n";
-	fPage << "<td class='value'><input type='text' id='" << vid << "' name='" << url << "' value=" << init << " size=6 "
-		  << "onchange='sliderhandler(\"" << url << "\", this.value, \"#" << id.str() << "\")'></td>\n"
-		  << "</tr>\n";
+    string url = /*fPage.getUrl() +*/ fGroups.top() + "/";
+    url += label;
+    stringstream id;
+    id << "slider" << fSerial++;  // computes slider id
+    string vid = "v";
+    vid += id.str();  // computes text value id
+    fPage << "<tr><td class='label'>" << label << "</td>\n";
+    fPage << "<td class='control'><input type='range' id='" << id.str() << "' name='" << url << "' min=" << min
+          << " max=" << max << " step=" << step << " value=" << init << " onchange='sliderhandler(\"" << url
+          << "\", this.value, \"#" << vid << "\")'></td>\n";
+    fPage << "<td class='value'><input type='text' id='" << vid << "' name='" << url << "' value=" << init << " size=6 "
+          << "onchange='sliderhandler(\"" << url << "\", this.value, \"#" << id.str() << "\")'></td>\n"
+          << "</tr>\n";
 }
 
-void htmlfactory::addnode (const char* type, const char* label, float min, float max)
+void htmlfactory::addnode(const char* type, const char* label, float min, float max)
 {
-	// don't know what to do with bargraph 
+    // don't know what to do with bargraph
 }
 
 /**
- * Open a group in the current group and place it on the top of the stack. 
- * Takes into account that due to alias, a group can been previously created.  
+ * Open a group in the current group and place it on the top of the stack.
+ * Takes into account that due to alias, a group can been previously created.
  */
 void htmlfactory::opengroup(const char* type, const char* label)
 {
-	string path = fGroups.top() + "/";
-	path += label;
-	fGroups.push (path);
-	if (fGroups.size() == 2)		// first group: actually the address space root
-		fPage.setRoot(fGroups.top());
+    string path = fGroups.top() + "/";
+    path += label;
+    fGroups.push(path);
+    if (fGroups.size() == 2)  // first group: actually the address space root
+        fPage.setRoot(fGroups.top());
 }
 
 //--------------------------------------------------------------------------
 void htmlfactory::closegroup()
 {
-	fGroups.pop();
+    fGroups.pop();
 }
 
-} // end namespoace
+}  // namespace httpdfaust

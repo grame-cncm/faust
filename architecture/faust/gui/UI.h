@@ -6,15 +6,15 @@
  and/or modify it under the terms of the GNU General Public License
  as published by the Free Software Foundation; either version 3 of
  the License, or (at your option) any later version.
- 
+
  This program is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  GNU General Public License for more details.
- 
+
  You should have received a copy of the GNU General Public License
  along with this program; If not, see <http://www.gnu.org/licenses/>.
- 
+
  EXCEPTION : As a special exception, you may create a larger work
  that contains this FAUST architecture section and distribute
  that work under terms of your choice, so long as this FAUST
@@ -37,42 +37,42 @@
 
 struct Soundfile;
 
-class UI
-{
+class UI {
+   public:
+    UI() {}
 
-    public:
+    virtual ~UI() {}
 
-        UI() {}
+    // -- widget's layouts
 
-        virtual ~UI() {}
+    virtual void openTabBox(const char* label)        = 0;
+    virtual void openHorizontalBox(const char* label) = 0;
+    virtual void openVerticalBox(const char* label)   = 0;
+    virtual void closeBox()                           = 0;
 
-        // -- widget's layouts
+    // -- active widgets
 
-        virtual void openTabBox(const char* label) = 0;
-        virtual void openHorizontalBox(const char* label) = 0;
-        virtual void openVerticalBox(const char* label) = 0;
-        virtual void closeBox() = 0;
+    virtual void addButton(const char* label, FAUSTFLOAT* zone)       = 0;
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)  = 0;
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                                   FAUSTFLOAT step)                   = 0;
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                     FAUSTFLOAT max, FAUSTFLOAT step) = 0;
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                             FAUSTFLOAT step)                         = 0;
 
-        // -- active widgets
+    // -- passive widgets
 
-        virtual void addButton(const char* label, FAUSTFLOAT* zone) = 0;
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) = 0;
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) = 0;
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) = 0;
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)   = 0;
 
-        // -- passive widgets
+    // -- soundfiles
 
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) = 0;
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) = 0;
-    
-        // -- soundfiles
-    
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) = 0;
 
-        // -- metadata declarations
+    // -- metadata declarations
 
-        virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
+    virtual void declare(FAUSTFLOAT*, const char*, const char*) {}
 };
 
 #endif

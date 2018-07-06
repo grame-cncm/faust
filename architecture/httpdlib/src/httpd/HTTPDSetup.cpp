@@ -24,47 +24,52 @@
 #include <iostream>
 #include <stdexcept>
 
-#include "HTTPDSetup.h"
 #include "HTTPDServer.h"
+#include "HTTPDSetup.h"
 #include "MessageProcessor.h"
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
-#define kPortsScanRange		1000		// scan this number of TCP ports to find a free one (in case of busy port)
-
-//--------------------------------------------------------------------------
-HTTPDSetup::~HTTPDSetup()			{ stop(); }
-bool HTTPDSetup::running() const	{ return fServer ? true : false; }
-//bool HTTPDSetup::running() const	{ return fServer ? fServer->isRunning() : false; }
+#define kPortsScanRange 1000  // scan this number of TCP ports to find a free one (in case of busy port)
 
 //--------------------------------------------------------------------------
-bool HTTPDSetup::start(MessageProcessor* mp, int& tcpport )
+HTTPDSetup::~HTTPDSetup()
 {
-	int port = tcpport;
-	bool done = false;
-	fServer = new HTTPDServer (mp);
-	do {
-		done = fServer->start(port);
-		if (!done) {
-			if ( port - tcpport > kPortsScanRange) return false;
-			port++;
-		}
-	} while (!done);
-	tcpport = port;
-	return true;
+    stop();
+}
+bool HTTPDSetup::running() const
+{
+    return fServer ? true : false;
+}
+// bool HTTPDSetup::running() const	{ return fServer ? fServer->isRunning() : false; }
+
+//--------------------------------------------------------------------------
+bool HTTPDSetup::start(MessageProcessor* mp, int& tcpport)
+{
+    int  port = tcpport;
+    bool done = false;
+    fServer   = new HTTPDServer(mp);
+    do {
+        done = fServer->start(port);
+        if (!done) {
+            if (port - tcpport > kPortsScanRange) return false;
+            port++;
+        }
+    } while (!done);
+    tcpport = port;
+    return true;
 }
 
 //--------------------------------------------------------------------------
 void HTTPDSetup::stop()
 {
-	if (fServer) {
-		fServer->stop();
-		delete fServer;
-		fServer = 0;
-	}
+    if (fServer) {
+        fServer->stop();
+        delete fServer;
+        fServer = 0;
+    }
 }
 
-} // end namespoace
+}  // end namespoace

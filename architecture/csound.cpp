@@ -54,7 +54,7 @@
 
 #include <new>
 #include <vector>
-#include "csdl.h"                       /* CSOUND plugin API header */
+#include "csdl.h" /* CSOUND plugin API header */
 
 // used to transform a symbol in a string
 #define sym(name) xsym(name)
@@ -67,18 +67,18 @@
 #define FAUST_UIMACROS
 
 // but we will ignore most of them
-#define FAUST_ADDBUTTON(l,f)
-#define FAUST_ADDCHECKBOX(l,f)
-#define FAUST_ADDVERTICALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDHORIZONTALSLIDER(l,f,i,a,b,s)
-#define FAUST_ADDNUMENTRY(l,f,i,a,b,s)
-#define FAUST_ADDVERTICALBARGRAPH(l,f,a,b)
-#define FAUST_ADDHORIZONTALBARGRAPH(l,f,a,b)
+#define FAUST_ADDBUTTON(l, f)
+#define FAUST_ADDCHECKBOX(l, f)
+#define FAUST_ADDVERTICALSLIDER(l, f, i, a, b, s)
+#define FAUST_ADDHORIZONTALSLIDER(l, f, i, a, b, s)
+#define FAUST_ADDNUMENTRY(l, f, i, a, b, s)
+#define FAUST_ADDVERTICALBARGRAPH(l, f, a, b)
+#define FAUST_ADDHORIZONTALBARGRAPH(l, f, a, b)
 
-#include "faust/misc.h"
 #include "faust/dsp/dsp.h"
-#include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/meta.h"
+#include "faust/misc.h"
 
 /******************************************************************************
  *******************************************************************************
@@ -88,85 +88,96 @@
  *******************************************************************************
  *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-/**
- * A UI that simply collects the active zones in a vector
- * and provides a method to copy the csound controls
- */
-class CSUI : public UI
-{
-    std::vector<FAUSTFLOAT*>  vZone;
+    /**
+     * A UI that simply collects the active zones in a vector
+     * and provides a method to copy the csound controls
+     */
+    class CSUI : public UI {
+    std::vector<FAUSTFLOAT*> vZone;
 
-public:
-
+   public:
     // -- widget's layouts
 
-    virtual void openTabBox(const char* label)                                                          {}
-    virtual void openHorizontalBox(const char* label)                                                   {}
-    virtual void openVerticalBox(const char* label)                                                     {}
-    virtual void closeBox()                                                                             {}
+    virtual void openTabBox(const char* label) {}
+    virtual void openHorizontalBox(const char* label) {}
+    virtual void openVerticalBox(const char* label) {}
+    virtual void closeBox() {}
 
     // -- active widgets
 
-    virtual void addButton(const char* label, FAUSTFLOAT* zone)                                                          { vZone.push_back(zone); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone)                                                     { vZone.push_back(zone); }
-    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)    { vZone.push_back(zone); }
-    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)  { vZone.push_back(zone); }
-    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step)          { vZone.push_back(zone); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { vZone.push_back(zone); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { vZone.push_back(zone); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                                   FAUSTFLOAT step)
+    {
+        vZone.push_back(zone);
+    }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min,
+                                     FAUSTFLOAT max, FAUSTFLOAT step)
+    {
+        vZone.push_back(zone);
+    }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max,
+                             FAUSTFLOAT step)
+    {
+        vZone.push_back(zone);
+    }
 
     // -- passive widgets
 
-    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)            {}
-    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max)              {}
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max) {}
 
     virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
 
-    void copyfrom(MYFLT* mem[]) {
-        for (unsigned int i=0; i<vZone.size(); i++) {
+    void copyfrom(MYFLT* mem[])
+    {
+        for (unsigned int i = 0; i < vZone.size(); i++) {
             if (*(mem[i]) != FL(-1.)) {
                 *vZone[i] = *(mem[i]);
             }
         }
     }
 
-    int size()                  { return vZone.size(); }
+    int size() { return vZone.size(); }
 };
 
 /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
 /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+<< includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-struct dataspace {
-    OPDS      h;                          /* basic attributes  */
-#if (FAUST_OUTPUTS > 0)                   /* omit 0 size array */
-    MYFLT*    aout[FAUST_OUTPUTS];        /* output buffers    */
+    struct dataspace {
+    OPDS h;                     /* basic attributes  */
+#if (FAUST_OUTPUTS > 0)         /* omit 0 size array */
+    MYFLT* aout[FAUST_OUTPUTS]; /* output buffers    */
 #endif
-#if (FAUST_INPUTS > 0)                     /* omit 0 size array */
-    MYFLT*    ain[FAUST_INPUTS];          /* input buffers     */
+#if (FAUST_INPUTS > 0)        /* omit 0 size array */
+    MYFLT* ain[FAUST_INPUTS]; /* input buffers     */
 #endif
-#if (FAUST_ACTIVES > 0)                   /* omit 0 size array  */
-    MYFLT*    ktl[FAUST_ACTIVES];         /* controls          */
+#if (FAUST_ACTIVES > 0)        /* omit 0 size array  */
+    MYFLT* ktl[FAUST_ACTIVES]; /* controls          */
 #endif
-    dsp*      DSP;                        /* the Faust generated object */
-    CSUI*     interface;                  /* do the mapping between CSound controls and DSP fields */
-    AUXCH     dspmem;                     /* aux memory allocated once to store the DSP object */
-    AUXCH     intmem;                     /* aux memory allocated once to store the interface object */
+    dsp*  DSP;       /* the Faust generated object */
+    CSUI* interface; /* do the mapping between CSound controls and DSP fields */
+    AUXCH dspmem;    /* aux memory allocated once to store the DSP object */
+    AUXCH intmem;    /* aux memory allocated once to store the interface object */
 /* Dummies to satisfy the compiler for "zero sized" arrays. */
 #if (FAUST_OUTPUTS == 0)
-    MYFLT*    aout[1];
+    MYFLT* aout[1];
 #endif
 #if (FAUST_INPUTS == 0)
-    MYFLT*    ain[1];
+    MYFLT* ain[1];
 #endif
 #if (FAUST_ACTIVES == 0)
-    MYFLT*    ktl[1];
+    MYFLT* ktl[1];
 #endif
 };
 
@@ -174,13 +185,13 @@ struct dataspace {
  * Creates a "aaakkkk" CSound description string. Note that
  * these string will never be released. Potential memory leak
  */
-static char* makeDescription(int numa, int numk=0)
+static char* makeDescription(int numa, int numk = 0)
 {
-    char* str = (char*)malloc(numa+numk+1); // NEED TO BE CHANGED ?
+    char* str = (char*)malloc(numa + numk + 1);  // NEED TO BE CHANGED ?
     if (str) {
-        for (int i=0; i<numa; i++) str[i] = 'a';
-        for (int i=0; i<numk; i++) str[numa+i] = 'J';
-        str[numa+numk] = 0;
+        for (int i = 0; i < numa; i++) str[i] = 'a';
+        for (int i = 0; i < numk; i++) str[numa + i] = 'J';
+        str[numa + numk] = 0;
     }
     return str;
 }
@@ -189,15 +200,13 @@ static char* makeDescription(int numa, int numk=0)
  * CSOUND callback that allocates and initializes
  * the FAUST generated DSP object and it's CSound interface
  */
-static int init(CSOUND *csound, dataspace *p)
+static int init(CSOUND* csound, dataspace* p)
 {
-    if (p->dspmem.auxp == NULL)
-        csound->AuxAlloc(csound, sizeof(mydsp), &p->dspmem);
+    if (p->dspmem.auxp == NULL) csound->AuxAlloc(csound, sizeof(mydsp), &p->dspmem);
 
-    if(p->intmem.auxp == NULL)
-        csound->AuxAlloc(csound, sizeof(CSUI), &p->intmem);
+    if (p->intmem.auxp == NULL) csound->AuxAlloc(csound, sizeof(CSUI), &p->intmem);
 
-    p->DSP = new (p->dspmem.auxp) mydsp;
+    p->DSP       = new (p->dspmem.auxp) mydsp;
     p->interface = new (p->intmem.auxp) CSUI;
 
     if ((p->DSP == 0) | (p->interface == 0)) return NOTOK;
@@ -213,7 +222,7 @@ static int init(CSOUND *csound, dataspace *p)
  * the controls values and calling the compute() method
  * of the DSP object. (Assume MYFLT = FAUSTFLOAT)
  */
-static int process32bits(CSOUND *csound, dataspace *p)
+static int process32bits(CSOUND* csound, dataspace* p)
 {
     AVOIDDENORMALS;
 
@@ -225,15 +234,9 @@ static int process32bits(CSOUND *csound, dataspace *p)
 }
 
 extern "C" {
-    static OENTRY localops[] = {
-        {(char*)sym(OPCODE_NAME), sizeof(dataspace), 0, 7, makeDescription(FAUST_OUTPUTS), makeDescription(FAUST_INPUTS, FAUST_ACTIVES),
-            (SUBR)init, NULL, (SUBR)process32bits }
-    };
-    LINKAGE
+static OENTRY localops[] = {{(char*)sym(OPCODE_NAME), sizeof(dataspace), 0, 7, makeDescription(FAUST_OUTPUTS),
+                             makeDescription(FAUST_INPUTS, FAUST_ACTIVES), (SUBR)init, NULL, (SUBR)process32bits}};
+LINKAGE
 }
 
-
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-
-

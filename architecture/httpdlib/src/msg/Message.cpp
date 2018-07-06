@@ -30,42 +30,42 @@
 
 using namespace std;
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 //--------------------------------------------------------------------------
 // Message implementation
 //--------------------------------------------------------------------------
-static string escape (const string& str) 
+static string escape(const string& str)
 {
-	string out;
-	const char *ptr = str.c_str();
-	while (*ptr) {
-		char c = *ptr++;
-		if (c == '"')
-			out += "\\\"";
-		else out += c;
-	}
-	return out;
+    string      out;
+    const char* ptr = str.c_str();
+    while (*ptr) {
+        char c = *ptr++;
+        if (c == '"')
+            out += "\\\"";
+        else
+            out += c;
+    }
+    return out;
 }
 
 //--------------------------------------------------------------------------
 void Message::print(std::ostream& out) const
 {
-	out << address() << " " ;
-	argslist::const_iterator i = params().begin();
+    out << address() << " ";
+    argslist::const_iterator i = params().begin();
 
-	ios::fmtflags f = out.flags ( ios::showpoint );
-	while (i != params().end()) {
-		MsgParam<string>* s = dynamic_cast<MsgParam<string>*>((baseparam*)(*i));
-		if (s) out << "\"" << escape(s->getValue()) << "\" ";
-		MsgParam<int>* ip = dynamic_cast<MsgParam<int>*>((baseparam*)(*i));
-		if (ip) out << ip->getValue() << " ";
-		MsgParam<float>* f = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
-		if (f) out << f->getValue() << " ";
-		i++;
-	}
-	out.flags ( f );
+    ios::fmtflags f = out.flags(ios::showpoint);
+    while (i != params().end()) {
+        MsgParam<string>* s = dynamic_cast<MsgParam<string>*>((baseparam*)(*i));
+        if (s) out << "\"" << escape(s->getValue()) << "\" ";
+        MsgParam<int>* ip = dynamic_cast<MsgParam<int>*>((baseparam*)(*i));
+        if (ip) out << ip->getValue() << " ";
+        MsgParam<float>* f = dynamic_cast<MsgParam<float>*>((baseparam*)(*i));
+        if (f) out << f->getValue() << " ";
+        i++;
+    }
+    out.flags(f);
 }
 
-} // end namespoace
+}  // namespace httpdfaust

@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -36,30 +36,29 @@
 /* link with  */
 #include <math.h>
 /* link with  */
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <assert.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <math.h>
-#include <errno.h>
-#include <time.h>
-#include <sys/ioctl.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <pwd.h>
-#include <sys/types.h>
-#include <assert.h>
 #include <pthread.h>
+#include <pwd.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/types.h>
 #include <sys/wait.h>
+#include <time.h>
+#include <unistd.h>
 
-#include <list>
-#include <vector>
-#include <iostream>
+#include <libgen.h>
 #include <fstream>
-#include <stack>
+#include <iostream>
 #include <list>
 #include <map>
-#include <libgen.h>
+#include <stack>
+#include <vector>
 
 #include <AudioToolbox/AudioConverter.h>
 #include <AudioToolbox/AudioServices.h>
@@ -70,17 +69,17 @@ using namespace std;
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
 
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
 /******************************************************************************
 *******************************************************************************
 
-								USER INTERFACE
+                                USER INTERFACE
 
 *******************************************************************************
 *******************************************************************************/
@@ -89,22 +88,22 @@ using namespace std;
 #include "audio/dsp.h"
 #include "misc.h"
 
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
+    /********************END ARCHITECTURE SECTION (part 1/2)****************/
 
-/**************************BEGIN USER SECTION **************************/
+    /**************************BEGIN USER SECTION **************************/
 
-<<includeclass>>
+    << includeclass >>
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-mydsp DSP;
+    mydsp DSP;
 
 /******************************************************************************
 *******************************************************************************
 
-							COREAUDIO INTERFACE
+                            COREAUDIO INTERFACE
 
 *******************************************************************************
 *******************************************************************************/
@@ -113,83 +112,73 @@ mydsp DSP;
 #define OPEN_ERR -1
 #define NO_ERR 0
 
-class TiPhoneCoreAudioRenderer
-{
+class TiPhoneCoreAudioRenderer {
+   private:
+    AudioUnit fAUHAL;
 
-    private:
+    int fDevNumInChans;
+    int fDevNumOutChans;
 
-		AudioUnit fAUHAL;
+    int fHWNumInChans;
+    int fHWNumOutChans;
 
-        int	fDevNumInChans;
-        int	fDevNumOutChans;
+    AudioBufferList *fCAInputData;
 
-        int fHWNumInChans;
-        int fHWNumOutChans;
+    float *fInChannel[MAX_CHANNELS];
+    float *fOutChannel[MAX_CHANNELS];
 
-        AudioBufferList* fCAInputData;
+    static OSStatus Render(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags, const AudioTimeStamp *inTimeStamp,
+                           UInt32 inBusNumber, UInt32 inNumberFrames, AudioBufferList *ioData);
 
-        float* fInChannel[MAX_CHANNELS];
-        float* fOutChannel[MAX_CHANNELS];
+    static void InterruptionListener(void *inClientData, UInt32 inInterruption);
 
-		static OSStatus Render(void *inRefCon,
-                               AudioUnitRenderActionFlags *ioActionFlags,
-                               const AudioTimeStamp *inTimeStamp,
-                               UInt32 inBusNumber,
-                               UInt32 inNumberFrames,
-                               AudioBufferList *ioData);
+   public:
+    TiPhoneCoreAudioRenderer(int input, int output) : fDevNumInChans(input), fDevNumOutChans(output), fCAInputData(NULL)
+    {
+        memset(fInChannel, 0, sizeof(float *) * MAX_CHANNELS);
+        memset(fOutChannel, 0, sizeof(float *) * MAX_CHANNELS);
 
-        static void InterruptionListener(void *inClientData, UInt32 inInterruption);
-
-    public:
-
-        TiPhoneCoreAudioRenderer(int input, int output)
-            :fDevNumInChans(input), fDevNumOutChans(output), fCAInputData(NULL)
-        {
-            memset(fInChannel, 0, sizeof(float*) * MAX_CHANNELS);
-            memset(fOutChannel, 0, sizeof(float*) * MAX_CHANNELS);
-
-            for (int i = 0; i < fDevNumInChans; i++) {
-                fInChannel[i] = new float[8192];
-            }
-
-            for (int i = 0; i < fDevNumOutChans; i++) {
-                fOutChannel[i] = new float[8192];
-            }
+        for (int i = 0; i < fDevNumInChans; i++) {
+            fInChannel[i] = new float[8192];
         }
 
-        virtual ~TiPhoneCoreAudioRenderer()
-        {
-            for (int i = 0; i < fDevNumInChans; i++) {
-                delete[] fInChannel[i];
-            }
+        for (int i = 0; i < fDevNumOutChans; i++) {
+            fOutChannel[i] = new float[8192];
+        }
+    }
 
-            for (int i = 0; i < fDevNumOutChans; i++) {
-                delete[] fOutChannel[i];
-            }
-
-            if (fCAInputData) {
-                for (int i = 0; i < fDevNumInChans; i++) {
-                    free(fCAInputData->mBuffers[i].mData);
-                }
-                free(fCAInputData);
-            }
+    virtual ~TiPhoneCoreAudioRenderer()
+    {
+        for (int i = 0; i < fDevNumInChans; i++) {
+            delete[] fInChannel[i];
         }
 
-        int Open(int bufferSize, int sampleRate);
-        int Close();
+        for (int i = 0; i < fDevNumOutChans; i++) {
+            delete[] fOutChannel[i];
+        }
 
-        int Start();
-        int Stop();
+        if (fCAInputData) {
+            for (int i = 0; i < fDevNumInChans; i++) {
+                free(fCAInputData->mBuffers[i].mData);
+            }
+            free(fCAInputData);
+        }
+    }
 
+    int Open(int bufferSize, int sampleRate);
+    int Close();
+
+    int Start();
+    int Stop();
 };
 
-typedef TiPhoneCoreAudioRenderer * TiPhoneCoreAudioRendererPtr;
+typedef TiPhoneCoreAudioRenderer *TiPhoneCoreAudioRendererPtr;
 
 static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
 {
     printf("- - - - - - - - - - - - - - - - - - - -\n");
     printf("  Sample Rate:%f\n", inDesc->mSampleRate);
-    printf("  Format ID:%.*s\n", (int) sizeof(inDesc->mFormatID), (char*)&inDesc->mFormatID);
+    printf("  Format ID:%.*s\n", (int)sizeof(inDesc->mFormatID), (char *)&inDesc->mFormatID);
     printf("  Format Flags:%lX\n", inDesc->mFormatFlags);
     printf("  Bytes per Packet:%ld\n", inDesc->mBytesPerPacket);
     printf("  Frames per Packet:%ld\n", inDesc->mFramesPerPacket);
@@ -202,7 +191,7 @@ static void PrintStreamDesc(AudioStreamBasicDescription *inDesc)
 static void printError(OSStatus err)
 {
     switch (err) {
-      	case kAudioConverterErr_FormatNotSupported:
+        case kAudioConverterErr_FormatNotSupported:
             printf("error code : kAudioConverterErr_FormatNotSupported\n");
             break;
         case kAudioConverterErr_OperationNotSupported:
@@ -238,30 +227,29 @@ static void printError(OSStatus err)
     }
 }
 
-OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
-                                         AudioUnitRenderActionFlags *ioActionFlags,
-                                         const AudioTimeStamp *inTimeStamp,
-                                         UInt32,
-                                         UInt32 inNumberFrames,
-                                         AudioBufferList *ioData)
+OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon, AudioUnitRenderActionFlags *ioActionFlags,
+                                          const AudioTimeStamp *inTimeStamp, UInt32, UInt32 inNumberFrames,
+                                          AudioBufferList *ioData)
 {
     TiPhoneCoreAudioRendererPtr renderer = (TiPhoneCoreAudioRendererPtr)inRefCon;
     AudioUnitRender(renderer->fAUHAL, ioActionFlags, inTimeStamp, 1, inNumberFrames, renderer->fCAInputData);
 
-    float coef = float(LONG_MAX);
-    float inv_coef = 1.f/float(LONG_MAX);
+    float coef     = float(LONG_MAX);
+    float inv_coef = 1.f / float(LONG_MAX);
 
     if (renderer->fHWNumInChans == 1) {
         // Mono ==> stereo
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[0].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] =
+                    float(((int *)renderer->fCAInputData->mBuffers[0].mData)[frame]) * inv_coef;
             }
         }
     } else {
         for (int chan = 0; chan < renderer->fDevNumInChans; chan++) {
             for (int frame = 0; frame < inNumberFrames; frame++) {
-                renderer->fInChannel[chan][frame] = float(((int*)renderer->fCAInputData->mBuffers[chan].mData)[frame]) * inv_coef;
+                renderer->fInChannel[chan][frame] =
+                    float(((int *)renderer->fCAInputData->mBuffers[chan].mData)[frame]) * inv_coef;
             }
         }
     }
@@ -270,37 +258,39 @@ OSStatus TiPhoneCoreAudioRenderer::Render(void *inRefCon,
 
     for (int chan = 0; chan < renderer->fDevNumOutChans; chan++) {
         for (int frame = 0; frame < inNumberFrames; frame++) {
-           ((long*)ioData->mBuffers[chan].mData)[frame] = long(renderer->fOutChannel[chan][frame] * coef);
+            ((long *)ioData->mBuffers[chan].mData)[frame] = long(renderer->fOutChannel[chan][frame] * coef);
         }
     }
 
- 	return 0;
+    return 0;
 }
 
 void TiPhoneCoreAudioRenderer::InterruptionListener(void *inClientData, UInt32 inInterruption)
 {
-	TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer*)inClientData;
-	printf("Session interrupted! --- %s ---", inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
+    TiPhoneCoreAudioRenderer *obj = (TiPhoneCoreAudioRenderer *)inClientData;
+    printf("Session interrupted! --- %s ---",
+           inInterruption == kAudioSessionBeginInterruption ? "Begin Interruption" : "End Interruption");
 
-	if (inInterruption == kAudioSessionEndInterruption) {
-		// make sure we are again the active session
-		AudioSessionSetActive(true);
-		AudioOutputUnitStart(obj->fAUHAL);
-	}
+    if (inInterruption == kAudioSessionEndInterruption) {
+        // make sure we are again the active session
+        AudioSessionSetActive(true);
+        AudioOutputUnitStart(obj->fAUHAL);
+    }
 
-	if (inInterruption == kAudioSessionBeginInterruption) {
-		AudioOutputUnitStop(obj->fAUHAL);
+    if (inInterruption == kAudioSessionBeginInterruption) {
+        AudioOutputUnitStop(obj->fAUHAL);
     }
 }
 
 int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
 {
-    OSStatus err1;
-    UInt32 outSize;
-    UInt32 enableIO;
-	AudioStreamBasicDescription srcFormat, dstFormat;
+    OSStatus                    err1;
+    UInt32                      outSize;
+    UInt32                      enableIO;
+    AudioStreamBasicDescription srcFormat, dstFormat;
 
-    printf("OpenDefault fDevNumInChans = %ld fDevNumOutChans = %ld bufferSize = %ld samplerate = %ld\n", fDevNumInChans, fDevNumOutChans, bufferSize, samplerate);
+    printf("OpenDefault fDevNumInChans = %ld fDevNumOutChans = %ld bufferSize = %ld samplerate = %ld\n", fDevNumInChans,
+           fDevNumOutChans, bufferSize, samplerate);
 
     // Initialize and configure the audio session
     err1 = AudioSessionInitialize(NULL, NULL, InterruptionListener, this);
@@ -318,39 +308,40 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     UInt32 audioCategory = kAudioSessionCategory_PlayAndRecord;
-	err1 = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
+    err1 = AudioSessionSetProperty(kAudioSessionProperty_AudioCategory, sizeof(audioCategory), &audioCategory);
     if (err1 != noErr) {
         printf("Couldn't set audio category\n");
         printError(err1);
         return OPEN_ERR;
     }
 
-   	//err1 = AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set property listener");
+    // err1 = AudioSessionAddPropertyListener(kAudioSessionProperty_AudioRouteChange, propListener, self), "couldn't set
+    // property listener");
 
     Float64 hwSampleRate;
     outSize = sizeof(hwSampleRate);
-	err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &outSize, &hwSampleRate);
+    err1    = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareSampleRate, &outSize, &hwSampleRate);
     if (err1 != noErr) {
         printf("Couldn't get hw sample rate\n");
         printError(err1);
         return OPEN_ERR;
     } else {
-         printf("Get hw sample rate %f\n", hwSampleRate);
+        printf("Get hw sample rate %f\n", hwSampleRate);
     }
 
     Float32 hwBufferSize;
     outSize = sizeof(hwBufferSize);
-	err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration, &outSize, &hwBufferSize);
+    err1    = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareIOBufferDuration, &outSize, &hwBufferSize);
     if (err1 != noErr) {
         printf("Couldn't get hw buffer duration\n");
         printError(err1);
         return OPEN_ERR;
     } else {
-         printf("Get hw buffer duration %f\n", hwBufferSize);
+        printf("Get hw buffer duration %f\n", hwBufferSize);
     }
 
     outSize = sizeof(fHWNumInChans);
-	err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
+    err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareInputNumberChannels, &outSize, &fHWNumInChans);
     if (err1 != noErr) {
         printf("Couldn't get hw input channels\n");
         printError(err1);
@@ -360,7 +351,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     outSize = sizeof(fHWNumOutChans);
-	err1 = AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &outSize, &fHWNumOutChans);
+    err1 =
+        AudioSessionGetProperty(kAudioSessionProperty_CurrentHardwareOutputNumberChannels, &outSize, &fHWNumOutChans);
     if (err1 != noErr) {
         printf("Couldn't get hw output channels\n");
         printError(err1);
@@ -372,7 +364,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     Float32 preferredBufferSize = float(bufferSize) / float(samplerate);
     printf("preferredBufferSize %f \n", preferredBufferSize);
 
-	err1 = AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize), &preferredBufferSize);
+    err1 = AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareIOBufferDuration, sizeof(preferredBufferSize),
+                                   &preferredBufferSize);
     if (err1 != noErr) {
         printf("Couldn't set i/o buffer duration\n");
         printError(err1);
@@ -380,7 +373,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     Float64 preferredSamplerate = float(samplerate);
-	err1 = AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareSampleRate, sizeof(preferredSamplerate), &preferredSamplerate);
+    err1 = AudioSessionSetProperty(kAudioSessionProperty_PreferredHardwareSampleRate, sizeof(preferredSamplerate),
+                                   &preferredSamplerate);
     if (err1 != noErr) {
         printf("Couldn't set i/o sample rate\n");
         printError(err1);
@@ -388,18 +382,20 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     // AUHAL
-    AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0, 0};
-    AudioComponent HALOutput = AudioComponentFindNext(NULL, &cd);
+    AudioComponentDescription cd = {kAudioUnitType_Output, kAudioUnitSubType_RemoteIO, kAudioUnitManufacturer_Apple, 0,
+                                    0};
+    AudioComponent            HALOutput = AudioComponentFindNext(NULL, &cd);
 
     err1 = AudioComponentInstanceNew(HALOutput, &fAUHAL);
     if (err1 != noErr) {
-		printf("Error calling OpenAComponent\n");
+        printf("Error calling OpenAComponent\n");
         printError(err1);
         goto error;
-	}
+    }
 
     enableIO = 1;
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO, sizeof(enableIO));
+    err1     = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output, 0, &enableIO,
+                                sizeof(enableIO));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Output\n");
         printError(err1);
@@ -407,7 +403,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     enableIO = 1;
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO, sizeof(enableIO));
+    err1     = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input, 1, &enableIO,
+                                sizeof(enableIO));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioOutputUnitProperty_EnableIO, kAudioUnitScope_Input\n");
         printError(err1);
@@ -416,7 +413,8 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
 
     UInt32 maxFPS;
     outSize = sizeof(maxFPS);
-    err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS, &outSize);
+    err1    = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, &maxFPS,
+                                &outSize);
     if (err1 != noErr) {
         printf("Couldn't get kAudioUnitProperty_MaximumFramesPerSlice\n");
         printError(err1);
@@ -425,14 +423,16 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
         printf("Get kAudioUnitProperty_MaximumFramesPerSlice %d\n", maxFPS);
     }
 
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1, (UInt32*)&bufferSize, sizeof(UInt32));
+    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 1,
+                                (UInt32 *)&bufferSize, sizeof(UInt32));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
         printError(err1);
         goto error;
     }
 
-    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0, (UInt32*)&bufferSize, sizeof(UInt32));
+    err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_MaximumFramesPerSlice, kAudioUnitScope_Global, 0,
+                                (UInt32 *)&bufferSize, sizeof(UInt32));
     if (err1 != noErr) {
         printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_MaximumFramesPerSlice\n");
         printError(err1);
@@ -441,33 +441,35 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
 
     err1 = AudioUnitInitialize(fAUHAL);
     if (err1 != noErr) {
-		printf("Cannot initialize AUHAL unit\n");
-		printError(err1);
+        printf("Cannot initialize AUHAL unit\n");
+        printError(err1);
         goto error;
-	}
+    }
 
     // Setting format
 
     if (fDevNumInChans > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, &outSize);
+        err1    = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat,
+                                    &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
         }
         PrintStreamDesc(&srcFormat);
 
-        srcFormat.mFormatID = kAudioFormatLinearPCM;
-        srcFormat.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
-        srcFormat.mBytesPerPacket = sizeof(AudioUnitSampleType);
-        srcFormat.mFramesPerPacket = 1;
-        srcFormat.mBytesPerFrame = sizeof(AudioUnitSampleType);
+        srcFormat.mFormatID         = kAudioFormatLinearPCM;
+        srcFormat.mFormatFlags      = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
+        srcFormat.mBytesPerPacket   = sizeof(AudioUnitSampleType);
+        srcFormat.mFramesPerPacket  = 1;
+        srcFormat.mBytesPerFrame    = sizeof(AudioUnitSampleType);
         srcFormat.mChannelsPerFrame = fDevNumInChans;
-        srcFormat.mBitsPerChannel = 32;
+        srcFormat.mBitsPerChannel   = 32;
 
         PrintStreamDesc(&srcFormat);
 
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat, sizeof(AudioStreamBasicDescription));
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Output, 1, &srcFormat,
+                                    sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Output\n");
             printError(err1);
@@ -476,24 +478,26 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
 
     if (fDevNumOutChans > 0) {
         outSize = sizeof(AudioStreamBasicDescription);
-        err1 = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, &outSize);
+        err1    = AudioUnitGetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat,
+                                    &outSize);
         if (err1 != noErr) {
             printf("Error calling AudioUnitGetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Input\n");
             printError(err1);
         }
         PrintStreamDesc(&dstFormat);
 
-        dstFormat.mFormatID = kAudioFormatLinearPCM;
-        dstFormat.mFormatFlags = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
-        dstFormat.mBytesPerPacket = sizeof(AudioUnitSampleType);
-        dstFormat.mFramesPerPacket = 1;
-        dstFormat.mBytesPerFrame = sizeof(AudioUnitSampleType);
+        dstFormat.mFormatID         = kAudioFormatLinearPCM;
+        dstFormat.mFormatFlags      = kAudioFormatFlagsCanonical | kLinearPCMFormatFlagIsNonInterleaved;
+        dstFormat.mBytesPerPacket   = sizeof(AudioUnitSampleType);
+        dstFormat.mFramesPerPacket  = 1;
+        dstFormat.mBytesPerFrame    = sizeof(AudioUnitSampleType);
         dstFormat.mChannelsPerFrame = fDevNumOutChans;
-        dstFormat.mBitsPerChannel = 32;
+        dstFormat.mBitsPerChannel   = 32;
 
         PrintStreamDesc(&dstFormat);
 
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat, sizeof(AudioStreamBasicDescription));
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, 0, &dstFormat,
+                                    sizeof(AudioStreamBasicDescription));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_StreamFormat kAudioUnitScope_Input\n");
             printError(err1);
@@ -502,9 +506,10 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
 
     if (fDevNumInChans > 0 && fDevNumOutChans == 0) {
         AURenderCallbackStruct output;
-        output.inputProc = Render;
+        output.inputProc       = Render;
         output.inputProcRefCon = this;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0, &output, sizeof(output));
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioOutputUnitProperty_SetInputCallback, kAudioUnitScope_Global, 0,
+                                    &output, sizeof(output));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 1\n");
             printError(err1);
@@ -512,9 +517,10 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
         }
     } else {
         AURenderCallbackStruct output;
-        output.inputProc = Render;
+        output.inputProc       = Render;
         output.inputProcRefCon = this;
-        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output, sizeof(output));
+        err1 = AudioUnitSetProperty(fAUHAL, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, 0, &output,
+                                    sizeof(output));
         if (err1 != noErr) {
             printf("Error calling AudioUnitSetProperty - kAudioUnitProperty_SetRenderCallback 0\n");
             printError(err1);
@@ -523,12 +529,12 @@ int TiPhoneCoreAudioRenderer::Open(int bufferSize, int samplerate)
     }
 
     // Prepare buffers
-    fCAInputData = (AudioBufferList*)malloc(sizeof(UInt32) + fDevNumInChans * sizeof(AudioBuffer));
+    fCAInputData                 = (AudioBufferList *)malloc(sizeof(UInt32) + fDevNumInChans * sizeof(AudioBuffer));
     fCAInputData->mNumberBuffers = fDevNumInChans;
     for (int i = 0; i < fDevNumInChans; i++) {
         fCAInputData->mBuffers[i].mNumberChannels = 1;
-        fCAInputData->mBuffers[i].mDataByteSize = bufferSize * sizeof(int);
-        fCAInputData->mBuffers[i].mData = malloc(bufferSize * sizeof(int));
+        fCAInputData->mBuffers[i].mDataByteSize   = bufferSize * sizeof(int);
+        fCAInputData->mBuffers[i].mData           = malloc(bufferSize * sizeof(int));
     }
 
     return NO_ERR;
@@ -541,7 +547,7 @@ error:
 
 int TiPhoneCoreAudioRenderer::Close()
 {
- 	AudioUnitUninitialize(fAUHAL);
+    AudioUnitUninitialize(fAUHAL);
     AudioComponentInstanceDispose(fAUHAL);
     return NO_ERR;
 }
@@ -549,14 +555,14 @@ int TiPhoneCoreAudioRenderer::Close()
 int TiPhoneCoreAudioRenderer::Start()
 {
     AudioSessionSetActive(true);
-	OSStatus err = AudioOutputUnitStart(fAUHAL);
+    OSStatus err = AudioOutputUnitStart(fAUHAL);
 
     if (err != noErr) {
         printf("Error while opening device : device open error \n");
         return OPEN_ERR;
     } else {
         return NO_ERR;
-	}
+    }
 }
 
 int TiPhoneCoreAudioRenderer::Stop()
@@ -568,10 +574,7 @@ int TiPhoneCoreAudioRenderer::Stop()
         return OPEN_ERR;
     } else {
         return NO_ERR;
-	}
+    }
 }
 
-
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

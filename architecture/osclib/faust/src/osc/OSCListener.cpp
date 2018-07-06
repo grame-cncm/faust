@@ -30,41 +30,43 @@
 #include "OSCListener.h"
 #include "OSCStream.h"
 
-#include "osc/OscReceivedElements.h"
 #include "ip/IpEndpointName.h"
+#include "osc/OscReceivedElements.h"
 
 using namespace std;
 using namespace osc;
 
-namespace oscfaust
-{
+namespace oscfaust {
 
 //--------------------------------------------------------------------------
-OSCListener::OSCListener(MessageProcessor* mp, int port) 
-		: fSocket(0), fMsgHandler(mp), 
-		  fRunning(false), fSetDest(true), fPort(port)
+OSCListener::OSCListener(MessageProcessor* mp, int port)
+    : fSocket(0), fMsgHandler(mp), fRunning(false), fSetDest(true), fPort(port)
 {
-	fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
-	fPort = 0;
-	// check osc out destination address
-	// warning ! osc stream must be created before the listener
-	if (oscout.getAddress() != kLocalhost) fSetDest = false;
+    fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
+    fPort   = 0;
+    // check osc out destination address
+    // warning ! osc stream must be created before the listener
+    if (oscout.getAddress() != kLocalhost) fSetDest = false;
 }
 
-OSCListener::~OSCListener()	{ stop(); delete fSocket; }
+OSCListener::~OSCListener()
+{
+    stop();
+    delete fSocket;
+}
 
 //--------------------------------------------------------------------------
 void OSCListener::run()
-{ 
-	fRunning = true;
-	while (fRunning) {
+{
+    fRunning = true;
+    while (fRunning) {
         if (fPort) {
             delete fSocket;
             fSocket = NULL;
             fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
-            fPort = 0;
+            fPort   = 0;
         }
-    
+
         if (fSocket != NULL) {
             fSocket->Run();
         }
@@ -74,26 +76,24 @@ void OSCListener::run()
 //--------------------------------------------------------------------------
 void OSCListener::ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& src)
 {
- 	Message msg = Message(m.AddressPattern());
-	msg.setSrcIP(src.address);
-	if (fSetDest && (src.address != kLocalhost)) {
-		oscout.setAddress(src.address);
-		fSetDest = false;
-	}
-	ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
-	while (i != m.ArgumentsEnd()) {
-		if (i->IsString()) {
-			msg.add<string>(i->AsStringUnchecked());			
-		}
-		else if (i->IsInt32()) {
-			msg.add<int>(int(i->AsInt32Unchecked()));
-		}
-		else if (i->IsFloat()) {
-			msg.add<float>(i->AsFloatUnchecked());			
-		}
-		i++;
-	}
-	fMsgHandler->processMessage(&msg);
+    Message msg = Message(m.AddressPattern());
+    msg.setSrcIP(src.address);
+    if (fSetDest && (src.address != kLocalhost)) {
+        oscout.setAddress(src.address);
+        fSetDest = false;
+    }
+    ReceivedMessageArgumentIterator i = m.ArgumentsBegin();
+    while (i != m.ArgumentsEnd()) {
+        if (i->IsString()) {
+            msg.add<string>(i->AsStringUnchecked());
+        } else if (i->IsInt32()) {
+            msg.add<int>(int(i->AsInt32Unchecked()));
+        } else if (i->IsFloat()) {
+            msg.add<float>(i->AsFloatUnchecked());
+        }
+        i++;
+    }
+    fMsgHandler->processMessage(&msg);
 }
 
-} // end namespoace
+}  // namespace oscfaust

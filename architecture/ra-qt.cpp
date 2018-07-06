@@ -1,9 +1,9 @@
 /************************************************************************
 
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
+    IMPORTANT NOTE : this file contains two clearly delimited sections :
+    the ARCHITECTURE section (in two parts) and the USER section. Each section
+    is governed by its own copyright and license. Please check individually
+    each section for license and copyright information.
 *************************************************************************/
 
 /*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
@@ -38,13 +38,13 @@
 #include <iostream>
 #include <list>
 
+#include "faust/audio/rtaudio-dsp.h"
 #include "faust/dsp/timed-dsp.h"
-#include "faust/gui/PathBuilder.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/PathBuilder.h"
 #include "faust/gui/faustqt.h"
 #include "faust/misc.h"
-#include "faust/audio/rtaudio-dsp.h"
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
@@ -55,8 +55,8 @@
 #endif
 
 // Always include this file, otherwise -poly only mode does not compile...
-#include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
+#include "faust/midi/rt-midi.h"
 
 #ifdef MIDICTRL
 #include "faust/midi/RtMidi.cpp"
@@ -67,26 +67,26 @@
 /******************************************************************************
 *******************************************************************************
 
-							       VECTOR INTRINSICS
+                                   VECTOR INTRINSICS
 
 *******************************************************************************
 *******************************************************************************/
-<<includeIntrinsic>>
+<< includeIntrinsic >>
 
-<<includeclass>>
+    << includeclass >>
 
 #ifdef POLY
 #include "faust/dsp/poly-dsp.h"
 #endif
 
-/***************************END USER SECTION ***************************/
+    /***************************END USER SECTION ***************************/
 
-/*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
+    /*******************BEGIN ARCHITECTURE SECTION (part 2/2)***************/
 
-dsp* DSP;
+    dsp* DSP;
 
 std::list<GUI*> GUI::fGuiList;
-ztimedmap GUI::gTimedZoneMap;
+ztimedmap       GUI::gTimedZoneMap;
 
 /******************************************************************************
 *******************************************************************************
@@ -103,27 +103,26 @@ static bool hasMIDISync()
     tmp_dsp->buildUserInterface(&jsonui);
     std::string json = jsonui.JSON();
     delete tmp_dsp;
-    
+
     return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) ||
-            (json.find("stop") != std::string::npos) ||
-            (json.find("clock") != std::string::npos)));
+            ((json.find("start") != std::string::npos) || (json.find("stop") != std::string::npos) ||
+             (json.find("clock") != std::string::npos)));
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
-    char name[256];
-    char rcfilename[256];
+    char  name[256];
+    char  rcfilename[256];
     char* home = getenv("HOME");
 
     snprintf(name, 255, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, basename(argv[0]));
 
     long srate = (long)lopt(argv, "--frequency", 44100);
-    int fpb = lopt(argv, "--buffer", 512);
+    int  fpb   = lopt(argv, "--buffer", 512);
 
 #ifdef POLY
-    int poly = lopt(argv, "--poly", 4);
+    int poly  = lopt(argv, "--poly", 4);
     int group = lopt(argv, "--group", 1);
 
 #if MIDICTRL
@@ -157,13 +156,13 @@ int main(int argc, char *argv[])
     QApplication myApp(argc, argv);
 
     QTGUI interface;
-    FUI finterface;
+    FUI   finterface;
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
 
 #ifdef MIDICTRL
     rt_midi midi_handler(name);
-    MidiUI midiinterface(&midi_handler);
+    MidiUI  midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
 #endif
@@ -220,5 +219,3 @@ int main(int argc, char *argv[])
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-

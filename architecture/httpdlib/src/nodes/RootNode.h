@@ -21,42 +21,39 @@
 
 */
 
-
 #ifndef __RootNode__
 #define __RootNode__
 
 #include <string>
 #include "MessageDriven.h"
 
-namespace httpdfaust
-{
+namespace httpdfaust {
 
 class RootNode;
-typedef class SMARTP<RootNode>	SRootNode;
+typedef class SMARTP<RootNode> SRootNode;
 
 //--------------------------------------------------------------------------
 /*!
-	\brief a faust program root node
+    \brief a faust program root node
 */
-class RootNode : public MessageDriven
-{
-	std::string fJson;
-	std::string fHtml;
-	
-	protected:
-				 RootNode(const char *name) : MessageDriven (name, "") {}
-		virtual ~RootNode() {}
+class RootNode : public MessageDriven {
+    std::string fJson;
+    std::string fHtml;
 
-	public:
-		static SRootNode create(const char* name) { return new RootNode(name); }
+   protected:
+    RootNode(const char* name) : MessageDriven(name, "") {}
+    virtual ~RootNode() {}
 
-		void			setJSON(const std::string& json)	{ fJson = json; }
-		void			setHtml(const std::string& html)	{ fHtml = html; }
-		//--------------------------------------------------------------------------
-		bool			processMessage(const Message* msg, std::vector<Message*>& outMsg);
-		virtual bool	accept(const Message* msg, std::vector<Message*>& outMsg);
+   public:
+    static SRootNode create(const char* name) { return new RootNode(name); }
+
+    void setJSON(const std::string& json) { fJson = json; }
+    void setHtml(const std::string& html) { fHtml = html; }
+    //--------------------------------------------------------------------------
+    bool         processMessage(const Message* msg, std::vector<Message*>& outMsg);
+    virtual bool accept(const Message* msg, std::vector<Message*>& outMsg);
 };
 
-} // end namespoace
+}  // namespace httpdfaust
 
 #endif
