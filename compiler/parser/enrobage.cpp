@@ -178,6 +178,16 @@ static void inject(ostream& dst, const string& fname)
     }
 }
 
+static string removeSpaces(const string& s) 
+{
+    string r;
+    for (char c : s) {
+        if (c != ' ') r.push_back(c);
+    }
+    return r;
+} 
+
+
 /**
  * Copy src to dst until specific line.
  */
@@ -185,7 +195,7 @@ void streamCopyUntil(istream& src, ostream& dst, const string& until)
 {
     string	s;
     string  fname;
-    while ( getline(src,s) && (s != until) ) {
+    while ( getline(src,s) && (removeSpaces(s) != until) ) {
         if (gGlobal->gInlineArchSwitch && isFaustInclude(s, fname)) {
             inject(dst, fname);
         } else {
