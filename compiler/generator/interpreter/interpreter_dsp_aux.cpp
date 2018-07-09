@@ -49,7 +49,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
         return createInterpreterDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv,
                                                      error_msg);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)";
+        error_msg = "File Extension is not the one expected (.dsp expected)\n";
         return NULL;
     }
 }

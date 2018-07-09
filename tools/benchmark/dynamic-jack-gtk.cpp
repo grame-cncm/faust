@@ -93,17 +93,13 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-    #ifdef INTERP_PLUGIN
-        cout << "dynamic-jack-gtk-plugin -interp [-nvoices N] [-midi] [-osc] [-httpd] foo.fbc" << endl;
-    #else
-        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "dynamic-jack-gtk [-llvm/interp] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp/foo.fbc" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
-        cout << "Use '-interp' to use Interpreter backend\n";
+        cout << "Use '-interp' to use Interpreter backend (using either .dsp or .fbc (Faust Byte Code) files\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
         cout << "Use '-httpd' to activate HTTP control\n";
-    #endif
         exit(EXIT_FAILURE);
     }
     
@@ -140,10 +136,6 @@ int main(int argc, char* argv[])
     
     argv1[argc1] = 0;  // NULL terminated argv
     
-#ifdef INTERP_PLUGIN
-    cout << "Using interpreter plugin backend" << endl;
-    factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
-#else
     if (is_llvm) {
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
@@ -152,8 +144,10 @@ int main(int argc, char* argv[])
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
+        if (!factory) {
+            factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
+        }
     }
-#endif
     
     if (!factory) {
         cerr << "Cannot create factory : " << error_msg;
@@ -242,15 +236,11 @@ int main(int argc, char* argv[])
     delete oscinterface;
     delete soundinterface;
   
-#ifdef INTERP_PLUGIN
-    deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-#else
     if (is_llvm) {
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
     } else {
         deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
     }
-#endif
     
     return 0;
 }

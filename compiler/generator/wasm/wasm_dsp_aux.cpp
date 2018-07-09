@@ -101,7 +101,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, in
         return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg,
                                               internal_memory);
     } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)";
+        error_msg = "File Extension is not the one expected (.dsp expected)\n";
         return NULL;
     }
 }
