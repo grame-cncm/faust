@@ -285,7 +285,7 @@ class CPPInstVisitor : public TextInstVisitor {
             *fOut << "virtual ";
         }
 
-        if (inst->fType->fAttribute & FunTyped::kStatic) {
+        if (inst->fType->fAttribute & FunTyped::kLocal || inst->fType->fAttribute & FunTyped::kStatic) {
             *fOut << "static ";
         }
 
