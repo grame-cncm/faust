@@ -1769,7 +1769,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
     Tree                      path, c, x, y, z;
     map<string, set<string> > metadata;
     string                    label, url;
-   
+
     extractMetadata(tree2str(fulllabel), label, metadata);
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
@@ -1805,29 +1805,20 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigVSlider(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label),
-                                                                      tree2str(varname),
-                                                                      tree2float(c),
-                                                                      tree2float(x),
-                                                                      tree2float(y),
+        pushUserInterfaceMethod(InstBuilder::genAddVerticalSliderInst(checkNullLabel(varname, label), tree2str(varname),
+                                                                      tree2float(c), tree2float(x), tree2float(y),
                                                                       tree2float(z)));
 
     } else if (isSigHSlider(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
         pushUserInterfaceMethod(InstBuilder::genAddHorizontalSliderInst(checkNullLabel(varname, label),
-                                                                        tree2str(varname),
-                                                                        tree2float(c),
-                                                                        tree2float(x),
-                                                                        tree2float(y),
-                                                                        tree2float(z)));
+                                                                        tree2str(varname), tree2float(c), tree2float(x),
+                                                                        tree2float(y), tree2float(z)));
 
     } else if (isSigNumEntry(sig, path, c, x, y, z)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label),
-                                                                tree2str(varname),
-                                                                tree2float(c),
-                                                                tree2float(x),
-                                                                tree2float(y),
+        pushUserInterfaceMethod(InstBuilder::genAddNumEntryInst(checkNullLabel(varname, label), tree2str(varname),
+                                                                tree2float(c), tree2float(x), tree2float(y),
                                                                 tree2float(z)));
 
     } else if (isSigVBargraph(sig, path, x, y, z)) {
@@ -1842,8 +1833,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(
-                                InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true), ((url == "") ? label : url), tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true),
+                                                                 ((url == "") ? label : url), tree2str(varname)));
 
     } else {
         throw faustexception("ERROR in generating widget code\n");
