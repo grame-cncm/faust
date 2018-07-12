@@ -374,16 +374,4 @@ inline void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const st
     }
 }
 
-/**
- * Get the list of library dependancies of the Faust DSP factory.
- *
- * @param factory - the DSP factory
- *
- * @return the list as a vector of strings.
- */
-inline std::vector<std::string> getDSPFactoryLibraryList(dsp_poly_factory* factory)
-{
-    return getDSPFactoryLibraryList(factory->fProcessFactory);
-}
-
 #endif // __poly_dsp_tools__
