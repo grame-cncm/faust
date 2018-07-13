@@ -36,21 +36,6 @@ class MapUI;
 class jack_midi_handler : public midi_handler {
     
     
-    // For timestamped messages
-    struct DatedMessage {
-        
-        double fDate;
-        unsigned char fBuffer[3];
-        size_t fSize;
-        
-        DatedMessage(double d = 0., unsigned char* buffer = nullptr, size_t size = 0)
-        :fDate(d), fSize(size)
-        {
-            if (buffer) { memcpy(fBuffer, buffer, 3); }
-        }
-        
-    };
-
     protected:
 
         ringbuffer_t* fOutBuffer;

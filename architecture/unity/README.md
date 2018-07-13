@@ -19,7 +19,7 @@ Libraries are available for several platforms and architectures :
 
 `faust2unity` is used with the following command :
 
-`faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-source] [-unpacked] <file1.dsp> [<file2.dsp>]`
+`faust2unity [-w32] [-w64] [-osx] [-ios] [-android] [-linux] [-nvoices <num>] [-source] [-unpacked] <file1.dsp> [<file2.dsp>]`
 
 By default it will create a Unity package containing the C# script and sub-folders with all available architecture. Relevant achitectures can be chosen by adding the right arguments. Several DSP files can be compiled at the same time and will be generated in different packages.
 
@@ -28,6 +28,8 @@ The relevant architecture set up should be filled in for each file in the plugin
 Finally, the C# script `FaustPlugin_<dspname>` should be attached to a game object. `FaustPlugin_<dspname>.cs` is the public interface and contains the dsp class and methods that allow to access and change the parameters (i.e. `getParameter()` and `setParameter()`). `FaustUtilities_<dspname>` contains additional code to access the plugin and generate the inspector interface. This file shouldn't be changed.
 
 The source files can be produced with the `-source` argument.
+
+The `-nvoices <num>` argument can be used to produce a polyphonic self-contained DSP with `num` voices, ready to be used with MIDI. The C# script will contain keyOn/KeyOff functions to control the instrument.
 
 Unity packages have a specific organization in order to be correctly read by the Unity editor. `faust2unity` calls `encoderunitypackage` to correctly encode the compiled files. The `-unpacked` argument stops the script before the encoding step, the intermediate folder is named `FaustPlugin_<dspname>_Assets` and organized like the Assets hierarchy of a Unity project. It allows to add additional files to the package before packing it. Then, use the `encoderunitypackage <folder>` command to encode and pack the folder as a Unity package.
 
