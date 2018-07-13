@@ -147,8 +147,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDSPStruct = false;
     gLightMode = false;
 
-    gClassName   = "mydsp";
-    gProcessName = "process";
+    gClassName     = "mydsp";
+    gSuperClassName = "dsp";
+    gProcessName   = "process";
 
     gDSPFactory = 0;
 

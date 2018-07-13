@@ -492,6 +492,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gClassName = argv[i + 1];
             i += 2;
 
+        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+            gGlobal->gSuperClassName = argv[i + 1];
+            i += 2;
+
         } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
             gGlobal->gProcessName = argv[i + 1];
             i += 2;
@@ -698,6 +702,7 @@ static void printHelp()
     cout << "-a <file> \twrapper architecture file\n";
     cout << "-i \t\t--inline-architecture-files \n";
     cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+    cout << "-scn <name> \t--super-class-name <name> specify the name of the super class to be used instead of dsp \n";
     cout << "-pn <name> \t--process-name <name> specify the name of the dsp entry-point instead of process \n";
     cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
@@ -765,9 +770,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-    /****************************************************************
-                                    MAIN
-    *****************************************************************/
+/****************************************************************
+                                MAIN
+*****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1175,7 +1180,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "cpp") {
 #ifdef CPP_BUILD
-            container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                          numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
 #endif
@@ -1183,11 +1189,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "ocpp") {
 #ifdef OCPP_BUILD
             if (gGlobal->gSchedulerSwitch)
-                old_comp = new SchedulerCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else if (gGlobal->gVectorSwitch)
-                old_comp = new VectorCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else
-                old_comp = new ScalarCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
 
             if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
 
@@ -1208,7 +1214,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "java") {
 #ifdef JAVA_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                           numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
