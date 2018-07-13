@@ -47,15 +47,16 @@ Android SDK (containing Android NDK) should be installed to generate Android lib
 
 The following options are available :
 
-    - `-w32`        : produces a Windows 32bits library
-    - `-w64`        : produces a Windows 64bits library
-    - `-osx`        : produces a macOS library
-    - `-ios`        : produces an iOS library
-    - `-android`    : produces Android armeabi-v7a and x86 libraries
-    - `-linux`      : produces a Linux library
-    - `-source`     : produces an uncompressed folder with the selected architecture and the source files used to compile the libraries
-    - `-unpacked`   : produces a folder with all selected architectures ordered like the Unity Assets hierarchy (i.e. `Assets/Plugins/FaustPlugin_<dspname>/iOS/libFaustPlugin_<dspname>.a`).
-    - `-help or -h` : shows different options and comments
+    - `-w32`          : produces a Windows 32bits library
+    - `-w64`          : produces a Windows 64bits library
+    - `-osx`          : produces a macOS library
+    - `-ios`          : produces an iOS library
+    - `-android`      : produces Android armeabi-v7a and x86 libraries
+    - `-linux`        : produces a Linux library
+    - `-nvoices <num>`: produces a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI
+    - `-source`       : produces an uncompressed folder with the selected architecture and the source files used to compile the libraries
+    - `-unpacked`     : produces a folder with all selected architectures ordered like the Unity Assets hierarchy (i.e. `Assets/Plugins/FaustPlugin_<dspname>/iOS/libFaustPlugin_<dspname>.a`).
+    - `-help or -h`   : shows different options and comments
 
 `faust2unity` script calls six different commands :
 
