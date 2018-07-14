@@ -141,9 +141,9 @@ struct global {
     bool gDSPStruct;
     bool gLightMode;
 
-    string gClassName;      // name of the generated dsp class, by default 'mydsp'
+    string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
-    string gProcessName;    // name of the entry point of the faust program, by default 'process'
+    string gProcessName;     // name of the entry point of the faust program, by default 'process'
 
     // Backend configuration
     string gOutputLang;  // Chosen backend

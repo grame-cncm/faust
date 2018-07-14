@@ -23,7 +23,7 @@ class mydspNode extends AudioWorkletNode {
         options.channelInterpretation = "speakers";
 
         super(context, 'mydsp', options);
-
+      
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
         {
@@ -313,7 +313,7 @@ class mydspNode extends AudioWorkletNode {
     
     /**
      * A different call closer to the preset management
-     * @param {Object} patch to assign as a preset to the zitaRev
+     * @param {Object} patch to assign as a preset to the node
      */
     setPatch(patch) 
     {
@@ -324,6 +324,36 @@ class mydspNode extends AudioWorkletNode {
     {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
+    
+    // Loads a sample and decode it
+    static loadAudioSample(context, url)
+    {
+        return new Promise(function(resolve, reject) {
+                           fetch(url)
+                           .then((response) => {
+                                 return response.arrayBuffer();
+                                 })
+                           .then((buffer) => {
+                                 context.decodeAudioData(buffer, (decodedAudioData) => {
+                                                         resolve(decodedAudioData);
+                                                         });
+                                 });
+                           });
+    }
+    
+    
+    
+    // Loads a sample
+    static loadSample(url)
+    {
+        return new Promise(function(resolve, reject) {
+                           fetch(url)
+                           .then((response) => {
+                                 resolve (response.arrayBuffer());
+                                 })
+                           });
+    }
+    
 }
 
 // Factory class
@@ -343,14 +373,55 @@ window.mydsp = class mydsp {
     	
         this.context = context;
         this.baseUrl = baseUrl;
+        
+        this.pathTable = [];
+        
+        // soundfile items
+        this.soundfile_items = [];
     }
-
+    
+    // JSON parsing functions
+    parse_ui(ui)
+    {
+        for (var i = 0; i < ui.length; i++) {
+            this.parse_group(ui[i]);
+        }
+    }
+    
+    parse_group(group)
+    {
+        if (group.items) {
+            this.parse_items(group.items);
+        }
+    }
+    
+    parse_items(items)
+    {
+        for (var i = 0; i < items.length; i++) {
+            this.parse_item(items[i]);
+        }
+    }
+    
+    parse_item(item)
+    {
+        if (item.type === "vgroup"
+            || item.type === "hgroup"
+            || item.type === "tgroup") {
+            this.parse_items(item.items);
+        } else if (item.type === "soundfile") {
+            // Keep soundfile adresses
+            this.soundfile_items.push(item.address);
+            this.pathTable[item.address] = parseInt(item.index);
+        }
+    }
+  
     /**
      * Load additionnal resources to prepare the custom AudioWorkletNode. Returns a promise to be used with the created node.
      */
     load()
     {
-    	return new Promise((resolve, reject) => {
+    	return new Promise((resolve, reject) => {               
+                //this.parse_ui(JSON.parse(getJSONmydsp()).ui);                   
         		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
         		this.node = new mydspNode(this.context, {});
                 this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
@@ -375,23 +446,19 @@ window.mydsp = class mydsp {
                     // LINK DOES NOT EXIST, let's add it to the document
                     var link = document.createElement('link');
                     link.rel = 'import';
-                    //link.id = 'urlPlugin';
                     link.href = url;
                     document.head.appendChild(link);
-
                     link.onload = (e) => {
                         // the file has been loaded, instanciate GUI
                         // and get back the HTML elem
                         // HERE WE COULD REMOVE THE HARD CODED NAME
-                        var element = createmydspGUI2(this.node);
-                        //element._plug = this.plug;
+                        var element = createmydspGUI(this.node);
                         resolve(element);
                     }
                 } else {
                     // LINK EXIST, WE AT LEAST CREATED ONE INSTANCE PREVIOUSLY
                     // so we can create another instance
-                    var element = createmydspGUI2(this.node);
-                    //element._plug = this.plug;
+                    var element = createmydspGUI(this.node);
                     resolve(element);
                 }
             } catch (e) {

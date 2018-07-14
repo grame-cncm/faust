@@ -26,7 +26,7 @@ faust.remap = function(v, mn0, mx0, mn1, mx1)
     return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
 }
 
-function Heap2Str(buf)
+faust.Heap2Str = function (buf)
 {
     var str = "";
     var i = 0;
@@ -98,7 +98,7 @@ faust.mydsp = function (dsp_instance, context, buffer_size) {
     // JSON is as offset 0
     /*
     var HEAPU8 = new Uint8Array(sp.HEAP);
-    console.log(Heap2Str(HEAPU8));
+    console.log(faust.Heap2Str(HEAPU8));
     */
 
     console.log(sp.HEAP);
