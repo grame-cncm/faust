@@ -29,11 +29,11 @@ DESTDIR ?=
 
 MAKE ?= make
 
-#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
-#BUILDOPT ?= --config Release
+CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Release
+BUILDOPT ?= --config Release
 
-CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
-BUILDOPT ?= --config Debug
+#CMAKEOPT ?= -DCMAKE_BUILD_TYPE=Debug
+#BUILDOPT ?= --config Debug
 
 #===============================================================
 # options
@@ -165,10 +165,10 @@ dynamiclib: $(PROJ)
 #===============================================================
 # building libfaust.a for ios
 #===============================================================
-ioslib: JOBS = "-jobs 4"
+ioslib: JOBS ?= -jobs 4
 ioslib: $(IOSDIR) $(IOSDIR)/faust.xcodeproj
 	cmake --build $(IOSDIR) --target staticlib $(BUILDOPT) -- $(JOBS)
-	cmake --build $(IOSDIR) --target OSCFaust $(BUILDOPT) --  $(JOBS)
+	cmake --build $(IOSDIR) --target oscstatic $(BUILDOPT) -- $(JOBS)
 
 $(IOSDIR)/faust.xcodeproj: CMakeLists.txt backends/ios.cmake
 	cd $(IOSDIR) && cmake -C ../backends/ios.cmake ..  -DINCLUDE_STATIC=on -DINCLUDE_HTTP=off -G Xcode

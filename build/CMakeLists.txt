@@ -270,7 +270,9 @@ if (INCLUDE_STATIC)
 	target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
-	set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR})
+	set_target_properties(staticlib PROPERTIES 
+		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
+		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 	if (WIN32)
 		if (MSVC)
 			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
