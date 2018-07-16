@@ -26,13 +26,13 @@
 
 #include <stdio.h>
 #include <string>
-#include <math.h>
-#include <float.h>
+#include <cmath>
 #include <algorithm>
 #include <ostream>
 #include <sstream>
 #include <vector>
 #include <limits.h>
+#include <float.h>
 
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/MapUI.h"
@@ -59,7 +59,7 @@ static inline bool endsWith(std::string const& str, std::string const& end)
 
 static inline double midiToFreq(double note)
 {
-    return 440.0 * pow(2.0, (note-69.0)/12.0);
+    return 440.0 * std::pow(2.0, (note-69.0)/12.0);
 }
 
 /**
@@ -334,7 +334,7 @@ struct dsp_voice_group {
             if (!fGroupControl) {
                 for (size_t i = 0; i < fVoiceTable.size(); i++) {
                     char buffer[32];
-                    snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%ld" : "V%ld"), i+1);
+                    snprintf(buffer, 32, ((fVoiceTable.size() < 8) ? "Voice%ld" : "V%ld"), long(i+1));
                     ui_interface->openHorizontalBox(buffer);
                     fVoiceTable[i]->buildUserInterface(ui_interface);
                     ui_interface->closeBox();

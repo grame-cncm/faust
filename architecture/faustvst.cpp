@@ -27,9 +27,9 @@
    have at least the Boost headers installed somewhere on your include path
    (the Boost libraries aren't needed). */
 
-#include <stdlib.h>
-#include <stdint.h>
-#include <math.h>
+#include <cstdlib>
+#include <cstdint>
+#include <cmath>
 #include <list>
 #include <map>
 #include <set>

@@ -42,8 +42,8 @@ using namespace std;
 // string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
 // string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const
 // string& a4);  string subst (const string& model, const string& a0, const string& a1, const string& a2, const string&
-// a3, const string& a4, const string& a5);  string subst (const string& model, const string& a0, const string& a1, const
-// string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
+// a3, const string& a4, const string& a5);  string subst (const string& model, const string& a0, const string& a1,
+// const string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
 
 string docT(char* c);
 string docT(int n);

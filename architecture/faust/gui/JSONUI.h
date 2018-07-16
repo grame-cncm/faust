@@ -245,7 +245,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         virtual void addGenericButton(const char* label, const char* name)
         {
             std::string path = buildPath(label);
-            std::string index = getAddressIndex(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -253,7 +252,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
             if (fPathTable.size() > 0) {
                 tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\"" << ((fMetaAux.size() > 0) ? "," : "");
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             } else {
                 tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fMetaAux.size() > 0) ? "," : "");
             }
@@ -275,7 +274,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         virtual void addGenericEntry(const char* label, const char* name, REAL init, REAL min, REAL max, REAL step)
         {
             std::string path = buildPath(label);
-            std::string index = getAddressIndex(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -283,7 +281,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
             tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
             }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"init\": \"" << init << "\",";
@@ -314,7 +312,6 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         virtual void addGenericBargraph(const char* label, const char* name, REAL min, REAL max) 
         {
             std::string path = buildPath(label);
-            std::string index = getAddressIndex(path);
             
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
@@ -322,7 +319,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\",";
             tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\",";
             if (fPathTable.size() > 0) {
-                tab(fTab + 1, fUI); fUI << "\"index\": \"" << index << "\",";
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\",";
             }
             addMeta(fTab + 1);
             tab(fTab + 1, fUI); fUI << "\"min\": \"" << min << "\",";
@@ -343,13 +340,17 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
     
         virtual void addSoundfile(const char* label, const char* url, Soundfile** zone)
         {
+            std::string path = buildPath(label);
+            
             fUI << fCloseUIPar;
             tab(fTab, fUI); fUI << "{";
             tab(fTab + 1, fUI); fUI << "\"type\": \"" << "soundfile" << "\",";
             tab(fTab + 1, fUI); fUI << "\"label\": \"" << label << "\"" << ",";
             tab(fTab + 1, fUI); fUI << "\"url\": \"" << url << "\"" << ",";
-            tab(fTab + 1, fUI); fUI << "\"address\": \"" << buildPath(label) << "\"" << ((fMetaAux.size() > 0) ? "," : "");
-            addMeta(fTab + 1, false);
+            tab(fTab + 1, fUI); fUI << "\"address\": \"" << path << "\"" << ((fPathTable.size() > 0) ? "," : "");
+            if (fPathTable.size() > 0) {
+                tab(fTab + 1, fUI); fUI << "\"index\": \"" << getAddressIndex(path) << "\"";
+            }
             tab(fTab, fUI); fUI << "}";
             fCloseUIPar = ',';
         }

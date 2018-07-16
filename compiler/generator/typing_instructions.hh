@@ -43,9 +43,17 @@ struct TypingVisitor : public InstVisitor {
 
         // Stack or struct variables
         if (gGlobal->hasVarType(inst->getName())) {
-            fCurType = gGlobal->getVarType(inst->getName());
-            if (dynamic_cast<IndexedAddress*>(inst->fAddress)) {
-                fCurType = Typed::getTypeFromPtr(fCurType);
+            fCurType                = gGlobal->getVarType(inst->getName());
+            IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
+            if (indexed) {
+                // IndexedAddress is also used for struct type
+                DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
+                if (struct_type) {
+                    Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
+                    fCurType                  = struct_type->fType->getType(field_index->fNum);
+                } else {
+                    fCurType = Typed::getTypeFromPtr(fCurType);
+                }
             }
             // Specific cases for FunArgs
         } else if (startWith(inst->getName(), "count") || startWith(inst->getName(), "samplingFreq")) {

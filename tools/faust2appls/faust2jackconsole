@@ -14,7 +14,16 @@ CXX=g++
 CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
+NVOICES=-1
 ARCHFILE="jack-console.cpp"
+
+# Check Darwin specifics
+#
+if [[ $(uname) == Darwin ]]; then
+    ARCHLIB+=" -framework CoreMIDI -framework CoreFoundation"
+else
+    ARCHLIB+=" `pkg-config --cflags --libs alsa`"
+fi
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -34,11 +43,15 @@ for p in $@; do
 done
 
 #PHASE 2 : dispatch command arguments
-for p in $@; do
+while [ $1 ]
+do
+    p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2jackconsole [-httpd] [-osc] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
+        echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
     	exit
     fi
@@ -56,6 +69,14 @@ for p in $@; do
         OSCDEFS="-DOSCCTRL -lOSCFaust"
     elif [ $p = "-httpd" ]; then
         HTTPDEFS="-DHTTPCTRL -lHTTPDFaust -lmicrohttpd"
+    elif [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+        if [ $NVOICES -ge 0 ]; then
+            CXXFLAGS="$CXXFLAGS -DNVOICES=$NVOICES"
+        fi
+    elif [ $p = "-midi" ]; then
+        MIDIDEFS="-DMIDICTRL"
     elif [ $p = "-arch32" ]; then
         PROCARCH="-m32 -L/usr/lib32"
     elif [ $p = "-arch64" ]; then
@@ -67,6 +88,9 @@ for p in $@; do
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+	
+shift
+
 done
 	
 #-------------------------------------------------------------------
@@ -80,7 +104,7 @@ for f in $FILES; do
 	# compile c++ to binary
 	(
 		#$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack sndfile` $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"
-		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS -lpthread -o "${f%.dsp}"
+		$CXX $CXXFLAGS $FAUSTTOOLSFLAGS $OMP "$f.cpp" -I/usr/local/include -L/usr/local/lib `pkg-config --cflags --libs jack` $PROCARCH $OSCDEFS $HTTPDEFS $MIDIDEFS $ARCHLIB -lpthread -o "${f%.dsp}"
 	) > /dev/null || exit
 	rm "$f.cpp"
 

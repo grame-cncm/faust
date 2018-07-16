@@ -32,6 +32,7 @@ IS_SYNTH="0"
 IS_MIDI="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
+LIBSNDFILE=""
 
 while [ $1 ]
 do
@@ -71,6 +72,7 @@ do
 		 DEF+="OSCCTRL "
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
+        LIBSNDFILE="sndfile"
     elif [ ${p:0:1} = "-" ]; then
         if [ $p = "-double" ]; then
             FAUSTFLOAT="double"
@@ -127,8 +129,9 @@ for p in $FILES; do
     fi
 
     # setting the preprocessing definitions
-    sed -e "s/PreProcDef/$DEF/g" "$SRCDIR/$dspName/$dspName-temp.jucer" >> "$SRCDIR/$dspName/$dspName-temp1.jucer"
-    sed -e "s/APPL_NAME/$dspName/g" "$SRCDIR/$dspName/$dspName-temp1.jucer" >> "$SRCDIR/$dspName/$dspName-temp2.jucer"
+    sed -e "s/PreProcDef/$DEF/g" "$SRCDIR/$dspName/$dspName-temp.jucer" >> "$SRCDIR/$dspName/$dspName-temp0.jucer"
+    sed -e "s/APPL_NAME/$dspName/g" "$SRCDIR/$dspName/$dspName-temp0.jucer" >> "$SRCDIR/$dspName/$dspName-temp1.jucer"
+    sed -e "s/LIBSNDFILE/$LIBSNDFILE/g" "$SRCDIR/$dspName/$dspName-temp1.jucer" >> "$SRCDIR/$dspName/$dspName-temp2.jucer"
 
     # MIDI
     sed -e "s/IS_MIDI/$IS_MIDI/g" "$SRCDIR/$dspName/$dspName-temp2.jucer" >> "$SRCDIR/$dspName/$dspName-temp3.jucer"
@@ -146,14 +149,15 @@ for p in $FILES; do
         cp  "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
-    # standalone of plugin mode
+    # standalone or plugin mode
     if [ $STANDALONE = "0" ]; then
         rm "$SRCDIR/$dspName/plugin.jucer"
     else
         rm "$SRCDIR/$dspName/standalone.jucer"
     fi
 
-    rm "$SRCDIR/$dspName/$dspName-temp.jucer" "$SRCDIR/$dspName/$dspName-temp1.jucer"  "$SRCDIR/$dspName/$dspName-temp2.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
+    rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
     rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName-temp5.jucer"
 
     # standalone of plugin mode

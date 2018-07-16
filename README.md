@@ -46,6 +46,15 @@ This is an overview of the content of the top-level folders of the Faust distrib
 	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
 	windows/               : Windows related ressources
 
+## Libraries
+
+Faust libraries are now in a [separated subproject](https://github.com/grame-cncm/faustlibraries). They are synchronized from time to time in the main Faust repository using the following commands:
+
+    git submodule update --remote --merge
+    git add libraries
+    git commit -m "Project updated to the latest version of the libraries"
+    git push
+
 ## Compilation and Installation
 
 Since release 2.5.18, Faust compilation and installation is based on cmake. For details about compilation, you should look at the [build/README.md](https://github.com/grame-cncm/faust/blob/master-dev/build/README.md) file and have a look at the [Faust wiki pages](https://github.com/grame-cncm/faust/wiki) or go directly to the [simple way](https://github.com/grame-cncm/faust/wiki/BuildingSimple) to compile and install. 

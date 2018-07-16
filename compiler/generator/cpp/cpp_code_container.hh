@@ -58,6 +58,7 @@ class CPPCodeContainer : public virtual CodeContainer {
                                                             : ("\"" + gGlobal->gFastMathLib + "\""));
         } else {
             addIncludeFile("<cmath>");
+            addIncludeFile("<algorithm>");
         }
     }
 

@@ -57,7 +57,7 @@ using namespace std;
 dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(),
+        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
@@ -346,7 +346,7 @@ void WASMCodeContainer::produceClass()
         path_index_table[(*it).second] = tmp.fOffset;
     }
 
-    // "name", "filename" found in medata
+    // "name", "filename" found in metadata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(),
                                   path_index_table);
     generateUserInterface(&json_visitor2);

@@ -36,6 +36,7 @@
 #include <libgen.h>
 #include <stdlib.h>
 #include <iostream>
+#include <string>
 #include <list>
 
 #include "faust/dsp/proxy-dsp.h"
@@ -43,6 +44,7 @@
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/JSONUI.h"
+#include "faust/gui/PresetUI.h"
 #include "faust/gui/faustqt.h"
 #include "faust/audio/audio.h"
 #include "faust/misc.h"
@@ -316,15 +318,23 @@ int main(int argc, char *argv[])
  
 	QApplication myApp(argc, argv);
     
-    QTGUI interface;
-    FUI finterface;
+    FUI finterface;    
+    QTGUI* interface = new QTGUI();
+    
+#ifdef PRESETUI
+    PresetUI* pinterface = new PresetUI(interface, std::string(PRESETDIR) + std::string(name) + ((nvoices > 0) ? "_poly" : ""));
+    DSP->buildUserInterface(pinterface);
+#else
+    DSP->buildUserInterface(interface);
+    DSP->buildUserInterface(&finterface);
+#endif
+    
 #ifdef SOUNDFILE
     // Use bundle path
     SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
     DSP->buildUserInterface(&soundinterface);
 #endif
-    DSP->buildUserInterface(&interface);
-    DSP->buildUserInterface(&finterface);
+    
 #ifdef IOS
     DSP->buildUserInterface(&apiui);
 #endif
@@ -375,15 +385,15 @@ int main(int argc, char *argv[])
         std::cerr << "MidiUI run error\n";
     }
 #endif
-	interface.run();
+	interface->run();
 
-    myApp.setStyleSheet(interface.styleSheet());
+    myApp.setStyleSheet(interface->styleSheet());
     myApp.exec();
     
 #ifdef MIDICTRL
     midiinterface.stop();
 #endif
-    interface.stop();
+    interface->stop();
 
     audio.stop();
     finterface.saveState(rcfilename);

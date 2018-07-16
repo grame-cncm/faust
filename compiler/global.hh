@@ -28,6 +28,7 @@
 #include <map>
 #include <set>
 #include <stack>
+#include <vector>
 
 #ifndef _WIN32
 #include <unistd.h>
@@ -87,19 +88,19 @@ struct global {
     tvec        gWaveForm;
 
     //-- globals
-    string       gFaustSuperSuperDirectory;
-    string       gFaustSuperDirectory;
-    string       gFaustDirectory;
-    string       gMasterDocument;
-    string       gMasterDirectory;
-    string       gMasterName;
-    string       gDocName;
-    list<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
-    list<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
-    list<string> gLibraryList;
-    string       gOutputDir;
-    string       gImportFilename;
-    Tree         gExpandedDefList;
+    string         gFaustSuperSuperDirectory;
+    string         gFaustSuperDirectory;
+    string         gFaustDirectory;
+    string         gMasterDocument;
+    string         gMasterDirectory;
+    string         gMasterName;
+    string         gDocName;
+    vector<string> gImportDirList;        // dir list enrobage.cpp/fopensearch() searches for imports, etc.
+    vector<string> gArchitectureDirList;  // dir list enrobage.cpp/fopensearch() searches for architecture files
+    vector<string> gLibraryList;
+    string         gOutputDir;
+    string         gImportFilename;
+    Tree           gExpandedDefList;
 
     //-- command line arguments
     bool   gDetailsSwitch;
@@ -119,7 +120,6 @@ struct global {
     bool gDeepFirstSwitch;
     int  gVecSize;
     int  gVectorLoopVariant;
-    int  gVecLoopSize;
 
     bool gOpenMPSwitch;
     bool gOpenMPLoop;
@@ -141,8 +141,9 @@ struct global {
     bool gDSPStruct;
     bool gLightMode;
 
-    string gClassName;
-    string gProcessName;
+    string gClassName;       // name of the generated dsp class, by default 'mydsp'
+    string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
+    string gProcessName;     // name of the entry point of the faust program, by default 'process'
 
     // Backend configuration
     string gOutputLang;  // Chosen backend
@@ -155,10 +156,12 @@ struct global {
     bool   gHasExp10;              // If the 'exp10' math function is available
     bool   gLoopVarInBytes;        // If the 'i' variable used in the scalar loop moves by bytes instead of frames
     bool   gWaveformInDSP;         // If waveform are allocated in the DSP and not as global data
+    bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     string gFastMathLib;           // The fastmath code mapping file
-    map<string, string> gFastMathLibTable;  // Mapping table for fastmtah functions
+
+    map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
 
     dsp_factory_base* gDSPFactory;
 

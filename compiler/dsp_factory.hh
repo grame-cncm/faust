@@ -77,6 +77,8 @@ class dsp_factory_base {
 
     virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
 
+    virtual std::vector<std::string> getDSPFactoryIncludePathnames() = 0;
+
     // Sub-classes will typically implement this method to create a factory from a stream
     static dsp_factory_base* read(std::istream* in) { return nullptr; }
 };
@@ -86,13 +88,19 @@ class dsp_factory_imp : public dsp_factory_base {
     std::string              fName;
     std::string              fSHAKey;
     std::string              fExpandedDSP;
-    std::vector<std::string> fPathnameList;
+    std::vector<std::string> fLibraryPathname;
+    std::vector<std::string> fIncludePathnames;
     dsp_memory_manager*      fManager;
 
    public:
     dsp_factory_imp(const std::string& name, const std::string& sha_key, const std::string& dsp,
-                    const std::vector<std::string>& pathname_list)
-        : fName(name), fSHAKey(sha_key), fExpandedDSP(dsp), fPathnameList(pathname_list), fManager(nullptr)
+                    const std::vector<std::string>& library_list, const std::vector<std::string>& include_pathnames)
+        : fName(name),
+          fSHAKey(sha_key),
+          fExpandedDSP(dsp),
+          fLibraryPathname(library_list),
+          fIncludePathnames(include_pathnames),
+          fManager(nullptr)
     {
     }
 
@@ -159,7 +167,9 @@ class dsp_factory_imp : public dsp_factory_base {
 
     virtual std::string getBinaryCode() { return ""; }
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fPathnameList; }
+    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fLibraryPathname; }
+
+    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fIncludePathnames; }
 };
 
 /* To be used by textual backends. */
@@ -170,9 +180,10 @@ class text_dsp_factory_aux : public dsp_factory_imp {
 
    public:
     text_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
-                         const std::vector<std::string>& pathname_list, const std::string& code,
+                         const std::vector<std::string>& library_list,
+                         const std::vector<std::string>& include_pathnames, const std::string& code,
                          const std::string& helpers)
-        : dsp_factory_imp(name, sha_key, dsp, pathname_list), fCode(code), fHelpers(helpers)
+        : dsp_factory_imp(name, sha_key, dsp, library_list, include_pathnames), fCode(code), fHelpers(helpers)
     {
     }
 

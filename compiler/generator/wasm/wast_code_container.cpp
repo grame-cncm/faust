@@ -54,7 +54,7 @@ using namespace std;
 dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(),
+        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
@@ -426,6 +426,8 @@ void WASTScalarCodeContainer::generateCompute(int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
+
+    // dump2FIR(block);
 
     block->accept(gGlobal->gWASTVisitor);
     tab(n + 1, fOutAux);

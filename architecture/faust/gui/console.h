@@ -24,15 +24,15 @@
 #ifndef __faustconsole__
 #define __faustconsole__
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <string.h>
 #include <stack>
 #include <string>
 #include <map>
 #include <vector>
 #include <iostream>
+#include <cstdlib>
+
+#include <unistd.h>
+#include <string.h>
 
 #include "faust/gui/UI.h"
 
@@ -188,7 +188,7 @@ public:
     virtual bool run()
     {
         char c;
-        printf("Type 'q' to quit\n");
+        std::cout << "Type 'q' to quit\n";
         while ((c = getchar()) != 'q') {
             sleep(1);
         }
@@ -235,7 +235,7 @@ public:
 					exit(1);
 				}
 				char* end;
-				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
+                *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
 				i++;
 			} else {
 				fFiles.push_back(fArgv[i]);
@@ -267,7 +267,7 @@ public:
 					exit(1);
 				}
 				char* end;
-				*(p->second.fZone) = FAUSTFLOAT(strtod(fArgv[i+1], &end));
+                *(p->second.fZone) = FAUSTFLOAT(std::strtod(fArgv[i+1], &end));
 				i++;
 			}
 		}

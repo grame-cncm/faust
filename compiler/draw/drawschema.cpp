@@ -40,27 +40,24 @@
 #include <stack>
 #include <string>
 #include <utility>
-
-#include "boxes.hh"
-#include "global.hh"
-#include "ppbox.hh"
-#include "prim2.hh"
-
 #include <vector>
-#include "boxcomplexity.hh"
-#include "devLib.h"
-#include "occurrences.hh"
-#include "ppbox.hh"
-#include "xtended.hh"
 
+#include "boxcomplexity.hh"
+#include "boxes.hh"
 #include "compatibility.hh"
 #include "description.hh"
+#include "devLib.h"
 #include "drawschema.hh"
 #include "exception.hh"
 #include "files.hh"
+#include "global.hh"
 #include "names.hh"
+#include "occurrences.hh"
+#include "ppbox.hh"
+#include "prim2.hh"
 #include "property.hh"
 #include "schema.h"
+#include "xtended.hh"
 
 #if 0
 #define linkcolor "#b3d1dc"

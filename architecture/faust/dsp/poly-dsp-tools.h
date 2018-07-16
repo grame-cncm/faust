@@ -110,50 +110,33 @@ class dsp_poly_effect : public dsp_poly {
 
 struct dsp_poly_factory : public dsp_factory {
     
-    llvm_dsp_factory* fProcessFactory;
-    llvm_dsp_factory* fEffectFactory;
+    dsp_factory* fProcessFactory;
+    dsp_factory* fEffectFactory;
     
-    dsp_poly_factory(llvm_dsp_factory* process_factory,
-                     llvm_dsp_factory* effect_factory)
-        :fProcessFactory(process_factory),
-        fEffectFactory(effect_factory)
-    {}
-
-    dsp_poly_factory(const std::string& name_app,
-                     const std::string& dsp_content,
-                     int argc, const char* argv[],
-                     const std::string& target,
-                     std::string& error_msg,
-                     int opt_level = -1)
+    std::string getEffectCode(const std::string& dsp_content)
     {
-        // Create 'effect' expression
         std::stringstream code_effect;
         code_effect << "adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;";
         code_effect << "adaptor(F,G) = adapt(outputs(F),inputs(G)); dsp_code = environment{ " << dsp_content << " };";
         code_effect << "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
-        
-        fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
-        if (fProcessFactory) {
-            fEffectFactory = createDSPFactoryFromString(name_app, code_effect.str(), argc, argv, target, error_msg);
-            if (!fEffectFactory) {
-                // The error message is not really needed...
-                error_msg = "";
-            }
-        } else {
-            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
-            throw std::bad_alloc();
-        }
+        return code_effect.str();
     }
     
+    dsp_poly_factory(dsp_factory* process_factory = nullptr,
+                     dsp_factory* effect_factory = nullptr):
+        fProcessFactory(process_factory)
+        ,fEffectFactory(effect_factory)
+    {}
+    
     virtual ~dsp_poly_factory()
-    {
-        deleteDSPFactory(fProcessFactory);
-        if (fEffectFactory) { deleteDSPFactory(fEffectFactory); }
-    }
+    {}
     
     virtual std::string getName() { return fProcessFactory->getName(); }
     virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
     virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
+    
+    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fProcessFactory->getDSPFactoryLibraryList(); }
+    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fProcessFactory->getDSPFactoryIncludePathnames(); }
     
     virtual void setMemoryManager(dsp_memory_manager* manager)
     {
@@ -192,6 +175,40 @@ struct dsp_poly_factory : public dsp_factory {
 };
 
 /**
+ *  LLVM Polyphonic DSP factory class.
+ */
+
+struct llvm_dsp_poly_factory : public dsp_poly_factory {
+    
+    llvm_dsp_poly_factory(const std::string& name_app,
+                          const std::string& dsp_content,
+                          int argc, const char* argv[],
+                          const std::string& target,
+                          std::string& error_msg,
+                          int opt_level = -1)
+    {
+        fProcessFactory = createDSPFactoryFromString(name_app, dsp_content, argc, argv, target, error_msg);
+        if (fProcessFactory) {
+            fEffectFactory = createDSPFactoryFromString(name_app, getEffectCode(dsp_content), argc, argv, target, error_msg);
+            if (!fEffectFactory) {
+                // The error message is not really needed...
+                error_msg = "";
+            }
+        } else {
+            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
+            throw std::bad_alloc();
+        }
+    }
+    
+    virtual ~llvm_dsp_poly_factory()
+    {
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(fProcessFactory));
+        if (fEffectFactory) { deleteDSPFactory(static_cast<llvm_dsp_factory*>(fEffectFactory)); }
+    }
+
+};
+
+/**
  * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
  *
  * @param filename - the DSP filename
@@ -205,13 +222,13 @@ struct dsp_poly_factory : public dsp_factory {
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
 inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
-                                                 const std::string& dsp_content,
-                                                 int argc, const char* argv[],
-                                                 const std::string& target,
-                                                 std::string& error_msg,
-                                                 int opt_level = -1)
+                                                     const std::string& dsp_content,
+                                                     int argc, const char* argv[],
+                                                     const std::string& target,
+                                                     std::string& error_msg,
+                                                     int opt_level = -1)
 {
-    return new dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
+    return new llvm_dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
 }
 
 /**
@@ -228,10 +245,10 @@ inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
 inline dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
-                                               int argc, const char* argv[],
-                                               const std::string& target,
-                                               std::string& error_msg,
-                                               int opt_level = -1)
+                                                   int argc, const char* argv[],
+                                                   const std::string& target,
+                                                   std::string& error_msg,
+                                                   int opt_level = -1)
 {
     return createPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, target, error_msg, opt_level);
 }
@@ -273,11 +290,11 @@ inline dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bi
 inline void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::string& bit_code_path)
 {
     std::string process_path = bit_code_path + "_bitcode_process";
-    writeDSPFactoryToBitcodeFile(factory->fProcessFactory, process_path);
+    writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
     
     if (factory->fEffectFactory) {
         std::string effect_path = bit_code_path + "_bicode_effect";
-        writeDSPFactoryToBitcodeFile(factory->fEffectFactory, effect_path);
+        writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path);
     }
 }
 
@@ -318,11 +335,11 @@ inline dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code
 inline void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::string& ir_code_path)
 {
     std::string process_path = ir_code_path + "_ir_process";
-    writeDSPFactoryToIRFile(factory->fProcessFactory, process_path);
+    writeDSPFactoryToIRFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
     
     if (factory->fEffectFactory) {
         std::string effect_path = ir_code_path + "_ir_effect";
-        writeDSPFactoryToIRFile(factory->fEffectFactory, effect_path);
+        writeDSPFactoryToIRFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path);
     }
 }
 
@@ -363,24 +380,12 @@ inline dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& ma
 inline void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const std::string& machine_code_path, const std::string& target)
 {
     std::string process_path = machine_code_path + "_machine_process";
-    writeDSPFactoryToMachineFile(factory->fProcessFactory, process_path, target);
+    writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path, target);
     
     if (factory->fEffectFactory) {
         std::string effect_path = machine_code_path + "_machine_effect";
-        writeDSPFactoryToMachineFile(factory->fEffectFactory, effect_path, target);
+        writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path, target);
     }
-}
-
-/**
- * Get the list of library dependancies of the Faust DSP factory.
- *
- * @param factory - the DSP factory
- *
- * @return the list as a vector of strings.
- */
-inline std::vector<std::string> getDSPFactoryLibraryList(dsp_poly_factory* factory)
-{
-    return getDSPFactoryLibraryList(factory->fProcessFactory);
 }
 
 #endif // __poly_dsp_tools__

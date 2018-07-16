@@ -250,9 +250,8 @@ void Compiler::generateUserInterfaceElements(Tree elements)
 void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
-    string                    label;
     map<string, set<string> > metadata;
-    string                    url;
+    string                    label, url;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
@@ -334,7 +333,7 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
         fClass->incUIActiveCount();
         fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label), url,
                                 tree2str(varname)));
-        fJSON.addSoundfile(checkNullLabel(varname, label).c_str(), url.c_str(), NULL);
+        fJSON.addSoundfile(checkNullLabel(varname, label).c_str(), ((url == "") ? label.c_str() : url.c_str()), NULL);
     } else {
         throw faustexception("ERROR in generating widget code 3\n");
     }

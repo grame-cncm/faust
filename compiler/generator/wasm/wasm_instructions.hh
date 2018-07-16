@@ -667,9 +667,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -677,8 +676,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);
@@ -695,8 +694,8 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             fFunctionSymbolTable[inst->fName] = 1;
         }
 
-        // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder' will be manually
-        // generated
+        // Math library functions are part of the 'global' module, 'fmod', 'log10' and 'remainder'
+        // will be manually generated
         if (fMathLibTable.find(inst->fName) != fMathLibTable.end()) {
             MathFunDesc desc = fMathLibTable[inst->fName];
 
@@ -817,7 +816,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
 
         for (auto& import : fFunImports) {
             *out << import.second.first;  // module
-            // Possibly map fastmath functions, , emcc compiled functions are prefixed with '_'
+            // Possibly map fastmath functions, emcc compiled functions are prefixed with '_'
             *out << ("_" + gGlobal->getMathFunction(import.first));  // base
             *out << U32LEB(int32_t(ExternalKind::Function));
             *out << U32LEB(getFunctionTypeIndex(import.first));  // function type index
@@ -860,8 +859,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
 
     void generateMemoryAccess(int offset = 0)
     {
-        //*fOut << U32LEB(offStrNum);   // Makes V8 return : 'invalid alignment; expected maximum alignment is 2, actual
-        //alignment is 3'
+        //*fOut << U32LEB(offStrNum); // Makes V8 return: 'invalid alignment; expected maximum alignment is 2, actual
+        // alignment is 3'
         *fOut << U32LEB(2);
         *fOut << U32LEB(offset);
     }
@@ -1026,9 +1025,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -1036,8 +1034,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);
@@ -1097,7 +1095,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Otherwise generate address expression
                 inst->fAddress->accept(this);
             }
-            if (isRealType(type) || isRealPtrType(type)) {
+            if (isRealType(type)) {
                 *fOut << ((gGlobal->gFloatSize == 1) ? int8_t(BinaryConsts::F32LoadMem)
                                                      : int8_t(BinaryConsts::F64LoadMem));
             } else {
@@ -1211,34 +1209,55 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 *fOut << int8_t(WasmOp::I32Add);
             }
         } else {
-            // Fields in struct are accessed using 'dsp' and an offset
-            faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                // Index can be computed at compile time
-                if (fFastMemory) {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+            /*
+             Fields in DSP struct are accessed using 'dsp' and an offset
+             IndexedAddress is also used for soundfiles (pointer + field index)
+            */
+            if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc    tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Index can be computed at compile time
+                    if (fFastMemory) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+                    } else {
+                        *fOut << int8_t(BinaryConsts::GetLocal)
+                              << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
+                        *fOut << int8_t(WasmOp::I32Add);
+                    }
                 } else {
-                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB((tmp.fOffset + (num->fNum << offStrNum)));
-                    *fOut << int8_t(WasmOp::I32Add);
+                    // Otherwise generate index computation code
+                    if (fFastMemory) {
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                        indexed->fIndex->accept(this);
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                        *fOut << int8_t(WasmOp::I32Shl);
+                        *fOut << int8_t(WasmOp::I32Add);
+                    } else {
+                        *fOut << int8_t(BinaryConsts::GetLocal)
+                              << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                        indexed->fIndex->accept(this);
+                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                        *fOut << int8_t(WasmOp::I32Shl);
+                        *fOut << int8_t(WasmOp::I32Add);
+                        *fOut << int8_t(WasmOp::I32Add);
+                    }
                 }
             } else {
-                // Otherwise generate index computation code
-                if (fFastMemory) {
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                    indexed->fIndex->accept(this);
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
-                    *fOut << int8_t(WasmOp::I32Shl);
+                // Local variable
+                LocalVarDesc  local = fLocalVarTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
+                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(num->fNum << offStrNum);
                     *fOut << int8_t(WasmOp::I32Add);
                 } else {
-                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                    *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                    *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
                     indexed->fIndex->accept(this);
                     *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                     *fOut << int8_t(WasmOp::I32Shl);
-                    *fOut << int8_t(WasmOp::I32Add);
                     *fOut << int8_t(WasmOp::I32Add);
                 }
             }

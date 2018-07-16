@@ -7,8 +7,13 @@
 #                                                                   #
 #####################################################################
 
+. faustpath
+. faustoptflags
+
 POLY="MONO"
 NVOICES=-1
+
+JSFILE_PATH="ui.js"
 
 #PHASE 2 : dispatch command arguments
 while [ $1 ]

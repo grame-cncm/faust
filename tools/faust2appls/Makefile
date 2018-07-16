@@ -88,7 +88,7 @@ install:
 	install faust2w32puredata $(dest)
 	install faust2w32vst $(dest)
 	install faust2webaudio $(dest)
-	install faust2unitywin $(dest)
+	install faust2winunity $(dest)
 	install faust2webaudioasm $(dest)
 	install faust2webaudiowasm $(dest)
 	install faust2webaudiowast $(dest)
@@ -170,7 +170,7 @@ uninstall:
 	rm -f $(dest)/faust2w32puredata
 	rm -f $(dest)/faust2w32vst
 	rm -f $(dest)/faust2webaudio
-	rm -f $(dest)/faust2unitywin
+	rm -f $(dest)/faust2winunity
 	rm -f $(dest)/faust2webaudioasm
 	rm -f $(dest)/faust2webaudiowasm
 	rm -f $(dest)/faust2webaudiowast

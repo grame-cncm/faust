@@ -28,6 +28,7 @@
 #include <map>
 #include <utility>
 #include <assert.h>
+#include <cstdlib>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -38,11 +39,13 @@
 #define snprintf _snprintf
 #endif
 
-inline FAUSTFLOAT STR2REAL(const std::string& s) { return (strtod(s.c_str(), NULL)); }
+inline FAUSTFLOAT STR2REAL(const std::string& s) { return (std::strtod(s.c_str(), NULL)); }
 
 //-------------------------------------------------------------------
 //  Decode a dsp JSON description and implement 'buildUserInterface'
 //-------------------------------------------------------------------
+
+struct Soundfile;
 
 typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
 
@@ -56,11 +59,12 @@ struct JSONUIDecoder {
     
     FAUSTFLOAT* fInControl;
     FAUSTFLOAT* fOutControl;
+    Soundfile** fSoundfiles;
     
     std::string fJSON;
     
     int fNumInputs, fNumOutputs; 
-    int fInputItems, fOutputItems;
+    int fInputItems, fOutputItems, fSoundfileItems;
     
     std::string fVersion;
     std::string fOptions;
@@ -72,6 +76,7 @@ struct JSONUIDecoder {
     
     bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
     bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
+    bool isSoundfile(const string& type) { return (type == "soundfile"); }
 
     JSONUIDecoder(const std::string& json) 
     {
@@ -109,21 +114,21 @@ struct JSONUIDecoder {
         }
         
         if (fMetadatas.find("size") != fMetadatas.end()) {
-            fDSPSize = atoi(fMetadatas["size"].c_str());
+            fDSPSize = std::atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");
         } else {
             fDSPSize = -1;
         }
          
         if (fMetadatas.find("inputs") != fMetadatas.end()) {
-            fNumInputs = atoi(fMetadatas["inputs"].c_str());
+            fNumInputs = std::atoi(fMetadatas["inputs"].c_str());
             fMetadatas.erase("inputs");
         } else {
             fNumInputs = -1;
         }
         
         if (fMetadatas.find("outputs") != fMetadatas.end()) {
-            fNumOutputs = atoi(fMetadatas["outputs"].c_str());
+            fNumOutputs = std::atoi(fMetadatas["outputs"].c_str());
             fMetadatas.erase("outputs");
         } else {
             fNumOutputs = -1;
@@ -131,6 +136,7 @@ struct JSONUIDecoder {
        
         fInputItems = 0;
         fOutputItems = 0;
+        fSoundfileItems = 0;
         
         vector<itemInfo*>::iterator it;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
@@ -139,11 +145,14 @@ struct JSONUIDecoder {
                 fInputItems++;
             } else if (isOutput(type)) {
                 fOutputItems++;          
+            } else if (isSoundfile(type)) {
+                fSoundfileItems++;
             }
         }
         
         fInControl = new FAUSTFLOAT[fInputItems];
         fOutControl = new FAUSTFLOAT[fOutputItems];
+        fSoundfiles = new Soundfile*[fSoundfileItems];
         
         int counterIn = 0;
         int counterOut = 0;
@@ -154,7 +163,7 @@ struct JSONUIDecoder {
             // Meta data declaration for input items
             if (isInput(type)) {
                 if ((*it)->address != "") {
-                    fPathInputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                    fPathInputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
                 fInControl[counterIn] = STR2REAL((*it)->init);
                 counterIn++;
@@ -162,7 +171,7 @@ struct JSONUIDecoder {
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 if ((*it)->address != "") {
-                    fPathOutputTable[(*it)->address] = make_pair(atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                    fPathOutputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
                 fOutControl[counterOut] = FAUSTFLOAT(0);
                 counterOut++;
@@ -207,24 +216,17 @@ struct JSONUIDecoder {
 
         int counterIn = 0;
         int counterOut = 0;
+        int counterSound = 0;
         vector<itemInfo*>::iterator it;
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             
-            bool isInItem = false;
-            bool isOutItem = false;
             string type = (*it)->type;
             
             FAUSTFLOAT init = STR2REAL((*it)->init);
             FAUSTFLOAT min = STR2REAL((*it)->min);
             FAUSTFLOAT max = STR2REAL((*it)->max);
             FAUSTFLOAT step = STR2REAL((*it)->step);
-            
-            if (isInput(type)) {
-                isInItem = true;
-            } else if (isOutput(type)) {
-                isOutItem = true;
-            }
             
             // Meta data declaration for input items
             if (isInput(type)) {
@@ -259,6 +261,8 @@ struct JSONUIDecoder {
                 ui->addHorizontalSlider((*it)->label.c_str(), &fInControl[counterIn], init, min, max, step);            
             } else if (type == "checkbox") {
                 ui->addCheckButton((*it)->label.c_str(), &fInControl[counterIn]);
+            } else if (type == "soundfile") {
+                ui->addSoundfile((*it)->label.c_str(), (*it)->url.c_str(), &fSoundfiles[counterSound]);
             } else if (type == "hbargraph") {
                 ui->addHorizontalBargraph((*it)->label.c_str(), &fOutControl[counterOut], min, max);
             } else if (type == "vbargraph") {
@@ -270,13 +274,13 @@ struct JSONUIDecoder {
             } else if (type == "close") {
                 ui->closeBox();
             }
-                
-            if (isInItem) {
+            
+            if (isInput(type)) {
                 counterIn++;
-            }
-                
-            if (isOutItem) {
+            } else if (isOutput(type)) {
                 counterOut++;
+            } else if (isSoundfile(type)) {
+                counterSound++;
             }
         }
         

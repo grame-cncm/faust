@@ -1187,20 +1187,6 @@ var mydspProcessorString = `
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
                 obj.pathTable[item.address] = parseInt(item.index);
-                if (item.meta !== undefined) {
-                    for (var i = 0; i < item.meta.length; i++) {
-                        if (item.meta[i].midi !== undefined) {
-                            if (item.meta[i].midi.trim() === "pitchwheel") {
-                                obj.fPitchwheelLabel.push(item.address);
-                            } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
-                                obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
-                                .push({ path:item.address,
-                                      min:parseFloat(item.min),
-                                      max:parseFloat(item.max) });
-                            }
-                        }
-                    }
-                }
             }
         }
 
@@ -1271,10 +1257,6 @@ var mydspProcessorString = `
 
             this.dspInChannnels = [];
             this.dspOutChannnels = [];
-
-            this.fPitchwheelLabel = [];
-            this.fCtrlLabel = new Array(128);
-            for (var i = 0; i < this.fCtrlLabel.length; i++) { this.fCtrlLabel[i] = []; }
 
             this.numIn = parseInt(this.json_object.inputs);
             this.numOut = parseInt(this.json_object.outputs);
@@ -1367,30 +1349,6 @@ var mydspProcessorString = `
                 this.factory.init(this.dsp, sampleRate); // 'sampleRate' is defined in AudioWorkletGlobalScope
             }
 
-            this.ctrlChange = function (channel, ctrl, value)
-            {
-                if (this.fCtrlLabel[ctrl] !== []) {
-                    for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
-                        var path = this.fCtrlLabel[ctrl][i].path;
-                        this.setParamValue(path, mydspProcessor.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
-                        if (this.output_handler) {
-                            this.output_handler(path, this.getParamValue(path));
-                        }
-                    }
-                }
-            }
-
-            this.pitchWheel = function (channel, wheel)
-            {
-                for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
-                    var path = this.fPitchwheelLabel[i];
-                    this.setParamValue(path, Math.pow(2.0, wheel/12.0));
-                    if (this.output_handler) {
-                        this.output_handler(path, this.getParamValue(path));
-                    }
-                }
-            }
-
             this.setParamValue = function (path, val)
             {
                 this.HEAPF32[this.pathTable[path]] = val;
@@ -1403,46 +1361,6 @@ var mydspProcessorString = `
 
             // Init resulting DSP
             this.initAux();
-
-            // Set message handler
-            this.port.onmessage = this.handleMessage.bind(this);
-        }
-
-        handleMessage(event)
-        {
-            var msg = event.data;
-            switch (msg.type) {
-                // Generic MIDI message
-                case "midi": this.midiMessage(msg.data); break;
-                // Typed MIDI message
-                case "keyOn": this.keyOn(msg.data[0], msg.data[1], msg.data[2]); break;
-                case "keyOff": this.keyOff(msg.data[0], msg.data[1], msg.data[2]); break;
-                case "ctrlChange": this.ctrlChange(msg.data[0], msg.data[1], msg.data[2]); break;
-                case "pitchWheel": this.pitchWheel(msg.data[0], msg.data[1]); break;
-                // Generic data message
-                case "param": this.setParamValue(msg.key, msg.value); break;
-                //case "patch": this.onpatch(msg.data); break;
-            }
-        }
-
-        midiMessage(data)
-        {
-            var cmd = data[0] >> 4;
-            var channel = data[0] & 0xf;
-            var data1 = data[1];
-            var data2 = data[2];
-
-            if (channel === 9) {
-                return;
-            } else if (cmd === 8 || ((cmd === 9) && (data2 === 0))) {
-                //this.keyOff(channel, data1, data2);
-            } else if (cmd === 9) {
-                //this.keyOn(channel, data1, data2);
-            } else if (cmd === 11) {
-                //this.ctrlChange(channel, data1, data2);
-            } else if (cmd === 14) {
-                //this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
-            }
         }
 
         process(inputs, outputs, parameters)
@@ -1625,6 +1543,21 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
                        || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
+                // Decode MIDI
+                if (item.meta !== undefined) {
+                    for (var i = 0; i < item.meta.length; i++) {
+                        if (item.meta[i].midi !== undefined) {
+                            if (item.meta[i].midi.trim() === "pitchwheel") {
+                                obj.fPitchwheelLabel.push(item.address);
+                            } else if (item.meta[i].midi.trim().split(" ")[0] === "ctrl") {
+                                obj.fCtrlLabel[parseInt(item.meta[i].midi.trim().split(" ")[1])]
+                                .push({ path:item.address,
+                                      min:parseFloat(item.min),
+                                      max:parseFloat(item.max) });
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -1635,6 +1568,11 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
+        
+        // MIDI
+        this.fPitchwheelLabel = [];
+        this.fCtrlLabel = new Array(128);
+        for (var i = 0; i < this.fCtrlLabel.length; i++) { this.fCtrlLabel[i] = []; }
 
         // Parse UI
         this.parse_ui(this.json_object.ui, this);
@@ -1647,35 +1585,127 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     audio_node.init();
 
     audio_node.getJSON = function() { return factory.getJSON(); }
+    
+    // For WAP
+    audio_node.getMetadata = function() { return factory.getJSON(); }
 
     // Needed for sample accurate control
     audio_node.setParamValue = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
     audio_node.getParamValue = function(path) { return this.parameters.get(path).value; }
+    
+    // For WAP
+    audio_node.setParam = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
+    audio_node.getParam = function(path) { return this.parameters.get(path).value; }
 
     audio_node.setOutputParamHandler = function(handler) { this.output_handler = handler; }
     audio_node.getOutputParamHandler = function() { return this.output_handler; }
 
     audio_node.getNumInputs = function() { return parseInt(factory.json_object.inputs); }
     audio_node.getNumOutputs = function() { return parseInt(factory.json_object.outputs); }
-
+    
+    // For WAP
+    audio_node.inputChannelCount = function() { return parseInt(factory.json_object.inputs); }
+    audio_node.outputChannelCount = function() { return parseInt(factory.json_object.outputs); }
+    
     audio_node.getParams = function() { return this.inputs_items; }
+    
+    // For WAP
+    audio_node.getDescriptor = function() { return this.inputs_items; }
 
     audio_node.ctrlChange = function(channel, ctrl, value)
     {
-        this.port.postMessage({ type: "ctrlChange", data: [channel, ctrl, value] });
+        if (this.fCtrlLabel[ctrl] !== []) {
+            for (var i = 0; i < this.fCtrlLabel[ctrl].length; i++) {
+                var path = this.fCtrlLabel[ctrl][i].path;
+                this.setParamValue(path, audio_node.remap(value, 0, 127, this.fCtrlLabel[ctrl][i].min, this.fCtrlLabel[ctrl][i].max));
+                if (this.output_handler) {
+                    this.output_handler(path, this.getParamValue(path));
+                }
+            }
+        }
     }
 
     audio_node.pitchWheel = function(channel, wheel)
     {
-        this.port.postMessage({ type: "pitchWheel", data: [channel, wheel] });
+        for (var i = 0; i < this.fPitchwheelLabel.length; i++) {
+            var path = this.fPitchwheelLabel[i];
+            this.setParamValue(path, Math.pow(2.0, wheel/12.0));
+            if (this.output_handler) {
+                this.output_handler(path, this.getParamValue(path));
+            }
+        }
     }
 
     audio_node.midiMessage = function(data)
     {
-        this.port.postMessage({ type:"midi", data:data });
+        var cmd = data[0] >> 4;
+        var channel = data[0] & 0xf;
+        var data1 = data[1];
+        var data2 = data[2];
+        
+        if (channel === 9) {
+            return;
+        } else if (cmd === 11) {
+            this.ctrlChange(channel, data1, data2);
+        } else if (cmd === 14) {
+            this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
+        }
+    }
+    
+    // For WAP
+    audio_node.onMidi = function(data)
+    {
+        this.midiMessage(data);
+    }
+    
+    /**
+     * @returns {Object} describes the path for each available param and its current value
+     */
+    audio_node.getState = async function()
+    {
+        var params = new Object();
+        for (let i = 0; i < this.getDescriptor().length; i++) {
+            Object.assign(params, { [this.getDescriptor()[i]]: `${this.getParam(this.getDescriptor()[i])}` });
+        }
+        return new Promise(resolve => {
+                           resolve(params)
+                           });
+    }
+    
+    /**
+     * Sets each params with the value indicated in the state object
+     * @param {Object} state
+     */
+    audio_node.setState = async function(state)
+    {
+        return new Promise(resolve => {
+                           for (const param in state) {
+                           if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+                           }
+                           try {
+                           this.gui.setAttribute('state', JSON.stringify(state));
+                           } catch (error) {
+                           console.warn("Plugin without gui or GUI not defined", error);
+                           }
+                           resolve(state);
+                           })
+    }
+    
+    /**
+     * A different call closer to the preset management
+     * @param {Object} patch to assign as a preset to the node
+     */
+    audio_node.setPatch = function(patch)
+    {
+        this.setState(this.presets[patch])
     }
 
     audio_node.metadata = function (handler) {}
+    
+    audio_node.remap = function(v, mn0, mx0, mn1, mx1)
+    {
+        return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
+    }
 
     // And use it
     callback(audio_node);

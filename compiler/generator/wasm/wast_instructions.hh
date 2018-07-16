@@ -102,9 +102,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -112,12 +111,12 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
-                // Local variable declaration has been previsouly separated as 'pure declaration' first, followed by
-                // 'store' later on (done in MoveVariablesInFront3)
+                // Local variable declaration has been previously separated as 'pure declaration' first,
+                // followed by 'store' later on (done in MoveVariablesInFront3)
                 faustassert(inst->fValue == nullptr);
                 EndLine();
             }
@@ -221,14 +220,14 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
             int offset;
             if ((offset = getConstantOffset(inst->fAddress)) > 0) {
-                if (isRealType(type) || isRealPtrType(type)) {
+                if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load offset=";
                 } else {
                     *fOut << "(i32.load offset=";
                 }
                 *fOut << offset << " (i32.const 0))";
             } else {
-                if (isRealType(fTypingVisitor.fCurType) || isRealPtrType(fTypingVisitor.fCurType)) {
+                if (isRealType(type)) {
                     *fOut << "(" << realStr << ".load ";
                 } else {
                     *fOut << "(i32.load ";
@@ -236,7 +235,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fAddress->accept(this);
                 *fOut << ")";
             }
-
         } else {
             *fOut << "(get_local $" << inst->fAddress->getName() << ")";
         }
@@ -284,7 +282,6 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 inst->fValue->accept(this);
                 *fOut << ")";
             }
-
         } else {
             *fOut << "(set_local $" << inst->fAddress->getName() << " ";
             inst->fValue->accept(this);
@@ -337,28 +334,43 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 }
             }
         } else {
-            // Fields in struct are accessed using 'dsp' and an offset
-            faustassert(fFieldTable.find(indexed->getName()) != fFieldTable.end());
-            MemoryDesc    tmp = fFieldTable[indexed->getName()];
-            Int32NumInst* num;
-            if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
-                // Index can be computed at compile time
-                if (fFastMemory) {
-                    *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
+            /*
+             Fields in DSP struct are accessed using 'dsp' and an offset
+             IndexedAddress is also used for soundfiles (pointer + field index)
+            */
+            if (fFieldTable.find(indexed->getName()) != fFieldTable.end()) {
+                MemoryDesc    tmp = fFieldTable[indexed->getName()];
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    // Index can be computed at compile time
+                    if (fFastMemory) {
+                        *fOut << "(i32.const " << (tmp.fOffset + (num->fNum << offStrNum)) << ")";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
+                              << "))";
+                    }
                 } else {
-                    *fOut << "(i32.add (get_local $dsp) (i32.const " << (tmp.fOffset + (num->fNum << offStrNum))
-                          << "))";
+                    // Otherwise generate index computation code
+                    if (fFastMemory) {
+                        *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << ")))";
+                    } else {
+                        *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                        indexed->fIndex->accept(this);
+                        *fOut << " (i32.const " << offStr << "))))";
+                    }
                 }
             } else {
-                // Otherwise generate index computation code
-                if (fFastMemory) {
-                    *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                // Local variable
+                Int32NumInst* num;
+                if ((num = dynamic_cast<Int32NumInst*>(indexed->fIndex))) {
+                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.const " << (num->fNum << offStrNum)
+                          << "))";
+                } else {
+                    *fOut << "(i32.add (get_local " << indexed->getName() << ") (i32.shl ";
                     indexed->fIndex->accept(this);
                     *fOut << " (i32.const " << offStr << ")))";
-                } else {
-                    *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                    indexed->fIndex->accept(this);
-                    *fOut << " (i32.const " << offStr << "))))";
                 }
             }
         }

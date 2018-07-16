@@ -13,21 +13,21 @@ system=$(echo $system | grep MINGW > /dev/null && echo MINGW || echo $system)
 ## exclusion list for faust errors
 XLIST1="faust2md"
 
-OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jackconsole faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole"
-OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios"
-OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
-OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce"
-OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce"
+OSX="faust2android faust2au faust2caqt faust2csound faust2faustvst faust2jack faust2jaqt faust2max6 faust2msp faust2puredata faust2supercollider faust2unity faust2vst faust2vsti faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLY="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLYMIDI="faust2caqt faust2jack faust2jaqt faust2max6 faust2msp faust2ios faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXPOLY2MIDI="faust2caqt faust2ios faust2max6 faust2msp faust2juce faust2netjackconsole faust2netjackqt"
 OSXSOUND="faust2caqt faust2jaqt faust2jack faust2ios faust2max6 faust2msp"
-OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole"
-OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole"
-OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole"
+OSXHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXOSC="faust2ios faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
+OSXOSCHTTPD="faust2caqt faust2jack faust2jaqt faust2jackconsole faust2netjackconsole faust2netjackqt faust2jackconsole"
 
-LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackconsole faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole"
-LINUXMIDI="faust2jaqt"
-LINUXPOLY="faust2jaqt faust2juce"
-LINUXPOLYMIDI="faust2jaqt faust2juce"
-LINUXOSCHTTPD="faust2jaqt"
+LINUX="faust2alqt faust2alsa faust2alsaconsole faust2android faust2asmjs faust2bela faust2csound faust2dssi faust2eps faust2faustvst faust2firefox faust2graph faust2graphviewer faust2jack faust2jackinternal faust2jackserver faust2jaqt faust2ladspa faust2lv2 faust2mathdoc  faust2md  faust2netjackconsole faust2netjackqt faust2octave faust2owl faust2paqt faust2pdf faust2plot faust2png faust2puredata faust2raqt faust2ros faust2rosgtk faust2rpialsaconsole faust2rpinetjackconsole faust2sig faust2sigviewer faust2supercollider faust2svg faust2w32max6 faust2w32msp faust2w32puredata faust2w32vst faust2webaudioasm faust2netjackconsole faust2netjackqt faust2jackconsole"
+LINUXMIDI="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
+LINUXPOLY="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+LINUXPOLYMIDI="faust2jaqt faust2juce faust2netjackconsole faust2netjackqt faust2jackconsole"
+LINUXOSCHTTPD="faust2jaqt faust2netjackconsole faust2netjackqt faust2jackconsole"
 
 ## test exclusion : notinlist "toto" "a b c d e"
 notinlist() {
@@ -101,6 +101,14 @@ if [ "$system" = "Darwin" ]; then
         ($scriptname -soundfile -lang ocpp sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile -lang ocpp succeeded !")||(echo "ERROR: $scriptname -soundfile -lang ocpp failed")
         rm -rf good
     done
+    
+    for scriptname in $OSXSOUND; do
+        ($scriptname -soundfile sound.dsp &> LOG)&&(echo "OK: $scriptname -soundfile succeeded !")||(echo "ERROR: $scriptname -soundfile failed")
+        rm -rf good
+    done
+    
+    (faust2juce -soundfile -standalone sound.dsp &> LOG)&&(echo "OK: faust2juce -soundfile -standalone succeeded !")||(echo "ERROR: faust2juce -soundfile -standalone failed")
+    rm -rf good
 
     for scriptname in $OSXHTTPD; do
         ($scriptname -httpd good.dsp &> LOG)&&(echo "OK: $scriptname -httpd succeeded !")||(echo "ERROR: $scriptname -httpd failed")

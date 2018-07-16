@@ -42,6 +42,8 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/gui/JSONUI.h"
 #include "faust/gui/MidiUI.h"
+#include "faust/gui/SoundUI.h"
+
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -54,7 +56,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.22"
+#define FAUSTGEN_VERSION "1.23"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -91,7 +93,9 @@ class faustgen_factory {
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // Generic MIDI handler          
+        midi_handler fMidiHandler;      // Generic MIDI handler
+    
+        SoundUI* fSoundInterface;       // Generic Soundfile interface
    
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string

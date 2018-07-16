@@ -154,8 +154,9 @@ inline bool isBoolType(Typed::VarType type)
 inline bool isIntOrPtrType(Typed::VarType type)
 {
     return (type == Typed::kInt32 || type == Typed::kInt64 || type == Typed::kInt32_ptr || type == Typed::kInt64_ptr ||
-            type == Typed::kFloat_ptr || type == Typed::kFloatMacro_ptr || type == Typed::kDouble_ptr ||
-            type == Typed::kObj_ptr || type == Typed::kVoid_ptr);
+            type == Typed::kFloat_ptr || type == Typed::kFloat_ptr_ptr || type == Typed::kFloatMacro_ptr ||
+            type == Typed::kFloatMacro_ptr_ptr || type == Typed::kDouble_ptr || type == Typed::kObj_ptr ||
+            type == Typed::kVoid_ptr || type == Typed::kSound_ptr);
 }
 
 DeclareStructTypeInst* isStructType(const string& name);
@@ -314,13 +315,6 @@ struct CloneVisitor : public virtual Garbageable {
 
 // Printable is defined in instructions_type.h
 
-struct Vectorizable : public virtual Garbageable {
-    int fSize;
-
-    Vectorizable(int size = 1) : fSize(size) {}
-    virtual ~Vectorizable() {}
-};
-
 // Added in compilation environment
 struct StatementInst : public Printable {
     virtual void accept(InstVisitor* visitor) = 0;
@@ -331,12 +325,12 @@ struct StatementInst : public Printable {
 };
 
 // Results from the compilation
-struct ValueInst : public Printable, public Vectorizable {
+struct ValueInst : public Printable {
     virtual void accept(InstVisitor* visitor) = 0;
 
     virtual ValueInst* clone(CloneVisitor* cloner) = 0;
 
-    ValueInst(int size = 1) : Vectorizable(size) {}
+    ValueInst() {}
 
     virtual int size() { return 1; }
 
@@ -452,6 +446,7 @@ struct StructTyped : public Typed {
     virtual ~StructTyped() {}
 
     VarType getType() { return kObj_ptr; }
+    VarType getType(int index) { return fFields[index]->getType(); }
 
     int getSize()
     {
@@ -501,7 +496,8 @@ struct Address : public Printable {
         kLoop         = 0x40,
         kVolatile     = 0x80,
         kReference    = 0x100,  // Access by reference
-        kMutable      = 0x200   // Mutable access
+        kMutable      = 0x200,  // Mutable access
+        kExternal     = 0x400
     };
 
     Address() {}
@@ -534,6 +530,8 @@ struct Address : public Printable {
             *fOut << "kReference";
         } else if (access & kMutable) {
             *fOut << "kMutable";
+        } else if (access & kExternal) {
+            *fOut << "kExternal";
         }
     }
 
@@ -559,6 +557,8 @@ struct Address : public Printable {
             return "kReference";
         } else if (access & kMutable) {
             return "kMutable";
+        } else if (access & kExternal) {
+            return "kExternal";
         } else {
             return "";
         }
@@ -702,10 +702,10 @@ struct AddBargraphInst : public StatementInst {
 struct AddSoundfileInst : public StatementInst {
     string fLabel;
     string fURL;
-    string fVarname;
+    string fSFZone;
 
-    AddSoundfileInst(const string& label, const string& url, const string& varname)
-        : fLabel(label), fURL(url), fVarname(varname)
+    AddSoundfileInst(const string& label, const string& url, const string& sf_zone)
+        : fLabel(label), fURL(url), fSFZone(sf_zone)
     {
     }
 
@@ -772,7 +772,7 @@ struct DropInst : public StatementInst {
 struct LoadVarInst : public ValueInst {
     Address* fAddress;
 
-    LoadVarInst(Address* address, int size = 1) : ValueInst(size), fAddress(address) {}
+    LoadVarInst(Address* address) : ValueInst(), fAddress(address) {}
 
     virtual ~LoadVarInst() {}
 
@@ -789,7 +789,7 @@ struct LoadVarInst : public ValueInst {
 struct LoadVarAddressInst : public ValueInst {
     Address* fAddress;
 
-    LoadVarAddressInst(Address* address, int size = 1) : ValueInst(size), fAddress(address) {}
+    LoadVarAddressInst(Address* address) : ValueInst(), fAddress(address) {}
 
     virtual ~LoadVarAddressInst() {}
 
@@ -808,7 +808,7 @@ struct TeeVarInst : public ValueInst {
     Address*   fAddress;
     ValueInst* fValue;
 
-    TeeVarInst(Address* address, ValueInst* value) : ValueInst(1), fAddress(address), fValue(value) {}
+    TeeVarInst(Address* address, ValueInst* value) : ValueInst(), fAddress(address), fValue(value) {}
 
     virtual ~TeeVarInst() {}
 
@@ -856,7 +856,7 @@ struct ShiftArrayVarInst : public StatementInst {
 struct FloatNumInst : public ValueInst, public NumValueInst {
     float fNum;
 
-    FloatNumInst(float num, int size = 1) : ValueInst(size), fNum(num) {}
+    FloatNumInst(float num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -894,7 +894,7 @@ struct FloatArrayNumInst : public ArrayNumInst<float> {
 struct DoubleNumInst : public ValueInst, public NumValueInst {
     double fNum;
 
-    DoubleNumInst(double num, int size = 1) : ValueInst(size), fNum(num) {}
+    DoubleNumInst(double num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -915,7 +915,7 @@ struct DoubleArrayNumInst : public ArrayNumInst<double> {
 struct Int32NumInst : public ValueInst, public NumValueInst {
     int fNum;
 
-    Int32NumInst(int num, int size = 1) : ValueInst(size), fNum(num) {}
+    Int32NumInst(int num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -927,7 +927,7 @@ struct Int32NumInst : public ValueInst, public NumValueInst {
 struct Int64NumInst : public ValueInst, public NumValueInst {
     long long fNum;
 
-    Int64NumInst(long long num, int size = 1) : ValueInst(size), fNum(num) {}
+    Int64NumInst(long long num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -948,7 +948,7 @@ struct Int32ArrayNumInst : public ArrayNumInst<int> {
 struct BoolNumInst : public ValueInst, public NumValueInst {
     bool fNum;
 
-    BoolNumInst(bool num, int size = 1) : ValueInst(size), fNum(num) {}
+    BoolNumInst(bool num) : ValueInst(), fNum(num) {}
 
     void accept(InstVisitor* visitor) { visitor->visit(this); }
 
@@ -966,8 +966,8 @@ struct BinopInst : public ValueInst {
     ValueInst* fInst1;
     ValueInst* fInst2;
 
-    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
-        : ValueInst(size), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
+    BinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
+        : ValueInst(), fOpcode(opcode), fInst1(inst1), fInst2(inst2)
     {
     }
 
@@ -988,7 +988,7 @@ struct CastInst : public ValueInst {
     Typed*     fType;
     ValueInst* fInst;
 
-    CastInst(ValueInst* inst, Typed* typed, int size = 1) : ValueInst(size), fType(typed), fInst(inst) {}
+    CastInst(ValueInst* inst, Typed* typed) : ValueInst(), fType(typed), fInst(inst) {}
 
     virtual ~CastInst() {}
 
@@ -1003,7 +1003,7 @@ struct BitcastInst : public ValueInst {
     Typed*     fType;
     ValueInst* fInst;
 
-    BitcastInst(ValueInst* inst, Typed* typed, int size = 1) : ValueInst(size), fType(typed), fInst(inst) {}
+    BitcastInst(ValueInst* inst, Typed* typed) : ValueInst(), fType(typed), fInst(inst) {}
 
     virtual ~BitcastInst() {}
 
@@ -1058,8 +1058,8 @@ struct Select2Inst : public ValueInst {
     ValueInst* fThen;
     ValueInst* fElse;
 
-    Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst, int size = 1)
-        : ValueInst(size), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
+    Select2Inst(ValueInst* cond_inst, ValueInst* then_inst, ValueInst* else_inst)
+        : ValueInst(), fCond(cond_inst), fThen(then_inst), fElse(else_inst)
     {
     }
 
@@ -1125,8 +1125,8 @@ struct FunCallInst : public ValueInst {
     list<ValueInst*> fArgs;  // List of arguments
     bool             fMethod;
 
-    FunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
-        : ValueInst(size), fName(name), fArgs(args), fMethod(method)
+    FunCallInst(const string& name, const list<ValueInst*>& args, bool method)
+        : ValueInst(), fName(name), fArgs(args), fMethod(method)
     {
     }
 
@@ -1234,11 +1234,8 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Memory
-    virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this), inst->fSize); }
-    virtual ValueInst* visit(LoadVarAddressInst* inst)
-    {
-        return new LoadVarAddressInst(inst->fAddress->clone(this), inst->fSize);
-    }
+    virtual ValueInst* visit(LoadVarInst* inst) { return new LoadVarInst(inst->fAddress->clone(this)); }
+    virtual ValueInst* visit(LoadVarAddressInst* inst) { return new LoadVarAddressInst(inst->fAddress->clone(this)); }
     virtual ValueInst* visit(TeeVarInst* inst)
     {
         return new TeeVarInst(inst->fAddress->clone(this), inst->fValue->clone(this));
@@ -1260,30 +1257,30 @@ class BasicCloneVisitor : public CloneVisitor {
     }
 
     // Numbers
-    virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum, inst->fSize); }
+    virtual ValueInst* visit(FloatNumInst* inst) { return new FloatNumInst(inst->fNum); }
     virtual ValueInst* visit(FloatArrayNumInst* inst) { return new FloatArrayNumInst(inst->fNumTable); }
-    virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum, inst->fSize); }
-    virtual ValueInst* visit(Int64NumInst* inst) { return new Int64NumInst(inst->fNum, inst->fSize); }
+    virtual ValueInst* visit(Int32NumInst* inst) { return new Int32NumInst(inst->fNum); }
+    virtual ValueInst* visit(Int64NumInst* inst) { return new Int64NumInst(inst->fNum); }
     virtual ValueInst* visit(Int32ArrayNumInst* inst) { return new Int32ArrayNumInst(inst->fNumTable); }
-    virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum, inst->fSize); }
-    virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum, inst->fSize); }
+    virtual ValueInst* visit(BoolNumInst* inst) { return new BoolNumInst(inst->fNum); }
+    virtual ValueInst* visit(DoubleNumInst* inst) { return new DoubleNumInst(inst->fNum); }
     virtual ValueInst* visit(DoubleArrayNumInst* inst) { return new DoubleArrayNumInst(inst->fNumTable); }
 
     // Numerical computation
     virtual ValueInst* visit(BinopInst* inst)
     {
-        return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this), inst->fSize);
+        return new BinopInst(inst->fOpcode, inst->fInst1->clone(this), inst->fInst2->clone(this));
     }
 
     // Cast
     virtual ValueInst* visit(CastInst* inst)
     {
-        return new CastInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize);
+        return new CastInst(inst->fInst->clone(this), inst->fType->clone(this));
     }
 
     virtual ValueInst* visit(BitcastInst* inst)
     {
-        return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this), inst->fSize);
+        return new BitcastInst(inst->fInst->clone(this), inst->fType->clone(this));
     }
 
     // Function call
@@ -1295,7 +1292,7 @@ class BasicCloneVisitor : public CloneVisitor {
             cloned_args.push_back((*it)->clone(this));
         }
 
-        return new FunCallInst(inst->fName, cloned_args, inst->fMethod, inst->fSize);
+        return new FunCallInst(inst->fName, cloned_args, inst->fMethod);
     }
     virtual StatementInst* visit(RetInst* inst)
     {
@@ -1378,7 +1375,7 @@ class BasicCloneVisitor : public CloneVisitor {
     }
     virtual StatementInst* visit(AddSoundfileInst* inst)
     {
-        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fVarname);
+        return new AddSoundfileInst(inst->fLabel, inst->fURL, inst->fSFZone);
     }
     virtual StatementInst* visit(LabelInst* inst) { return new LabelInst(inst->fLabel); }
 
@@ -1682,9 +1679,9 @@ struct InstBuilder {
         return new AddBargraphInst(label, zone, min, max, AddBargraphInst::kHorizontal);
     }
 
-    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& varname)
+    static AddSoundfileInst* genAddSoundfileInst(const string& label, const string& url, const string& sf_zone)
     {
-        return new AddSoundfileInst(label, url, varname);
+        return new AddSoundfileInst(label, url, sf_zone);
     }
 
     static AddBargraphInst* genAddVerticalBargraphInst(const string& label, const string& zone, double min, double max)
@@ -1718,12 +1715,9 @@ struct InstBuilder {
     }
 
     // Memory
-    static LoadVarInst*        genLoadVarInst(Address* address, int size = 1) { return new LoadVarInst(address, size); }
-    static LoadVarAddressInst* genLoadVarAddressInst(Address* address, int size = 1)
-    {
-        return new LoadVarAddressInst(address, size);
-    }
-    static TeeVarInst* genTeeVar(const string& vname, ValueInst* value)
+    static LoadVarInst*        genLoadVarInst(Address* address) { return new LoadVarInst(address); }
+    static LoadVarAddressInst* genLoadVarAddressInst(Address* address) { return new LoadVarAddressInst(address); }
+    static TeeVarInst*         genTeeVar(const string& vname, ValueInst* value)
     {
         return new TeeVarInst(InstBuilder::genNamedAddress(vname, Address::kStack), value);
     }
@@ -1737,14 +1731,11 @@ struct InstBuilder {
     }
 
     // Numbers
-    static FloatNumInst*       genFloatNumInst(float num, int size = 1) { return new FloatNumInst(num, size); }
+    static FloatNumInst*       genFloatNumInst(float num) { return new FloatNumInst(num); }
     static FloatArrayNumInst*  genFloatArrayNumInst(int size) { return new FloatArrayNumInst(size); }
-    static DoubleNumInst*      genDoubleNumInst(double num, int size = 1) { return new DoubleNumInst(num, size); }
+    static DoubleNumInst*      genDoubleNumInst(double num) { return new DoubleNumInst(num); }
     static DoubleArrayNumInst* genDoubleArrayNumInst(int size) { return new DoubleArrayNumInst(size); }
-    static DoubleNumInst*      genQuadNumInst(double num, int size = 1)
-    {
-        return new DoubleNumInst(num, size);
-    }  // Use DoubleNumInst
+    static DoubleNumInst*      genQuadNumInst(double num) { return new DoubleNumInst(num); }  // Use DoubleNumInst
 
     static ValueInst* genTypedZero(Typed::VarType type);
 
@@ -1778,17 +1769,17 @@ struct InstBuilder {
         return NULL;
     }
 
-    static Int32NumInst* genInt32NumInst(int num, int size = 1) { return new Int32NumInst(num); }
-    static Int64NumInst* genInt64NumInst(long long num, int size = 1) { return new Int64NumInst(num); }
-    static BoolNumInst*  genBoolNumInst(bool num, int size = 1) { return new BoolNumInst(num); }
+    static Int32NumInst* genInt32NumInst(int num) { return new Int32NumInst(num); }
+    static Int64NumInst* genInt64NumInst(long long num) { return new Int64NumInst(num); }
+    static BoolNumInst*  genBoolNumInst(bool num) { return new BoolNumInst(num); }
 
     // Numerical computation
-    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2, int size = 1)
+    static BinopInst* genBinopInst(int opcode, ValueInst* inst1, ValueInst* inst2)
     {
-        return new BinopInst(opcode, inst1, inst2, size);
+        return new BinopInst(opcode, inst1, inst2);
     }
 
-    static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext, int size = 1)
+    static ValueInst* genCastInst(ValueInst* inst, Typed* typed_ext)
     {
         Int32NumInst*  int_num    = dynamic_cast<Int32NumInst*>(inst);
         FloatNumInst*  float_num  = dynamic_cast<FloatNumInst*>(inst);
@@ -1797,7 +1788,7 @@ struct InstBuilder {
 
         if (!typed) {
             // Default case
-            return new CastInst(inst, typed_ext, size);
+            return new CastInst(inst, typed_ext);
         } else if (typed->getType() == Typed::kFloat) {
             if (int_num) {
                 // Simple float cast of integer
@@ -1809,7 +1800,7 @@ struct InstBuilder {
                 return genFloatNumInst(float(double_num->fNum));
             } else {
                 // Default case
-                return new CastInst(inst, typed, size);
+                return new CastInst(inst, typed);
             }
         } else if (typed->getType() == Typed::kDouble || typed->getType() == Typed::kQuad) {
             if (int_num) {
@@ -1822,7 +1813,7 @@ struct InstBuilder {
                 return inst;
             } else {
                 // Default case
-                return new CastInst(inst, typed, size);
+                return new CastInst(inst, typed);
             }
         } else if (typed->getType() == Typed::kInt32) {
             if (int_num) {
@@ -1836,18 +1827,15 @@ struct InstBuilder {
                 return genInt32NumInst(int(double_num->fNum));
             } else {
                 // Default case
-                return new CastInst(inst, typed, size);
+                return new CastInst(inst, typed);
             }
         } else {
             // Default case
-            return new CastInst(inst, typed, size);
+            return new CastInst(inst, typed);
         }
     }
 
-    static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed, int size = 1)
-    {
-        return new BitcastInst(inst, typed, size);
-    }
+    static ValueInst* genBitcastInst(ValueInst* inst, Typed* typed) { return new BitcastInst(inst, typed); }
 
     static ValueInst* genCastFloatInst(ValueInst* inst);
     static ValueInst* genCastFloatMacroInst(ValueInst* inst);
@@ -1874,17 +1862,17 @@ struct InstBuilder {
     {
         return new FunCallInst(name, args, false);
     }
-    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
+    static FunCallInst* genFunCallInst(const string& name, const list<ValueInst*>& args, bool method)
     {
-        return new FunCallInst(name, args, method, size);
+        return new FunCallInst(name, args, method);
     }
     static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args)
     {
         return new DropInst(new FunCallInst(name, args, false));
     }
-    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method, int size = 1)
+    static DropInst* genVoidFunCallInst(const string& name, const list<ValueInst*>& args, bool method)
     {
-        return new DropInst(new FunCallInst(name, args, method, size));
+        return new DropInst(new FunCallInst(name, args, method));
     }
 
     // Loop
@@ -2197,6 +2185,12 @@ struct InstBuilder {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
 
+    static DeclareVarInst* genDecExtGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
+    {
+        return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)),
+                                 type, exp);
+    }
+
     static LoadVarInst* genLoadGlobalVar(string vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kGlobal));
@@ -2374,7 +2368,7 @@ Opcode := + | - | * | / |...etc...
 
 Access := kGlobal | kStruct | kStaticStruct | kFunArgs | kStack | kLoop
 
-Type := kFloat | kInt32 | kDouble | kVoid | Type* --> Type | Vector (Type, Size) | Array (Type, Size) if size = 0, then
+Type := kFloat | kInt32 | kDouble | kVoid | Type* --> Type | Vector (Type) | Array (Type) if size = 0, then
 equivalent to a pointer on the considered type
 
 Address := Access name | Address index

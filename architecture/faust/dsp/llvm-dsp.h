@@ -117,6 +117,12 @@ class llvm_dsp_factory : public dsp_factory {
     
         /* Return the currently set custom memory manager */
         dsp_memory_manager* getMemoryManager();
+    
+        /* Get the Faust DSP factory list of library dependancies */
+        std::vector<std::string> getDSPFactoryLibraryList();
+    
+        /* Get the list of all used includes */
+        std::vector<std::string> getDSPFactoryIncludePathnames();
 };
 
 /**
@@ -195,13 +201,15 @@ llvm_dsp_factory* createDSPFactoryFromString(const std::string& name_app,
 bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 /**
- * Get the list of library dependancies of the Faust DSP factory.
+ * Get the Faust DSP factory list of library dependancies.
+ *
+ * @deprecated : use factory getDSPFactoryLibraryList method.
  *
  * @param factory - the DSP factory
  * 
  * @return the list as a vector of strings.
  */
-std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory);
+DEPRECATED(std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory));
 
 /**
  * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory and DSP pointers (in local variables...) thus become invalid.

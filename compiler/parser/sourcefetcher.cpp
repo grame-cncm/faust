@@ -769,7 +769,7 @@ int makeSocket(char* host)
 	/* Check for port number specified in URL */
 	p = strchr(host, ':');
 	if (p) {
-		port = atoi(p + 1);
+        port = std::atoi(p + 1);
 		*p = '\0';
 	} else
 		port = PORT_NUMBER;

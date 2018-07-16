@@ -198,7 +198,6 @@ int main(int argc, char *argv[])
     std::cout << "OSC is on" << std::endl;
 #endif
 
-    
 #ifdef MIDICTRL
     jackaudio_midi audio;
     audio.init(name, DSP);

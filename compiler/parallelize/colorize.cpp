@@ -65,7 +65,7 @@ void splitDependance(const set<Tree>& exps, set<Tree>& post, set<Tree>& pre)
 }
 
 //------------------------------------------- IMPLEMENTATION  (level
-//1)-----------------------------------------------------
+// 1)-----------------------------------------------------
 
 static void addColor(Tree exp, int color);  ///< a color to the colors of exp
 static bool hasColor(Tree exp, int color);  ///< true if exp is already colored with color
@@ -133,7 +133,7 @@ void listMultiColoredExp(Tree exp, set<Tree>& lst)
 }
 
 //------------------------------------------- IMPLEMENTATION  (level
-//2)-----------------------------------------------------
+// 2)-----------------------------------------------------
 
 /**
  * set the color-set property of sig

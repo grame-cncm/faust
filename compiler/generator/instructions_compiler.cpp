@@ -482,14 +482,17 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateHBargraph(sig, label, x, y, CS(z));
     }
 
-    /*
-    else if (isSigSoundfile(sig, label))        { return generateSoundfile(sig, label); }
-    else if (isSigSoundfileLength(sig, sf))     { return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf))); }
-    else if (isSigSoundfileRate(sig, sf))       { return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf))); }
-    else if (isSigSoundfileChannels(sig, sf) )  { return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) { return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf),
-    CS(x), CS(y))); }
-    */
+    else if (isSigSoundfile(sig, label)) {
+        return generateSoundfile(sig, label);
+    } else if (isSigSoundfileLength(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf)));
+    } else if (isSigSoundfileRate(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
+    } else if (isSigSoundfileChannels(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)));
+    }
 
     else if (isSigAttach(sig, x, y)) {
         CS(y);
@@ -1391,14 +1394,16 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
 
-    BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
+    if (gGlobal->gUseDefaultSound) {
+        BlockInst* block = InstBuilder::genBlockInst();
+        block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
 
-    pushResetUIInstructions(InstBuilder::genIfInst(
-        InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
-                                                       InstBuilder::genBasicTyped(Typed::kUint_ptr)),
-                              InstBuilder::genTypedZero(Typed::kSound_ptr)),
-        block, InstBuilder::genBlockInst()));
+        pushResetUIInstructions(InstBuilder::genIfInst(
+            InstBuilder::genEqual(InstBuilder::genCastInst(InstBuilder::genLoadStructVar(varname),
+                                                           InstBuilder::genBasicTyped(Typed::kUint_ptr)),
+                                  InstBuilder::genTypedZero(Typed::kSound_ptr)),
+            block, InstBuilder::genBlockInst()));
+    }
 
     pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache, InstBuilder::genBasicTyped(Typed::kSound_ptr),
                                                        InstBuilder::genLoadStructVar(varname)));
@@ -1413,7 +1418,7 @@ ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf
     faustassert(load);
     // Struct access using an index that will be converted as a field name
     return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(0));
+                                            InstBuilder::genInt32NumInst(1));
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf)
@@ -1422,7 +1427,7 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf)
     faustassert(load);
     // Struct access using an index that will be converted as a field name
     return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(1));
+                                            InstBuilder::genInt32NumInst(2));
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* sf)
@@ -1431,7 +1436,7 @@ ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* 
     faustassert(load);
     // Struct access using an index that will be converted as a field name
     return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(2));
+                                            InstBuilder::genInt32NumInst(3));
 }
 
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
@@ -1447,7 +1452,7 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
     string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
 
     // Struct access using an index that will be converted as a field name
-    LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(3));
+    LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
 
     pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_buffer, type1, load1));
     pushComputeBlockMethod(
@@ -1762,17 +1767,16 @@ void InstructionsCompiler::generateUserInterfaceElements(Tree elements)
 void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
-    string                    label;
     map<string, set<string> > metadata;
-    string                    url;
+    string                    label, url;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
         for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-            string      key    = i->first;
-            set<string> values = i->second;
+            const string      key    = i->first;
+            const set<string> values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
                 if (key == "url") {
                     url = rmWhiteSpaces(*j);
@@ -1829,8 +1833,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(
-            InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true), url, tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true),
+                                                                 ((url == "") ? label : url), tree2str(varname)));
 
     } else {
         throw faustexception("ERROR in generating widget code\n");

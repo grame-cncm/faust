@@ -23,6 +23,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <string.h>
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <list>
@@ -354,11 +355,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-f", "--fold") && (i + 1 < argc)) {
-            gGlobal->gFoldThreshold = atoi(argv[i + 1]);
+            gGlobal->gFoldThreshold = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mns", "--max-name-size") && (i + 1 < argc)) {
-            gGlobal->gMaxNameSize = atoi(argv[i + 1]);
+            gGlobal->gMaxNameSize = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-sn", "--simple-names")) {
@@ -382,7 +383,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-mcd", "--max-copy-delay") && (i + 1 < argc)) {
-            gGlobal->gMaxCopyDelay = atoi(argv[i + 1]);
+            gGlobal->gMaxCopyDelay = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-mem", "--memory-manager")) {
@@ -397,10 +398,6 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVectorSwitch = true;
             i += 1;
 
-        } else if (isCmd(argv[i], "-vls", "--vec-loop-size") && (i + 1 < argc)) {
-            gGlobal->gVecLoopSize = atoi(argv[i + 1]);
-            i += 2;
-
         } else if (isCmd(argv[i], "-scal", "--scalar")) {
             gGlobal->gVectorSwitch = false;
             i += 1;
@@ -410,11 +407,11 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-vs", "--vec-size") && (i + 1 < argc)) {
-            gGlobal->gVecSize = atoi(argv[i + 1]);
+            gGlobal->gVecSize = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-lv", "--loop-variant") && (i + 1 < argc)) {
-            gGlobal->gVectorLoopVariant = atoi(argv[i + 1]);
+            gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-omp", "--openMP")) {
@@ -451,7 +448,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-t", "--timeout") && (i + 1 < argc)) {
-            gGlobal->gTimeout = atoi(argv[i + 1]);
+            gGlobal->gTimeout = std::atoi(argv[i + 1]);
             i += 2;
 
         } else if (isCmd(argv[i], "-time", "--compilation-time")) {
@@ -495,6 +492,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gClassName = argv[i + 1];
             i += 2;
 
+        } else if (isCmd(argv[i], "-scn", "--super-class-name") && (i + 1 < argc)) {
+            gGlobal->gSuperClassName = argv[i + 1];
+            i += 2;
+
         } else if (isCmd(argv[i], "-pn", "--process-name") && (i + 1 < argc)) {
             gGlobal->gProcessName = argv[i + 1];
             i += 2;
@@ -512,7 +513,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-ftz", "--flush-to-zero")) {
-            gGlobal->gFTZMode = atoi(argv[i + 1]);
+            gGlobal->gFTZMode = std::atoi(argv[i + 1]);
             if ((gGlobal->gFTZMode > 2) || (gGlobal->gFTZMode < 0)) {
                 stringstream error;
                 error << "ERROR : invalid -ftz option: " << gGlobal->gFTZMode << endl;
@@ -580,7 +581,7 @@ static bool processCmdline(int argc, const char* argv[])
             i += 1;
 
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
-            gGlobal->gEnableFlag = atoi(argv[i + 1]) == 1;
+            gGlobal->gEnableFlag = std::atoi(argv[i + 1]) == 1;
             i += 2;
 
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
@@ -632,13 +633,6 @@ static bool processCmdline(int argc, const char* argv[])
     if (gGlobal->gVecSize < 4) {
         stringstream error;
         error << "ERROR : invalid vector size [-vs = " << gGlobal->gVecSize << "] should be at least 4" << endl;
-        throw faustexception(error.str());
-    }
-
-    if (gGlobal->gVecLoopSize > gGlobal->gVecSize) {
-        stringstream error;
-        error << "ERROR : invalid vector loop size [-vls = " << gGlobal->gVecLoopSize
-              << "] has to be <= [-vs = " << gGlobal->gVecSize << "]" << endl;
         throw faustexception(error.str());
     }
 
@@ -708,6 +702,7 @@ static void printHelp()
     cout << "-a <file> \twrapper architecture file\n";
     cout << "-i \t\t--inline-architecture-files \n";
     cout << "-cn <name> \t--class-name <name> specify the name of the dsp class to be used instead of mydsp \n";
+    cout << "-scn <name> \t--super-class-name <name> specify the name of the super class to be used instead of dsp \n";
     cout << "-pn <name> \t--process-name <name> specify the name of the dsp entry-point instead of process \n";
     cout << "-t <sec> \t--timeout <sec>, abort compilation after <sec> seconds (default 120)\n";
     cout << "-time \t\t--compilation-time, flag to display compilation phases timing information\n";
@@ -715,7 +710,6 @@ static void printHelp()
             "file\n";
     cout << "-scal   \t--scalar generate non-vectorized code\n";
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
-    cout << "-vls <n>  \t--vec-loop-size size of the vector DSP loop for auto-vectorization (experimental) \n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
@@ -776,9 +770,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-    /****************************************************************
-                                    MAIN
-    *****************************************************************/
+/****************************************************************
+                                MAIN
+*****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1186,7 +1180,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "cpp") {
 #ifdef CPP_BUILD
-            container = CPPCodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = CPPCodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                          numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang cpp not supported since CPP backend is not built\n");
 #endif
@@ -1194,11 +1189,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "ocpp") {
 #ifdef OCPP_BUILD
             if (gGlobal->gSchedulerSwitch)
-                old_comp = new SchedulerCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new SchedulerCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else if (gGlobal->gVectorSwitch)
-                old_comp = new VectorCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new VectorCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
             else
-                old_comp = new ScalarCompiler(gGlobal->gClassName, "dsp", numInputs, numOutputs);
+                old_comp = new ScalarCompiler(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs, numOutputs);
 
             if (gGlobal->gPrintXMLSwitch || gGlobal->gPrintDocSwitch) old_comp->setDescription(new Description());
 
@@ -1219,7 +1214,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "java") {
 #ifdef JAVA_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            container = JAVACodeContainer::createContainer(gGlobal->gClassName, "dsp", numInputs, numOutputs, dst);
+            container = JAVACodeContainer::createContainer(gGlobal->gClassName, gGlobal->gSuperClassName, numInputs,
+                                                           numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang java not supported since JAVA backend is not built\n");
 #endif
@@ -1253,6 +1249,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
+
+            gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
@@ -1291,6 +1289,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
             // gGlobal->gHasTeeLocal = true;         // combined store/load
+
+            gGlobal->gUseDefaultSound = false;
 
             // This speedup (freewerb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once

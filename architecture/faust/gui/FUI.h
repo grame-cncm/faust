@@ -74,12 +74,16 @@ class FUI : public UI, public PathBuilder
             std::ofstream file(filename);
             std::map<std::string, FAUSTFLOAT*>::iterator it;
             
-            for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
-                file << *(*it).second << ' ' << (*it).first << std::endl;
-            }
+            if (file.is_open()) {
+                for (it = fName2Zone.begin(); it != fName2Zone.end(); ++it) {
+                    file << *(*it).second << ' ' << (*it).first << std::endl;
+                }
 
-            file << std::endl;
-            file.close();
+                file << std::endl;
+                file.close();
+            } else {
+                 std::cerr << "Error opening " << filename << " file\n";
+            }
         }
 
         // recall the zones values and full names

@@ -104,12 +104,15 @@ class TextInstVisitor : public InstVisitor {
 
     virtual void visit(NamedAddress* named) { *fOut << named->fName; }
 
+    /*
+     Indexed adresses can actually be values in an array or fields in a struct type
+     */
     virtual void visit(IndexedAddress* indexed)
     {
         indexed->fAddress->accept(this);
         DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
         if (struct_type) {
-            Int32NumInst* field_index = dynamic_cast<Int32NumInst*>(indexed->fIndex);
+            Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
             *fOut << "->" << struct_type->fType->getName(field_index->fNum);
         } else {
             *fOut << "[";

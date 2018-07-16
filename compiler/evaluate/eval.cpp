@@ -29,6 +29,7 @@
  **/
 
 #include <stdio.h>
+#include <cstdlib>
 
 #include "compatibility.hh"
 #include "errormsg.hh"
@@ -751,7 +752,7 @@ static const char* Formats[] = {"%d", "%1d", "%2d", "%3d", "%4d"};
 
 static void writeIdentValue(string& dst, const string& format, const string& ident, Tree visited, Tree localValEnv)
 {
-    int  f = atoi(format.c_str());
+    int  f = std::atoi(format.c_str());
     int  n = eval2int(boxIdent(ident.c_str()), visited, localValEnv);
     int  i = min(4, max(f, 0));
     char val[256];

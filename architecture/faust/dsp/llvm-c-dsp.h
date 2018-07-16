@@ -38,9 +38,15 @@ extern "C"
     @{
      */
     
+#ifdef _MSC_VER
     typedef void llvm_dsp_factory;
     
     typedef void llvm_dsp;
+#else
+    typedef struct {} llvm_dsp_factory;
+    
+    typedef struct {} llvm_dsp;
+#endif
     
     /**
      * Get the library version.
@@ -164,13 +170,22 @@ extern "C"
     char* getCTarget(llvm_dsp_factory* factory);
   
     /**
-     * Get the list of library dependancies of the Faust DSP factory as a null-terminated array.
+     * Get the Faust DSP factory list of library dependancies as a null-terminated array.
      *
      * @param factory - the DSP factory.
      * 
-     * @return the library dependancies (the array and it's contain has to be deleted by the caller using freeCMemory).
+     * @return the library dependancies (the array and it's content has to be deleted by the caller using freeCMemory).
      */
     const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+    
+    /**
+     * Get the list of all used includes as a null-terminated array.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the includes list (the array and it's content has to be deleted by the caller using freeCMemory).
+     */
+    const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
     
     /**
      * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables...) thus become invalid.

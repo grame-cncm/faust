@@ -9,11 +9,27 @@
 package com.grame.faust;
 
 public class FaustJNI {
+  public final static native void SHA1_CTX_data_set(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native long SHA1_CTX_data_get(long jarg1, SHA1_CTX jarg1_);
+  public final static native void SHA1_CTX_datalen_set(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native long SHA1_CTX_datalen_get(long jarg1, SHA1_CTX jarg1_);
+  public final static native void SHA1_CTX_bitlen_set(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native long SHA1_CTX_bitlen_get(long jarg1, SHA1_CTX jarg1_);
+  public final static native void SHA1_CTX_state_set(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native long SHA1_CTX_state_get(long jarg1, SHA1_CTX jarg1_);
+  public final static native void SHA1_CTX_k_set(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native long SHA1_CTX_k_get(long jarg1, SHA1_CTX jarg1_);
+  public final static native long new_SHA1_CTX();
+  public final static native void delete_SHA1_CTX(long jarg1);
+  public final static native void sha1_transform(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native void sha1_init(long jarg1, SHA1_CTX jarg1_);
+  public final static native void sha1_update(long jarg1, SHA1_CTX jarg1_, long jarg2, long jarg3);
+  public final static native void sha1_final(long jarg1, SHA1_CTX jarg1_, long jarg2);
+  public final static native void generateCSHA1(String jarg1, String jarg2);
   public final static native String expandCDSPFromFile(String jarg1, int jarg2, long jarg3, String jarg4, String jarg5);
   public final static native String expandCDSPFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5, String jarg6);
   public final static native boolean generateCAuxFilesFromFile(String jarg1, int jarg2, long jarg3, String jarg4);
   public final static native boolean generateCAuxFilesFromString(String jarg1, String jarg2, int jarg3, long jarg4, String jarg5);
-  public final static native void generateCSHA1(String jarg1, String jarg2);
   public final static native void freeCMemory(long jarg1);
   public final static native long new_llvm_dsp_factory();
   public final static native void delete_llvm_dsp_factory(long jarg1);
@@ -30,6 +46,7 @@ public class FaustJNI {
   public final static native String getCDSPCode(long jarg1, llvm_dsp_factory jarg1_);
   public final static native String getCTarget(long jarg1, llvm_dsp_factory jarg1_);
   public final static native long getCDSPFactoryLibraryList(long jarg1, llvm_dsp_factory jarg1_);
+  public final static native long getCDSPFactoryIncludePathnames(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteAllCDSPFactories();
   public final static native long getAllCDSPFactories();
   public final static native boolean startMTCDSPFactories();

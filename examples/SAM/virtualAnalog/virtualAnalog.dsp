@@ -150,7 +150,7 @@ vcf = moog_vcf_2bn(res,fc) with {
 // Attack, Decay, and Sustain ranges are set according to the Minimoog manual:
 attT60VCF = 0.001 * vcf2(vslider("[0] AttackF [midi:ctrl 40] [tooltip: Attack Time] [unit:ms] [style: knob]",1400,10,10000,1));
 decT60VCF = 0.001 * vcf2(vslider("[0] DecayF [midi:ctrl 41] [tooltip: Decay-to-Sustain Time] [unit:ms] [style: knob]",10,10,10000,1));
-susLvlVCF = vcf2(vslider("[0] SustainF [midi:ctrl 42] [tooltip: Sustain level as percent of max] [style: knob]",80,0,100,0.1));
+susLvlVCF = 0.01 * vcf2(vslider("[0] SustainF [midi:ctrl 42] [tooltip: Sustain level as percent of max] [style: knob]",80,0,100,0.1));
 decayButton = wg(vslider("Decay [midi:ctrl 20] [tooltip:Envelope Release either Decay value or 0][style:knob]",1,0,1,1):int); // was Staccato
 legatoButton = wg(vslider("Glide [midi:ctrl 65] [tooltip: Glide from note to note][style:knob]",1,0,1,1)); // was Legato
 relT60VCF = select2(decayButton,0.010,decT60VCF);

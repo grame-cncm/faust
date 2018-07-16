@@ -17,29 +17,42 @@
 
 . faustpath
 
+NVOICES=-1
+ANDROID_MK=Android.mk
+
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
 SOURCE="0"
 
-for p in $@; do
+while [ $1 ] 
+do
+    p=$1
+    
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2androidunity <file1.dsp> [<file2.dsp>]"
         echo "Creates android libraries (armeabi-v7a and x86) for faust unity plugin."
         echo "Android sdk should be installed. Make sure the ANDROID_HOME environment variable is correctly set up. It should be pointing to the sdk folder."
         echo "Use 'faust2unity -android' to also create the c# and JSON files"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "If you need other android architectures, open architecture/unity/Android/Application.mk and modify APP_ABI."
         echo "See architecture/unity/README.md for more info or in the compile folder"
         exit
     fi
-
-    if [ ${p:0:1} = "-" ]; then
+    
+    if [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+        ANDROID_MK=AndroidPoly.mk
+    elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
     elif [[ -f "$p" ]]; then
         FILES="$FILES $p"
     else
         OPTIONS="$OPTIONS $p"
     fi
+    
+shift
 done
 
 #-------------------------------------------------------------------
@@ -70,7 +83,7 @@ for p in $FILES; do
 
     # Android.mk and Application.mk contains the compilation settings.
     # They are moved to the working directory for compilation then deleted
-    cp -r "$FAUSTLIB/unity/Android/Android.mk" "Android.mk"
+    cp -r "$FAUSTLIB/unity/Android/$ANDROID_MK" "Android.mk"
     cp -r "$FAUSTLIB/unity/Android/Application.mk" "Application.mk"
     $ANDROID_HOME/ndk-bundle/ndk-build NDK_PROJECT_PATH=. NDK_APPLICATION_MK=Application.mk FILE=$NAME > /dev/null || (echo "$f : C++ to armeabi-v7a and x86 library compilations failed in faust2androidunity"; exit 1)
     rm -rf "Android.mk"

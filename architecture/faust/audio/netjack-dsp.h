@@ -46,6 +46,8 @@ class netjackaudio : public audio
         int fMasterPort;
         int fMTU;
         int fLatency;
+        int fMIDIInputs;
+        int fMIDIOutputs;
         jack_master_t fResult;
 
     #ifdef RESTART_CB_API
@@ -165,8 +167,22 @@ class netjackaudio : public audio
 
     public:
 
-        netjackaudio(int net_format, const std::string& master_ip, int master_port, int mtu, int latency = 2)
-            : fDSP(0), fNet(0), fNetFormat(net_format), fMasterIP(master_ip), fMasterPort(master_port), fMTU(mtu), fLatency(latency)
+        netjackaudio(int net_format,
+                     const std::string& master_ip,
+                     int master_port,
+                     int mtu,
+                     int latency,
+                     int midi_in,
+                     int midi_out)
+            : fDSP(0),
+            fNet(0),
+            fNetFormat(net_format),
+            fMasterIP(master_ip),
+            fMasterPort(master_port),
+            fMTU(mtu),
+            fLatency(latency),
+            fMIDIInputs(midi_in),
+            fMIDIOutputs(midi_out)
         {}
         
         virtual ~netjackaudio() 
@@ -179,13 +195,13 @@ class netjackaudio : public audio
 
         virtual bool init(const char* name, dsp* DSP) 
         {
-            return initAux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), 0, 0);
+            return initAux(name, DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fMIDIInputs, fMIDIOutputs);
         }
 
         virtual bool start() 
         {
             if (jack_net_slave_activate(fNet)) {
-                printf("cannot activate net");
+                printf("cannot activate net\n");
                 return false;
             }
             return true;
@@ -229,22 +245,11 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         {
             AVOIDDENORMALS;
             
-            float** inputs_tmp = (float**)alloca(fDSP->getNumInputs()*sizeof(float*));
-            float** outputs_tmp = (float**)alloca(fDSP->getNumOutputs()*sizeof(float*));
-            
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                inputs_tmp[i] = audio_inputs[i+1];
-            }
-            
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                outputs_tmp[i] = audio_outputs[i+1];
-            }
-            
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
             decodeControl(audio_inputs[0], fResult.buffer_size);
             
             // "count" may be less than buffer_size
-            fDSP->compute(count, inputs_tmp, outputs_tmp);
+            fDSP->compute(count, audio_inputs, audio_outputs);
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
             encodeControl(audio_outputs[0], fResult.buffer_size);
@@ -252,8 +257,12 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         
     public:
         
-        netjackaudio_control(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
+        netjackaudio_control(int net_format,
+                             const std::string& master_ip,
+                             int master_port,
+                             int mtu,
+                             int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency, 0, 0)
         {}
         
         virtual ~netjackaudio_control() 
@@ -267,7 +276,7 @@ class netjackaudio_control : public netjackaudio, public ControlUI {
         virtual bool init(const char* name, dsp* dsp) 
         {
             dsp->buildUserInterface(this);
-            return initAux(name, dsp, dsp->getNumInputs() + 1, dsp->getNumOutputs() + 1, 0, 0); // One more audio port for control
+            return initAux(name, dsp, dsp->getNumInputs() + 1, dsp->getNumOutputs() + 1, fMIDIInputs, fMIDIOutputs); // One more audio port for control
         }
     
         virtual int restartCb()
@@ -289,17 +298,6 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
         {
             AVOIDDENORMALS;
             
-            float** inputs_tmp = (float**)alloca(fDSP->getNumInputs()*sizeof(float*));
-            float** outputs_tmp = (float**)alloca(fDSP->getNumOutputs()*sizeof(float*));
-            
-            for (int i = 0; i < fDSP->getNumInputs(); i++) {
-                inputs_tmp[i] = audio_inputs[i];
-            }
-            
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                outputs_tmp[i] = audio_outputs[i];
-            }
-            
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
             decodeMidiControl(midi_inputs[0], fResult.buffer_size);
             
@@ -307,7 +305,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
             processMidiInBuffer(midi_inputs[1]);
             
             // "count" may be less than buffer_size
-            fDSP->compute(count, inputs_tmp, outputs_tmp);
+            fDSP->compute(count, audio_inputs, audio_outputs);
             
             // Control buffer always use buffer_size, even if uncomplete data buffer (count < buffer_size) is received
             encodeMidiControl(midi_outputs[0], fResult.buffer_size);
@@ -317,9 +315,14 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
         }
         
     public:
-        
-        netjackaudio_midicontrol(int net_format, const std::string& master_ip, int master_port, int mtu, int latency)
-            :netjackaudio(net_format, master_ip, master_port, mtu, latency)
+    
+        // One MIDI port for control, and one MIDI port for messages in both directions
+        netjackaudio_midicontrol(int net_format,
+                                 const std::string& master_ip,
+                                 int master_port,
+                                 int mtu,
+                                 int latency)
+            :netjackaudio(net_format, master_ip, master_port, mtu, latency, 2, 2)
         {}
         
         virtual ~netjackaudio_midicontrol() 
@@ -333,8 +336,7 @@ class netjackaudio_midicontrol : public netjackaudio, public ControlUI, public j
         virtual bool init(const char* name, dsp* dsp) 
         {
             dsp->buildUserInterface(this);
-            // One MIDI channel for control, and one MIDI channel for messages in both direction
-            return initAux(name, dsp, dsp->getNumInputs(), dsp->getNumOutputs(), 2, 2);
+            return initAux(name, dsp, dsp->getNumInputs(), dsp->getNumOutputs(), fMIDIInputs, fMIDIOutputs);
         }
     
         virtual int restartCb()

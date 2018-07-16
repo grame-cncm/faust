@@ -34,8 +34,12 @@
 
 #if defined(LLVM_35)
 #define STREAM_ERROR string
+#define ModulePTR Module*
+#define MovePTR(ptr) ptr
 #else
 #define STREAM_ERROR std::error_code
+#define ModulePTR std::unique_ptr<Module>
+#define MovePTR(ptr) std::move(ptr)
 #endif
 
 using namespace std;
@@ -50,7 +54,8 @@ class LLVMCodeContainer : public virtual CodeContainer {
 
     IRBuilder<>* fBuilder;
     IRBuilder<>*
-                     fAllocaBuilder;  // To be used for "alloca", which have to be added in the first "entry" block of the function.
+        fAllocaBuilder;  // To be used for "alloca", which have to be added in the first "entry" block of the function.
+
     LLVMInstVisitor* fCodeProducer;
 
     Module*      fModule;

@@ -75,17 +75,9 @@ createAPI ()
     
     # fix things that won't compile on the sharc
     cat "$APIFOLDER/samFaustDSP.cpp"  | \
-	sed -e 's/replace(/std::replace(/' \
-	    -e 's/std::cerr/\/\/std::cerr/' \
+    sed -e 's/std::cerr/\/\/std::cerr/' \
 	    -e 's/std::cout/\/\/std::cout/' \
-	    -e 's/atoi(/std::atoi(/' \
-	    -e 's/pow(/std::pow(/' \
-	    -e 's/strtod(/std::strtod(/' \
-	    -e 's/log(2)/log(2.0)/' \
-	    -e 's/alloca(/malloc(/' \
 	    -e 's/getCPULoad(void/faustGetCPULoad(void/' \
-	    -e 's/compute(slice, inputs_slice, outputs_slice);/compute(slice, inputs_slice, outputs_slice);std::free(inputs_slice);std::free(outputs_slice);/' \
-	    -e 's/fDSP2->compute(count, inputs_dsp2, outputs_dsp2);/fDSP2->compute(count, inputs_dsp2, outputs_dsp2);std::free(inputs_dsp2);std::free(outputs_dsp2);/' \
 	    -e 's/std::stringstream/std::ostringstream/' \
 	    -e 's/dynamic_cast/static_cast/' \
 	    > temp && mv temp "$APIFOLDER/samFaustDSP.cpp"
