@@ -29,7 +29,6 @@ option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
 	set ( DEPLOYMENT_TARGET_VERSION  10.11)
 endif()
-message ("DEPLOYMENT_TARGET_VERSION ${DEPLOYMENT_TARGET_VERSION}")
 
 #######################################
 # Check output options
