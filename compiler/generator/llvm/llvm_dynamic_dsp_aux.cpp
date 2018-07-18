@@ -824,6 +824,10 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
 
 // Public C interface : lock management is done by called C++ API
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+        
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level)
 {
@@ -843,8 +847,6 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
-
-// Public C interface : lock management is done by called C++ API
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key)
 {
@@ -1130,3 +1132,7 @@ EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
         delete (dsp);
     }
 }
+
+#ifdef __cplusplus
+}
+#endif
