@@ -296,8 +296,13 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
 
+#ifdef _MSC_VER
+#define PRE_PACKED_STRUCTURE  __pragma(pack(push,1))
+#define POST_PACKED_STRUCTURE ;__pragma(pack(pop))
+#else
 #define PRE_PACKED_STRUCTURE
 #define POST_PACKED_STRUCTURE __attribute__((__packed__))
+#endif
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {

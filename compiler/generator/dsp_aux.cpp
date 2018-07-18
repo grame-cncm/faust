@@ -292,7 +292,7 @@ EXPORT bool generateAuxFilesFromString(const string& name_app, const string& dsp
     }
 }
 
-    // External C libfaust API
+// External C libfaust API
 
 #ifdef __cplusplus
 extern "C" {
