@@ -9,7 +9,7 @@ set (SOVERS 1)
 
 #######################################
 # options
-option ( OSCDYNAMIC 	"Compiles also the libray as dynamic library"	off )
+option ( OSCDYNAMIC 	"Include Faust OSC dynamic library"	off )
 
 #######################################
 # check for variables that are normally set at upper level
