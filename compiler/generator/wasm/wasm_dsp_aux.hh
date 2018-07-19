@@ -24,26 +24,68 @@
 
 #include <cstdlib>
 #include <string>
+
 #include "dsp_aux.hh"
+#include "dsp_factory.hh"
 #include "export.hh"
 #include "faust/dsp/dsp.h"
 
-using namespace std;
-
+class JSONUIDecoder;
 class dsp_factory_base;
 
+// The C++ side version of compiled wasm code
+
 class EXPORT wasm_dsp : public dsp {
+    private:
+        dsp_factory_base* fFactory;
+        JSONUIDecoder* fDecoder;
+        int fDSP;   // Index of JavaScript DSP instance
+    
+    public:
+        wasm_dsp():fFactory(nullptr), fDecoder(nullptr), fDSP(-1) {}
+        wasm_dsp(dsp_factory_base* factory, int dsp);
+        virtual ~wasm_dsp();
+    
+        virtual int getNumInputs();
+        
+        virtual int getNumOutputs();
+    
+        virtual void buildUserInterface(UI* ui_interface);
+    
+        virtual int getSampleRate();
+        
+        virtual void init(int samplingRate);
+        
+        virtual void instanceInit(int samplingRate);
+        
+        virtual void instanceConstants(int samplingRate);
+        
+        virtual void instanceResetUserInterface();
+        
+        virtual void instanceClear();
+        
+        virtual wasm_dsp* clone();
+        
+        virtual void metadata(Meta* m);
+   
+        virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+    
+        virtual void computeJS(int count, uintptr_t input, uintptr_t output);
+    
+        virtual void computeJSTest(int count);
 };
 
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    protected:
     dsp_factory_base* fFactory;
-
-    virtual ~wasm_dsp_factory();
+    int fModule;    // Index of JavaScript DSP module
 
    public:
-    wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory) {}
-
+    wasm_dsp_factory() {}
+    wasm_dsp_factory(dsp_factory_base* factory);
+    
+    virtual ~wasm_dsp_factory();
+  
     std::string getName();
 
     std::string getSHAKey();
@@ -67,19 +109,53 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     void writeAux(std::ostream* out, bool binary, bool small = false);
 
     std::string getBinaryCode();
+    
+    static int createModuleFromString(const std::string& code);
+    
+    static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string& name_app, const std::string& dsp_content,
+                                                             const std::vector<std::string>& argv, bool internal_memory);
+    
+    static std::string gErrorMessage;
+    
+    static const std::string& getErrorMessage();
+  
 };
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                      string& error_msg, bool internal_memory);
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
+                                                      std::string& error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                        const char* argv[], string& error_msg, bool internal_memory);
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
+                                                        const char* argv[], std::string& error_msg, bool internal_memory);
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
+
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code);
+
+EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
+
+EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path);
+
+EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+    
+EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
+                                                      char* error_msg, bool internal_memory);
+
+EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
+                                                        const char* argv[], char* error_msg, bool internal_memory);
+
+EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
+
+EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* machine_code);
+
+EXPORT char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
+
+EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* machine_code_path);
+
+EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* machine_code_path);
 
 typedef struct {
     char*       fCode;

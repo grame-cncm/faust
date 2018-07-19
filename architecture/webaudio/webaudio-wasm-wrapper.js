@@ -268,11 +268,48 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
 
     try {
         var time1 = performance.now();
-        var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv_aux.length, argv_ptr, error_msg_ptr, internal_memory);
+        
+        var module_code_ptr = faust.createWasmCDSPFactoryFromString(name_ptr, code_ptr, argv_aux.length, argv_ptr, error_msg_ptr, internal_memory);      
+        
         var time2 = performance.now();
         console.log("Faust compilation duration : " + (time2 - time1));
 
         faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
+        
+         // New API test
+        
+        //var code =  "process = _,_,_,_;";
+        var code = "import(\"stdfaust.lib\"); process = _,_;";
+
+        var argv1 = faust_module.makeStringVector();
+        console.log(argv1);
+        argv1.push_back("-ftz");
+        argv1.push_back("2");
+        argv1.push_back("-cn");
+        argv1.push_back(factory_name);
+        argv1.push_back("-I");
+        argv1.push_back("http://127.0.0.1:8000/libraries/");
+        
+        var time3 = performance.now();
+        var factory_ptr = faust_module.wasm_dsp_factory.createWasmDSPFactoryFromString2("FaustDSP", code, argv1, false);
+     	var time4 = performance.now();
+        console.log("C++ Faust compilation duration : " + (time4 - time3));
+        
+        if (factory_ptr) {
+       		console.log("factory_ptr " + factory_ptr);
+        	var instance_ptr = factory_ptr.createDSPInstance();
+        	console.log("instance_ptr " + instance_ptr);
+        	console.log("instance_ptr getNumInputs " + instance_ptr.getNumInputs());
+        	console.log("instance_ptr getNumOutputs " + instance_ptr.getNumOutputs());
+     	 	//instance_ptr.init(44100);
+        	
+        	instance_ptr.computeJSTest(128);
+        	 
+        } else {
+        	console.log("getErrorMessage " + faust_module.wasm_dsp_factory.getErrorMessage());
+        }
+         
+        // End API test
 
         if (module_code_ptr === 0) {
             return null;
@@ -1800,7 +1837,7 @@ faust.createMemory = function (factory, buffer_size, polyphony) {
         return n;
     }
 
-    var memory_size = pow2limit(((factory.effect_json_object) ?  parseInt(factory.effect_json_object.size) : 0) + parseInt(factory.json_object.size) * polyphony + ((parseInt(factory.json_object.inputs) + parseInt(factory.json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
+    var memory_size = pow2limit(((factory.effect_json_object) ? parseInt(factory.effect_json_object.size) : 0) + parseInt(factory.json_object.size) * polyphony + ((parseInt(factory.json_object.inputs) + parseInt(factory.json_object.outputs) * 2) * (ptr_size + (buffer_size * sample_size)))) / 65536;
   	memory_size = Math.max(2, memory_size); // As least 2
 	return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
 }

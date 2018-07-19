@@ -1006,12 +1006,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         *fOut << int8_t(BinaryConsts::End);
         // Write the JSON string
         size_t size = json.size();
-        *fOut << U32LEB(size + 1);  // Including null character
+        *fOut << U32LEB(json.size());
         for (size_t i = 0; i < size; i++) {
             *fOut << int8_t(json[i]);
         }
-        // Finish the string
-        *fOut << int8_t('0');
         finishSection(start);
     }
 

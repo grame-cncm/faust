@@ -74,7 +74,7 @@ class dsp_factory_base {
     virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) {}  // Helper functions
 
     virtual std::string getBinaryCode() = 0;
-
+ 
     virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
 
     virtual std::vector<std::string> getDSPFactoryIncludePathnames() = 0;
