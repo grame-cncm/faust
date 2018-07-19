@@ -630,6 +630,14 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         {
             compute(count, inputs, outputs);
         }
+    
+        // Terminate all active voices, gently or immediately (depending of 'hard' value)
+        void allNotesOff(bool hard = false)
+        {
+            for (size_t i = 0; i < fVoiceTable.size(); i++) {
+                fVoiceTable[i]->keyOff(hard);
+            }
+        }
 
         // Additional polyphonic API
         MapUI* newVoice()
@@ -692,14 +700,6 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
-
-        // Terminate all active voices, gently or immediately (depending of 'hard' value)
-        void allNotesOff(bool hard = false)
-        {
-            for (size_t i = 0; i < fVoiceTable.size(); i++) {
-                fVoiceTable[i]->keyOff(hard);
-            }
-        }
 
 };
 
