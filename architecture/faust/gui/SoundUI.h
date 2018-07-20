@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -33,18 +33,28 @@
 #endif
 
 #include "faust/gui/DecoratorUI.h"
-#include "faust/gui/soundfile.h"
+
+// Always included otherwise -i mode later on will not always include it (with the conditional includes)
+#include "faust/gui/Soundfile.h"
+
+#ifdef JUCE
+#include "faust/gui/JuceReader.h"
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan) { return new JuceReader(path_name_str, max_chan); }
+#else
+#include "faust/gui/LibsndfileReader.h"
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan) { return new LibsndfileReader(path_name_str, max_chan); }
+#endif
 
 // To be used by dsp code if no SoundUI is used or when soundfile is not found
-extern "C" Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+extern "C" Soundfile* defaultsound = createSoundfile("", MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
 		
     private:
     
-        std::vector<std::string> fSoundfileDir;        // The soundfile directories
-        std::map<std::string, Soundfile*> fSFMap;      // Map to share loaded soundfiles
+        std::vector<std::string> fSoundfileDir;             // The soundfile directories
+        std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
     
      public:
             
@@ -60,7 +70,7 @@ class SoundUI : public GenericUI
         {   
             // Delete all soundfiles
             std::map<std::string, Soundfile*>::iterator it;
-            for (it = fSFMap.begin(); it != fSFMap.end(); it++) {
+            for (it = fSoundfileMap.begin(); it != fSoundfileMap.end(); it++) {
                 delete (*it).second;
             }
         }
@@ -73,11 +83,11 @@ class SoundUI : public GenericUI
             if (path_name_str != "") {
                 std::string file_key = (sha_key == "") ? path_name_str : sha_key;
                 // Check if 'file_key' is already loaded
-                if (fSFMap.find(file_key) == fSFMap.end()) {
-                    fSFMap[file_key] = new Soundfile(path_name_str, 64);
+                if (fSoundfileMap.find(file_key) == fSoundfileMap.end()) {
+                    fSoundfileMap[file_key] = createSoundfile(path_name_str, 64);
                 }
                 // Get the soundfile
-                *sf_zone = fSFMap[file_key];
+                *sf_zone = fSoundfileMap[file_key];
             } else {
                 // Take the defaultsound
                 std::cout << "addSoundfile : defaultsound\n";
@@ -116,5 +126,25 @@ class SoundUI : public GenericUI
         return bundle_path_str;
     }
 };
+
+// Check if soundfile exists and return the real path_name
+std::string Soundfile::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
+{
+#ifdef JUCE
+    JuceReader reader;
+#else
+    LibsndfileReader reader;
+#endif
+    std::string path_name_str = reader.CheckAux(file_name_str, sha_key);
+    if (path_name_str != "") {
+        return path_name_str;
+    } else {
+        for (int i = 0; i < sound_directories.size(); i++) {
+            std::string res = reader.CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
+            if (res != "") { return res; }
+        }
+        return "";
+    }
+}
 
 #endif

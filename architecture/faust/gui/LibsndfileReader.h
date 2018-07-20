@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -21,40 +21,21 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef __soundfile__
-#define __soundfile__
+#ifndef __LibsndfileReader__
+#define __LibsndfileReader__
 
 #include <sndfile.h>
 #include <string.h>
-#include <stdio.h>
 #include <iostream>
-#include <fstream>
 #include <sstream>
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
+#include "faust/gui/Soundfile.h"
 
-#define BUFFER_SIZE 1024
-#define SAMPLE_RATE 44100
-#define MAX_CHAN    64
-
-#define MIN_CHAN(a,b) ((a) < (b) ? (a) : (b))
-
-#define PRE_PACKED_STRUCTURE
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-
-PRE_PACKED_STRUCTURE
-struct Soundfile {
-    
-    FAUSTFLOAT** fBuffers;
-    int fLength;
-    int fSampleRate;
-    int fChannels;
+struct LibsndfileReader : public Soundfile {
     
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
     
-    static std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
+    std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
     {
         SF_INFO snd_info;
         snd_info.format = 0;
@@ -77,22 +58,9 @@ struct Soundfile {
         }
     }
     
-    // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
-    {
-        std::string path_name_str = CheckAux(file_name_str, sha_key);
-        if (path_name_str != "") {
-            return path_name_str;
-        } else {
-            for (int i = 0; i < sound_directories.size(); i++) {
-                std::string res = CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
-                if (res != "") { return res; }
-            }
-            return "";
-        }
-    }
+    LibsndfileReader():Soundfile() {}
     
-    Soundfile(const std::string& path_name_str, int max_chan)
+    LibsndfileReader(const std::string& path_name_str, int max_chan)
     {
         fBuffers = new FAUSTFLOAT*[max_chan];
         if (!fBuffers) {
@@ -166,16 +134,6 @@ struct Soundfile {
             }
         }
     }
-    
-    ~Soundfile()
-    {
-        // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete fBuffers[chan];
-        }
-        delete [] fBuffers;
-    }
-    
-} POST_PACKED_STRUCTURE;
+};
 
 #endif
