@@ -28,10 +28,11 @@
 #include <string.h>
 #include <iostream>
 #include <sstream>
+#include <fstream>
 
 #include "faust/gui/Soundfile.h"
 
-struct LibsndfileReader : public Soundfile {
+struct LibsndfileReader : public SoundfileReader {
     
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
     
@@ -58,12 +59,12 @@ struct LibsndfileReader : public Soundfile {
         }
     }
     
-    LibsndfileReader():Soundfile() {}
+    LibsndfileReader() {}
     
-    LibsndfileReader(const std::string& path_name_str, int max_chan)
+    LibsndfileReader(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
     {
-        fBuffers = new FAUSTFLOAT*[max_chan];
-        if (!fBuffers) {
+        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
+        if (!soundfile->fBuffers) {
             throw std::bad_alloc();
         }
      
@@ -74,13 +75,13 @@ struct LibsndfileReader : public Soundfile {
         
         if (snd_file) {
             
-            fChannels = MIN_CHAN(max_chan, snd_info.channels);
-            fLength = int(snd_info.frames);
-            fSampleRate = snd_info.samplerate;
+            soundfile->fChannels = std::min(max_chan, snd_info.channels);
+            soundfile->fLength = int(snd_info.frames);
+            soundfile->fSampleRate = snd_info.samplerate;
             
-            for (int chan = 0; chan < fChannels; chan++) {
-                fBuffers[chan] = new FAUSTFLOAT[snd_info.frames];
-                if (!fBuffers[chan]) {
+            for (int chan = 0; chan < soundfile->fChannels; chan++) {
+                soundfile->fBuffers[chan] = new FAUSTFLOAT[snd_info.frames];
+                if (!soundfile->fBuffers[chan]) {
                     throw std::bad_alloc();
                 }
             }
@@ -89,6 +90,7 @@ struct LibsndfileReader : public Soundfile {
             sf_count_t nbf, index = 0;
             FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
             sample_read reader;
+            
             if (sizeof(FAUSTFLOAT) == 4) {
                 reader = reinterpret_cast<sample_read>(sf_readf_float);
             } else {
@@ -97,16 +99,16 @@ struct LibsndfileReader : public Soundfile {
             do {
                 nbf = reader(snd_file, buffer, BUFFER_SIZE);
                 for (int sample = 0; sample < nbf; sample++) {
-                    for (int chan = 0; chan < fChannels; chan++) {
-                        fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
+                    for (int chan = 0; chan < soundfile->fChannels; chan++) {
+                        soundfile->fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
                     }
                 }
                 index += nbf;
             } while (nbf == BUFFER_SIZE);
             
             // Share the same buffers for all other channels so that we have max_chan channels available
-            for (int chan = fChannels; chan < max_chan; chan++) {
-                fBuffers[chan] = fBuffers[chan % snd_info.channels];
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[chan % snd_info.channels];
             }
        
             sf_close(snd_file);
@@ -117,20 +119,20 @@ struct LibsndfileReader : public Soundfile {
                 std::cerr << "Error opening the file : " << path_name_str << std::endl;
             }
             
-            fChannels = 1;
-            fLength = BUFFER_SIZE;
-            fSampleRate = SAMPLE_RATE;
+            soundfile->fChannels = 1;
+            soundfile->fLength = BUFFER_SIZE;
+            soundfile->fSampleRate = SAMPLE_RATE;
             
             // Allocate 1 channel
-            fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
-            if (!fBuffers[0]) {
+            soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
+            if (!soundfile->fBuffers[0]) {
                 throw std::bad_alloc();
             }
-            memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
+            memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
             
             // Share the same buffer for all other channels so that we have max_chan channels available
-            for (int chan = fChannels; chan < max_chan; chan++) {
-                fBuffers[chan] = fBuffers[0];
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[0];
             }
         }
     }

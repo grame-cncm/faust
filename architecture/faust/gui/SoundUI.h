@@ -39,10 +39,20 @@
 
 #ifdef JUCE
 #include "faust/gui/JuceReader.h"
-Soundfile* createSoundfile(const std::string& path_name_str, int max_chan) { return new JuceReader(path_name_str, max_chan); }
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+{
+    Soundfile* sf = new Soundfile();
+    JuceReader reader(sf, path_name_str, max_chan);
+    return sf;
+}
 #else
 #include "faust/gui/LibsndfileReader.h"
-Soundfile* createSoundfile(const std::string& path_name_str, int max_chan) { return new LibsndfileReader(path_name_str, max_chan); }
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+{
+    Soundfile* sf = new Soundfile();
+    LibsndfileReader reader(sf, path_name_str, max_chan);
+    return sf;
+}
 #endif
 
 // To be used by dsp code if no SoundUI is used or when soundfile is not found
@@ -79,7 +89,7 @@ class SoundUI : public GenericUI
         virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
             std::string sha_key;
-            std::string path_name_str = Soundfile::Check(fSoundfileDir, url, sha_key);
+            std::string path_name_str = SoundfileReader::Check(fSoundfileDir, url, sha_key);
             if (path_name_str != "") {
                 std::string file_key = (sha_key == "") ? path_name_str : sha_key;
                 // Check if 'file_key' is already loaded
@@ -95,40 +105,40 @@ class SoundUI : public GenericUI
             }
         }
     
-    static std::string getBinaryPath(std::string folder = "")
-    {
-        std::string bundle_path_str;
-    #ifdef __APPLE__
-        CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-        if (bundle_ref) {
-            UInt8 bundle_path[512];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                bundle_path_str = std::string((char*)bundle_path) + folder;
+        static std::string getBinaryPath(std::string folder = "")
+        {
+            std::string bundle_path_str;
+        #ifdef __APPLE__
+            CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+            if (bundle_ref) {
+                UInt8 bundle_path[512];
+                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                    bundle_path_str = std::string((char*)bundle_path) + folder;
+                }
             }
+        #endif
+            return bundle_path_str;
         }
-    #endif
-        return bundle_path_str;
-    }
-    
-    static std::string getBinaryPathFrom(const std::string& path)
-    {
-        std::string bundle_path_str;
-    #ifdef __APPLE__
-        CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
-        CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-        if (bundle_ref) {
-            UInt8 bundle_path[512];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                bundle_path_str = std::string((char*)bundle_path);
+        
+        static std::string getBinaryPathFrom(const std::string& path)
+        {
+            std::string bundle_path_str;
+        #ifdef __APPLE__
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+            CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
+            if (bundle_ref) {
+                UInt8 bundle_path[512];
+                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                    bundle_path_str = std::string((char*)bundle_path);
+                }
             }
+        #endif
+            return bundle_path_str;
         }
-    #endif
-        return bundle_path_str;
-    }
 };
 
 // Check if soundfile exists and return the real path_name
-std::string Soundfile::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
+std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
 {
 #ifdef JUCE
     JuceReader reader;

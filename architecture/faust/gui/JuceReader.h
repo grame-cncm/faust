@@ -26,19 +26,19 @@
 
 #include "faust/gui/Soundfile.h"
 
-struct JuceReader : public Soundfile {
+struct JuceReader : public SoundfileReader {
     
     std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
     {
         return "";
     }
     
-    JuceReader():Soundfile() {}
+    JuceReader() {}
     
-    JuceReader(const std::string& path_name_str, int max_chan)
+    JuceReader(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
     {
-        fBuffers = new FAUSTFLOAT*[max_chan];
-        if (!fBuffers) {
+        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
+        if (!soundfile->fBuffers) {
             throw std::bad_alloc();
         }
      

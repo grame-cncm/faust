@@ -21,8 +21,8 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef __soundfile__
-#define __soundfile__
+#ifndef __Soundfile__
+#define __Soundfile__
 
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
@@ -32,8 +32,6 @@
 #define SAMPLE_RATE 44100
 #define MAX_CHAN    64
 
-#define MIN_CHAN(a,b) ((a) < (b) ? (a) : (b))
-
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE  __pragma(pack(push,1))
 #define POST_PACKED_STRUCTURE ;__pragma(pack(pop))
@@ -41,6 +39,11 @@
 #define PRE_PACKED_STRUCTURE
 #define POST_PACKED_STRUCTURE __attribute__((__packed__))
 #endif
+
+/*
+ The soundfile structure to be used by the DSP code.
+ It has to be 'packed' to that the LLVM backend can correctly access it.
+*/
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
@@ -50,11 +53,6 @@ struct Soundfile {
     int fSampleRate;
     int fChannels;
     
-    virtual std::string CheckAux(const std::string& path_name_str, std::string& sha_key) = 0;
-    
-    // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key);
-    
     Soundfile()
     {
         fBuffers = NULL;
@@ -63,7 +61,7 @@ struct Soundfile {
         fChannels = -1;
     }
     
-    virtual ~Soundfile()
+    ~Soundfile()
     {
         // Free the real channels only
         for (int chan = 0; chan < fChannels; chan++) {
@@ -73,5 +71,18 @@ struct Soundfile {
     }
     
 } POST_PACKED_STRUCTURE;
+
+/*
+ The generic soundfile reader.
+ */
+
+struct SoundfileReader {
+    
+    virtual std::string CheckAux(const std::string& path_name_str, std::string& sha_key) = 0;
+    
+    // Check if soundfile exists and return the real path_name
+    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key);
+    
+};
 
 #endif
