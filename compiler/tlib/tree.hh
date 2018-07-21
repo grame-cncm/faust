@@ -160,7 +160,10 @@ class CTree : public virtual Garbageable {
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }
     bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
-    void        setVisited() { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime = gVisitTime; }
+    void        setVisited()
+    { /*faustassert(fVisitTime!=gVisitTime);*/
+        fVisitTime = gVisitTime;
+    }
 
     // Property list of a tree
     void setProperty(Tree key, Tree value) { fProperties[key] = value; }
@@ -277,8 +280,7 @@ inline bool isClosed(Tree t)
 
 Tree lift(Tree t);  ////< add 1 to the free de bruijn references of t
 
-Tree deBruijn2Sym(Tree t);    ////< transform a tree from deBruijn to symbolic notation
-void updateAperture(Tree t);  ////< update aperture field of a tree in symbolic notation
+Tree deBruijn2Sym(Tree t);  ////< transform a tree from deBruijn to symbolic notation
 
 //---------------------------------------------------------------------------
 
