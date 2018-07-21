@@ -37,7 +37,7 @@
 // Always included otherwise -i mode later on will not always include it (with the conditional includes)
 #include "faust/gui/Soundfile.h"
 
-#ifdef JUCE
+#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
 Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
 {
@@ -140,7 +140,7 @@ class SoundUI : public GenericUI
 // Check if soundfile exists and return the real path_name
 std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
 {
-#ifdef JUCE
+#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
     JuceReader reader;
 #else
     LibsndfileReader reader;

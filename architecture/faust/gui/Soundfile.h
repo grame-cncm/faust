@@ -78,6 +78,8 @@ struct Soundfile {
 
 struct SoundfileReader {
     
+    virtual ~SoundfileReader() {}
+    
     virtual std::string CheckAux(const std::string& path_name_str, std::string& sha_key) = 0;
     
     // Check if soundfile exists and return the real path_name

@@ -30,7 +30,22 @@ struct JuceReader : public SoundfileReader {
     
     std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
     {
-        return "";
+        File file(path_name_str);
+        if (file.existsAsFile()) {
+            // Possibly read associated SHA_KEY file
+            std::string sha_key_path_name_str = path_name_str + "_sha_key";
+            std::ifstream reader(sha_key_path_name_str.c_str());
+            if (reader.is_open()) {
+                std::string sha_key_line;
+                getline(reader, sha_key_line);
+                std::stringstream line_reader(sha_key_line);
+                line_reader >> sha_key;
+            }
+            return path_name_str;
+        } else {
+            std::cerr << "ERROR : cannot open '" << path_name_str << std::endl;
+            return "";
+        }
     }
     
     JuceReader() {}
@@ -41,35 +56,64 @@ struct JuceReader : public SoundfileReader {
         if (!soundfile->fBuffers) {
             throw std::bad_alloc();
         }
-     
-        // Open sndfile
-        /*
-        if (snd_file) {
-         
+        
+        AudioFormatManager formatManager;
+        formatManager.registerBasicFormats();
+        
+        ScopedPointer<AudioFormatReader> formatReader = formatManager.createReaderFor(File(path_name_str));
+        if (formatReader) {
+            
+            soundfile->fChannels = int(formatReader->numChannels);
+            soundfile->fSampleRate = int(formatReader->sampleRate);
+            soundfile->fLength = int(formatReader->lengthInSamples);
+            
+            for (int chan = 0; chan < soundfile->fChannels; chan++) {
+                soundfile->fBuffers[chan] = new FAUSTFLOAT[soundfile->fLength];
+                if (!soundfile->fBuffers[chan]) {
+                    throw std::bad_alloc();
+                }
+            }
+            
+            if (formatReader->read(reinterpret_cast<int *const *>(soundfile->fBuffers), soundfile->fChannels, 0, soundfile->fLength, false)) {
+                // Possibly concert samples
+                if (!formatReader->usesFloatingPointData) {
+                    for (int chan = 0; chan < soundfile->fChannels; ++chan) {
+                        FAUSTFLOAT* buffer = soundfile->fBuffers[chan];
+                        FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, soundfile->fLength);
+                    }
+                }
+                // Share the same buffers for all other channels so that we have max_chan channels available
+                for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                    soundfile->fBuffers[chan] = soundfile->fBuffers[chan % soundfile->fChannels];
+                }
+            } else {
+                std::cerr << "Error opening the file : " << path_name_str << std::endl;
+            }
+            
         } else {
             
             if (path_name_str != "") {
                 std::cerr << "Error opening the file : " << path_name_str << std::endl;
             }
             
-            fChannels = 1;
-            fLength = BUFFER_SIZE;
-            fSampleRate = SAMPLE_RATE;
+            soundfile->fChannels = 1;
+            soundfile->fLength = BUFFER_SIZE;
+            soundfile->fSampleRate = SAMPLE_RATE;
             
             // Allocate 1 channel
-            fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
-            if (!fBuffers[0]) {
+            soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
+            if (!soundfile->fBuffers[0]) {
                 throw std::bad_alloc();
             }
-            memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
+            memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
             
             // Share the same buffer for all other channels so that we have max_chan channels available
-            for (int chan = fChannels; chan < max_chan; chan++) {
-                fBuffers[chan] = fBuffers[0];
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[0];
             }
         }
-        */
     }
+    
 };
 
 #endif

@@ -32,7 +32,6 @@ IS_SYNTH="0"
 IS_MIDI="0"
 JUCE_POLY="0"
 FAUSTFLOAT="float"
-LIBSNDFILE=""
 
 while [ $1 ]
 do
@@ -46,7 +45,7 @@ do
         echo "Use '-jsynth' to use JUCE polyphonic Synthesizer instead of Faust polyphonic code"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources (can be used in -standalone mode only)"
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         exit
     fi
 
@@ -72,7 +71,6 @@ do
 		 DEF+="OSCCTRL "
     elif [ $p = "-soundfile" ]; then
         DEF+="SOUNDFILE "
-        LIBSNDFILE="sndfile"
     elif [ ${p:0:1} = "-" ]; then
         if [ $p = "-double" ]; then
             FAUSTFLOAT="double"
@@ -131,22 +129,21 @@ for p in $FILES; do
     # setting the preprocessing definitions
     sed -e "s/PreProcDef/$DEF/g" "$SRCDIR/$dspName/$dspName-temp.jucer" >> "$SRCDIR/$dspName/$dspName-temp0.jucer"
     sed -e "s/APPL_NAME/$dspName/g" "$SRCDIR/$dspName/$dspName-temp0.jucer" >> "$SRCDIR/$dspName/$dspName-temp1.jucer"
-    sed -e "s/LIBSNDFILE/$LIBSNDFILE/g" "$SRCDIR/$dspName/$dspName-temp1.jucer" >> "$SRCDIR/$dspName/$dspName-temp2.jucer"
 
     # MIDI
-    sed -e "s/IS_MIDI/$IS_MIDI/g" "$SRCDIR/$dspName/$dspName-temp2.jucer" >> "$SRCDIR/$dspName/$dspName-temp3.jucer"
+    sed -e "s/IS_MIDI/$IS_MIDI/g" "$SRCDIR/$dspName/$dspName-temp1.jucer" >> "$SRCDIR/$dspName/$dspName-temp2.jucer"
 
     # SYNTH
-    sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$SRCDIR/$dspName/$dspName-temp3.jucer" >> "$SRCDIR/$dspName/$dspName-temp4.jucer"
+    sed -e "s/IS_SYNTH/$IS_SYNTH/g" "$SRCDIR/$dspName/$dspName-temp2.jucer" >> "$SRCDIR/$dspName/$dspName-temp3.jucer"
 
     # FAUSTFLOAT
-    sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName-temp5.jucer"
+    sed -e "s/FAUST_FLOAT/$FAUSTFLOAT/g" "$SRCDIR/$dspName/$dspName-temp3.jucer" >> "$SRCDIR/$dspName/$dspName-temp4.jucer"
 
     # possibly set NVOICES value
     if [ $NVOICES -ge 0 ]; then
-        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp5.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
+        sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp  "$SRCDIR/$dspName/$dspName-temp5.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+        cp  "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone or plugin mode
@@ -158,7 +155,7 @@ for p in $FILES; do
 
     rm "$SRCDIR/$dspName/$dspName-temp.jucer"  "$SRCDIR/$dspName/$dspName-temp0.jucer" 
     rm "$SRCDIR/$dspName/$dspName-temp1.jucer" "$SRCDIR/$dspName/$dspName-temp2.jucer"
-    rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName-temp5.jucer"
+    rm "$SRCDIR/$dspName/$dspName-temp3.jucer" "$SRCDIR/$dspName/$dspName-temp4.jucer" 
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
