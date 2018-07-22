@@ -112,7 +112,7 @@ typedef int (* getSampleRateFun) (struct dsp_imp* dsp);
 typedef void (* computeFun) (struct dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
 typedef int (* getSampleSizeFun) ();
-typedef void (* setDefaultSoundFun) (Soundfile* sf);
+typedef void (* setDefaultSoundFun) (struct Soundfile* sf);
     
 /***************************************
  * DSP memory manager functions

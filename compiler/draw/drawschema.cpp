@@ -33,32 +33,31 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <ostream>
-#include <sstream>
 #include <map>
+#include <ostream>
 #include <set>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <utility>
 #include <vector>
 
-#include "boxes.hh"
-#include "global.hh"
-#include "ppbox.hh"
-#include "prim2.hh"
 #include "boxcomplexity.hh"
-#include "devLib.h"
-#include "occurrences.hh"
-#include "ppbox.hh"
-#include "xtended.hh"
+#include "boxes.hh"
 #include "compatibility.hh"
 #include "description.hh"
+#include "devLib.h"
 #include "drawschema.hh"
 #include "exception.hh"
 #include "files.hh"
+#include "global.hh"
 #include "names.hh"
+#include "occurrences.hh"
+#include "ppbox.hh"
+#include "prim2.hh"
 #include "property.hh"
 #include "schema.h"
+#include "xtended.hh"
 
 #if 0
 #define linkcolor "#b3d1dc"

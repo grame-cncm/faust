@@ -50,6 +50,10 @@
 #include "faust/midi/juce-midi.h"
 #endif
 
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 #if defined(POLY2)
 #include "faust/dsp/dsp-combiner.h"
 #include "dsp_effect.cpp"
@@ -257,7 +261,11 @@ class FaustPlugInAudioProcessor : public AudioProcessor, private Timer
     #if defined(OSCCTRL)
         ScopedPointer<JuceOSCUI> fOSCUI;
     #endif
-        
+    
+    #if defined(SOUNDFILE)
+        ScopedPointer<SoundUI> fSoundUI;
+    #endif
+    
         JuceStateUI fStateUI;
         JuceParameterUI fParameterUI;
         
@@ -381,6 +389,14 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     if (!fOSCUI->run()) {
         std::cerr << "JUCE OSC handler cannot be started..." << std::endl;
     }
+#endif
+    
+#if defined(SOUNDFILE)
+    // Use bundle path
+    auto file = File::getSpecialLocation(File::currentExecutableFile)
+        .getParentDirectory().getParentDirectory().getChildFile("Resources");
+    fSoundUI = new SoundUI(file.getFullPathName().toStdString());
+    fDSP->buildUserInterface(fSoundUI);
 #endif
     
 #ifdef JUCE_POLY

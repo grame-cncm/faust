@@ -140,13 +140,9 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
 #endif
 }
 
-llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key,
-                                           const std::vector<std::string>& library_list,
-                                           const std::vector<std::string>& include_pathnames,
-                                           Module* module,
-                                           LLVMContext* context,
-                                           const string& target,
-                                           int opt_level)
+llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const std::vector<std::string>& library_list,
+                                           const std::vector<std::string>& include_pathnames, Module* module,
+                                           LLVMContext* context, const string& target, int opt_level)
     : dsp_factory_imp("BitcodeDSP", sha_key, "", library_list, include_pathnames)
 {
     startLLVMLibrary();
@@ -244,10 +240,10 @@ bool llvm_dsp_factory_aux::initJIT(string& error_msg)
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetSampleSize      = (getSampleSizeFun)loadOptimize("getSampleSize" + fClassName);
         fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
-         
+
         // Set the default sound
         fSetDefaultSound(dynamic_defaultsound);
-     
+
         return true;
     } catch (
         faustexception& e) {  // Module does not contain the Faust entry points, or external symbol was not found...

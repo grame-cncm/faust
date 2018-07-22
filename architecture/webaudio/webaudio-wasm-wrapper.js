@@ -1585,18 +1585,32 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     audio_node.init();
 
     audio_node.getJSON = function() { return factory.getJSON(); }
+    
+    // For WAP
+    audio_node.getMetadata = function() { return factory.getJSON(); }
 
     // Needed for sample accurate control
     audio_node.setParamValue = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
     audio_node.getParamValue = function(path) { return this.parameters.get(path).value; }
+    
+    // For WAP
+    audio_node.setParam = function(path, val) { this.parameters.get(path).setValueAtTime(val, 0); }
+    audio_node.getParam = function(path) { return this.parameters.get(path).value; }
 
     audio_node.setOutputParamHandler = function(handler) { this.output_handler = handler; }
     audio_node.getOutputParamHandler = function() { return this.output_handler; }
 
     audio_node.getNumInputs = function() { return parseInt(factory.json_object.inputs); }
     audio_node.getNumOutputs = function() { return parseInt(factory.json_object.outputs); }
-
+    
+    // For WAP
+    audio_node.inputChannelCount = function() { return parseInt(factory.json_object.inputs); }
+    audio_node.outputChannelCount = function() { return parseInt(factory.json_object.outputs); }
+    
     audio_node.getParams = function() { return this.inputs_items; }
+    
+    // For WAP
+    audio_node.getDescriptor = function() { return this.inputs_items; }
 
     audio_node.ctrlChange = function(channel, ctrl, value)
     {
@@ -1636,6 +1650,54 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
         } else if (cmd === 14) {
             this.pitchWheel(channel, ((data2 * 128.0 + data1)-8192)/8192.0);
         }
+    }
+    
+    // For WAP
+    audio_node.onMidi = function(data)
+    {
+        this.midiMessage(data);
+    }
+    
+    /**
+     * @returns {Object} describes the path for each available param and its current value
+     */
+    audio_node.getState = async function()
+    {
+        var params = new Object();
+        for (let i = 0; i < this.getDescriptor().length; i++) {
+            Object.assign(params, { [this.getDescriptor()[i]]: `${this.getParam(this.getDescriptor()[i])}` });
+        }
+        return new Promise(resolve => {
+                           resolve(params)
+                           });
+    }
+    
+    /**
+     * Sets each params with the value indicated in the state object
+     * @param {Object} state
+     */
+    audio_node.setState = async function(state)
+    {
+        return new Promise(resolve => {
+                           for (const param in state) {
+                           if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+                           }
+                           try {
+                           this.gui.setAttribute('state', JSON.stringify(state));
+                           } catch (error) {
+                           console.warn("Plugin without gui or GUI not defined", error);
+                           }
+                           resolve(state);
+                           })
+    }
+    
+    /**
+     * A different call closer to the preset management
+     * @param {Object} patch to assign as a preset to the node
+     */
+    audio_node.setPatch = function(patch)
+    {
+        this.setState(this.presets[patch])
     }
 
     audio_node.metadata = function (handler) {}

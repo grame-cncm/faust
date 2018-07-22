@@ -42,10 +42,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     */
     static map<string, FIRInstruction::Opcode> gMathLibTable;
 
-    int  fRealHeapOffset;  // Offset in Real HEAP
-    int  fIntHeapOffset;   // Offset in Integer HEAP
-    int  fSoundHeapOffset; // Offset in Sound HEAP
-    bool fCommute;         // Whether to try commutative operation reverse order generation
+    int  fRealHeapOffset;   // Offset in Real HEAP
+    int  fIntHeapOffset;    // Offset in Integer HEAP
+    int  fSoundHeapOffset;  // Offset in Sound HEAP
+    bool fCommute;          // Whether to try commutative operation reverse order generation
 
     map<string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
 
@@ -227,10 +227,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visit(AddSoundfileInst* inst)
     {
         MemoryDesc tmp = fFieldTable[inst->fSFZone];
-        fUserInterfaceBlock->push(new FIRUserInterfaceInstruction<T>(FIRInstruction::kAddSoundFile,
-                                                                     tmp.fOffset, 
-                                                                     inst->fLabel,
-                                                                     inst->fURL));
+        fUserInterfaceBlock->push(
+            new FIRUserInterfaceInstruction<T>(FIRInstruction::kAddSoundFile, tmp.fOffset, inst->fLabel, inst->fURL));
     }
 
     virtual void visit(LabelInst* inst) {}
@@ -238,8 +236,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        //dump2FIR(inst);
-        
+        // dump2FIR(inst);
+
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
             return;
@@ -288,35 +286,37 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         MemoryDesc    tmp   = fFieldTable[inst->fAddress->getName()];
 
         if (named) {
-            
             switch (tmp.fType) {
                 case Typed::kInt32:
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInt, 0, 0, tmp.fOffset, 0));
                     break;
                 case Typed::kSound_ptr:
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadSound, 0, 0, tmp.fOffset,0));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadSound, 0, 0, tmp.fOffset, 0));
                     break;
                 default:
                     fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadReal, 0, 0, tmp.fOffset, 0));
                     break;
             }
-            
+
         } else {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string num;
+            string          num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
-                fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
+                fCurrentBlock->push(
+                    new FIRBasicInstruction<T>(FIRInstruction::kLoadInput, 0, 0, std::atoi(num.c_str()), 0));
             } else {
                 DeclareStructTypeInst* struct_type = isStructType(indexed->getName());
                 if (struct_type) {
                     Int32NumInst* field_index = static_cast<Int32NumInst*>(indexed->fIndex);
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kLoadSoundField, 0, 0, field_index->fNum, 0));
+                    fCurrentBlock->push(
+                        new FIRBasicInstruction<T>(FIRInstruction::kLoadSoundField, 0, 0, field_index->fNum, 0));
                 } else {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(
-                       (tmp.fType == Typed::kInt32) ? FIRInstruction::kLoadIndexedInt : FIRInstruction::kLoadIndexedReal,
-                       0, 0, tmp.fOffset, tmp.fSize));
+                    fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
+                                                                       ? FIRInstruction::kLoadIndexedInt
+                                                                       : FIRInstruction::kLoadIndexedReal,
+                                                                   0, 0, tmp.fOffset, tmp.fSize));
                 }
             }
         }
@@ -327,14 +327,14 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
     {
         ArrayTyped* array_typed;
-       
-        //dump2FIR(value);
-        //if (type) dump2FIR(type);
+
+        // dump2FIR(value);
+        // if (type) dump2FIR(type);
 
         // Waveform array store...
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
             MemoryDesc tmp = fFieldTable[address->getName()];
-            
+
             switch (array_typed->fType->getType()) {
                 case Typed::kInt32: {
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
@@ -347,24 +347,24 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case Typed::kFloat: {
                     FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(value);
                     faustassert(float_array);
-                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.fOffset,
-                                                                            int(float_array->fNumTable.size()),
-                                                                            reinterpret_cast<const std::vector<T>&>(float_array->fNumTable)));
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(
+                        FIRInstruction::kBlockStoreReal, tmp.fOffset, int(float_array->fNumTable.size()),
+                        reinterpret_cast<const std::vector<T>&>(float_array->fNumTable)));
                     break;
                 }
                 case Typed::kDouble: {
                     DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(value);
                     faustassert(double_array);
-                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(FIRInstruction::kBlockStoreReal, tmp.fOffset,
-                                                                            int(double_array->fNumTable.size()),
-                                                                            reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
+                    fCurrentBlock->push(new FIRBlockStoreRealInstruction<T>(
+                        FIRInstruction::kBlockStoreReal, tmp.fOffset, int(double_array->fNumTable.size()),
+                        reinterpret_cast<const std::vector<T>&>(double_array->fNumTable)));
                     break;
                 }
                 default:
                     faustassert(false);
                     break;
             }
-        
+
             // Standard store
         } else {
             // Compile value
@@ -374,19 +374,21 @@ struct InterpreterInstVisitor : public DispatchVisitor {
             MemoryDesc    tmp   = fFieldTable[address->getName()];
 
             if (named) {
-                
                 switch (tmp.fType) {
                     case Typed::kInt32:
-                        fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, tmp.fOffset, 0));
+                        fCurrentBlock->push(
+                            new FIRBasicInstruction<T>(FIRInstruction::kStoreInt, 0, 0, tmp.fOffset, 0));
                         break;
                     case Typed::kSound_ptr:
-                        fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreSound, 0, 0, tmp.fOffset,0));
+                        fCurrentBlock->push(
+                            new FIRBasicInstruction<T>(FIRInstruction::kStoreSound, 0, 0, tmp.fOffset, 0));
                         break;
                     default:
-                        fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, tmp.fOffset, 0));
+                        fCurrentBlock->push(
+                            new FIRBasicInstruction<T>(FIRInstruction::kStoreReal, 0, 0, tmp.fOffset, 0));
                         break;
                 }
-                
+
             } else {
                 IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(address);
                 // Compile address
@@ -395,7 +397,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 string num;
                 // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
-                    fCurrentBlock->push(new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, std::atoi(num.c_str()), 0));
+                    fCurrentBlock->push(
+                        new FIRBasicInstruction<T>(FIRInstruction::kStoreOutput, 0, 0, std::atoi(num.c_str()), 0));
                 } else {
                     fCurrentBlock->push(new FIRBasicInstruction<T>((tmp.fType == Typed::kInt32)
                                                                        ? FIRInstruction::kStoreIndexedInt

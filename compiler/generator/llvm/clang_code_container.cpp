@@ -40,7 +40,8 @@
 #include <llvm/Support/raw_ostream.h>
 
 #include <llvm/Bitcode/ReaderWriter.h>
-#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40)
+#if defined(LLVM_34) || defined(LLVM_35) || defined(LLVM_36) || defined(LLVM_37) || defined(LLVM_38) || \
+    defined(LLVM_39) || defined(LLVM_40)
 #include <llvm/IR/Module.h>
 #else
 #include <llvm/Module.h>

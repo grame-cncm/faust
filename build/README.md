@@ -20,7 +20,7 @@ If you're familiar with cmake, you can directly use cmake commands otherwise, a 
 
 ## Using the Makefile
 The Makefile includes 2 kind of targets, addressing the 2 phases of the compilation (see above):
-- 1) targets to configure the project: these targets are named `configxxx` and add components to the project (e.g. `make configstatic` adds the libfaust static library to the project)
+- 1) targets to configure the project: these targets are named `configxxx` and add components to the project (e.g. `make configstatic` adds the libfaust static library to the project). This scheme is now obsolete but maintained for compatibility. See the _"Customizing the project targets"_ section for more details.
 - 2) targets to compile
 
 By default, you can simply type `make` in the `build` folder to compile the **Faust** compiler and the **OSC and HTTP** libraries.
@@ -29,8 +29,12 @@ On output, you'll find applications in the `build/bin` folder and libraries in t
 Type `make help` for details on targets and options.
 
 ## Customizing the embedded backends
-The folder `backends` contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
+The `backends` folder contains a set of files describing the Faust backends to be embedded into  each possible output (compiler, static library, dynamic library). By default, the project makes use of `backends.cmake`.
 You can freely customize this file to your needs or create a new one. A `BACKENDS` option is provided by the Makefile to use any file (note it always look for the backends files into the backends folder). At cmake level, use of the `-C backend_file.cmake` will populate the cmake cache with the correponding settings.
+
+## Customizing the project targets
+The `targets` folder contains a set of files describing the targets to be embedded into your ptoject. By default, the project includes the faust, osc and http targets, corresponding to the faust compiler, the osc and the httpd static libraries.
+You can freely customize this file to your needs or create a new one. A `TARGETS` option is provided by the Makefile to use any file (note it always look for the targets files into the targets folder). At cmake level, use of the `-C targets_file.cmake` will populate the cmake cache with the correponding settings.
 
 
 ## Advanced settings with cmake

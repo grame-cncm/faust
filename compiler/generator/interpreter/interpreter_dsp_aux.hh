@@ -72,16 +72,14 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key,
                                 const std::vector<std::string>& library_list,
-                                const std::vector<std::string>& include_pathnames,
-                                int version_num, int inputs, int outputs,
-                                int int_heap_size, int real_heap_size, int sound_heap_size,
-                                int sr_offset, int count_offset, int iota_offset,
-                                int opt_level, FIRMetaBlockInstruction* meta,
+                                const std::vector<std::string>& include_pathnames, int version_num, int inputs,
+                                int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
+                                int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* firinterface, FIRBlockInstruction<T>* static_init,
                                 FIRBlockInstruction<T>* init, FIRBlockInstruction<T>* resetui,
                                 FIRBlockInstruction<T>* clear, FIRBlockInstruction<T>* compute_control,
                                 FIRBlockInstruction<T>* compute_dsp)
-    : dsp_factory_imp(name, sha_key, "", library_list, include_pathnames),
+        : dsp_factory_imp(name, sha_key, "", library_list, include_pathnames),
           fVersion(version_num),
           fNumInputs(inputs),
           fNumOutputs(outputs),
@@ -146,13 +144,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "o " << fOptLevel << std::endl;
 
             *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
-            
-            *out << "i " << fIntHeapSize
-                 << " r " << fRealHeapSize
-                 << " s " << fSoundHeapSize
-                 << " s " << fSROffset
-                 << " c " << fCountOffset
-                 << " i " << fIOTAOffset << std::endl;
+
+            *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSoundHeapSize << " s " << fSROffset
+                 << " c " << fCountOffset << " i " << fIOTAOffset << std::endl;
 
             *out << "m" << std::endl;
             fMetaBlock->write(out, small);
@@ -186,13 +180,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "opt_level " << fOptLevel << std::endl;
 
             *out << "inputs " << fNumInputs << " outputs " << fNumOutputs << std::endl;
-            
-            *out << "int_heap_size " << fIntHeapSize
-                 << " real_heap_size " << fRealHeapSize
-                 << " sound_heap_size " << fSoundHeapSize
-                 << " sr_offset " << fSROffset
-                 << " count_offset " << fCountOffset
-                 << " iota_offset " << fIOTAOffset << std::endl;
+
+            *out << "int_heap_size " << fIntHeapSize << " real_heap_size " << fRealHeapSize << " sound_heap_size "
+                 << fSoundHeapSize << " sr_offset " << fSROffset << " count_offset " << fCountOffset << " iota_offset "
+                 << fIOTAOffset << std::endl;
 
             *out << "meta_block" << std::endl;
             fMetaBlock->write(out, small);
@@ -294,7 +285,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         heap_size_reader >> dummy;  // Read "real_heap_size" token
         heap_size_reader >> real_heap_size;
-        
+
         heap_size_reader >> dummy;  // Read "sound_heap_size" token
         heap_size_reader >> sound_heap_size;
 
@@ -341,13 +332,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         std::vector<std::string> dummy_list;
         std::vector<std::string> dummy_include;
-        return new interpreter_dsp_factory_aux(factory_name, sha_key,
-                                               dummy_list, dummy_include,
-                                               file_num, inputs, outputs,
-                                               int_heap_size, real_heap_size, sound_heap_size,
-                                               sr_offset, count_offset, iota_offset,
-                                               opt_level, meta_block, ui_block, static_init_block, init_block,
-                                               resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        return new interpreter_dsp_factory_aux(
+            factory_name, sha_key, dummy_list, dummy_include, file_num, inputs, outputs, int_heap_size, real_heap_size,
+            sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
+            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
     }
 
     static std::string parseStringToken(std::stringstream* inst)
@@ -1054,9 +1042,12 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
 
     interpreter_dsp* createDSPInstance();
-    
+
     virtual std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fFactory->getDSPFactoryIncludePathnames(); }
+    virtual std::vector<std::string> getDSPFactoryIncludePathnames()
+    {
+        return fFactory->getDSPFactoryIncludePathnames();
+    }
 
     void                setMemoryManager(dsp_memory_manager* manager) { fFactory->setMemoryManager(manager); }
     dsp_memory_manager* getMemoryManager() { return fFactory->getMemoryManager(); }
@@ -1103,7 +1094,7 @@ EXPORT std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* 
 EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory,
-                                                    const std::string& machine_code_path);
+                                                    const std::string&       machine_code_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
 

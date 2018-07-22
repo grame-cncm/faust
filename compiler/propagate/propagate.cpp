@@ -513,7 +513,25 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         siglist l2 = propagate(slotenv2, path, t1, listConcat(l1, listLift(lsig)));
         siglist l3 = (gGlobal->gFTZMode > 0) ? wrapWithFTZ(l2) : l2;
         Tree    g  = rec(listConvert(l3));
-        return makeSigProjList(g, out1);
+
+        // compute output list of recursive signals
+        siglist ol(out1);  // output list
+        int     p = 0;     // projection number
+
+        for (auto exp : l3) {
+            if (exp->aperture() > 0) {
+                // it is a regular recursive expression branch
+                ol[p] = sigDelay0(sigProj(p, g));
+            } else {
+                // this expression is a closed term,
+                // it don't need to be inside this recursion group.
+                // cerr << "degenerate recursion " << exp << endl;
+                ol[p] = exp;
+            }
+            p++;
+        }
+
+        return ol;
     }
 
     else if (isBoxEnvironment(box)) {

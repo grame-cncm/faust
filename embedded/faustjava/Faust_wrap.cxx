@@ -239,6 +239,265 @@ static void SWIGUNUSED SWIG_JavaThrowException(JNIEnv *jenv, SWIG_JavaExceptionC
 extern "C" {
 #endif
 
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1data_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned char *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned char **)&jarg2; 
+  {
+    size_t ii;
+    unsigned char *b = (unsigned char *) arg1->data;
+    for (ii = 0; ii < (size_t)64; ii++) b[ii] = *((unsigned char *) arg2 + ii);
+  }
+  
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1data_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  result = (unsigned char *)(unsigned char *) ((arg1)->data);
+  *(unsigned char **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1datalen_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = (unsigned int)jarg2; 
+  if (arg1) (arg1)->datalen = arg2;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1datalen_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int result;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  result = (unsigned int) ((arg1)->datalen);
+  jresult = (jlong)result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1bitlen_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned int **)&jarg2; 
+  {
+    size_t ii;
+    unsigned int *b = (unsigned int *) arg1->bitlen;
+    for (ii = 0; ii < (size_t)2; ii++) b[ii] = *((unsigned int *) arg2 + ii);
+  }
+  
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1bitlen_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  result = (unsigned int *)(unsigned int *) ((arg1)->bitlen);
+  *(unsigned int **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1state_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned int **)&jarg2; 
+  {
+    size_t ii;
+    unsigned int *b = (unsigned int *) arg1->state;
+    for (ii = 0; ii < (size_t)5; ii++) b[ii] = *((unsigned int *) arg2 + ii);
+  }
+  
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1state_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  result = (unsigned int *)(unsigned int *) ((arg1)->state);
+  *(unsigned int **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1k_1set(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned int **)&jarg2; 
+  {
+    size_t ii;
+    unsigned int *b = (unsigned int *) arg1->k;
+    for (ii = 0; ii < (size_t)4; ii++) b[ii] = *((unsigned int *) arg2 + ii);
+  }
+  
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_SHA1_1CTX_1k_1get(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned int *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  result = (unsigned int *)(unsigned int *) ((arg1)->k);
+  *(unsigned int **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_new_1SHA1_1CTX(JNIEnv *jenv, jclass jcls) {
+  jlong jresult = 0 ;
+  SHA1_CTX *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  result = (SHA1_CTX *)new SHA1_CTX();
+  *(SHA1_CTX **)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_delete_1SHA1_1CTX(JNIEnv *jenv, jclass jcls, jlong jarg1) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  delete arg1;
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_sha1_1transform(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned char *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned char **)&jarg2; 
+  sha1_transform(arg1,arg2);
+  
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_sha1_1init(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  sha1_init(arg1);
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_sha1_1update(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2, jlong jarg3) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned char *arg2 ;
+  unsigned int arg3 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned char **)&jarg2; 
+  arg3 = (unsigned int)jarg3; 
+  sha1_update(arg1,arg2,arg3);
+  
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_sha1_1final(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_, jlong jarg2) {
+  SHA1_CTX *arg1 = (SHA1_CTX *) 0 ;
+  unsigned char *arg2 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(SHA1_CTX **)&jarg1; 
+  arg2 = *(unsigned char **)&jarg2; 
+  sha1_final(arg1,arg2);
+  
+}
+
+
+SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_generateCSHA1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
+  char *arg1 = (char *) 0 ;
+  char *arg2 = (char *) 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  arg1 = 0;
+  if (jarg1) {
+    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
+    if (!arg1) return ;
+  }
+  arg2 = 0;
+  if (jarg2) {
+    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
+    if (!arg2) return ;
+  }
+  generateCSHA1((char const *)arg1,arg2);
+  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
+  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
+}
+
+
 SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_expandCDSPFromFile(JNIEnv *jenv, jclass jcls, jstring jarg1, jint jarg2, jlong jarg3, jstring jarg4, jstring jarg5) {
   jstring jresult = 0 ;
   char *arg1 = (char *) 0 ;
@@ -388,28 +647,6 @@ SWIGEXPORT jboolean JNICALL Java_com_grame_faust_FaustJNI_generateCAuxFilesFromS
   
   if (arg5) jenv->ReleaseStringUTFChars(jarg5, (const char *)arg5);
   return jresult;
-}
-
-
-SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_generateCSHA1(JNIEnv *jenv, jclass jcls, jstring jarg1, jstring jarg2) {
-  char *arg1 = (char *) 0 ;
-  char *arg2 = (char *) 0 ;
-  
-  (void)jenv;
-  (void)jcls;
-  arg1 = 0;
-  if (jarg1) {
-    arg1 = (char *)jenv->GetStringUTFChars(jarg1, 0);
-    if (!arg1) return ;
-  }
-  arg2 = 0;
-  if (jarg2) {
-    arg2 = (char *)jenv->GetStringUTFChars(jarg2, 0);
-    if (!arg2) return ;
-  }
-  generateCSHA1((char const *)arg1,arg2);
-  if (arg1) jenv->ReleaseStringUTFChars(jarg1, (const char *)arg1);
-  if (arg2) jenv->ReleaseStringUTFChars(jarg2, (const char *)arg2);
 }
 
 
@@ -682,6 +919,21 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryLibraryList
   (void)jarg1_;
   arg1 = *(llvm_dsp_factory **)&jarg1; 
   result = (char **)getCDSPFactoryLibraryList(arg1);
+  *(char ***)&jresult = result; 
+  return jresult;
+}
+
+
+SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryIncludePathnames(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jlong jresult = 0 ;
+  llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
+  char **result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp_factory **)&jarg1; 
+  result = (char **)getCDSPFactoryIncludePathnames(arg1);
   *(char ***)&jresult = result; 
   return jresult;
 }

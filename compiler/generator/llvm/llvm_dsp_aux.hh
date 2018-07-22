@@ -78,7 +78,7 @@ namespace llvm {
 class LLVMContext;
 class ExecutionEngine;
 class Module;
-}
+}  // namespace llvm
 
 class llvm_dsp_factory;
 
@@ -198,19 +198,13 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string writeDSPFactoryToMachineAux(const std::string& target);
 
    public:
-    llvm_dsp_factory_aux(const std::string& sha_key,
-                         const std::vector<std::string>& library_list,
-                         const std::vector<std::string>& include_pathnames,
-                         llvm::Module* module,
-                         llvm::LLVMContext* context,
-                         const std::string& target,
-                         int opt_level = 0);
+    llvm_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& library_list,
+                         const std::vector<std::string>& include_pathnames, llvm::Module* module,
+                         llvm::LLVMContext* context, const std::string& target, int opt_level = 0);
 
     llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
 
-    llvm_dsp_factory_aux(const std::string& name,
-                         const std::string& sha_key,
-                         const std::string& dsp,
+    llvm_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
                          const std::vector<std::string>& library_list,
                          const std::vector<std::string>& include_pathnames)
         : dsp_factory_imp(name, sha_key, dsp, library_list, include_pathnames)
@@ -296,7 +290,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     void write(std::ostream* out, bool binary, bool small = false) {}
 
     std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-    
+
     std::vector<std::string> getDSPFactoryIncludePathnames() { return fFactory->getDSPFactoryIncludePathnames(); }
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }

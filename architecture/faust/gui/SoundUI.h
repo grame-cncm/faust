@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2003-2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -33,18 +33,38 @@
 #endif
 
 #include "faust/gui/DecoratorUI.h"
-#include "faust/gui/soundfile.h"
+
+// Always included otherwise -i mode later on will not always include it (with the conditional includes)
+#include "faust/gui/Soundfile.h"
+
+#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
+#include "faust/gui/JuceReader.h"
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+{
+    Soundfile* sf = new Soundfile();
+    JuceReader reader(sf, path_name_str, max_chan);
+    return sf;
+}
+#else
+#include "faust/gui/LibsndfileReader.h"
+Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+{
+    Soundfile* sf = new Soundfile();
+    LibsndfileReader reader(sf, path_name_str, max_chan);
+    return sf;
+}
+#endif
 
 // To be used by dsp code if no SoundUI is used or when soundfile is not found
-extern "C" Soundfile* defaultsound = new Soundfile("", MAX_CHAN);
+extern "C" Soundfile* defaultsound = createSoundfile("", MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
 		
     private:
     
-        std::vector<std::string> fSoundfileDir;        // The soundfile directories
-        std::map<std::string, Soundfile*> fSFMap;      // Map to share loaded soundfiles
+        std::vector<std::string> fSoundfileDir;             // The soundfile directories
+        std::map<std::string, Soundfile*> fSoundfileMap;    // Map to share loaded soundfiles
     
      public:
             
@@ -60,32 +80,24 @@ class SoundUI : public GenericUI
         {   
             // Delete all soundfiles
             std::map<std::string, Soundfile*>::iterator it;
-            for (it = fSFMap.begin(); it != fSFMap.end(); it++) {
+            for (it = fSoundfileMap.begin(); it != fSoundfileMap.end(); it++) {
                 delete (*it).second;
             }
         }
 
         // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* file_name, Soundfile** sf_zone)
+        virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
-            // If no filename was given, assume label is the filename
-            std::string file_name_str;
-            if (strlen(file_name) == 0) {
-                file_name_str = label;
-            } else {
-                file_name_str = file_name;
-            }
-            
             std::string sha_key;
-            std::string path_name_str = Soundfile::Check(fSoundfileDir, file_name_str, sha_key);
+            std::string path_name_str = SoundfileReader::Check(fSoundfileDir, url, sha_key);
             if (path_name_str != "") {
                 std::string file_key = (sha_key == "") ? path_name_str : sha_key;
                 // Check if 'file_key' is already loaded
-                if (fSFMap.find(file_key) == fSFMap.end()) {
-                    fSFMap[file_key] = new Soundfile(path_name_str, 64);
+                if (fSoundfileMap.find(file_key) == fSoundfileMap.end()) {
+                    fSoundfileMap[file_key] = createSoundfile(path_name_str, 64);
                 }
                 // Get the soundfile
-                *sf_zone = fSFMap[file_key];
+                *sf_zone = fSoundfileMap[file_key];
             } else {
                 // Take the defaultsound
                 std::cout << "addSoundfile : defaultsound\n";
@@ -93,36 +105,56 @@ class SoundUI : public GenericUI
             }
         }
     
-    static std::string getBinaryPath(std::string folder = "")
-    {
-        std::string bundle_path_str;
-    #ifdef __APPLE__
-        CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-        if (bundle_ref) {
-            UInt8 bundle_path[512];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                bundle_path_str = std::string((char*)bundle_path) + folder;
+        static std::string getBinaryPath(std::string folder = "")
+        {
+            std::string bundle_path_str;
+        #ifdef __APPLE__
+            CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
+            if (bundle_ref) {
+                UInt8 bundle_path[512];
+                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                    bundle_path_str = std::string((char*)bundle_path) + folder;
+                }
             }
+        #endif
+            return bundle_path_str;
         }
-    #endif
-        return bundle_path_str;
-    }
-    
-    static std::string getBinaryPathFrom(const std::string& path)
-    {
-        std::string bundle_path_str;
-    #ifdef __APPLE__
-        CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
-        CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
-        if (bundle_ref) {
-            UInt8 bundle_path[512];
-            if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
-                bundle_path_str = std::string((char*)bundle_path);
+        
+        static std::string getBinaryPathFrom(const std::string& path)
+        {
+            std::string bundle_path_str;
+        #ifdef __APPLE__
+            CFBundleRef bundle = CFBundleGetBundleWithIdentifier(CFStringCreateWithCString(kCFAllocatorDefault, path.c_str(), CFStringGetSystemEncoding()));
+            CFURLRef bundle_ref = CFBundleCopyBundleURL(bundle);
+            if (bundle_ref) {
+                UInt8 bundle_path[512];
+                if (CFURLGetFileSystemRepresentation(bundle_ref, true, bundle_path, 512)) {
+                    bundle_path_str = std::string((char*)bundle_path);
+                }
             }
+        #endif
+            return bundle_path_str;
         }
-    #endif
-        return bundle_path_str;
-    }
 };
+
+// Check if soundfile exists and return the real path_name
+std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
+{
+#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
+    JuceReader reader;
+#else
+    LibsndfileReader reader;
+#endif
+    std::string path_name_str = reader.CheckAux(file_name_str, sha_key);
+    if (path_name_str != "") {
+        return path_name_str;
+    } else {
+        for (int i = 0; i < sound_directories.size(); i++) {
+            std::string res = reader.CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
+            if (res != "") { return res; }
+        }
+        return "";
+    }
+}
 
 #endif

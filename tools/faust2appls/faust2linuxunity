@@ -16,25 +16,36 @@
 
 . faustpath
 
+NVOICES=-1
+
 #-------------------------------------------------------------------
 # Dispatch command arguments
 
-for p in $@; do
+while [ $1 ] 
+do
+    p=$1
+    
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echo "faust2linuxunity <file1.dsp> [<file2.dsp>]"
         echo "Create Linux shared library for faust unity plugin."
         echo "Use 'faust2unity -linux' to also create the c# files"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "See architecture/unity/README.md for more info"
         exit
     fi
 
-    if [ ${p:0:1} = "-" ]; then
+	if [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+    elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
 	    FILES="$FILES $p"
 	else
 	    OPTIONS="$OPTIONS $p"        
 	fi
+	
+shift
 done
 
 #------------------------------------------------------------------------------
@@ -86,9 +97,12 @@ for p in $FILES; do
     # compile c++ to binary
     (
         cd "$TMP"
-		$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
-
-    ) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
+        if [ $NVOICES == -1 ]; then
+        	$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -o $LIBNAME $NAME.cpp
+		else
+			$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -DPOLY -o $LIBNAME $NAME.cpp
+		fi
+	) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
 
     # moves binary to final dir
     rm -rf "$SRCDIR/$LIBNAME"

@@ -107,11 +107,15 @@ Tree normalizeDelay1Term(Tree s)
 
 Tree normalizeFixedDelayTerm(Tree s, Tree d)
 {
-    Tree x, y, r;
+    Tree x, y, r, var, le;
     int  i;
 
-    if (isZero(d) && !isProj(s, &i, r)) {
-        return s;
+    if (isZero(d)) {
+        if (isProj(s, &i, r)) {
+            return sigFixDelay(s, d);
+        } else {
+            return s;
+        }
 
     } else if (isZero(s)) {
         return s;

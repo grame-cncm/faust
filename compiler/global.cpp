@@ -126,7 +126,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDeepFirstSwitch   = false;
     gVecSize           = 32;
     gVectorLoopVariant = 0;
- 
+
     gOpenMPSwitch    = false;
     gOpenMPLoop      = false;
     gSchedulerSwitch = false;
@@ -147,8 +147,9 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gDSPStruct = false;
     gLightMode = false;
 
-    gClassName   = "mydsp";
-    gProcessName = "process";
+    gClassName     = "mydsp";
+    gSuperClassName = "dsp";
+    gProcessName   = "process";
 
     gDSPFactory = 0;
 
@@ -548,7 +549,8 @@ void global::init()
 
     // Create type declaration for external 'soundfile' type
     vector<NamedTyped*> sf_type_fields;
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
+    sf_type_fields.push_back(
+        InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fSampleRate", InstBuilder::genBasicTyped(Typed::kInt32)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));

@@ -343,12 +343,7 @@ void WASTCodeContainer::produceClass()
     }
 
     // "name", "filename" found in medata
-    JSONInstVisitor json_visitor2("", "",
-                                  fNumInputs, fNumOutputs,
-                                  "", "",
-                                  FAUSTVERSION,
-                                  options.str(),
-                                  size.str(),
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);
@@ -431,8 +426,8 @@ void WASTScalarCodeContainer::generateCompute(int n)
 
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-    
-    //dump2FIR(block);
+
+    // dump2FIR(block);
 
     block->accept(gGlobal->gWASTVisitor);
     tab(n + 1, fOutAux);

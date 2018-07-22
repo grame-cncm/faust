@@ -424,10 +424,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         EndLine();
     }
 
-    virtual void visit(FloatNumInst* inst)
-    {
-        *fOut << "Float(" << checkFloat(inst->fNum) << ")";
-    }
+    virtual void visit(FloatNumInst* inst) { *fOut << "Float(" << checkFloat(inst->fNum) << ")"; }
 
     virtual void visit(FloatArrayNumInst* inst)
     {
@@ -439,15 +436,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(Int32NumInst* inst)
-    {
-        *fOut << "Int32(" << inst->fNum << ")";
-    }
+    virtual void visit(Int32NumInst* inst) { *fOut << "Int32(" << inst->fNum << ")"; }
 
-    virtual void visit(Int64NumInst* inst)
-    {
-        *fOut << "Int64(" << inst->fNum << ")";
-    }
+    virtual void visit(Int64NumInst* inst) { *fOut << "Int64(" << inst->fNum << ")"; }
 
     virtual void visit(Int32ArrayNumInst* inst)
     {
@@ -459,15 +450,9 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << '}';
     }
 
-    virtual void visit(BoolNumInst* inst)
-    {
-        *fOut << "Bool(" << inst->fNum << ")";
-    }
+    virtual void visit(BoolNumInst* inst) { *fOut << "Bool(" << inst->fNum << ")"; }
 
-    virtual void visit(DoubleNumInst* inst)
-    {
-        *fOut << "Double(" << checkDouble(inst->fNum) << ")";
-    }
+    virtual void visit(DoubleNumInst* inst) { *fOut << "Double(" << checkDouble(inst->fNum) << ")"; }
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
@@ -516,7 +501,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
     {
         string fun_name = (inst->fMethod) ? "MethodFunCallInst(" : "FunCallInst(";
         *fOut << fun_name;
-     
+
         *fOut << "\"" << inst->fName << "\"";
         list<ValueInst*>::const_iterator it;
 
@@ -629,7 +614,6 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
         *fOut << "EndSWitch";
         tab(fTab, *fOut);
     }
-
 };
 
 #endif

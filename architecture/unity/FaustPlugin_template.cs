@@ -19,9 +19,14 @@ using FaustUtilities_MODEL;
 public class FaustPlugin_MODEL: MonoBehaviour {
 	// Array containing the value of each parameter, has to be public to be serialized by the Unity engine
 	public float[] parameters = new float[VARIABLES];
+	private Faust_Context ctx;
 
 	// Initializes the interface between the plugin and Unity
-	private Faust_Context ctx;
+	public Faust_Context context {
+	    get {
+	       return ctx;
+        }
+    }
 
 	/* @brief Returns true if the plugin is instantiated (the plugin is instantiated when play mode button is pressed)
     */

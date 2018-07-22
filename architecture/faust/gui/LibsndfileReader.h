@@ -1,6 +1,6 @@
 /************************************************************************
  FAUST Architecture File
- Copyright (C) 2017 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This Architecture section is free software; you can redistribute it
  and/or modify it under the terms of the GNU General Public License
@@ -21,40 +21,22 @@
  architecture section is not modified.
  ************************************************************************/
 
-#ifndef __soundfile__
-#define __soundfile__
+#ifndef __LibsndfileReader__
+#define __LibsndfileReader__
 
 #include <sndfile.h>
 #include <string.h>
-#include <stdio.h>
 #include <iostream>
-#include <fstream>
 #include <sstream>
+#include <fstream>
 
-#ifndef FAUSTFLOAT
-#define FAUSTFLOAT float
-#endif
+#include "faust/gui/Soundfile.h"
 
-#define BUFFER_SIZE 1024
-#define SAMPLE_RATE 44100
-#define MAX_CHAN    64
-
-#define MIN_CHAN(a,b) ((a) < (b) ? (a) : (b))
-
-#define PRE_PACKED_STRUCTURE
-#define POST_PACKED_STRUCTURE __attribute__((__packed__))
-
-PRE_PACKED_STRUCTURE
-struct Soundfile {
-    
-    FAUSTFLOAT** fBuffers;
-    int fLength;
-    int fSampleRate;
-    int fChannels;
+struct LibsndfileReader : public SoundfileReader {
     
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
     
-    static std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
+    std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
     {
         SF_INFO snd_info;
         snd_info.format = 0;
@@ -77,25 +59,12 @@ struct Soundfile {
         }
     }
     
-    // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
-    {
-        std::string path_name_str = CheckAux(file_name_str, sha_key);
-        if (path_name_str != "") {
-            return path_name_str;
-        } else {
-            for (int i = 0; i < sound_directories.size(); i++) {
-                std::string res = CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
-                if (res != "") { return res; }
-            }
-            return "";
-        }
-    }
+    LibsndfileReader() {}
     
-    Soundfile(const std::string& path_name_str, int max_chan)
+    LibsndfileReader(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
     {
-        fBuffers = new FAUSTFLOAT*[max_chan];
-        if (!fBuffers) {
+        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
+        if (!soundfile->fBuffers) {
             throw std::bad_alloc();
         }
      
@@ -106,13 +75,13 @@ struct Soundfile {
         
         if (snd_file) {
             
-            fChannels = MIN_CHAN(max_chan, snd_info.channels);
-            fLength = int(snd_info.frames);
-            fSampleRate = snd_info.samplerate;
+            soundfile->fChannels = std::min(max_chan, snd_info.channels);
+            soundfile->fLength = int(snd_info.frames);
+            soundfile->fSampleRate = snd_info.samplerate;
             
-            for (int chan = 0; chan < fChannels; chan++) {
-                fBuffers[chan] = new FAUSTFLOAT[snd_info.frames];
-                if (!fBuffers[chan]) {
+            for (int chan = 0; chan < soundfile->fChannels; chan++) {
+                soundfile->fBuffers[chan] = new FAUSTFLOAT[snd_info.frames];
+                if (!soundfile->fBuffers[chan]) {
                     throw std::bad_alloc();
                 }
             }
@@ -121,6 +90,7 @@ struct Soundfile {
             sf_count_t nbf, index = 0;
             FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
             sample_read reader;
+            
             if (sizeof(FAUSTFLOAT) == 4) {
                 reader = reinterpret_cast<sample_read>(sf_readf_float);
             } else {
@@ -129,16 +99,16 @@ struct Soundfile {
             do {
                 nbf = reader(snd_file, buffer, BUFFER_SIZE);
                 for (int sample = 0; sample < nbf; sample++) {
-                    for (int chan = 0; chan < fChannels; chan++) {
-                        fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
+                    for (int chan = 0; chan < soundfile->fChannels; chan++) {
+                        soundfile->fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
                     }
                 }
                 index += nbf;
             } while (nbf == BUFFER_SIZE);
             
             // Share the same buffers for all other channels so that we have max_chan channels available
-            for (int chan = fChannels; chan < max_chan; chan++) {
-                fBuffers[chan] = fBuffers[chan % snd_info.channels];
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[chan % snd_info.channels];
             }
        
             sf_close(snd_file);
@@ -149,33 +119,23 @@ struct Soundfile {
                 std::cerr << "Error opening the file : " << path_name_str << std::endl;
             }
             
-            fChannels = 1;
-            fLength = BUFFER_SIZE;
-            fSampleRate = SAMPLE_RATE;
+            soundfile->fChannels = 1;
+            soundfile->fLength = BUFFER_SIZE;
+            soundfile->fSampleRate = SAMPLE_RATE;
             
             // Allocate 1 channel
-            fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
-            if (!fBuffers[0]) {
+            soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
+            if (!soundfile->fBuffers[0]) {
                 throw std::bad_alloc();
             }
-            memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
+            memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
             
             // Share the same buffer for all other channels so that we have max_chan channels available
-            for (int chan = fChannels; chan < max_chan; chan++) {
-                fBuffers[chan] = fBuffers[0];
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[0];
             }
         }
     }
-    
-    ~Soundfile()
-    {
-        // Free the real channels only
-        for (int chan = 0; chan < fChannels; chan++) {
-            delete fBuffers[chan];
-        }
-        delete [] fBuffers;
-    }
-    
-} POST_PACKED_STRUCTURE;
+};
 
 #endif

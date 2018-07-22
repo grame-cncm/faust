@@ -517,7 +517,7 @@ void LLVMCodeContainer::generateInitFun()
     Value* arg2 = GET_ITERATOR(llvm_init_args_it++);
     arg2->setName("samplingFreq");
 
-    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
+    BasicBlock*    entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
@@ -558,7 +558,7 @@ void LLVMCodeContainer::generateInstanceInitFun()
     Value* arg2 = GET_ITERATOR(llvm_init_args_it++);
     arg2->setName("samplingFreq");
 
-    BasicBlock* entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
+    BasicBlock*    entry_block = BasicBlock::Create(getContext(), "entry_block", llvm_init);
     vector<Value*> params1;
     params1.push_back(arg2);
 
@@ -764,7 +764,7 @@ void LLVMCodeContainer::produceInternal()
     string counter = "count";
     generateFillBegin(counter);
 
-    //dumpLLVM(fModule);
+    // dumpLLVM(fModule);
 
     generateComputeBlock(fCodeProducer);
 
@@ -807,16 +807,18 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
 
     // Creates DSP structure
     LLVMTypeInstVisitor1 fTypeBuilder(fModule, fKlassName);
-    
-    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines 'defaultsound')
-    pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr), InstBuilder::genTypedZero(Typed::kSound_ptr)));
-   
+
+    // Has to be explicity added in the FIR (C/C++ backends generated code will be compiled with SoundUI which defines
+    // 'defaultsound')
+    pushGlobalDeclare(InstBuilder::genDecGlobalVar("defaultsound", InstBuilder::genBasicTyped(Typed::kSound_ptr),
+                                                   InstBuilder::genTypedZero(Typed::kSound_ptr)));
+
     // Sort arrays to be at the begining
     generateDeclarations(&fTypeBuilder);
 
     // Now we can create the DSP type
     fStructDSP = fTypeBuilder.getDSPType(false);
-  
+
     std::map<string, int> fields_names = fTypeBuilder.getFieldNames();
     generateGetSampleRate(fields_names["fSamplingFreq"]);
 
@@ -862,7 +864,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateBuildUserInterfaceEnd();
 
     generateGetSize(fTypeBuilder.getSize());
-  
+
     // Generate getSampleSize()
     {
         list<NamedTyped*> args;
@@ -884,7 +886,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     // Has to be done *after* generateInstanceInitBegin/generateInstanceInitEnd
     generateInstanceInitFun();
     generateInitFun();
-    
+
     // Generate setDefaultSound
     fTypeBuilder.generateSetDefaultSound();
 
@@ -915,7 +917,8 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         throw faustexception(llvm_error.str());
     }
 
-    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, fModule, fContext, "", -1);
+    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, fModule,
+                                            fContext, "", -1);
 }
 
 // Scalar

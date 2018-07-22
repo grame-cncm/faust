@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.6.4)
+set (VERSION 2.7.1)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -16,6 +16,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 #######################################
 # Output options
+option ( DEPLOYMENT_TARGET 	"[MacOS]"	off )
 option ( UNIVERSAL 	"Compiles and combines i386 and x86_64 architectures [MacOS]"	off )
 option ( IOS     	"Compiles for iOS"	off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config"	on )
@@ -24,6 +25,10 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
+
+if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
+	set ( DEPLOYMENT_TARGET_VERSION  10.11)
+endif()
 
 #######################################
 # Check output options
@@ -194,6 +199,9 @@ if(APPLE)
 		set (CMAKE_OSX_SYSROOT "iphoneos")
 		set (CMAKE_XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 8.0)
 	else()
+		if (DEPLOYMENT_TARGET)
+			set (CMAKE_OSX_DEPLOYMENT_TARGET ${DEPLOYMENT_TARGET_VERSION})
+		endif()
 		set (MACSDK /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk)
 		if (EXISTS ${MACSDK})
 			set (CMAKE_OSX_SYSROOT ${MACSDK})
@@ -210,7 +218,7 @@ elseif(WIN32)
 	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
-	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
 	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32.lib)
 else()
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
@@ -270,7 +278,11 @@ if (INCLUDE_STATIC)
 	target_compile_definitions (staticlib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (staticlib PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (staticlib PRIVATE ${FAUST_LIBS})
-	set_target_properties(staticlib PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR})
+	set_target_properties(staticlib PROPERTIES 
+		ARCHIVE_OUTPUT_DIRECTORY ${LIBDIR}
+		LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
+		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
+		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 	if (WIN32)
 		if (MSVC)
 			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)

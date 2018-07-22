@@ -483,17 +483,17 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     }
 
     else if (isSigSoundfile(sig, label)) {
-        return generateSoundfile(sig, label); }
-    else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf))); }
-    else if (isSigSoundfileRate(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf))); }
-    else if (isSigSoundfileChannels(sig, sf)) {
+        return generateSoundfile(sig, label);
+    } else if (isSigSoundfileLength(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf)));
+    } else if (isSigSoundfileRate(sig, sf)) {
+        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
+    } else if (isSigSoundfileChannels(sig, sf)) {
         return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf),CS(x), CS(y)));
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)));
     }
-    
+
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
@@ -1393,7 +1393,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     pushDeclare(InstBuilder::genDecStructVar(varname, InstBuilder::genBasicTyped(Typed::kSound_ptr)));
-   
+
     if (gGlobal->gUseDefaultSound) {
         BlockInst* block = InstBuilder::genBlockInst();
         block->pushBackInst(InstBuilder::genStoreStructVar(varname, InstBuilder::genLoadGlobalVar("defaultsound")));
@@ -1767,17 +1767,16 @@ void InstructionsCompiler::generateUserInterfaceElements(Tree elements)
 void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
-    string                    label;
     map<string, set<string> > metadata;
-    string                    url;
+    string                    label, url;
 
     extractMetadata(tree2str(fulllabel), label, metadata);
 
     // Extract "url" metadata to be given as parameter to 'addSoundfile' function
     if (isSigSoundfile(sig, path)) {
         for (map<string, set<string> >::iterator i = metadata.begin(); i != metadata.end(); i++) {
-            string      key    = i->first;
-            set<string> values = i->second;
+            const string      key    = i->first;
+            const set<string> values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
                 if (key == "url") {
                     url = rmWhiteSpaces(*j);
@@ -1834,8 +1833,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(
-            InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true), url, tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true),
+                                                                 ((url == "") ? label : url), tree2str(varname)));
 
     } else {
         throw faustexception("ERROR in generating widget code\n");
