@@ -182,7 +182,7 @@ for p in $FILES; do
         cat $p.json | awk '
                         BEGIN { FS=":"; SOFI=0; }
                             /"soundfile"/ { SOFI=1; }
-                            /"label"/ {
+                            /"url"/ {
                             if (SOFI) {
                                 match($2, /"[^"]*/);
                                 print substr($2, RSTART+1, RLENGTH-1);
@@ -193,11 +193,26 @@ for p in $FILES; do
         # copy found soundfiles in the final binary
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
-                echo "Copy $snd in $P.app"
-                cp $snd $P.app
-                if [ "$ARCHIVE" = "1" ]; then
-                    echo "Copy $snd in $P.xcarchive/Products/Applications/$P"
-                    cp $snd $P.xcarchive/Products/Applications/$P.app
+                if [ ${snd:0:1} = "/" ]; then
+                    echo "Warning: soundfile with absolute path is not copied !"
+                else
+                    #create destination path and possibly create directory
+                    sfpath="$P.app/$(dirname $snd)/"
+                    if ! [ -d $sfpath ]; then
+                        echo "Create $sfpath"
+                        mkdir $sfpath
+                    fi
+                    echo "Copy $snd in $P.app"
+                    cp $snd $sfpath
+                    if [ "$ARCHIVE" = "1" ]; then
+                        sfarchivepath="$P.xcarchive/Products/Applications/$P.app/$(dirname $snd)/"
+                        if ! [ -d $sfarchivepath ]; then
+                            echo "Create $sfarchivepath"
+                            mkdir $sfarchivepath
+                        fi
+                        echo "Copy $snd in $P.xcarchive/Products/Applications/$P"
+                        cp $snd $sfarchivepath
+                    fi
                 fi
             else
                 echo "Error: file $snd not found !"

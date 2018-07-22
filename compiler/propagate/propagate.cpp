@@ -419,8 +419,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
     else if (isBoxSoundfile(box, label, chan)) {
         faustassert(lsig.size() == 1);
-        Tree    fullpath  = normalizePath(cons(label, path));
-        Tree    soundfile = sigSoundfile(fullpath);
+        Tree    soundfile = sigSoundfile(normalizePath(cons(label, path)));
         int     c         = tree2int(chan);
         siglist lsig2(c + 3);
         lsig2[0] = sigSoundfileLength(soundfile);
