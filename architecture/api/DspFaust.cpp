@@ -242,8 +242,14 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #endif
     
 #if SOUNDFILE
+#if JUCE_DRIVER
+    auto file = File::getSpecialLocation(File::currentExecutableFile)
+        .getParentDirectory().getParentDirectory().getChildFile("Resources");
+    fSoundInterface = new SoundUI(file.getFullPathName().toStdString());
+#else
     // Use bundle path
     fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
+#endif
     fPolyEngine->buildUserInterface(fSoundInterface);
 #endif
 }
