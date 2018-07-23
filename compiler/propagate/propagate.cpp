@@ -28,6 +28,7 @@
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "prim2.hh"
+#include "simplify.hh"
 #include "xtended.hh"
 
 ////////////////////////////////////////////////////////////////////////
@@ -331,7 +332,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
-        return makeList(p1(lsig[0]));
+        return makeList(simplify(p1(lsig[0])));
     }
 
     else if (isBoxPrim2(box, &p2)) {
@@ -356,7 +357,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
                 return makeList(lsig[0]);
             }
         }
-        return makeList(p2(lsig[0], lsig[1]));
+        return makeList(simplify(p2(lsig[0], lsig[1])));
     }
 
     else if (isBoxPrim3(box, &p3)) {
