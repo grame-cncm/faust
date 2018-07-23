@@ -822,12 +822,12 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     return dst;
 }
 
-// Public C interface : lock management is done by called C++ API
+    // Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-        
+
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level)
 {
