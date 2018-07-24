@@ -31,6 +31,10 @@
 
 class MapUI;
 
+//-------------------------------------------------
+// MIDI input/output handling using RtMidi library
+//-------------------------------------------------
+
 class rt_midi : public midi_handler {
 
     private:
@@ -48,8 +52,10 @@ class rt_midi : public midi_handler {
             // MIDI sync
             if (nBytes == 1) {
                 midi->handleSync(time, (int)message->at(0));
+            // One data byte messages
             } else if (nBytes == 2) {
                 midi->handleData1(time, type, channel, (int)message->at(1));
+            // Two data bytes messages
             } else if (nBytes == 3) {
                 midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
             } 
@@ -167,7 +173,8 @@ class rt_midi : public midi_handler {
             }
             fOutput.clear();
         }
-        
+    
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             std::vector<unsigned char> message;

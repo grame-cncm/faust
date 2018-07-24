@@ -24,6 +24,7 @@
         <CONFIGURATION name="Release" isDebug="0" optimisation="3" targetName="APPL_NAME"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
+        <MODULEPATH id="juce_audio_utils" path="../../modules"/>
         <MODULEPATH id="juce_core" path="../../modules"/>
         <MODULEPATH id="juce_events" path="../../modules"/>
         <MODULEPATH id="juce_graphics" path="../../modules"/>

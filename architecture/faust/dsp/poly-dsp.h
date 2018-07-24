@@ -204,19 +204,21 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     }
 
     // MIDI velocity [0..127]
-    void keyOn(int pitch, int velocity)
+    void keyOn(int pitch, int velocity, bool trigger = false)
     {
         setParamValue(fFreqPath, midiToFreq(pitch));
         setParamValue(fGainPath, float(velocity)/127.f);
         fNote = pitch;
+        fTrigger = trigger;
     }
 
     // Normalized MIDI velocity [0..1]
-    void keyOn(int pitch, float velocity)
+    void keyOn(int pitch, float velocity, bool trigger = false)
     {
         setParamValue(fFreqPath, midiToFreq(pitch));
         setParamValue(fGainPath, velocity);
         fNote = pitch;
+        fTrigger = trigger;
     }
 
     void keyOff(bool hard = false)
@@ -363,7 +365,10 @@ class dsp_poly : public decorator_dsp, public midi {
 };
 
 /**
- * Polyphonic DSP : group a set of DSP to be played together or triggered by MIDI.
+ * Polyphonic DSP: groups a set of DSP to be played together or triggered by MIDI.
+ *
+ * All voices are preallocated by cloning the single DSP voice given at creation time.
+ * Dynamic voice allocation is done in 'getFreeVoice'
  */
 
 class mydsp_poly : public dsp_voice_group, public dsp_poly {

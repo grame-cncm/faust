@@ -231,7 +231,10 @@ struct uiCallbackItem : public uiItem {
  * Base class for timed items
  */
 
-// For precise timestamped control
+//-------------------------
+// For timestamped control
+//-------------------------
+
 struct DatedControl {
     
     double fDate;
