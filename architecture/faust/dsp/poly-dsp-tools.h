@@ -29,6 +29,7 @@
 #include <fstream>
 
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/interpreter-dsp.h"
 #include "faust/dsp/dsp-combiner.h"
 #include "faust/dsp/poly-dsp.h"
 
@@ -51,7 +52,6 @@ inline std::string pathToContent(const std::string& path)
     delete [] buffer;
     return result;
 }
-
 
 /**
  * Polyphonic DSP with an integrated effect.
@@ -175,7 +175,7 @@ struct dsp_poly_factory : public dsp_factory {
 };
 
 /**
- *  LLVM Polyphonic DSP factory class.
+ *  LLVM backend based Polyphonic DSP factory class.
  */
 
 struct llvm_dsp_poly_factory : public dsp_poly_factory {
@@ -209,6 +209,42 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
 };
 
 /**
+ *  Interpreter backend based Polyphonic DSP factory class.
+ */
+
+struct interpreter_dsp_poly_factory : public dsp_poly_factory {
+    
+    interpreter_dsp_poly_factory(const std::string& name_app,
+                                 const std::string& dsp_content,
+                                 int argc, const char* argv[],
+                                 std::string& error_msg)
+    {
+        fProcessFactory = createInterpreterDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg);
+        if (fProcessFactory) {
+            fEffectFactory = createInterpreterDSPFactoryFromString(name_app, getEffectCode(dsp_content), argc, argv, error_msg);
+            if (!fEffectFactory) {
+                // The error message is not really needed...
+                error_msg = "";
+            }
+        } else {
+            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
+            throw std::bad_alloc();
+        }
+    }
+    
+    virtual ~interpreter_dsp_poly_factory()
+    {
+        deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fProcessFactory));
+        if (fEffectFactory) { deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(fEffectFactory)); }
+    }
+    
+};
+
+//==============
+// LLVM backend
+//==============
+
+/**
  * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
  *
  * @param filename - the DSP filename
@@ -222,11 +258,11 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
 inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_app,
-                                                     const std::string& dsp_content,
-                                                     int argc, const char* argv[],
-                                                     const std::string& target,
-                                                     std::string& error_msg,
-                                                     int opt_level = -1)
+                                                        const std::string& dsp_content,
+                                                        int argc, const char* argv[],
+                                                        const std::string& target,
+                                                        std::string& error_msg,
+                                                        int opt_level = -1)
 {
     return new llvm_dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
 }
@@ -245,10 +281,10 @@ inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
 inline dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filename,
-                                                   int argc, const char* argv[],
-                                                   const std::string& target,
-                                                   std::string& error_msg,
-                                                   int opt_level = -1)
+                                                      int argc, const char* argv[],
+                                                      const std::string& target,
+                                                      std::string& error_msg,
+                                                      int opt_level = -1)
 {
     return createPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, target, error_msg, opt_level);
 }
@@ -386,6 +422,47 @@ inline void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const st
         std::string effect_path = machine_code_path + "_machine_effect";
         writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path, target);
     }
+}
+
+//=====================
+// Interpreter backend
+//=====================
+
+/**
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a file.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param error_msg - the error string to be filled
+ * since the maximum value may change with new LLVM versions)
+ *
+ * @return a Polyphonic DSP factory on success, otherwise a null pointer.
+ */
+inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::string& name_app,
+                                                                   const std::string& dsp_content,
+                                                                   int argc, const char* argv[],
+                                                                   std::string& error_msg)
+{
+    return new interpreter_dsp_poly_factory(name_app, dsp_content, argc, argv, error_msg);
+}
+
+/**
+ * Create a Faust Polyphonic DSP factory from a DSP source code as a string.
+ *
+ * @param filename - the DSP filename
+ * @param argc - the number of parameters in argv array
+ * @param argv - the array of parameters (Warning : aux files generation options will be filtered (-svg, ...) --> use generateAuxFiles)
+ * @param error_msg - the error string to be filled
+ * since the maximum value may change with new LLVM versions)
+ *
+ * @return a Polyphonic DSP factory on success, otherwise a null pointer.
+ */
+inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(const std::string& filename,
+                                                      int argc, const char* argv[],
+                                                      std::string& error_msg)
+{
+    return createInterpreterPolyDSPFactoryFromString("FaustDSP", pathToContent(filename), argc, argv, error_msg);
 }
 
 #endif // __poly_dsp_tools__

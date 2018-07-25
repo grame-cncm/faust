@@ -166,7 +166,7 @@ int main(int argc, char* argv[])
   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;
-        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, false);
+        DSP = dsp_poly = new mydsp_poly(DSP, nvoices, true, true);
     }
     
     if (isopt(argv, "-double")) {

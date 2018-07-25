@@ -90,9 +90,9 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "poly-dynamic-jack-gtk [-llvm] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "poly-dynamic-jack-gtk [-llvm] [interp– [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
-        //cout << "Use '-interp' to use Interpreter backend\n";
+        cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
@@ -143,11 +143,9 @@ int main(int argc, char* argv[])
         // argc : without the filename (last element);
         factory = createPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
     } else {
-        /*
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
-        */
+        factory = createInterpreterPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
     }
     
     if (!factory) {
