@@ -321,12 +321,11 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
     llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, fOptLevel);
 #endif
-    
-    // Reset fSoundInterface with the new factory getDSPFactoryIncludePathnames
-    delete fSoundInterface;
-    fSoundInterface = new SoundUI(factory->getDSPFactoryIncludePathnames());
    
     if (factory) {
+        // Reset fSoundInterface with the new factory getDSPFactoryIncludePathnames
+        delete fSoundInterface;
+        fSoundInterface = new SoundUI(factory->getDSPFactoryIncludePathnames());
         return factory;
     } else {
         // Update all instances
