@@ -80,6 +80,10 @@ world :
 	$(MAKE) -C $(BUILDLOCATION)
 	$(MAKE) -C tools/sound2faust
 
+newworld :
+	$(MAKE) -C $(BUILDLOCATION) BACKENDS=world.cmake TARGETS=world.cmake
+	$(MAKE) -C tools/sound2faust
+
 benchmark : all
 	$(MAKE) -C tools/benchmark all
 

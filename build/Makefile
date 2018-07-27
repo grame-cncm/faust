@@ -206,25 +206,31 @@ cmake: $(FAUSTDIR)
 
 configstatic: STATIC ?= on
 configstatic: $(FAUSTDIR)
+	@echo "WARNING: the 'configstatic' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=$(STATIC) ..
 
 configdynamic: DYNAMIC ?= on
 configdynamic: $(FAUSTDIR)
+	@echo "WARNING: the 'configdynamic' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DINCLUDE_DYNAMIC=$(DYNAMIC) ..
 
 confighttp: HTTP ?= on
 confighttp: $(FAUSTDIR)
+	@echo "WARNING: the 'confighttp' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DINCLUDE_HTTP=$(HTTP) ..
 
 configoscdynamic: OSCDYN ?= on
 configoscdynamic:
+	@echo "WARNING: the 'configoscdynamic' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DOSCDYNAMIC=$(OSCDYN) ..
 
 confighttpdynamic: HTTPDYN ?= on
 confighttpdynamic:
+	@echo "WARNING: the 'confighttpdynamic' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DHTTPDYNAMIC=$(HTTPDYN) ..
 
 configall: $(FAUSTDIR)
+	@echo "WARNING: the 'configall' target is deprecated and will be removed in a future release. Use target files and the TARGET option instead."
 	cd $(FAUSTDIR) && cmake -DINCLUDE_STATIC=on -DINCLUDE_DYNAMIC=on -DINCLUDE_HTTP=on ..
 
 reset: $(FAUSTDIR)
