@@ -34,7 +34,7 @@ static dsp_factory_table<SDsp_factory>                gInterpreterFactoryTable;
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
-    return reinterpret_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+    return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
@@ -137,7 +137,7 @@ EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
     gInterpreterFactoryTable.addDSP(this, dsp);
-    return reinterpret_cast<interpreter_dsp*>(dsp);
+    return static_cast<interpreter_dsp*>(dsp);
 }
 
 // Use the memory manager if needed

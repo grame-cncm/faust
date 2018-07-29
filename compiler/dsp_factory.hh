@@ -32,7 +32,6 @@
 #include "faust/gui/CInterface.h"
 #include "faust/gui/meta.h"
 
-#define LLVM_BACKEND_NAME "Faust LLVM backend"
 #define COMPILATION_OPTIONS_KEY "compilation_options"
 #define COMPILATION_OPTIONS "declare compilation_options    "
 
@@ -58,7 +57,7 @@ class dsp_factory_base {
 
     virtual std::string getDSPCode()                        = 0;
     virtual void        setDSPCode(const std::string& code) = 0;
-
+ 
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
@@ -133,7 +132,7 @@ class dsp_factory_imp : public dsp_factory_base {
 
     std::string getDSPCode() { return fExpandedDSP; }
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
-
+ 
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
         faustassert(false);

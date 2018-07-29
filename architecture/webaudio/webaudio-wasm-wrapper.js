@@ -279,7 +279,12 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
          // New API test
         
         //var code =  "process = _,_,_,_;";
-        var code = "import(\"stdfaust.lib\"); process = _,_;";
+        var code =  "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
+        //var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = _+vol,_+(0.3*vol);";
+        
+    	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = (_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";
+         
+        //var code = "import(\"stdfaust.lib\"); process = os.osc(440);";
 
         var argv1 = faust_module.makeStringVector();
         console.log(argv1);
@@ -304,6 +309,8 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
      	 	//instance_ptr.init(44100);
         	
         	instance_ptr.computeJSTest(128);
+        	
+        	//instance_ptr.compute(128, 0, 0);
         	 
         } else {
         	console.log("getErrorMessage " + faust_module.wasm_dsp_factory.getErrorMessage());
