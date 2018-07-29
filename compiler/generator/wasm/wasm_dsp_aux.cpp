@@ -144,25 +144,12 @@ wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory
     
     fDecoder = new JSONUIDecoder(fJSON);
     std::cout << " fFactory->getJSON() " << fJSON << std::endl;
-    
-    /*
-    wasm_dsp* dsp1 = createDSPInstance();
-    std::cout << "getNumInputs " << dsp1->getNumInputs() << std::endl;
-    
-    wasm_dsp* dsp2 = createDSPInstance();
-    std::cout << "getNumOutputs " << dsp2->getNumOutputs() << std::endl;
-    
-    PrintUI ui;
-    dsp1->buildUserInterface(&ui);
-    */
 }
 
 #else
 
-int wasm_dsp_factory::createModuleFromString(const std::string& code)
-{
-    return -1;
-}
+void wasm_dsp_factory::createModuleFromString()
+{}
 
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory)
 {
@@ -206,16 +193,11 @@ EM_JS(int, createJSDSPInstance, (int module), {
     
     var wasm_instance = new WebAssembly.Instance(FaustModule.faust.wasm_module[module], FaustModule.faust.importObject);
     FaustModule.faust.wasm_instance.push(wasm_instance);
-    
-    //console.log(FaustModule.faust.wasm_module);
-    //console.log(wasm_instance);
-    
     return FaustModule.faust.wasm_instance.length - 1;
 });
 
 wasm_dsp* wasm_dsp_factory::createDSPInstance()
 {
-    //std::cout << "wasm_dsp_factory::createDSPInstance " << fModule << std::endl;
     wasm_dsp* dsp = new wasm_dsp(this, createJSDSPInstance(fModule));
     gWasmFactoryTable.addDSP(this, dsp);
     return dsp;
@@ -252,6 +234,44 @@ std::string wasm_dsp_factory::getBinaryCode()
     return fFactory->getBinaryCode();
 }
 
+FAUSTFLOAT** wasm_dsp_factory::createAudioBuffers(int chan, int frames)
+{
+    FAUSTFLOAT** buffers = new FAUSTFLOAT*[chan];
+    for (int i = 0; i < chan; i++) {
+        buffers[i] = new FAUSTFLOAT[frames];
+        memset(buffers[i], 0, frames * sizeof(FAUSTFLOAT));
+    }
+    return buffers;
+}
+
+void wasm_dsp_factory::copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames)
+{
+    memcpy(js_buffers[chan], js_buffer, frames * sizeof(FAUSTFLOAT));
+}
+
+void wasm_dsp_factory::deleteAudioBuffers(FAUSTFLOAT** buffers, int chan)
+{
+    for (int i = 0; i < chan; i++) {
+        delete [] buffers[i];
+    }
+    delete [] buffers;
+}
+
+uintptr_t wasm_dsp_factory::createJSAudioBuffers(int chan, int frames)
+{
+    return reinterpret_cast<uintptr_t>(createAudioBuffers(chan, frames));
+}
+
+void wasm_dsp_factory::copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames)
+{
+    copyAudioBuffer(reinterpret_cast<FAUSTFLOAT**>(js_buffers), reinterpret_cast<FAUSTFLOAT*>(js_buffer), chan, frames);
+}
+
+void wasm_dsp_factory::deleteJSAudioBuffers(uintptr_t js_buffers, int chan)
+{
+    deleteAudioBuffers(reinterpret_cast<FAUSTFLOAT**>(js_buffers), chan);
+}
+
 // Static constructor
 
 std::string wasm_dsp_factory::gErrorMessage = "";
@@ -279,6 +299,11 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const std
     return readWasmDSPFactoryFromMachineFile(machine_code_path);
 }
 
+wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const std::string& machine_code)
+{
+    return readWasmDSPFactoryFromMachine(machine_code);
+}
+
 // C++ API
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
@@ -299,8 +324,6 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, in
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
                                                         const char* argv[], string& error_msg, bool internal_memory)
 {
-    std::cout << "createWasmDSPFactoryFromString" << name_app << std::endl;
-    
     /*
     string expanded_dsp_content, sha_key;
     
@@ -418,7 +441,7 @@ EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& ma
         infile.read(machine_code, length);
         
         // create factory
-        wasm_dsp_factory* factory = readWasmDSPFactoryFromMachine(machine_code);
+        wasm_dsp_factory* factory = readWasmDSPFactoryFromMachine(string(machine_code, length)); // Keep the binary string
         
         infile.close();
         delete[] machine_code;
@@ -558,6 +581,8 @@ void wasm_dsp::metadata(Meta* m)
 
 void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 {
+    //std::cout << "wasm_dsp::computeJS " << count << std::endl;
+    
     EM_ASM({
         FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4);
     }, fIndex, fDSP, count, input, output);
@@ -565,6 +590,8 @@ void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 
 void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 {
+    //std::cout << "wasm_dsp::compute " << count << std::endl;
+    
     EM_ASM({
         FaustModule.faust.wasm_instance[$0].exports.compute($1, $2, $3, $4);
     }, fIndex, fDSP, count, reinterpret_cast<uintptr_t>(input), reinterpret_cast<uintptr_t>(output));
@@ -572,25 +599,11 @@ void wasm_dsp::compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
 
 void wasm_dsp::computeJSTest(int count)
 {
-    FAUSTFLOAT** inputs = new FAUSTFLOAT*[getNumInputs()];
-    FAUSTFLOAT** outputs = new FAUSTFLOAT*[getNumOutputs()];
+    FAUSTFLOAT** inputs = wasm_dsp_factory::createAudioBuffers(getNumInputs(), count);
+    FAUSTFLOAT** outputs = wasm_dsp_factory::createAudioBuffers(getNumOutputs(), count);
     
     std::cout << "computeJSTest " << count << " " << getNumInputs() << " " << getNumOutputs() << std::endl;
-    
-    for (int i = 0; i < getNumInputs(); i++) {
-        inputs[i] = new FAUSTFLOAT[count];
-    }
-    for (int i = 0; i < getNumOutputs(); i++) {
-        outputs[i] = new FAUSTFLOAT[count];
-    }
-    
     std::cout << "computeJSTest inputs " << inputs << " outputs " << outputs << std::endl;
-    
-    for (int chan = 0; chan < getNumInputs(); chan++) {
-        for (int frame = 0; frame < count; frame++) {
-            inputs[chan][frame] = FAUSTFLOAT(0.0);
-        }
-    }
     
     for (int chan = 0; chan < getNumInputs(); chan++) {
         for (int frame = 0; frame < 10; frame++) {
@@ -622,6 +635,9 @@ void wasm_dsp::computeJSTest(int count)
             std::cout << "frame output = " << frame << " : " << (outputs[chan][frame]) << std::endl;
         }
     }
+    
+    wasm_dsp_factory::deleteAudioBuffers(inputs, getNumInputs());
+    wasm_dsp_factory::deleteAudioBuffers(outputs, getNumOutputs());
 }
 
 #else
@@ -710,6 +726,18 @@ EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory) {
                     allow_raw_pointers())
     .class_function("readWasmDSPFactoryFromMachineFile2",
                     &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
+                    allow_raw_pointers())
+    .class_function("readWasmDSPFactoryFromMachine2",
+                    &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
+                    allow_raw_pointers())
+    .class_function("createAudioBuffers",
+                    &wasm_dsp_factory::createJSAudioBuffers,
+                    allow_raw_pointers())
+    .class_function("deleteAudioBuffers",
+                    &wasm_dsp_factory::deleteJSAudioBuffers,
+                    allow_raw_pointers())
+    .class_function("copyAudioBuffer",
+                    &wasm_dsp_factory::copyJSAudioBuffer,
                     allow_raw_pointers())
     .class_function("getErrorMessage",
                     &wasm_dsp_factory::getErrorMessage);

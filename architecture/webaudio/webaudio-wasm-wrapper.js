@@ -281,9 +281,7 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         //var code =  "process = _,_,_,_;";
         var code =  "import(\"stdfaust.lib\"); process = dm.zita_rev1;";
         //var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = _+vol,_+(0.3*vol);";
-        
-    	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = (_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";
-         
+    	//var code = "import(\"stdfaust.lib\"); vol = vslider(\"vol\", 0.6, 0, 1, 0.01); process = (_+vol)*os.osc(440),_+(0.3*vol*os.osc(800));";     
         //var code = "import(\"stdfaust.lib\"); process = os.osc(440);";
 
         var argv1 = faust_module.makeStringVector();
@@ -297,6 +295,33 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
         
         var time3 = performance.now();
         var factory_ptr = faust_module.wasm_dsp_factory.createWasmDSPFactoryFromString2("FaustDSP", code, argv1, false);
+        
+        fetch('t1.wasm')
+        .then(dsp_file => dsp_file.arrayBuffer())
+        .then(dsp_bytes => { var factory_ptr1 = faust_module.wasm_dsp_factory.readWasmDSPFactoryFromMachine2(dsp_bytes);
+        	console.log("factory_ptr1 " + factory_ptr);
+        	var instance_ptr1 = factory_ptr.createDSPInstance();
+        	console.log("instance_ptr1 " + instance_ptr);
+        	console.log("instance_ptr1 getNumInputs " + instance_ptr1.getNumInputs());
+        	console.log("instance_ptr1 getNumOutputs " + instance_ptr1.getNumOutputs());
+        	
+        	//console.log("faust_module.wasm_dsp_factory.createAudioBuffers " + faust_module.wasm_dsp_factory.createAudioBuffers);
+        	
+        	var js_inputs = faust_module.wasm_dsp_factory.createAudioBuffers(instance_ptr1.getNumInputs(), 256);
+        	var js_outputs = faust_module.wasm_dsp_factory.createAudioBuffers(instance_ptr1.getNumOutputs(), 256);
+        	
+        	//console.log("instance_ptr1.compute " + instance_ptr1.compute);
+        	
+        	instance_ptr1.compute(256, js_inputs, js_outputs);
+        	
+        	faust_module.wasm_dsp_factory.deleteAudioBuffers(js_inputs, instance_ptr1.getNumInputs());
+        	faust_module.wasm_dsp_factory.deleteAudioBuffers(js_outputs, instance_ptr1.getNumOutputs());
+        	
+        	//instance_ptr1.computeJSTest(128);
+        });
+        
+        //var factory_ptr = faust_module.wasm_dsp_factory.readWasmDSPFactoryFromMachineFile2("clarinetMIDI.wasm");
+         
      	var time4 = performance.now();
         console.log("C++ Faust compilation duration : " + (time4 - time3));
         

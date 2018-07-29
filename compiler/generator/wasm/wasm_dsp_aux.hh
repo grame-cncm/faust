@@ -328,6 +328,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string getBinaryCode();
     
+    
     void createModuleFromString();
     
     static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string& name_app, const std::string& dsp_content,
@@ -335,6 +336,17 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     
     static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
     
+    static wasm_dsp_factory* readWasmDSPFactoryFromMachine2(const std::string& machine_code);
+    
+    // Audio buffer management
+    static uintptr_t createJSAudioBuffers(int chan, int frames);
+    static void deleteJSAudioBuffers(uintptr_t js_buffers, int chan);
+    
+    static FAUSTFLOAT** createAudioBuffers(int chan, int frames);
+    static void deleteAudioBuffers(FAUSTFLOAT** buffers, int chan);
+    
+    static void copyJSAudioBuffer(uintptr_t js_buffers, uintptr_t js_buffer, int chan, int frames);
+    static void copyAudioBuffer(FAUSTFLOAT** js_buffers, FAUSTFLOAT* js_buffer, int chan, int frames);
     
     static std::string gErrorMessage;
     
