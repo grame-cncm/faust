@@ -1911,7 +1911,9 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \details Initialize the JuceGUI specific variables. 
          */
         JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID must start at 1
-        {}
+        {
+            setLookAndFeel(fLaf);
+        }
         
         /**
          * \brief   Destructor.
@@ -1919,6 +1921,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          */
         virtual ~JuceGUI()
         {
+            setLookAndFeel(nullptr);
             delete fCurrentBox;
         }
 
