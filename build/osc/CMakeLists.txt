@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 #######################################
 # versions management
-set (VERSION 1.0.0)
+set (VERSION 1.1.0)
 set (SOVERS 1)
 
 #######################################
@@ -36,6 +36,15 @@ FILE(GLOB SRC ${OSC}/oscpack/osc/*.cpp  ${OSC}/oscpack/ip/*.cpp
 	${FAUSTOSC}/nodes/*.cpp 
 	${FAUSTOSC}/osc/*.cpp)
 
+FILE(GLOB SRCH ${OSC}/oscpack/osc/*.h  ${OSC}/oscpack/ip/*.h  
+	${FAUST}/*.h 
+	${FAUST}/osc/*.h 
+	${FAUSTOSC}/*.h 
+	${FAUSTOSC}/lib/*.h 
+	${FAUSTOSC}/msg/*.h 
+	${FAUSTOSC}/nodes/*.h 
+	${FAUSTOSC}/osc/*.h)
+
 set( INCLUDE
 	${OSC}/oscpack 
 	${OSC}/faust 
@@ -54,11 +63,11 @@ endif()
 
 #######################################
 # add libraries
-add_library( oscstatic STATIC ${SRC} ${PLATFORM_SRC})
+add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
 target_include_directories (oscstatic PRIVATE ${INCLUDE} )
 set (TARGETS oscstatic)
 if (NOT IOS AND OSCDYNAMIC)
-	add_library( oscdynamic SHARED ${SRC} ${PLATFORM_SRC} )
+	add_library( oscdynamic SHARED ${SRC} ${SRCH} ${PLATFORM_SRC} )
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 
 		VERSION ${VERSION}
