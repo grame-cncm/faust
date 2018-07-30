@@ -40,8 +40,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 1.00f
-#define kVersionStr	"1.00"
+#define kVersion	 1.10f
+#define kVersionStr	"1.10"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -49,12 +49,38 @@ static const char* kUDPErrOpt	= "-errport";
 static const char* kUDPDestOpt	= "-desthost";
 static const char* kXmitOpt		= "-xmit";
 static const char* kXmitFilterOpt = "-xmitfilter";
+static const char* kReuseOpt 	= "-reuse";
+static const char* kHelp 		= "-help";
+
+// below is the multicast address use when reuse address and port are on
+static const char* kMulticastAddress = "224.0.0.1";
 
 int OSCControler::gXmit = 0;		// a static variable to control the transmission of values
                                     // i.e. the use of the interface as a controler
 
 std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
-    
+	
+//--------------------------------------------------------------------------
+// help and usage
+//--------------------------------------------------------------------------
+static void osc_usage()
+{
+	cout << "OSC UI options: " << endl;
+	cout << "\t" << kUDPPortOpt 	<< " num            (default: 5510)" << endl;
+	cout << "\t" << kUDPOutOpt  	<< " num            (default: 5511)" << endl;
+	cout << "\t" << kUDPErrOpt  	<< " num            (default: 5512)" << endl;
+	cout << "\t" << kUDPDestOpt  	<< " [ip|hostname]  (default: localhost)" << endl;
+	cout << "\t" << kReuseOpt  		<< " [0|1]          (default: 0)" << endl;
+	cout << "\t" << kXmitOpt  		<< " [0|1|2]        (default: 0)" << endl;
+	cout << "\t" << kXmitFilterOpt  << " <filtered paths list>" << endl;
+}
+
+static void checkHelp(int argc, char *argv[], const std::string& option)
+{
+	for (int i = 1; i < argc; i++)
+		if (option == argv[i]) osc_usage();
+}
+
 //--------------------------------------------------------------------------
 // utilities for command line arguments 
 //--------------------------------------------------------------------------
@@ -71,16 +97,16 @@ static int getPortOption(int argc, char *argv[], const std::string& option, int 
 
 static const char* getDestOption(int argc, char *argv[], const std::string& option, const char* defaultValue)
 {
-	for (int i = 0; i < argc-1; i++) {
+	for (int i = 1; i < argc-1; i++) {
 		if (option == argv[i])
 			return argv[i+1];
 	}
 	return defaultValue;
 }
 
-static int getXmitOption(int argc, char *argv[], const std::string& option, bool defaultValue)
+static int getIntOption(int argc, char *argv[], const std::string& option, bool defaultValue)
 {
-	for (int i = 0; i < argc-1; i++) {
+	for (int i = 1; i < argc-1; i++) {
     	if (option == argv[i]) {
 			int val = int(strtol(argv[i+1], 0, 10));
 			return val;
@@ -91,7 +117,7 @@ static int getXmitOption(int argc, char *argv[], const std::string& option, bool
 
 static void treatXmitFilterOption(int argc, char *argv[], const std::string& option)
 {
-    for (int i = 0; i < argc-1; i++) {
+    for (int i = 1; i < argc-1; i++) {
         if (option == argv[i]) {
             int j = i+1;
             while (j < argc) {
@@ -110,12 +136,16 @@ static void treatXmitFilterOption(int argc, char *argv[], const std::string& opt
 OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCallback errCallback, void* arg, bool init)
 	: fUDPPort(kUDPBasePort), fUDPOut(kUDPBasePort+1), fUPDErr(kUDPBasePort+2), fIO(io), fInit(init)
 {
+	checkHelp(argc, argv, kHelp);
 	fUDPPort = getPortOption(argc, argv, kUDPPortOpt, fUDPPort);
 	fUDPOut  = getPortOption(argc, argv, kUDPOutOpt, fUDPOut);
 	fUPDErr  = getPortOption(argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
-	gXmit = getXmitOption(argc, argv, kXmitOpt, kNoXmit);
-    
+	gXmit = getIntOption(argc, argv, kXmitOpt, kNoXmit);
+
+	if (getIntOption(argc, argv, kReuseOpt, 0)) {
+		fBindAddress = kMulticastAddress;
+	}
     treatXmitFilterOption(argc, argv, kXmitFilterOpt);
  
 	fFactory = new FaustFactory(ui, io);
@@ -153,7 +183,7 @@ void OSCControler::run()
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		
         // starts the network services
-		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDestAddress());
+		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str() );
 
 		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
@@ -163,7 +193,12 @@ void OSCControler::run()
         // and also on the standard output 
         cout << "Faust OSC version " << versionstr() << " application "
              << quote(rootnode->getName()).c_str() << " is running on UDP ports "
-             <<  fUDPPort << ", " << fUDPOut << ", " << fUPDErr << endl;
+             <<  fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
+		if (!fBindAddress.empty()) {
+			 cout << " - listening is bound to " << fBindAddress;
+			 oscout << "listening to" << fBindAddress;
+		}
+		cout << endl;
 
 		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
 		oscout << OSCEnd();
