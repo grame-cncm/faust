@@ -28,7 +28,6 @@
 #include "wasm_dsp_aux.hh"
 #include "Text.hh"
 #include "compatibility.hh"
-#include "dsp_aux.hh"
 #include "libfaust.h"
 #include "faust/gui/JSONUIDecoder.h"
 
@@ -40,9 +39,8 @@
 #ifdef EMCC
 #include <emscripten.h>
 #include <emscripten/bind.h>
+using namespace emscripten;
 #endif
-
-typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
 dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 
@@ -139,11 +137,16 @@ void wasm_dsp_factory::createModuleFromString()
 
 wasm_dsp_factory::wasm_dsp_factory(dsp_factory_base* factory) : fFactory(factory)
 {
+    // Deactivated for now
+    /*
     createModuleFromString();
     std::cout << "fModule " << fModule << std::endl;
     
     fDecoder = new JSONUIDecoder(fJSON);
     std::cout << " fFactory->getJSON() " << fJSON << std::endl;
+    */
+    fModule = -1;
+    fDecoder = nullptr;
 }
 
 #else
@@ -278,22 +281,6 @@ std::string wasm_dsp_factory::gErrorMessage = "";
 
 const std::string&  wasm_dsp_factory::getErrorMessage() { return wasm_dsp_factory::gErrorMessage; }
 
-wasm_dsp_factory* wasm_dsp_factory::createWasmDSPFactoryFromString2(const string& name_app,
-                                                                   const string& dsp_content,
-                                                                   const vector<string>& argv,
-                                                                   bool internal_memory)
-{
-    int argc1 = 0;
-    const char* argv1[64];
-    for (int i = 0; i < argv.size(); i++) {
-        argv1[argc1++] = argv[i].c_str();
-    }
-    argv1[argc1] = 0;  // NULL terminated argv
-    
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc1, argv1, wasm_dsp_factory::gErrorMessage, internal_memory);
-    return factory;
-}
-
 wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path)
 {
     return readWasmDSPFactoryFromMachineFile(machine_code_path);
@@ -305,103 +292,6 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const std::st
 }
 
 // C++ API
-
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const string& filename, int argc, const char* argv[],
-                                                      string& error_msg, bool internal_memory)
-{
-    string base = basename((char*)filename.c_str());
-    size_t pos  = filename.find(".dsp");
-
-    if (pos != string::npos) {
-        return createWasmDSPFactoryFromString(base.substr(0, pos), pathToContent(filename), argc, argv, error_msg,
-                                              internal_memory);
-    } else {
-        error_msg = "File Extension is not the one expected (.dsp expected)\n";
-        return nullptr;
-    }
-}
-
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, const string& dsp_content, int argc,
-                                                        const char* argv[], string& error_msg, bool internal_memory)
-{
-    /*
-    string expanded_dsp_content, sha_key;
-    
-    if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
-        return nullptr;
-    } else {
-        int         argc1 = 0;
-        const char* argv1[32];
-
-        argv1[argc1++] = "faust";
-        argv1[argc1++] = "-lang";
-        // argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-        argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
-        argv1[argc1++] = "-o";
-        argv1[argc1++] = "binary";
-
-        for (int i = 0; i < argc; i++) {
-            argv1[argc1++] = argv[i];
-        }
-        argv1[argc1] = 0;  // NULL terminated argv
-        
-        dsp_factory_table<SDsp_factory>::factory_iterator it;
-        
-        wasm_dsp_factory* factory = 0;
-        
-        if (gWasmFactoryTable.getFactory(sha_key, it)) {
-            SDsp_factory sfactory = (*it).first;
-            sfactory->addReference();
-            return sfactory;
-        } else {
-            dsp_factory_base* dsp_factory_aux =
-                compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
-            if (dsp_factory_aux) {
-                dsp_factory_aux->setName(name_app);
-                wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
-                gWasmFactoryTable.setFactory(factory);
-                factory->setSHAKey(sha_key);
-                factory->setDSPCode(expanded_dsp_content);
-                return factory;
-            } else {
-                return nullptr;
-            }
-        }
-    }
-    */
-    
-    string expanded_dsp_content = "";
-    string sha_key              = "";
-    
-    int         argc1 = 0;
-    const char* argv1[64];
-    
-    argv1[argc1++] = "faust";
-    argv1[argc1++] = "-lang";
-    // argv1[argc1++] = (internal_memory) ? "wasm-i" : "wasm-e";
-    argv1[argc1++] = (internal_memory) ? "wasm-ib" : "wasm-eb";
-    argv1[argc1++] = "-o";
-    argv1[argc1++] = "binary";
-    
-    for (int i = 0; i < argc; i++) {
-        argv1[argc1++] = argv[i];
-    }
-    argv1[argc1] = 0;  // NULL terminated argv
- 
-    dsp_factory_base* dsp_factory_aux =
-        compileFaustFactory(argc1, argv1, name_app.c_str(), dsp_content.c_str(), error_msg, true);
-    
-    if (dsp_factory_aux) {
-        dsp_factory_aux->setName(name_app);
-        wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
-        gWasmFactoryTable.setFactory(factory);
-        factory->setSHAKey(sha_key);
-        factory->setDSPCode(expanded_dsp_content);
-        return factory;
-    } else {
-        return nullptr;
-    }
-}
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 {
@@ -640,6 +530,72 @@ void wasm_dsp::computeJSTest(int count)
     wasm_dsp_factory::deleteAudioBuffers(outputs, getNumOutputs());
 }
 
+EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory) {
+    class_<wasm_dsp_factory>("wasm_dsp_factory")
+    .constructor()
+    .function("createDSPInstance",
+              &wasm_dsp_factory::createDSPInstance,
+              allow_raw_pointers())
+    .function("getJSON",
+              &wasm_dsp_factory::getJSON,
+              allow_raw_pointers())
+    .class_function("readWasmDSPFactoryFromMachineFile2",
+                    &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
+                    allow_raw_pointers())
+    .class_function("readWasmDSPFactoryFromMachine2",
+                    &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
+                    allow_raw_pointers())
+    .class_function("createAudioBuffers",
+                    &wasm_dsp_factory::createJSAudioBuffers,
+                    allow_raw_pointers())
+    .class_function("deleteAudioBuffers",
+                    &wasm_dsp_factory::deleteJSAudioBuffers,
+                    allow_raw_pointers())
+    .class_function("copyAudioBuffer",
+                    &wasm_dsp_factory::copyJSAudioBuffer,
+                    allow_raw_pointers())
+    .class_function("getErrorMessage",
+                    &wasm_dsp_factory::getErrorMessage);
+}
+
+EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp) {
+    class_<wasm_dsp>("wasm_dsp")
+    .constructor()
+    .function("getNumInputs",
+              &wasm_dsp::getNumInputs,
+              allow_raw_pointers())
+    .function("getNumOutputs",
+              &wasm_dsp::getNumOutputs,
+              allow_raw_pointers())
+    .function("getSampleRate",
+              &wasm_dsp::getSampleRate,
+              allow_raw_pointers())
+    .function("init",
+              &wasm_dsp::init,
+              allow_raw_pointers())
+    .function("instanceInit",
+              &wasm_dsp::instanceInit,
+              allow_raw_pointers())
+    .function("instanceConstants",
+              &wasm_dsp::instanceConstants,
+              allow_raw_pointers())
+    .function("instanceResetUserInterface",
+              &wasm_dsp::instanceResetUserInterface,
+              allow_raw_pointers())
+    .function("instanceClear",
+              &wasm_dsp::instanceClear,
+              allow_raw_pointers())
+    .function("clone",
+              &wasm_dsp::clone,
+              allow_raw_pointers())
+    .function("compute",
+              &wasm_dsp::computeJS,
+              allow_raw_pointers())
+    .function("computeJSTest",
+              &wasm_dsp::computeJSTest,
+              allow_raw_pointers());
+}
+
 #else
 
 wasm_dsp::~wasm_dsp()
@@ -699,201 +655,4 @@ void wasm_dsp::computeJS(int count, uintptr_t input, uintptr_t output)
 void wasm_dsp::computeJSTest(int count)
 {}
 
-#endif
-
-// C API
-
-#ifdef EMCC
-    
-using namespace emscripten;
-
-vector<string> makeStringVector()
-{
-    vector<string> v;
-    return v;
-}
-    
-EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp_factory) {
-    emscripten::function("makeStringVector", &makeStringVector);
-    register_vector<string>("vector<string>");
-    class_<wasm_dsp_factory>("wasm_dsp_factory")
-    .constructor()
-    .function("createDSPInstance",
-              &wasm_dsp_factory::createDSPInstance,
-              allow_raw_pointers())
-    .class_function("createWasmDSPFactoryFromString2",
-                    &wasm_dsp_factory::createWasmDSPFactoryFromString2,
-                    allow_raw_pointers())
-    .class_function("readWasmDSPFactoryFromMachineFile2",
-                    &wasm_dsp_factory::readWasmDSPFactoryFromMachineFile2,
-                    allow_raw_pointers())
-    .class_function("readWasmDSPFactoryFromMachine2",
-                    &wasm_dsp_factory::readWasmDSPFactoryFromMachine2,
-                    allow_raw_pointers())
-    .class_function("createAudioBuffers",
-                    &wasm_dsp_factory::createJSAudioBuffers,
-                    allow_raw_pointers())
-    .class_function("deleteAudioBuffers",
-                    &wasm_dsp_factory::deleteJSAudioBuffers,
-                    allow_raw_pointers())
-    .class_function("copyAudioBuffer",
-                    &wasm_dsp_factory::copyJSAudioBuffer,
-                    allow_raw_pointers())
-    .class_function("getErrorMessage",
-                    &wasm_dsp_factory::getErrorMessage);
-}
-    
-EMSCRIPTEN_BINDINGS(CLASS_wasm_dsp) {
-    class_<wasm_dsp>("wasm_dsp")
-    .constructor()
-    .function("getNumInputs",
-              &wasm_dsp::getNumInputs,
-              allow_raw_pointers())
-    .function("getNumOutputs",
-              &wasm_dsp::getNumOutputs,
-              allow_raw_pointers())
-    .function("getSampleRate",
-              &wasm_dsp::getSampleRate,
-              allow_raw_pointers())
-    .function("init",
-              &wasm_dsp::init,
-              allow_raw_pointers())
-    .function("instanceInit",
-              &wasm_dsp::instanceInit,
-              allow_raw_pointers())
-    .function("instanceConstants",
-              &wasm_dsp::instanceConstants,
-              allow_raw_pointers())
-    .function("instanceResetUserInterface",
-              &wasm_dsp::instanceResetUserInterface,
-              allow_raw_pointers())
-    .function("instanceClear",
-             &wasm_dsp::instanceClear,
-             allow_raw_pointers())
-    .function("clone",
-             &wasm_dsp::clone,
-             allow_raw_pointers())
-    .function("compute",
-             &wasm_dsp::computeJS,
-             allow_raw_pointers())
-    .function("computeJSTest",
-              &wasm_dsp::computeJSTest,
-              allow_raw_pointers());
-}
-
-#endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
-                                                        char* error_msg, bool internal_memory)
-{
-    string error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
-    strncpy(error_msg, error_msg_aux.c_str(), 4096);
-    return factory;
-}
-
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
-                                                          const char* argv[], char* error_msg, bool internal_memory)
-{
-    string error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
-    strncpy(error_msg, error_msg_aux.c_str(), 4096);
-    return factory;
-}
-
-EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory)
-{
-    // TODO
-    return false;
-}
-
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* machine_code)
-{
-    // TODO
-    return nullptr;
-}
-
-EXPORT char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory)
-{
-    // TODO
-    return nullptr;
-}
-
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* machine_code_path)
-{
-    // TODO
-    return nullptr;
-}
-
-EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* machine_code_path)
-{}
-
-static WasmModule* createWasmCDSPFactoryAux(wasm_dsp_factory* factory, const string& error_msg_aux, char* error_msg)
-{
-    strncpy(error_msg, error_msg_aux.c_str(), 4096);
-    if (factory) {
-        WasmModule* res = static_cast<WasmModule*>(calloc(1, sizeof(WasmModule)));
-
-        // 'Binary' string, so directly copy its raw content
-        string code    = factory->getBinaryCode();
-        res->fCodeSize = code.size();
-        res->fCode     = (char*)malloc(res->fCodeSize);
-        memcpy(res->fCode, code.c_str(), res->fCodeSize);
-
-        stringstream dst2;
-        factory->writeAux(&dst2, false, false);
-        res->fHelpers = strdup(flatten(dst2.str()).c_str());
-
-        return res;
-        // And keep factory...
-    } else {
-        return nullptr;
-    }
-}
-
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
-                                                 bool internal_memory)
-{
-    string            error_msg_aux;
-    wasm_dsp_factory* factory = createWasmDSPFactoryFromFile(filename, argc, argv, error_msg_aux, internal_memory);
-    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
-}
-
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                   const char* argv[], char* error_msg, bool internal_memory)
-{
-    string            error_msg_aux;
-    wasm_dsp_factory* factory =
-        createWasmDSPFactoryFromString(name_app, dsp_content, argc, argv, error_msg_aux, internal_memory);
-    return createWasmCDSPFactoryAux(factory, error_msg_aux, error_msg);
-}
-
-EXPORT const char* getWasmCModule(WasmModule* module)
-{
-    return module->fCode;
-}
-
-EXPORT int getWasmCModuleSize(WasmModule* module)
-{
-    return module->fCodeSize;
-}
-
-EXPORT const char* getWasmCHelpers(WasmModule* module)
-{
-    return module->fHelpers;
-}
-
-EXPORT void freeWasmCModule(WasmModule* module)
-{
-    free((void*)module->fCode);
-    free((void*)module->fHelpers);
-    free(module);
-}
-
-#ifdef __cplusplus
-}
 #endif

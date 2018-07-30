@@ -29,10 +29,7 @@
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "exception.hh"
 #include "wasm_binary.hh"
-
-#include "faust/dsp/dsp.h"
 
 class JSONUIDecoder;
 class wasm_dsp_factory;
@@ -232,7 +229,7 @@ struct WasmBinaryReader {
             for (size_t j = 0; j < size; j++) {
                 json += char(getInt8());
             }
-            std::cout << "JSON : " << json << std::endl;
+            if (debug) std::cerr << "JSON : " << json << std::endl;
         }
     }
     
@@ -311,6 +308,8 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     void        setDSPCode(std::string code);
     
     JSONUIDecoder* getDecoder() { return fDecoder; }
+    
+    std::string getJSON() { return fJSON; }
 
     wasm_dsp* createDSPInstance();
 
@@ -328,11 +327,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string getBinaryCode();
     
-    
     void createModuleFromString();
-    
-    static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string& name_app, const std::string& dsp_content,
-                                                             const std::vector<std::string>& argv, bool internal_memory);
     
     static wasm_dsp_factory* readWasmDSPFactoryFromMachineFile2(const std::string& machine_code_path);
     
@@ -354,11 +349,9 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
   
 };
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
-                                                      std::string& error_msg, bool internal_memory);
+typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                                        const char* argv[], std::string& error_msg, bool internal_memory);
+extern dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
 
@@ -369,117 +362,5 @@ EXPORT std::string writeWasmDSPFactoryToMachine(wasm_dsp_factory* factory);
 EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachineFile(const std::string& machine_code_path);
 
 EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const std::string& machine_code_path);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-    
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
-                                                      char* error_msg, bool internal_memory);
-
-EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
-                                                        const char* argv[], char* error_msg, bool internal_memory);
-
-EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
-
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachine(const char* machine_code);
-
-EXPORT char* writeWasmCDSPFactoryToMachine(wasm_dsp_factory* factory);
-
-EXPORT wasm_dsp_factory* readWasmCDSPFactoryFromMachineFile(const char* machine_code_path);
-
-EXPORT void writeWasmCDSPFactoryToMachineFile(wasm_dsp_factory* factory, const char* machine_code_path);
-
-typedef struct {
-    char*       fCode;
-    int         fCodeSize;
-    const char* fHelpers;
-} WasmModule;
-
-/**
- * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a file.
- *
- * @param filename - the DSP filename
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled, has to be 4096 characters long
- * @param internal_memory - whether the memory is allocated inside the module (= faster DSP fields access) or from the
- * JS context
- *
- * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by
- * the caller), otherwise a null pointer.
- */
-EXPORT WasmModule* createWasmCDSPFactoryFromFile(const char* filename, int argc, const char* argv[], char* error_msg,
-                                                 bool internal_memory);
-
-/**
- * Create a Faust DSP WebAssembly module and additional helper functions from a DSP source code as a string.
- *
- * @param name_app - the name of the Faust program
- * @param dsp_content - the Faust program as a string
- * @param argc - the number of parameters in argv array
- * @param argv - the array of parameters
- * @param error_msg - the error string to be filled, has to be 4096 characters long
- * @param internal_memory - whether the memory is allocated inside the module (= faster DSP fields access) or from the
- * JS context
- *
- * @return a valid WebAssembly module and additional helper functions as a WasmRes struct on success (to be deleted by
- * the caller), otherwise a null pointer.
- */
-EXPORT WasmModule* createWasmCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
-                                                   const char* argv[], char* error_msg, bool internal_memory);
-
-/**
- * Get the WebAssembly module from the WasmRes structure.
- *
- * @param module - the WebAssembly module
- *
- * @return the WebAssembly module as an array of bytes.
- */
-EXPORT const char* getWasmCModule(WasmModule* module);
-
-/**
- * Get the WebAssembly module size.
- *
- * @param module - the WebAssembly module
- *
- * @return the WebAssembly module size.
- */
-EXPORT int getWasmCModuleSize(WasmModule* module);
-
-/**
- * Get the additional helper functions module from the WasmRes structure.
- *
- * @param module - the WebAssembly module
- *
- * @return the additional helper functions as a string.
- */
-EXPORT const char* getWasmCHelpers(WasmModule* module);
-
-/**
- * The free function to be used on memory returned by createWasmCDSPFactoryFromString.
- *
- * @param module - the WebAssembly module
- *
- * @param ptr - the WasmRes structure to be deleted.
- */
-EXPORT void freeWasmCModule(WasmModule* module);
-
-/**
- * Get the error message after an exception occured.
- *
- * @return the error as a static string.
- */
-EXPORT const char* getErrorAfterException();
-
-/**
- *  Cleanup library global context after an exception occured.
- *
- */
-EXPORT void cleanupAfterException();
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
