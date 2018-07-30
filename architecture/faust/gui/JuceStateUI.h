@@ -24,62 +24,62 @@
 #ifndef JuceStateUI_H
 #define JuceStateUI_H
 
-#include <vector>
-
 #include "../JuceLibraryCode/JuceHeader.h"
 
-#include "faust/gui/DecoratorUI.h"
+#include "faust/gui/MapUI.h"
 
 // A class to save/restore DSP state using JUCE, which also set default values at construction time.
 
-class JuceStateUI : public GenericUI {
-
-    private:
-
-        std::vector<FAUSTFLOAT*> fZones;
-  
-    public:
+class JuceStateUI : public MapUI {
     
-        JuceStateUI() {}
-        virtual ~JuceStateUI() {}
+public:
     
-        void getStateInformation (MemoryBlock& destData)
-        {
-            MemoryOutputStream stream (destData, true);
-
-            if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-                for (int i = 0; i < fZones.size(); i++) {
-                    stream.writeFloat(*fZones[i]);
-                }
-            } else {
-                for (int i = 0; i < fZones.size(); i++) {
-                    stream.writeDouble(*fZones[i]);
-                }
+    JuceStateUI() {}
+    virtual ~JuceStateUI() {}
+    
+    void getStateInformation (MemoryBlock& destData)
+    {
+        MemoryOutputStream stream (destData, true);
+        
+        // Write path and values
+        std::map<std::string, FAUSTFLOAT*>::iterator it;
+        if (sizeof(FAUSTFLOAT) == sizeof(float)) {
+            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
+                stream.writeString((*it).first);
+                stream.writeFloat(*(*it).second);
+            }
+        } else {
+            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
+                stream.writeString((*it).first);
+                stream.writeDouble(*(*it).second);
             }
         }
-
-        void setStateInformation (const void* data, int sizeInBytes)
-        {
-            MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
-       
-            if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-                for (int i = 0; i < sizeInBytes / sizeof(float); i++) {
-                    *fZones[i] = stream.readFloat();
-                }
-            } else {
-                for (int i = 0; i < sizeInBytes / sizeof(double); i++) {
-                    *fZones[i] = stream.readDouble();
-                }
+    }
+    
+    void setStateInformation (const void* data, int sizeInBytes)
+    {
+        MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
+        std::string path;
+        
+        // Read path then value and try to restore them
+        if (sizeof(FAUSTFLOAT) == sizeof(float)) {
+            while ((path = stream.readString().toStdString()) != "") {
+                setParamValue(path, stream.readFloat());
+            }
+        } else {
+            while ((path = stream.readString().toStdString()) != "") {
+                setParamValue(path, stream.readDouble());
             }
         }
-
-        // -- active widgets
-
-        virtual void addButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { fZones.push_back(zone); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init; }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init; }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step) { fZones.push_back(zone); *zone = init;};
+    }
+    
+    // -- active widgets
+    // use MapUI derived methods
+    
+    // -- passive widgets
+    // empty si we don't want to save/restore them
+    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
+    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
     
 };
 
