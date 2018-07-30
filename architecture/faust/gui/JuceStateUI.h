@@ -32,54 +32,54 @@
 
 class JuceStateUI : public MapUI {
     
-public:
-    
-    JuceStateUI() {}
-    virtual ~JuceStateUI() {}
-    
-    void getStateInformation (MemoryBlock& destData)
-    {
-        MemoryOutputStream stream (destData, true);
+    public:
         
-        // Write path and values
-        std::map<std::string, FAUSTFLOAT*>::iterator it;
-        if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
-                stream.writeString((*it).first);
-                stream.writeFloat(*(*it).second);
-            }
-        } else {
-            for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
-                stream.writeString((*it).first);
-                stream.writeDouble(*(*it).second);
+        JuceStateUI() {}
+        virtual ~JuceStateUI() {}
+        
+        void getStateInformation (MemoryBlock& destData)
+        {
+            MemoryOutputStream stream (destData, true);
+            
+            // Write path and values
+            std::map<std::string, FAUSTFLOAT*>::iterator it;
+            if (sizeof(FAUSTFLOAT) == sizeof(float)) {
+                for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
+                    stream.writeString((*it).first);
+                    stream.writeFloat(*(*it).second);
+                }
+            } else {
+                for (it = fPathZoneMap.begin(); it != fPathZoneMap.end(); ++it) {
+                    stream.writeString((*it).first);
+                    stream.writeDouble(*(*it).second);
+                }
             }
         }
-    }
-    
-    void setStateInformation (const void* data, int sizeInBytes)
-    {
-        MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
-        std::string path;
         
-        // Read path then value and try to restore them
-        if (sizeof(FAUSTFLOAT) == sizeof(float)) {
-            while ((path = stream.readString().toStdString()) != "") {
-                setParamValue(path, stream.readFloat());
-            }
-        } else {
-            while ((path = stream.readString().toStdString()) != "") {
-                setParamValue(path, stream.readDouble());
+        void setStateInformation (const void* data, int sizeInBytes)
+        {
+            MemoryInputStream stream (data, static_cast<size_t> (sizeInBytes), false);
+            std::string path;
+            
+            // Read path then value and try to restore them
+            if (sizeof(FAUSTFLOAT) == sizeof(float)) {
+                while ((path = stream.readString().toStdString()) != "") {
+                    setParamValue(path, stream.readFloat());
+                }
+            } else {
+                while ((path = stream.readString().toStdString()) != "") {
+                    setParamValue(path, stream.readDouble());
+                }
             }
         }
-    }
-    
-    // -- active widgets
-    // use MapUI derived methods
-    
-    // -- passive widgets
-    // empty si we don't want to save/restore them
-    void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
-    void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
+        
+        // -- active widgets
+        // use MapUI derived methods
+        
+        // -- passive widgets
+        // empty si we don't want to save/restore them
+        void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
+        void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax) {}
     
 };
 

@@ -1829,7 +1829,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         int fRadioGroupID;               // In case of radio buttons.
         //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
-        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V3();
+        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V4();
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {

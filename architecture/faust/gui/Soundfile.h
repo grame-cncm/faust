@@ -24,6 +24,8 @@
 #ifndef __Soundfile__
 #define __Soundfile__
 
+#include <iostream>
+
 #ifndef FAUSTFLOAT
 #define FAUSTFLOAT float
 #endif
@@ -76,14 +78,56 @@ struct Soundfile {
  The generic soundfile reader.
  */
 
-struct SoundfileReader {
+class SoundfileReader {
     
-    virtual ~SoundfileReader() {}
+    protected:
     
-    virtual std::string CheckAux(const std::string& path_name_str, std::string& sha_key) = 0;
+        void FillDefault(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
+        {
+            if (path_name_str != "") {
+                std::cerr << "Error opening the file : " << path_name_str << std::endl;
+            }
+            
+            soundfile->fChannels = 1;
+            soundfile->fLength = BUFFER_SIZE;
+            soundfile->fSampleRate = SAMPLE_RATE;
+            
+            // Allocate 1 channel
+            soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
+            if (!soundfile->fBuffers[0]) {
+                throw std::bad_alloc();
+            }
+            memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
+            
+            // Share the same buffer for all other channels so that we have max_chan channels available
+            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[0];
+            }
+        }
     
-    // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key);
+        Soundfile* Create(int max_chan)
+        {
+            Soundfile* soundfile = new Soundfile();
+            if (!soundfile) {
+                throw std::bad_alloc();
+            }
+            soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
+            if (!soundfile->fBuffers) {
+                throw std::bad_alloc();
+            }
+            return soundfile;
+        }
+    
+    public:
+    
+        virtual ~SoundfileReader() {}
+    
+        virtual Soundfile* Read(const std::string& path_name_str, int max_chan) = 0;
+    
+        virtual std::string CheckAux(const std::string& path_name_str) = 0;
+        
+        // Check if soundfile exists and return the real path_name
+        static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str);
     
 };
 

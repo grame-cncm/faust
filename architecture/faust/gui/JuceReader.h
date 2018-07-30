@@ -28,19 +28,10 @@
 
 struct JuceReader : public SoundfileReader {
     
-    std::string CheckAux(const std::string& path_name_str, std::string& sha_key)
+    std::string CheckAux(const std::string& path_name_str)
     {
         File file(path_name_str);
         if (file.existsAsFile()) {
-            // Possibly read associated SHA_KEY file
-            std::string sha_key_path_name_str = path_name_str + "_sha_key";
-            std::ifstream reader(sha_key_path_name_str.c_str());
-            if (reader.is_open()) {
-                std::string sha_key_line;
-                getline(reader, sha_key_line);
-                std::stringstream line_reader(sha_key_line);
-                line_reader >> sha_key;
-            }
             return path_name_str;
         } else {
             std::cerr << "ERROR : cannot open '" << path_name_str << std::endl;
@@ -50,12 +41,9 @@ struct JuceReader : public SoundfileReader {
     
     JuceReader() {}
     
-    JuceReader(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
+    Soundfile* Read(const std::string& path_name_str, int max_chan)
     {
-        soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
-        if (!soundfile->fBuffers) {
-            throw std::bad_alloc();
-        }
+        Soundfile* soundfile = Create(max_chan);
         
         AudioFormatManager formatManager;
         formatManager.registerBasicFormats();
@@ -91,27 +79,16 @@ struct JuceReader : public SoundfileReader {
             }
             
         } else {
-            
-            if (path_name_str != "") {
-                std::cerr << "Error opening the file : " << path_name_str << std::endl;
-            }
-            
-            soundfile->fChannels = 1;
-            soundfile->fLength = BUFFER_SIZE;
-            soundfile->fSampleRate = SAMPLE_RATE;
-            
-            // Allocate 1 channel
-            soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
-            if (!soundfile->fBuffers[0]) {
-                throw std::bad_alloc();
-            }
-            memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
-            
-            // Share the same buffer for all other channels so that we have max_chan channels available
-            for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
-                soundfile->fBuffers[chan] = soundfile->fBuffers[0];
-            }
+            FillDefault(soundfile, path_name_str, max_chan);
         }
+        
+        return soundfile;
+    }
+    
+    static Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+    {
+        JuceReader reader;
+        return reader.Read(path_name_str, max_chan);
     }
     
 };
