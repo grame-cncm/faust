@@ -52,6 +52,7 @@ class OSCControler
 	int fUDPPort,   fUDPOut, fUPDErr;	// the udp ports numbers
 	std::string     fDestAddress;		// the osc messages destination address, used at initialization only
 										// to collect the address from the command line
+	std::string     fBindAddress;		// when non empty, the address used to bind the socket for listening
 	OSCSetup*		fOsc;				// the network manager (handles the udp sockets)
 	OSCIO*			fIO;				// hack for OSC IO support (actually only relayed to the factory)
 	FaustFactory*	fFactory;			// a factory to build the memory represetnatin
