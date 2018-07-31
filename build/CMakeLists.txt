@@ -137,9 +137,11 @@ macro (llvm_config)
 	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
 	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
 	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
+	if (${LLVM_VERSION} STRGREATER_EQUAL "3.5")
 	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
 	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
 	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+	endif()
 endmacro()
 
 ####################################
