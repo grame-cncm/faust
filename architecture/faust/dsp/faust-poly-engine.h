@@ -178,6 +178,9 @@ class FaustPolyEngine {
             }
         }
     
+        void setGroup(bool group) { if (fPolyDSP) fPolyDSP->setGroup(group); }
+        bool getGroup() { return (fPolyDSP) ? fPolyDSP->getGroup() : false; }
+    
         /*
          * keyOn(pitch, velocity)
          * Instantiates a new polyphonic voice where velocity

@@ -250,7 +250,10 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     // Use bundle path
     fSoundInterface = new SoundUI(SoundUI::getBinaryPath());
 #endif
+    // SoundUI has to be dispatched on all internal voices
+    fPolyEngine->setGroup(false);
     fPolyEngine->buildUserInterface(fSoundInterface);
+    fPolyEngine->setGroup(true);
 #endif
 }
 

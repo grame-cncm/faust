@@ -332,7 +332,10 @@ int main(int argc, char *argv[])
 #ifdef SOUNDFILE
     // Use bundle path
     SoundUI soundinterface(SoundUI::getBinaryPath("/Contents/Resources/"));
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #ifdef IOS

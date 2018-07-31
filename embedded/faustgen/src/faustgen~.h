@@ -56,7 +56,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.25"
+#define FAUSTGEN_VERSION "1.26"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -244,7 +244,9 @@ class faustgen : public MspCpp5<faustgen> {
         void update_outputs();
         
         bool allocate_factory(const string& effect_name);
-        
+    
+        void init_controllers();
+    
         t_dictionary* json_reader(const char* jsontext);
     
         void add_midihandler();

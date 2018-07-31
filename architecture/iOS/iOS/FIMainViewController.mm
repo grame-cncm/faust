@@ -237,7 +237,10 @@ static void jack_shutdown_callback(const char* message, void* arg)
 #if SOUNDFILE
     // Use bundle path
     soundinterface = new SoundUI(SoundUI::getBinaryPath());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #if MIDICTRL

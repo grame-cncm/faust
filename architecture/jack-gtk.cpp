@@ -173,7 +173,10 @@ int main(int argc, char *argv[])
     FUI finterface;
 #if SOUNDFILE
     SoundUI soundinterface;
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     DSP->buildUserInterface(&soundinterface);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);

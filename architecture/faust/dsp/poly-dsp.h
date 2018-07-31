@@ -659,6 +659,9 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 std::cout << "Voice not found\n";
             }
         }
+    
+        void setGroup(bool group) { fGroupControl = group; }
+        bool getGroup() { return fGroupControl; }
 
         // MIDI API
         MapUI* keyOn(int channel, int pitch, int velocity)

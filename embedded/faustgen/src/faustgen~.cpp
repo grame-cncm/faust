@@ -1268,12 +1268,9 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
         fDSP = fDSPfactory->create_dsp_instance(av[0].a_w.w_long);
         assert(fDSP);
         
-        // Initialize User Interface (here connnection with controls)
-        fDSP->buildUserInterface(&fDSPUI);
-        
-        add_midihandler();
-        fDSP->buildUserInterface(fMidiUI);
-        
+        // Init all controllers (UI, MIDI, Soundfile)
+        init_controllers();
+
         // Prepare JSON
         fDSPfactory->make_json(fDSP);
         
@@ -1505,21 +1502,37 @@ void faustgen::remove_midihandler()
     }
 }
 
+void faustgen::init_controllers()
+{
+    // Initialize User Interface (here connnection with controls)
+    fDSP->buildUserInterface(&fDSPUI);
+    
+    // MIDI handling
+    add_midihandler();
+    fDSP->buildUserInterface(fMidiUI);
+    
+    // Soundfile handling
+    if (fDSPfactory->fSoundInterface) {
+        if (fDSPfactory->fPolyphonic) {
+            mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
+            // SoundUI has to be dispatched on all internal voices
+            poly->setGroup(false);
+            fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
+            poly->setGroup(true);
+        } else {
+            fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
+        }
+    }
+}
+
 void faustgen::create_dsp(bool init)
 {
     if (fDSPfactory->lock()) {
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
         
-        // Initialize User Interface (here connnection with controls)
-        fDSP->buildUserInterface(&fDSPUI);
-        
-        // MIDI handling
-        add_midihandler();
-        fDSP->buildUserInterface(fMidiUI);
-        
-        // Soundfile handling
-        if (fDSPfactory->fSoundInterface) fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
+        // Init all controllers (UI, MIDI, Soundfile)
+        init_controllers();
         
         // Initialize at the system's sampling rate
         fDSP->init(sys_getsr());

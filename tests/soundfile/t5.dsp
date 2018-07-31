@@ -1,7 +1,7 @@
 
 import("stdfaust.lib");
 
-// play a soundfile in a loop taking into account the sampling rate
+// play a soundfile in a loop
 so_play(s) = 1 : (+,length(s):fmod)~_ : int : outs(s)
 	with {
 		length(s) = 0 : s : _,cut(outputs(s)-1);

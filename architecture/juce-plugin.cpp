@@ -397,7 +397,10 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     auto file = File::getSpecialLocation(File::currentExecutableFile)
         .getParentDirectory().getParentDirectory().getChildFile("Resources");
     fSoundUI = new SoundUI(file.getFullPathName().toStdString());
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     fDSP->buildUserInterface(fSoundUI);
+    if (dsp_poly) dsp_poly->setGroup(group);
 #endif
     
 #ifdef JUCE_POLY
