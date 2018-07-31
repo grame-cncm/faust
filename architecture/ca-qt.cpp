@@ -76,8 +76,6 @@
 #include "faust/midi/RtMidi.cpp"
 #endif
 
-#include "faust/dsp/dsp-combiner.h"
-
 #define stringify_literal(x) #x
 #define stringify_expanded(x) stringify_literal(x)
 

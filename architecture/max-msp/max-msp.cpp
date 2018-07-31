@@ -73,7 +73,6 @@
 #include "faust/misc.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
 

@@ -1133,9 +1133,9 @@ If more outputs than the actual number of channels in the soundfile are used, th
 
 If the soundfile cannot be loaded for whatever reason, a default sound with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
 
-Architecture files are responsible to load the actual soundfile. The \lstinline'SoundUI' C++ class located in the \lstinline'faust/gui/SoundUI.h' file implements the \lstinline'void  addSoundfile(label, file_name, sf_zone)' method, which loads the actual soundfiles using the {\it libsndfile} library, and set up the \lstinline'sf_zone' sound memory pointers. If {\it label} is used without any {\it url} metadata, it will be considered as the soundfile pathname. 
+Architecture files are responsible to load the actual soundfile. The \lstinline'SoundUI' C++ class located in the \lstinline'faust/gui/SoundUI.h' file implements the \lstinline'void  addSoundfile(label, path, sf_zone)' method, which loads the actual soundfiles using the {\it libsndfile} library, and set up the \lstinline'sf_zone' sound memory pointers. If {\it label} is used without any {\it url} metadata, it will be considered as the soundfile pathname. 
 
-Note that a special architecture file can perfectly decide to access and use sound resources created by another means (that is, not directly loaded from a soundfile). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge to actually setup all sound memory pointers when \lstinline'void  addSoundfile(label, file_name, sf_zone)'  is called by the \lstinline'buidUserInterface' mechanism.
+Note that a special architecture file can perfectly decide to access and use sound resources created by another means (that is, not directly loaded from a soundfile). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge to actually setup all sound memory pointers when \lstinline'void  addSoundfile(label, path, sf_zone)'  is called by the \lstinline'buidUserInterface' mechanism.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}

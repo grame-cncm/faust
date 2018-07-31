@@ -34,6 +34,7 @@
 #include <limits.h>
 #include <float.h>
 
+#include "faust/dsp/dsp-combiner.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
@@ -354,6 +355,7 @@ struct dsp_voice_group {
 /**
  * Base class for Polyphonic DSP.
  */
+
 class dsp_poly : public decorator_dsp, public midi {
 
     public:
@@ -362,6 +364,11 @@ class dsp_poly : public decorator_dsp, public midi {
         {}
     
         virtual ~dsp_poly() {}
+    
+        // Group API
+        virtual void setGroup(bool group) = 0;
+        virtual bool getGroup() = 0;
+
 };
 
 /**
@@ -506,6 +513,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
          * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
          *                a given control on all voices, assuming GUI::updateAllGuis() is called.
          *                If false, all voices can be individually controlled.
+         *                setGroup/getGroup methods can be used to set/get the group state.
          *
          */
         mydsp_poly(dsp* dsp,
@@ -709,6 +717,162 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         void ctrlChange14bits(int channel, int ctrl, int value)
         {}
 
+};
+
+inline std::string pathToContent(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
+}
+
+/**
+ * Polyphonic DSP with an integrated effect. fPolyDSP will respond to MIDI messages.
+ */
+class dsp_poly_effect : public dsp_poly {
+    
+    private:
+        
+        dsp_poly* fPolyDSP;
+        
+    public:
+        
+        dsp_poly_effect(dsp_poly* dsp1, dsp* dsp2)
+        :dsp_poly(dsp2), fPolyDSP(dsp1)
+        {}
+        
+        virtual ~dsp_poly_effect()
+        {
+            // dsp_poly_effect is also a decorator_dsp, which will free fPolyDSP
+        }
+        
+        // MIDI API
+        MapUI* keyOn(int channel, int pitch, int velocity)
+        {
+            return fPolyDSP->keyOn(channel, pitch, velocity);
+        }
+        void keyOff(int channel, int pitch, int velocity)
+        {
+            fPolyDSP->keyOff(channel, pitch, velocity);
+        }
+        void keyPress(int channel, int pitch, int press)
+        {
+            fPolyDSP->keyPress(channel, pitch, press);
+        }
+        void chanPress(int channel, int press)
+        {
+            fPolyDSP->chanPress(channel, press);
+        }
+        void ctrlChange(int channel, int ctrl, int value)
+        {
+            fPolyDSP->ctrlChange(channel, ctrl, value);
+        }
+        void ctrlChange14bits(int channel, int ctrl, int value)
+        {
+            fPolyDSP->ctrlChange14bits(channel, ctrl, value);
+        }
+        void pitchWheel(int channel, int wheel)
+        {
+            fPolyDSP->pitchWheel(channel, wheel);
+        }
+        void progChange(int channel, int pgm)
+        {
+            fPolyDSP->progChange(channel, pgm);
+        }
+        
+        // Group API
+        void setGroup(bool group)
+        {
+            fPolyDSP->setGroup(group);
+        }
+        bool getGroup()
+        {
+            return fPolyDSP->getGroup();
+        }
+};
+
+/**
+ * Polyphonic DSP factory class. Helper code to support polyphonic DSP source with an integrated effect.
+ */
+
+struct dsp_poly_factory : public dsp_factory {
+    
+    dsp_factory* fProcessFactory;
+    dsp_factory* fEffectFactory;
+    
+    std::string getEffectCode(const std::string& dsp_content)
+    {
+        std::stringstream effect_code;
+        effect_code << "adapt(1,1) = _; adapt(2,2) = _,_; adapt(1,2) = _ <: _,_; adapt(2,1) = _,_ :> _;";
+        effect_code << "adaptor(F,G) = adapt(outputs(F),inputs(G)); dsp_code = environment{ " << dsp_content << " };";
+        effect_code << "process = adaptor(dsp_code.process, dsp_code.effect) : dsp_code.effect;";
+        return effect_code.str();
+    }
+
+    dsp_poly_factory(dsp_factory* process_factory = NULL,
+                     dsp_factory* effect_factory = NULL):
+    fProcessFactory(process_factory)
+    ,fEffectFactory(effect_factory)
+    {}
+    
+    virtual ~dsp_poly_factory()
+    {}
+    
+    virtual std::string getName() { return fProcessFactory->getName(); }
+    virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
+    virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
+    
+    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fProcessFactory->getDSPFactoryLibraryList(); }
+    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fProcessFactory->getDSPFactoryIncludePathnames(); }
+    
+    virtual void setMemoryManager(dsp_memory_manager* manager)
+    {
+        fProcessFactory->setMemoryManager(manager);
+        if (fEffectFactory) {
+            fEffectFactory->setMemoryManager(manager);
+        }
+    }
+    virtual dsp_memory_manager* getMemoryManager() { return fProcessFactory->getMemoryManager(); }
+    
+    /* Create a new polyphonic DSP instance with global effect, to be deleted with C++ 'delete'
+     *
+     * @param nvoices - number of polyphony voices
+     * @param control - whether voices will be dynamically allocated and controlled (typically by a MIDI controler).
+     *                If false all voices are always running.
+     * @param group - if true, voices are not individually accessible, a global "Voices" tab will automatically dispatch
+     *                a given control on all voices, assuming GUI::updateAllGuis() is called.
+     *                If false, all voices can be individually controlled.
+     */
+    dsp_poly* createPolyDSPInstance(int nvoices, bool control, bool group)
+    {
+        dsp_poly* dsp_poly = new mydsp_poly(fProcessFactory->createDSPInstance(), nvoices, control, group);
+        if (fEffectFactory) {
+            // the 'dsp_poly' object has to be controlled with MIDI, so kept separated from new dsp_sequencer(...) object
+            return new dsp_poly_effect(dsp_poly, new dsp_sequencer(dsp_poly, fEffectFactory->createDSPInstance()));
+        } else {
+            return new dsp_poly_effect(dsp_poly, dsp_poly);
+        }
+    }
+    
+    /* Create a new DSP instance, to be deleted with C++ 'delete' */
+    dsp* createDSPInstance()
+    {
+        return fProcessFactory->createDSPInstance();
+    }
+    
 };
 
 #endif // __poly_dsp__

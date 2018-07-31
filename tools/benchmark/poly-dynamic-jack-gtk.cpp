@@ -37,13 +37,15 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
-#include "faust/dsp/poly-dsp-tools.h"
+#include "faust/dsp/poly-llvm-dsp.h"
+#include "faust/dsp/poly-interpreter-dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
@@ -162,8 +164,8 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     //cout << "getSHAKey " << factory->getSHAKey() << endl;
-  
-   if (isopt(argv, "-double")) {
+    
+    if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
     }
     
@@ -172,6 +174,12 @@ int main(int argc, char* argv[])
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
+    
+    SoundUI* soundinterface = new SoundUI();
+    // SoundUI has to be dispatched on all internal voices
+    DSP->setGroup(false);
+    DSP->buildUserInterface(soundinterface);
+    DSP->setGroup(true);
    
     if (!audio.init(filename, DSP)) {
         return 0;

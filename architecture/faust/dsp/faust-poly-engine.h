@@ -38,7 +38,6 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/dsp/faust-engine.h"
-#include "faust/dsp/dsp-combiner.h"
 
 //**************************************************************
 // Mono or polyphonic audio DSP engine
