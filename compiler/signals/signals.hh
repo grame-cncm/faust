@@ -330,20 +330,20 @@ A boxSounfile(label,c) has 1 input channel and c+3 output channels:
     0   sigSoundfileLength(label):  the number of frames of the soundfile (NK)
     1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
     2   sigSoundfileChannels(label): the number of channels of the file (NK)
-    3.. sigSoundfileBuffer(label, c, ridx): the cth channel content (RK ou RS)
+    3.. sigSoundfileBuffer(label, c, fpart, ridx): the cth channel content (RK ou RS)
 */
 
 Tree sigSoundfile(Tree label);
 Tree sigSoundfileLength(Tree sf);
 Tree sigSoundfileRate(Tree sf);
 Tree sigSoundfileChannels(Tree sf);
-Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree ridx);
+Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree fpart, Tree ridx);
 
 bool isSigSoundfile(Tree s, Tree& label);
 bool isSigSoundfileLength(Tree s, Tree& sf);
 bool isSigSoundfileRate(Tree s, Tree& sf);
 bool isSigSoundfileChannels(Tree s, Tree& sf);
-bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& ridx);
+bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& fpart, Tree& ridx);
 
 /*****************************************************************************
                              matrix extension
