@@ -359,10 +359,11 @@ static Type infereSigType(Tree sig, Tree env)
     } else if (isSigSoundfileChannels(sig, sf)) {
         T(sf, env);
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileBuffer(sig, sf, x, s1)) {
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         T(sf, env);
         T(x, env);
-        T(s1, env);
+        T(y, env);
+        T(z, env);
         return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
     }
 

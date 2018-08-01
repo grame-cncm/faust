@@ -454,8 +454,8 @@ string ScalarCompiler::generateCode(Tree sig)
         return generateCacheCode(sig, subst("$0cache->fSampleRate", CS(sf)));
     } else if (isSigSoundfileChannels(sig, sf)) {
         return generateCacheCode(sig, subst("$0cache->fChannels", CS(sf)));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y)));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+                return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {

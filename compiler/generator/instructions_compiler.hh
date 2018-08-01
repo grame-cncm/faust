@@ -184,7 +184,7 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf);
     virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf);
     virtual ValueInst* generateSoundfileChannels(Tree sig, ValueInst* sf);
-    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y);
+    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y, ValueInst* z);
 
     virtual ValueInst* generateIntNumber(Tree sig, int num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);

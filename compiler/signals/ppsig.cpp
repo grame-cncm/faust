@@ -283,8 +283,8 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "rate", sf);
     } else if (isSigSoundfileChannels(sig, sf)) {
         printfun(fout, "channels", sf);
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        printfun(fout, "buffer", sf, x, y);
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        printfun(fout, "buffer", sf, x, y, z);
     }
 
     else if (isSigAttach(sig, x, y)) {

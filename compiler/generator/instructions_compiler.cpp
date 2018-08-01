@@ -508,8 +508,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
     } else if (isSigSoundfileChannels(sig, sf)) {
         return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -1457,7 +1457,8 @@ ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* 
                                             InstBuilder::genInt32NumInst(3));
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
+ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
+                                                         ValueInst* z)
 {
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);

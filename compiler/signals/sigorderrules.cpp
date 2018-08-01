@@ -82,7 +82,7 @@ static int infereSigOrder(Tree sig)
 {
     int    i;
     double r;
-    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, s4, ff, id, ls, l, x, y, z, var, body, type, name, file, sf;
 
     xtended* xt = (xtended*)getUserData(sig);
     // primitive elements
@@ -179,7 +179,7 @@ static int infereSigOrder(Tree sig)
     else if (isSigSoundfileChannels(sig, sf))
         return 2;
 
-    else if (isSigSoundfileBuffer(sig, sf, x, y))
+    else if (isSigSoundfileBuffer(sig, sf, x, y, z))
         return 3;
 
     else if (isSigAttach(sig, s1, s2))
