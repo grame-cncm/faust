@@ -46,7 +46,7 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
                 error_msg = "";
             }
         } else {
-            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
+            std::cerr << "interpreter_dsp_poly_factory : " << error_msg << std::endl;
             throw std::bad_alloc();
         }
     }
@@ -75,7 +75,11 @@ inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::st
                                                                    int argc, const char* argv[],
                                                                    std::string& error_msg)
 {
-    return new interpreter_dsp_poly_factory(name_app, dsp_content, argc, argv, error_msg);
+    try {
+        return new interpreter_dsp_poly_factory(name_app, dsp_content, argc, argv, error_msg);
+    } catch (...) {
+        return NULL;
+    }
 }
 
 /**

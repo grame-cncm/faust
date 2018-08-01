@@ -48,7 +48,7 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
                 error_msg = "";
             }
         } else {
-            std::cerr << "dsp_poly_factory : " << error_msg << std::endl;
+            std::cerr << "llvm_dsp_poly_factory : " << error_msg << std::endl;
             throw std::bad_alloc();
         }
     }
@@ -81,7 +81,11 @@ inline dsp_poly_factory* createPolyDSPFactoryFromString(const std::string& name_
                                                         std::string& error_msg,
                                                         int opt_level = -1)
 {
-    return new llvm_dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
+    try {
+        return new llvm_dsp_poly_factory(name_app, dsp_content, argc, argv, target, error_msg, opt_level);
+    } catch (...) {
+        return NULL;
+    }
 }
 
 /**
