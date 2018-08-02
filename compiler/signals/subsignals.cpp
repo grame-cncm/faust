@@ -198,9 +198,6 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
         vsigs.push_back(sf);
         vsigs.push_back(x);
         return 2;
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        vsigs.push_back(sf);
-        return 1;
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         vsigs.push_back(sf);
         vsigs.push_back(x);

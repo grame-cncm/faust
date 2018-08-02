@@ -281,8 +281,6 @@ ostream& ppsig::print(ostream& fout) const
         printfun(fout, "length", sf, x);
     } else if (isSigSoundfileRate(sig, sf, x)) {
         printfun(fout, "rate", sf, x);
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        printfun(fout, "channels", sf);
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         printfun(fout, "buffer", sf, x, y, z);
     }

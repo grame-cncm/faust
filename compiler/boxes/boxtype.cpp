@@ -193,7 +193,7 @@ static bool infereBoxType(Tree t, int* inum, int* onum)
         *onum = 1;
     } else if (isBoxSoundfile(t, l, c)) {
         *inum = 2;
-        *onum = 3 + tree2int(c);
+        *onum = 2 + tree2int(c);
     } else if (isBoxSeq(t, a, b)) {
         int u, v, x, y;
         if (!getBoxType(a, &u, &v)) return false;

@@ -506,8 +506,6 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf), CS(part)));
     } else if (isSigSoundfileRate(sig, sf, part)) {
         return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf), CS(part)));
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
         return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y), CS(z)));
     }

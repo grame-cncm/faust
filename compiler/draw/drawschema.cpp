@@ -574,7 +574,7 @@ static schema* generateSoundfileSchema(Tree t)
         int    n = tree2int(chan);
         string s;
         UserInterfaceDescription(t, s);
-        return makeBlockSchema(2, 3 + n, s, uicolor, "");
+        return makeBlockSchema(2, 2 + n, s, uicolor, "");
     } else {
         throw faustexception("ERROR : soundfile\n");
     }
