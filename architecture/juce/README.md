@@ -10,13 +10,14 @@ faust2juce uses several UI interfaces, subclasses of the base UI class (defined 
  - `JuceOSCUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
  - `JuceParameterUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterFloat classes
  - `JuceStateUI.h` : allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
+- `JuceReader.h` : contains code to load audio files using the JUCE handling code, that will be used when the `soundfile` primitive is used in the code
 
 
 ## How to use
 
 faust2juce is used with the following command: 
 
-`faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth]  [-midi] [-osc] file.dsp` 
+`faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth]  [-midi] [-osc] [-soundfile] file.dsp` 
 
 By default it will create a plugin project, with a folder named with the dsp file name, containing a .jucer project with a FaustPluginProcessor.cpp file to be used by JUCE.
 
@@ -34,6 +35,7 @@ The following options are available:
  - `-jsynth`                : to use JUCE polyphonic Synthesizer instead of Faust polyphonic code
  - `-midi`                  : activates MIDI control
  - `-osc`                   : activates OSC control
+ - `-soundfile`             : when compiling DSP using 'soundfile' primitive, to add needed resources
  - `-help or -h`            : shows the different options 
 
 Some others options will be added later, still in development...

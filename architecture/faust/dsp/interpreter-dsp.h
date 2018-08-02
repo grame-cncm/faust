@@ -149,8 +149,8 @@ interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& s
  * @return a DSP factory on success, otherwise a null pointer.
  */
 interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename,
-                                                           int argc, const char* argv[], 
-                                                           std::string& error_msg);
+                                                             int argc, const char* argv[],
+                                                             std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all 
@@ -167,9 +167,9 @@ interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& 
  * @return a DSP factory on success, otherwise a null pointer.
  */ 
 interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
-                                                            const std::string& dsp_content,
-                                                            int argc, const char* argv[],
-                                                            std::string& error_msg);
+                                                               const std::string& dsp_content,
+                                                               int argc, const char* argv[],
+                                                               std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.

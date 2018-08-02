@@ -1,7 +1,7 @@
 
 import("stdfaust.lib");
 
-// play a soundfile in a loop taking into account the sampling rate
+// play a soundfile in a loop
 so_play(s) = 1 : (+,length(s):fmod)~_ : int : outs(s)
 	with {
 		length(s) = 0 : s : _,cut(outputs(s)-1);
@@ -54,11 +54,11 @@ speed = hslider("speed", 1, 0, 4, 0.01);
 
 //process =  so_loop_speed_level(soundfile("tango.flac",1));
 
-//process = so_loop_speed(soundfile("tango.flac",2), speed),so_loop_speed(soundfile("levot.flac",2), speed) :> (_,_);
+process = so_loop_speed(soundfile("snd/tango.flac",2), speed),so_loop_speed(soundfile("snd/levot.flac",2), speed) :> (_,_);
 
 //process = so_loop_speed(soundfile("tango.flac",1), speed),so_loop_speed(soundfile("levot.flac",1), speed);
 
-process = so_loop_speed(soundfile("tango.wav",1), speed),so_loop_speed(soundfile("levot.wav",1), speed);
+//process = so_loop_speed(soundfile("tango.wav",1), speed),so_loop_speed(soundfile("levot.wav",1), speed);
 
 //process = so_loop_speed(soundfile("tango.wav",1), hslider("speed", 1, 0, 4, 0.01));
 

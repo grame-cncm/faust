@@ -208,27 +208,6 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToIRFile(const string& ir_code
     out.flush();
 }
 
-llvm_dynamic_dsp_factory_aux::llvm_dynamic_dsp_factory_aux(const string&                   sha_key,
-                                                           const std::vector<std::string>& library_list,
-                                                           const std::vector<std::string>& include_pathnames,
-                                                           Module* module, LLVMContext* context, const string& target,
-                                                           int opt_level)
-    : llvm_dsp_factory_aux("BitcodeDSP", sha_key, "", library_list, include_pathnames)
-{
-    startLLVMLibrary();
-
-    init("BitcodeDSP", "");
-    fSHAKey = sha_key;
-    fTarget = (target == "") ? fTarget = (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME) : target;
-    setOptlevel(opt_level);
-
-    fModule  = module;
-    fContext = context;
-#ifndef LLVM_35
-    fObjectCache = nullptr;
-#endif
-}
-
 /// AddOptimizationPasses - This routine adds optimization passes
 /// based on selected optimization level, OptLevel. This routine
 /// duplicates llvm-gcc behaviour.
@@ -594,7 +573,8 @@ EXPORT llvm_dsp_factory* createDSPFactoryFromString(const string& name_app, cons
 // Bitcode <==> string
 static llvm_dsp_factory* readDSPFactoryFromBitcodeAux(MEMORY_BUFFER buffer, const string& target, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -822,12 +802,12 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     return dst;
 }
 
-// Public C interface : lock management is done by called C++ API
+    // Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-        
+
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level)
 {

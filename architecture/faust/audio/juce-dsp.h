@@ -36,7 +36,7 @@ class juceaudio : public audio, private AudioAppComponent {
         
         dsp* fDSP;
     
-        void prepareToPlay (int, double) override
+        void prepareToPlay(int, double) override
         {
             const BigInteger activeInputChannels = deviceManager.getCurrentAudioDevice()->getActiveInputChannels();
             const BigInteger activeOutputChannels = deviceManager.getCurrentAudioDevice()->getActiveOutputChannels();
@@ -54,7 +54,7 @@ class juceaudio : public audio, private AudioAppComponent {
         void releaseResources() override
         {}
         
-        void getNextAudioBlock (const AudioSourceChannelInfo& bufferToFill) override
+        void getNextAudioBlock(const AudioSourceChannelInfo& bufferToFill) override
         {
             AVOIDDENORMALS;
             

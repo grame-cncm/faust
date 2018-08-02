@@ -155,7 +155,7 @@ static Tree concatPath(Tree relpath, Tree abspath)
 
 static Tree normalizeLabel(Tree label, Tree path)
 {
-    // we suppose label = "../label" ou "name/label" ou "name"
+    // we suppose label = "../label" or "name/label" or "name"
     // cout << "Normalize Label " << *label << " with path " << *path << endl;
     if (isList(label)) {
         return cons(label, path);

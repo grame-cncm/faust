@@ -86,11 +86,8 @@ struct MidiMeta : public Meta, public std::map<std::string, std::string>
     }
 };
 
-/*******************************************************************************
- * MidiUI : Faust User Interface
- * This class decodes MIDI meta data and maps incoming MIDI messages to them.
- * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
- * start/stop/clock meta data is handled.
+/*****************************************************************************
+ * Base class for MIDI aware items
  ******************************************************************************/
 
 class uiMidi {
@@ -109,6 +106,10 @@ class uiMidi {
     
 };
 
+/*****************************************************************************
+ * Base class for MIDI aware UI items
+ ******************************************************************************/
+
 class uiMidiItem : public uiMidi, public uiItem {
     
     public:
@@ -122,6 +123,10 @@ class uiMidiItem : public uiMidi, public uiItem {
         virtual void reflectZone() {}
     
 };
+
+/*****************************************************************************
+ * Base class for MIDI aware UI items with timestamp support
+ ******************************************************************************/
 
 class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
@@ -137,7 +142,9 @@ class uiMidiTimedItem : public uiMidi, public uiTimedItem {
     
 };
 
+//-------------
 // MIDI sync
+//-------------
 
 class uiMidiStart : public uiMidiTimedItem
 {
@@ -213,6 +220,10 @@ class uiMidiClock : public uiMidiTimedItem
         }
 
 };
+
+//----------------------
+// Standard MIDI events
+//----------------------
 
 class uiMidiProgChange : public uiMidiItem
 {
@@ -400,7 +411,6 @@ class uiMidiKeyOff : public uiMidiItem
         
 };
 
-
 class uiMidiKeyPress : public uiMidiItem
 {
 
@@ -435,6 +445,19 @@ class uiMidiKeyPress : public uiMidiItem
 
 class MapUI;
 
+/******************************************************************************************
+ * MidiUI : Faust User Interface
+ * This class decodes MIDI metadata and maps incoming MIDI messages to them.
+ * Currently ctrl, keyon/keyoff, keypress, pgm, chanpress, pitchwheel/pitchbend
+ * start/stop/clock meta data are handled.
+ *
+ * Maps associating MIDI event ID (like each ctrl number) with all MIDI aware UI items
+ * are defined and progressively filled when decoding MIDI related metadata.
+ * MIDI aware UI items are used in both directions:
+ *  - modifying their internal state when receving MIDI input events
+ *  - sending their internal state as MIDI output events
+ *******************************************************************************************/
+
 class MidiUI : public GUI, public midi
 {
 
@@ -458,6 +481,7 @@ class MidiUI : public GUI, public midi
         midi_handler* fMidiHandler;
         bool fDelete;
     
+        // Decode the list of metadata associated with the zone and creates the corresponding MIDI aware UI items
         void addGenericZone(FAUSTFLOAT* zone, FAUSTFLOAT min, FAUSTFLOAT max, bool input = true)
         {
             if (fMetaAux.size() > 0) {
@@ -561,7 +585,7 @@ class MidiUI : public GUI, public midi
             fMetaAux.push_back(std::make_pair(key, val));
         }
         
-        // -- MIDI API 
+        // -- MIDI input API
         
         MapUI* keyOn(double date, int channel, int note, int velocity)
         {
@@ -638,8 +662,10 @@ class MidiUI : public GUI, public midi
         }
         
         void ctrlChange14bits(double date, int channel, int ctrl, int value) {}
-        
+    
+        //-----------
         // MIDI sync
+        //-----------
         
         void start_sync(double date)
         {

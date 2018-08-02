@@ -109,13 +109,12 @@ class wasm_dsp_factory : public dsp_factory {
 
     /* Return the currently set custom memory manager */
     dsp_memory_manager* getMemoryManager();
-    
+
     /* Get the Faust DSP factory list of library dependancies */
     std::vector<std::string> getDSPFactoryLibraryList();
-    
+
     /* Get the list of all used includes */
     std::vector<std::string> getDSPFactoryIncludePathnames();
-    
 };
 
 /**
@@ -132,8 +131,9 @@ wasm_dsp_factory* getWasmDSPFactoryFromSHAKey(const std::string& sha_key);
 /**
  * Create a Faust DSP factory from a DSP source code as a file. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of same DSP code (that is same source code and
- * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
- * use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will
+ * have to explicitly use deleteInterpreterDSPFactory to properly decrement reference counter when the factory is no
+ * more needed.
  *
  * @param filename - the DSP filename
  * @param argc - the number of parameters in argv array
@@ -142,15 +142,14 @@ wasm_dsp_factory* getWasmDSPFactoryFromSHAKey(const std::string& sha_key);
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename,
-                                            int argc, const char* argv[],
-                                            std::string& error_msg);
+wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
+                                               std::string& error_msg);
 
 /**
  * Create a Faust DSP factory from a DSP source code as a string. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of same DSP code (that is same source code and
- * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will have to explicitly
- * use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
+ * same set of 'normalized' compilations options) will return the same (reference counted) factory pointer. You will
+ * have to explicitly use deleteDSPFactory to properly decrement reference counter when the factory is no more needed.
  *
  * @param name_app - the name of the Faust program
  * @param dsp_content - the Faust program as a string
@@ -160,10 +159,8 @@ wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename,
  *
  * @return a DSP factory on success, otherwise a null pointer.
  */
-wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app,
-                                               const std::string& dsp_content,
-                                               int argc, const char* argv[],
-                                               std::string& error_msg);
+wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
+                                                 const char* argv[], std::string& error_msg);
 /**
  * Delete a Faust DSP factory, that is decrements it's reference counter, possibly really deleting the internal pointer.
  * Possibly also delete DSP pointers associated with this factory, if they were not explicitly deleted.

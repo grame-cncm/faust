@@ -28,6 +28,10 @@
 
 class MapUI;
 
+//-----------------------------------------------
+// MIDI input/output handling using JUCE library
+//-----------------------------------------------
+
 class juce_midi_handler : public midi_handler {
     
     protected:
@@ -94,7 +98,8 @@ class juce_midi_handler : public midi_handler {
         {}
     
         virtual ~juce_midi_handler() {}
-        
+    
+        // Used with MidiBuffer (containign sevaral messages)
         void encodeBuffer(MidiBuffer& buffer)
         {
             const ScopedTryLock lock(fMutex);
@@ -118,6 +123,7 @@ class juce_midi_handler : public midi_handler {
             buffer.clear();
         }
     
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             fOutputBuffer.addEvent(MidiMessage::noteOn(channel + 1, pitch, uint8(velocity)), 0);
@@ -212,7 +218,8 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
             delete fMidiIn;
             delete fMidiOut;
         }
-        
+    
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             fMidiOut->sendMessageNow(MidiMessage::noteOn(channel + 1, pitch, uint8(velocity)));

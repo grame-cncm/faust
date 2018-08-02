@@ -183,7 +183,7 @@ EndOfCode
         cat $p.json | awk '
             BEGIN { FS=":"; SOFI=0; }
                 /"soundfile"/ { SOFI=1; }
-                /"label"/ {
+                /"url"/ {
                 if (SOFI) {
                     match($2, /"[^"]*/);
                     print substr($2, RSTART+1, RLENGTH-1);
@@ -194,8 +194,18 @@ EndOfCode
         # copy found soundfiles in the final binary
         for snd in $(cat $p-tmp.txt); do
             if [ -f $snd ]; then
-                echo "Copy $snd in ${f%.dsp}$EXT"
-                cp $snd "$TMP/${f%.dsp}$EXT/Contents/Resources/"
+                if [ ${snd:0:1} = "/" ]; then 
+                    echo "Warning: soundfile with absolute path is not copied !"
+                else
+                    #create destination path and possibly create directory
+                    sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
+                    if ! [ -d $sfpath ]; then 
+                        echo "Create $sfpath"
+                        mkdir $sfpath
+                    fi
+                    echo "Copy $snd in ${f%.dsp}$EXT"
+                    cp $snd $sfpath
+                fi
             else
                 echo "Error: file $snd not found !"
             fi

@@ -160,10 +160,7 @@ class CTree : public virtual Garbageable {
     // Keep track of visited trees (WARNING : non reentrant)
     static void startNewVisit() { ++gVisitTime; }
     bool        isAlreadyVisited() { return fVisitTime == gVisitTime; }
-    void        setVisited()
-    { /*faustassert(fVisitTime!=gVisitTime);*/
-        fVisitTime = gVisitTime;
-    }
+    void        setVisited() { /*faustassert(fVisitTime!=gVisitTime);*/ fVisitTime = gVisitTime; }
 
     // Property list of a tree
     void setProperty(Tree key, Tree value) { fProperties[key] = value; }

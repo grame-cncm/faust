@@ -26,8 +26,12 @@
 #include "faust/OSCControler.h"
 #include "OSCStream.h"
 
+using namespace std;
+
 namespace oscfaust
 {
+
+static const char* kAliasMsg      		= "alias";
 
 //--------------------------------------------------------------------------
 template<> void FaustNode<float>::sendOSC() const 
@@ -88,7 +92,11 @@ template<> void FaustNode<double>::get(unsigned long ipdest) const		///< handler
 //--------------------------------------------------------------------------
 template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for the 'accept' message
 {
-    if (msg->size() == 1) {			// checks for the message parameters count
+	string str;						// check for alias message first
+    if ((msg->size() >= 1) && msg->param(0, str) && (str == kAliasMsg))
+		return fRoot->aliasMsg (msg, fMapping.fMinOut, fMapping.fMaxOut);
+
+    if (msg->size() == 1) {			// check the message parameters count
                                     // messages with a param count other than 1 are rejected
         int ival; float fval;
         if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {
@@ -105,7 +113,11 @@ template<> bool FaustNode<float>::accept(const Message* msg)			///< handler for 
 //--------------------------------------------------------------------------
 template<> bool FaustNode<double>::accept(const Message* msg)			///< handler for the 'accept' message
 {
-    if (msg->size() == 1) {			// checks for the message parameters count
+	string str;						// check for alias message first
+    if ((msg->size() >= 1) && msg->param(0, str) && (str == kAliasMsg))
+		return fRoot->aliasMsg (msg, fMapping.fMinOut, fMapping.fMaxOut);
+
+    if (msg->size() == 1) {			// check the message parameters count
                                     // messages with a param count other than 1 are rejected
         int ival; float fval;
         if ((OSCControler::gXmit == kNoXmit) || (OSCControler::gXmit == kAll) || (OSCControler::gXmit == kAlias && msg->alias() != "")) {

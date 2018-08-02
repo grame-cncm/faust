@@ -33,6 +33,10 @@
 
 class MapUI;
 
+//-----------------------------------------------
+// MIDI input/output handling using JACK library
+//-----------------------------------------------
+
 class jack_midi_handler : public midi_handler {
     
     
@@ -108,6 +112,7 @@ class jack_midi_handler : public midi_handler {
             ringbuffer_free(fOutBuffer);
         }
 
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3]

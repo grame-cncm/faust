@@ -1,4 +1,4 @@
-version := 2.7.1
+version := 2.7.5
 
 system	?= $(shell uname -s)
 
@@ -78,6 +78,10 @@ native :
 world :
 	$(MAKE) -C $(BUILDLOCATION) configall configoscdynamic confighttpdynamic BACKENDS=world.cmake
 	$(MAKE) -C $(BUILDLOCATION)
+	$(MAKE) -C tools/sound2faust
+
+newworld :
+	$(MAKE) -C $(BUILDLOCATION) BACKENDS=world.cmake TARGETS=world.cmake
 	$(MAKE) -C tools/sound2faust
 
 benchmark : all

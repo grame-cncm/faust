@@ -40,11 +40,15 @@ namespace oscfaust
 {
 
 //--------------------------------------------------------------------------
-OSCListener::OSCListener(MessageProcessor* mp, int port) 
+OSCListener::OSCListener(MessageProcessor* mp, int port, const char* bindAddress)
 		: fSocket(0), fMsgHandler(mp), 
 		  fRunning(false), fSetDest(true), fPort(port)
 {
-	fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
+	if (bindAddress)
+		fSocket = new UdpListeningReceiveSocket( IpEndpointName(bindAddress, fPort), this);
+	else
+		fSocket = new UdpListeningReceiveSocket( IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);
+
 	fPort = 0;
 	// check osc out destination address
 	// warning ! osc stream must be created before the listener
@@ -58,7 +62,7 @@ void OSCListener::run()
 { 
 	fRunning = true;
 	while (fRunning) {
-        if (fPort) {
+        if (fPort) {		// request for a port change?
             delete fSocket;
             fSocket = NULL;
             fSocket = new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, fPort), this);

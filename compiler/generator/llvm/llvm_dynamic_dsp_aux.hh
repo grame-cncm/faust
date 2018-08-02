@@ -28,7 +28,10 @@ class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
    public:
     llvm_dynamic_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& library_list,
                                  const std::vector<std::string>& include_pathnames, llvm::Module* module,
-                                 llvm::LLVMContext* context, const std::string& target, int opt_level = 0);
+                                 llvm::LLVMContext* context, const std::string& target, int opt_level = -1)
+        : llvm_dsp_factory_aux(sha_key, library_list, include_pathnames, module, context, target, opt_level)
+    {
+    }
 
     llvm_dynamic_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target)
         : llvm_dsp_factory_aux(sha_key, machine_code, target)

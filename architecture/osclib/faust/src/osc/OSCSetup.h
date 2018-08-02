@@ -52,7 +52,7 @@ class OSCSetup
         OSCSetup(ErrorCallback errCallback = NULL, void* arg = NULL) : fOSCThread(0), fErrCallback(errCallback), fArg(arg) {}
 		virtual ~OSCSetup();
 
-		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address);
+		bool start(MessageProcessor* mp, int& inPort, int outPort, int errPort, const char* address, const char* bindaddress);
         void stop();
         
 		bool running() const;

@@ -28,11 +28,11 @@
 #include <vector>
 #include <string>
 
+#include "faust/gui/DecoratorUI.h"
+
 #ifdef __APPLE__
 #include <CoreFoundation/CFBundle.h>
 #endif
-
-#include "faust/gui/DecoratorUI.h"
 
 // Always included otherwise -i mode later on will not always include it (with the conditional includes)
 #include "faust/gui/Soundfile.h"
@@ -41,17 +41,13 @@
 #include "faust/gui/JuceReader.h"
 Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
 {
-    Soundfile* sf = new Soundfile();
-    JuceReader reader(sf, path_name_str, max_chan);
-    return sf;
+    return JuceReader::createSoundfile(path_name_str, max_chan);
 }
 #else
 #include "faust/gui/LibsndfileReader.h"
 Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
 {
-    Soundfile* sf = new Soundfile();
-    LibsndfileReader reader(sf, path_name_str, max_chan);
-    return sf;
+    return LibsndfileReader::createSoundfile(path_name_str, max_chan);
 }
 #endif
 
@@ -88,16 +84,14 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
-            std::string sha_key;
-            std::string path_name_str = SoundfileReader::Check(fSoundfileDir, url, sha_key);
+            std::string path_name_str = SoundfileReader::Check(fSoundfileDir, url);
             if (path_name_str != "") {
-                std::string file_key = (sha_key == "") ? path_name_str : sha_key;
-                // Check if 'file_key' is already loaded
-                if (fSoundfileMap.find(file_key) == fSoundfileMap.end()) {
-                    fSoundfileMap[file_key] = createSoundfile(path_name_str, 64);
+                // Check if 'path_name_str' is already loaded
+                if (fSoundfileMap.find(path_name_str) == fSoundfileMap.end()) {
+                    fSoundfileMap[path_name_str] = createSoundfile(path_name_str, MAX_CHAN);
                 }
                 // Get the soundfile
-                *sf_zone = fSoundfileMap[file_key];
+                *sf_zone = fSoundfileMap[path_name_str];
             } else {
                 // Take the defaultsound
                 std::cout << "addSoundfile : defaultsound\n";
@@ -138,19 +132,19 @@ class SoundUI : public GenericUI
 };
 
 // Check if soundfile exists and return the real path_name
-std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str, std::string& sha_key)
+std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str)
 {
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
     JuceReader reader;
 #else
     LibsndfileReader reader;
 #endif
-    std::string path_name_str = reader.CheckAux(file_name_str, sha_key);
+    std::string path_name_str = reader.CheckAux(file_name_str);
     if (path_name_str != "") {
         return path_name_str;
     } else {
         for (int i = 0; i < sound_directories.size(); i++) {
-            std::string res = reader.CheckAux(sound_directories[i] + "/" + file_name_str, sha_key);
+            std::string res = reader.CheckAux(sound_directories[i] + "/" + file_name_str);
             if (res != "") { return res; }
         }
         return "";

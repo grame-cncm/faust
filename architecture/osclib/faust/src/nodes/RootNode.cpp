@@ -133,7 +133,8 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 		for (size_t n = 0; n < targets.size(); n++) {
 			// send a alias message for each target
 			const aliastarget& t = targets[n];
-			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+//			oscout << OSCStart(i->first.c_str()) << t.fMinIn << t.fMaxIn << "alias" << targets[n].fTarget.c_str() << t.fMinOut << t.fMaxOut << OSCEnd();
+			oscout << OSCStart(targets[n].fTarget.c_str()) << "alias" << i->first.c_str() << t.fMinIn << t.fMaxIn << OSCEnd();
 		}
 		i++;
 	}
@@ -221,6 +222,75 @@ bool RootNode::acceptSignal(const Message* msg)
 }
 
 //--------------------------------------------------------------------------
+void RootNode::eraseAliases (const string& target)
+{
+	for (TAliasMap::iterator i = fAliases.begin(); i != fAliases.end(); ) {
+		vector<aliastarget>::iterator j = i->second.begin();
+		while (j != i->second.end()) {
+			if (j->fTarget == target) j = i->second.erase(j);
+			else j++;
+		}
+		if (i->second.empty()) i = fAliases.erase(i);
+		else i++;
+	}
+}
+
+//--------------------------------------------------------------------------
+void RootNode::eraseAlias (const string& target, const string& alias)
+{
+	TAliasMap::iterator i = fAliases.find(alias);
+	if (i != fAliases.end()) {
+		vector<aliastarget>::iterator j = i->second.begin();
+		while (j != i->second.end()) {
+			if (j->fTarget == target) j = i->second.erase(j);
+			else j++;
+		}
+		if (i->second.empty()) fAliases.erase(i);
+	}
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::aliasError(const Message* msg)
+{
+	oscerr << msg->address().c_str() << ": incorrect alias message received" << OSCEnd();
+	cerr << msg->address().c_str() << ": incorrect alias message received" << endl;
+	return false;
+}
+
+//--------------------------------------------------------------------------
+bool RootNode::aliasMsg(const Message* msg, float omin, float omax)
+{
+	string addr = msg->address();
+	switch (msg->size()) {
+		case 1:			// remove all aliases for dest address
+			eraseAliases (addr);
+			break;
+		case 2:			// remove one alias for dest address
+			{
+				string alias;
+				if (msg->param(1, alias)) eraseAlias (addr, alias);
+				else return aliasError (msg);
+			}
+			break;
+		case 4:			// create an alias for dest address
+			{
+				string alias; float min, max; int imin, imax;
+				if (msg->param(1, alias)) {
+					if (msg->param(2, imin)) min = float(imin);
+					else if (!msg->param(2, min)) return aliasError (msg);
+					if (msg->param(3, imax)) max = float(imax);
+					else if (!msg->param(3, max)) return aliasError (msg);
+					addAlias (alias.c_str(), addr.c_str(), min, max, omin,omax);
+				}
+			}
+			break;
+		default:
+			return aliasError (msg);
+	}
+	return true;
+}
+
+//--------------------------------------------------------------------------
 bool RootNode::accept(const Message* msg)
 {
  	string val;
@@ -250,7 +320,7 @@ bool RootNode::accept(const Message* msg)
                 OSCControler::addFilteredPath(str);
             }
         }
-    } else if ((msg->size() == 1) && (msg->param(0, val))) { 
+    } else if ((msg->size() == 1) && (msg->param(0, val))) {
         if (val == kXmitFilter) {
             OSCControler::resetFilteredPaths();
         }

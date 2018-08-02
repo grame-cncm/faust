@@ -54,8 +54,8 @@ class OSCListener : public osc::OscPacketListener, public smartable
 	int		fPort;
 
 	public:
-		static SMARTP<OSCListener> create(MessageProcessor* mp, int port)
-			{ return new OSCListener(mp, port); }
+		static SMARTP<OSCListener> create(MessageProcessor* mp, int port, const char* bindAddress=0)
+			{ return new OSCListener(mp, port, bindAddress); }
 
 		/*!
 			\brief process OSC messages
@@ -70,7 +70,7 @@ class OSCListener : public osc::OscPacketListener, public smartable
 		virtual void restart(int port)	{ fPort = port; if (fSocket) fSocket->AsynchronousBreak(); }
 
 	protected:
-				 OSCListener(MessageProcessor* mp, int port);
+				 OSCListener(MessageProcessor* mp, int port, const char* bindAddress=0);
 		virtual ~OSCListener();
 
 };

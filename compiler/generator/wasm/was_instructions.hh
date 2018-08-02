@@ -63,13 +63,12 @@ inline int genMemSize(int struct_size, int channels, int json_len)
         (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize())))) /
          wasmBlockSize),
         1);
-    
+
     // Bigger memory block for soundfile test
     /*
     return std::max(
-                    (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize())))) /
-                     wasmBlockSize),
-                    8);
+                    (pow2limit(std::max(json_len, struct_size + channels * (audioPtrSize + (8192 * audioSampleSize()))))
+    / wasmBlockSize), 8);
     */
 }
 

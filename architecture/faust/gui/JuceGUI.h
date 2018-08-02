@@ -1829,7 +1829,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         
         int fRadioGroupID;               // In case of radio buttons.
         //ScopedPointer<LookAndFeel> fLaf = new CustomLookAndFeel();
-        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V3();
+        ScopedPointer<LookAndFeel> fLaf = new LookAndFeel_V4();
     
         FAUSTFLOAT defaultVal(FAUSTFLOAT* zone, FAUSTFLOAT def)
         {
@@ -1911,7 +1911,9 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          * \details Initialize the JuceGUI specific variables. 
          */
         JuceGUI(bool def = true):fDefault(def), fRadioGroupID(1) // fRadioGroupID must start at 1
-        {}
+        {
+            setLookAndFeel(fLaf);
+        }
         
         /**
          * \brief   Destructor.
@@ -1919,6 +1921,7 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
          */
         virtual ~JuceGUI()
         {
+            setLookAndFeel(nullptr);
             delete fCurrentBox;
         }
 

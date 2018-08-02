@@ -31,6 +31,10 @@
 
 class MapUI;
 
+//-------------------------------------------------
+// MIDI input/output handling using BELA library
+//-------------------------------------------------
+
 class bela_midi : public midi_handler {
 
     private:
@@ -117,7 +121,8 @@ class bela_midi : public midi_handler {
         { 
             // Nothing todo?
         }
-        
+    
+        // MIDI output API
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3] 

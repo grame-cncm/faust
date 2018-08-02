@@ -74,7 +74,6 @@
 #include "faust/misc.h"
 
 #ifdef POLY2
-#include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
 
@@ -843,7 +842,10 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
         post("Bundle_path cannot be found!");
     }
     x->m_soundInterface = new SoundUI(bundle_path_str);
+    // SoundUI has to be dispatched on all internal voices
+    if (dsp_poly) dsp_poly->setGroup(false);
     x->m_dsp->buildUserInterface(x->m_soundInterface);
+    if (dsp_poly) dsp_poly->setGroup(true);
 #endif
     
     // Send JSON to JS script

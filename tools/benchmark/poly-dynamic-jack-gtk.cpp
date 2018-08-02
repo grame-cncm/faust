@@ -37,13 +37,15 @@
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/dsp/proxy-dsp.h"
-#include "faust/dsp/poly-dsp-tools.h"
+#include "faust/dsp/poly-llvm-dsp.h"
+#include "faust/dsp/poly-interpreter-dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/FUI.h"
 #include "faust/gui/faustgtk.h"
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/httpdUI.h"
 #include "faust/gui/OSCUI.h"
+#include "faust/gui/SoundUI.h"
 #include "faust/misc.h"
 #include "faust/midi/rt-midi.h"
 #include "faust/midi/RtMidi.cpp"
@@ -90,9 +92,9 @@ int main(int argc, char* argv[])
     malloc_memory_manager manager;
     
     if (isopt(argv, "-h") || isopt(argv, "-help") || (!is_llvm && !is_interp)) {
-        cout << "poly-dynamic-jack-gtk [-llvm] [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
+        cout << "poly-dynamic-jack-gtk [-llvm] [interp– [-nvoices N] [-midi] [-osc] [-httpd] [additional Faust options (-vec -vs 8...)] foo.dsp" << endl;
         cout << "Use '-llvm' to use LLVM backend\n";
-        //cout << "Use '-interp' to use Interpreter backend\n";
+        cout << "Use '-interp' to use Interpreter backend\n";
         cout << "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC\n";
         cout << "Use '-midi' to activate MIDI control\n";
         cout << "Use '-osc' to activate OSC control\n";
@@ -142,12 +144,20 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-    } else {
         /*
+        // Test Write/Read
+        if (factory) {
+            cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
+            string path_name = factory->getName();
+            writePolyDSPFactoryToBitcodeFile(factory, path_name);
+            delete factory;
+            factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", -1);
+        }
+        */
+    } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
-        factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
-        */
+        factory = createInterpreterPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
     }
     
     if (!factory) {
@@ -164,8 +174,8 @@ int main(int argc, char* argv[])
     
     cout << "getName " << factory->getName() << endl;
     //cout << "getSHAKey " << factory->getSHAKey() << endl;
-  
-   if (isopt(argv, "-double")) {
+    
+    if (isopt(argv, "-double")) {
         cout << "Running in double..." << endl;
     }
     
@@ -174,6 +184,12 @@ int main(int argc, char* argv[])
     
     FUI* finterface = new FUI();
     DSP->buildUserInterface(finterface);
+    
+    SoundUI* soundinterface = new SoundUI();
+    // SoundUI has to be dispatched on all internal voices
+    DSP->setGroup(false);
+    DSP->buildUserInterface(soundinterface);
+    DSP->setGroup(true);
    
     if (!audio.init(filename, DSP)) {
         return 0;
@@ -226,12 +242,7 @@ int main(int argc, char* argv[])
     delete midiinterface;
     delete httpdinterface;
     delete oscinterface;
-  
-    if (is_llvm) {
-        delete factory;
-    } else {
-        //deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-    }
+    delete factory;
     
     return 0;
 }
