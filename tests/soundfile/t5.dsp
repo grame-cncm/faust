@@ -2,44 +2,44 @@
 import("stdfaust.lib");
 
 // play a soundfile in a loop
-so_play(s) = 1 : (+,length(s):fmod)~_ : int : outs(s)
+so_play(s) = 1 : (+,length(s):fmod)~_ : int : 0,_: outs(s)
 	with {
-		length(s) = 0 : s : _,cut(outputs(s)-1);
-		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
+		length(s) = 0,0 : s : _,cut(outputs(s)-1);
+		srate(s) = 0,0 : s : !,_,cut(outputs(s)-2);
+		channels(s) = 0,0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,_);
 	};
 
 // play a soundfile in a loop taking into account the sampling rate
-so_loop(s) = float(srate(s))/ma.SR : (+,length(s):fmod)~_ : int : outs(s)
+so_loop(s) = float(srate(s))/ma.SR : (+,length(s):fmod)~_ : int : 0,_: outs(s)
 	with {
-		length(s) = 0 : s : _,cut(outputs(s)-1);
-		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
+		length(s) = 0,0 : s : _,cut(outputs(s)-1);
+		srate(s) = 0,0 : s : !,_,cut(outputs(s)-2);
+		channels(s) = 0,0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,_);
 	};	
 		
 // play a soundfile in a loop taking into account the sampling rate, with speed control
-so_loop_speed(s, speed) = float(speed*srate(s))/ma.SR : (+,length(s):fmod)~_ : int : outs(s)
+so_loop_speed(s, speed) = float(speed*srate(s))/ma.SR : (+,length(s):fmod)~_ : int : 0,_: outs(s)
 	with {
-		length(s) = 0 : s : _,cut(outputs(s)-1);
-		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
+		length(s) = 0,0 : s : _,cut(outputs(s)-1);
+		srate(s) = 0,0 : s : !,_,cut(outputs(s)-2);
+		channels(s) = 0,0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,_);
 	};
 
 // play a soundfile in a loop taking into account the sampling rate, with speed and level controls
-so_loop_speed_level(s, speed, level) = float(speed*srate(s))/ma.SR : (+,length(s):fmod)~_ : int : outs(s)
+so_loop_speed_level(s, speed, level) = float(speed*srate(s))/ma.SR : (+,length(s):fmod)~_ : int : 0,_: outs(s)
 	with {
-		length(s) = 0 : s : _,cut(outputs(s)-1);
-		srate(s) = 0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0 : s : !,!,_,cut(outputs(s)-3);
+		length(s) = 0,0 : s : _,cut(outputs(s)-1);
+		srate(s) = 0,0 : s : !,_,cut(outputs(s)-2);
+		channels(s) = 0,0 : s : !,!,_,cut(outputs(s)-3);
 		outs(s) = s : cut(3), bus(outputs(s)-3);
 		cut(n) = par(i,n,!);
 		bus(n) = par(i,n,*(level));
