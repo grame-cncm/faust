@@ -296,6 +296,7 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 #define BUFFER_SIZE 1024
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
+#define MAX_PART 256
 
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
@@ -310,19 +311,25 @@ struct dsp_factory_table : public std::map<T, std::list<dsp*> > {
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     LLVM_FAUSTFLOAT** fBuffers;
-    int               fLength;
-    int               fSampleRate;
-    int               fChannels;
+    int fLength[MAX_PART];      // length of each part
+    int fOffset[MAX_PART];      // offset of each part in the global buffer
+    int fSampleRate[MAX_PART];  // sample rate of each part
+    int fChannels;              // max number of channels of all concatenated files
 
     Soundfile(int max_chan)
     {
-        fBuffers    = new LLVM_FAUSTFLOAT*[max_chan];
-        fChannels   = 1;
-        fLength     = BUFFER_SIZE;
-        fSampleRate = SAMPLE_RATE;
-
+        fBuffers = new LLVM_FAUSTFLOAT*[max_chan];
+        
+        for (int part = 0; part < MAX_PART; part++) {
+            fLength[part] = BUFFER_SIZE;
+            fOffset[part] = part * BUFFER_SIZE;
+            fSampleRate[part] = SAMPLE_RATE;
+        }
+      
         // Allocate 1 channel
+        fChannels   = 1;
         fBuffers[0] = new LLVM_FAUSTFLOAT[BUFFER_SIZE];
+        faustassert(fBuffers[0]);
         memset(fBuffers[0], 0, BUFFER_SIZE * sizeof(LLVM_FAUSTFLOAT));
 
         // Share the same buffer for all other channels so that we have max_chan channels available

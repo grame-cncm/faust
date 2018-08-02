@@ -46,12 +46,14 @@
 #endif
 
 /*
- The soundfile structure to be used by the DSP code.
+ The soundfile structure to be used by the DSP code. Soundfile has a MAX_PART parts 
+ (even a single soundfile or an empty soundfile). 
+ fLength, fOffset and fSampleRate field are filled accordingly by repeating 
+ the actual parts if needed.
+ 
  It has to be 'packed' to that the LLVM backend can correctly access it.
-*/
 
-/*
-    New index computation:
+ New index computation:
     - p is the current part number [0..MAX_PART-1] (must be proved by the type system)
     - i is the current position in the part. It will be constrained between [0..length]
     - idx(p,i)  = fOffset[p] + max(0, min(i, fLength[p]));
@@ -60,17 +62,15 @@
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-
-    int fLength[MAX_PART];  // every soundfile has now MAX_PART parts (even a single soundfile or an empty soundfile)
-    int fOffset[MAX_PART];  // fLength and fOffset are filled accordingly by repeating the actual parts if needed
-    int fSampleRate;        // sample rate of the first file
-    int fChannels;          // number of channels of the first file (useful ?)
+    int fLength[MAX_PART];      // length of each part
+    int fOffset[MAX_PART];      // offset of each part in the global buffer
+    int fSampleRate[MAX_PART];  // sample rate of each part
+    int fChannels;              // max number of channels of all concatenated files
 
     Soundfile()
     {
-        fBuffers    = NULL;
-        fSampleRate = -1;
-        fChannels   = -1;
+        fBuffers  = NULL;
+        fChannels = -1;
     }
 
     ~Soundfile()
@@ -90,51 +90,123 @@ struct Soundfile {
 
 class SoundfileReader {
    protected:
-    void FillDefault(Soundfile* soundfile, const std::string& path_name_str, int max_chan)
+    void empty(Soundfile* soundfile, int part, int& offset, int max_chan)
     {
-        if (path_name_str != "") {
-            std::cerr << "Error opening the file : " << path_name_str << std::endl;
-        }
-
-        soundfile->fChannels = 1;
-        // soundfile->fLength     = BUFFER_SIZE;
-        soundfile->fSampleRate = SAMPLE_RATE;
-
-        // Allocate 1 channel
-        soundfile->fBuffers[0] = new FAUSTFLOAT[BUFFER_SIZE];
-        if (!soundfile->fBuffers[0]) {
-            throw std::bad_alloc();
-        }
-        memset(soundfile->fBuffers[0], 0, BUFFER_SIZE * sizeof(FAUSTFLOAT));
-
-        // Share the same buffer for all other channels so that we have max_chan channels available
-        for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
-            soundfile->fBuffers[chan] = soundfile->fBuffers[0];
-        }
+        std::cout << "empty_sound" << std::endl;
+        soundfile->fLength[part] = BUFFER_SIZE;
+        soundfile->fOffset[part] = offset;
+        soundfile->fSampleRate[part] = SAMPLE_RATE;
+     
+        // Update offset
+        offset += soundfile->fLength[part];
     }
 
-    Soundfile* Create(int max_chan)
+    Soundfile* create(int cur_channels, int length, int max_chan)
     {
         Soundfile* soundfile = new Soundfile();
         if (!soundfile) {
             throw std::bad_alloc();
         }
+        
         soundfile->fBuffers = new FAUSTFLOAT*[max_chan];
         if (!soundfile->fBuffers) {
             throw std::bad_alloc();
         }
+        
+        for (int chan = 0; chan < max_chan; chan++) {
+            soundfile->fBuffers[chan] = new FAUSTFLOAT[length];
+            if (!soundfile->fBuffers[chan]) {
+                throw std::bad_alloc();
+            }
+            memset(soundfile->fBuffers[chan], 0, sizeof(FAUSTFLOAT) * length);
+        }
+        
+        soundfile->fChannels = cur_channels;
         return soundfile;
     }
-
+    
+    void getBuffersOffset(Soundfile* soundfile, FAUSTFLOAT** buffers, int offset)
+    {
+        for (int chan = 0; chan < soundfile->fChannels; chan++) {
+            buffers[chan] = &soundfile->fBuffers[chan][offset];
+        }
+    }
+    
+    virtual void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) = 0;
+  
+    virtual std::string checkAux(const std::string& path_name) = 0;
+    
+    virtual void open(const std::string& path_name, int& channels, int& length) = 0;
+    
    public:
     virtual ~SoundfileReader() {}
+    
+    Soundfile* read(const std::vector<std::string>& path_name_list, int max_chan)
+    {
+        try {
+            int cur_chan = 0;
+            int total_length = 0;
+            
+            // Compute total length and chan max of all files
+            for (int i = 0; i < path_name_list.size(); i++) {
+                int chan, length;
+                if (path_name_list[i] == "__empty_sound__") {
+                    length = BUFFER_SIZE;
+                    chan = 1;
+                } else {
+                    open(path_name_list[i], chan, length);
+                }
+                cur_chan = std::max(cur_chan, chan);
+                total_length += length;
+            }
+            
+            // Complete with empty parts
+            total_length += (MAX_PART - path_name_list.size()) * BUFFER_SIZE;
+            
+            std::cout << "read total_length " << total_length << " " << "cur_chan " << cur_chan << std::endl;
+            
+            // Create the soundfile
+            Soundfile* soundfile = create(cur_chan, total_length, max_chan);
+            
+            // Init offset
+            int offset = 0;
+            
+            // Read all files
+            for (int i = 0; i < path_name_list.size(); i++) {
+                if (path_name_list[i] == "__empty_sound__") {
+                    empty(soundfile, i, offset, max_chan);
+                } else {
+                    readOne(soundfile, path_name_list[i], i, offset, max_chan);
+                }
+            }
+            
+            // Complete with empty parts
+            for (int i = path_name_list.size(); i < MAX_PART; i++) {
+                empty(soundfile, i, offset, max_chan);
+            }
+            
+            return soundfile;
+            
+        } catch (...) {
+            return NULL;
+        }
+    }
 
-    virtual Soundfile* Read(const std::string& path_name_str, int max_chan) = 0;
+    // Soundfile path checking code
+    static std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name);
+   
+    // Check if all soundfile exist and return their real path_name
+    static std::vector<std::string> checkFiles(const std::vector<std::string>& sound_directories,
+                                               const std::vector<std::string>& file_name_list)
+    {
+        std::vector<std::string> path_name_list;
+        for (int i = 0; i < file_name_list.size(); i++) {
+            std::string path_name = checkFile(sound_directories, file_name_list[i]);
+            path_name_list.push_back((path_name == "") ? "__empty_sound__" : path_name);
+        }
+        return path_name_list;
+    }
 
-    virtual std::string CheckAux(const std::string& path_name_str) = 0;
-
-    // Check if soundfile exists and return the real path_name
-    static std::string Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str);
 };
 
 #endif

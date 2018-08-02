@@ -29,6 +29,7 @@
 #include <string>
 
 #include "faust/gui/DecoratorUI.h"
+#include "faust/gui/SimpleParser.h"
 
 #ifdef __APPLE__
 #include <CoreFoundation/CFBundle.h>
@@ -39,20 +40,21 @@
 
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
-Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
 {
-    return JuceReader::createSoundfile(path_name_str, max_chan);
+    return JuceReader::createSoundfile(path_name_list, max_chan);
 }
 #else
 #include "faust/gui/LibsndfileReader.h"
-Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
 {
-    return LibsndfileReader::createSoundfile(path_name_str, max_chan);
+    return LibsndfileReader::createSoundfile(path_name_list, max_chan);
 }
 #endif
 
-// To be used by dsp code if no SoundUI is used or when soundfile is not found
-extern "C" Soundfile* defaultsound = createSoundfile("", MAX_CHAN);
+// To be used by dsp code if no SoundUI is used
+std::vector<std::string> path_name_list;
+extern "C" Soundfile* defaultsound = createSoundfile(path_name_list, MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
@@ -84,19 +86,23 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
-            std::string path_name_str = SoundfileReader::Check(fSoundfileDir, url);
-            if (path_name_str != "") {
-                // Check if 'path_name_str' is already loaded
-                if (fSoundfileMap.find(path_name_str) == fSoundfileMap.end()) {
-                    fSoundfileMap[path_name_str] = createSoundfile(path_name_str, MAX_CHAN);
-                }
-                // Get the soundfile
-                *sf_zone = fSoundfileMap[path_name_str];
-            } else {
-                // Take the defaultsound
-                std::cout << "addSoundfile : defaultsound\n";
-                *sf_zone = defaultsound;
+            std::cout << "addSoundfile " << url << std::endl;
+            
+            std::vector<std::string> file_name_list;
+            bool menu = parseMenuList2(url, file_name_list);
+            // If not a list, we have as single file
+            if (!menu) { file_name_list.push_back(url); }
+            
+            // Parse the possible list
+            if (fSoundfileMap.find(url) == fSoundfileMap.end()) {
+                // Check all files end get their complete path
+                std::vector<std::string> path_name_list = SoundfileReader::checkFiles(fSoundfileDir, file_name_list);
+                // Read them and create Soundfile
+                fSoundfileMap[url] = createSoundfile(path_name_list, MAX_CHAN);
             }
+            
+            // Get the soundfile
+            *sf_zone = fSoundfileMap[url];
         }
     
         static std::string getBinaryPath(std::string folder = "")
@@ -138,20 +144,20 @@ class SoundUI : public GenericUI
 };
 
 // Check if soundfile exists and return the real path_name
-std::string SoundfileReader::Check(const std::vector<std::string>& sound_directories, const std::string& file_name_str)
+std::string SoundfileReader::checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
 {
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
     JuceReader reader;
 #else
     LibsndfileReader reader;
 #endif
-    std::string path_name_str = reader.CheckAux(file_name_str);
-    if (path_name_str != "") {
-        return path_name_str;
+    std::string path_name = reader.checkAux(file_name);
+    if (path_name != "") {
+        return path_name;
     } else {
         for (int i = 0; i < sound_directories.size(); i++) {
-            std::string res = reader.CheckAux(sound_directories[i] + "/" + file_name_str);
-            if (res != "") { return res; }
+            path_name = reader.checkAux(sound_directories[i] + "/" + file_name);
+            if (path_name != "") { return path_name; }
         }
         return "";
     }

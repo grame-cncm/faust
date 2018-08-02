@@ -63,6 +63,10 @@ bool parseMenuItem(const char*& p, std::string& name, double& value);
 bool parseMenuList2(const char*& p, std::vector<std::string>& names);
 bool parseMenuItem2(const char*& p, std::string& name);
 
+// Menu {'foo.wav'; 'bar.wav'}
+bool parseMenuList2(const char*& p, vector<string>& names);
+bool parseMenuItem2(const char*& p, string& name);
+
 void skipBlank(const char*& p);
 bool parseChar(const char*& p, char x);
 bool parseWord(const char*& p, const char* w);
