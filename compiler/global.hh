@@ -546,5 +546,6 @@ extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
 #define MAX_STACK_SIZE 50000
+#define MAX_SOUNDFILE_PARTS 256
 
 #endif

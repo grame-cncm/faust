@@ -221,10 +221,10 @@ static Type T(Tree term, Tree ignoreenv)
 static void CheckPartInterval(Tree s, Type t)
 {
     interval i = t->getInterval();
-    if (!i.valid || (i.lo < 0) || (i.hi > 255)) {
+    if (!i.valid || (i.lo < 0) || (i.hi >= MAX_SOUNDFILE_PARTS)) {
         stringstream error;
-        error << "ERROR : out of range soundfile part number (" << i
-              << " instead of interval(0,255)) in expression : " << ppsig(s) << endl;
+        error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
+              << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
         throw faustexception(error.str());
     }
 }
