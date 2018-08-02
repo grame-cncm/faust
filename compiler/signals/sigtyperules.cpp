@@ -372,9 +372,12 @@ static Type infereSigType(Tree sig, Tree env)
         return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
     }
 
-    else if (isSigSoundfileRate(sig, sf)) {
-        T(sf, env);
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
+    else if (isSigSoundfileRate(sig, sf, part)) {
+        Type t1 = T(sf, env);
+        Type t2 = T(part, env);
+        CheckPartInterval(sig, t2);
+        int c = std::max(int(kBlock), t2->variability());
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
     }
 
     else if (isSigSoundfileChannels(sig, sf)) {

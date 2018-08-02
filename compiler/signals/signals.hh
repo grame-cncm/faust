@@ -335,15 +335,15 @@ A boxSounfile(label,c) has 2 inputs and c+3 outputs:
 
 Tree sigSoundfile(Tree label);
 Tree sigSoundfileLength(Tree sf, Tree part);
-Tree sigSoundfileRate(Tree sf);
+Tree sigSoundfileRate(Tree sf, Tree part);
 Tree sigSoundfileChannels(Tree sf);
-Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree fpart, Tree ridx);
+Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx);
 
 bool isSigSoundfile(Tree s, Tree& label);
 bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part);
-bool isSigSoundfileRate(Tree s, Tree& sf);
+bool isSigSoundfileRate(Tree s, Tree& sf, Tree& part);
 bool isSigSoundfileChannels(Tree s, Tree& sf);
-bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& fpart, Tree& ridx);
+bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx);
 
 /*****************************************************************************
                              matrix extension

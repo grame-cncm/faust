@@ -439,7 +439,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         int     c         = tree2int(chan);
         siglist lsig2(c + 3);
         lsig2[0] = sigSoundfileLength(soundfile, part);
-        lsig2[1] = sigSoundfileRate(soundfile);
+        lsig2[1] = sigSoundfileRate(soundfile, part);
         lsig2[2] = sigSoundfileChannels(soundfile);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))

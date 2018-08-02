@@ -173,7 +173,7 @@ static int infereSigOrder(Tree sig)
     else if (isSigSoundfileLength(sig, sf, x))
         return 2;
 
-    else if (isSigSoundfileRate(sig, sf))
+    else if (isSigSoundfileRate(sig, sf, x))
         return 2;
 
     else if (isSigSoundfileChannels(sig, sf))
