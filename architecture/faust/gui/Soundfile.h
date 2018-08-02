@@ -33,6 +33,7 @@
 #define BUFFER_SIZE 1024
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
+#define MAX_PART 256
 
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
@@ -51,26 +52,23 @@
 
 /*
     New index computation:
-    - P is the number of part P>0
-    - p is the current part number [0..P-1]
-    - i is the current position in the part [0..length]
-    - maxidx(p) = fPartBegin[p+1] - fPartBegin[p] - 1;
-    - idx(p,i)  = min(fPartBegin[p] + i, fPartBegin[p+1] - 1);
+    - p is the current part number [0..MAX_PART-1] (must be proved by the type system)
+    - i is the current position in the part. It will be constrained between [0..length]
+    - idx(p,i)  = fOffset[p] + max(0, min(i, fLength[p]));
 */
 
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-    int          fLength;
-    int          fSampleRate;
-    int          fChannels;
-    int          fNumParts;
-    int          fPartBegin[256];
+
+    int fLength[MAX_PART];  // every soundfile has now MAX_PART parts (even a single soundfile or an empty soundfile)
+    int fOffset[MAX_PART];  // fLength and fOffset are filled accordingly by repeating the actual parts if needed
+    int fSampleRate;        // sample rate of the first file
+    int fChannels;          // number of channels of the first file (useful ?)
 
     Soundfile()
     {
         fBuffers    = NULL;
-        fLength     = -1;
         fSampleRate = -1;
         fChannels   = -1;
     }
@@ -98,8 +96,8 @@ class SoundfileReader {
             std::cerr << "Error opening the file : " << path_name_str << std::endl;
         }
 
-        soundfile->fChannels   = 1;
-        soundfile->fLength     = BUFFER_SIZE;
+        soundfile->fChannels = 1;
+        // soundfile->fLength     = BUFFER_SIZE;
         soundfile->fSampleRate = SAMPLE_RATE;
 
         // Allocate 1 channel
