@@ -125,14 +125,13 @@ inline dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bi
 {
     std::string process_path = bit_code_path + "_bitcode_process";
     std::string effect_path = bit_code_path + "_bicode_effect";
-    
     llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, opt_level);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, opt_level);
-    
-    if (!process_factory && !effect_factory) {
-        return nullptr;
-    } else {
+    if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
+    } else {
+        llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
+        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 
@@ -146,13 +145,15 @@ inline dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bi
  */
 inline void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const std::string& bit_code_path)
 {
-    std::string process_path = bit_code_path + "_bitcode_process";
-    writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
-    
+    std::string process_path, effect_path;
     if (factory->fEffectFactory) {
-        std::string effect_path = bit_code_path + "_bicode_effect";
+        effect_path = bit_code_path + "_bicode_effect";
+        process_path = bit_code_path + "_bitcode_process";
         writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path);
+    } else {
+        process_path = bit_code_path;
     }
+    writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
 }
 
 /**
@@ -169,15 +170,14 @@ inline void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const st
 inline dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = -1)
 {
     std::string process_path = ir_code_path + "_ir_process";
-    std::string effect_path = ir_code_path + "_ir_effect";
-    
+    std::string effect_path = ir_code_path + "_ir_process";
     llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(process_path, target, opt_level);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromIRFile(effect_path, target, opt_level);
-    
-    if (!process_factory && !effect_factory) {
-        return nullptr;
-    } else {
+    if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
+    } else {
+        llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
+        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 
@@ -191,13 +191,15 @@ inline dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code
  */
 inline void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::string& ir_code_path)
 {
-    std::string process_path = ir_code_path + "_ir_process";
-    writeDSPFactoryToIRFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
-    
+    std::string process_path, effect_path;
     if (factory->fEffectFactory) {
-        std::string effect_path = ir_code_path + "_ir_effect";
+        effect_path = ir_code_path + "_ir_process";
+        process_path = ir_code_path + "_ir_effect";
         writeDSPFactoryToIRFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path);
+    } else {
+        process_path = ir_code_path;
     }
+    writeDSPFactoryToIRFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path);
 }
 
 /**
@@ -214,15 +216,14 @@ inline void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::st
 inline dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target)
 {
     std::string process_path = machine_code_path + "_machine_process";
-    std::string effect_path = machine_code_path + "_machine_effect";
-    
+    std::string effect_path = machine_code_path + "_machine_process";
     llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(process_path, target);
     llvm_dsp_factory* effect_factory = readDSPFactoryFromMachineFile(effect_path, target);
-    
-    if (!process_factory && !effect_factory) {
-        return nullptr;
-    } else {
+    if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
+    } else {
+        llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(machine_code_path, target);
+        return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
 
@@ -236,13 +237,15 @@ inline dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& ma
  */
 inline void writePolyDSPFactoryToMachineFile(dsp_poly_factory* factory, const std::string& machine_code_path, const std::string& target)
 {
-    std::string process_path = machine_code_path + "_machine_process";
-    writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path, target);
-    
+    std::string process_path, effect_path;
     if (factory->fEffectFactory) {
-        std::string effect_path = machine_code_path + "_machine_effect";
+        effect_path = machine_code_path + "_machine_process";
+        process_path = machine_code_path + "_machine_effect";
         writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fEffectFactory), effect_path, target);
+    } else {
+        process_path = machine_code_path;
     }
+    writeDSPFactoryToMachineFile(static_cast<llvm_dsp_factory*>(factory->fProcessFactory), process_path, target);
 }
 
 #endif // __poly_llvm_dsp_tools__

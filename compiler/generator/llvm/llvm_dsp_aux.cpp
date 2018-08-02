@@ -113,7 +113,7 @@ void llvm_dsp_factory_aux::startLLVMLibrary()
 void llvm_dsp_factory_aux::stopLLVMLibrary()
 {
     if (--llvm_dsp_factory_aux::gInstance == 0) {
-#ifndef LLVM_BUILD_UNIVERSAL  // Crash in 32 bits on OSX, so deactivated in this case...
+#ifndef __APPLE__  // Crash on OSX, so deactivated in this case...
         LLVMResetFatalErrorHandler();
 #endif
     }

@@ -137,6 +137,14 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+        /*
+        // Test Write/Read
+        string path_name = factory->getName();
+        cout << "Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile" << endl;
+        writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory), path_name);
+        deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+        factory = readDSPFactoryFromBitcodeFile(path_name, "", -1);
+        */
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);

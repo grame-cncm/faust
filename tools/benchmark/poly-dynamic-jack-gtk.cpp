@@ -144,6 +144,16 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createPolyDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+        /*
+        // Test Write/Read
+        if (factory) {
+            cout << "Test writePolyDSPFactoryToBitcodeFile/readPolyDSPFactoryFromBitcodeFile" << endl;
+            string path_name = factory->getName();
+            writePolyDSPFactoryToBitcodeFile(factory, path_name);
+            delete factory;
+            factory = readPolyDSPFactoryFromBitcodeFile(path_name, "", -1);
+        }
+        */
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);
@@ -232,12 +242,7 @@ int main(int argc, char* argv[])
     delete midiinterface;
     delete httpdinterface;
     delete oscinterface;
-  
-    if (is_llvm) {
-        delete factory;
-    } else {
-        //deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
-    }
+    delete factory;
     
     return 0;
 }
