@@ -223,7 +223,8 @@ static void CheckPartInterval(Tree s, Type t)
     interval i = t->getInterval();
     if (!i.valid || (i.lo < 0) || (i.hi > 255)) {
         stringstream error;
-        error << "ERROR : invalid part number values " << i << " for soundfile expression : " << ppsig(s) << endl;
+        error << "ERROR : out of range soundfile part number (" << i
+              << " instead of interval(0,255)) in expression : " << ppsig(s) << endl;
         throw faustexception(error.str());
     }
 }
