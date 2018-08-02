@@ -590,8 +590,8 @@ bool isSigDiv(Tree a, Tree& x, Tree& y)
                              Sounfiles
 *****************************************************************************/
 /*
- A boxSounfile(label,c) has 1 input channel and c+3 output channels:
- 0   sigSoundfileLength(label):  the number of frames of the soundfile (NK)
+ A boxSounfile(label,c) has 2 inputs and c+3 outputs:
+ 0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
  1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
  2   sigSoundfileChannels(label): the number of channels of the file (NK)
  3.. sigSoundfileBuffer(label, c, ridx): the cth channel content (RK ou RS)
@@ -600,9 +600,9 @@ Tree sigSoundfile(Tree label)
 {
     return tree(gGlobal->SIGSOUNDFILE, label);
 }
-Tree sigSoundfileLength(Tree sf)
+Tree sigSoundfileLength(Tree sf, Tree part)
 {
-    return tree(gGlobal->SIGSOUNDFILELENGTH, sf);
+    return tree(gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
 Tree sigSoundfileRate(Tree sf)
 {
@@ -612,18 +612,18 @@ Tree sigSoundfileChannels(Tree sf)
 {
     return tree(gGlobal->SIGSOUNDFILECHANNELS, sf);
 }
-Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree fpart, Tree ridx)
+Tree sigSoundfileBuffer(Tree sf, Tree chan, Tree part, Tree ridx)
 {
-    return tree(gGlobal->SIGSOUNDFILEBUFFER, sf, chan, fpart, ridx);
+    return tree(gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
 
 bool isSigSoundfile(Tree s, Tree& label)
 {
     return isTree(s, gGlobal->SIGSOUNDFILE, label);
 }
-bool isSigSoundfileLength(Tree s, Tree& sf)
+bool isSigSoundfileLength(Tree s, Tree& sf, Tree& part)
 {
-    return isTree(s, gGlobal->SIGSOUNDFILELENGTH, sf);
+    return isTree(s, gGlobal->SIGSOUNDFILELENGTH, sf, part);
 }
 bool isSigSoundfileRate(Tree s, Tree& sf)
 {
@@ -633,9 +633,9 @@ bool isSigSoundfileChannels(Tree s, Tree& sf)
 {
     return isTree(s, gGlobal->SIGSOUNDFILECHANNELS, sf);
 }
-bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& fpart, Tree& ridx)
+bool isSigSoundfileBuffer(Tree s, Tree& sf, Tree& chan, Tree& part, Tree& ridx)
 {
-    return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, fpart, ridx);
+    return isTree(s, gGlobal->SIGSOUNDFILEBUFFER, sf, chan, part, ridx);
 }
 /*****************************************************************************
                              matrix extension

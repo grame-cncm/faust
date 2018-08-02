@@ -448,14 +448,14 @@ string ScalarCompiler::generateCode(Tree sig)
 
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
-    } else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, subst("$0cache->fLength", CS(sf)));
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        return generateCacheCode(sig, subst("$0cache->fLength", CS(sf), CS(x)));
     } else if (isSigSoundfileRate(sig, sf)) {
         return generateCacheCode(sig, subst("$0cache->fSampleRate", CS(sf)));
     } else if (isSigSoundfileChannels(sig, sf)) {
         return generateCacheCode(sig, subst("$0cache->fChannels", CS(sf)));
     } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
-                return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y), CS(z)));
+        return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {

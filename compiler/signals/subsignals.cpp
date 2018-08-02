@@ -190,9 +190,10 @@ int getSubSignals(Tree sig, vector<Tree>& vsigs, bool visitgen)
 
     else if (isSigSoundfile(sig, label)) {
         return 0;
-    } else if (isSigSoundfileLength(sig, sf)) {
+    } else if (isSigSoundfileLength(sig, sf, x)) {
         vsigs.push_back(sf);
-        return 1;
+        vsigs.push_back(x);
+        return 2;
     } else if (isSigSoundfileRate(sig, sf)) {
         vsigs.push_back(sf);
         return 1;

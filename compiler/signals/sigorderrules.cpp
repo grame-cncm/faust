@@ -170,7 +170,7 @@ static int infereSigOrder(Tree sig)
     else if (isSigSoundfile(sig, l))
         throw faustexception("ERROR infering signal order : isSigSoundfile\n");  // not supposed to happen.;
 
-    else if (isSigSoundfileLength(sig, sf))
+    else if (isSigSoundfileLength(sig, sf, x))
         return 2;
 
     else if (isSigSoundfileRate(sig, sf))

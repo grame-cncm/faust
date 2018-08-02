@@ -420,7 +420,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     int    i;
     double r;
-    Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, part, label, id, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -502,8 +502,8 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
-    } else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf)));
+    } else if (isSigSoundfileLength(sig, sf, part)) {
+        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf), CS(part)));
     } else if (isSigSoundfileRate(sig, sf)) {
         return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
     } else if (isSigSoundfileChannels(sig, sf)) {
@@ -1430,7 +1430,7 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     return InstBuilder::genLoadStructVar(varname);
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf)
+ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* part)
 {
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);

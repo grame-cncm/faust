@@ -437,7 +437,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         Tree    soundfile = sigSoundfile(normalizePath(cons(label, path)));
         int     c         = tree2int(chan);
         siglist lsig2(c + 3);
-        lsig2[0] = sigSoundfileLength(soundfile);
+        lsig2[0] = sigSoundfileLength(soundfile, lsig[0]);
         lsig2[1] = sigSoundfileRate(soundfile);
         lsig2[2] = sigSoundfileChannels(soundfile);
 
