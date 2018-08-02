@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -217,6 +218,16 @@ static Type T(Tree term, Tree ignoreenv)
     }
 }
 
+static void CheckPartInterval(Tree s, Type t)
+{
+    interval i = t->getInterval();
+    if (!i.valid || (i.lo < 0) || (i.hi > 255)) {
+        stringstream error;
+        error << "ERROR : invalid part number values " << i << " for soundfile expression : " << ppsig(s) << endl;
+        throw faustexception(error.str());
+    }
+}
+
 /**
  * Infere the type of a term according to its surrounding type environment
  * @param sig the signal to aanlyze
@@ -228,7 +239,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int    i;
     double r;
-    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree   label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
@@ -350,21 +361,33 @@ static Type infereSigType(Tree sig, Tree env)
 
     else if (isSigSoundfile(sig, l)) {
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileLength(sig, sf, x)) {
-        T(sf, env);
-        T(x, env);
-        return makeSimpleType(kInt, kSamp, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
-    } else if (isSigSoundfileRate(sig, sf)) {
+    }
+
+    else if (isSigSoundfileLength(sig, sf, part)) {
+        Type t1 = T(sf, env);
+        Type t2 = T(part, env);
+        CheckPartInterval(sig, t2);
+        int c = std::max(int(kBlock), t2->variability());
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
+    }
+
+    else if (isSigSoundfileRate(sig, sf)) {
         T(sf, env);
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileChannels(sig, sf)) {
+    }
+
+    else if (isSigSoundfileChannels(sig, sf)) {
         T(sf, env);
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+    }
+
+    else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
         T(sf, env);
         T(x, env);
-        T(y, env);
+        Type tp = T(part, env);
         T(z, env);
+
+        CheckPartInterval(sig, tp);
         return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
     }
 
