@@ -23,6 +23,7 @@
 
 #include "Text.hh"
 #include "floats.hh"
+#include "ppsig.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
 
@@ -68,8 +69,18 @@ class FtzPrim : public xtended {
 
     virtual Tree computeSigOutput(const vector<Tree>& args)
     {
+        int    i;
+        double r;
+
         faustassert(args.size() == arity());
-        return tree(symbol(), args[0]);
+
+        if (isSigInt(args[0], &i)) {
+            return args[0];
+        } else if (isSigReal(args[0], &r)) {
+            return args[0];
+        } else {
+            return tree(symbol(), args[0]);
+        }
     }
 
     virtual ValueInst* generateCode(CodeContainer* container, const list<ValueInst*>& args, ::Type result,
