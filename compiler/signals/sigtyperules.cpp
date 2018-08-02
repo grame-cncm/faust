@@ -352,7 +352,7 @@ static Type infereSigType(Tree sig, Tree env)
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
     } else if (isSigSoundfileLength(sig, sf)) {
         T(sf, env);
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
+        return makeSimpleType(kInt, kSamp, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
     } else if (isSigSoundfileRate(sig, sf)) {
         T(sf, env);
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
