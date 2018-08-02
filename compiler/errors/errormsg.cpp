@@ -34,11 +34,8 @@ const char* yyfilename = "????";
 void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
-#ifndef EMCC
-        stacktrace(20);
-#endif
         std::stringstream str;
-        str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
         str << "file: " << file.substr(file.find_last_of('/')+1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;
         if (gGlobal) {
@@ -46,6 +43,9 @@ void faustassertaux(bool cond, const string& file, int line)
             gGlobal->printCompilationOptions(str);
         }
         str << ")\n";
+#ifndef EMCC
+        stacktrace(str, 20);
+#endif
         throw faustexception(str.str());
     }
 }
