@@ -59,6 +59,7 @@ inline void stacktrace(int val)
 #endif
 }
 
-void faustassert(bool cond);
+#define faustassert(cond) faustassertaux((cond), __FILE__, __LINE__)
+void faustassertaux(bool cond, const std::string& file, int line);
 
 #endif

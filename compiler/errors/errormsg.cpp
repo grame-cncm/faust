@@ -31,7 +31,7 @@ using namespace std;
 
 const char* yyfilename = "????";
 
-void faustassert(bool cond)
+void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
 #ifndef EMCC
@@ -39,6 +39,7 @@ void faustassert(bool cond)
 #endif
         std::stringstream str;
         str << "ASSERT : please report the stack trace and the failing DSP file to Faust developers (";
+        str << "file: " << file.substr(file.find_last_of('/')+1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;
         if (gGlobal) {
             str << ", options: ";
