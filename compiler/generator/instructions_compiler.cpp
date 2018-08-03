@@ -1446,15 +1446,6 @@ ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, 
                                             InstBuilder::genInt32NumInst(2));
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* sf)
-{
-    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
-    faustassert(load);
-    // Struct access using an index that will be converted as a field name
-    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(3));
-}
-
 ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
                                                          ValueInst* z)
 {

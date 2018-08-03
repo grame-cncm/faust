@@ -112,9 +112,9 @@ struct LibsndfileReader : public SoundfileReader {
             memcpy(&soundfile->fBuffers[chan + channels][offset], &soundfile->fBuffers[chan][offset], sizeof(FAUSTFLOAT) * int(snd_info.frames));
         }
         
-        std::cout << "readOne INT soundfile->fLength[part] " <<  soundfile->fLength[part] << std::endl;
-        std::cout << "readOne INT soundfile->fOffset[part] " <<  soundfile->fOffset[part] << std::endl;
-        std::cout << "readOne INT soundfile->fSampleRate[part] " <<  soundfile->fSampleRate[part] << std::endl;
+        std::cout << "readOne soundfile->fLength[part] " <<  soundfile->fLength[part] << std::endl;
+        std::cout << "readOne soundfile->fOffset[part] " <<  soundfile->fOffset[part] << std::endl;
+        std::cout << "readOne soundfile->fSampleRate[part] " <<  soundfile->fSampleRate[part] << std::endl;
         
         // Update offset
         offset += soundfile->fLength[part];

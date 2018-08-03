@@ -95,9 +95,9 @@ class SoundUI : public GenericUI
             
             // Parse the possible list
             if (fSoundfileMap.find(url) == fSoundfileMap.end()) {
-                // Check all files end get their complete path
+                // Check all files and get their complete path
                 std::vector<std::string> path_name_list = SoundfileReader::checkFiles(fSoundfileDir, file_name_list);
-                // Read them and create Soundfile
+                // Read them and create the Soundfile
                 fSoundfileMap[url] = createSoundfile(path_name_list, MAX_CHAN);
             }
             
