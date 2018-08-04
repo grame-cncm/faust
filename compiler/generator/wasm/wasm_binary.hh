@@ -25,6 +25,7 @@
 #include <string.h>
 #include <cmath>
 #include <vector>
+#include <functional>
 
 #include "exception.hh"
 
