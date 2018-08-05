@@ -111,12 +111,12 @@ struct WasmBinaryReader {
     void verifyInt16(int16_t x)
     {
         int16_t y = getInt16();
-        if (x != y)  throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
     }
     
     void verifyInt32(int32_t x) {
         int32_t y = getInt32();
-        if (x != y)  throw faustexception("WasmBinaryReader : surprising value");
+        if (x != y) throw faustexception("WasmBinaryReader : surprising value");
     }
 
     void read()
