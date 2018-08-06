@@ -3,6 +3,7 @@
 
 #FAUST DATA:
 BELAVERSION="bela.cpp"
+NVOICES=0
 
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
