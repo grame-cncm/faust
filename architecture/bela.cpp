@@ -57,8 +57,38 @@ using namespace std;
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
+
+//#ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
 #include "faust/midi/bela-midi.h"
+//#endif
+
+// Pour OSC
+#ifdef OSCCTRL
+#include <OSCServer.h>
+#include <OSCClient.h>
+
+#include "faust/gui/OSCUI.h"
+#include "faust/gui/bela-osc.h"
+#endif
+
+// Usage ???
+#ifdef SOUNDFILE
+#include "faust/gui/SoundUI.h"
+#endif
+
+
+// Pour POLY et tt synthé
+#include "faust/dsp/poly-dsp.h"
+
+// POLY2 = POLY avec effet
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
+#endif
+
+
+
 
 const char* const pinNamesStrings[] =
 {
@@ -287,10 +317,10 @@ class BelaUI : public UI
 
 #endif // __FaustCommonInfrastructure__
 
+
 /**************************BEGIN USER SECTION **************************/
 
 <<includeIntrinsic>>
-
 <<includeclass>>
 
 /***************************END USER SECTION ***************************/
@@ -310,24 +340,58 @@ unsigned int gNumBuffers = 0;   // the number of de-interleaved buffers for audi
 FAUSTFLOAT *gInputBuffers = NULL, *gOutputBuffers = NULL; //de-interleaved input/output buffers for the audio and analog inputs
 FAUSTFLOAT* gFaustIns[10];      // array of pointers to gInputBuffer data
 FAUSTFLOAT* gFaustOuts[10];     // array of pointers to gOutputBuffers data
-mydsp fDSP;
+
+int nvoices = 0;
+
 BelaUI fUI;
+
+#ifdef MIDICTRL
 bela_midi fMIDI;
-MidiUI* fMidiUI;
+MidiUI* midiinterface;
+#endif
+
+mydsp_poly* dsp_poly = NULL;
+dsp* DSP;
+
+#ifdef OSCCTRL
+BelaOSCUI fOSCUI("192.168.7.1", 12001, 12002);
+#endif
+
 
 bool setup(BelaContext* context, void* userData)
 {
+    
+#ifdef 	NVOICES
+  nvoices = NVOICES;
+#endif
+    
   gNumBuffers = context->audioInChannels
                 + context->audioOutChannels
                 + context->analogInChannels
                 + context->analogOutChannels;
-//   rt_printf("context->audioFrames %i\n", context->audioFrames);
-//   rt_printf("context->audioChannels %i\n", context->audioChannels);
-//   rt_printf("context->analogChannels %i\n", context->analogChannels);
-//   rt_printf("context->analogFrames %i\n", context->analogFrames);
 
-  fDSP.init(context->audioSampleRate);
-  fDSP.buildUserInterface(&fUI); // Maps Bela Analog/Digital IO and faust widgets
+// Polyphonique avec effet
+#ifdef POLY2
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    
+    DSP = new dsp_sequencer(dsp_poly, new effect());
+// Polyphonique sans effet
+#elif NVOICES
+    // Si il y a plusieur voix, alors c'est un POLY simple
+    if (nvoices > 0) {
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+        DSP = dsp_poly;
+    // Si on n'a pas de voix = ce n'est pas un synthé (un FX par exemple)    
+    } else {
+        DSP = new mydsp();
+    }
+#else
+    DSP = new mydsp();
+#endif
+    
+    DSP->init(context->audioSampleRate);
+    DSP->buildUserInterface(&fUI); // Maps Bela Analog/Digital IO and faust widgets
+
 
   gInputBuffers = (FAUSTFLOAT *) malloc(gNumBuffers * context->audioFrames * sizeof(FAUSTFLOAT));
   gOutputBuffers = (FAUSTFLOAT *) malloc(gNumBuffers * context->audioFrames * sizeof(FAUSTFLOAT));
@@ -338,23 +402,38 @@ bool setup(BelaContext* context, void* userData)
     return false;
   }
 
-  if(fDSP.getNumInputs() > 10 || fDSP.getNumOutputs() > 10)
+  if(DSP->getNumInputs() > 10 || DSP->getNumOutputs() > 10)
   {
     rt_printf("setup() failed: FAUST DSP has too many i/o");
     return false;
   }
   // create the table of input channels
-  for(int ch=0; ch<fDSP.getNumInputs(); ++ch)
+  for(int ch=0; ch<DSP->getNumInputs(); ++ch)
     gFaustIns[ch] = gInputBuffers + (ch * context->audioFrames);
 
   // create the table of output channels
-  for(int ch=0; ch<fDSP.getNumOutputs(); ++ch)
+  for(int ch=0; ch<DSP->getNumOutputs(); ++ch)
     gFaustOuts[ch] = gOutputBuffers + (ch * context->audioFrames);
-
-  fMidiUI = new MidiUI(&fMIDI);
-  fDSP.buildUserInterface(fMidiUI);
-  fMidiUI->run();
-
+    
+// Cas si MIDI, comportement différent en Poly et non Poly:
+#ifdef MIDICTRL
+#ifdef 	NVOICES
+        fMIDI.addMidiIn(dsp_poly);
+        midiinterface = new MidiUI(&fMIDI);
+        DSP->buildUserInterface(midiinterface);
+        midiinterface->run();
+#else
+        midiinterface = new MidiUI(&fMIDI);
+        DSP->buildUserInterface(midiinterface);
+        midiinterface->run();
+#endif
+#endif
+// OSC:
+#ifdef OSCCTRL
+    DSP->buildUserInterface(&fOSCUI);
+    fOSCUI.run();
+#endif
+    
   return true;
 }
 
@@ -379,11 +458,16 @@ void render(BelaContext* context, void* userData)
       }
     }
   }
-
+    // OSC:
+#ifdef OSCCTRL
+    fOSCUI.scheduleOSC();
+#endif
   // reads Bela pins and updates corresponding Faust Widgets zones
   fUI.update(context);
+  GUI::updateAllGuis();
   // Process FAUST DSP
-  fDSP.compute(context->audioFrames, gFaustIns, gFaustOuts);
+  DSP->compute(context->audioFrames, gFaustIns, gFaustOuts);
+
 
   // Interleave the output data
   for(unsigned int frame = 0; frame < context->audioFrames; frame++)
@@ -414,8 +498,10 @@ void cleanup(BelaContext* context, void* userData)
     free(gInputBuffers);
   if(gOutputBuffers != NULL)
     free(gOutputBuffers);
-
-  delete fMidiUI;
+    
+#ifdef MIDICTRL
+  delete midiinterface;
+#endif
 }
 
 #endif // __FaustBela_H__

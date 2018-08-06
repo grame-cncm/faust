@@ -1,25 +1,112 @@
 #!/bin/bash
 
-BEAGLERT="/usr/local/beaglert"				# sources of beagleRT
-BINARY="BeagleRT"							# name of the binary we want to obtain
 
-FILENAME=$1
-CLASSNAME=`basename $FILENAME .dsp`
+#FAUST DATA:
+BELAVERSION="bela.cpp"
 
-# list of cpp files needed to compile $BINARY
-COREFILES="$BEAGLERT/core/default_main.cpp $BEAGLERT/core/DigitalChannelManager.cpp $BEAGLERT/core/GPIOcontrol.cpp $BEAGLERT/core/I2c_Codec.cpp $BEAGLERT/core/I2c_TouchKey.cpp $BEAGLERT/core/Midi.cpp $BEAGLERT/core/OSCClient.cpp $BEAGLERT/core/OSCServer.cpp $BEAGLERT/core/PRU.cpp $BEAGLERT/core/PulseIn.cpp $BEAGLERT/core/RTAudioCommandLine.cpp $BEAGLERT/core/RTAudio.cpp $BEAGLERT/core/Scope.cpp $BEAGLERT/core/UdpClient.cpp $BEAGLERT/core/UdpServer.cpp $BEAGLERT/core/WriteFile.cpp"
+#-------------------------------------------------------------------
+#PHASE 1 : dispatch command arguments
+#-------------------------------------------------------------------
+while [ $1 ] 
+do
+    p=$1
+    
+    # HELP:
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    	echo "help info: TO DO"
+    	echo "./faust2bela [-midi][-nvoices <num>] [-effect <auto or file.dsp>] <file.dsp>"
+    	echo "Use '-midi' to activate MIDI control"
+    	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
+    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
+    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument."
+    	echo "Use '-osc' to activate OSC control"
+    	echo "use no arguments for a simple effect."
+        exit
+    fi
+    
+	# -NVOICES:
+    if [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+	# -EFFECT:
+    elif [ $p = "-effect" ]; then
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    # -MIDI
+    elif [ $p = "-midi" ]; then
+    	MIDIDEFS="MIDI"
+	elif [ $p = "-osc" ]; then
+		OSCDEFS="OSC"
+    else 
+	    OPTIONS="$OPTIONS $p"        
+	fi
 
-faust -i -a bela.cpp -cn $CLASSNAME $FILENAME -o render.cpp || exit
+shift
 
-arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $COREFILES render.cpp $BEAGLERT/lib/libprussdrv.a $BEAGLERT/lib/libNE10.a -lrt -lnative -lxenomai || exit
+done
+#-------------------------------------------------------------------
+#PHASE 2 : compile the *.dsp files
+#-------------------------------------------------------------------
 
-rm render.cpp
+CUR=$(pwd)
+f=$(basename "$p")
+SRCDIR=$(dirname "$p")
 
-echo "$BINARY;"
+# creates a temporary dir 
+TDR=$(mktemp -d faust.XXXXXX)
+TMP="$TDR/${f%.dsp}"
+mkdir "$TMP"
+
+PROJECTDIR="$CUR/$TMP"
+
+    # compile faust to c++
+    if [[ "$POLY" ==  *POLY2* ]]; then
+        if [ $EFFECT = "auto" ]; then
+        	# Creer un fichier .dsp simple
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
+
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
+
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
+            #rm "$TMP/effect.dsp"
+        else
+            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        fi
+    else
+        faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+    fi
 
 
+#-------------------------------------------------------------------
+#PHASE 3 : Data for BELA
+#-------------------------------------------------------------------
+
+echo '// Options :' > "$PROJECTDIR/tmp.txt"
+if [ $NVOICES -gt 0 ]; then
+	echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
+fi
+
+if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
+	echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
+fi
+
+if [[ "$OSCDEFS" ==  *OSC* ]]; then
+	echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+fi
+
+cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
+rm "$PROJECTDIR/render.cpp"
+mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
 
 
-
-
-
+echo "END"
