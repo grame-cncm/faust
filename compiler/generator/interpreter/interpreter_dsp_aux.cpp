@@ -34,10 +34,8 @@ static dsp_factory_table<SDsp_factory>                gInterpreterFactoryTable;
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
 {
-    return reinterpret_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+    return static_cast<interpreter_dsp_factory*>(gInterpreterFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
-
-//#ifndef INTERP_PLUGIN
 
 EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string& filename, int argc,
                                                                     const char* argv[], string& error_msg)
@@ -50,7 +48,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const string
                                                      error_msg);
     } else {
         error_msg = "File Extension is not the one expected (.dsp expected)\n";
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -60,7 +58,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
     string expanded_dsp_content, sha_key;
 
     if ((expanded_dsp_content = expandDSPFromString(name_app, dsp_content, argc, argv, sha_key, error_msg)) == "") {
-        return NULL;
+        return nullptr;
     } else {
         int         argc1 = 0;
         const char* argv1[32];
@@ -74,11 +72,11 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         for (int i = 0; i < argc; i++) {
             argv1[argc1++] = argv[i];
         }
-
         argv1[argc1] = 0;  // NULL terminated argv
 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory*                          factory = 0;
+        
+        interpreter_dsp_factory* factory = 0;
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
@@ -95,13 +93,11 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
                 factory->setDSPCode(expanded_dsp_content);
                 return factory;
             } else {
-                return NULL;
+                return nullptr;
             }
         }
     }
 }
-
-//#endif
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory)
 {
@@ -141,7 +137,7 @@ EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
     gInterpreterFactoryTable.addDSP(this, dsp);
-    return reinterpret_cast<interpreter_dsp*>(dsp);
+    return static_cast<interpreter_dsp*>(dsp);
 }
 
 // Use the memory manager if needed
@@ -188,7 +184,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::ist
         return factory;
     } catch (faustexception& e) {
         std::cerr << "ERROR in readInterpreterDSPFactoryFromMachineAux: " << e.Message();
-        return NULL;
+        return nullptr;
     }
 }
 
@@ -217,11 +213,11 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
             return readInterpreterDSPFactoryFromMachineAux(&reader);
         } else {
             std::cerr << "Error opening file '" << machine_code_path << "'" << std::endl;
-            return NULL;
+            return nullptr;
         }
     } else {
         std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
-        return NULL;
+        return nullptr;
     }
 }
 

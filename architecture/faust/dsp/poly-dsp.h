@@ -353,7 +353,7 @@ struct dsp_voice_group {
 };
 
 /**
- * Base class for Polyphonic DSP.
+ * Base class for MIDI controllable DSP.
  */
 
 class dsp_poly : public decorator_dsp, public midi {

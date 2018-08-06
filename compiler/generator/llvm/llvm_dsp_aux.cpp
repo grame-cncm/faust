@@ -59,6 +59,8 @@
 using namespace llvm;
 using namespace std;
 
+#define LLVM_BACKEND_NAME "Faust LLVM backend"
+
 #ifdef LLVM_MACHINE
 
 void faustassert(bool)
@@ -289,7 +291,7 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
     faustassert(tmp);
 
     if (tmp->getFactory()->getMemoryManager()) {
-        dsp_imp* dsp = reinterpret_cast<dsp_imp*>(tmp->getFactory()->allocate(fGetSize()));
+        dsp_imp* dsp = static_cast<dsp_imp*>(tmp->getFactory()->allocate(fGetSize()));
         return (dsp) ? new (tmp->getFactory()->allocate(sizeof(llvm_dsp))) llvm_dsp(tmp, dsp) : nullptr;
     } else {
         // LLVM module memory code
@@ -413,7 +415,7 @@ EXPORT void stopMTDSPFactories()
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return reinterpret_cast<llvm_dsp_factory*>(
+    return static_cast<llvm_dsp_factory*>(
         llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
@@ -557,7 +559,7 @@ EXPORT llvm_dsp* llvm_dsp_factory::createDSPInstance()
 {
     dsp* dsp = fFactory->createDSPInstance(this);
     llvm_dsp_factory_aux::gLLVMFactoryTable.addDSP(this, dsp);
-    return reinterpret_cast<llvm_dsp*>(dsp);
+    return static_cast<llvm_dsp*>(dsp);
 }
 
 // Use the memory manager if needed

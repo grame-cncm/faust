@@ -21,6 +21,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #define _FAUST_EXCEPTION_
 
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #ifndef WIN32
 #include <unistd.h>
@@ -51,11 +52,18 @@ class faustexception : public std::runtime_error {
     void PrintMessage() { std::cerr << what(); }
 };
 
-inline void stacktrace(int val)
+inline void stacktrace(std::stringstream& str, int val)
 {
 #if !defined(EMCC) && !defined(WIN32)
-    void* array[val];
-    backtrace_symbols_fd(array, backtrace(array, val), STDERR_FILENO);
+    void* callstack[val];
+    int frames = backtrace(callstack, val);
+    char** strs = backtrace_symbols(callstack, frames);
+    str << "====== stack trace start ======\n";
+    for (int i = 0; i < frames; ++i) {
+       str << strs[i] << "\n";
+    }
+    str << "====== stack trace stop ======\n";
+    free(strs);
 #endif
 }
 

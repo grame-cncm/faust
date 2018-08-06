@@ -10,7 +10,7 @@ if (typeof (AudioWorkletNode) === "undefined") {
 
 class mydspNode extends AudioWorkletNode {
 
-    constructor(context, options) {
+    constructor(context, URL, options) {
 
         var json_object = JSON.parse(getJSONmydsp());
 
@@ -23,6 +23,7 @@ class mydspNode extends AudioWorkletNode {
         options.channelInterpretation = "speakers";
 
         super(context, 'mydsp', options);
+        this.URL = URL;
       
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
@@ -63,6 +64,7 @@ class mydspNode extends AudioWorkletNode {
                        || item.type === "nentry") {
                 // Keep inputs adresses
                 obj.inputs_items.push(item.address);
+                obj.descriptor.push(item);
                 // Decode MIDI
                 if (item.meta !== undefined) {
                     for (var i = 0; i < item.meta.length; i++) {
@@ -88,6 +90,7 @@ class mydspNode extends AudioWorkletNode {
         // input/output items
         this.inputs_items = [];
         this.outputs_items = [];
+        this.descriptor = [];
         
         // MIDI
         this.fPitchwheelLabel = [];
@@ -121,9 +124,15 @@ class mydspNode extends AudioWorkletNode {
     }
     
     // For WAP
-    getMetadata()
+    async getMetadata() 
     {
-        return getJSONmydsp();
+        return new Promise(resolve => {
+        	fetch(this.URL + "/main.json").then(responseJSON => {
+            	return responseJSON.json();
+        	}).then(json => {
+        		resolve(json);
+        	})
+    	});
     }
 
     /**
@@ -213,7 +222,15 @@ class mydspNode extends AudioWorkletNode {
     // For WAP
     getDescriptor() 
     {
-        return this.inputs_items;
+        var desc = {};
+        for (const item in this.descriptor) {
+            if (this.descriptor.hasOwnProperty(item)) {
+                if (this.descriptor[item].label != "bypass") {
+                    desc = Object.assign({ [this.descriptor[item].label]: { minValue: this.descriptor[item].min, maxValue: this.descriptor[item].max, defaultValue: this.descriptor[item].init } }, desc);
+                }
+            }
+        }
+        return desc;
     }
 
     /**
@@ -284,8 +301,8 @@ class mydspNode extends AudioWorkletNode {
     async getState() 
     {
         var params = new Object();
-        for (let i = 0; i < this.getDescriptor().length; i++) {
-            Object.assign(params, { [this.getDescriptor()[i]]: `${this.getParam(this.getDescriptor()[i])}` });
+        for (let i = 0; i < this.getParams().length; i++) {
+            Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
         }
         return new Promise(resolve => {
             resolve(params)
@@ -421,13 +438,12 @@ window.mydsp = class mydsp {
     load()
     {
     	return new Promise((resolve, reject) => {               
-                //this.parse_ui(JSON.parse(getJSONmydsp()).ui);                   
-        		this.context.audioWorklet.addModule(this.baseUrl + "mydsp-processor.js").then(() => {
-        		this.node = new mydspNode(this.context, {});
-                this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
-        		return (this.node);
-        	}).then((node) => {
-        		console.log(this.node.getDescriptor());
+            this.context.audioWorklet.addModule(this.baseUrl + "/mydsp-processor.js").then(() => {
+            this.node = new mydspNode(this.context, this.baseUrl, {});
+            this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
+            return (this.node);
+            }).then((node) => {
+                console.log(this.node.getDescriptor());
                 resolve(node);
             }).catch((e) => {
                 reject(e);

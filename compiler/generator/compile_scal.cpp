@@ -450,7 +450,7 @@ string ScalarCompiler::generateCode(Tree sig)
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
     }
-    return "error in generate code";
+    return "error in generated code";
 }
 
 /*****************************************************************************
