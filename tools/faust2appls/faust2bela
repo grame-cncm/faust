@@ -2,8 +2,9 @@
 
 
 #FAUST DATA:
-BELAVERSION="bela.cpp"
+ARCHBELA="bela.cpp"
 NVOICES=0
+EFFECT="none"
 
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
@@ -40,8 +41,10 @@ do
     	MIDIDEFS="MIDI"
 	elif [ $p = "-osc" ]; then
 		OSCDEFS="OSC"
-    else 
-	    OPTIONS="$OPTIONS $p"        
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
 	fi
 
 shift
@@ -52,62 +55,35 @@ done
 #-------------------------------------------------------------------
 
 CUR=$(pwd)
-f=$(basename "$p")
-SRCDIR=$(dirname "$p")
 
-# creates a temporary dir 
-TDR=$(mktemp -d faust.XXXXXX)
-TMP="$TDR/${f%.dsp}"
-mkdir "$TMP"
+for f in $FILES; do
 
-PROJECTDIR="$CUR/$TMP"
+    # creates a temporary dir 
+    TMP=$(mktemp -d faust.XXXXXX)
 
-    # compile faust to c++
-    if [[ "$POLY" ==  *POLY2* ]]; then
-        if [ $EFFECT = "auto" ]; then
-        	# Creer un fichier .dsp simple
-            cat > $TMP/effect.dsp << EndOfCode
-            adapt(1,1) = _;
-            adapt(2,2) = _,_;
-            adapt(1,2) = _ <: _,_;
-            adapt(2,1) = _,_ :> _;
+    # Start 'render.cpp' with required compilation options
 
-            adaptor(F,G) = adapt(outputs(F),inputs(G));
-
-            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
-EndOfCode
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
-            #rm "$TMP/effect.dsp"
-        else
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
-        fi
-    else
-        faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+    echo '// Options :' > "$TMP/render.cpp"
+    if [ $NVOICES -gt 0 ]; then
+	    echo '#define NVOICES '$NVOICES >> "$TMP/render.cpp"
     fi
 
+    if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
+	    echo '#define MIDICTRL' >> "$TMP/render.cpp"
+    fi
 
-#-------------------------------------------------------------------
-#PHASE 3 : Data for BELA
-#-------------------------------------------------------------------
+    if [[ "$OSCDEFS" ==  *OSC* ]]; then
+	    echo '#define OSCCTRL' >> "$TMP/render.cpp"
+    fi
 
-echo '// Options :' > "$PROJECTDIR/tmp.txt"
-if [ $NVOICES -gt 0 ]; then
-	echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
-fi
+    faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
 
-if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
-	echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
-fi
+    # compile faust to c++
+    if [ $EFFECT = "auto" ]; then
+        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" || exit
+    elif [[ -f "$EFFECT" ]]; then
+        faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" || exit
+    fi
 
-if [[ "$OSCDEFS" ==  *OSC* ]]; then
-	echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
-fi
-
-cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
-rm "$PROJECTDIR/render.cpp"
-mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
-
-
-echo "END"
+    echo "$TMP/render.cpp"
+done
