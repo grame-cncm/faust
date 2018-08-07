@@ -75,6 +75,10 @@ for f in $FILES; do
     if [[ "$OSCDEFS" ==  *OSC* ]]; then
 	    echo '#define OSCCTRL' >> "$TMP/render.cpp"
     fi
+    
+	if [[ "$POLY" ==  *POLY2* ]]; then
+	    echo '#define POLY2' >> "$TMP/render.cpp"
+    fi
 
     faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
 
