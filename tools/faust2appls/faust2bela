@@ -1,10 +1,14 @@
 #!/bin/bash
 
 
-#FAUST DATA:
+# Default Configuration
+
 ARCHBELA="bela.cpp"
 NVOICES=0
 EFFECT="none"
+CODEFILES=""
+OPTIONS=""
+
 
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
@@ -47,9 +51,11 @@ do
 	    OPTIONS="$OPTIONS $p"
 	fi
 
-shift
+    shift
 
 done
+
+
 #-------------------------------------------------------------------
 #PHASE 2 : compile the *.dsp files
 #-------------------------------------------------------------------
@@ -59,9 +65,13 @@ CUR=$(pwd)
 for f in $FILES; do
 
     # creates a temporary dir 
-    TMP=$(mktemp -d faust.XXXXXX)
 
-    # Start 'render.cpp' with required compilation options
+    TMP=$(basename "$f")
+    TMP=${TMP%.dsp}
+    mkdir "$TMP"
+
+
+    # Add the required compilation options to the generated C++ file
 
     echo '// Options :' > "$TMP/render.cpp"
     if [ $NVOICES -gt 0 ]; then
@@ -80,14 +90,23 @@ for f in $FILES; do
 	    echo '#define POLY2' >> "$TMP/render.cpp"
     fi
 
+
+    # Compile and append the Faust code
+
     faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
 
-    # compile faust to c++
+    CODEFILES="$TMP/render.cpp;"
+
+
+    # Compile the effect if any
+
     if [ $EFFECT = "auto" ]; then
         faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" || exit
+        CODEFILES="$CODEFILES $TMP/effect.cpp;"
     elif [[ -f "$EFFECT" ]]; then
         faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" || exit
+        CODEFILES="$CODEFILES $TMP/effect.cpp;"
     fi
 
-    echo "$TMP/render.cpp"
+    echo "$CODEFILES"
 done

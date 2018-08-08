@@ -3,8 +3,8 @@ Here are some examples of command lines you can use to compile Faust code to the
 - `faust2bela sinus.dsp`
 - `faust2bela -midi sinusMIDI.dsp`
 - `faust2bela -midi -nvoices 8 instru3FX.dsp`
-- `faust2bela -midi -nvoices 8 -effect auto instru3FXIntern.dsp`
-- `faust2bela -midi -nvoices 8 -effect effect-echo.dsp instru3FX.dsp`
+- `faust2bela -midi -nvoices 8 -effect auto instruFXIntern.dsp`
+- `faust2bela -midi -nvoices 8 -effect effect-echo.dsp instruFX.dsp`
 - `faust2bela -osc sinusOSC.dsp`
 
 Each command generates a C++ file called `render.cpp` that you can directly incorporate into a Bela project:
