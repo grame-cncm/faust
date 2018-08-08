@@ -22,12 +22,12 @@
 #ifndef DSP_AUX_H
 #define DSP_AUX_H
 
+#include <string.h>
 #include <cassert>
 #include <list>
 #include <map>
 #include <string>
 #include <vector>
-#include <string.h>
 
 #include "exception.hh"
 #include "export.hh"

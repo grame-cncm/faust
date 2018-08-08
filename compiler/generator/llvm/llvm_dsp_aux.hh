@@ -273,7 +273,7 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string getDSPCode() { return fFactory->getDSPCode(); }
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
- 
+
     std::string getTarget() { return fFactory->getTarget(); }
 
     llvm_dsp* createDSPInstance();

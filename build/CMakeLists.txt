@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.7.5)
+set (VERSION 2.8.0)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
