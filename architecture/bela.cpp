@@ -338,8 +338,8 @@ ztimedmap GUI::gTimedZoneMap;
 
 unsigned int gNumBuffers = 0;   // the number of de-interleaved buffers for audio and analog i/o
 FAUSTFLOAT *gInputBuffers = NULL, *gOutputBuffers = NULL; //de-interleaved input/output buffers for the audio and analog inputs
-FAUSTFLOAT* gFaustIns[10];      // array of pointers to gInputBuffer data
-FAUSTFLOAT* gFaustOuts[10];     // array of pointers to gOutputBuffers data
+FAUSTFLOAT* gFaustIns[2];      // array of pointers to gInputBuffer data
+FAUSTFLOAT* gFaustOuts[2];     // array of pointers to gOutputBuffers data
 
 int nvoices = 0;
 
@@ -366,9 +366,7 @@ bool setup(BelaContext* context, void* userData)
 #endif
     
   gNumBuffers = context->audioInChannels
-                + context->audioOutChannels
-                + context->analogInChannels
-                + context->analogOutChannels;
+    + context->audioOutChannels;
 
 // Polyphonique avec effet
 #ifdef POLY2
@@ -402,17 +400,12 @@ bool setup(BelaContext* context, void* userData)
     return false;
   }
 
-  if(DSP->getNumInputs() > 10 || DSP->getNumOutputs() > 10)
-  {
-    rt_printf("setup() failed: FAUST DSP has too many i/o");
-    return false;
-  }
   // create the table of input channels
-  for(int ch=0; ch<DSP->getNumInputs(); ++ch)
+  for(int ch=0; ch<context->audioInChannels; ++ch)
     gFaustIns[ch] = gInputBuffers + (ch * context->audioFrames);
 
   // create the table of output channels
-  for(int ch=0; ch<DSP->getNumOutputs(); ++ch)
+  for(int ch=0; ch<context->audioOutChannels; ++ch)
     gFaustOuts[ch] = gOutputBuffers + (ch * context->audioFrames);
     
 // Cas si MIDI, comportement différent en Poly et non Poly:
@@ -440,24 +433,19 @@ bool setup(BelaContext* context, void* userData)
 void render(BelaContext* context, void* userData)
 {
   // De-interleave the input data
-  for(unsigned int frame = 0; frame < context->audioFrames; frame++)
-  {
-    for(unsigned int ch = 0; ch < gNumBuffers; ch++)
+    for(unsigned int frame = 0; frame < context->audioFrames; frame++)
     {
-      if(ch >= context->audioInChannels+context->analogInChannels)
-        break;
-      if(ch >= context->audioInChannels) // handle analogChannels
-      {
-        unsigned int m = frame/2;
-        FAUSTFLOAT mIn = (FAUSTFLOAT) context->analogIn[m * context->analogInChannels + (ch-context->audioInChannels)];
-        gInputBuffers[ch * context->audioFrames + frame] = mIn;
-      }
-      else // handle audioInChannels
-      {
-        gInputBuffers[ch * context->audioFrames + frame] = context->audioIn[frame * context->audioInChannels + ch];
-      }
+        for(unsigned int ch = 0; ch < gNumBuffers; ch++)
+        {
+            if(ch >= context->audioInChannels){
+                break;
+            }
+            else // handle audioInChannels
+            {
+                gInputBuffers[ch * context->audioFrames + frame] = context->audioIn[frame * context->audioInChannels + ch];
+            }
+        }
     }
-  }
     // OSC:
 #ifdef OSCCTRL
     fOSCUI.scheduleOSC();
@@ -469,27 +457,20 @@ void render(BelaContext* context, void* userData)
   DSP->compute(context->audioFrames, gFaustIns, gFaustOuts);
 
 
-  // Interleave the output data
-  for(unsigned int frame = 0; frame < context->audioFrames; frame++)
-  {
-    for(unsigned int ch = 0; ch < gNumBuffers; ch++)
+    // Interleave the output data
+    for(unsigned int frame = 0; frame < context->audioFrames; frame++)
     {
-      if(ch >= context->audioOutChannels+context->analogOutChannels)
-        break;
-      else
-      {
-        if(ch >= context->audioOutChannels) // handle analogChannels
+        for(unsigned int ch = 0; ch < gNumBuffers; ch++)
         {
-          unsigned int m = frame/2;
-          context->analogOut[m * context->analogFrames + (ch-context->audioOutChannels)] = gOutputBuffers[ch*context->audioFrames + frame];
+            if(ch >= context->audioOutChannels){
+                break;
+            }
+            else
+            {
+                context->audioOut[frame * context->audioOutChannels + ch] = gOutputBuffers[ch * context->audioFrames + frame];
+            }
         }
-        else // handle audioChannels
-        {
-          context->audioOut[frame * context->audioOutChannels + ch] = gOutputBuffers[ch * context->audioFrames + frame];
-        }
-      }
     }
-  }
 }
 
 void cleanup(BelaContext* context, void* userData)
