@@ -24,8 +24,8 @@
 
 #include <string.h>
 #include <cmath>
-#include <vector>
 #include <functional>
+#include <vector>
 
 #include "exception.hh"
 
@@ -87,21 +87,19 @@ struct LEB {
             offset++;
         } while (more);
     }
-    
+
     void read(std::function<MiniT()> get)
     {
-        value = 0;
-        T shift = 0;
+        value       = 0;
+        T     shift = 0;
         MiniT byte;
         while (1) {
-            byte = get();
-            bool last = !(byte & 128);
-            T payload = byte & 127;
+            byte                                                 = get();
+            bool                                         last    = !(byte & 128);
+            T                                            payload = byte & 127;
             typedef typename std::make_unsigned<T>::type mask_type;
-            auto shift_mask = 0 == shift
-            ? ~mask_type(0)
-            : ((mask_type(1) << (sizeof(T) * 8 - shift)) - 1u);
-            T significant_payload = payload & shift_mask;
+            auto shift_mask          = 0 == shift ? ~mask_type(0) : ((mask_type(1) << (sizeof(T) * 8 - shift)) - 1u);
+            T    significant_payload = payload & shift_mask;
             if (significant_payload != payload) {
                 if (!(std::is_signed<T>::value && last)) {
                     throw faustexception("LEB dropped bits only valid for signed LEB");

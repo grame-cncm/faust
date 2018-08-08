@@ -57,7 +57,7 @@ class dsp_factory_base {
 
     virtual std::string getDSPCode()                        = 0;
     virtual void        setDSPCode(const std::string& code) = 0;
- 
+
     virtual dsp* createDSPInstance(dsp_factory* factory) = 0;
 
     virtual void                setMemoryManager(dsp_memory_manager* manager) = 0;
@@ -73,7 +73,7 @@ class dsp_factory_base {
     virtual void writeAux(std::ostream* out, bool binary = false, bool small = false) {}  // Helper functions
 
     virtual std::string getBinaryCode() = 0;
- 
+
     virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
 
     virtual std::vector<std::string> getDSPFactoryIncludePathnames() = 0;
@@ -132,7 +132,7 @@ class dsp_factory_imp : public dsp_factory_base {
 
     std::string getDSPCode() { return fExpandedDSP; }
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
- 
+
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
         faustassert(false);

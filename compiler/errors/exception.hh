@@ -55,12 +55,12 @@ class faustexception : public std::runtime_error {
 inline void stacktrace(std::stringstream& str, int val)
 {
 #if !defined(EMCC) && !defined(WIN32)
-    void* callstack[val];
-    int frames = backtrace(callstack, val);
-    char** strs = backtrace_symbols(callstack, frames);
+    void*  callstack[val];
+    int    frames = backtrace(callstack, val);
+    char** strs   = backtrace_symbols(callstack, frames);
     str << "====== stack trace start ======\n";
     for (int i = 0; i < frames; ++i) {
-       str << strs[i] << "\n";
+        str << strs[i] << "\n";
     }
     str << "====== stack trace stop ======\n";
     free(strs);

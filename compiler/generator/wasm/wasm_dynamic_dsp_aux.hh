@@ -30,34 +30,34 @@
 
 class EXPORT wasm_dynamic_dsp_factory : public wasm_dsp_factory {
    protected:
- 
    public:
     wasm_dynamic_dsp_factory() {}
-    wasm_dynamic_dsp_factory(dsp_factory_base* factory):wasm_dsp_factory(factory)
-    {}
-    
+    wasm_dynamic_dsp_factory(dsp_factory_base* factory) : wasm_dsp_factory(factory) {}
+
     virtual ~wasm_dynamic_dsp_factory() {}
-  
-    static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string& name_app, const std::string& dsp_content,
-                                                             const std::vector<std::string>& argv, bool internal_memory);
-    
+
+    static wasm_dsp_factory* createWasmDSPFactoryFromString2(const std::string&              name_app,
+                                                             const std::string&              dsp_content,
+                                                             const std::vector<std::string>& argv,
+                                                             bool                            internal_memory);
 };
 
 EXPORT wasm_dsp_factory* createWasmDSPFactoryFromFile(const std::string& filename, int argc, const char* argv[],
                                                       std::string& error_msg, bool internal_memory);
 
-EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content, int argc,
-                                                        const char* argv[], std::string& error_msg, bool internal_memory);
+EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const std::string& name_app, const std::string& dsp_content,
+                                                        int argc, const char* argv[], std::string& error_msg,
+                                                        bool internal_memory);
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
-                                                      char* error_msg, bool internal_memory);
+                                                        char* error_msg, bool internal_memory);
 
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromString2(const char* name_app, const char* dsp_content, int argc,
-                                                        const char* argv[], char* error_msg, bool internal_memory);
+                                                          const char* argv[], char* error_msg, bool internal_memory);
 
 EXPORT bool deleteWasmCDSPFactory(wasm_dsp_factory* factory);
 

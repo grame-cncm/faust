@@ -415,8 +415,7 @@ EXPORT void stopMTDSPFactories()
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return static_cast<llvm_dsp_factory*>(
-        llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
+    return static_cast<llvm_dsp_factory*>(llvm_dsp_factory_aux::gLLVMFactoryTable.getDSPFactoryFromSHAKey(sha_key));
 }
 
 EXPORT vector<string> getAllDSPFactories()
