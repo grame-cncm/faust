@@ -101,8 +101,8 @@ for f in $FILES; do
     # Compile the effect if any
 
     if [ $EFFECT = "auto" ]; then
-        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" || exit
-        CODEFILES="$CODEFILES $TMP/effect.cpp;"
+        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" 2> /dev/null  &&  CODEFILES="$CODEFILES $TMP/effect.cpp;" || echo "Warning: no effect defined"
+        
     elif [[ -f "$EFFECT" ]]; then
         faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" || exit
         CODEFILES="$CODEFILES $TMP/effect.cpp;"
