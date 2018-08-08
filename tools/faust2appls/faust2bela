@@ -1,25 +1,112 @@
 #!/bin/bash
 
-BEAGLERT="/usr/local/beaglert"				# sources of beagleRT
-BINARY="BeagleRT"							# name of the binary we want to obtain
 
-FILENAME=$1
-CLASSNAME=`basename $FILENAME .dsp`
+# Default Configuration
 
-# list of cpp files needed to compile $BINARY
-COREFILES="$BEAGLERT/core/default_main.cpp $BEAGLERT/core/DigitalChannelManager.cpp $BEAGLERT/core/GPIOcontrol.cpp $BEAGLERT/core/I2c_Codec.cpp $BEAGLERT/core/I2c_TouchKey.cpp $BEAGLERT/core/Midi.cpp $BEAGLERT/core/OSCClient.cpp $BEAGLERT/core/OSCServer.cpp $BEAGLERT/core/PRU.cpp $BEAGLERT/core/PulseIn.cpp $BEAGLERT/core/RTAudioCommandLine.cpp $BEAGLERT/core/RTAudio.cpp $BEAGLERT/core/Scope.cpp $BEAGLERT/core/UdpClient.cpp $BEAGLERT/core/UdpServer.cpp $BEAGLERT/core/WriteFile.cpp"
-
-faust -i -a bela.cpp -cn $CLASSNAME $FILENAME -o render.cpp || exit
-
-arm-linux-gnueabihf-g++ -O2 -L/usr/arm-linux-gnueabihf/lib -L/usr/arm-linux-gnueabihf/lib/xenomai -L/usr/lib/arm-linux-gnueabihf -L/usr/arm-linux-gnueabihf/include/xenomai/lib -pthread -rdynamic -I/usr/arm-linux-gnueabihf/include/xenomai/include -I$BEAGLERT/include -o $BINARY $COREFILES render.cpp $BEAGLERT/lib/libprussdrv.a $BEAGLERT/lib/libNE10.a -lrt -lnative -lxenomai || exit
-
-rm render.cpp
-
-echo "$BINARY;"
+ARCHBELA="bela.cpp"
+NVOICES=0
+EFFECT="none"
+CODEFILES=""
+OPTIONS=""
 
 
+#-------------------------------------------------------------------
+#PHASE 1 : dispatch command arguments
+#-------------------------------------------------------------------
+while [ $1 ] 
+do
+    p=$1
+    
+    # HELP:
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+    	echo "help info: TO DO"
+    	echo "./faust2bela [-midi][-nvoices <num>] [-effect <auto or file.dsp>] <file.dsp>"
+    	echo "Use '-midi' to activate MIDI control"
+    	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
+    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
+    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument."
+    	echo "Use '-osc' to activate OSC control"
+    	echo "use no arguments for a simple effect."
+        exit
+    fi
+    
+	# -NVOICES:
+    if [ $p = "-nvoices" ]; then
+        shift
+        NVOICES=$1
+	# -EFFECT:
+    elif [ $p = "-effect" ]; then
+        POLY="POLY2"
+        shift
+        EFFECT=$1
+    # -MIDI
+    elif [ $p = "-midi" ]; then
+    	MIDIDEFS="MIDI"
+	elif [ $p = "-osc" ]; then
+		OSCDEFS="OSC"
+	elif [[ -f "$p" ]]; then
+	    FILES="$FILES $p"
+	else
+	    OPTIONS="$OPTIONS $p"
+	fi
+
+    shift
+
+done
 
 
+#-------------------------------------------------------------------
+#PHASE 2 : compile the *.dsp files
+#-------------------------------------------------------------------
+
+CUR=$(pwd)
+
+for f in $FILES; do
+
+    # creates a temporary dir 
+
+    TMP=$(basename "$f")
+    TMP=${TMP%.dsp}
+    mkdir "$TMP"
 
 
+    # Add the required compilation options to the generated C++ file
 
+    echo '// Options :' > "$TMP/render.cpp"
+    if [ $NVOICES -gt 0 ]; then
+	    echo '#define NVOICES '$NVOICES >> "$TMP/render.cpp"
+    fi
+
+    if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
+	    echo '#define MIDICTRL' >> "$TMP/render.cpp"
+    fi
+
+    if [[ "$OSCDEFS" ==  *OSC* ]]; then
+	    echo '#define OSCCTRL' >> "$TMP/render.cpp"
+    fi
+    
+	if [[ "$POLY" ==  *POLY2* ]]; then
+	    echo '#define POLY2' >> "$TMP/render.cpp"
+    fi
+
+
+    # Compile and append the Faust code
+
+    faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
+
+    CODEFILES="$TMP/render.cpp;"
+
+
+    # Compile the effect if any
+
+    if [ $EFFECT = "auto" ]; then
+        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" 2> /dev/null  &&  CODEFILES="$CODEFILES $TMP/effect.cpp;" || echo "Warning: no effect defined"
+        
+    elif [[ -f "$EFFECT" ]]; then
+        faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" || exit
+        CODEFILES="$CODEFILES $TMP/effect.cpp;"
+    fi
+
+    echo "$CODEFILES"
+done

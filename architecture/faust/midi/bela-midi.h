@@ -31,10 +31,6 @@
 
 class MapUI;
 
-//-------------------------------------------------
-// MIDI input/output handling using BELA library
-//-------------------------------------------------
-
 class bela_midi : public midi_handler {
 
     private:
@@ -84,24 +80,54 @@ class bela_midi : public midi_handler {
                     for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                         midi->fMidiInputs[i]->pitchWheel(0, message.getChannel(), ((message.getDataByte(1) * 128.0 + message.getDataByte(0)) - 8192) / 8192.0);
                     }
-                    break;
+                case kmmSystem:
+                    {
+                        // We have to re-build the MIDI message:
+                        int channel = message.getChannel();
+                        int status = message.getStatusByte();
+                        int systemRealtimeByte = channel | status;
+
+                        switch (systemRealtimeByte)
+                        {
+                            case 248:// MIDI CLK
+                                midi->fMidiInputs[0]->clock(0);
+                                //clock
+                                break;
+                            case 250:
+                                midi->fMidiInputs[0]->start_sync(0);
+                                //start_sync
+                                break;
+                            case 251:
+                                // We can consider star and continue as identical message.
+                                midi->fMidiInputs[0]->start_sync(0);
+                                break;
+                            case 252:
+                                midi->fMidiInputs[0]->stop_sync(0);
+                                //stop_sync
+                                break;
+                            default:
+                                break;
+                        }
+                        break;
+                    }
                 case kmmNone:
                 case kmmAny:
                 default:
                     break;
-            } 
+            }
         }
-       
+    
     public:
     
-        bela_midi():midi_handler("bela")
+        bela_midi()
+            :midi_handler("bela")
         {}
-        
+    
         virtual ~bela_midi()
         {
             stop_midi();
         }
-        
+    
         bool start_midi()
         {
             if (fBelaMidi.readFrom(0) < 0) {
@@ -121,8 +147,7 @@ class bela_midi : public midi_handler {
         { 
             // Nothing todo?
         }
-    
-        // MIDI output API
+        
         MapUI* keyOn(int channel, int pitch, int velocity)
         {
             unsigned char buffer[3] 
