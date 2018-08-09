@@ -77,7 +77,6 @@ using namespace std;
 #include "faust/gui/SoundUI.h"
 #endif
 
-
 // Pour POLY et tt synthé
 #include "faust/dsp/poly-dsp.h"
 
@@ -86,9 +85,6 @@ using namespace std;
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
-
-
-
 
 const char* const pinNamesStrings[] =
 {
@@ -356,7 +352,6 @@ dsp* DSP;
 #ifdef OSCCTRL
 BelaOSCUI fOSCUI("192.168.7.1", 12001, 12002);
 #endif
-
 
 bool setup(BelaContext* context, void* userData)
 {
