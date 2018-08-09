@@ -70,10 +70,11 @@ for f in $FILES; do
     TMP=${TMP%.dsp}
     mkdir "$TMP"
 
-
     # Add the required compilation options to the generated C++ file
 
-    echo '// Options :' > "$TMP/render.cpp"
+    echo '// Execution Options :' > "$TMP/render.cpp"
+    echo '' >> "$TMP/render.cpp"
+    
     if [ $NVOICES -gt 0 ]; then
 	    echo '#define NVOICES '$NVOICES >> "$TMP/render.cpp"
     fi
@@ -85,28 +86,23 @@ for f in $FILES; do
     if [[ "$OSCDEFS" ==  *OSC* ]]; then
 	    echo '#define OSCCTRL' >> "$TMP/render.cpp"
     fi
-    
-	if [[ "$POLY" ==  *POLY2* ]]; then
-	    echo '#define POLY2' >> "$TMP/render.cpp"
+
+
+    # Compile the effect if any and add corresponding compilation option
+
+    if [ $EFFECT = "auto" ]; then
+        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" 2> /dev/null && CODEFILES="$CODEFILES $TMP/effect.cpp;" && echo '#define POLY2' >> "$TMP/render.cpp" || echo "Warning: no effect defined"
+        
+    elif [[ -f "$EFFECT" ]]; then
+        faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" && CODEFILES="$CODEFILES $TMP/effect.cpp;" && echo '#define POLY2' >> "$TMP/render.cpp" || exit
     fi
 
 
     # Compile and append the Faust code
-
+    echo "" >> "$TMP/render.cpp"
     faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
 
-    CODEFILES="$TMP/render.cpp;"
-
-
-    # Compile the effect if any
-
-    if [ $EFFECT = "auto" ]; then
-        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" 2> /dev/null  &&  CODEFILES="$CODEFILES $TMP/effect.cpp;" || echo "Warning: no effect defined"
-        
-    elif [[ -f "$EFFECT" ]]; then
-        faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" || exit
-        CODEFILES="$CODEFILES $TMP/effect.cpp;"
-    fi
+    CODEFILES="$CODEFILES $TMP/render.cpp;"
 
     echo "$CODEFILES"
 done
