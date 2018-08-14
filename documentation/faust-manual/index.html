@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    
+    <link href="css/faust-website.css" rel="stylesheet">
+    <link href="css/faust-widget.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-AMS_CHTML-full" type="text/javascript"></script>
+
+    <title>Faust Programming Language</title>
+  </head>
+  <body>
+    
+    <header>
+      <div class="fixed-top">
+        <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+          <a class="navbar-brand" href="#">:> Faust</a>
+          <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav mr-auto">
+              <li class="nav-item dropdown">
+              <!--<li class="nav-item active">-->
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle active" href="#">Documentation</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">Overview/Index</a>
+                  <a class="dropdown-item" href="#">Get Started</a>
+                  <a class="dropdown-item active" href="#">Faust Manual</a>
+                  <a class="dropdown-item" href="#">Libraries Documentation</a>
+                  <a class="dropdown-item" href="#">Cheat Sheet</a>
+                  <a class="dropdown-item" href="#">Tutorials</a>
+                  <a class="dropdown-item" href="#">Examples</a>
+                  <a class="dropdown-item" href="#">Singal Processing Courses</a>
+                </div>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Download</a>
+              </li>
+              <li class="nav-item dropdown">
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle" href="#">Online Tools</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">Web Editor</a>
+                  <a class="dropdown-item" href="#">Online Compiler</a>
+                  <a class="dropdown-item" href="#">Faust Playground</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle" href="#">Community</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">News</a>
+                  <a class="dropdown-item" href="#">Get Help (Mailing Lists)</a>
+                  <a class="dropdown-item" href="#">Faust Conference</a>
+                  <a class="dropdown-item" href="#">Academic Papers</a>
+                  <a class="dropdown-item" href="#">Press</a>
+                  <a class="dropdown-item" href="#">Report a Bug</a>
+                  <a class="dropdown-item" href="#">Made with Faust</a>
+                </div>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="#">Showcase</a>
+              </li>
+            </ul>
+            <form class="form-inline mt-2 mt-md-0">
+              <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+              <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+            </form>
+          </div>
+        </nav>        
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="#">Home</a></li>
+            <li class="breadcrumb-item"><a href="#">Documentation</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Faust Manual</li>
+          </ol>
+        </nav>
+      </div>      
+    </header>
+    <div class="container-fluid"><div class="row faust-doc"><nav id="TOC" class="col-3 faust-doc-content"><div style="height: 100%;overflow-y: scroll;"><ul class="nav flex-column"><ul>
+<li><a href="#faust-manual">Faust Manual</a></li>
+<li><a href="#faust-syntax">Faust Syntax</a><ul>
+<li><a href="#expressions">Expressions</a><ul>
+<li><a href="#diagram-expressions">Diagram Expressions</a><ul>
+<li><a href="#diagram-composition-operations">Diagram Composition Operations</a></li>
+<li><a href="#parallel-composition">Parallel Composition</a></li>
+<li><a href="#sequential-composition">Sequential Composition</a></li>
+<li><a href="#split-composition">Split Composition</a></li>
+<li><a href="#merge-composition">Merge Composition</a></li>
+<li><a href="#recursive-composition">Recursive Composition</a></li>
+<li><a href="#inputs-and-outputs-of-an-expression">Inputs and Outputs of an Expression</a></li>
+<li><a href="#iterations">Iterations</a></li>
+</ul></li>
+<li><a href="#infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</a><ul>
+<li><a href="#math-operators">Math Operators</a></li>
+<li><a href="#bitwise-operators">Bitwise Operators</a></li>
+<li><a href="#comparison">Comparison</a></li>
+<li><a href="#delay">Delay</a></li>
+<li><a href="#prefix-notation">Prefix Notation</a></li>
+<li><a href="#partial-application">Partial Application</a></li>
+</ul></li>
+<li><a href="#time-expressions">Time Expressions</a><ul>
+<li><a href="#operator"><code>@</code> Operator</a></li>
+<li><a href="#operator-1"><code>'</code> Operator</a></li>
+</ul></li>
+<li><a href="#environment-expressions">Environment Expressions</a><ul>
+<li><a href="#with"><code>with</code></a></li>
+<li><a href="#letrec"><code>letrec</code></a></li>
+<li><a href="#environment"><code>environment</code></a></li>
+<li><a href="#access">Access</a></li>
+<li><a href="#library"><code>library</code></a></li>
+<li><a href="#component"><code>component</code></a></li>
+<li><a href="#explicit-substitution">Explicit Substitution</a></li>
+</ul></li>
+<li><a href="#foreign-expressions">Foreign Expressions</a><ul>
+<li><a href="#ffunction"><code>ffunction</code></a></li>
+<li><a href="#signature">Signature</a></li>
+<li><a href="#types">Types</a></li>
+<li><a href="#variables-and-constants">Variables and Constants</a></li>
+<li><a href="#file-include">File Include</a></li>
+<li><a href="#library-file">Library File</a></li>
+</ul></li>
+<li><a href="#applications-and-abstractions">Applications and Abstractions</a><ul>
+<li><a href="#abstractions">Abstractions</a></li>
+<li><a href="#applications">Applications</a></li>
+<li><a href="#pattern-matching">Pattern Matching</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#primitives">Primitives</a></li>
+</ul></li>
+</ul>
+</div>
+</nav>
+<main role="main" class="col-9 ml-sm-auto px-4 faust-doc-content">
+<div data-spy="scroll" data-target="#TOC" data-offset="0" style="height: 100%;overflow-y: scroll;">
+<h1 id="faust-manual">Faust Manual</h1>
+<p>This is code: <code>process = -;</code>.</p>
+<pre><code>process = +;</code></pre>
+<p>And here’s a working Faust example:</p>
+<div class="faust-run"><a href="img/src/exfaust0/exfaust0-svg/process.svg" target="_blank"><img src="img/src/exfaust0/exfaust0-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,2000,0.01);
+process = os.osc(freq);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust0/exfaust0.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>and another one:</p>
+<div class="faust-run"><a href="img/src/exfaust1/exfaust1-svg/process.svg" target="_blank"><img src="img/src/exfaust1/exfaust1-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,2000,0.01);
+process = os.sawtooth(freq);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust1/exfaust1.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>More precisely :</p>
+<ul>
+<li>A <em>signal</em> <span class="math inline">\(s\)</span> is a discrete function of time <span class="math inline">\(s:\mathbb{Z}\rightarrow\mathbb{R}\)</span>.</li>
+</ul>
+<h1 id="faust-syntax">Faust Syntax</h1>
+<h2 id="expressions">Expressions</h2>
+<p>Despite its textual syntax, Faust is conceptually a block-diagram language. Faust expressions represent DSP block-diagrams and are assembled from primitive ones using various <em>composition</em> operations. More traditional <em>numerical</em> expressions in infix notation are also possible. Additionally Faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.</p>
+<p><img src="img/expression.svg" class="mx-auto d-block"></p>
+<h3 id="diagram-expressions">Diagram Expressions</h3>
+<p>Diagram expressions are assembled from primitive ones using either binary composition operations or high level iterative constructions.</p>
+<p><img src="img/diagramexp.svg" class="mx-auto d-block"></p>
+<h4 id="diagram-composition-operations">Diagram Composition Operations</h4>
+<p>Five binary <em>composition operations</em> are available to combine block-diagrams:</p>
+<ul>
+<li><em>recursion</em> (<code>~</code>),</li>
+<li><em>parallel</em> (<code>,</code>),</li>
+<li><em>sequential</em> (<code>:</code>),</li>
+<li><em>split</em> (<code>&lt;:</code>),</li>
+<li><em>merge</em> (<code>:&gt;</code>).</li>
+</ul>
+<p>One can think of each of these composition operations as a particular way to connect two block diagrams.</p>
+<p><img src="img/diagcomposition.svg" class="mx-auto d-block"></p>
+<p>To describe precisely how these connections are done, we have to introduce some notation. The number of inputs and outputs of a block-diagram <span class="math inline">\(A\)</span> are expressed as <span class="math inline">\(\mathrm{inputs}(A)\)</span> and <span class="math inline">\(\mathrm{outputs}(A)\)</span>. The inputs and outputs themselves are respectively expressed as: <span class="math inline">\([0]A\)</span>, <span class="math inline">\([1]A\)</span>, <span class="math inline">\([2]A\)</span>, <span class="math inline">\(\ldots\)</span> and <span class="math inline">\(A[0]\)</span>, <span class="math inline">\(A[1]\)</span>, <span class="math inline">\(A[2]\)</span>, etc.</p>
+<p>For each composition operation between two block-diagrams <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> we will describe the connections <span class="math inline">\(A[i]\rightarrow [j]B\)</span> that are created and the constraints on their relative numbers of inputs and outputs.</p>
+<p>The priority and associativity of this five operations are.</p>
+<h4 id="parallel-composition">Parallel Composition</h4>
+<h4 id="sequential-composition">Sequential Composition</h4>
+<h4 id="split-composition">Split Composition</h4>
+<h4 id="merge-composition">Merge Composition</h4>
+<h4 id="recursive-composition">Recursive Composition</h4>
+<h4 id="inputs-and-outputs-of-an-expression">Inputs and Outputs of an Expression</h4>
+<h4 id="iterations">Iterations</h4>
+<h3 id="infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</h3>
+<h4 id="math-operators">Math Operators</h4>
+<h4 id="bitwise-operators">Bitwise Operators</h4>
+<h4 id="comparison">Comparison</h4>
+<h4 id="delay">Delay</h4>
+<h4 id="prefix-notation">Prefix Notation</h4>
+<h4 id="partial-application">Partial Application</h4>
+<h3 id="time-expressions">Time Expressions</h3>
+<h4 id="operator"><code>@</code> Operator</h4>
+<h4 id="operator-1"><code>'</code> Operator</h4>
+<h3 id="environment-expressions">Environment Expressions</h3>
+<h4 id="with"><code>with</code></h4>
+<h4 id="letrec"><code>letrec</code></h4>
+<h4 id="environment"><code>environment</code></h4>
+<h4 id="access">Access</h4>
+<h4 id="library"><code>library</code></h4>
+<!-- TODO: import? -->
+<h4 id="component"><code>component</code></h4>
+<h4 id="explicit-substitution">Explicit Substitution</h4>
+<h3 id="foreign-expressions">Foreign Expressions</h3>
+<h4 id="ffunction"><code>ffunction</code></h4>
+<h4 id="signature">Signature</h4>
+<h4 id="types">Types</h4>
+<h4 id="variables-and-constants">Variables and Constants</h4>
+<h4 id="file-include">File Include</h4>
+<h4 id="library-file">Library File</h4>
+<h3 id="applications-and-abstractions">Applications and Abstractions</h3>
+<h4 id="abstractions">Abstractions</h4>
+<h4 id="applications">Applications</h4>
+<h4 id="pattern-matching">Pattern Matching</h4>
+<h2 id="primitives">Primitives</h2></div></div></div></main>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+  </body>
+</html>
