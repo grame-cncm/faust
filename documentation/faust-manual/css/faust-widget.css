@@ -3,10 +3,12 @@
   border-radius: 4px;
   padding: 0.5rem;
   background-color: #f5f5f5;
+  margin-bottom: 1rem;
 }
 
 .faust-run img {
   padding: 0.5rem;
+  max-width: 100%;
 }
 
 .faust-run pre {

@@ -11,7 +11,7 @@ PHTML=$(echo "$PHTML" | tail -n +$LINECUT | head -n -2)
 
 # Adding elements for CSS, etc.
 PHTML=$(echo "<div class=\"container-fluid\"><div class=\"row faust-doc\"><nav id=\"TOC\" class=\"col-3 faust-doc-content\"><div style=\"height: 100%;overflow-y: scroll;\"><ul class=\"nav flex-column\">$PHTML")
-PHTML=$(echo "$PHTML" | awk '/<h1 id=\"faust-manual\">/{print "<main role=\"main\" class=\"col-9 ml-sm-auto px-4 faust-doc-content\">\n<div data-spy=\"scroll\" data-target=\"#TOC\" data-offset=\"0\" style=\"height: 100%;overflow-y: scroll;\">"}1' | awk '/<\/nav>/{print "</div>"}1')
+PHTML=$(echo "$PHTML" | awk '/<h1 id=\"introduction\">/{print "<main role=\"main\" class=\"col-9 ml-sm-auto px-4 faust-doc-content\">\n<div data-spy=\"scroll\" data-target=\"#TOC\" data-offset=\"0\" style=\"height: 100%;overflow-y: scroll;\">"}1' | awk '/<\/nav>/{print "</div>"}1')
 
 # Extracting Faust files to be sent to the editor and generating correspind diags
 EXFAUSTDIR="img/src/exfaust"

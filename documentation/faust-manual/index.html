@@ -27,7 +27,7 @@
             <ul class="navbar-nav mr-auto">
               <li class="nav-item dropdown">
               <!--<li class="nav-item active">-->
-                <a data-toggle="dropdown" class="nav-link dropdown-toggle active" href="#">Documentation</a>
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle active" href="#">Learn</a>
                 <div class="dropdown-menu">
                   <a class="dropdown-item" href="#">Overview/Index</a>
                   <a class="dropdown-item" href="#">Get Started</a>
@@ -43,11 +43,19 @@
                 <a class="nav-link" href="#">Download</a>
               </li>
               <li class="nav-item dropdown">
-                <a data-toggle="dropdown" class="nav-link dropdown-toggle" href="#">Online Tools</a>
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle" href="#">Online Platforms</a>
                 <div class="dropdown-menu">
                   <a class="dropdown-item" href="#">Web Editor</a>
                   <a class="dropdown-item" href="#">Online Compiler</a>
                   <a class="dropdown-item" href="#">Faust Playground</a>
+                </div>
+              </li>
+              <li class="nav-item dropdown">
+                <a data-toggle="dropdown" class="nav-link dropdown-toggle" href="#">Tools</a>
+                <div class="dropdown-menu">
+                  <a class="dropdown-item" href="#">FaustLive</a>
+                  <a class="dropdown-item" href="#">FaustWorks</a>
+                  <a class="dropdown-item" href="#">FaustGen</a>
                 </div>
               </li>
               <li class="nav-item dropdown">
@@ -75,15 +83,53 @@
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Home</a></li>
-            <li class="breadcrumb-item"><a href="#">Documentation</a></li>
+            <li class="breadcrumb-item"><a href="#">Learn</a></li>
             <li class="breadcrumb-item active" aria-current="page">Faust Manual</li>
           </ol>
         </nav>
       </div>      
     </header>
     <div class="container-fluid"><div class="row faust-doc"><nav id="TOC" class="col-3 faust-doc-content"><div style="height: 100%;overflow-y: scroll;"><ul class="nav flex-column"><ul>
-<li><a href="#faust-manual">Faust Manual</a></li>
+<li><a href="#introduction">Introduction</a><ul>
+<li><a href="#what-is-faust">What is Faust?</a></li>
+<li><a href="#what-is-faust-good-for">What is Faust Good For?</a></li>
+<li><a href="#what-is-faust-not-so-good-for">What is Faust Not (So) Good For?</a></li>
+<li><a href="#design-principles">Design Principles</a></li>
+<li><a href="#signal-processor-semantic">Signal Processor Semantic</a></li>
+</ul></li>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#overview-of-the-faust-universe">Overview of the Faust Universe</a><ul>
+<li><a href="#the-faust-distribution">The Faust Distribution</a><ul>
+<li><a href="#command-line-compiler">Command-Line Compiler</a></li>
+<li><a href="#libfaust"><code>libfaust</code></a></li>
+<li><a href="#faust2...-scripts"><code>faust2...</code> Scripts</a></li>
+</ul></li>
+<li><a href="#web-tools">Web Tools</a><ul>
+<li><a href="#the-online-editor">The Online Editor</a></li>
+<li><a href="#the-faustplayground">The FaustPlayground</a></li>
+<li><a href="#the-faust-online-compiler">The Faust Online Compiler</a></li>
+<li><a href="#web-services">Web Services</a></li>
+</ul></li>
+<li><a href="#development-tools">Development Tools</a><ul>
+<li><a href="#faustlive">FaustLive</a></li>
+<li><a href="#faustworks">FaustWorks</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#compiling-and-installing-faust">Compiling and Installing Faust</a><ul>
+<li><a href="#getting-the-source-code">Getting the Source Code</a></li>
+</ul></li>
 <li><a href="#faust-syntax">Faust Syntax</a><ul>
+<li><a href="#faust-program">Faust Program</a></li>
+<li><a href="#statements">Statements</a><ul>
+<li><a href="#metadata-declarations">Metadata Declarations</a></li>
+<li><a href="#imports">Imports</a></li>
+<li><a href="#documentation-tags">Documentation Tags</a></li>
+</ul></li>
+<li><a href="#definitions">Definitions</a><ul>
+<li><a href="#simple-definitions">Simple Definitions</a></li>
+</ul></li>
+<li><a href="#function-definitions">Function Definitions</a></li>
+<li><a href="#definitions-with-pattern-matching">Definitions with pattern matching</a></li>
 <li><a href="#expressions">Expressions</a><ul>
 <li><a href="#diagram-expressions">Diagram Expressions</a><ul>
 <li><a href="#diagram-composition-operations">Diagram Composition Operations</a></li>
@@ -132,31 +178,242 @@
 </ul></li>
 <li><a href="#primitives">Primitives</a></li>
 </ul></li>
+<li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
+<li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
+<li><a href="#mathematical-documentation">Mathematical Documentation</a></li>
 </ul>
 </div>
 </nav>
 <main role="main" class="col-9 ml-sm-auto px-4 faust-doc-content">
 <div data-spy="scroll" data-target="#TOC" data-offset="0" style="height: 100%;overflow-y: scroll;">
-<h1 id="faust-manual">Faust Manual</h1>
-<p>This is code: <code>process = -;</code>.</p>
-<pre><code>process = +;</code></pre>
-<p>And here’s a working Faust example:</p>
+<h1 id="introduction">Introduction</h1>
+<h2 id="what-is-faust">What is Faust?</h2>
+<p>Faust (Functional Audio Stream) is a functional programming language for sound synthesis and audio processing with a strong focus on the design of synthesizers, musical instruments, audio effects, etc. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards. It is used on stage for concerts and artistic productions, in education and research, in open source projects as well as in commercial applications.</p>
+<p>The core component of Faust is its compiler. It allows to “translate” any Faust digital signal processing (DSP) specification to a wide range of non-domain specific languages such as C++, C, JAVA, JavaScript, LLVM bit code, WebAssembly, etc. In this regard, Faust can be seen as an alternative to C++ but is much simpler and intuitive to learn.</p>
+<p>Thanks to a wrapping system called “architectures,” codes generated by Faust can be easily compiled into a wide variety of objects ranging from <a href="TODO-tutorial">audio plug-ins</a> to <a href="TODO-tutorial">standalone applications</a> or <a href="TODO-tutorial">smartphone</a> and <a href="TODO-tutorial">web apps</a>, etc. (check the <a href="#a-quick-tour-of-the-faust-targets">Quick Tour of the Faust Targets</a> section for an exhaustive list.</p>
+<p>This manual gives an overview of the Faust programming language and of its features through various interactive examples.</p>
+<h2 id="what-is-faust-good-for">What is Faust Good For?</h2>
+<p>Faust’s syntax allows to express any DSP algorithm as a block diagram. For example, <code>+</code> is considered as a valid function (and block) taking two arguments (signals) and returning one:</p>
 <div class="faust-run"><a href="img/src/exfaust0/exfaust0-svg/process.svg" target="_blank"><img src="img/src/exfaust0/exfaust0-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>import(&quot;stdfaust.lib&quot;);
-freq = hslider(&quot;freq&quot;,440,50,2000,0.01);
-process = os.osc(freq);</code></pre>
+<pre><code>process = +;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust0/exfaust0.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<p>and another one:</p>
+<p>Blocks can be easily connected together using the <code>:</code> “connection” composition:</p>
 <div class="faust-run"><a href="img/src/exfaust1/exfaust1-svg/process.svg" target="_blank"><img src="img/src/exfaust1/exfaust1-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>import(&quot;stdfaust.lib&quot;);
-freq = hslider(&quot;freq&quot;,440,50,2000,0.01);
-process = os.sawtooth(freq);</code></pre>
+<pre><code>process = + : *(0.5);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust1/exfaust1.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>In that case, we add two signals together and then scale the result of this operation.</p>
+<p>Thus, <strong>Faust is perfect to implement time-domain algorithms that can be easily represented as block diagrams</strong> such as filters, waveguide physical models, virtual analog elements, etc.</p>
+<p><strong>Faust is very concise</strong>, for example, here’s the implementation of a one pole filter/integrator equivalent to <span class="math inline">\(y(n) = x(x) + a_{1}y(n-1)\)</span> (where <span class="math inline">\(a_{1}\)</span> is the pole):</p>
+<div class="faust-run"><a href="img/src/exfaust2/exfaust2-svg/process.svg" target="_blank"><img src="img/src/exfaust2/exfaust2-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>a1 = 0.9;
+process = +~*(a1);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust2/exfaust2.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Codes generated by Faust are extremely optimized</strong> and usually more efficient that handwritten codes (at least for C and C++). The Faust compiler tries to optimize each element of an algorithm. For example, you shouldn’t have to worry about using divides instead of multiplies as they get automatically replaced by multiplies by the compiler when possible, etc.</p>
+<p><strong>Faust is very generic</strong> and allows to write code that will run on dozens of platforms.</p>
+<!-- If we stick to this, we should also talk about the web capabilities: in
+other words be a bit more specific here. -->
+<h2 id="what-is-faust-not-so-good-for">What is Faust Not (So) Good For?</h2>
+<p>Despite all this, Faust does have some limitations. For instance, it doesn’t allow for the efficient implementation of algorithms requiring multi-rates such as the FFT, convolution, etc. While there are tricks to go around this issue, we’re fully aware that it is a big one and we’re working as hard as possible on it.</p>
+<p>Faust’s conciseness can sometimes become a problem too, especially for complex algorithms with lots of recursive signals. It is usually crucial in Faust to have the “mental global picture” of the algorithm to be implemented which in some cases can be hard.</p>
+<p>While the Faust compiler is relatively bug-free, it does have some limitations and might get stuck in some extreme cases that you will probably never encounter. If you do, <a href="https://sourceforge.net/p/faudiostream/mailman/">shoot us an e-mail</a>!</p>
+<p>From here, you can jump to … if you wanna get your hands dirty, etc. TODO.</p>
+<h2 id="design-principles">Design Principles</h2>
+<p>Since the beginning of its development in 2002, Faust has been guided by various design principles:</p>
+<ul>
+<li>Faust is a <em>specification language</em>. It aims at providing an adequate notation to describe <em>signal processors</em> from a mathematical point of view. Faust is, as much as possible, free from implementation details.</li>
+<li>Faust programs are fully compiled (i.e., not interpreted). The compiler translates Faust programs into equivalent programs in other languages (e.g., JAVA, JavaScript, LLVM bit code, WebAssembly, etc.) taking care of generating the most efficient code. The result can generally compete with, and sometimes even outperform, C++ code written by seasoned programmers.</li>
+<li>The generated code works at the sample level. It is therefore suited to implement low-level DSP functions like recursive filters. Moreover the code can be easily embedded. It is self-contained and doesn’t depend of any DSP library or runtime system. It has a very deterministic behavior and a constant memory footprint.</li>
+<li>The semantic of Faust is simple and well defined. This is not just of academic interest. It allows the Faust compiler to be <em>semantically driven</em>. Instead of compiling a program literally, it compiles the mathematical function it denotes. This feature is useful for example to promote components reuse while preserving optimal performance.<br />
+</li>
+<li>Faust is a textual language but nevertheless block-diagram oriented. It actually combines two approaches: <em>functional programming</em> and <em>algebraic block-diagrams</em>. The key idea is to view block-diagram construction as function composition. For that purpose, Faust relies on a <em>block-diagram algebra</em> of five composition operations: <code>: , ~ &lt;: :&gt;</code> (see the section on <a href="#diagram-composition-operations">Diagram Composition Operations</a> for more details).</li>
+<li>Thanks to the concept of <em>architecture</em>, Faust programs can be easily deployed on a large variety of audio platforms and plugin formats without any change to the Faust code.</li>
+</ul>
+<h2 id="signal-processor-semantic">Signal Processor Semantic</h2>
+<p>A Faust program describes a <em>signal processor</em>. The role of a <em>signal processor</em> is to transforms a (possibly empty) group of <em>input signals</em> in order to produce a (possibly empty) group of <em>output signals</em>. Most audio equipments can be modeled as <em>signal processors</em>. They have audio inputs, audio outputs as well as control signals interfaced with sliders, knobs, vu-meters, etc.</p>
 <p>More precisely :</p>
 <ul>
-<li>A <em>signal</em> <span class="math inline">\(s\)</span> is a discrete function of time <span class="math inline">\(s:\mathbb{Z}\rightarrow\mathbb{R}\)</span>.</li>
+<li>A <em>signal</em> <span class="math inline">\(s\)</span> is a discrete function of time <span class="math inline">\(s:\mathbb{Z}\rightarrow\mathbb{R}\)</span>. The value of a signal <span class="math inline">\(s\)</span> at time <span class="math inline">\(t\)</span> is written <span class="math inline">\(s(t)\)</span>. The values of signals are usually needed starting from time <span class="math inline">\(0\)</span>. But to take into account <em>delay operations</em>, negative times are possible and are always mapped to zeros. Therefore for any Faust signal <span class="math inline">\(s\)</span> we have <span class="math inline">\(\forall t&lt;0, s(t)=0\)</span>. In operational terms this corresponds to assuming that all delay lines are signals initialized with <span class="math inline">\(0\)</span>s.</li>
+<li>Faust considers two type of signals: <em>integer signals</em> (<span class="math inline">\(s:\mathbb{Z}\rightarrow\mathbb{Z}\)</span>) and <em>floating point signals</em> (<span class="math inline">\(s:\mathbb{Z}\rightarrow\mathbb{Q}\)</span>). Exchanges with the outside world are, by convention, made using floating point signals. The full range is represented by sample values between <span class="math inline">\(-1.0\)</span> and <span class="math inline">\(+1.0\)</span>.</li>
+<li>The set of all possible signals is <span class="math inline">\(\mathbb{S}=\mathbb{Z}\rightarrow\mathbb{R}\)</span>.</li>
+<li>A group of <span class="math inline">\(n\)</span> signals (a <em>n</em>-tuple of signals) is written <span class="math inline">\((s_{1},\ldots,s_{n})\in \mathbb{S}^{n}\)</span>. The <em>empty tuple</em>, single element of <span class="math inline">\(\mathbb{S}^{0}\)</span> is notated <span class="math inline">\(()\)</span>.</li>
+<li>A <em>signal processors</em> <span class="math inline">\(p\)</span>, is a function from <em>n</em>-tuples of signals to <em>m</em>-tuples of signals <span class="math inline">\(p:\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span>. The set <span class="math inline">\(\mathbb{P}=\bigcup_{n,m}\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span> is the set of all possible signal processors.</li>
 </ul>
+<p>As an example, let’s express the semantic of the Faust primitive <code>+</code>. Like any Faust expression, it is a signal processor. Its signature is <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}\)</span>. It takes two input signals <span class="math inline">\(X_0\)</span> and <span class="math inline">\(X_1\)</span> and produces an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = X_0(t)+X_1(t)\)</span>.</p>
+<p>Numbers are signal processors too. For example the number <span class="math inline">\(3\)</span> has signature <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}\)</span>. It takes no input signals and produce an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = 3\)</span>.</p>
+<h1 id="quick-start">Quick Start</h1>
+<p>TODO Will be all based on the online editor… May be could be a simple copy and paste of the session 1 of the Kadenze course…</p>
+<h1 id="overview-of-the-faust-universe">Overview of the Faust Universe</h1>
+<p>While in its most <em>primitive</em> form, Faust is distributed as a command-line compiler, a wide range of tools have been developed around it in the course of the past few years. Their variety and their function might be hard to grab at first. This sort chapter provides an overview of their role and will hopefully help you decide which one is better suited for your personal use.</p>
+<!-- TODO: it'd be nice to have some kind of figure here summarizing everything -->
+<p>TODO: here say a few words about the philosophy behind the disto: the online editor is the way to go for most users, then various pre-compiled packages of the compiler can be found, then source, then git. Finally other external tools for development.</p>
+<h2 id="the-faust-distribution">The Faust Distribution</h2>
+<p>The Faust distribution hosts the source of the Faust compiler (both in its command line and library version), the source of the Faust <em>architectures</em> (targets), the various Faust compilation scripts, a wide range of Faust-related-tools, the <a href="TODO">Faust DSP Libraries</a> (which in practice are hosted a separate Git submodule), etc.</p>
+<p>The latest stable release of the Faust distribution can be found here: <a href="https://github.com/grame-cncm/faust/releases" class="uri">https://github.com/grame-cncm/faust/releases</a>. It is recommended for most Faust users willing to compile the Faust compiler and <code>libfaust</code> from scratch.</p>
+<p>To have the latest stable development version, you can use the <code>master</code> branch of the Faust git repository which is hosted on GitHub: <a href="https://github.com/grame-cncm/faust/tree/master" class="uri">https://github.com/grame-cncm/faust/tree/master</a>.</p>
+<p>For something even more bleeding edge (to be used at your own risks), you might use the <code>master-dev</code> branch of the Faust git repository: <a href="https://github.com/grame-cncm/faust/tree/master-dev" class="uri">https://github.com/grame-cncm/faust/tree/master-dev</a>. <code>master-dev</code> is the development sub-branch of <code>master</code>. It is used by Faust developers to commit their changes and can be considered as “the main development branch.” The goal is to make sure that <code>master</code> is always functional. Merges between <code>master-dev</code> and <code>master</code> are carried out multiple times a week by the GRAME team.</p>
+<blockquote>
+<p>Also, note that pre-compiled packages of the Faust compiler and of <code>libfaust</code> for various platforms can be found on the <a href="__FAUST_DOMAIN__/download">Download Page</a> of the Faust website.</p>
+</blockquote>
+<p>The Faust distribution is organized as follows:</p>
+<pre><code>architecture/          : the source of the architecture files
+benchmark/             : tools to measure the efficiency of the generated code
+build/                 : the various makefiles and build folders
+compiler/              : sources of the Faust compiler
+COPYING                : license information
+debian/                : files for Debian installation
+Dockerfile             : docker file
+documentation/         : Faust&#39;s documentations
+examples/              : Faust programs examples organized by categories
+installer/             : various installers for Linux distribution
+libraries/             : Faust DSP libraries
+Makefile               : makefile used to build and install Faust
+README.md              : instructions on how to build and install Faust
+syntax-highlighting/   : support for syntax highlighting for several editors
+tests/                 : various tests
+tools/                 : tools to produce audio applications and plugins
+windows/               : Windows related ressources</code></pre>
+<p>The following subsections present some of the main components of the Faust distribution.</p>
+<h3 id="command-line-compiler">Command-Line Compiler</h3>
+<ul>
+<li>Link to precompiled version versions (download page)</li>
+<li>What is the Faust compiler? (Quickly)</li>
+<li>Link to <a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
+</ul>
+<h3 id="libfaust"><code>libfaust</code></h3>
+<ul>
+<li>Link to precompiled version versions (download page)</li>
+<li>What is it? (Quickly)</li>
+<li>Link to tutorial <a href="__FAUST_DOMAIN__/learn/embedding-faust">Embedding the Faust Compiler Using <code>libfaust</code></a></li>
+</ul>
+<h3 id="faust2...-scripts"><code>faust2...</code> Scripts</h3>
+<h2 id="web-tools">Web Tools</h2>
+<h3 id="the-online-editor">The Online Editor</h3>
+<h3 id="the-faustplayground">The FaustPlayground</h3>
+<h3 id="the-faust-online-compiler">The Faust Online Compiler</h3>
+<h3 id="web-services">Web Services</h3>
+<h2 id="development-tools">Development Tools</h2>
+<h3 id="faustlive">FaustLive</h3>
+<h3 id="faustworks">FaustWorks</h3>
+<h1 id="compiling-and-installing-faust">Compiling and Installing Faust</h1>
+<p>This chapter describes how to get and compile the Faust compiler as well as other tools related to Faust (e.g., <a href="#libfaust"><code>libfaust</code></a>, <code>libosc</code>, <code>libhttpd</code>, etc.).</p>
+<h2 id="getting-the-source-code">Getting the Source Code</h2>
+<p>An overview of the various places where the Faust source can be downloaded is given <a href="#the-faust-distribution">here</a>.</p>
+<p>If you downloaded the latest Faust release, just un-compressed the archive file and open it in a terminal. For instance, something like (this might vary depending on the version of Faust you downloaded):</p>
+<pre><code>tar xzf faust-2.5.31.tar.gz
+cd faust-2.5.31</code></pre>
+<p>If you wish to get the Faust source directly from the git repository, just run:</p>
+<pre><code>git clone --recursive https://github.com/grame-cncm/faust.git
+cd faust</code></pre>
+<p>in a terminal. Note that the <code>--recursive</code> option is necessary here since some elements (e.g., the Faust DSP libraries) are placed in other repositories.</p>
+<p>Finally, if you wish to use the development (and potentially unstable) branch, just run:</p>
+<pre><code>git checkout master-dev</code></pre>
+<p>after the previous 2 commands.</p>
+<p>TODO: see with Dominique for whatever comes next here…</p>
+<p>Since release 2.5.18, Faust compilation and installation is based on <code>cmake</code>.</p>
 <h1 id="faust-syntax">Faust Syntax</h1>
+<!-- TODO we should make a new introductory figure here and add some comments
+about it. It'd be nice to make it interactive so that when people click on it,
+they are brought to the right section. -->
+<h2 id="faust-program">Faust Program</h2>
+<p>A Faust program is essentially a list of <em>statements</em>. These statements can be <a href="#metadata-declarations"><em>metadata declarations</em></a>, <a href="#imports"><em>imports</em></a>, <a href="#definitions"><em>definitions</em></a>, and <a href="#documentation-tags"><em>documentation tags</em></a>, with optional C++ style (<code>//...</code> and <code>/*...*/</code>) comments.</p>
+<p>Here is a short Faust program that implements of a simple noise generator (called from the <code>noises.lib</code> Faust library). It exhibits various kind of statements : two <a href="#metadata-declarations"><em>metadata declarations</em></a>, an <a href="#imports"><em>imports</em></a>, a <em>comment</em>, and a <a href="#definitions"><em>definition</em></a>. We will study later how <a href="#documentation-tags"><em>documentation statements</em></a> work:</p>
+<div class="faust-run"><a href="img/src/exfaust3/exfaust3-svg/process.svg" target="_blank"><img src="img/src/exfaust3/exfaust3-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>declare name  &quot;Noise&quot;;
+declare copyright &quot;(c)GRAME 2018&quot;;
+
+import(&quot;stdfaust.lib&quot;);
+
+// noise level controlled by a slider
+process = no.noise * hslider(&quot;gain&quot;,0,0,1, 0.1);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust3/exfaust3.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>The keyword <code>process</code> is the equivalent of <code>main</code> in C/C++. Any Faust program, to be valid, must at least define <code>process</code>.</p>
+<h2 id="statements">Statements</h2>
+<p>The <em>statements</em> of a Faust program are of four kinds:</p>
+<ul>
+<li><em>metadata declarations</em>,</li>
+<li><em>file imports</em>,</li>
+<li><em>definitions</em>,</li>
+<li><em>documentation</em>.</li>
+</ul>
+<p>All statements but <em>documentation</em> end with a semicolon <code>;</code>.</p>
+<h3 id="metadata-declarations">Metadata Declarations</h3>
+<p>All metadata declaration in Faust start with <code>declare</code>.</p>
+<p>When used in the context of Faust program (e.g., <code>.dsp</code> file), they are followed by a key and a string. For example:</p>
+<pre><code>declare name &quot;Noise&quot;;</code></pre>
+<p>allows us to specify the name of a Faust program in its whole.</p>
+<p>When used in the context of a library (e.g., <code>.lib</code> file), metadata declarations can either be “global” (as in the previous example), or associated to a specific function. In that case, <code>declare</code> will be followed by the name of the function, a key, and a string. For example:</p>
+<pre><code>declare add author &quot;John Doe&quot;
+add = +;</code></pre>
+<p>This is very useful when a library has several contributors and that functions potentially have different license terms.</p>
+<p>Unlike regular comments, metadata declarations will appear in the C++ code generated by the Faust compiler. A good practice is to start a Faust program with some standard declarations:</p>
+<pre><code>declare name &quot;MyProgram&quot;;
+declare author &quot;MySelf&quot;;
+declare copyright &quot;MyCompany&quot;;
+declare version &quot;1.00&quot;;
+declare license &quot;BSD&quot;; </code></pre>
+<h3 id="imports">Imports</h3>
+<p>File imports allow us to import definitions from other source files.</p>
+<p>For example <code>import(&quot;maths.lib&quot;);</code> imports the definitions of the <a href="TODO"><code>maths.lib</code></a> library.</p>
+<p>The most common file to be imported is the <code>stdfaust.lib</code> library which gives access to all the standard Faust libraries from a single point:</p>
+<div class="faust-run"><a href="img/src/exfaust4/exfaust4-svg/process.svg" target="_blank"><img src="img/src/exfaust4/exfaust4-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = os.osc(440); // the &quot;hello world&quot; of computer music</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust4/exfaust4.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="documentation-tags">Documentation Tags</h3>
+<p>Documentation statements are optional and typically used to control the generation of the mathematical documentation of a Faust program. This documentation system is detailed in the <a href="#mathematical-documentation">Mathematical Documentation</a> chapter. In this section we essentially describe the documentation statements syntax.</p>
+<p>A documentation statement starts with an opening <code>&lt;mdoc&gt;</code> tag and ends with a closing <code>&lt;/mdoc&gt;</code> tag. Free text content, typically in Latex format, can be placed in between these two tags. <!-- Why not markdown? --></p>
+<p><img src="img/documentation.svg" class="mx-auto d-block"></p>
+<p>Moreover, optional sub-tags can be inserted in the text content itself to require the generation, at the insertion point, of mathematical <em>equations</em>, graphical <em>block-diagrams</em>, Faust source code <em>listing</em> and explanation <em>notice</em>.</p>
+<p><img src="img/equation.svg" class="mx-auto d-block"></p>
+<p>The generation of the mathematical equations of a Faust expression can be requested by placing this expression between an opening <code>&lt;equation&gt;</code> and a closing <code>&lt;/equation&gt;</code> tag. The expression is evaluated within the lexical context of the Faust program.</p>
+<p><img src="img/diagram.svg" class="mx-auto d-block"></p>
+<p>Similarly, the generation of the graphical block-diagram of a Faust expression can be requested by placing this expression between an opening <code>&lt;diagram&gt;</code> and a closing <code>&lt;/diagram&gt;</code> tag. The expression is evaluated within the lexical context of the Faust program.</p>
+<p><img src="img/metadata.svg" class="mx-auto d-block"></p>
+<p>The <code>&lt;metadata&gt;</code> tags allow to reference Faust <a href="#metadata-declarations">metadata declarations</a>, calling the corresponding keyword.</p>
+<p><img src="img/notice.svg" class="mx-auto d-block"></p>
+<p>The <code>&lt;notice/&gt;</code> empty-element tag is used to generate the conventions used in the mathematical equations.</p>
+<p><img src="img/listing.svg" class="mx-auto d-block"></p>
+<p>The <code>&lt;listing/&gt;</code> empty-element tag is used to generate the listing of the Faust program. Its three attributes <code>mdoctags</code>, <code>dependencies</code>, and <code>distributed</code> enable or disable respectively <code>&lt;mdoc&gt;</code> tags, other files dependencies and distribution of interleaved Faust code between <code>&lt;mdoc&gt;</code> sections.</p>
+<h2 id="definitions">Definitions</h2>
+<p>A <em>definition</em> associates an identifier with an expression. Definitions are essentially a convenient shortcut avoiding to type long expressions. During compilation, more precisely during the evaluation stage, identifiers are replaced by their definitions. It is therefore always equivalent to use an identifier or directly its definition. Please note that multiple definitions of a same identifier are not allowed, unless it is a pattern matching based definition.</p>
+<h3 id="simple-definitions">Simple Definitions</h3>
+<p>The syntax of a simple definition is:</p>
+<pre><code>identifier = expression ;</code></pre>
+<p>For example here is the definition of <code>random</code>, a simple pseudo-random number generator:</p>
+<pre><code>random = +(12345) ~ *(1103515245);</code></pre>
+<h2 id="function-definitions">Function Definitions</h2>
+<p>Definitions with formal parameters correspond to functions definitions.</p>
+<p><img src="img/listing.svg" class="mx-auto d-block"></p>
+<p>For example the definition of <code>linear2db</code>, a function that converts linear values to decibels, is:</p>
+<pre><code>linear2db(x) = 20*log10(x);</code></pre>
+<p>Please note that this notation is only a convenient alternative to the direct use of <a href="#abstractions"><em>lambda-abstractions</em></a> (also called anonymous functions). The following is an equivalent definition of <code>linear2db</code> using a lambda-abstraction:</p>
+<pre><code>linear2db = \(x).(20*log10(x));</code></pre>
+<h2 id="definitions-with-pattern-matching">Definitions with pattern matching</h2>
+<p>Moreover, formal parameters can also be full expressions representing patterns.</p>
+<p><img src="img/listing.svg" class="mx-auto d-block"></p>
+<p>This powerful mechanism allows to algorithmically create and manipulate block diagrams expressions. Let’s say that you want to describe a function to duplicate an expression several times in parallel:</p>
+<pre><code>duplicate(1,x) = x;
+duplicate(n,x) = x, duplicate(n-1,x);</code></pre>
+<p>Note that this last definition is a convenient alternative to the more verbose:</p>
+<pre><code>duplicate = case { 
+  (1,x) =&gt; x; 
+  (n,x) =&gt; duplicate(n-1,x); 
+};</code></pre>
+<p>A use case for <code>duplicate</code> could be to put 5 white noise generators in parallel:</p>
+<div class="faust-run"><a href="img/src/exfaust5/exfaust5-svg/process.svg" target="_blank"><img src="img/src/exfaust5/exfaust5-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+duplicate(1,x) = x;
+duplicate(n,x) = x, duplicate(n-1,x);
+process = duplicate(5,no.noise);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust5/exfaust5.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Here is another example to count the number of elements of a list. Please note that we simulate lists using <a href="#parallel-composition">parallel composition</a>: <code>(1,2,3,5,7,11)</code>. The main limitation of this approach is that there is no empty list. Moreover lists of only one element are represented by this element:</p>
+<pre><code>count((x,xs)) = 1+count(xs);
+count(x) = 1;</code></pre>
+<p>If we now write <code>count(duplicate(10,666))</code>, the expression will be evaluated as <code>10</code>.</p>
+<p>Note that the order of pattern matching rules matters. The more specific rules must precede the more general rules. When this order is not respected, as in:</p>
+<pre><code>count(x) = 1;
+count((x,xs)) = 1+count(xs);</code></pre>
+<p>the first rule will always match and the second rule will never be called.</p>
 <h2 id="expressions">Expressions</h2>
 <p>Despite its textual syntax, Faust is conceptually a block-diagram language. Faust expressions represent DSP block-diagrams and are assembled from primitive ones using various <em>composition</em> operations. More traditional <em>numerical</em> expressions in infix notation are also possible. Additionally Faust provides time based expressions, like delays, expressions related to lexical environments, expressions to interface with foreign function and lambda expressions.</p>
 <p><img src="img/expression.svg" class="mx-auto d-block"></p>
@@ -166,18 +423,80 @@ process = os.sawtooth(freq);</code></pre>
 <h4 id="diagram-composition-operations">Diagram Composition Operations</h4>
 <p>Five binary <em>composition operations</em> are available to combine block-diagrams:</p>
 <ul>
-<li><em>recursion</em> (<code>~</code>),</li>
-<li><em>parallel</em> (<code>,</code>),</li>
-<li><em>sequential</em> (<code>:</code>),</li>
-<li><em>split</em> (<code>&lt;:</code>),</li>
-<li><em>merge</em> (<code>:&gt;</code>).</li>
+<li><a href="#recursion-composition"><em>recursion</em></a> (<code>~</code>),</li>
+<li><a href="#parallel-composition"><em>parallel</em></a> (<code>,</code>),</li>
+<li><a href="#sequential-composition"><em>sequential</em></a> (<code>:</code>),</li>
+<li><a href="#split-composition"><em>split</em></a> (<code>&lt;:</code>),</li>
+<li><a href="#merge-composition"><em>merge</em></a> (<code>:&gt;</code>).</li>
 </ul>
 <p>One can think of each of these composition operations as a particular way to connect two block diagrams.</p>
 <p><img src="img/diagcomposition.svg" class="mx-auto d-block"></p>
 <p>To describe precisely how these connections are done, we have to introduce some notation. The number of inputs and outputs of a block-diagram <span class="math inline">\(A\)</span> are expressed as <span class="math inline">\(\mathrm{inputs}(A)\)</span> and <span class="math inline">\(\mathrm{outputs}(A)\)</span>. The inputs and outputs themselves are respectively expressed as: <span class="math inline">\([0]A\)</span>, <span class="math inline">\([1]A\)</span>, <span class="math inline">\([2]A\)</span>, <span class="math inline">\(\ldots\)</span> and <span class="math inline">\(A[0]\)</span>, <span class="math inline">\(A[1]\)</span>, <span class="math inline">\(A[2]\)</span>, etc.</p>
 <p>For each composition operation between two block-diagrams <span class="math inline">\(A\)</span> and <span class="math inline">\(B\)</span> we will describe the connections <span class="math inline">\(A[i]\rightarrow [j]B\)</span> that are created and the constraints on their relative numbers of inputs and outputs.</p>
-<p>The priority and associativity of this five operations are.</p>
+<p>The priority and associativity of this five operations are:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Syntax</th>
+<th>Priority</th>
+<th>Association</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>expression ~ expression</code></td>
+<td>4</td>
+<td>left</td>
+<td>Recursive Composition</td>
+</tr>
+<tr class="even">
+<td><code>expression , expression</code></td>
+<td>3</td>
+<td>right</td>
+<td>Parallel Composition</td>
+</tr>
+<tr class="odd">
+<td><code>expression : expression</code></td>
+<td>2</td>
+<td>right</td>
+<td>Sequential Composition</td>
+</tr>
+<tr class="even">
+<td><code>expression &lt;: expression</code></td>
+<td>1</td>
+<td>right</td>
+<td>Split Composition</td>
+</tr>
+<tr class="odd">
+<td><code>expression :&gt; expression</code></td>
+<td>1</td>
+<td>right</td>
+<td>Merge Composition</td>
+</tr>
+</tbody>
+</table>
 <h4 id="parallel-composition">Parallel Composition</h4>
+<p>The <em>parallel composition</em> (e.g., <code>(A,B)</code>) is probably the simplest one. It places the two block-diagrams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of <code>A</code> and <code>B</code>. The outputs of the resulting block-diagram are the outputs of <code>A</code> and <code>B</code>.</p>
+<p><em>Parallel composition</em> is an associative operation: <code>(A,(B,C))</code> and <code>((A,B),C)</code> are equivalents. When no parenthesis are used (e.g., <code>A,B,C,D</code>), Faust uses right associativity and therefore builds internally the expression <code>(A,(B,(C,D)))</code>. This organization is important to know when using pattern matching techniques on parallel compositions.</p>
+<p><strong>Example</strong></p>
+<p><em>Parallel composition</em> can be used to put 3 oscillators of different kinds and frequencies in parallel, which will result in a Faust program with 3 outputs:</p>
+<div class="faust-run"><a href="img/src/exfaust6/exfaust6-svg/process.svg" target="_blank"><img src="img/src/exfaust6/exfaust6-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = os.osc(440),os.sawtooth(550),os.triangle(660);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust6/exfaust6.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><em>Parallel composition</em> can be used to easily turn a mono effect into a stereo one which will result in a Faust program with 2 inputs and 2 outputs:</p>
+<div class="faust-run"><a href="img/src/exfaust7/exfaust7-svg/process.svg" target="_blank"><img src="img/src/exfaust7/exfaust7-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+level = 1;
+process = ve.autowah(level),ve.autowah(level);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust7/exfaust7.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that there’s a better to write this last example using the <a href="#par-iteration"><code>par</code> iteration</a>:</p>
+<div class="faust-run"><a href="img/src/exfaust8/exfaust8-svg/process.svg" target="_blank"><img src="img/src/exfaust8/exfaust8-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+level = 1;
+process = par(i,2,ve.autowah(level));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust8/exfaust8.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="sequential-composition">Sequential Composition</h4>
 <h4 id="split-composition">Split Composition</h4>
 <h4 id="merge-composition">Merge Composition</h4>
@@ -214,7 +533,10 @@ process = os.sawtooth(freq);</code></pre>
 <h4 id="abstractions">Abstractions</h4>
 <h4 id="applications">Applications</h4>
 <h4 id="pattern-matching">Pattern Matching</h4>
-<h2 id="primitives">Primitives</h2></div></div></div></main>
+<h2 id="primitives">Primitives</h2>
+<h1 id="using-the-faust-compiler">Using the Faust Compiler</h1>
+<h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
+<h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
