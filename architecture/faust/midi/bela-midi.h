@@ -98,7 +98,7 @@ class bela_midi : public midi_handler {
                                 //start_sync
                                 break;
                             case 251:
-                                // We can consider star and continue as identical message.
+                                // We can consider start and continue as identical messages.
                                 midi->fMidiInputs[0]->start_sync(0);
                                 break;
                             case 252:

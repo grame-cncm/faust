@@ -49,7 +49,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <math.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
