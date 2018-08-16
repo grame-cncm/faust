@@ -3,27 +3,27 @@
 <rect x="1.000000" y="1.000000" width="127.500000" height="135.000000" rx="0" ry="0" style="stroke:none;fill:#cccccc;"/>
 <rect x="0.000000" y="0.000000" width="127.500000" height="135.000000" rx="0" ry="0" style="stroke:none;fill:#ffffff;"/>
 <text x="10.000000" y="7.000000" font-family="Arial" font-size="7"></text>
-<a xlink:href="osc-0x7fc02c29eeb0.svg">
+<a xlink:href="osc-0x7f380c29eeb0.svg">
 <rect x="37.900000" y="25.000000" width="38.700000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#cccccc;"/>
 <rect x="36.900000" y="24.000000" width="38.700000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#003366;"/>
 </a>
-<a xlink:href="osc-0x7fc02c29eeb0.svg">
+<a xlink:href="osc-0x7f380c29eeb0.svg">
 <text x="56.250000" y="38.000000" font-family="Arial" font-size="7" text-anchor="middle" fill="#FFFFFF">osc(440)</text>
 </a>
 <circle cx="38.900000" cy="26.000000" r="1"/>
-<a xlink:href="sawtooth-0x7fc02c290130.svg">
+<a xlink:href="sawtooth-0x7f380c290130.svg">
 <rect x="25.000000" y="57.000000" width="64.500000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#cccccc;"/>
 <rect x="24.000000" y="56.000000" width="64.500000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#003366;"/>
 </a>
-<a xlink:href="sawtooth-0x7fc02c290130.svg">
+<a xlink:href="sawtooth-0x7f380c290130.svg">
 <text x="56.250000" y="70.000000" font-family="Arial" font-size="7" text-anchor="middle" fill="#FFFFFF">sawtooth(550)</text>
 </a>
 <circle cx="26.000000" cy="58.000000" r="1"/>
-<a xlink:href="triangle-0x7fc02c2a62f0.svg">
+<a xlink:href="triangle-0x7f380c2a62f0.svg">
 <rect x="25.000000" y="89.000000" width="64.500000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#cccccc;"/>
 <rect x="24.000000" y="88.000000" width="64.500000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#003366;"/>
 </a>
-<a xlink:href="triangle-0x7fc02c2a62f0.svg">
+<a xlink:href="triangle-0x7f380c2a62f0.svg">
 <text x="56.250000" y="102.000000" font-family="Arial" font-size="7" text-anchor="middle" fill="#FFFFFF">triangle(660)</text>
 </a>
 <circle cx="26.000000" cy="90.000000" r="1"/>

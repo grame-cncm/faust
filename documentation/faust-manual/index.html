@@ -140,6 +140,10 @@
 <li><a href="#recursive-composition">Recursive Composition</a></li>
 <li><a href="#inputs-and-outputs-of-an-expression">Inputs and Outputs of an Expression</a></li>
 <li><a href="#iterations">Iterations</a></li>
+<li><a href="#par-iteration"><code>par</code> Iteration</a></li>
+<li><a href="#seq-iteration"><code>seq</code> Iteration</a></li>
+<li><a href="#sum-iteration"><code>sum</code> Iteration</a></li>
+<li><a href="#prod-iteration"><code>prod</code> Iteration</a></li>
 </ul></li>
 <li><a href="#infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</a><ul>
 <li><a href="#math-operators">Math Operators</a></li>
@@ -479,12 +483,13 @@ count((x,xs)) = 1+count(xs);</code></pre>
 <h4 id="parallel-composition">Parallel Composition</h4>
 <p>The <em>parallel composition</em> (e.g., <code>(A,B)</code>) is probably the simplest one. It places the two block-diagrams one on top of the other, without connections. The inputs of the resulting block-diagram are the inputs of <code>A</code> and <code>B</code>. The outputs of the resulting block-diagram are the outputs of <code>A</code> and <code>B</code>.</p>
 <p><em>Parallel composition</em> is an associative operation: <code>(A,(B,C))</code> and <code>((A,B),C)</code> are equivalents. When no parenthesis are used (e.g., <code>A,B,C,D</code>), Faust uses right associativity and therefore builds internally the expression <code>(A,(B,(C,D)))</code>. This organization is important to know when using pattern matching techniques on parallel compositions.</p>
-<p><strong>Example</strong></p>
+<p><strong>Example: Oscillators in Parallel</strong></p>
 <p><em>Parallel composition</em> can be used to put 3 oscillators of different kinds and frequencies in parallel, which will result in a Faust program with 3 outputs:</p>
 <div class="faust-run"><a href="img/src/exfaust6/exfaust6-svg/process.svg" target="_blank"><img src="img/src/exfaust6/exfaust6-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = os.osc(440),os.sawtooth(550),os.triangle(660);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust6/exfaust6.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Example: Stereo Effect</strong></p>
 <p><em>Parallel composition</em> can be used to easily turn a mono effect into a stereo one which will result in a Faust program with 2 inputs and 2 outputs:</p>
 <div class="faust-run"><a href="img/src/exfaust7/exfaust7-svg/process.svg" target="_blank"><img src="img/src/exfaust7/exfaust7-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
@@ -498,11 +503,238 @@ level = 1;
 process = par(i,2,ve.autowah(level));</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust8/exfaust8.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="sequential-composition">Sequential Composition</h4>
+<p>The <em>sequential composition</em> (e.g., <code>A:B</code>) expects:</p>
+<p><span class="math display">\[\mathrm{outputs}(A)=\mathrm{inputs}(B)\]</span></p>
+<p>It connects each output of <span class="math inline">\(A\)</span> to the corresponding input of <span class="math inline">\(B\)</span>:</p>
+<p><span class="math display">\[A[i]\rightarrow[i]B\]</span></p>
+<p><em>Sequential composition</em> is an associative operation: <code>(A:(B:C))</code> and <code>((A:B):C)</code> are equivalents. When no parenthesis are used, like in <code>A:B:C:D</code>, Faust uses right associativity and therefore builds internally the expression <code>(A:(B:(C:D)))</code>.</p>
+<p><strong>Example: Sine Oscillator</strong></p>
+<p>Since everything is considered as a signal generator in Faust, <em>sequential composition</em> can be simply used to pass an argument to a function:</p>
+<div class="faust-run"><a href="img/src/exfaust9/exfaust9-svg/process.svg" target="_blank"><img src="img/src/exfaust9/exfaust9-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = 440 : os.osc;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust9/exfaust9.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Example: Effect Chain</strong></p>
+<p><em>Sequential composition</em> can be used to create an audio effect chain. Here we’re plugging a guitar distortion to an autowah:</p>
+<div class="faust-run"><a href="img/src/exfaust10/exfaust10-svg/process.svg" target="_blank"><img src="img/src/exfaust10/exfaust10-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+drive = 0.6;
+offset = 0;
+autoWahLevel = 1;
+process = ef.cubicnl(drive,offset) : ve.autowah(autoWahLevel);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust10/exfaust10.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="split-composition">Split Composition</h4>
+<p>The <em>split composition</em> (e.g., <code>A&lt;:B</code>) operator is used to distribute the outputs of <span class="math inline">\(A\)</span> to the inputs of <span class="math inline">\(B\)</span>.</p>
+<p>For the operation to be valid, the number of inputs of <span class="math inline">\(B\)</span> must be a multiple of the number of outputs of <span class="math inline">\(A\)</span>:</p>
+<p><span class="math display">\[\mathrm{outputs}(A).k=\mathrm{inputs}(B)\]</span></p>
+<p>Each input <span class="math inline">\(i\)</span> of <span class="math inline">\(B\)</span> is connected to the output <span class="math inline">\(i \bmod k\)</span> of <span class="math inline">\(A\)</span>:</p>
+<p><span class="math display">\[A[i \bmod k]\rightarrow[i]B\]</span></p>
+<p><strong>Example: Duplicating the Output of an Oscillator</strong></p>
+<p><em>Split composition</em> can be used to duplicate signals. For example, the output of the following sawtooth oscillator is duplicated 3 times in parallel.</p>
+<div class="faust-run"><a href="img/src/exfaust11/exfaust11-svg/process.svg" target="_blank"><img src="img/src/exfaust11/exfaust11-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = os.sawtooth(440) &lt;: _,_,_;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust11/exfaust11.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that this can be written in a more effective way by replacing <code>_,_,_</code> with <code>par(i,3,_)</code> using the <a href="#par-iteration"><code>par</code> iteration</a>.</p>
+<p><strong>Example: Connecting a Mono Effect to a Stereo One</strong></p>
+<p>More generally, the <em>split composition</em> can be used to connect a block with a certain number of output to a block with a greater number of inputs:</p>
+<div class="faust-run"><a href="img/src/exfaust12/exfaust12-svg/process.svg" target="_blank"><img src="img/src/exfaust12/exfaust12-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+drive = 0.6;
+offset = 0;
+process = ef.cubicnl(drive,offset) &lt;: dm.zita_light;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust12/exfaust12.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that an arbitrary number of signals can be split, for example:</p>
+<div class="faust-run"><a href="img/src/exfaust13/exfaust13-svg/process.svg" target="_blank"><img src="img/src/exfaust13/exfaust13-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+drive = 0.6;
+offset = 0;
+process = par(i,2,ef.cubicnl(drive,offset)) &lt;: par(i,2,dm.zita_light);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust13/exfaust13.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Once again, the only rule with this is that in the expression <code>A&lt;:B</code> the number of inputs of <code>B</code> has to be a multiple of the number of outputs of <code>A</code>.</p>
+<!-- TODO: make sure that signal distribution rules are explained somewhere
+else in the doc -->
 <h4 id="merge-composition">Merge Composition</h4>
+<p>The <em>merge composition</em> (e.g., <code>A:&gt;B</code>) is the dual of the <a href="#split-composition"><em>split composition</em></a>. The number of outputs of <span class="math inline">\(A\)</span> must be a multiple of the number of inputs of <span class="math inline">\(B\)</span>:</p>
+<p><span class="math display">\[\mathrm{outputs}(A)=k.\mathrm{inputs}(B)\]</span></p>
+<p>Each output <span class="math inline">\(i\)</span> of <span class="math inline">\(A\)</span> is connected to the input <span class="math inline">\(i \bmod k\)</span> of <span class="math inline">\(B\)</span> :</p>
+<p><span class="math display">\[A[i]\rightarrow\ [i \bmod k]B\]</span></p>
+<p>The <span class="math inline">\(k\)</span> incoming signals of an input of <span class="math inline">\(B\)</span> are summed together.</p>
+<p><strong>Example: Summing Signals Together - Additive Synthesis</strong></p>
+<p><em>Merge composition</em> can be used to sum an arbitrary number of signals together. Here’s an example of a simple additive synthesizer (note that the result of the sum of the signals is divided by 3 to prevent clicking):</p>
+<div class="faust-run"><a href="img/src/exfaust14/exfaust14-svg/process.svg" target="_blank"><img src="img/src/exfaust14/exfaust14-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,3000,0.01);
+gain = hslider(&quot;gain&quot;,1,0,1,0.01);
+gate = button(&quot;gate&quot;);
+envelope = gain*gate : si.smoo;
+process = os.osc(freq),os.osc(freq*2),os.osc(freq*3) :&gt; /(3)*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust14/exfaust14.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>While the resulting block diagram will look slightly different, this is mathematically equivalent to:</p>
+<div class="faust-run"><a href="img/src/exfaust15/exfaust15-svg/process.svg" target="_blank"><img src="img/src/exfaust15/exfaust15-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,3000,0.01);
+gain = hslider(&quot;gain&quot;,1,0,1,0.01);
+gate = button(&quot;gate&quot;);
+envelope = gain*gate : si.smoo;
+process = (os.osc(freq) + os.osc(freq*2) + os.osc(freq*3))/(3)*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust15/exfaust15.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Example: Connecting a Stereo Effect to a Mono One</strong></p>
+<p>More generally, the <em>merge composition</em> can be used to connect a block with a certain number of output to a block with a smaller number of inputs:</p>
+<div class="faust-run"><a href="img/src/exfaust16/exfaust16-svg/process.svg" target="_blank"><img src="img/src/exfaust16/exfaust16-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+drive = 0.6;
+offset = 0;
+process = dm.zita_light :&gt; ef.cubicnl(drive,offset);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust16/exfaust16.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that an arbitrary number of signals can be split, for example:</p>
+<div class="faust-run"><a href="img/src/exfaust17/exfaust17-svg/process.svg" target="_blank"><img src="img/src/exfaust17/exfaust17-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+drive = 0.6;
+offset = 0;
+process = par(i,2,dm.zita_light) :&gt; par(i,2,ef.cubicnl(drive,offset));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust17/exfaust17.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Once again, the only rule with this is that in the expression <code>A:&gt;B</code> the number of outputs of <code>A</code> has to be a multiple of the number of inputs of <code>B</code>.</p>
 <h4 id="recursive-composition">Recursive Composition</h4>
+<p>The <em>recursive composition</em> (e.g., <code>A~B</code>) is used to create cycles in the block-diagram in order to express recursive computations. It is the most complex operation in terms of connections.</p>
+<p>To be applicable, it requires that:</p>
+<p><span class="math display">\[\mathrm{outputs}(A) \geq \mathrm{inputs}(B) and \mathrm{inputs}(A) \geq \mathrm{outputs}(B)\]</span></p>
+<p>Each input of <span class="math inline">\(B\)</span> is connected to the corresponding output of <span class="math inline">\(A\)</span> via an implicit 1-sample delay :</p>
+<p><span class="math display">\[A[i]\stackrel{Z^{-1}}{\rightarrow}[i]B\]</span></p>
+<p>and each output of <span class="math inline">\(B\)</span> is connected to the corresponding input of <span class="math inline">\(A\)</span>:</p>
+<p><span class="math display">\[B[i]\rightarrow [i]A\]</span></p>
+<p>The inputs of the resulting block diagram are the remaining unconnected inputs of <span class="math inline">\(A\)</span>. The outputs are all the outputs of <span class="math inline">\(A\)</span>.</p>
+<p><strong>Example: Timer</strong></p>
+<p><em>Recursive composition</em> can be used to implement a “timer” that will count each sample starting at time <span class="math inline">\(n=0\)</span>:</p>
+<div class="faust-run"><a href="img/src/exfaust18/exfaust18-svg/process.svg" target="_blank"><img src="img/src/exfaust18/exfaust18-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _~+(1);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust18/exfaust18.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>The difference equation corresponding to this program is:</p>
+<p><span class="math display">\[y(n) = y(n-1) + 1\]</span></p>
+<p>an its output signal will look like: <span class="math inline">\((1,2,3,4,5,6,\dots)\)</span>.</p>
+<p><strong>Example: One Pole Filter</strong></p>
+<p><em>Recursive composition</em> can be used to implement a one pole filter with one line of code and just a few characters:</p>
+<div class="faust-run"><a href="img/src/exfaust19/exfaust19-svg/process.svg" target="_blank"><img src="img/src/exfaust19/exfaust19-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>a1 = 0.999; // the pole
+process = +~*(a1);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust19/exfaust19.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>The difference equation corresponding to this program is:</p>
+<p><span class="math display">\[y(n) = x(n) + a_{1}y(n-1)\]</span></p>
+<p>Note that the one sample delay of the filter is implicit here so it doesn’t have to be declared.</p>
 <h4 id="inputs-and-outputs-of-an-expression">Inputs and Outputs of an Expression</h4>
+<p>The number of inputs and outputs of a Faust expression can be known at compile time simply by using <code>inputs(expression)</code> and <code>outputs(expression)</code>.</p>
+<p>For example, the number of outputs of a sine wave oscillator can be known simply by writing the following program:</p>
+<div class="faust-run"><a href="img/src/exfaust20/exfaust20-svg/process.svg" target="_blank"><img src="img/src/exfaust20/exfaust20-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = outputs(os.osc(440));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust20/exfaust20.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that Faust automatically simplified the expression by generating a program that just outputs <code>1</code>.</p>
+<p>This type of construction is useful to define high order functions and build algorithmically complex block-diagrams. Here is an example to automatically reverse the order of the outputs of an expression.</p>
+<pre><code>Xo(expr) = expr &lt;: par(i,n,ba.selector(n-i-1,n)) 
+with { 
+  n = outputs(expr);
+};</code></pre>
+<p>And the inputs of an expression :</p>
+<pre><code>Xi(expr) = si.bus(n) &lt;: par(i,n,ba.selector(n-i-1,n)) : expr 
+with { 
+  n = inputs(expr); 
+};</code></pre>
+<p>For example <code>Xi(-)</code> will reverse the order of the two inputs of the substraction:</p>
+<div class="faust-run"><a href="img/src/exfaust21/exfaust21-svg/process.svg" target="_blank"><img src="img/src/exfaust21/exfaust21-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+Xi(expr) = si.bus(n) &lt;: par(i,n,ba.selector(n-i-1,n)) : expr 
+with { 
+  n = inputs(expr); 
+};
+toto = os.osc(440),os.sawtooth(440), os.triangle(440);
+process = Xi(-);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust21/exfaust21.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="iterations">Iterations</h4>
+<p>Iterations are analogous to <code>for(...)</code> loops in other languages and provide a convenient way to automate some complex block-diagram constructions.</p>
+<p><img src="img/diagiteration.svg" class="mx-auto d-block"></p>
+<p>The use and role of <a href="#par-iteration"><code>par</code></a>, <a href="#seq-iteration"><code>seq</code></a>, <a href="#sum-iteration"><code>sum</code></a>, and <a href="#prod-iteration"><code>prod</code></a> are detailed in the following sections.</p>
+<h4 id="par-iteration"><code>par</code> Iteration</h4>
+<p>The <code>par</code> iteration can be used to duplicate an expression in parallel. Just like other types of iterations in Faust:</p>
+<ul>
+<li>its first argument is a variable name containing the number of the current iteration (a bit like the variable that is usually named <code>i</code> in a for loop) starting at 0,</li>
+<li>its second argument is the number of iterations,</li>
+<li>its third argument is the expression to be duplicated.</li>
+</ul>
+<p><strong>Example: Simple Additive Synthesizer</strong></p>
+<div class="faust-run"><a href="img/src/exfaust22/exfaust22-svg/process.svg" target="_blank"><img src="img/src/exfaust22/exfaust22-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,3000,0.01);
+gain = hslider(&quot;gain&quot;,1,0,1,0.01);
+gate = button(&quot;gate&quot;);
+envelope = gain*gate : si.smoo;
+nHarmonics = 4;
+process = par(i,nHarmonics,os.osc(freq*(i+1))) :&gt; /(nHarmonics)*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust22/exfaust22.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><code>i</code> is used here at each iteration to compute the value of the frequency of the current oscillator. Also, note that this example could be re-wrtitten using <a href="#sum-iteration"><code>sum</code> iteration</a> (see example in the corresponding section).</p>
+<h4 id="seq-iteration"><code>seq</code> Iteration</h4>
+<p>The <code>seq</code> iteration can be used to duplicate an expression in series. Just like other types of iterations in Faust:</p>
+<ul>
+<li>its first argument is a variable name containing the number of the current iteration (a bit like the variable that is usually named <code>i</code> in a for loop) starting at 0,</li>
+<li>its second argument is the number of iterations,</li>
+<li>its third argument is the expression to be duplicated.</li>
+</ul>
+<p><strong>Example: Peak Equalizer</strong></p>
+<p>The <a href="TODO"><code>fi.peak_eq</code></a> function of the Faust libraries implements a second order “peak equalizer” section (gain boost or cut near some frequency). When placed in series, it can be used to implement a full peak equalizer:</p>
+<div class="faust-run"><a href="img/src/exfaust23/exfaust23-svg/process.svg" target="_blank"><img src="img/src/exfaust23/exfaust23-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+nBands = 8;
+filterBank(N) = hgroup(&quot;Filter Bank&quot;,seq(i,N,oneBand(i)))
+with{
+    oneBand(j) = vgroup(&quot;[%j]Band %a&quot;,fi.peak_eq(l,f,b))
+    with{
+        a = j+1; // just so that band numbers don&#39;t start at 0
+        l = vslider(&quot;[2]Level[unit:db]&quot;,0,-70,12,0.01) : si.smoo;
+        f = nentry(&quot;[1]Freq&quot;,(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
+        b = f/hslider(&quot;[0]Q[style:knob]&quot;,1,1,50,0.01) : si.smoo;
+    };
+};
+process = filterBank(nBands);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust23/exfaust23.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that <code>i</code> is used here at each iteration to compute various elements and to format some labels. Having user interface elements with different names is a way to force their differentiation in the generated interface.</p>
+<h4 id="sum-iteration"><code>sum</code> Iteration</h4>
+<p>The <code>sum</code> iteration can be used to duplicate an expression as a sum. Just like other types of iterations in Faust:</p>
+<ul>
+<li>its first argument is a variable name containing the number of the current iteration (a bit like the variable that is usually named <code>i</code> in a for loop) starting at 0,</li>
+<li>its second argument is the number of iterations,</li>
+<li>its third argument is the expression to be duplicated.</li>
+</ul>
+<p><strong>Example: Simple Additive Synthesizer</strong></p>
+<p>The following example is just a slightly different version from the one presented in the <a href="#par-iteration"><code>par</code> iteration</a> section. While their block diagrams look slightly different, the generated code is exactly the same.</p>
+<div class="faust-run"><a href="img/src/exfaust24/exfaust24-svg/process.svg" target="_blank"><img src="img/src/exfaust24/exfaust24-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,3000,0.01);
+gain = hslider(&quot;gain&quot;,1,0,1,0.01);
+gate = button(&quot;gate&quot;);
+envelope = gain*gate : si.smoo;
+nHarmonics = 4;
+process = sum(i,nHarmonics,os.osc(freq*(i+1)))/(nHarmonics)*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust24/exfaust24.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><code>i</code> is used here at each iteration to compute the value of the frequency of the current oscillator.</p>
+<h4 id="prod-iteration"><code>prod</code> Iteration</h4>
+<p>The <code>sum</code> iteration can be used to duplicate an expression as a product. Just like other types of iterations in Faust:</p>
+<ul>
+<li>its first argument is a variable name containing the number of the current iteration (a bit like the variable that is usually named <code>i</code> in a for loop) starting at 0,</li>
+<li>its second argument is the number of iterations,</li>
+<li>its third argument is the expression to be duplicated.</li>
+</ul>
+<p><strong>Example: Amplitude Modulation Synthesizer</strong></p>
+<p>The following example implements an amplitude modulation synthesizer using an arbitrary number of oscillators thanks to the <code>prod</code> iteration:</p>
+<div class="faust-run"><a href="img/src/exfaust25/exfaust25-svg/process.svg" target="_blank"><img src="img/src/exfaust25/exfaust25-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;[0]freq&quot;,440,50,3000,0.01);
+gain = hslider(&quot;[1]gain&quot;,1,0,1,0.01);
+shift = hslider(&quot;[2]shift&quot;,0,0,1,0.01);
+gate = button(&quot;[3]gate&quot;);
+envelope = gain*gate : si.smoo;
+nOscs = 4;
+process = prod(i,nOscs,os.osc(freq*(i+1+shift)))*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust25/exfaust25.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><code>i</code> is used here at each iteration to compute the value of the frequency of the current oscillator. Note that the <code>shift</code> parameter can be used to tune the frequency drift between each oscillator.</p>
 <h3 id="infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</h3>
 <h4 id="math-operators">Math Operators</h4>
 <h4 id="bitwise-operators">Bitwise Operators</h4>

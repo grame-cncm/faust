@@ -1,0 +1,21 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+
+\usepackage{microtype}
+
+\usepackage{rail}
+\railoptions{-t -h}
+\pagenumbering{gobble}
+
+\begin{document}
+
+\begin{rail}
+diagiteration: "par" '(' ident ',' numiter ',' expression ')'
+           | "seq" '(' ident ',' numiter ',' expression ')'
+           | "sum" '(' ident ',' numiter ',' expression ')'
+           | "prod" '(' ident ',' numiter ',' expression ')';
+\end{rail}
+
+\end{document}

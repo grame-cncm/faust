@@ -642,7 +642,7 @@ right associativity and therefore builds internally the expression
 `(A,(B,(C,D)))`. This organization is important to know when using pattern 
 matching techniques on parallel compositions. 
 
-**Example**
+**Example: Oscillators in Parallel**
 
 *Parallel composition* can be used to put 3 oscillators of different kinds
 and frequencies in parallel, which will result in a Faust program with 3 
@@ -654,6 +654,8 @@ import("stdfaust.lib");
 process = os.osc(440),os.sawtooth(550),os.triangle(660);
 ```
 <!-- /faust-run -->
+
+**Example: Stereo Effect**
 
 *Parallel composition* can be used to easily turn a mono effect into a stereo
 one which will result in a Faust program with 2 inputs and 2 outputs:
@@ -679,15 +681,434 @@ process = par(i,2,ve.autowah(level));
 
 #### Sequential Composition
 
+The *sequential composition*  (e.g., `A:B`) expects:
+
+$$\mathrm{outputs}(A)=\mathrm{inputs}(B)$$ 
+
+It connects each output of $A$ to the corresponding input of $B$: 
+
+$$A[i]\rightarrow[i]B$$
+
+*Sequential composition* is an associative operation: `(A:(B:C))` and 
+`((A:B):C)` are equivalents. When no parenthesis are used, like in `A:B:C:D`, 
+Faust uses right associativity and therefore builds internally the expression `(A:(B:(C:D)))`.
+
+**Example: Sine Oscillator**
+
+Since everything is considered as a signal generator in Faust, 
+*sequential composition* can be simply used to pass an argument to a function:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = 440 : os.osc;
+```
+<!-- /faust-run -->
+
+**Example: Effect Chain**
+
+*Sequential composition* can be used to create an audio effect chain. Here
+we're plugging a guitar distortion to an autowah:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+drive = 0.6;
+offset = 0;
+autoWahLevel = 1;
+process = ef.cubicnl(drive,offset) : ve.autowah(autoWahLevel);
+```
+<!-- /faust-run -->
+
 #### Split Composition
+
+The *split composition* (e.g., `A<:B`) operator is used to distribute the 
+outputs of $A$ to the inputs of $B$.
+
+For the operation to be valid, the number of inputs of $B$ must be a multiple 
+of the number of outputs of $A$: 
+
+$$\mathrm{outputs}(A).k=\mathrm{inputs}(B)$$
+
+Each input $i$ of $B$ is connected to the output $i \bmod k$ of $A$: 
+
+$$A[i \bmod k]\rightarrow[i]B$$
+
+**Example: Duplicating the Output of an Oscillator**
+
+*Split composition* can be used to duplicate signals. For example, the output
+of the following sawtooth oscillator is duplicated 3 times in parallel.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = os.sawtooth(440) <: _,_,_;
+```
+<!-- /faust-run -->
+
+Note that this can be written in a more effective way by replacing `_,_,_` with
+`par(i,3,_)` using the [`par` iteration](#par-iteration).
+
+**Example: Connecting a Mono Effect to a Stereo One**
+
+More generally, the *split composition* can be used to connect a block with a 
+certain number of output to a block with a greater number of inputs: 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+drive = 0.6;
+offset = 0;
+process = ef.cubicnl(drive,offset) <: dm.zita_light;
+```
+<!-- /faust-run -->
+
+Note that an arbitrary number of signals can be split, for example:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+drive = 0.6;
+offset = 0;
+process = par(i,2,ef.cubicnl(drive,offset)) <: par(i,2,dm.zita_light);
+```
+<!-- /faust-run -->
+
+Once again, the only rule with this is that in the expression `A<:B` the number 
+of inputs of `B` has to be a multiple of the number of outputs of `A`.
+
+<!-- TODO: make sure that signal distribution rules are explained somewhere
+else in the doc -->
 
 #### Merge Composition
 
+The *merge composition* (e.g., `A:>B`) is the dual of the 
+[*split composition*](#split-composition). The number of outputs of $A$ must be 
+a multiple of the number of inputs of $B$: 
+
+$$\mathrm{outputs}(A)=k.\mathrm{inputs}(B)$$
+
+Each output $i$ of $A$ is connected to the input $i \bmod k$ of $B$ : 
+
+$$A[i]\rightarrow\ [i \bmod k]B$$
+
+The $k$ incoming signals of an input of $B$ are summed together.
+
+**Example: Summing Signals Together - Additive Synthesis**
+
+*Merge composition* can be used to sum an arbitrary number of signals together.
+Here's an example of a simple additive synthesizer (note that the result of the
+sum of the signals is divided by 3 to prevent clicking):
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,3000,0.01);
+gain = hslider("gain",1,0,1,0.01);
+gate = button("gate");
+envelope = gain*gate : si.smoo;
+process = os.osc(freq),os.osc(freq*2),os.osc(freq*3) :> /(3)*envelope;
+```
+<!-- /faust-run -->
+
+While the resulting block diagram will look slightly different, this is 
+mathematically equivalent to:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,3000,0.01);
+gain = hslider("gain",1,0,1,0.01);
+gate = button("gate");
+envelope = gain*gate : si.smoo;
+process = (os.osc(freq) + os.osc(freq*2) + os.osc(freq*3))/(3)*envelope;
+```
+<!-- /faust-run -->
+
+**Example: Connecting a Stereo Effect to a Mono One**
+
+More generally, the *merge composition* can be used to connect a block with a 
+certain number of output to a block with a smaller number of inputs: 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+drive = 0.6;
+offset = 0;
+process = dm.zita_light :> ef.cubicnl(drive,offset);
+```
+<!-- /faust-run -->
+
+Note that an arbitrary number of signals can be split, for example:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+drive = 0.6;
+offset = 0;
+process = par(i,2,dm.zita_light) :> par(i,2,ef.cubicnl(drive,offset));
+```
+<!-- /faust-run -->
+
+Once again, the only rule with this is that in the expression `A:>B` the number 
+of outputs of `A` has to be a multiple of the number of inputs of `B`.
+
 #### Recursive Composition
+
+The *recursive composition* (e.g., `A~B`) is used to create cycles in the 
+block-diagram in order to express recursive computations. It is the most 
+complex operation in terms of connections.
+
+To be applicable, it requires that:
+
+$$\mathrm{outputs}(A) \geq \mathrm{inputs}(B) and \mathrm{inputs}(A) \geq \mathrm{outputs}(B)$$
+
+Each input of $B$ is connected to the corresponding output of $A$ via an 
+implicit 1-sample delay :
+ 
+
+$$A[i]\stackrel{Z^{-1}}{\rightarrow}[i]B$$
+ 
+and each output of $B$ is connected to the corresponding input of $A$:
+
+$$B[i]\rightarrow [i]A$$
+
+The inputs of the resulting block diagram are the remaining unconnected inputs 
+of $A$. The outputs are all the outputs of $A$.
+
+**Example: Timer**
+
+*Recursive composition* can be used to implement a "timer" that will count each
+sample starting at time $n=0$:
+
+<!-- faust-run -->
+```
+process = _~+(1);
+```
+<!-- /faust-run -->
+
+The difference equation corresponding to this program is:
+
+$$y(n) = y(n-1) + 1$$
+
+an its output signal will look like: $(1,2,3,4,5,6,\dots)$. 
+
+**Example: One Pole Filter**
+
+*Recursive composition* can be used to implement a one pole filter with one
+line of code and just a few characters:
+
+<!-- faust-run -->
+```
+a1 = 0.999; // the pole
+process = +~*(a1);
+```
+<!-- /faust-run -->
+
+The difference equation corresponding to this program is:
+
+$$y(n) = x(n) + a_{1}y(n-1)$$
+
+Note that the one sample delay of the filter is implicit here so it doesn't
+have to be declared.
 
 #### Inputs and Outputs of an Expression
 
-#### Iterations 
+The number of inputs and outputs of a Faust expression can be known at compile
+time simply by using `inputs(expression)` and `outputs(expression)`.
+
+For example, the number of outputs of a sine wave oscillator can be known
+simply by writing the following program:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = outputs(os.osc(440));
+```
+<!-- /faust-run -->
+
+Note that Faust automatically simplified the expression by generating a program
+that just outputs `1`.
+
+This type of construction is useful to define high order functions and build 
+algorithmically complex block-diagrams. Here is an example to automatically 
+reverse the order of the outputs of an expression.
+
+```
+Xo(expr) = expr <: par(i,n,ba.selector(n-i-1,n)) 
+with { 
+  n = outputs(expr);
+};
+```
+
+And the inputs of an expression :
+
+```
+Xi(expr) = si.bus(n) <: par(i,n,ba.selector(n-i-1,n)) : expr 
+with { 
+  n = inputs(expr); 
+};
+```
+
+For example `Xi(-)` will reverse the order of the two inputs of the 
+substraction:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+Xi(expr) = si.bus(n) <: par(i,n,ba.selector(n-i-1,n)) : expr 
+with { 
+  n = inputs(expr); 
+};
+toto = os.osc(440),os.sawtooth(440), os.triangle(440);
+process = Xi(-);
+```
+<!-- /faust-run -->
+
+#### Iterations
+
+Iterations are analogous to `for(...)` loops in other languages and provide a 
+convenient way to automate some complex block-diagram constructions. 
+
+<img src="img/diagiteration.svg" class="mx-auto d-block">
+
+The use and role of [`par`](#par-iteration), [`seq`](#seq-iteration), 
+[`sum`](#sum-iteration), and  [`prod`](#prod-iteration) are detailed in the
+following sections.
+
+#### `par` Iteration
+
+The `par` iteration can be used to duplicate an expression in parallel. Just
+like other types of iterations in Faust: 
+
+* its first argument is a variable name containing the number of the current 
+iteration (a bit like the variable that is usually named `i` in a for loop)
+starting at 0,
+* its second argument is the number of iterations,
+* its third argument is the expression to be duplicated.
+
+**Example: Simple Additive Synthesizer**
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,3000,0.01);
+gain = hslider("gain",1,0,1,0.01);
+gate = button("gate");
+envelope = gain*gate : si.smoo;
+nHarmonics = 4;
+process = par(i,nHarmonics,os.osc(freq*(i+1))) :> /(nHarmonics)*envelope;
+```
+<!-- /faust-run -->
+
+`i` is used here at each iteration to compute the value of the frequency of the 
+current oscillator. Also, note that this example could be re-wrtitten using 
+[`sum` iteration](#sum-iteration) (see example in the corresponding section).
+
+#### `seq` Iteration
+
+The `seq` iteration can be used to duplicate an expression in series. Just
+like other types of iterations in Faust: 
+
+* its first argument is a variable name containing the number of the current 
+iteration (a bit like the variable that is usually named `i` in a for loop)
+starting at 0,
+* its second argument is the number of iterations,
+* its third argument is the expression to be duplicated.
+
+**Example: Peak Equalizer**
+
+The [`fi.peak_eq`](TODO) function of the Faust libraries implements a second
+order "peak equalizer" section (gain boost or cut near some frequency). When
+placed in series, it can be used to implement a full peak equalizer:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+nBands = 8;
+filterBank(N) = hgroup("Filter Bank",seq(i,N,oneBand(i)))
+with{
+	oneBand(j) = vgroup("[%j]Band %a",fi.peak_eq(l,f,b))
+	with{
+		a = j+1; // just so that band numbers don't start at 0
+		l = vslider("[2]Level[unit:db]",0,-70,12,0.01) : si.smoo;
+		f = nentry("[1]Freq",(80+(1000*8/N*(j+1)-80)),20,20000,0.01) : si.smoo;
+		b = f/hslider("[0]Q[style:knob]",1,1,50,0.01) : si.smoo;
+	};
+};
+process = filterBank(nBands);
+```
+<!-- /faust-run -->
+
+Note that `i` is used here at each iteration to compute various elements and
+to format some labels. Having user interface elements with different names is
+a way to force their differentiation in the generated interface.  
+
+#### `sum` Iteration
+
+The `sum` iteration can be used to duplicate an expression as a sum. Just
+like other types of iterations in Faust: 
+
+* its first argument is a variable name containing the number of the current 
+iteration (a bit like the variable that is usually named `i` in a for loop)
+starting at 0,
+* its second argument is the number of iterations,
+* its third argument is the expression to be duplicated.
+
+**Example: Simple Additive Synthesizer**
+
+The following example is just a slightly different version from the one 
+presented in the [`par` iteration](#par-iteration) section. While their
+block diagrams look slightly different, the generated code is exactly the
+same.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,3000,0.01);
+gain = hslider("gain",1,0,1,0.01);
+gate = button("gate");
+envelope = gain*gate : si.smoo;
+nHarmonics = 4;
+process = sum(i,nHarmonics,os.osc(freq*(i+1)))/(nHarmonics)*envelope;
+```
+<!-- /faust-run -->
+
+`i` is used here at each iteration to compute the value of the frequency of the 
+current oscillator.
+
+#### `prod` Iteration
+
+The `sum` iteration can be used to duplicate an expression as a product. Just
+like other types of iterations in Faust: 
+
+* its first argument is a variable name containing the number of the current 
+iteration (a bit like the variable that is usually named `i` in a for loop)
+starting at 0,
+* its second argument is the number of iterations,
+* its third argument is the expression to be duplicated.
+
+**Example: Amplitude Modulation Synthesizer**
+
+The following example implements an amplitude modulation synthesizer using
+an arbitrary number of oscillators thanks to the `prod` iteration:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("[0]freq",440,50,3000,0.01);
+gain = hslider("[1]gain",1,0,1,0.01);
+shift = hslider("[2]shift",0,0,1,0.01);
+gate = button("[3]gate");
+envelope = gain*gate : si.smoo;
+nOscs = 4;
+process = prod(i,nOscs,os.osc(freq*(i+1+shift)))*envelope;
+```
+<!-- /faust-run -->
+
+`i` is used here at each iteration to compute the value of the frequency of the 
+current oscillator. Note that the `shift` parameter can be used to tune the
+frequency drift between each oscillator.
 
 ### Infix Notation and Other Syntax Extensions
 
