@@ -1,0 +1,24 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+
+\usepackage{microtype}
+
+\usepackage{rail}
+\railoptions{-t -h}
+\pagenumbering{gobble}
+
+\begin{document}
+
+\begin{rail}
+envexp :    expression 'with' lbrace (definition+) rbrace
+          | expression 'letrec' lbrace (diffequation+) rbrace
+          | 'environment' lbrace (definition+) rbrace
+		  | expression '.' ident
+          | 'library' '(' filename ')'
+          | 'component' '(' filename ')'
+          | expression '[' (definition+) ']';         
+\end{rail}
+
+\end{document}

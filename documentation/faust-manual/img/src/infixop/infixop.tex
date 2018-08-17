@@ -1,0 +1,22 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+
+\usepackage{microtype}
+
+\usepackage{rail}
+\railoptions{-t -h}
+\pagenumbering{gobble}
+
+\begin{document}
+
+\begin{rail}
+%%numerical : math | bitwise | comparison | time;
+math : expression ('+'|'-'|'*'|'/'|'\%'|hat) expression;
+bitwise : expression (pipe|ampersand|'xor'|'<<' |'>>') expression;
+comparison : expression ('<'|'<='|'>'|'>='|'=='|'!=') expression;
+delay : expression arobase expression; 
+\end{rail}
+
+\end{document}

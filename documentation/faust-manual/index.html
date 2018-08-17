@@ -146,24 +146,19 @@
 <li><a href="#prod-iteration"><code>prod</code> Iteration</a></li>
 </ul></li>
 <li><a href="#infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</a><ul>
-<li><a href="#math-operators">Math Operators</a></li>
-<li><a href="#bitwise-operators">Bitwise Operators</a></li>
-<li><a href="#comparison">Comparison</a></li>
-<li><a href="#delay">Delay</a></li>
+<li><a href="#infix-operators">Infix Operators</a></li>
 <li><a href="#prefix-notation">Prefix Notation</a></li>
 <li><a href="#partial-application">Partial Application</a></li>
 </ul></li>
-<li><a href="#time-expressions">Time Expressions</a><ul>
-<li><a href="#operator"><code>@</code> Operator</a></li>
-<li><a href="#operator-1"><code>'</code> Operator</a></li>
-</ul></li>
+<li><a href="#time-expression"><code>'</code> Time Expression</a></li>
+<li><a href="#time-expression-1"><code>@</code> Time Expression</a></li>
 <li><a href="#environment-expressions">Environment Expressions</a><ul>
-<li><a href="#with"><code>with</code></a></li>
-<li><a href="#letrec"><code>letrec</code></a></li>
-<li><a href="#environment"><code>environment</code></a></li>
-<li><a href="#access">Access</a></li>
-<li><a href="#library"><code>library</code></a></li>
-<li><a href="#component"><code>component</code></a></li>
+<li><a href="#with-expression"><code>with</code> Expression</a></li>
+<li><a href="#letrec-expression"><code>letrec</code> Expression</a></li>
+<li><a href="#environment-expression"><code>environment</code> Expression</a></li>
+<li><a href="#access-expression">Access Expression</a></li>
+<li><a href="#library-expression"><code>library</code> Expression</a></li>
+<li><a href="#component-expression"><code>component</code> Expression</a></li>
 <li><a href="#explicit-substitution">Explicit Substitution</a></li>
 </ul></li>
 <li><a href="#foreign-expressions">Foreign Expressions</a><ul>
@@ -736,24 +731,248 @@ process = prod(i,nOscs,os.osc(freq*(i+1+shift)))*envelope;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust25/exfaust25.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p><code>i</code> is used here at each iteration to compute the value of the frequency of the current oscillator. Note that the <code>shift</code> parameter can be used to tune the frequency drift between each oscillator.</p>
 <h3 id="infix-notation-and-other-syntax-extensions">Infix Notation and Other Syntax Extensions</h3>
-<h4 id="math-operators">Math Operators</h4>
-<h4 id="bitwise-operators">Bitwise Operators</h4>
-<h4 id="comparison">Comparison</h4>
-<h4 id="delay">Delay</h4>
+<blockquote>
+<p>Infix notation is commonly used in mathematics. It consists in placing the operand between the arguments as in <span class="math inline">\(2+3\)</span></p>
+</blockquote>
+<p>Besides its algebra-based core syntax, Faust provides some syntax extensions, in particular the familiar <em>infix notation</em>. For example if you want to multiply two numbers, say <code>2</code> and <code>3</code>, you can write directly <code>2*3</code> instead of the equivalent core-syntax expression <code>2,3 : *</code>.</p>
+<p>The <em>infix notation</em> is not limited to numbers or numerical expressions. Arbitrary expressions <code>A</code> and <code>B</code> can be used, provided that <code>A,B</code> has exactly two outputs. For example <code>_/2</code> is equivalent to <code>_,2:/</code> which divides the incoming signal by <code>2</code>.</p>
+<p>Here are a few examples of equivalences:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Infix Syntax</th>
+<th></th>
+<th>Core Syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>2-3</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>2,3 : -</code></td>
+</tr>
+<tr class="even">
+<td><code>2*3</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>2,3 : *</code></td>
+</tr>
+<tr class="odd">
+<td><code>_@7</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,7 : @</code></td>
+</tr>
+<tr class="even">
+<td><code>_/2</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,2 : /</code></td>
+</tr>
+<tr class="odd">
+<td><code>A&lt;B</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>A,B : &lt;</code></td>
+</tr>
+</tbody>
+</table>
+<p>In case of doubts on the meaning of an infix expression, for example <code>_*_</code>, it is useful to translate it to its core syntax equivalent, here <code>_,_:*</code>, which is equivalent to <code>*</code>.</p>
+<h4 id="infix-operators">Infix Operators</h4>
+<p>Built-in primitives that can be used in infix notation are called <em>infix operators</em> and are listed below. Please note that a more detailed description of these operators is available <a href="#primitives">section on primitives</a>.</p>
+<p><img src="img/infixop.svg" class="mx-auto d-block"></p>
 <h4 id="prefix-notation">Prefix Notation</h4>
+<p>Beside <em>infix notation</em>, it is also possible to use <em>prefix notation</em>. The <em>prefix notation</em> is the usual mathematical notation for functions <span class="math inline">\(f(x,y,z,\ldots)\)</span>, but extended to <em>infix operators</em>.</p>
+<p>It consists in first having the operator, for example <code>/</code>, followed by its arguments between parentheses: <code>/(2,3)</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Prefix Syntax</th>
+<th></th>
+<th>Core Syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>*(2,3)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>2,3 : *</code></td>
+</tr>
+<tr class="even">
+<td><code>@(_,7)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,7 : @</code></td>
+</tr>
+<tr class="odd">
+<td><code>/(_,2)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,2 : /</code></td>
+</tr>
+<tr class="even">
+<td><code>&lt;(A,B)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>A,B : &lt;</code></td>
+</tr>
+</tbody>
+</table>
 <h4 id="partial-application">Partial Application</h4>
-<h3 id="time-expressions">Time Expressions</h3>
-<h4 id="operator"><code>@</code> Operator</h4>
-<h4 id="operator-1"><code>'</code> Operator</h4>
+<p>The <em>partial application</em> notation is a variant of the <em>prefix notation</em> in which not all arguments are given. For instance <code>/(2)</code> (divide by 2), <code>^(3)</code> (rise to the cube), and <code>@(512)</code> (delay by 512 samples) are examples of partial applications where only one argument is given. The result of a partial application is a function that “waits” for the remaining arguments.</p>
+<p>When doing partial application with an <em>infix operator</em>, it is important to note that the supplied argument is not the first argument, but always the second one:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Prefix Partial Application Syntax</th>
+<th></th>
+<th>Core Syntax</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>+(C)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,C : *</code></td>
+</tr>
+<tr class="even">
+<td><code>-(C)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,C : -</code></td>
+</tr>
+<tr class="odd">
+<td><code>&lt;(C)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,C : &lt;</code></td>
+</tr>
+<tr class="even">
+<td><code>/(C)</code></td>
+<td><span class="math inline">\(\equiv\)</span></td>
+<td><code>_,C : /</code></td>
+</tr>
+</tbody>
+</table>
+<p>For commutative operations that doesn’t matter. But for non-commutative ones, it is more “natural” to fix the second argument. We use divide by 2 (<code>/(2)</code>) or rise to the cube (<code>^(3)</code>) more often than the other way around.</p>
+<p>Please note that this rule only applies to infix operators, not to other primitives or functions. If you partially apply a regular function to a single argument, it will correspond to the first parameter.</p>
+<p><strong>Example: Gain Controller</strong></p>
+<p>The following example demonstrates the use of partial application in the context of a gain controller:</p>
+<div class="faust-run"><a href="img/src/exfaust26/exfaust26-svg/process.svg" target="_blank"><img src="img/src/exfaust26/exfaust26-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
+process = *(gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust26/exfaust26.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="time-expression"><code>'</code> Time Expression</h3>
+<p><code>'</code> is used to express a one sample delay. For example:</p>
+<div class="faust-run"><a href="img/src/exfaust27/exfaust27-svg/process.svg" target="_blank"><img src="img/src/exfaust27/exfaust27-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _&#39;;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust27/exfaust27.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>will delay the incoming signal by one sample.</p>
+<p><code>'</code> time expressions can be chained, so the output signal of this program:</p>
+<div class="faust-run"><a href="img/src/exfaust28/exfaust28-svg/process.svg" target="_blank"><img src="img/src/exfaust28/exfaust28-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1&#39;&#39;;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust28/exfaust28.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>will look like: <span class="math inline">\((0,0,1,1,1,1,\dots)\)</span>.</p>
+<p>The <code>'</code> time expression is useful when designing filters, etc. and is equivalent to <code>@(1)</code> (see the <a href="#time-expression-1"><code>@</code> Time Expression</a>).</p>
+<h3 id="time-expression-1"><code>@</code> Time Expression</h3>
+<p><code>@</code> is used to express a delay with an arbitrary number of samples. For example:</p>
+<div class="faust-run"><a href="img/src/exfaust29/exfaust29-svg/process.svg" target="_blank"><img src="img/src/exfaust29/exfaust29-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = @(10);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust29/exfaust29.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>will delay the incoming signal by 10 samples.</p>
+<p>A delay expressed with <code>@</code> doesn’t have to be fixed but it must be positive and bounded. Therefore, the values of a slider are perfectly acceptable:</p>
+<div class="faust-run"><a href="img/src/exfaust30/exfaust30-svg/process.svg" target="_blank"><img src="img/src/exfaust30/exfaust30-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = @(hslider(&quot;delay&quot;,0,0,100,1));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust30/exfaust30.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><code>@</code> only allows for the implementation of integer delay. Thus, various fractional delay algorithms are implemented in <a href="TODO">the Faust libraries</a>.</p>
 <h3 id="environment-expressions">Environment Expressions</h3>
-<h4 id="with"><code>with</code></h4>
-<h4 id="letrec"><code>letrec</code></h4>
-<h4 id="environment"><code>environment</code></h4>
-<h4 id="access">Access</h4>
-<h4 id="library"><code>library</code></h4>
+<p>Faust is a lexically scoped language. The meaning of a Faust expression is determined by its context of definition (its lexical environment) and not by its context of use.</p>
+<p>To keep their original meaning, Faust expressions are bounded to their lexical environment in structures called <em>closures</em>. The following constructions allow to explicitly create and access such environments. Moreover they provide powerful means to reuse existing code and promote modular design.</p>
+<p><img src="img/envexp.svg" class="mx-auto d-block"></p>
+<h4 id="with-expression"><code>with</code> Expression</h4>
+<p>The <code>with</code> construction allows to specify a <em>local environment</em>: a private list of definition that will be used to evaluate the left hand expression.</p>
+<p>In the following example :</p>
+<div class="faust-run"><a href="img/src/exfaust31/exfaust31-svg/process.svg" target="_blank"><img src="img/src/exfaust31/exfaust31-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>pink = f : + ~ g 
+with {
+  f(x) = 0.04957526213389*x - 0.06305581334498*x&#39; + 0.01483220320740*x&#39;&#39;;
+    g(x) = 1.80116083982126*x - 0.80257737639225*x&#39;;
+};
+process = pink;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust31/exfaust31.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>the definitions of <code>f(x)</code> and <code>g(x)</code> are local to <code>f : + ~ g</code>.</p>
+<p>Please note that <code>with</code> is left associative and has the lowest priority:</p>
+<ul>
+<li><code>f : + ~ g with {...}</code> is equivalent to <code>(f : + ~ g)  with {...}</code>.</li>
+<li><code>f : + ~ g with {...} with {...}</code> is equivalent to <code>((f : + ~ g)  with {...})  with {...}</code>.</li>
+</ul>
+<h4 id="letrec-expression"><code>letrec</code> Expression</h4>
+<p>The <code>letrec</code> construction is somehow similar to <a href="#with-expression"><code>with</code></a>, but for difference equations instead of regular definitions. It allows us to easily express groups of mutually recursive signals, for example:</p>
+<p><span class="math display">\[
+x(t) = y(t-1) + 10\\
+y(t) = x(t-1) - 1
+\]</span></p>
+<p>as <code>E letrec { 'x = y+10; 'y = x-1; }</code></p>
+<p>The syntax is defined by the following rules:</p>
+<p><img src="img/letrec.svg" class="mx-auto d-block"></p>
+<p>Note the special notation <code>'x = y + 10</code> instead of <code>x = y' + 10</code>. It makes syntactically impossible to write non-sensical equations like <code>x=x+1</code>.</p>
+<p>Here is a more involved example. Let say we want to define an envelope generator with an attack and a release time (as a number of samples), and a gate signal. A possible definition could be:</p>
+<div class="faust-run"><a href="img/src/exfaust32/exfaust32-svg/process.svg" target="_blank"><img src="img/src/exfaust32/exfaust32-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+ar(a,r,g) = v
+letrec {
+  &#39;n = (n+1) * (g&lt;=g&#39;);
+  &#39;v = max(0, v + (n&lt;a)/a - (n&gt;=a)/r) * (g&lt;=g&#39;);
+};
+gate = button(&quot;gate&quot;);
+process = os.osc(440)*ar(1000,1000,gate);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust32/exfaust32.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>With the following semantics for <span class="math inline">\(n(t)\)</span> and <span class="math inline">\(v(t)\)</span>:</p>
+<p><span class="math display">\[
+n(t) = (n(t-1)+1) * (g(t) &lt;= g(t-1))\\
+v(t) = max(0, v(t-1) + (n(t-1)&lt;a(t))/a(t) - (n(t-1)&gt;=a(t))/r(t)) * (g(t)&lt;=g(t-1))
+\]</span></p>
+<h4 id="environment-expression"><code>environment</code> Expression</h4>
+<p>The <code>environment</code> construction allows to create an explicit environment. It is like a <a href="#with-expression">`with’</a>, but without the left hand expression. It is a convenient way to group together related definitions, to isolate groups of definitions and to create a name space hierarchy.</p>
+<p><img src="img/environment.svg" class="mx-auto d-block"></p>
+<p>In the following example an <code>environment</code> construction is used to group together some constant definitions :</p>
+<pre><code>constant = environment {
+  pi = 3.14159;
+  e = 2,718;
+    ...
+};</code></pre>
+<p>The <a href="#access-expression"><code>.</code> construction</a> allows to access the definitions of an environment (see next section).</p>
+<h4 id="access-expression">Access Expression</h4>
+<p>Definitions inside an environment can be accessed using the <code>.</code> construction.</p>
+<p><img src="img/access.svg" class="mx-auto d-block"></p>
+<p>For example <code>constant.pi</code> refers to the definition of <code>pi</code> in the <code>constant</code> environment <a href="#environment-expression">defined above</a>.</p>
+<p>Note that environments don’t have to be named. We could have written directly:</p>
+<pre><code>environment{pi = 3.14159; e = 2,718;....}.pi</code></pre>
+<h4 id="library-expression"><code>library</code> Expression</h4>
+<p>The <code>library</code> construct allows to create an environment by reading the definitions from a file.</p>
+<p><img src="img/library.svg" class="mx-auto d-block"></p>
+<p>For example <code>library(&quot;filters.lib&quot;)</code> represents the <a href="#environment-expression">environment</a> obtained by reading the file <code>filters.lib</code>. It works like <a href="TODO"><code>import(&quot;miscfilter.lib&quot;)</code></a> but all the read definitions are stored in a new separate lexical environment. Individual definitions can be accessed as described in the previous paragraph. For example <code>library(&quot;filters.lib&quot;).lowpass</code> denotes the function <code>lowpass</code> as defined in the file <code>miscfilter.lib</code>.</p>
+<p>To avoid name conflicts when importing libraries it is recommended to prefer <code>library</code> to <a href="TODO"><code>import</code></a>. So instead of :</p>
+<pre><code>import(&quot;filters.lib&quot;);
+  ...
+...lowpass....
+    ...
+};</code></pre>
+<p>the following will ensure an absence of conflicts :</p>
+<pre><code>fl = library(&quot;filters.lib&quot;);
+  ...
+...fl.lowpass....
+    ...
+};</code></pre>
+<p>In practice, that’s how the <a href="TODO"><code>stdfaust.lib</code></a> library works.</p>
 <!-- TODO: import? -->
-<h4 id="component"><code>component</code></h4>
+<!-- TODO: we should also show how this type of construction can be used to
+define function with variables with a predefined value, etc. -->
+<h4 id="component-expression"><code>component</code> Expression</h4>
+<p>The <code>component</code> construction allows us to reuse a full Faust program (e.g., a <code>.dsp</code> file) as a simple expression.</p>
+<p><img src="img/component.svg" class="mx-auto d-block"></p>
+<p>For example <code>component(&quot;freeverb.dsp&quot;)</code> denotes the signal processor defined in file <code>freeverb.dsp</code>.</p>
+<p>Components can be used within expressions like in:</p>
+<pre><code>...component(&quot;karplus32.dsp&quot;) : component(&quot;freeverb.dsp&quot;)... </code></pre>
+<p>Please note that <code>component(&quot;freeverb.dsp&quot;)</code> is equivalent to <code>library(&quot;freeverb.dsp&quot;).process</code>.</p>
+<p><code>component</code> works well in tandem with <a href="#explicit-substitution">explicit substitution</a> (see next section).</p>
 <h4 id="explicit-substitution">Explicit Substitution</h4>
+<p>Explicit substitution can be used to customize a component or any expression with a lexical environment by replacing some of its internal definitions, without having to modify it.</p>
+<p><img src="img/explicitsubst.svg" class="mx-auto d-block"></p>
+<p>For example we can create a customized version of <code>component(&quot;freeverb.dsp&quot;)</code>, with a different definition of <code>foo(x)</code>, by writing:</p>
+<pre><code>...component(&quot;freeverb.dsp&quot;)[foo(x) = ...;]...
+};</code></pre>
 <h3 id="foreign-expressions">Foreign Expressions</h3>
 <h4 id="ffunction"><code>ffunction</code></h4>
 <h4 id="signature">Signature</h4>

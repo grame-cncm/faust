@@ -1112,41 +1112,347 @@ frequency drift between each oscillator.
 
 ### Infix Notation and Other Syntax Extensions
 
-#### Math Operators
+> Infix notation is commonly used in mathematics. It consists in placing the 
+operand between the arguments as in $2+3$
 
-#### Bitwise Operators
+Besides its algebra-based core syntax, Faust provides some syntax extensions, 
+in particular the familiar *infix notation*. For example if you want to 
+multiply two numbers, say `2` and `3`, you can write directly `2*3` instead of 
+the equivalent core-syntax expression `2,3 : *`.
 
-#### Comparison
+The *infix notation* is not limited to numbers or numerical expressions. 
+Arbitrary expressions `A` and `B` can be used, provided that `A,B` has exactly 
+two outputs. For example `_/2` is equivalent to `_,2:/` which divides the 
+incoming signal by `2`. 
 
-#### Delay
+Here are a few examples of equivalences:
+
+| Infix Syntax | | Core Syntax | 
+| ----- | -------- | --------- |
+| `2-3` | $\equiv$ | `2,3 : -` |
+| `2*3` | $\equiv$ | `2,3 : *` |
+| `_@7` | $\equiv$ | `_,7 : @` |
+| `_/2` | $\equiv$ | `_,2 : /` |
+| `A<B` | $\equiv$ | `A,B : <` |
+
+In case of doubts on the meaning of an infix expression, for example `_*_`, it 
+is useful to translate it to its core syntax equivalent, here `_,_:*`, which is 
+equivalent to `*`.
+
+#### Infix Operators
+
+Built-in primitives that can be used in infix notation are called *infix 
+operators* and are listed below. Please note that a more detailed description 
+of these operators is available [section on primitives](#primitives). 
+
+<img src="img/infixop.svg" class="mx-auto d-block">
 
 #### Prefix Notation
 
+Beside *infix notation*, it is also possible to use *prefix notation*. 
+The *prefix notation* is the usual mathematical notation for functions 
+$f(x,y,z,\ldots)$, but extended to *infix operators*.
+ 
+It consists in first having the operator, for example `/`, followed by its 
+arguments between parentheses: `/(2,3)`: 
+ 
+| Prefix Syntax | | Core Syntax |
+| -------- | -------- | --------- |
+| `*(2,3)` | $\equiv$ | `2,3 : *` |
+| `@(_,7)` | $\equiv$ | `_,7 : @` |
+| `/(_,2)` | $\equiv$ | `_,2 : /` |
+| `<(A,B)` | $\equiv$ | `A,B : <` | 
+
 #### Partial Application
 
-### Time Expressions
+The *partial application* notation is a variant of the *prefix notation* in 
+which not all arguments are given. For instance `/(2)` (divide by 2), `^(3)` 
+(rise to the cube), and `@(512)` (delay by 512 samples) are examples of partial 
+applications where only one argument is given. The result of a partial 
+application is a function that "waits" for the remaining arguments. 
 
-#### `@` Operator
+When doing partial application with an *infix operator*, it is important to 
+note that the supplied argument is not the first argument, but always the 
+second one:
 
-#### `'` Operator 
+| Prefix Partial Application Syntax | | Core Syntax |
+| -------- | -------- | --------- |
+| `+(C)` | $\equiv$ | `_,C : *` |
+| `-(C)` | $\equiv$ | `_,C : -` |
+| `<(C)` | $\equiv$ | `_,C : <` |
+| `/(C)` | $\equiv$ | `_,C : /` |
+
+For commutative operations that doesn't matter. But for non-commutative ones, 
+it is more "natural" to fix the second argument.  We use divide by 2 (`/(2)`) 
+or rise to the cube (`^(3)`) more often than the other way around.
+
+Please note that this rule only applies to infix operators, not to other 
+primitives or functions. If you partially apply a regular function to a single 
+argument, it will correspond to the first parameter.
+
+**Example: Gain Controller**
+
+The following example demonstrates the use of partial application in the
+context of a gain controller:
+
+<!-- faust-run -->
+```
+gain = hslider("gain",0.5,0,1,0.01);
+process = *(gain);
+```
+<!-- /faust-run -->
+
+### `'` Time Expression
+
+`'` is used to express a one sample delay. For example:
+
+<!-- faust-run -->
+```
+process = _';
+```
+<!-- /faust-run -->
+
+will delay the incoming signal by one sample. 
+
+`'` time expressions can be chained, so the output signal of this program:
+
+<!-- faust-run -->
+```
+process = 1'';
+```
+<!-- /faust-run -->
+
+will look like: $(0,0,1,1,1,1,\dots)$.
+
+The `'` time expression is useful when designing filters, etc. and is 
+equivalent to `@(1)` (see the [`@` Time Expression](#time-expression-1)).
+
+### `@` Time Expression
+
+`@` is used to express a delay with an arbitrary number of samples. For 
+example:
+
+<!-- faust-run -->
+```
+process = @(10);
+```
+<!-- /faust-run -->
+
+will delay the incoming signal by 10 samples. 
+
+A delay expressed with `@` doesn't have to be fixed but it must be positive 
+and bounded. Therefore, the values of a slider are perfectly acceptable:
+
+<!-- faust-run -->
+```
+process = @(hslider("delay",0,0,100,1));
+```
+<!-- /faust-run -->
+
+`@` only allows for the implementation of integer delay. Thus, various 
+fractional delay algorithms are implemented in [the Faust libraries](TODO).
 
 ### Environment Expressions
 
-#### `with`
+Faust is a lexically scoped language. The meaning of a Faust expression is 
+determined by its context of definition (its lexical environment) and not by 
+its context of use. 
 
-#### `letrec`
+To keep their original meaning, Faust expressions are bounded to their lexical 
+environment in structures called *closures*. The following constructions allow 
+to explicitly create and access such environments. Moreover they provide 
+powerful means to reuse existing code and promote modular design.
 
-#### `environment`
+<img src="img/envexp.svg" class="mx-auto d-block">
 
-#### Access
+#### `with` Expression
 
-#### `library`
+The `with` construction allows to specify a *local environment*: a private list 
+of definition that will be used to evaluate the left hand expression.
+
+In the following example :
+
+<!-- faust-run -->
+```
+pink = f : + ~ g 
+with {
+  f(x) = 0.04957526213389*x - 0.06305581334498*x' + 0.01483220320740*x'';
+	g(x) = 1.80116083982126*x - 0.80257737639225*x';
+};
+process = pink;
+```
+<!-- /faust-run -->
+
+the definitions of `f(x)` and `g(x)` are local to `f : + ~ g`.
+
+Please note that `with` is left associative and has the lowest priority:
+
+* `f : + ~ g with {...}` is equivalent to `(f : + ~ g)  with {...}`. 
+* `f : + ~ g with {...} with {...}` is equivalent to 
+`((f : + ~ g)  with {...})  with {...}`. 
+
+#### `letrec` Expression
+
+The `letrec` construction is somehow similar to [`with`](#with-expression), but 
+for difference equations instead of regular definitions. It allows us to easily 
+express groups of mutually recursive signals, for example:
+
+$$
+x(t) = y(t-1) + 10\\
+y(t) = x(t-1) - 1
+$$
+
+as `E letrec { 'x = y+10; 'y = x-1; }`	
+
+The syntax is defined by the following rules:
+
+<img src="img/letrec.svg" class="mx-auto d-block">
+
+Note the special notation `'x = y + 10` instead of `x = y' + 10`. It makes 
+syntactically impossible to write non-sensical equations like `x=x+1`.
+
+Here is a more involved example. Let say we want to define an envelope 
+generator with an attack and a release time (as a number of samples), and a 
+gate signal. A possible definition could be:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+ar(a,r,g) = v
+letrec {
+  'n = (n+1) * (g<=g');
+  'v = max(0, v + (n<a)/a - (n>=a)/r) * (g<=g');
+};
+gate = button("gate");
+process = os.osc(440)*ar(1000,1000,gate);
+```
+<!-- /faust-run -->
+
+With the following semantics for $n(t)$ and $v(t)$:
+
+$$
+n(t) = (n(t-1)+1) * (g(t) <= g(t-1))\\
+v(t) = max(0, v(t-1) + (n(t-1)<a(t))/a(t) - (n(t-1)>=a(t))/r(t)) * (g(t)<=g(t-1))
+$$
+
+#### `environment` Expression
+
+The `environment` construction allows to create an explicit environment. It is 
+like a [`with'](#with-expression), but without the left hand expression. It is a 
+convenient way to group together related definitions, to isolate groups of 
+definitions and to create a name space hierarchy. 
+
+<img src="img/environment.svg" class="mx-auto d-block">
+
+In the following example an `environment` construction is used to group 
+together some constant definitions :
+
+```
+constant = environment {
+  pi = 3.14159;
+  e = 2,718;
+	...
+};
+```
+
+The  [`.` construction](#access-expression) allows to access the definitions of an 
+environment (see next section).
+
+#### Access Expression
+
+Definitions inside an environment can be accessed using the `.` construction. 
+
+<img src="img/access.svg" class="mx-auto d-block">
+
+For example `constant.pi` refers to the definition of `pi` in the `constant` 
+environment [defined above](#environment-expression).
+
+Note that environments don't have to be named. We could have written directly: 
+
+```
+environment{pi = 3.14159; e = 2,718;....}.pi
+```
+
+#### `library` Expression
+
+The `library` construct allows to create an environment by reading the 
+definitions from a file.
+
+<img src="img/library.svg" class="mx-auto d-block">
+
+For example `library("filters.lib")` represents the 
+[environment](#environment-expression) obtained by reading the file 
+`filters.lib`. It works like [`import("miscfilter.lib")`](TODO) but all the 
+read definitions are stored in a new separate lexical environment. Individual 
+definitions can be accessed as described in the previous paragraph. For example 
+`library("filters.lib").lowpass` denotes the function `lowpass` as defined in 
+the file `miscfilter.lib`.
+
+To avoid name conflicts when importing libraries it is recommended to prefer 
+`library` to [`import`](TODO). So instead of :
+
+```
+import("filters.lib");
+  ...
+...lowpass....
+	...
+};
+```
+
+the following will ensure an absence of conflicts : 
+
+```
+fl = library("filters.lib");
+  ...
+...fl.lowpass....
+	...
+};
+```
+
+In practice, that's how the [`stdfaust.lib`](TODO) library works.
 
 <!-- TODO: import? -->
 
-#### `component`
+<!-- TODO: we should also show how this type of construction can be used to
+define function with variables with a predefined value, etc. -->
+
+#### `component` Expression
+
+The `component` construction allows us to reuse a full Faust program (e.g., a 
+`.dsp` file) as a simple expression.
+
+<img src="img/component.svg" class="mx-auto d-block">
+
+For example `component("freeverb.dsp")` denotes the signal processor defined 
+in file `freeverb.dsp`. 
+ 
+Components can be used within expressions like in: 
+ 
+```
+...component("karplus32.dsp") : component("freeverb.dsp")... 
+```
+  
+Please note that `component("freeverb.dsp")` is equivalent to
+`library("freeverb.dsp").process`.
+
+`component` works well in tandem with 
+[explicit substitution](#explicit-substitution) (see next section).
 
 #### Explicit Substitution
+
+Explicit substitution can be used to customize a component or any expression 
+with a lexical environment by replacing some of its internal definitions, 
+without having to modify it.
+
+<img src="img/explicitsubst.svg" class="mx-auto d-block">
+
+For example we can create a customized version of `component("freeverb.dsp")`, 
+with a different definition of `foo(x)`, by writing:
+
+```
+...component("freeverb.dsp")[foo(x) = ...;]...
+};
+```
 
 ### Foreign Expressions
 

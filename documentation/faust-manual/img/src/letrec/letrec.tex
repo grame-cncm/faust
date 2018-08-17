@@ -1,0 +1,19 @@
+\documentclass[11pt]{article}
+
+\usepackage{sectsty}
+\usepackage{graphicx}
+
+\usepackage{microtype}
+
+\usepackage{rail}
+\railoptions{-t -h}
+\pagenumbering{gobble}
+
+\begin{document}
+
+\begin{rail}
+	letrecexpression : expression 'letrec' lbrace (diffequation+) rbrace;
+diffequation :    kot ident '=' expression ';';  
+\end{rail}
+
+\end{document}
