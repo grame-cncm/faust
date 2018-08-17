@@ -25,10 +25,7 @@
 \begin{document}
 
 \begin{rail}
-diagiteration: "par" '(' ident ',' numiter ',' expression ')'
-           | "seq" '(' ident ',' numiter ',' expression ')'
-           | "sum" '(' ident ',' numiter ',' expression ')'
-           | "prod" '(' ident ',' numiter ',' expression ')';
+waveform : "waveform" lbrace (number + ',') rbrace;
 \end{rail}
 
 \end{document}

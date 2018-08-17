@@ -25,10 +25,10 @@
 \begin{document}
 
 \begin{rail}
-diagiteration: "par" '(' ident ',' numiter ',' expression ')'
-           | "seq" '(' ident ',' numiter ',' expression ')'
-           | "sum" '(' ident ',' numiter ',' expression ')'
-           | "prod" '(' ident ',' numiter ',' expression ')';
-\end{rail}
+int : (|'+'|'-')(digit+) ;
+float : (|'+'|'-')( ((digit+)'.'(digit*)) | ((digit*) '.' (digit+)) )(|exponent);
+exponent : 'e'(|'+'|'-')(digit+);
+digit : "0--9";
+\end{rail} 
 
 \end{document}

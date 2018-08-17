@@ -175,7 +175,12 @@
 <li><a href="#pattern-matching">Pattern Matching</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#primitives">Primitives</a></li>
+<li><a href="#primitives">Primitives</a><ul>
+<li><a href="#numbers">Numbers</a></li>
+<li><a href="#the-waveform-primitive">The <code>waveform</code> Primitive</a></li>
+<li><a href="#the-soundfile-primitive">The <code>soundfile</code> Primitive</a></li>
+<li><a href="#c-equivalent-primitives">C-Equivalent Primitives</a></li>
+</ul></li>
 </ul></li>
 <li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
 <li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
@@ -974,17 +979,120 @@ define function with variables with a predefined value, etc. -->
 <pre><code>...component(&quot;freeverb.dsp&quot;)[foo(x) = ...;]...
 };</code></pre>
 <h3 id="foreign-expressions">Foreign Expressions</h3>
+<p>Reference to external C <em>functions</em>, <em>variables</em> and <em>constants</em> can be introduced using the <em>foreign function</em> mechanism.</p>
+<p><img src="img/foreignexp.svg" class="mx-auto d-block"></p>
+<!-- TODO something needs to be said about the fact that this is a C++ thing -->
 <h4 id="ffunction"><code>ffunction</code></h4>
+<p>An external C function is declared by indicating its name and signature as well as the required include file. The file <code>maths.lib</code> of the Faust distribution contains several foreign function definitions, for example <a href="TODO">the inverse hyperbolic sine function <code>asinh</code></a>:</p>
+<pre><code>asinh = ffunction(float asinh (float), &lt;math.h&gt;, &quot;&quot;);</code></pre>
+<!-- TODO: what happens for other languages than C? -->
+<p>Foreign functions with input parameters are considered pure math functions. They are therefore considered free of side effects and called only when their parameters change (that is at the rate of the fastest parameter).</p>
+<p>Exceptions are functions with no input parameters. A typical example is the C <code>rand()</code> function. In this case, the compiler generates code to call the function at sample rate.</p>
 <h4 id="signature">Signature</h4>
+<p>The signature part (<code>float asinh (float)</code> in the example presented in <a href="#ffunction">the previous section</a>) describes the prototype of the C function: return type, function name, and list of parameter types. Because the name of the foreign function can possibly depend on the floating point precision in use (float, double and quad), it is possible to give a different function name for each floating point precision using a signature with up to three function names.</p>
+<p><img src="img/signature.svg" class="mx-auto d-block"></p>
+<p>For example in the declaration:</p>
+<pre><code>asinh = ffunction(float asinhf|asinh|asinhl (float), &lt;math.h&gt;, &quot;&quot;);</code></pre>
+<p>the signature <code>float asinhf|asinh|asinhl (float)</code> indicates to use the function name <code>asinhf</code> in single precision, <code>asinh</code> in double precision and <code>asinhl</code> in long double (quad) precision.</p>
 <h4 id="types">Types</h4>
+<p>Only numerical functions involving simple <code>int</code> and <code>float</code> parameters are allowed currently in Faust. No vectors, tables or data structures can be passed as parameters or returned.</p>
 <h4 id="variables-and-constants">Variables and Constants</h4>
+<p>External variables and constants can also be declared with a similar syntax. In the same <code>maths.lib</code> file, the definition of the sampling rate constant <a href="TODO"><code>SR</code></a> and the definition of the block-size variable <a href="TODO"><code>BS</code></a> can be found:</p>
+<pre><code>SR = min(192000.0,max(1.0,fconstant(int fSamplingFreq, &lt;math.h&gt;)));
+BS = fvariable(int count, &lt;math.h&gt;);</code></pre>
+<p>Foreign constants are not supposed to vary. Therefore expressions involving only foreign constants are only computed once, during the initialization period.</p>
+<p>Variable are considered to vary at block speed. This means that expressions depending of external variables are computed every block.</p>
 <h4 id="file-include">File Include</h4>
+<p>In declaring foreign functions one has also to specify the include file. It allows the Faust compiler to add the corresponding <code>#include</code> in the generated code.</p>
+<p><img src="img/includefile.svg" class="mx-auto d-block"></p>
 <h4 id="library-file">Library File</h4>
+<p>In declaring foreign functions one can possibly specify the library where the actual code is located. It allows the Faust compiler to (possibly) automatically link the library. Note that this feature is only used with the <a href="TODO">LLVM backend in ‘libfaust’ dynamic library model</a>.</p>
+<!-- TODO I feel like more could be said here -->
 <h3 id="applications-and-abstractions">Applications and Abstractions</h3>
+<p><em>Abstractions</em> and <em>applications</em> are fundamental programming constructions directly inspired by Lambda-Calculus. These constructions provide powerful ways to describe and transform block-diagrams algorithmically.</p>
+<p><img src="img/abstraction.svg" class="mx-auto d-block"></p>
 <h4 id="abstractions">Abstractions</h4>
+<p>Abstractions correspond to functions definitions and allow to generalize a block-diagram by <code>making variable</code> some of its parts.</p>
+<p>Let’s say we want to transform a stereo reverb, <a href="TODO"><code>dm.zita_light</code></a> for instance, into a mono effect. The following expression can be written (see the sections on <a href="#split-composition">Split Composition</a> and <a href="#merge-composition">Merge Composition</a>):</p>
+<pre><code>_ &lt;: dm.zita_light :&gt; _ </code></pre>
+<p>The incoming mono signal is split to feed the two input channels of the reverb, while the two output channels of the reverb are mixed together to produce the resulting mono output.</p>
+<p>Imagine now that we are interested in transforming other stereo effects. We could generalize this principle by making <code>zita_light</code> a variable:</p>
+<pre><code>\(zita_light).(_ &lt;: zita_light :&gt; _)</code></pre>
+<p>The resulting abstraction can then be applied to transform other effects. Note that if <code>zita_light</code> is a perfectly valid variable name, a more neutral name would probably be easier to read like:</p>
+<pre><code>\(fx).(_ &lt;: fx :&gt; _)</code></pre>
+<p>A name can be given to the abstraction and in turn use it on <code>dm.zita_light</code>:</p>
+<div class="faust-run"><a href="img/src/exfaust33/exfaust33-svg/process.svg" target="_blank"><img src="img/src/exfaust33/exfaust33-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+mono = \(fx).(_ &lt;: fx :&gt; _);
+process = mono(dm.zita_light);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust33/exfaust33.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Or even use a more traditional, but equivalent, notation:</p>
+<pre><code>mono(fx) = _ &lt;: fx :&gt; _;</code></pre>
 <h4 id="applications">Applications</h4>
+<p>Applications correspond to function calls and allow to replace the variable parts of an abstraction with the specified arguments.</p>
+<p><img src="img/application.svg" class="mx-auto d-block"></p>
+<p>For example, the abstraction described in <a href="#abstractions">the previous section</a> can be used to transform a stereo reverb:</p>
+<pre><code>mono(dm.zita_light)</code></pre>
+<p>The compiler will start by replacing <code>mono</code> by its definition:</p>
+<pre><code>\(fx).(_ &lt;: fx :&gt; _)(dm.zita_light)</code></pre>
+<blockquote>
+<p>Replacing the <em>variable part</em> with the argument is called beta-reduction in Lambda-Calculus</p>
+</blockquote>
+<p>Whenever the Faust compiler find an application of an abstraction it replaces the <em>variable part</em> with the argument. The resulting expression is as expected:</p>
+<pre><code>(_ &lt;: dm.zita_light :&gt; _)</code></pre>
 <h4 id="pattern-matching">Pattern Matching</h4>
+<p>Pattern matching rules provide an effective way to analyze and transform block-diagrams algorithmically.</p>
+<p><img src="img/patternabstraction.svg" class="mx-auto d-block"></p>
+<p>For example <code>case{ (x:y) =&gt; y:x; (x) =&gt; x; }</code> contains two rules. The first one will match a sequential expression and invert the two part. The second one will match all remaining expressions and leave it untouched. Therefore the application:</p>
+<pre><code>case{(x:y) =&gt; y:x; (x) =&gt; x;}(reverb : harmonizer)</code></pre>
+<p>will produce:</p>
+<pre><code>harmonizer : freeverb</code></pre>
+<p>Please note that patterns are evaluated before the pattern matching operation. Therefore only variables that appear free in the pattern are binding variables during pattern matching.</p>
+<!-- TODO: I think we need a better example here: that's a bit weak. We should
+wait to see if it appears somewhere else... Also, I think there are some stuff
+missing here. -->
 <h2 id="primitives">Primitives</h2>
+<p>The primitive signal processing operations represent the built-in functionalities of Faust, that is the atomic operations on signals provided by the language. All these primitives denote <em>signal processors</em>, in other words, functions transforming <em>input signals</em> into <em>output signals</em>.</p>
+<!-- TODO: Diagram was removed here since everything is listed below: may be
+we should put a table summarizing everything. -->
+<h3 id="numbers">Numbers</h3>
+<p>Faust considers two types of numbers: <em>integers</em> and <em>floats</em>. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double, or extended precision depending of the compiler options. Floats are available in decimal or scientific notation.</p>
+<p><img src="img/numbers.svg" class="mx-auto d-block"></p>
+<p>Like any other Faust expression, numbers are signal processors. For example the number 0.95 is a signal processor of type <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span> that transforms an empty tuple of signals <span class="math inline">\(()\)</span> into a 1-tuple of signals <span class="math inline">\((y)\)</span> such that <span class="math inline">\(\forall t\in\mathbb{N}, y(t)=0.95\)</span>.</p>
+<h3 id="the-waveform-primitive">The <code>waveform</code> Primitive</h3>
+<p>The waveform primitive was designed to facilitate the use of <a href="#rdtable"><code>rdtable</code></a> (read table). It allows us to specify a fixed periodic signal as a list of samples.</p>
+<p><code>waveform</code> has two outputs:</p>
+<ul>
+<li>a constant and indicating the size (as a number of samples) of the period,</li>
+<li>the periodic signal itself.</li>
+</ul>
+<p><img src="img/waveform.svg" class="mx-auto d-block"></p>
+<p>For example <code>waveform{0,1,2,3}</code> produces two outputs: the constant signal 4 and the periodic signal <span class="math inline">\((0,1,2,3,0,1,2,3,0,1,\dots)\)</span>.</p>
+<p>In the following example:</p>
+<div class="faust-run"><a href="img/src/exfaust34/exfaust34-svg/process.svg" target="_blank"><img src="img/src/exfaust34/exfaust34-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
+triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
+f = hslider(&quot;freq&quot;,440,50,2000,0.01);
+process = triangleOsc(f);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust34/exfaust34.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><code>waveform</code> is used to define a triangle waveform (in its most primitive form), which is then used with a <a href="#rdtable"><code>rdtable</code></a> controlled by a phasor to implement a triangle wave oscillator. Note that the quality of this oscillator is very low because of the low resolution of the triangle waveform.</p>
+<h3 id="the-soundfile-primitive">The <code>soundfile</code> Primitive</h3>
+<!-- -->
+<p>The <code>soundfile(&quot;label[url:path]&quot;, n)</code> primitive allows for the access of externally defined sound file/resource. <code>soundfile</code> has one input (the read index in the sound), three fixed outputs:</p>
+<ul>
+<li>the audio wave length in frames</li>
+<li>the audio wave nominal sample rate</li>
+<li>the audio wave number of channels</li>
+</ul>
+<p>and several more outputs for the audio channels themselves.</p>
+<p>If more outputs than the actual number of channels in the sound file are used, the audio channels will be automatically duplicated up to the wanted number of outputs (so for instance, if a stereo file is used with four output channels, the same group of two channels will be duplicated).</p>
+<p>If the sound file cannot be loaded for whatever reason, a default sound with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that sound files are entirely loaded in memory by the architecture file.</p>
+<p>Architecture files are responsible to load the actual soundfile. The <code>SoundUI</code> C++ class located in the <code>faust/gui/SoundUI.h</code> file in the <a href="https://github.com/grame-cncm/faust">Faust repository</a> implements the <code>void  addSoundfile(label, path, sf_zone)</code> method, which loads the actual soundfiles using the <code>libsndfile</code> library, and set up the <code>sf_zone</code> sound memory pointers. If <em>label</em> is used without any <em>url</em> metadata, it will be considered as the soundfile pathname.</p>
+<p>Note that a special architecture file can well decide to access and use sound resources created by another means (that is, not directly loaded from a sound file). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge of actually setting up all sound memory pointers when <code>void  addSoundfile(label, path, sf_zone)</code> is called by the <code>buidUserInterface</code> mechanism.</p>
+<!-- TODO: we need some working example here -->
+<h3 id="c-equivalent-primitives">C-Equivalent Primitives</h3>
+<!-- {#something} -->
 <h1 id="using-the-faust-compiler">Using the Faust Compiler</h1>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>

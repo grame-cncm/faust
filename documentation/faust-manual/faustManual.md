@@ -1456,30 +1456,343 @@ with a different definition of `foo(x)`, by writing:
 
 ### Foreign Expressions
 
+Reference to external C *functions*, *variables* and *constants* can be 
+introduced using the *foreign function* mechanism.
+
+<img src="img/foreignexp.svg" class="mx-auto d-block">
+
+<!-- TODO something needs to be said about the fact that this is a C++ thing -->
+
 #### `ffunction`
+
+An external C function is declared by indicating its name and signature as well 
+as the required include file. The file `maths.lib` of the Faust distribution 
+contains several foreign function definitions, for example 
+[the inverse hyperbolic sine function `asinh`](TODO):
+
+```
+asinh = ffunction(float asinh (float), <math.h>, "");
+```
+
+<!-- TODO: what happens for other languages than C? -->
+
+Foreign functions with input parameters are considered pure math functions. 
+They are therefore considered free of side effects and called only when their 
+parameters change (that is at the rate of the fastest parameter). 
+
+Exceptions are functions with no input parameters. A typical example is the C 
+`rand()` function. In this case, the compiler generates code to call the 
+function at sample rate.
 
 #### Signature
 
+The signature part (`float asinh (float)` in the example presented in 
+[the previous section](#ffunction)) describes the prototype of the C function: 
+return type, function name, and list of parameter types. Because the name of 
+the foreign function can possibly depend on the floating point precision in 
+use (float, double and quad), it is possible to give a different function name 
+for each floating point precision using a signature with up to three function 
+names. 
+
+<img src="img/signature.svg" class="mx-auto d-block">
+
+For example in the declaration: 
+
+```
+asinh = ffunction(float asinhf|asinh|asinhl (float), <math.h>, "");
+```
+
+the signature `float asinhf|asinh|asinhl (float)` indicates to use the 
+function name `asinhf` in single precision, `asinh` in double precision and 
+`asinhl` in long double (quad) precision.
+
 #### Types
+
+Only numerical functions involving simple `int` and `float` parameters are 
+allowed currently in Faust. No vectors, tables or data structures can be passed 
+as parameters or returned.
 
 #### Variables and Constants
 
+External variables and constants can also be declared with a similar syntax. In 
+the same `maths.lib` file, the definition of the sampling rate constant 
+[`SR`](TODO) and the definition of the block-size variable [`BS`](TODO) can be 
+found:
+
+```
+SR = min(192000.0,max(1.0,fconstant(int fSamplingFreq, <math.h>)));
+BS = fvariable(int count, <math.h>);
+```
+
+Foreign constants are not supposed to vary. Therefore expressions involving 
+only foreign constants are only computed once, during the initialization period. 
+
+Variable are considered to vary at block speed. This means that expressions 
+depending of external variables are computed every block.
+
 #### File Include
+
+In declaring foreign functions one has also to specify the include file. It 
+allows the Faust compiler to add the corresponding `#include` in the generated 
+code.
+
+<img src="img/includefile.svg" class="mx-auto d-block">
 
 #### Library File
 
+In declaring foreign functions one can possibly specify the library where the 
+actual code is located. It allows the Faust compiler to (possibly) 
+automatically link the library. Note that this feature is only used with the 
+[LLVM backend in 'libfaust' dynamic library model](TODO).
+
+<!-- TODO I feel like more could be said here -->
+
 ### Applications and Abstractions
 
-#### Abstractions 
+*Abstractions* and *applications* are fundamental programming constructions 
+directly inspired by Lambda-Calculus. These constructions provide powerful 
+ways to describe and transform block-diagrams algorithmically.
+
+<img src="img/abstraction.svg" class="mx-auto d-block">
+
+#### Abstractions
+
+Abstractions correspond to functions definitions and allow to generalize a 
+block-diagram by `making variable` some of its parts. 
+
+Let's say we want to transform a stereo reverb, [`dm.zita_light`](TODO) for 
+instance, into a mono effect. The following expression can be written 
+(see the sections on [Split Composition](#split-composition) and 
+[Merge Composition](#merge-composition)): 
+
+```
+_ <: dm.zita_light :> _ 
+```
+
+The incoming mono signal is split to feed the two input channels of the reverb, 
+while the two output channels of the reverb are mixed together to produce the 
+resulting mono output.
+
+Imagine now that we are interested in transforming other stereo effects. We 
+could generalize this principle by making `zita_light` a variable: 
+
+```
+\(zita_light).(_ <: zita_light :> _)
+```
+
+The resulting abstraction can then be applied to transform other effects. Note 
+that if `zita_light` is a perfectly valid variable name, a more neutral name 
+would probably be easier to read like:
+
+```
+\(fx).(_ <: fx :> _)
+```
+ 
+A name can be given to the abstraction and in turn use it on `dm.zita_light`:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+mono = \(fx).(_ <: fx :> _);
+process = mono(dm.zita_light);
+```
+<!-- /faust-run -->
+
+Or even use a more traditional, but equivalent, notation:
+
+```
+mono(fx) = _ <: fx :> _;
+``` 
 
 #### Applications
 
+Applications correspond to function calls and allow to replace the variable 
+parts of an abstraction with the specified arguments.
+
+<img src="img/application.svg" class="mx-auto d-block">
+
+For example, the abstraction described in [the previous section](#abstractions) 
+can be used to transform a stereo reverb:
+
+```
+mono(dm.zita_light)
+```
+
+The compiler will start by replacing `mono` by its definition:
+
+```
+\(fx).(_ <: fx :> _)(dm.zita_light)
+```
+
+> Replacing the *variable part* with the argument is called beta-reduction in 
+Lambda-Calculus
+
+Whenever the Faust compiler find an application of an abstraction it replaces 
+the *variable part* with the argument. The resulting expression is as expected:
+
+```
+(_ <: dm.zita_light :> _)
+```
+
 #### Pattern Matching
 
+Pattern matching rules provide an effective way to analyze and transform 
+block-diagrams algorithmically.
+
+<img src="img/patternabstraction.svg" class="mx-auto d-block">
+
+For example `case{ (x:y) => y:x; (x) => x; }` contains two rules. The first 
+one will match a sequential expression and invert the two part. The second one 
+will match all remaining expressions and leave it untouched. Therefore the 
+application:
+
+```
+case{(x:y) => y:x; (x) => x;}(reverb : harmonizer)
+```
+
+will produce:
+
+```
+harmonizer : freeverb
+```
+
+Please note that patterns are evaluated before the pattern matching operation. 
+Therefore only variables that appear free in the pattern are binding variables 
+during pattern matching. 
+
+<!-- TODO: I think we need a better example here: that's a bit weak. We should
+wait to see if it appears somewhere else... Also, I think there are some stuff
+missing here. -->
+
 ## Primitives
+
+The primitive signal processing operations represent the built-in 
+functionalities of Faust, that is the atomic operations on signals provided by 
+the language. All these primitives denote *signal processors*, in other words, 
+functions transforming *input signals* into *output signals*.
+
+<!-- TODO: Diagram was removed here since everything is listed below: may be
+we should put a table summarizing everything. --> 
+
+### Numbers
+
+Faust considers two types of numbers: *integers* and *floats*. Integers are 
+implemented as 32-bits integers, and floats are implemented either with a 
+simple, double, or extended precision depending of the compiler options. 
+Floats are available in decimal or scientific notation. 
+
+<img src="img/numbers.svg" class="mx-auto d-block">
+
+Like any other Faust expression, numbers are signal processors. For example the 
+number 0.95 is a signal processor of type 
+$\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ that transforms an empty tuple of 
+signals $()$ into a 1-tuple of signals $(y)$ such that 
+$\forall t\in\mathbb{N}, y(t)=0.95$.
+
+### The `waveform` Primitive
+
+The waveform primitive was designed to facilitate the use of 
+[`rdtable`](#rdtable) (read table). It allows us to specify a fixed periodic 
+signal as a list of samples. 
+
+`waveform` has two outputs:
+
+* a constant and indicating the size (as a number of samples) of the period, 
+* the periodic signal itself. 
+
+<img src="img/waveform.svg" class="mx-auto d-block">
+
+For example `waveform{0,1,2,3}` produces two outputs: the constant signal 4 
+and the periodic signal $(0,1,2,3,0,1,2,3,0,1,\dots)$. 
+
+In the following example:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
+triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
+f = hslider("freq",440,50,2000,0.01);
+process = triangleOsc(f);
+```
+<!-- /faust-run -->			
+
+`waveform` is used to define a triangle waveform (in its most primitive form),
+which is then used with a [`rdtable`](#rdtable) controlled by a phasor to
+implement a triangle wave oscillator. Note that the quality of this oscillator
+is very low because of the low resolution of the triangle waveform.
+
+### The `soundfile` Primitive
+
+<!-- -->
+
+The `soundfile("label[url:path]", n)` primitive allows for the access of 
+externally defined sound file/resource. `soundfile` has one input (the read 
+index in the sound), three fixed outputs: 
+
+* the audio wave length in frames
+* the audio wave nominal sample rate
+* the audio wave number of channels
+
+and several more outputs for the audio channels themselves. 
+
+If more outputs than the actual number of channels in the sound file are used, 
+the audio channels will be automatically duplicated up to the wanted number of 
+outputs (so for instance, if a stereo file is used with four output channels, 
+the same group of two channels will be duplicated).
+
+If the sound file cannot be loaded for whatever reason, a default sound with 
+one channel, a length of 1024 frames and null outputs (with samples of value 
+0) will be used. Note also that sound files are entirely loaded in memory by 
+the architecture file.
+
+Architecture files are responsible to load the actual soundfile. The 
+`SoundUI` C++ class located in the `faust/gui/SoundUI.h` file in the 
+[Faust repository](https://github.com/grame-cncm/faust) implements the 
+`void  addSoundfile(label, path, sf_zone)` method, which loads the actual 
+soundfiles using the `libsndfile` library, and set up the `sf_zone` sound 
+memory pointers. If *label* is used without any *url* metadata, it will be 
+considered as the soundfile pathname. 
+
+Note that a special architecture file can well decide to access and use 
+sound resources created by another means (that is, not directly loaded from a 
+sound file). For instance a mapping between labels and sound resources defined 
+in memory could be used, with some additional code in charge of actually 
+setting up all sound memory pointers when 
+`void  addSoundfile(label, path, sf_zone)` is called by the `buidUserInterface` 
+mechanism.
+
+<!-- TODO: we need some working example here -->
+
+### C-Equivalent Primitives
+
+<!-- TODO: {#something}. Also we need to specify the usage of functions in
+a better way -->
 
 # Using the Faust Compiler
 
 # A Quick Tour of the Faust Targets
 
 # Mathematical Documentation
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -25,10 +25,9 @@
 \begin{document}
 
 \begin{rail}
-diagiteration: "par" '(' ident ',' numiter ',' expression ')'
-           | "seq" '(' ident ',' numiter ',' expression ')'
-           | "sum" '(' ident ',' numiter ',' expression ')'
-           | "prod" '(' ident ',' numiter ',' expression ')';
+abstraction : lambdaabstraction | patternabstraction; 
+ 
+lambdaabstraction :  backslash '(' (ident + ',') ')' '.' '(' expression ')';
 \end{rail}
 
 \end{document}
