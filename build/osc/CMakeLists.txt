@@ -54,7 +54,7 @@ set( INCLUDE
 	${FAUSTOSC}/threads  
 	${OSC}/..)
 
-if (WIN32)
+if (WIN32 OR MSYS)
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/win32/*.cpp ${OSC}/faust/src/threads/winthreads_impl.cpp)
 else()
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/posix/*.cpp ${OSC}/faust/src/threads/pthreads_impl.cpp)
@@ -74,7 +74,7 @@ if (NOT IOS AND OSCDYNAMIC)
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} oscdynamic)
 
-	if (WIN32) 
+	if (WIN32 OR MSYS) 
 		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 		target_link_libraries(oscdynamic ws2_32 winmm)
 	else()
@@ -100,7 +100,7 @@ if (IOS)
 	target_compile_definitions (oscstatic PRIVATE -DOSC_HOST_LITTLE_ENDIAN=1)
 
 else()
-	if (WIN32) 
+	if (WIN32 OR MSYS) 
 		if (MSVC)
 			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
 		else()

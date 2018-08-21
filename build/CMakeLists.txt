@@ -214,16 +214,15 @@ if(APPLE)
 			set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD_UNIVERSAL)
 		endif()
 	endif()
-elseif(WIN32)
+elseif(WIN32 OR MSYS)
 	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
-	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32.lib)
+	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32) #.lib)
 else()
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
-
 
 ####################################
 # compiler dependent settings
@@ -261,6 +260,8 @@ endmacro()
 ####################################
 # Add the different targets
 ####################################
+message ("FAUST_LIBS : ${FAUST_LIBS}")
+
 if (INCLUDE_EXECUTABLE)
 	add_executable(faust ${SRC} ${HH})
 	target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
@@ -283,7 +284,7 @@ if (INCLUDE_STATIC)
 		LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	if (WIN32)
+	if (WIN32 OR MSYS)
 		if (MSVC)
 			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
 		else()
@@ -308,7 +309,7 @@ if (INCLUDE_DYNAMIC)
 	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
-	if (WIN32)
+	if (WIN32 OR MSYS)
 		enable_language(RC)
 		set_target_properties(dynamiclib PROPERTIES
 			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
