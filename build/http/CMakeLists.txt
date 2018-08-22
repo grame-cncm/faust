@@ -122,7 +122,7 @@ if ( WIN32 OR MSYS )
 	if (MSVC)
 		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ws2_32" )
 	else()
-		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} -lws2_32" )
+		set (LIBMICROHTTPD__LDFLAGS "-lws2_32 ${LIBMICROHTTPD__LDFLAGS}" )
 	endif()
 endif()
 
@@ -150,19 +150,16 @@ endif()
 if (HTTPDYNAMIC)
 	add_library( httpdynamic SHARED  ${SRC})
 	target_include_directories (httpdynamic PRIVATE ${INCLUDE} )
+	set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 	set_target_properties(httpdynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} httpdynamic)
 	if (WIN32 AND MSVC) 
 		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
-		set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
 	else()
-		set_target_properties(httpdynamic PROPERTIES 
-			OUTPUT_NAME ${TARGET}
-			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
-			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
+		target_link_libraries(httpdynamic ${LIBMICROHTTPD__LDFLAGS})
 	endif()
 
 endif()
