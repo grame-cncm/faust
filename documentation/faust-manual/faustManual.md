@@ -1766,8 +1766,80 @@ mechanism.
 
 ### C-Equivalent Primitives
 
+Most Faust primitives are analogous to their C counterpart but adapted to 
+signal processing. For example `+` is a function of type 
+$\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ that transforms a pair of 
+signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ such that 
+$\forall t\in\mathbb{N}, y(t)=x_{1}(t)+x_{2}(t)$. `+` can be used to 
+very simply implement a mixer: 
+
+<!-- faust-run -->
+```
+process = +;
+```
+<!-- /faust-run -->	
+
+Note that this is equivalent to:
+
+<!-- faust-run -->
+```
+process = _+_;
+```
+<!-- /faust-run -->		
+
+The function `-` has type $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ and 
+transforms a pair of signals $(x_1,x_2)$ into a 1-tuple of signals $(y)$ 
+such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)-x_{2}(t)$. 
+
+**Be aware that** the unary `-` only exists in a limited form. It can be used 
+with numbers: `-0.5` and variables: `-myvar`, but not with expressions 
+surrounded by parenthesis, because in this case it represents a partial 
+application.  For instance,  `-(a * b)` is a partial application. It is 
+syntactic sugar for `_,(a * b) : -`. If you want to negate a complex 
+term in parenthesis, you'll have to use `0 - (a * b)` instead.
+
+<!-- TODO: need to make sure that the identify function and the exclamation
+are properly documented/mentioned somewhere and demonstrated -->
+
+| Syntax | Type | Description |
+| ------ | ---- | ----------- |
+| $n$    | $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ | Integer number: $y(t)=n$ |
+| $n.m$  | $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ | Floating point number: $y(t)=n.m$ |
+
+<!--
+\texttt{\_} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & identity function: $y(t)=x(t)$ \\
+\texttt{!} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{0}$ & cut function: $\forall x\in\mathbb{S},(x)\rightarrow ()$\\
+
+\texttt{int} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an int signal: $y(t)=(int)x(t)$  \\
+\texttt{float} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an float signal: $y(t)=(float)x(t)$  \\
+
+\texttt{+} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & addition: $y(t)=x_{1}(t)+x_{2}(t)$  \\
+\texttt{-} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & subtraction: $y(t)=x_{1}(t)-x_{2}(t)$   \\
+\texttt{*} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & multiplication: $y(t)=x_{1}(t)*x_{2}(t)$   \\
+\texttt{$\land$} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & power: $y(t)=x_{1}(t)^{x_{2}(t)}$   \\
+\texttt{/} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & division: $y(t)=x_{1}(t)/x_{2}(t)$   \\
+\texttt{\%} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & modulo: $y(t)=x_{1}(t)\%x_{2}(t)$   \\
+
+\texttt{\&} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical AND: $y(t)=x_{1}(t)\&x_{2}(t)$   \\
+\texttt{|} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical OR: $y(t)=x_{1}(t)|x_{2}(t)$   \\
+\texttt{xor} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical XOR: $y(t)=x_{1}(t)\land x_{2}(t)$   \\
+
+\texttt{<}\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift left: $y(t)=x_{1}(t) << x_{2}(t)$   \\
+\texttt{>}\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift right: $y(t)=x_{1}(t) >> x_{2}(t)$   \\
+
+
+\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less than: $y(t)=x_{1}(t) < x_{2}(t)$   \\
+\texttt{<=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less or equal: $y(t)=x_{1}(t) <= x_{2}(t)$   \\
+\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater than: $y(t)=x_{1}(t) > x_{2}(t)$   \\
+\texttt{>=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater or equal: $y(t)=x_{1}(t) >= x_{2}(t)$   \\
+\texttt{==} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & equal: $y(t)=x_{1}(t) == x_{2}(t)$   \\
+\texttt{!=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & different: $y(t)=x_{1}(t) != x_{2}(t)$   \\
+-->
+
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
+
+<!-- TODO give use examples after description here -->
 
 # Using the Faust Compiler
 
