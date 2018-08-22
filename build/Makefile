@@ -96,11 +96,11 @@ help:
 	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
 	@echo
 	@echo "Backends:"
-	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
+	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
 	@echo
 	@echo "Targets:"
-	@echo "  the targets included by default are described in the '$(TARGETS)' file"
+	@echo "  the targets currently included are described in the '$(TARGETS)' file"
 	@echo "  you can freely customize this file or use another file with the TARGETS option"
 	@echo
 	@echo "Project configuration targets:"
