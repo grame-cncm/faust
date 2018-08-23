@@ -51,13 +51,8 @@ You can have a look at the `Makefile` for examples of cmake invocations and at t
 
 ## Compiling on Windows
 #### Using MSYS2
-Use of the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed.
+Use of the `make` command assumes that you have [MSYS2](http://www.msys2.org/) installed with development tools. Read the MSYS2 [specific note](README-MSYS2.md).
 
-Building with [MSYS2](http://www.msys2.org/) has been successfully tested. It is recommended to install the following package using `packman`:
-> pacman -S mingw-w64-x86_64-gcc
-
-In this case, make sure to uninstall the previous gcc version first:
-> pacman -R gcc
 
 #### Using MSVC
 To compile using Visual Studio, you can configure manually your project using a commands prompt (e.g. Windows PowerShell):
