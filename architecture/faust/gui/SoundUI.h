@@ -111,6 +111,9 @@ class SoundUI : public GenericUI
                 }
             }
         #endif
+        #ifdef ANDROID_DRIVER
+            bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";
+        #endif
             return bundle_path_str;
         }
         
@@ -126,6 +129,9 @@ class SoundUI : public GenericUI
                     bundle_path_str = std::string((char*)bundle_path);
                 }
             }
+        #endif
+        #ifdef ANDROID_DRIVER
+            bundle_path_str = "/data/data/__CURRENT_ANDROID_PACKAGE__/files";
         #endif
             return bundle_path_str;
         }

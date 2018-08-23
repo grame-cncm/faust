@@ -28,6 +28,7 @@ SWIG=0
 FAUST=0
 KEYBOARD=0
 REUSE=0
+SOUNDFILE=0
 
 # PHASE 2 : dispatch command arguments
 for p in $@; do
@@ -38,6 +39,8 @@ for p in $@; do
 	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
+  elif [ $p = "-soundfile" ]; then
+    SOUNDFILE="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -59,6 +62,7 @@ for p in $@; do
 		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
 		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
 		echo "-reuse: keep build directory and reuse it to speedup compilation."
+    echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
 		echo "-debug: verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
@@ -146,7 +150,47 @@ mkdir $APPFOLDER/java/com/DspFaust
 cp $FAUSTLIB/api/android/jni/*.java $APPFOLDER/java/com/DspFaust
 
 # Compile the Faust code for the NDK
-faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
+faust $OPTIONS -i -json -a api/DspFaust.cpp "$FILE" -o "$JNIFOLDER/DspFaust.cpp" || exit
+
+# Add soundfile support if needed
+if [ $SOUNDFILE -eq 1 ]; then
+	cat $APPNAME.dsp.json | awk '
+									BEGIN { FS=":"; SOFI=0; }
+											/"soundfile"/ { SOFI=1; }
+											/"url"/ {
+											if (SOFI) {
+													match($2, /"[^"]*/);
+													print substr($2, RSTART+1, RLENGTH-1);
+													SOFI=0;
+											}
+									}
+							' > $APPNAME-tmp.txt
+	for snd in $(cat $APPNAME-tmp.txt); do
+			if [ -f $snd ]; then
+					if [ ${snd:0:1} = "/" ]; then
+							echo "Warning: soundfile with absolute path is not copied !"
+					else
+							#create destination path and possibly create directory
+							sfpath="$APPFOLDER/assets"
+							if ! [ -d $sfpath ]; then
+									echo "Create $sfpath"
+									mkdir $sfpath
+							fi
+							echo "Copy $snd in apk"
+							cp $snd $sfpath		
+					fi
+			else
+					echo "Error: file $snd not found !"
+			fi
+	done
+	sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
+	rm $APPNAME-tmp.txt
+else
+	rm $BUILDDIR/app/CMakeLists_sndfile.txt 
+	rm -r $BUILDDIR/app/lib # that's soooo dirty but that will do for now...
+fi
+rm $APPNAME.dsp.json
 
 # Run Gradle
 cd $BUILDDIR

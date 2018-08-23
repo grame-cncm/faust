@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.3"
+    compileSdkVersion 27
+    buildToolsVersion "27.0.3"
     defaultConfig {
         applicationId "com.faust"
         minSdkVersion 11
@@ -13,8 +13,15 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-O3 -fexceptions -frtti -lOpenSLES"
-                abiFilters 'x86', 'armeabi-v7a'
+                // abiFilters 'x86', 'armeabi-v7a'
+                abiFilters 'armeabi-v7a'
             }
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'lib/libsndfile/lib'
         }
     }
 

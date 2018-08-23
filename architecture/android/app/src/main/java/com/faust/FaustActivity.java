@@ -39,6 +39,7 @@ package com.faust;
 
 import com.DspFaust.DspFaust;
 
+import android.content.res.AssetManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -64,6 +65,12 @@ import android.util.Log;
 import android.net.wifi.WifiManager;
 
 import android.media.AudioManager;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class FaustActivity extends Activity {
     
@@ -135,7 +142,48 @@ public class FaustActivity extends Activity {
         Log.d("FaustJava", "onCreate");
         sensorIntervalMs = bufferSize/sampleRate*1000;
         
-        if (dspFaust == null) {
+        if (dspFaust == null) {          
+            // check if audio files were saved in internal storage
+            String[] internalStorageList = getFilesDir().list();
+            boolean fileWereCopied = false;
+            for(int i=0; i<internalStorageList.length; i++){
+                if(internalStorageList[i].contains(".aif") || internalStorageList[i].contains(".wav")) {
+                    fileWereCopied = true;
+                    break;
+                }
+            }
+
+            // if audio files were not saved in internal storage, then transfer them
+            if(!fileWereCopied) {
+                AssetManager assets = getAssets();
+                try {
+                    String[] assetsList = assets.list("");
+                    for (int i = 0; i < assetsList.length; i++) {
+                        if (assetsList[i].contains(".aif") || assetsList[i].contains(".wav")) {
+                            InputStream in = null;
+                            OutputStream out = null;
+                            in = assets.open(assetsList[i]);
+                            File outFile = new File(getFilesDir().getPath(), assetsList[i]);
+                            out = new FileOutputStream(outFile);
+
+                            // copy content
+                            byte[] buffer = new byte[1024];
+                            int read;
+                            while ((read = in.read(buffer)) != -1) {
+                                out.write(buffer, 0, read);
+                            }
+                            in.close();
+                            in = null;
+                            out.flush();
+                            out.close();
+                            out = null;
+                        }
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
 
             WifiManager wifi = (WifiManager)getSystemService(Context.WIFI_SERVICE);
             if (wifi != null) {
