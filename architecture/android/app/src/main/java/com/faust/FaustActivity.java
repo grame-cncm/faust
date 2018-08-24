@@ -147,7 +147,7 @@ public class FaustActivity extends Activity {
             String[] internalStorageList = getFilesDir().list();
             boolean fileWereCopied = false;
             for(int i=0; i<internalStorageList.length; i++){
-                if(internalStorageList[i].contains(".aif") || internalStorageList[i].contains(".wav")) {
+                if(internalStorageList[i].contains(".aif") || internalStorageList[i].contains(".wav") || internalStorageList[i].contains(".flac")) {
                     fileWereCopied = true;
                     break;
                 }
@@ -159,7 +159,7 @@ public class FaustActivity extends Activity {
                 try {
                     String[] assetsList = assets.list("");
                     for (int i = 0; i < assetsList.length; i++) {
-                        if (assetsList[i].contains(".aif") || assetsList[i].contains(".wav")) {
+                        if (assetsList[i].contains(".aif") || assetsList[i].contains(".wav") || internalStorageList[i].contains(".flac")) {
                             InputStream in = null;
                             OutputStream out = null;
                             in = assets.open(assetsList[i]);
