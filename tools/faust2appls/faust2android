@@ -183,7 +183,11 @@ if [ $SOUNDFILE -eq 1 ]; then
 					echo "Error: file $snd not found !"
 			fi
 	done
-	sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	if [ $PLATFORM = "Darwin" ]; then
+		sed -i '' 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	else
+		sed -i 's,__CURRENT_ANDROID_PACKAGE__,com.'$APPNAME',g' $APPFOLDER/cpp/DspFaust.cpp
+	fi
 	mv $BUILDDIR/app/CMakeLists_sndfile.txt $BUILDDIR/app/CMakeLists.txt
 	rm $APPNAME-tmp.txt
 else
