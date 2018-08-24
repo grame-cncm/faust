@@ -60,6 +60,18 @@ void OSCStream::stop()
 }
 
 //--------------------------------------------------------------------------
+// changing the transmission mode to/from osc bundle
+// it discards any pending osc message
+void OSCStream::setBundle(bool state)
+{
+	if (fBundle != state) {
+		fBundle = state;
+		stream().Clear();
+		fState = kIdle;
+	}
+}
+
+//--------------------------------------------------------------------------
 void OSCStream::setAddress(const string& address)
 {
 	IpEndpointName dst(address.c_str());
@@ -69,9 +81,13 @@ void OSCStream::setAddress(const string& address)
 //--------------------------------------------------------------------------
 OSCStream& OSCStream::start(const char* address)
 { 
-	stream().Clear();
-	if (!stream().IsReady()) cerr << "OSCStream OutboundPacketStream not ready" << endl;
-	stream() << osc::BeginMessage(address); 
+	if (fState == kIdle) {
+		stream().Clear();
+		if (!stream().IsReady()) cerr << "OSCStream OutboundPacketStream not ready" << endl;
+		if (bundleMode())
+			stream() << osc::BeginBundle();
+	}
+	stream() << osc::BeginMessage(address);
 	fState = kInProgress;
 	return *this;
 }
@@ -79,7 +95,21 @@ OSCStream& OSCStream::start(const char* address)
 //--------------------------------------------------------------------------
 OSCStream& OSCStream::end()
 {
-	send (fAddress, fPort);
+	if (state() == kInProgress) {
+		stream() << osc::EndMessage;
+		if (!bundleMode())
+			send (fAddress, fPort);
+	}
+	return *this;
+}
+
+//--------------------------------------------------------------------------
+OSCStream& OSCStream::endBundle()
+{
+	if (bundleMode() && (state() == kInProgress)) {
+		stream() << osc::EndBundle;
+		send (fAddress, fPort);
+	}
 	return *this;
 }
 
@@ -87,7 +117,6 @@ OSCStream& OSCStream::end()
 void OSCStream::send(unsigned long ipdest, int port)
 {
 	if (state() == kInProgress) {
-		stream() << osc::EndMessage;
 		if (fSocket) {
 			fSocket->SendTo(IpEndpointName (ipdest, port), stream().Data(), stream().Size());
         }

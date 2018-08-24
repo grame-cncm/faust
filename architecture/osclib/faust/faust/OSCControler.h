@@ -89,6 +89,7 @@ class OSCControler
 	   
 		//--------------------------------------------------------------------------
 		void run();				// starts the network services
+		void endBundle();		// when bundle mode is on, close and send the current bundle (if any)
 		void stop();			// stop the network services
 		
 		int	getUDPPort() const			{ return fUDPPort; }
@@ -112,6 +113,7 @@ class OSCControler
 		static const char* versionstr();	// the Faust OSC library version number as a string
 		static int gXmit;                   // a static variable to control the transmission of values
                                             // i.e. the use of the interface as a controler
+		static int gBundle;                 // a static variable to control the osc bundle mode
 };
 
 #define kNoXmit     0

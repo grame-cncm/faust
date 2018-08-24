@@ -59,7 +59,8 @@ class OSCStream
 	enum		{ kOutBufferSize = 16384 };
 	enum state	{ kIdle, kInProgress };
 	
-	state		fState;
+	state		fState;				// the stream state
+	bool		fBundle;			// a flag to activate bundle mode or not
 	int			fPort;				// the destination UDP port
 	unsigned long fAddress;			// the destination IP address
 	char		fBuffer[kOutBufferSize];
@@ -76,7 +77,7 @@ class OSCStream
 	static void stop();
 
         OSCStream(UdpSocket* socket) 
-            : fState(kIdle), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket) 
+            : fState(kIdle), fBundle(false), fPort(1024), fAddress(kLocalhost), fOutStream(fBuffer, kOutBufferSize), fSocket(socket)
         {
             fSocket->SetEnableBroadcast(true);
         } 
@@ -87,9 +88,12 @@ class OSCStream
 		unsigned long		getAddress() const			{ return fAddress; }
 		UdpSocket*			socket()					{ return fSocket; }
 		int					state()	const				{ return fState; }
-		
+		bool				bundleMode() const			{ return fBundle; }
+		void				setBundle(bool state);
+
 		OSCStream&			start(const char * address);
 		OSCStream&			end();
+		OSCStream&			endBundle();
 		void				send(unsigned long ipdest, int port);
 
 		void setPort(int port)							{ fPort = port; }

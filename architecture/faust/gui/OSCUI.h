@@ -161,12 +161,10 @@ class OSCUI : public GUI
         fCtrl->run();
         return true;
     }
-    
-    void stop()
-    {
-        fCtrl->stop(); 
-    }
-    
+	
+    void stop()			{ fCtrl->stop(); }
+    void endBundle() 	{ fCtrl->endBundle(); }
+
     const char* getRootName()		{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int getUDPOut()                 { return fCtrl->getUDPOut(); }
