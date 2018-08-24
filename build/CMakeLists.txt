@@ -260,8 +260,6 @@ endmacro()
 ####################################
 # Add the different targets
 ####################################
-message ("FAUST_LIBS : ${FAUST_LIBS}")
-
 if (INCLUDE_EXECUTABLE)
 	add_executable(faust ${SRC} ${HH})
 	target_compile_definitions (faust PRIVATE ${FAUST_DEFINITIONS})
