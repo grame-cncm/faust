@@ -158,8 +158,12 @@ if (HTTPDYNAMIC)
 	if (WIN32 AND MSVC) 
 		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
 		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
+	elseif(MSYS)
+		target_link_libraries (httpdynamic ${LIBMICROHTTPD__LDFLAGS})
 	else()
-		target_link_libraries(httpdynamic ${LIBMICROHTTPD__LDFLAGS})
+		set_target_properties (httpdynamic PROPERTIES 
+			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
+			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 	endif()
 
 endif()
