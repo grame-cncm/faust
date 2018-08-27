@@ -19,8 +19,6 @@
     that contains this FAUST architecture section and distribute
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
-
-
  ************************************************************************
  ************************************************************************/
 
@@ -1059,6 +1057,9 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
     // One MidiUI for each polyphonic DSP
     fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
     
+    // OSC
+    fOSCUI = NULL;
+    
     t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
     if (gDefaultColor.red == -1.) {
@@ -1091,7 +1092,10 @@ faustgen::~faustgen()
     
     // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
     delete fMidiUI;
-     
+   
+    // OSC
+    delete fOSCUI;
+    
     fDSPfactory->remove_instance(this);
 }
 
@@ -1285,7 +1289,51 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av) 
+// osc 'IP inport outport bundle'
+void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    if (ac == 4) {
+        if (fDSPfactory->lock()) {
+        
+            delete fOSCUI;
+            const char* argv1[32];
+            int argc1 = 0;
+            
+            argv1[argc1++] = "Faust";
+            argv1[argc1++] = "-xmit";
+            argv1[argc1++] = "1";
+            
+            argv1[argc1++]  = "-desthost";
+            argv1[argc1++]  = atom_getsym(&av[0])->s_name;
+        
+            char inport[32];
+            snprintf(inport, 32, "%ld", long(av[1].a_w.w_long));
+            argv1[argc1++] = "-port";
+            argv1[argc1++] = inport;
+            
+            char outport[32];
+            snprintf(outport, 32, "%ld", long(av[2].a_w.w_long));
+            argv1[argc1++] = "-outport";
+            argv1[argc1++] = outport;
+            
+            if (av[3].a_w.w_long == 1) {
+                argv1[argc1++] = "-bundle";
+                argv1[argc1++] = "1";
+            }
+            
+            fOSCUI = new OSCUI("Faust", argc1, (char**)argv1); 
+            fDSP->buildUserInterface(fOSCUI);
+            fOSCUI->run();
+            fDSPfactory->unlock();
+        } else {
+            post("Mutex lock cannot be taken...");
+        }
+    } else {
+        post("Should be : osc 'IP inport outport bundle(0/1)'");
+    }
+}
+
+void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac > 0) {
         int type = (int)av[0].a_w.w_long & 0xf0;
@@ -1404,6 +1452,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+            if (fOSCUI) fOSCUI->endBundle();
             update_outputs();
         }
         GUI::updateAllGuis();
@@ -1531,7 +1580,7 @@ void faustgen::create_dsp(bool init)
         fDSP = fDSPfactory->create_dsp_aux();
         assert(fDSP);
         
-        // Init all controllers (UI, MIDI, Soundfile)
+        // Init all controllers (UI, MIDI, Soundfile, OSC)
         init_controllers();
         
         // Initialize at the system's sampling rate
@@ -1695,6 +1744,9 @@ extern "C" void ext_main(void* r)
     
     // Process the "polyphony" message
     REGISTER_METHOD_GIMME(faustgen, polyphony);
+    
+    // Process the "osc" message
+    REGISTER_METHOD_GIMME(faustgen, osc);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

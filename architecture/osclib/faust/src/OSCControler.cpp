@@ -191,22 +191,26 @@ void OSCControler::run()
 
 		// and outputs a message on the osc output port
 		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
-				<< quote(rootnode->getName()).c_str() << "is running on UDP ports "
-				<<  fUDPPort << fUDPOut << fUPDErr;
+				<< quote(rootnode->getName()).c_str() << "is running on UDP ports"
+				<< fUDPPort << fUDPOut << fUPDErr;
+        if (gBundle) oscout << "with bundle mode";
         
         // and also on the standard output 
         cout << "Faust OSC version " << versionstr() << " application "
              << quote(rootnode->getName()).c_str() << " is running on UDP ports "
-             <<  fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
+             << fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
 		if (!fBindAddress.empty()) {
 			 cout << " - listening is bound to " << fBindAddress;
 			 oscout << "listening to" << fBindAddress;
 		}
+        if (gBundle) cout << ", with bundle mode";
 		cout << endl;
 
 		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
 		oscout << OSCEnd();
-	}
+    } else {
+        cerr << "Cannot start OSC controler\n";
+    }
 }
 
 //--------------------------------------------------------------------------

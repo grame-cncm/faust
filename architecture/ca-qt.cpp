@@ -58,6 +58,10 @@
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
+static void osc_compute_callback(void* arg)
+{
+    static_cast<OSCUI*>(arg)->endBundle();
+}
 #endif
 
 #ifdef HTTPCTRL
@@ -354,12 +358,6 @@ int main(int argc, char *argv[])
     std::cout << "HTTPD is on" << std::endl;
  #endif
 
-#ifdef OSCCTRL
-	OSCUI oscinterface(name, argc, argv);
-    DSP->buildUserInterface(&oscinterface);
-    std::cout << "OSC is on" << std::endl;
-#endif
-
 	coreaudio audio(srate, fpb);
 	audio.init(name, DSP);
 	finterface.recallState(rcfilename);
@@ -368,8 +366,15 @@ int main(int argc, char *argv[])
 	sensors.start();
 #endif
 	
-    printf("ins %d\n", audio.getNumInputs());
-    printf("outs %d\n", audio.getNumOutputs());
+#ifdef OSCCTRL
+    OSCUI oscinterface(name, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
+    std::cout << "OSC is on" << std::endl;
+    audio.setComputeCb(osc_compute_callback, &oscinterface);
+#endif
+    
+    std::cout << "ins " << audio.getNumInputs() << std::endl;
+    std::cout << "outs " << audio.getNumOutputs() << std::endl;
 
 #ifdef HTTPCTRL
 	httpdinterface.run();

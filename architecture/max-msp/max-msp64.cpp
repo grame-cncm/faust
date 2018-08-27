@@ -72,6 +72,11 @@
 #include "faust/dsp/dsp.h"
 #include "faust/misc.h"
 
+// Always included
+#include "faust/gui/OSCUI.h"
+#define OSC_IN_PORT     "5510"
+#define OSC_OUT_PORT    "5511"
+
 #ifdef POLY2
 #include "effect.cpp"
 #endif
@@ -113,7 +118,7 @@ using namespace std;
 #define ASSIST_INLET 	1  	/* should be defined somewhere ?? */
 #define ASSIST_OUTLET 	2	/* should be defined somewhere ?? */
 
-#define EXTERNAL_VERSION    "0.64"
+#define EXTERNAL_VERSION    "0.65"
 #define STR_SIZE            512
 
 #include "faust/gui/GUI.h"
@@ -189,6 +194,9 @@ typedef struct faust
 #ifdef SOUNDFILE
     SoundUI* m_soundInterface;
 #endif
+#ifdef OSCCTRL
+     OSCUI* m_oscInterface;
+#endif
 } t_faust;
 
 void* faust_class;
@@ -211,10 +219,10 @@ class mspUIObject {
 		mspUIObject(const string& label, FAUSTFLOAT* zone):fLabel(label),fZone(zone) {}
 		virtual ~mspUIObject() {}
 
-		virtual void setValue(FAUSTFLOAT f) {*fZone = range(0.0,1.0,f);}
+		virtual void setValue(FAUSTFLOAT f) { *fZone = range(0.0,1.0,f); }
         virtual FAUSTFLOAT getValue() { return *fZone; }
 		virtual void toString(char* buffer) {}
-		virtual string getName() {return fLabel;}
+		virtual string getName() { return fLabel; }
 };
 
 /*--------------------------------------------------------------------------*/
@@ -269,7 +277,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
 
-		void setValue(FAUSTFLOAT f) {*fZone = range(fMin,fMax,f);}
+		void setValue(FAUSTFLOAT f) { *fZone = range(fMin,fMax,f); }
 };
 
 /*--------------------------------------------------------------------------*/
@@ -847,6 +855,23 @@ void* faust_new(t_symbol* s, short ac, t_atom* av)
     if (dsp_poly) dsp_poly->setGroup(true);
 #endif
     
+#ifdef OSCCTRL
+    const char* argv[32];
+    int argc = 0;
+    argv[argc++] = "Faust";
+    argv[argc++] = "-xmit";
+    argv[argc++] = "1";
+    argv[argc++] = "-port";
+    argv[argc++] = OSC_IN_PORT;
+    argv[argc++] = "-outport";
+    argv[argc++] = OSC_OUT_PORT;
+    argv[argc++] = "-bundle";
+    argv[argc++] = "1";
+    x->m_oscInterface = new OSCUI("Faust", argc, (char**)argv);
+    x->m_dsp->buildUserInterface(x->m_oscInterface);
+    x->m_oscInterface->run();
+#endif
+    
     // Send JSON to JS script
     faust_create_jsui(x);
     return x;
@@ -902,6 +927,9 @@ void faust_free(t_faust* x)
 #ifdef SOUNDFILE
     delete x->m_soundInterface;
 #endif
+#ifdef OSCCTRL
+    delete x->m_oscInterface;
+#endif
 }
 
 /*--------------------------------------------------------------------------*/
@@ -916,9 +944,12 @@ void faust_perform64(t_faust* x, t_object* dsp64, double** ins, long numins, dou
             } else {
                 x->m_dsp->compute(sampleframes, ins, outs);
             }
+        #ifdef OSCCTRL
+            x->m_oscInterface->endBundle();
+        #endif
             faust_update_outputs(x);
         }
-    #ifdef MIDICTRL
+    #if defined(MIDICTRL) || defined(OSCCTRL)
         GUI::updateAllGuis();
     #endif
         systhread_mutex_unlock(x->m_mutex);
@@ -974,7 +1005,4 @@ extern "C" int main(void)
 }
 
 /********************END ARCHITECTURE SECTION (part 2/2)****************/
-
-
-
 

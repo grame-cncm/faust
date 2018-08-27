@@ -56,7 +56,7 @@ typedef struct OSCEnd {} OSCEnd;
 */
 class OSCStream 
 {
-	enum		{ kOutBufferSize = 65536 };
+	enum		{ kOutBufferSize = 32768 };
 	enum state	{ kIdle, kInProgress };
 	
 	state		fState;				// the stream state

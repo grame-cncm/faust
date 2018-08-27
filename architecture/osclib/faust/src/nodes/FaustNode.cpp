@@ -37,25 +37,25 @@ static const char* kAliasMsg      		= "alias";
 template<> void FaustNode<float>::sendOSC() const 
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
-	try {
-        std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
-        // If aliases are present
-        if (aliases.size() > 0) {  
-            for (size_t i = 0; i < aliases.size(); i++) {
-                oscout << OSCStart((aliases[i].first).c_str()) << float(aliases[i].second) << OSCEnd();
+        try {
+            std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
+            // If aliases are present
+            if (aliases.size() > 0) {  
+                for (size_t i = 0; i < aliases.size(); i++) {
+                    oscout << OSCStart((aliases[i].first).c_str()) << float(aliases[i].second) << OSCEnd();
+                }
             }
+            // Also emit regular address
+            if (OSCControler::gXmit == kAll) {
+                oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
+            } 
         }
-        // Also emit regular address
-        if (OSCControler::gXmit == kAll) {
-            oscout << OSCStart(getOSCAddress().c_str()) << float(*fZone) << OSCEnd();
-        } 
-	}
-	catch(osc::Exception e) {
-		cerr << "error while sending OSC: " << e.what() << endl;
-		oscout.stream().Clear();
-		oscerr.stream().Clear();
-		oscerr << OSCStart(getOSCAddress().c_str()) << "error while sending OSC" << e.what() << OSCEnd();
-	}
+        catch(osc::Exception e) {
+            cerr << "error while sending OSC: " << e.what() << endl;
+            oscout.stream().Clear();
+            oscerr.stream().Clear();
+            oscerr << OSCStart(getOSCAddress().c_str()) << "error while sending OSC" << e.what() << OSCEnd();
+        }
     }
 }
 
@@ -63,25 +63,25 @@ template<> void FaustNode<float>::sendOSC() const
 template<> void FaustNode<double>::sendOSC() const 
 {
     if (OSCControler::gXmit != kNoXmit && !OSCControler::isPathFiltered(getOSCAddress())) {
-	try {
-        std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
-        // If aliases are present
-        if (aliases.size() > 0) { 
-            for (size_t i = 0; i < aliases.size(); i++) {
-                oscout << OSCStart((aliases[i].first).c_str()) << double(aliases[i].second) << OSCEnd();
+        try {
+            std::vector<std::pair<std::string, double> > aliases = fRoot->getAliases(getOSCAddress(), *fZone);
+            // If aliases are present
+            if (aliases.size() > 0) { 
+                for (size_t i = 0; i < aliases.size(); i++) {
+                    oscout << OSCStart((aliases[i].first).c_str()) << double(aliases[i].second) << OSCEnd();
+                }
             }
+            // Also emit regular address
+            if (OSCControler::gXmit == kAll) {
+                oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << OSCEnd();
+            } 
         }
-        // Also emit regular address
-        if (OSCControler::gXmit == kAll) {
-            oscout << OSCStart(getOSCAddress().c_str()) << double(*fZone) << OSCEnd();
-        } 
-	}
-	catch(osc::Exception e) {
-		cerr << "error while sending OSC: " << e.what() << endl;
-		oscout.stream().Clear();
-		oscerr.stream().Clear();
-		oscerr << OSCStart(getOSCAddress().c_str()) << "error while sending OSC" << e.what() << OSCEnd();
-	}
+        catch(osc::Exception e) {
+            cerr << "error while sending OSC: " << e.what() << endl;
+            oscout.stream().Clear();
+            oscerr.stream().Clear();
+            oscerr << OSCStart(getOSCAddress().c_str()) << "error while sending OSC" << e.what() << OSCEnd();
+        }
     }
 }
 

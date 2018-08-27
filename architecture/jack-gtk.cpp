@@ -47,6 +47,10 @@
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
+static void osc_compute_callback(void* arg)
+{
+    static_cast<OSCUI*>(arg)->endBundle();
+}
 #endif
 
 #ifdef HTTPCTRL
@@ -185,12 +189,6 @@ int main(int argc, char *argv[])
  	std::cout << "HTTPD is on" << std::endl;
 #endif
 
-#ifdef OSCCTRL
-    OSCUI oscinterface(name, argc, argv);
-    DSP->buildUserInterface(&oscinterface);
-    std::cout << "OSC is on" << std::endl;
-#endif
-
 #ifdef OCVCTRL
 	OCVUI ocvinterface;
 	DSP->buildUserInterface(&ocvinterface);
@@ -203,6 +201,13 @@ int main(int argc, char *argv[])
 #else
     jackaudio audio;
     audio.init(name, DSP);
+#endif
+    
+#ifdef OSCCTRL
+    OSCUI oscinterface(name, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
+    std::cout << "OSC is on" << std::endl;
+    audio.setComputeCb(osc_compute_callback, &oscinterface);
 #endif
     
 #ifdef MIDICTRL
@@ -234,10 +239,13 @@ int main(int argc, char *argv[])
 #ifdef OCVCTRL
 	ocvinterface.run();
 #endif
+    
+#ifdef OSCCTRL
+    oscinterface.run();
+#endif
 
 	/* call run all GUI instances */
 	GUI::runAllGuis();
-
 	
 	audio.stop();
 	finterface.saveState(rcfilename);

@@ -28,7 +28,11 @@ class dsp;
 
 typedef void (* shutdown_callback)(const char* message, void* arg);
 
+typedef void (* compute_callback)(void* arg);
+
 class audio {
+    
+    protected:
     
     public:
     
@@ -38,7 +42,8 @@ class audio {
         virtual bool init(const char* name, dsp* dsp) = 0;
         virtual bool start() = 0;
         virtual void stop() = 0;
-        virtual void shutdown(shutdown_callback cb, void* arg) {}
+        virtual void setShutdownCb(shutdown_callback cb, void* arg) {}
+        virtual void setComputeCb(compute_callback cb, void* arg) {}
 
         virtual int getBufferSize() = 0;
         virtual int getSampleRate() = 0;

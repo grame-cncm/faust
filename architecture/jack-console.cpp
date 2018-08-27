@@ -52,6 +52,10 @@
 
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
+static void osc_compute_callback(void* arg)
+{
+    static_cast<OSCUI*>(arg)->endBundle();
+}
 #endif
 
 #ifdef SOUNDFILE
@@ -176,11 +180,6 @@ int main(int argc, char *argv[] )
     DSP->buildUserInterface(&interface);
     DSP->buildUserInterface(&finterface);
  
-#ifdef OSCCTRL
-    OSCUI oscinterface(name, argc, argv);
-    DSP->buildUserInterface(&oscinterface);
-#endif
-
 #ifdef HTTPCTRL
     httpdUI httpdinterface(name, DSP->getNumInputs(), DSP->getNumOutputs(), argc, argv);
     DSP->buildUserInterface(&httpdinterface);
@@ -193,6 +192,12 @@ int main(int argc, char *argv[] )
 #else
     jackaudio audio;
     audio.init(name, DSP);
+#endif
+    
+#ifdef OSCCTRL
+    OSCUI oscinterface(name, argc, argv);
+    DSP->buildUserInterface(&oscinterface);
+    audio.setComputeCb(osc_compute_callback, &oscinterface);
 #endif
 
 #ifdef MIDICTRL

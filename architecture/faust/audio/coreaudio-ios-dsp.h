@@ -53,8 +53,6 @@ using namespace std;
 #define OPEN_ERR -1
 #define NO_ERR 0
 
-typedef void (* ControlCallback) (void* data);
-
 class TiPhoneCoreAudioRenderer
 {
 
@@ -68,9 +66,9 @@ class TiPhoneCoreAudioRenderer
         int fHWNumInChans;
         int fHWNumOutChans;
 
-        ControlCallback fControlCb;
+        compute_callback fControlCb;
         void* fControlCbArg;
-
+  
         dsp* fDSP;
 
         AudioBufferList* fCAInputData;
@@ -160,10 +158,11 @@ class TiPhoneCoreAudioRenderer
                     fOutChannel[chan] = (float*)ioData->mBuffers[chan].mData;
                 }
 
+                fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
+                
                 if (fControlCb) {
                     fControlCb(fControlCbArg);
                 }
-                fDSP->compute((int)inNumberFrames, fInChannel, fOutChannel);
             }
             return err;
         }
@@ -184,7 +183,7 @@ class TiPhoneCoreAudioRenderer
                 AudioOutputUnitStop(obj->fAUHAL);
             }
         }
-
+    
         int SetupMixing()
         {
             OSStatus err;
@@ -626,15 +625,19 @@ class TiPhoneCoreAudioRenderer
                 free(fCAInputData);
             }
         }
-
-        int Open(dsp* dsp, int inChan, int outChan, int buffersize, int samplerate, ControlCallback cb, void* arg)
+    
+        void setComputeCb(compute_callback cb, void* arg)
+        {
+            fControlCb = cb;
+            fControlCbArg = arg;
+        }
+ 
+        int Open(dsp* dsp, int inChan, int outChan, int buffersize, int samplerate)
         {
             fDSP = dsp;
             fDevNumInChans = inChan;
             fDevNumOutChans = outChan;
-            fControlCb = cb;
-            fControlCbArg = arg;
-
+      
             // Initialize and configure the audio session
             OSStatus err = AudioSessionInitialize(NULL, NULL, InterruptionListener, this);
             if (err != noErr && err != kAudioSessionAlreadyInitialized) {
@@ -696,26 +699,29 @@ class TiPhoneCoreAudioRenderer
  *******************************************************************************/
 
 class iosaudio : public audio {
-
+    
     protected:
 
         TiPhoneCoreAudioRenderer fAudioDevice;
         int fSampleRate, fBufferSize;
-        ControlCallback fControlCb;
-        void* fControlCbArg;
-
+  
     public:
 
-        iosaudio(int srate, int bsize, ControlCallback cb = NULL, void* arg = NULL)
-        :fSampleRate(srate), fBufferSize(bsize), fControlCb(cb), fControlCbArg(arg)
+        iosaudio(int srate, int bsize)
+        :fSampleRate(srate), fBufferSize(bsize)
         {}
 
         virtual ~iosaudio() { fAudioDevice.Close(); }
+    
+        virtual void setComputeCb(compute_callback cb, void* arg)
+        {
+            fAudioDevice.setComputeCb(cb, arg);
+        }
 
         virtual bool init(const char* /*name*/, dsp* DSP)
         {
             DSP->init(fSampleRate);
-            if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate, fControlCb, fControlCbArg) < 0) {
+            if (fAudioDevice.Open(DSP, DSP->getNumInputs(), DSP->getNumOutputs(), fBufferSize, fSampleRate) < 0) {
                 printf("Cannot open iOS audio device\n");
                 return false;
             }

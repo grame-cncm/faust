@@ -126,7 +126,7 @@ class mspSlider : public mspUIObject {
             snprintf(buffer, STR_SIZE, "%s", res.c_str());
         }
         
-        void setValue(FAUSTFLOAT f) {*fZone = range(fMin, fMax, f);}
+        void setValue(FAUSTFLOAT f) { *fZone = range(fMin, fMax, f); }
 };
 
 /*--------------------------------------------------------------------------*/

@@ -87,7 +87,11 @@ SoundUI* soundinterface = NULL;
 #endif
 
 #if OSCCTRL
-GUI* oscinterface = NULL;
+OSCUI* oscinterface = NULL;
+static void osc_compute_callback(void* arg)
+{
+    oscinterface->endBundle();
+}
 #endif
 
 MY_Meta metadata;
@@ -119,7 +123,6 @@ static void jack_shutdown_callback(const char* message, void* arg)
         [self closeJack :message];
     });
 }
-
 #endif
 
 - (void)viewDidLoad
@@ -366,7 +369,7 @@ static void jack_shutdown_callback(const char* message, void* arg)
         }
     }
     
-    audio_device->shutdown(jack_shutdown_callback, self);
+    audio_device->setShutdownCb(jack_shutdown_callback, self);
     return TRUE;
     
 error:
@@ -1067,7 +1070,7 @@ static inline const char* transmit_value(int num)
 {
 #if OSCCTRL
     delete oscinterface;
-    const char* argv[9];
+    const char* argv[11];
     argv[0] = (char*)_name;
     argv[1] = "-xmit";
     argv[2] = transmit_value(transmit);
@@ -1077,8 +1080,11 @@ static inline const char* transmit_value(int num)
     argv[6] = [inputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
     argv[7] = "-outport";
     argv[8] = [outputPortText cStringUsingEncoding:[NSString defaultCStringEncoding]];
-    oscinterface = new OSCUI(_name, 9, (char**)argv);
+    argv[9] = "-bundle";
+    argv[10] = "1";
+    oscinterface = new OSCUI(_name, 11, (char**)argv);
     DSP->buildUserInterface(oscinterface);
+    audio_device->setComputeCb(osc_compute_callback, self);
     oscinterface->run();
 #endif
 }

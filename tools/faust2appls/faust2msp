@@ -14,6 +14,8 @@
 CXXFLAGS=$MYGCCFLAGS
 CXXFLAGS+=" -fbracket-depth=512"
 
+OSCDEFS=""
+OSCLIB=""
 NVOICES=-1
 EFFECT=""
 SOUNDFILE="0"
@@ -72,10 +74,11 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-soundfile] <file.dsp>"
+        echo "faust2msp [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-soundfile] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         exit
     fi
@@ -106,6 +109,9 @@ do
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL"
+        OSCLIBS="-lOSCFaust"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -f "$p" ]]; then
@@ -155,7 +161,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CC $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC  -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CC $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC  -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $SOUNDFILELIBS $OSCLIBS -arch i386 -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
 	) >/dev/null  || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"

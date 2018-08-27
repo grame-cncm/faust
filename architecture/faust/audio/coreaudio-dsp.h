@@ -228,6 +228,9 @@ class TCoreAudioRenderer
         AudioDeviceID fDeviceID;
         AudioUnit fAUHAL;
         bool fState;
+    
+        compute_callback fControlCb;
+        void* fControlCbArg;
 
         OSStatus GetDefaultDeviceAndSampleRate(int inChan, int outChan, int& sample_rate, AudioDeviceID* device)
         {
@@ -962,6 +965,9 @@ class TCoreAudioRenderer
                     fOutChannel[i] = (float*)ioData->mBuffers[i].mData;
                 }
                 fDSP->compute(double(AudioConvertHostTimeToNanos(inTimeStamp->mHostTime))/1000., inNumberFrames, fInChannel, fOutChannel);
+                if (fControlCb) {
+                    fControlCb(fControlCbArg);
+                }
             } else {
                 printf("AudioUnitRender error... %x\n", fInputData);
                 printError(err);
@@ -990,7 +996,13 @@ class TCoreAudioRenderer
         
         int GetBufferSize() {return fBufferSize;}
         int GetSampleRate() {return fSampleRate;}
-        
+    
+        void setComputeCb(compute_callback cb, void* arg)
+        {
+            fControlCb = cb;
+            fControlCbArg = arg;
+        }
+
         static OSStatus RestartProc(AudioObjectID objectID, UInt32 numberAddresses,
                                    const AudioObjectPropertyAddress inAddresses[],
                                    void *clientData) 
@@ -1486,12 +1498,17 @@ class coreaudio : public audio {
             }
             return true;
         }
-
-        virtual void stop() 
+    
+        virtual void stop()
         {
             fAudioDevice.Stop();
         }
-        
+    
+        virtual void setComputeCb(compute_callback cb, void* arg)
+        {
+            fAudioDevice.setComputeCb(cb, arg);
+        }
+ 
         virtual int getBufferSize() { return fAudioDevice.GetBufferSize(); }
         virtual int getSampleRate() { return fAudioDevice.GetSampleRate(); }
         

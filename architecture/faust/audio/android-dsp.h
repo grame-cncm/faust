@@ -106,6 +106,9 @@ class androidaudio : public audio {
         SLRecordItf fRecordInterface;
         SLPlayItf fPlayInterface;
     
+        compute_callback fControlCb;
+        void* fControlCbArg;
+    
         int64_t getTimeUsec() 
         {
             struct timespec now;
@@ -130,6 +133,10 @@ class androidaudio : public audio {
             
             // Compute DSP
             fDsp->compute(fBufferSize, fInputs, fOutputs);
+            
+            if (fControlCb) {
+                fControlCb(fControlCbArg);
+            }
             
             // Converting float to short output
             if (fNumOutChans > 0) {
@@ -449,6 +456,12 @@ class androidaudio : public audio {
                 result = (*fPlayInterface)->SetPlayState(fPlayInterface, SL_PLAYSTATE_PAUSED);
                 if (result != SL_RESULT_SUCCESS) __android_log_print(ANDROID_LOG_ERROR, "Faust", "stop: SetPlayState error");
             }
+        }
+    
+        void setComputeCb(compute_callback cb, void* arg)
+        {
+            fControlCb = cb;
+            fControlCbArg = arg;
         }
     
         virtual int getBufferSize()

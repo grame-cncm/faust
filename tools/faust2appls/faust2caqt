@@ -21,6 +21,7 @@ DEBUG=false
 #PHASE 1 : dispatch command arguments
 #-------------------------------------------------------------------
 
+OSCDEFS=""
 OSCLIB=""
 POLY="POLY"
 DEPLOY=""

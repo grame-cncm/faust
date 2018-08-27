@@ -106,6 +106,10 @@
 #else
     #include "faust/gui/OSCUI.h"
 #endif
+static void osc_compute_callback(void* arg)
+{
+    static_cast<OSCUI*>(arg)->endBundle();
+}
 #endif
 
 #if DYNAMIC_DSP
@@ -226,7 +230,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #if JUCE_DRIVER
     fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
 #else
-    const char* argv[9];
+    const char* argv[11];
     argv[0] = "Faust";  // TODO may be should retrieve the actual name
     argv[1] = "-xmit";
     argv[2] = "1";      // TODO retrieve that from command line or somewhere
@@ -236,7 +240,10 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
     argv[6] = OSC_IN_PORT;      // TODO same
     argv[7] = "-outport";
     argv[8] = OSC_OUT_PORT;     // TODO same
-    fOSCInterface = new OSCUI("Faust", 9, (char**)argv); // TODO fix name
+    argv[9] = "-bundle";
+    argv[10] = "1";             // TODO same
+    fOSCInterface = new OSCUI("Faust", 11, (char**)argv); // TODO fix name
+    driver->setComputeCb(osc_compute_callback, fOSCInterface);
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
