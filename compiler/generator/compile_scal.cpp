@@ -820,7 +820,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // SL
-    fClass->addInitUICode(subst("if (!$0) $0 = defaultsound;", varname));
+    fClass->addInitUICode(subst("if (uintptr_t($0) == 0) $0 = defaultsound;", varname));
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
 
     // SL
