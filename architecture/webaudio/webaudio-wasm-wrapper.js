@@ -514,30 +514,43 @@ faust.expandDSP = function (code, argv)
         faust_module.stringToUTF8(argv[i], arg_ptr, faust_module.lengthBytesUTF8(argv[i]) + 1);
         argv_ptr_buffer[i] = arg_ptr;
     }
+    
+    try {
+        
+        var expand_dsp_ptr = faust.expandCDSPFromString(name_ptr, code_ptr, argv.length, argv_ptr, sha_key_ptr, error_msg_ptr);
+        var expand_dsp = faust_module.Pointer_stringify(expand_dsp_ptr);
+        var sha_key = faust_module.Pointer_stringify(sha_key_ptr);
+        faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
 
-    var expand_dsp_ptr = faust.expandCDSPFromString(name_ptr, code_ptr, argv.length, argv_ptr, sha_key_ptr, error_msg_ptr);
-    var expand_dsp = faust_module.Pointer_stringify(expand_dsp_ptr);
-    var sha_key = faust_module.Pointer_stringify(sha_key_ptr);
-    faust.error_msg = faust_module.Pointer_stringify(error_msg_ptr);
+        // Free strings
+        faust_module._free(code_ptr);
+        faust_module._free(name_ptr);
+        faust_module._free(sha_key_ptr);
+        faust_module._free(error_msg_ptr);
 
-    // Free strings
-    faust_module._free(code_ptr);
-    faust_module._free(name_ptr);
-    faust_module._free(sha_key_ptr);
-    faust_module._free(error_msg_ptr);
+        // Free C allocated expanded string
+        faust.freeCMemory(expand_dsp_ptr);
 
-    // Free C allocated expanded string
-    faust.freeCMemory(expand_dsp_ptr);
+        // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
+        argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv.length);
+        // Free 'argv' C side array
+        for (var i = 0; i < argv.length; i++) {
+            faust_module._free(argv_ptr_buffer[i]);
+        }
+        faust_module._free(argv_ptr);
 
-    // Get an updated integer view on the newly allocated buffer after possible emscripten memory grow
-    argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv.length);
-    // Free 'argv' C side array
-    for (var i = 0; i < argv.length; i++) {
-        faust_module._free(argv_ptr_buffer[i]);
+        return expand_dsp;
+        
+    } catch (e) {
+        // libfaust is compiled without C++ exception activated, so a JS exception is throwed and catched here
+        faust.error_msg = faust_module.Pointer_stringify(faust.getErrorAfterException());
+        if (faust.error_msg === "") {
+            // Report the Emscripten error
+            faust.error_msg = e;
+        }
+        faust.cleanupAfterException();
+        return null;
     }
-    faust_module._free(argv_ptr);
-
-    return expand_dsp;
 }
 
 /**
@@ -1735,9 +1748,7 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
         for (let i = 0; i < this.getDescriptor().length; i++) {
             Object.assign(params, { [this.getDescriptor()[i]]: `${this.getParam(this.getDescriptor()[i])}` });
         }
-        return new Promise(resolve => {
-                           resolve(params)
-                           });
+        return new Promise(resolve => { resolve(params); });
     }
     
     /**
@@ -1748,15 +1759,15 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     {
         return new Promise(resolve => {
                            for (const param in state) {
-                           if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+                                if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
                            }
                            try {
-                           this.gui.setAttribute('state', JSON.stringify(state));
+                                this.gui.setAttribute('state', JSON.stringify(state));
                            } catch (error) {
-                           console.warn("Plugin without gui or GUI not defined", error);
+                                console.warn("Plugin without gui or GUI not defined", error);
                            }
                            resolve(state);
-                           })
+                           });
     }
     
     /**
