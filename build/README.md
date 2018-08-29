@@ -80,13 +80,16 @@ If `make` is available from your commands prompt, you can get similar results wi
 
 
 #### LLVM on windows:
+##### Using MSYS2:
+
 Install the following msys2 packages using pacman if you compile using MSYS2 environment:
 - pacman -S mingw-w64-x86_64-llvm
 
-Compiling using Visual Studio and LLVM 5.0.0 may lead to a link error:
+##### Using Visual Studio:
+Pre-built binaries of LLVM for Windows provided on [llvm.org](http://releases.llvm.org/download.html) generally don't include the necessary for development (in particular llvm-config).You'll have to compile LLVM from source code and to build your own package.
 
+Doing so with LLVM 5.0.0 may lead to a link error:
 `Error	LNK1181	cannot open input file 'LTO-NOTFOUND.obj'`
-
 This is due to an incorrect `llvm-config` output. Open the solution and edit the project properties and remove the faulty input LTO-NOTFOUND entry from the `Linker->Input` section.
 
 #### LLVM on GNU/Linux:
