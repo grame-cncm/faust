@@ -72,6 +72,7 @@ class Radio{
 			
 			RadioButton button = new RadioButton(c);
 			button.setText(parameterName);
+			button.setTextColor(ContextCompat.getColor(c,R.color.progress_gray));
 			button.setId(i);
 			if (init == i) {
 				button.setChecked(true);
