@@ -1,3 +1,3 @@
 // error detection
 
-process = hslider("part",0, -10, 10, 1), +(1)~_ : soundfile("tango.wav",4);
+process = nentry("part",0, -10, 10, 1), +(1)~_ : soundfile("tango.wav",4);

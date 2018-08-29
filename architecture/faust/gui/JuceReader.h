@@ -53,7 +53,7 @@ struct JuceReader : public SoundfileReader {
         length = int(formatReader->lengthInSamples);
     }
     
-    Soundfile* readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
         
@@ -63,10 +63,10 @@ struct JuceReader : public SoundfileReader {
         soundfile->fOffset[part] = offset;
         soundfile->fSampleRate[part] = int(formatReader->sampleRate);
         
-        FAUSTFLOAT* buffers[soundfile->fBuffers];
+        FAUSTFLOAT* buffers[soundfile->fChannels];
         getBuffersOffset(soundfile, buffers, offset);
         
-        if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels, 0, int(formatReader->lengthInSamples), false)) {
+        if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
             
             // Possibly concert samples
             if (!formatReader->usesFloatingPointData) {
@@ -78,7 +78,7 @@ struct JuceReader : public SoundfileReader {
         
             // Copy the read buffer up to soundfile->fChannels is necessary
             for (int chan = 0; chan < (soundfile->fChannels - channels); chan++) {
-                memcpy(&soundfile->fBuffers[chan + channels][offset], &soundfile->fBuffers[chan][offset], sizeof(FAUSTFLOAT) * int(snd_info.frames));
+                memcpy(&soundfile->fBuffers[chan + channels][offset], &soundfile->fBuffers[chan][offset], sizeof(FAUSTFLOAT) * int(formatReader->lengthInSamples));
             }
             
         } else {

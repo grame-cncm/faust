@@ -88,7 +88,7 @@ struct LibsndfileReader : public SoundfileReader {
         soundfile->fSampleRate[part] = snd_info.samplerate;
         
         // Read and fill snd_info.channels number of channels
-        sf_count_t nbf, index = offset;
+        sf_count_t nbf;
         FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
         sample_read reader;
         
@@ -101,10 +101,11 @@ struct LibsndfileReader : public SoundfileReader {
             nbf = reader(snd_file, buffer, BUFFER_SIZE);
             for (int sample = 0; sample < nbf; sample++) {
                 for (int chan = 0; chan < channels; chan++) {
-                    soundfile->fBuffers[chan][index + sample] = buffer[sample * snd_info.channels + chan];
+                    soundfile->fBuffers[chan][offset + sample] = buffer[sample * snd_info.channels + chan];
                 }
             }
-            index += nbf;
+            // Update offset
+            offset += nbf;
         } while (nbf == BUFFER_SIZE);
         
         // Copy the read buffer up to soundfile->fChannels is necessary
@@ -115,9 +116,6 @@ struct LibsndfileReader : public SoundfileReader {
         std::cout << "readOne soundfile->fLength[part] " <<  soundfile->fLength[part] << std::endl;
         std::cout << "readOne soundfile->fOffset[part] " <<  soundfile->fOffset[part] << std::endl;
         std::cout << "readOne soundfile->fSampleRate[part] " <<  soundfile->fSampleRate[part] << std::endl;
-        
-        // Update offset
-        offset += soundfile->fLength[part];
         
         sf_close(snd_file);
     }

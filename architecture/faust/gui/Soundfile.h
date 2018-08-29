@@ -56,7 +56,7 @@
  New index computation:
     - p is the current part number [0..MAX_PART-1] (must be proved by the type system)
     - i is the current position in the part. It will be constrained between [0..length]
-    - idx(p,i)  = fOffset[p] + max(0, min(i, fLength[p]));
+    - idx(p,i) = fOffset[p] + max(0, min(i, fLength[p]));
 */
 
 PRE_PACKED_STRUCTURE

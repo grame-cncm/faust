@@ -4,12 +4,10 @@ import("stdfaust.lib");
 // play a soundfile in a loop
 so_play(s) = 1 : (+,length(s):fmod)~_ : int : 0,_: outs(s)
 	with {
-		length(s) = 0,0 : s : _,cut(outputs(s)-1);
-		srate(s) = 0,0 : s : !,_,cut(outputs(s)-2);
-		channels(s) = 0,0 : s : !,!,_,cut(outputs(s)-3);
-		outs(s) = s : cut(3), bus(outputs(s)-3);
-		cut(n) = par(i,n,!);
-		bus(n) = par(i,n,_);
+		length(s) = 0,0 : s : _,si.block(outputs(s)-1);
+		srate(s) = 0,0 : s : !,_,si.block(outputs(s)-2);
+		channels(s) = 0,0 : s : !,!,_,si.block(outputs(s)-3);
+		outs(s) = s : si.block(3), si.bus(outputs(s)-3);
 	};
 
 // play a soundfile in a loop taking into account the sampling rate
