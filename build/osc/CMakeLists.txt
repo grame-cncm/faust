@@ -63,9 +63,12 @@ endif()
 
 #######################################
 # add libraries
-add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
-target_include_directories (oscstatic PRIVATE ${INCLUDE} )
-set (TARGETS oscstatic)
+if (INCLUDE_OSC)
+	add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
+	target_include_directories (oscstatic PRIVATE ${INCLUDE} )
+	set (TARGETS oscstatic)
+endif()
+
 if (NOT IOS AND OSCDYNAMIC)
 	add_library( oscdynamic SHARED ${SRC} ${SRCH} ${PLATFORM_SRC} )
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
@@ -80,7 +83,6 @@ if (NOT IOS AND OSCDYNAMIC)
 	else()
 		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
-
 endif()
 
 
@@ -91,8 +93,11 @@ set_target_properties(${TARGETS} PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
-set_target_properties(oscstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
-	
+if (INCLUDE_OSC)
+	set_target_properties(oscstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+else()
+	set_target_properties(oscdynamic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+endif()	
 
 if (IOS)
 	set_target_properties(oscstatic PROPERTIES OUTPUT_NAME OSCFaust.ios)
@@ -100,15 +105,17 @@ if (IOS)
 	target_compile_definitions (oscstatic PRIVATE -DOSC_HOST_LITTLE_ENDIAN=1)
 
 else()
-	if (WIN32 OR MSYS) 
-		if (MSVC)
-			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
+	if (INCLUDE_OSC) 
+		if (WIN32 OR MSYS) 
+			if (MSVC)
+				set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
+			else()
+				set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
+			endif()
+			target_link_libraries(oscstatic  ws2_32 winmm)
 		else()
 			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
 		endif()
-		target_link_libraries(oscstatic  ws2_32 winmm)
-	else()
-		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
 
 	#######################################
