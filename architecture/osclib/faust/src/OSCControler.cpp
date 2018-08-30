@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 #include "faust/OSCControler.h"
 #include "faust/osc/FaustFactory.h"
@@ -179,6 +180,24 @@ static std::string quote(const char* str)
 
 //--------------------------------------------------------------------------
 // start the network services
+string OSCControler::getInfos() const
+{
+	SRootNode rootnode = fFactory->root();		// first get the root node
+	if (!rootnode) return "no root node defined";
+
+	stringstream sstr;
+	sstr << "Faust OSC version " << versionstr() << " - " << quote(rootnode->getName()) << " is running on UDP ports "
+		 << fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
+	if (gBundle) sstr << ", with bundle mode ON.";
+	if (!fBindAddress.empty())
+		 sstr << " Listening is bound to " << fBindAddress << ".";
+	if (fIO)
+		sstr << " Using OSC IO with " << fIO->numInputs() << " input channel(s) and " << fIO->numOutputs() << " output channel(s)" << fIO->numOutputs();
+	return sstr.str();
+}
+
+//--------------------------------------------------------------------------
+// start the network services
 void OSCControler::run()
 {
 	SRootNode rootnode = fFactory->root();		// first get the root node
@@ -189,25 +208,11 @@ void OSCControler::run()
         // starts the network services
 		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, gBundle, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str() );
 
+		string infos = getInfos();
 		// and outputs a message on the osc output port
-		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
-				<< quote(rootnode->getName()).c_str() << "is running on UDP ports"
-				<< fUDPPort << fUDPOut << fUPDErr;
-        if (gBundle) oscout << "with bundle mode";
-        
+		oscout << OSCStart("Faust") << infos.substr(5) << OSCEnd();
         // and also on the standard output 
-        cout << "Faust OSC version " << versionstr() << " application "
-             << quote(rootnode->getName()).c_str() << " is running on UDP ports "
-             << fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
-		if (!fBindAddress.empty()) {
-			 cout << " - listening is bound to " << fBindAddress;
-			 oscout << "listening to" << fBindAddress;
-		}
-        if (gBundle) cout << ", with bundle mode";
-		cout << endl;
-
-		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
-		oscout << OSCEnd();
+        cout << infos << endl;
     } else {
         cerr << "Cannot start OSC controler\n";
     }

@@ -91,7 +91,8 @@ class OSCControler
 		void run();				// starts the network services
 		void endBundle();		// when bundle mode is on, close and send the current bundle (if any)
 		void stop();			// stop the network services
-		
+		std::string getInfos() const; // gives information about the current environment (version, port numbers,...)
+
 		int	getUDPPort() const			{ return fUDPPort; }
 		int	getUDPOut()	const			{ return fUDPOut; }
 		int	getUDPErr()	const			{ return fUPDErr; }
