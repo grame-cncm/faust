@@ -97,9 +97,8 @@ class faustgen_factory {
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // Generic MIDI handler
-    
-        SoundUI* fSoundInterface;       // Generic Soundfile interface
+        midi_handler fMidiHandler;      // generic MIDI handler
+        SoundUI* fSoundUI;              // generic Soundfile interface
     
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string
@@ -124,7 +123,7 @@ class faustgen_factory {
         int fOptLevel;                  // the LLVM optimization level
         bool fPolyphonic;               // Whether the created DSP is polyphonic
     
-        short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
+        short fDefaultPath;             // default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitely set in 'read' and 'write' (using path_setdefault)
     
         int m_siginlets;
@@ -215,9 +214,9 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
-        map<string, vector <t_object*> > fOutputTable;
+        map<string, vector<t_object*> > fOutputTable;
         
-        mspUI fDSPUI;               // DSP UI
+        mspUI* fDSPUI;              // Control UI
         MidiUI* fMidiUI;            // Midi UI
         OSCUI* fOSCUI;              // OSC UI
     

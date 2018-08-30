@@ -41,8 +41,8 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 1.10f
-#define kVersionStr	"1.10"
+#define kVersion	 1.20f
+#define kVersionStr	"1.20"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
@@ -187,7 +187,7 @@ string OSCControler::getInfos() const
 
 	stringstream sstr;
 	sstr << "Faust OSC version " << versionstr() << " - " << quote(rootnode->getName()) << " is running on UDP ports "
-		 << fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
+    << fUDPPort << ", " << fUDPOut << ", " << fUPDErr << ", sending on " << fDestAddress;
 	if (gBundle) sstr << ", with bundle mode ON.";
 	if (!fBindAddress.empty())
 		 sstr << " Listening is bound to " << fBindAddress << ".";
@@ -219,7 +219,7 @@ void OSCControler::run()
 }
 
 //--------------------------------------------------------------------------
-void	OSCControler::endBundle() 			{ if (gBundle && fOsc) fOsc->endBundle(); }
+void OSCControler::endBundle() { if (gBundle && fOsc) fOsc->endBundle(); }
 
 //--------------------------------------------------------------------------
 const char*	OSCControler::getRootName() const { return fFactory->root()->getName(); }

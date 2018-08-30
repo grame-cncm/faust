@@ -213,9 +213,7 @@ class mspUI : public UI
         
         mspUI() {}
         virtual ~mspUI()
-        {
-            clear();
-        }
+        {}
         
         void addButton(const char* label, FAUSTFLOAT* zone) 
         {
@@ -309,15 +307,6 @@ class mspUI : public UI
         iterator end() { return fUITable1.end(); }
         
         int itemsCount() { return fUITable1.size(); }
-        void clear() 
-        { 
-            iterator it;
-            for (it = begin(); it != end(); it++) {
-                delete (*it).second;
-            }
-            fUITable1.clear(); 
-            fUITable2.clear(); 
-        }
     
         void displayControls()
         {
