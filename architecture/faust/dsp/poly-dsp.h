@@ -835,8 +835,8 @@ struct dsp_poly_factory : public dsp_factory {
     virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
     virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
     
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fProcessFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fProcessFactory->getDSPFactoryIncludePathnames(); }
+    virtual std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
+    virtual std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
     
     virtual void setMemoryManager(dsp_memory_manager* manager)
     {

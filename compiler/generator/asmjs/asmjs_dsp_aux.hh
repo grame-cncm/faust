@@ -57,10 +57,10 @@ class EXPORT asmjs_dsp_factory : public dsp_factory, public faust_smartable {
     void                setMemoryManager(dsp_memory_manager* manager) {}
     dsp_memory_manager* getMemoryManager() { return nullptr; }
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames()
+    virtual std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
+    virtual std::vector<std::string> getIncludePathnames()
     {
-        return fFactory->getDSPFactoryIncludePathnames();
+        return fFactory->getIncludePathnames();
     }
 
     void write(std::ostream* out, bool binary = false, bool small = false) { fFactory->write(out, binary, small); }

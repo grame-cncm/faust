@@ -444,10 +444,10 @@ EXPORT string getDSPMachineTarget()
     return (llvm::sys::getDefaultTargetTriple() + ":" + GET_CPU_NAME);
 }
 
-EXPORT vector<string> getDSPFactoryLibraryList(llvm_dsp_factory* factory)
+EXPORT vector<string> getLibraryList(llvm_dsp_factory* factory)
 {
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return factory->getDSPFactoryLibraryList();
+    return factory->getLibraryList();
 }
 
 EXPORT void deleteAllDSPFactories()

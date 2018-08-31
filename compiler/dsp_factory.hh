@@ -74,9 +74,9 @@ class dsp_factory_base {
 
     virtual std::string getBinaryCode() = 0;
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() = 0;
+    virtual std::vector<std::string> getLibraryList() = 0;
 
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames() = 0;
+    virtual std::vector<std::string> getIncludePathnames() = 0;
 
     // Sub-classes will typically implement this method to create a factory from a stream
     static dsp_factory_base* read(std::istream* in) { return nullptr; }
@@ -166,9 +166,9 @@ class dsp_factory_imp : public dsp_factory_base {
 
     virtual std::string getBinaryCode() { return ""; }
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fLibraryPathname; }
+    virtual std::vector<std::string> getLibraryList() { return fLibraryPathname; }
 
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fIncludePathnames; }
+    virtual std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
 };
 
 /* To be used by textual backends. */

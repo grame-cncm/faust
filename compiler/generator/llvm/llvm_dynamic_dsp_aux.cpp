@@ -912,7 +912,7 @@ EXPORT char* getCDSPMachineTarget()
 EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
 {
     if (factory) {
-        vector<string> library_list1 = factory->getDSPFactoryLibraryList();
+        vector<string> library_list1 = factory->getLibraryList();
         const char**   library_list2 = (const char**)malloc(sizeof(char*) * (library_list1.size() + 1));
 
         size_t i;
@@ -931,7 +931,7 @@ EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory)
 EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
 {
     if (factory) {
-        vector<string> include_list1 = factory->getDSPFactoryIncludePathnames();
+        vector<string> include_list1 = factory->getIncludePathnames();
         const char**   include_list2 = (const char**)malloc(sizeof(char*) * (include_list1.size() + 1));
 
         size_t i;

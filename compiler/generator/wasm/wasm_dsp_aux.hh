@@ -328,10 +328,10 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
 
     wasm_dsp* createDSPInstance();
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames()
+    virtual std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
+    virtual std::vector<std::string> getIncludePathnames()
     {
-        return fFactory->getDSPFactoryIncludePathnames();
+        return fFactory->getIncludePathnames();
     }
 
     void                setMemoryManager(dsp_memory_manager* manager);

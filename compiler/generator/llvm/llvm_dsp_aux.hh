@@ -289,9 +289,9 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
     void write(std::ostream* out, bool binary, bool small = false) {}
 
-    std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
+    std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
 
-    std::vector<std::string> getDSPFactoryIncludePathnames() { return fFactory->getDSPFactoryIncludePathnames(); }
+    std::vector<std::string> getIncludePathnames() { return fFactory->getIncludePathnames(); }
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 
@@ -323,7 +323,7 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getDSPMachineTarget();
 
-EXPORT std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory);
+EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
 EXPORT std::vector<std::string> getAllDSPFactories();
 

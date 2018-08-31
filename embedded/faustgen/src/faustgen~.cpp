@@ -321,9 +321,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 #endif
    
     if (factory) {
-        // Reset fSoundUI with the new factory getDSPFactoryIncludePathnames
+        // Reset fSoundUI with the new factory getIncludePathnames
         delete fSoundUI;
-        fSoundUI = new SoundUI(factory->getDSPFactoryIncludePathnames());
+        fSoundUI = new SoundUI(factory->getIncludePathnames());
         return factory;
     } else {
         // Update all instances
