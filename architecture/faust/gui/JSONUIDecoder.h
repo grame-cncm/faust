@@ -54,7 +54,8 @@ struct JSONUIDecoder {
     std::string fName;
     std::string fFileName;
     
-    std::map<std::string, std::string> fMetadatas; 
+    std::map<std::string, std::string> fMetadatas;
+    std::map<std::string, std::vector<std::string> > fMetadatas2;
     std::vector<itemInfo*> fUiItems;     
     
     FAUSTFLOAT* fInControl;
@@ -67,7 +68,10 @@ struct JSONUIDecoder {
     int fInputItems, fOutputItems, fSoundfileItems;
     
     std::string fVersion;
-    std::string fOptions;
+    std::string fCompileOptions;
+    
+    std::vector<std::string> fLibraryList;
+    std::vector<std::string> fIncludePathnames;
     
     int fDSPSize;
     
@@ -82,7 +86,7 @@ struct JSONUIDecoder {
     {
         fJSON = json;
         const char* p = fJSON.c_str();
-        parseJson(p, fMetadatas, fUiItems);
+        parseJson(p, fMetadatas, fMetadatas2, fUiItems);
         
         // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
         if (fMetadatas.find("name") != fMetadatas.end()) {
@@ -106,13 +110,23 @@ struct JSONUIDecoder {
             fVersion = "";
         }
         
-        if (fMetadatas.find("options") != fMetadatas.end()) {
-            fOptions = fMetadatas["options"];
-            fMetadatas.erase("options");
+        if (fMetadatas.find("compile_options") != fMetadatas.end()) {
+            fCompileOptions = fMetadatas["compile_options"];
+            fMetadatas.erase("compile_options");
         } else {
-            fOptions = "";
+            fCompileOptions = "";
         }
         
+        if (fMetadatas2.find("library_list") != fMetadatas2.end()) {
+            fLibraryList = fMetadatas2["library_list"];
+            fMetadatas2.erase("library_list");
+        }
+        
+        if (fMetadatas2.find("include_pathnames") != fMetadatas2.end()) {
+            fIncludePathnames = fMetadatas2["include_pathnames"];
+            fMetadatas2.erase("include_pathnames");
+        }
+  
         if (fMetadatas.find("size") != fMetadatas.end()) {
             fDSPSize = std::atoi(fMetadatas["size"].c_str());
             fMetadatas.erase("size");

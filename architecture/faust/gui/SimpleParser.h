@@ -67,6 +67,7 @@ bool parseString(const char*& p, char quote, string& s);
 bool parseSQString(const char*& p, string& s);
 bool parseDQString(const char*& p, string& s);
 bool parseDouble(const char*& p, double& x);
+bool parseList(const char*& p, vector<string>& items);
 
 // ---------------------------------------------------------------------
 //
@@ -319,17 +320,35 @@ static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string,
 }
 
 // ---------------------------------------------------------------------
+// Parse list of strings
+inline bool parseList(const char*& p, std::vector<std::string>& items)
+{
+    if (parseChar(p, '[')) {
+        do {
+            string item;
+            if (!parseDQString(p, item)) {
+                return false;
+            }
+            items.push_back(item);
+        } while (tryChar(p, ','));
+        return parseChar(p, ']');
+    } else {
+        return false;
+    }
+}
+
+// ---------------------------------------------------------------------
 // Parse metadatas of the interface:
 // "name" : "...", "inputs" : "...", "outputs" : "...", ...
 // and store the result as key/value
 //
-static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string, std::string>& metadatas)
+static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
 {
     if (parseDQString(p, key)) {
         if (key == "meta") {
             return parseMetaData(p, metadatas);
         } else {
-            return parseChar(p, ':') && parseDQString(p, value);
+            return parseChar(p, ':') && (parseDQString(p, value) || parseList(p, items));
         }
     } else {
         return false;
@@ -458,17 +477,23 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 //
 
-inline bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas, std::vector<itemInfo*>& uiItems)
+inline bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas1, std::map<std::string, std::vector<std::string> >& metadatas2, std::vector<itemInfo*>& uiItems)
 {
     parseChar(p, '{');
     
     do {
         std::string key;
         std::string value;
-        if (parseGlobalMetaData(p, key, value, metadatas)) {
+        std::vector<std::string> items;
+        if (parseGlobalMetaData(p, key, value, metadatas1, items)) {
             if (key != "meta") {
                 // keep "name", "inputs", "outputs" key/value pairs
-                metadatas[key] = value;
+                if (items.size() > 0) {
+                    metadatas2[key] = items;
+                    items.clear();
+                } else {
+                    metadatas1[key] = value;
+                }
             }
         } else if (key == "ui") {
             int numItems = 0;

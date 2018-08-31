@@ -50,13 +50,15 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         std::stringstream fUI;
         std::stringstream fMeta;
         std::vector<std::pair <std::string, std::string> > fMetaAux;
-        std::string fVersion;
-        std::string fOptions;
+        std::string fVersion;           // Compiler version
+        std::string fCompileOptions;    // Compilation options
+        std::vector<std::string> fLibraryList;
+        std::vector<std::string> fIncludePathnames;
         std::string fName;
         std::string fFileName;
         std::string fExpandedCode;
         std::string fSHAKey;
-        std::string fDSPSize;
+        std::string fDSPSize;           // In bytes
         std::map<std::string, int> fPathTable;
     
         char fCloseUIPar;
@@ -135,26 +137,28 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& sha_key,
                   const std::string& dsp_code,
                   const std::string& version,
-                  const std::string& options,
+                  const std::string& compile_options,
+                  const std::vector<std::string>& library_list,
+                  const std::vector<std::string>& include_pathnames,
                   const std::string& size,
                   const std::map<std::string, int>& path_table)
         {
-            init(name, filename, inputs, outputs, sha_key, dsp_code,  version, options, size, path_table);
+            init(name, filename, inputs, outputs, sha_key, dsp_code, version, compile_options, library_list, include_pathnames, size, path_table);
         }
 
         JSONUIAux(const std::string& name, const std::string& filename, int inputs, int outputs)
         {
-            init(name, filename, inputs, outputs, "", "", "", "", "", std::map<std::string, int>());
+            init(name, filename, inputs, outputs, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
 
         JSONUIAux(int inputs, int outputs)
         {
-            init("", "", inputs, outputs, "", "","", "", "", std::map<std::string, int>());
+            init("", "", inputs, outputs, "", "","", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
         
         JSONUIAux()
         {
-            init("", "", -1, -1, "", "", "", "", "", std::map<std::string, int>());
+            init("", "", -1, -1, "", "", "", "", std::vector<std::string>(), std::vector<std::string>(), "", std::map<std::string, int>());
         }
  
         virtual ~JSONUIAux() {}
@@ -170,7 +174,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
                   const std::string& sha_key,
                   const std::string& dsp_code,
                   const std::string& version,
-                  const std::string& options,
+                  const std::string& compile_options,
+                  const std::vector<std::string>& library_list,
+                  const std::vector<std::string>& include_pathnames,
                   const std::string& size,
                   const std::map<std::string, int>& path_table)
         {
@@ -196,7 +202,9 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             fDSPSize = size;
             fPathTable = path_table;
             fVersion = version;
-            fOptions = options;
+            fCompileOptions = compile_options;
+            fLibraryList = library_list;
+            fIncludePathnames = include_pathnames;
         }
    
         // -- widget's layouts
@@ -382,7 +390,25 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             tab(fTab, fJSON); fJSON << "\"name\": \"" << fName << "\",";
             tab(fTab, fJSON); fJSON << "\"filename\": \"" << fFileName << "\",";
             if (fVersion != "") { tab(fTab, fJSON); fJSON << "\"version\": \"" << fVersion << "\","; }
-            if (fOptions != "") { tab(fTab, fJSON); fJSON << "\"options\": \"" << fOptions << "\","; }
+            if (fCompileOptions != "") { tab(fTab, fJSON); fJSON << "\"compile_options\": \"" <<  fCompileOptions << "\","; }
+            if (fLibraryList.size() > 0) {
+                tab(fTab, fJSON);
+                fJSON << "\"library_list\": [";
+                for (int i = 0; i < fLibraryList.size(); i++) {
+                    fJSON << "\"" << fLibraryList[i] << "\"";
+                    if (i < (fLibraryList.size() - 1)) fJSON << ",";
+                }
+                fJSON << "],";
+            }
+            if (fIncludePathnames.size() > 0) {
+                tab(fTab, fJSON);
+                fJSON << "\"include_pathnames\": [";
+                for (int i = 0; i < fIncludePathnames.size(); i++) {
+                    fJSON << "\"" << fIncludePathnames[i] << "\"";
+                    if (i < (fIncludePathnames.size() - 1)) fJSON << ",";
+                }
+                fJSON << "],";
+            }
             if (fDSPSize != "") { tab(fTab, fJSON); fJSON << "\"size\": \"" << fDSPSize << "\","; }
             if (fSHAKey != "") { tab(fTab, fJSON); fJSON << "\"sha_key\": \"" << fSHAKey << "\","; }
             if (fExpandedCode != "") { tab(fTab, fJSON); fJSON << "\"code\": \"" << fExpandedCode << "\","; }
@@ -415,13 +441,16 @@ class JSONUI : public JSONUIAux<FAUSTFLOAT>
                const std::string& sha_key,
                const std::string& dsp_code,
                const std::string& version,
-               const std::string& options,
+               const std::string& compile_options,
+               const std::vector<std::string>& library_list,
+               const std::vector<std::string>& include_pathnames,
                const std::string& size,
                const std::map<std::string, int>& path_table):
         JSONUIAux<FAUSTFLOAT>(name, filename,
                               inputs, outputs,
                               sha_key, dsp_code,
-                              version, options,
+                              version, compile_options,
+                              library_list, include_pathnames,
                               size, path_table)
         {}
         

@@ -773,15 +773,20 @@ void CodeContainer::generateJSONFile()
     xout << json_visitor.JSON();
 }
 
+#include "faust/gui/JSONUIDecoder.h"
+
 void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 {
     // Prepare compilation options
-    stringstream options;
-    gGlobal->printCompilationOptions(options);
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options);
 
     // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), "",
+    visitor->init("", "", fNumInputs, fNumOutputs, "", "",
+                  FAUSTVERSION, compile_options.str(),
+                  gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, "",
                   std::map<std::string, int>());
+     
     generateUserInterface(visitor);
     generateMetaData(visitor);
 }

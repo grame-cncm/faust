@@ -87,7 +87,7 @@ class dsp_factory_imp : public dsp_factory_base {
     std::string              fName;
     std::string              fSHAKey;
     std::string              fExpandedDSP;
-    std::vector<std::string> fLibraryPathname;
+    std::vector<std::string> fLibraryList;
     std::vector<std::string> fIncludePathnames;
     dsp_memory_manager*      fManager;
 
@@ -97,7 +97,7 @@ class dsp_factory_imp : public dsp_factory_base {
         : fName(name),
           fSHAKey(sha_key),
           fExpandedDSP(dsp),
-          fLibraryPathname(library_list),
+          fLibraryList(library_list),
           fIncludePathnames(include_pathnames),
           fManager(nullptr)
     {
@@ -166,7 +166,7 @@ class dsp_factory_imp : public dsp_factory_base {
 
     virtual std::string getBinaryCode() { return ""; }
 
-    virtual std::vector<std::string> getLibraryList() { return fLibraryPathname; }
+    virtual std::vector<std::string> getLibraryList() { return fLibraryList; }
 
     virtual std::vector<std::string> getIncludePathnames() { return fIncludePathnames; }
 };
