@@ -209,7 +209,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     if (mode == 1) {
         return new interpreter_dsp_factory_aux<T, 1>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -218,7 +218,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     } else if (mode == 2) {
         return new interpreter_dsp_factory_aux<T, 2>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -227,7 +227,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     } else if (mode == 3) {
         return new interpreter_dsp_factory_aux<T, 3>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -236,7 +236,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     } else if (mode == 4) {
         return new interpreter_dsp_factory_aux<T, 4>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -245,7 +245,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     } else if (mode == 5) {
         return new interpreter_dsp_factory_aux<T, 5>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -255,7 +255,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     } else {
         // Default case, no trace...
         return new interpreter_dsp_factory_aux<T, 0>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
+            name, "", INTERP_FILE_VERSION, fNumInputs,
             fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
             getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
             getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),

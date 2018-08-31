@@ -55,6 +55,7 @@ class SourceReader
         Tree getList(const char* fname);
         Tree expandList(Tree ldef);
         vector<string> listSrcFiles();
+        vector<string> listLibraryFiles();
 
 };
 

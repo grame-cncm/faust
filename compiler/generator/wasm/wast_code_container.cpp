@@ -54,7 +54,7 @@ using namespace std;
 dsp_factory_base* WASTCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+        fKlassName, "", "",
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
@@ -325,7 +325,7 @@ void WASTCodeContainer::produceClass()
 
     // Prepare compilation options
     stringstream compile_options;
-    gGlobal->printCompilationOptions(compile_options);
+    gGlobal->printCompilationOptions(compile_options, false);
 
     stringstream size;
     size << gGlobal->gWASTVisitor->getStructSize();
@@ -344,7 +344,7 @@ void WASTCodeContainer::produceClass()
 
     // "name", "filename" found in medata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
                                   size.str(),
                                   path_index_table);
     generateUserInterface(&json_visitor2);

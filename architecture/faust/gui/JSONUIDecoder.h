@@ -55,7 +55,6 @@ struct JSONUIDecoder {
     std::string fFileName;
     
     std::map<std::string, std::string> fMetadatas;
-    std::map<std::string, std::vector<std::string> > fMetadatas2;
     std::vector<itemInfo*> fUiItems;     
     
     FAUSTFLOAT* fInControl;
@@ -81,12 +80,13 @@ struct JSONUIDecoder {
     bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
     bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
     bool isSoundfile(const string& type) { return (type == "soundfile"); }
-
-    JSONUIDecoder(const std::string& json) 
+    
+    JSONUIDecoder(const std::string& json)
     {
         fJSON = json;
         const char* p = fJSON.c_str();
-        parseJson(p, fMetadatas, fMetadatas2, fUiItems);
+        std::map<std::string, std::vector<std::string> > meta_datas;
+        parseJson(p, fMetadatas, meta_datas, fUiItems);
         
         // fMetadatas will contain the "meta" section as well as <name : val>, <inputs : val>, <ouputs : val> pairs
         if (fMetadatas.find("name") != fMetadatas.end()) {
@@ -117,14 +117,14 @@ struct JSONUIDecoder {
             fCompileOptions = "";
         }
         
-        if (fMetadatas2.find("library_list") != fMetadatas2.end()) {
-            fLibraryList = fMetadatas2["library_list"];
-            fMetadatas2.erase("library_list");
+        if (meta_datas.find("library_list") != meta_datas.end()) {
+            fLibraryList = meta_datas["library_list"];
+            meta_datas.erase("library_list");
         }
         
-        if (fMetadatas2.find("include_pathnames") != fMetadatas2.end()) {
-            fIncludePathnames = fMetadatas2["include_pathnames"];
-            fMetadatas2.erase("include_pathnames");
+        if (meta_datas.find("include_pathnames") != meta_datas.end()) {
+            fIncludePathnames = meta_datas["include_pathnames"];
+            meta_datas.erase("include_pathnames");
         }
   
         if (fMetadatas.find("size") != fMetadatas.end()) {
@@ -299,6 +299,16 @@ struct JSONUIDecoder {
         }
         
         setlocale(LC_ALL, tmp_local);
+    }
+    
+    bool hasCompileOption(const string& option)
+    {
+        std::istringstream iss(fCompileOptions);
+        std::string token;
+        while (std::getline(iss, token, ' ')) {
+            if (token == option) return true;
+        }
+        return false;
     }
     
 };

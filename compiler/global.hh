@@ -538,7 +538,7 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
-    void printCompilationOptions(ostream& dst);
+    void printCompilationOptions(ostream& dst, bool backend = true);
 };
 
 // Unique shared global pointer

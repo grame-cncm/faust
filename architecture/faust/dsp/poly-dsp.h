@@ -834,7 +834,7 @@ struct dsp_poly_factory : public dsp_factory {
     virtual std::string getName() { return fProcessFactory->getName(); }
     virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
     virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
-    
+    virtual std::string getCompileOptions() { return fProcessFactory->getCompileOptions(); }
     virtual std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
     virtual std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
     

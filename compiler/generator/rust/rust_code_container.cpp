@@ -47,7 +47,7 @@ map<string, bool> RustInstVisitor::gFunctionSymbolTable;
 dsp_factory_base* RustCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+        fKlassName, "", "",
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 

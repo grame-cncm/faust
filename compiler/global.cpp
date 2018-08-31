@@ -558,9 +558,9 @@ void global::init()
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }
 
-void global::printCompilationOptions(ostream& dst)
+void global::printCompilationOptions(ostream& dst, bool backend)
 {
-    dst << gOutputLang << ", ";
+    if (backend) dst << gOutputLang << ", ";
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

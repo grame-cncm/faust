@@ -784,7 +784,7 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
     // "name", "filename" found in medata
     visitor->init("", "", fNumInputs, fNumOutputs, "", "",
                   FAUSTVERSION, compile_options.str(),
-                  gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, "",
+                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "",
                   std::map<std::string, int>());
      
     generateUserInterface(visitor);

@@ -306,9 +306,8 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 
 EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code)
 {
-    vector<string>    dummy;
     wasm_dsp_factory* factory =
-        new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", dummy, dummy, machine_code, ""));
+        new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
     gWasmFactoryTable.setFactory(factory);
     factory->setSHAKey("");
     factory->setDSPCode("");

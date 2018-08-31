@@ -102,7 +102,6 @@ struct dsp_imp;
     
 typedef struct dsp_imp* (* newDspFun) ();
 typedef void (* deleteDspFun) (struct dsp_imp* dsp);
-typedef int (* getSizeFun) ();
 typedef int (* getNumInputsFun) (struct dsp_imp* dsp);
 typedef int (* getNumOutputsFun) (struct dsp_imp* dsp);
 typedef void (* buildUserInterfaceFun) (struct dsp_imp* dsp, UIGlue* ui);
@@ -111,7 +110,7 @@ typedef void (* clearFun) (struct dsp_imp* dsp);
 typedef int (* getSampleRateFun) (struct dsp_imp* dsp);
 typedef void (* computeFun) (struct dsp_imp* dsp, int len, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs);
 typedef void (* metadataFun) (MetaGlue* meta);
-typedef int (* getSampleSizeFun) ();
+typedef const char* (* getJSONFun) ();
 typedef void (* setDefaultSoundFun) (struct Soundfile* sf);
     
 /***************************************
