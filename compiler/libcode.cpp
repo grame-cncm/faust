@@ -1525,7 +1525,7 @@ static void generateOutputFiles()
 #ifdef OCPP_BUILD
         } else if (old_comp) {
             Description* D = old_comp->getDescription();
-            assert(D);
+            faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
             if (gGlobal->gMetaDataSet.count(tree("name")) > 0)
