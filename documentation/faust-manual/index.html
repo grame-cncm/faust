@@ -179,7 +179,40 @@
 <li><a href="#numbers">Numbers</a></li>
 <li><a href="#the-waveform-primitive">The <code>waveform</code> Primitive</a></li>
 <li><a href="#the-soundfile-primitive">The <code>soundfile</code> Primitive</a></li>
-<li><a href="#c-equivalent-primitives">C-Equivalent Primitives</a></li>
+<li><a href="#c-equivalent-primitives">C-Equivalent Primitives</a><ul>
+<li><a href="#integer-number">Integer Number</a></li>
+<li><a href="#floating-point-number">Floating Point Number</a></li>
+<li><a href="#identity-function">Identity Function</a></li>
+<li><a href="#cut-primitive">Cut Primitive</a></li>
+<li><a href="#int-primitive"><code>int</code> Primitive</a></li>
+<li><a href="#float-primitive"><code>float</code> Primitive</a></li>
+<li><a href="#add-primitive">Add Primitive</a></li>
+<li><a href="#subtract-primitive">Subtract Primitive</a></li>
+<li><a href="#multiply-primitive">Multiply Primitive</a></li>
+<li><a href="#divide-primitive">Divide Primitive</a></li>
+<li><a href="#power-primitive">Power Primitive</a></li>
+<li><a href="#modulo-primitive">Modulo Primitive</a></li>
+<li><a href="#and-primitive">AND Primitive</a></li>
+<li><a href="#or-primitive">OR Primitive</a></li>
+<li><a href="#xor-primitive">XOR Primitive</a></li>
+<li><a href="#left-shift-primitive">Left Shift Primitive</a></li>
+<li><a href="#right-shift-primitive">Right Shift Primitive</a></li>
+<li><a href="#smaller-than-primitive">Smaller Than Primitive</a></li>
+<li><a href="#smaller-or-equal-than-primitive">Smaller or Equal Than Primitive</a></li>
+<li><a href="#greater-than-primitive">Greater Than Primitive</a></li>
+<li><a href="#greater-or-equal-than-primitive">Greater or Equal Than Primitive</a></li>
+<li><a href="#equal-to-primitive">Equal to Primitive</a></li>
+<li><a href="#different-than-primitive">Different Than Primitive</a></li>
+</ul></li>
+<li><a href="#math.h-equivalent-primitives"><code>math.h</code>-Equivalent Primitives</a><ul>
+<li><a href="#acos-primitive"><code>acos</code> Primitive</a></li>
+<li><a href="#asin-primitive"><code>asin</code> Primitive</a></li>
+<li><a href="#atan-primitive"><code>atan</code> Primitive</a></li>
+<li><a href="#atan2-primitive"><code>atan2</code> Primitive</a></li>
+<li><a href="#cos-primitive"><code>cos</code> Primitive</a></li>
+<li><a href="#sin-primitive"><code>sin</code> Primitive</a></li>
+<li><a href="#tan-primitive"><code>tan</code> Primitive</a></li>
+</ul></li>
 </ul></li>
 </ul></li>
 <li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
@@ -1096,69 +1129,315 @@ process = triangleOsc(f);</code></pre>
 <div class="faust-run"><a href="img/src/exfaust35/exfaust35-svg/process.svg" target="_blank"><img src="img/src/exfaust35/exfaust35-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>process = +;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust35/exfaust35.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<p>Note that this is equivalent to:</p>
+<p>Note that this is equivalent to (see <a href="#identity-function">Identity Function</a>):</p>
 <div class="faust-run"><a href="img/src/exfaust36/exfaust36-svg/process.svg" target="_blank"><img src="img/src/exfaust36/exfaust36-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>process = _+_;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust36/exfaust36.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>The function <code>-</code> has type <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span> and transforms a pair of signals <span class="math inline">\((x_1,x_2)\)</span> into a 1-tuple of signals <span class="math inline">\((y)\)</span> such that <span class="math inline">\(\forall t\in\mathbb{N}, y(t)=x_{1}(t)-x_{2}(t)\)</span>.</p>
-<p><strong>Be aware that</strong> the unary <code>-</code> only exists in a limited form. It can be used with numbers: <code>-0.5</code> and variables: <code>-myvar</code>, but not with expressions surrounded by parenthesis, because in this case it represents a partial application. For instance, <code>-(a * b)</code> is a partial application. It is syntactic sugar for <code>_,(a * b) : -</code>. If you want to negate a complex term in parenthesis, you’ll have to use <code>0 - (a * b)</code> instead.</p>
+<p><strong>Be aware that</strong> the unary <code>-</code> only exists in a limited form. It can be used with numbers: <code>-0.5</code> and variables: <code>-myvar</code>, but not with expressions surrounded by parenthesis, because in this case it represents a partial application. For instance, <code>-(a*b)</code> is a partial application. It is syntactic sugar for <code>_,(a*b) : -</code>. If you want to negate a complex term in parenthesis, you’ll have to use <code>0 - (a*b)</code> instead.</p>
 <!-- TODO: need to make sure that the identify function and the exclamation
-are properly documented -->
-<table>
-<colgroup>
-<col style="width: 28%" />
-<col style="width: 19%" />
-<col style="width: 52%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th>Syntax</th>
-<th>Type</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td><span class="math inline">\(n\)</span></td>
-<td><span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span></td>
-<td>Integer number: <span class="math inline">\(y(t)=n\)</span></td>
-</tr>
-<tr class="even">
-<td><span class="math inline">\(n.m\)</span></td>
-<td><span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span></td>
-<td>Floating point number: <span class="math inline">\(y(t)=n.m\)</span></td>
-</tr>
-</tbody>
-</table>
-<!--
-\texttt{\_} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & identity function: $y(t)=x(t)$ \\
-\texttt{!} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{0}$ & cut function: $\forall x\in\mathbb{S},(x)\rightarrow ()$\\
-
-\texttt{int} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an int signal: $y(t)=(int)x(t)$  \\
-\texttt{float} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an float signal: $y(t)=(float)x(t)$  \\
-
-\texttt{+} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & addition: $y(t)=x_{1}(t)+x_{2}(t)$  \\
-\texttt{-} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & subtraction: $y(t)=x_{1}(t)-x_{2}(t)$   \\
-\texttt{*} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & multiplication: $y(t)=x_{1}(t)*x_{2}(t)$   \\
-\texttt{$\land$} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & power: $y(t)=x_{1}(t)^{x_{2}(t)}$   \\
-\texttt{/} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & division: $y(t)=x_{1}(t)/x_{2}(t)$   \\
-\texttt{\%} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & modulo: $y(t)=x_{1}(t)\%x_{2}(t)$   \\
-
-\texttt{\&} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical AND: $y(t)=x_{1}(t)\&x_{2}(t)$   \\
-\texttt{|} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical OR: $y(t)=x_{1}(t)|x_{2}(t)$   \\
-\texttt{xor} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical XOR: $y(t)=x_{1}(t)\land x_{2}(t)$   \\
-
-\texttt{<}\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift left: $y(t)=x_{1}(t) << x_{2}(t)$   \\
-\texttt{>}\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift right: $y(t)=x_{1}(t) >> x_{2}(t)$   \\
-
-
-\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less than: $y(t)=x_{1}(t) < x_{2}(t)$   \\
-\texttt{<=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less or equal: $y(t)=x_{1}(t) <= x_{2}(t)$   \\
-\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater than: $y(t)=x_{1}(t) > x_{2}(t)$   \\
-\texttt{>=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater or equal: $y(t)=x_{1}(t) >= x_{2}(t)$   \\
-\texttt{==} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & equal: $y(t)=x_{1}(t) == x_{2}(t)$   \\
-\texttt{!=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & different: $y(t)=x_{1}(t) != x_{2}(t)$   \\
--->
+are properly documented/mentioned somewhere and demonstrated -->
+<h4 id="integer-number">Integer Number</h4>
+<p>Integer numbers are of type <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span> in Faust and can be described mathematically as <span class="math inline">\(y(t)=n\)</span>.</p>
+<p><strong>Example: DC Offset of 1</strong></p>
+<div class="faust-run"><a href="img/src/exfaust37/exfaust37-svg/process.svg" target="_blank"><img src="img/src/exfaust37/exfaust37-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust37/exfaust37.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="floating-point-number">Floating Point Number</h4>
+<p>Floating point numbers are of type <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span> in Faust and can be described as <span class="math inline">\(y(t)=n.m\)</span>.</p>
+<p><strong>Example: DC Offset of 0.5</strong></p>
+<div class="faust-run"><a href="img/src/exfaust38/exfaust38-svg/process.svg" target="_blank"><img src="img/src/exfaust38/exfaust38-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.5;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust38/exfaust38.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="identity-function">Identity Function</h4>
+<p>The identity function is expressed in Faust with the <code>_</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x(t)\)</span></li>
+</ul>
+<p><strong>Example: a Signal Passing Through</strong></p>
+<p>In the following example, the <code>_</code> primitive is used to connect the single audio input of a Faust program to its output:</p>
+<div class="faust-run"><a href="img/src/exfaust39/exfaust39-svg/process.svg" target="_blank"><img src="img/src/exfaust39/exfaust39-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust39/exfaust39.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="cut-primitive">Cut Primitive</h4>
+<p>The cut primitive is expressed in Faust with <code>!</code>. It can be used to “stop”/terminate a signal.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{0}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(\forall x\in\mathbb{S},(x)\rightarrow ()\)</span></li>
+</ul>
+<p><strong>Example: Stopping a Signal</strong></p>
+<p>In the following example, the <code>!</code> primitive is used to stop one of two parallel signals:</p>
+<div class="faust-run"><a href="img/src/exfaust40/exfaust40-svg/process.svg" target="_blank"><img src="img/src/exfaust40/exfaust40-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1,2 : !,_;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust40/exfaust40.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="int-primitive"><code>int</code> Primitive</h4>
+<p>The <code>int</code> primitive can be used to force the cast of a signal to int. It is of type <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span> and can be described mathematically as <span class="math inline">\(y(t)=(int)x(t)\)</span>. This primitive is useful when declaring indices to read in a table, etc.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=(int)x(t)\)</span></li>
+</ul>
+<p><strong>Example: Simple Cast</strong></p>
+<div class="faust-run"><a href="img/src/exfaust41/exfaust41-svg/process.svg" target="_blank"><img src="img/src/exfaust41/exfaust41-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1.5 : int;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust41/exfaust41.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="float-primitive"><code>float</code> Primitive</h4>
+<p>The <code>float</code> primitive can be used to force the cast of a signal to float.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=(float)x(t)\)</span></li>
+</ul>
+<p><strong>Example: Simple Cast</strong></p>
+<div class="faust-run"><a href="img/src/exfaust42/exfaust42-svg/process.svg" target="_blank"><img src="img/src/exfaust42/exfaust42-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1.5 : float;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust42/exfaust42.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="add-primitive">Add Primitive</h4>
+<p>The <code>+</code> primitive can be used to add two signals together.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)+x_{2}(t)\)</span></li>
+</ul>
+<p><strong>Example: Simple Mixer</strong></p>
+<div class="faust-run"><a href="img/src/exfaust43/exfaust43-svg/process.svg" target="_blank"><img src="img/src/exfaust43/exfaust43-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = +;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust43/exfaust43.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="subtract-primitive">Subtract Primitive</h4>
+<p>The <code>-</code> primitive can be used to subtract two signals.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)-x_{2}(t)\)</span></li>
+</ul>
+<p><strong>Example: Subtracting Two Input Signals</strong></p>
+<div class="faust-run"><a href="img/src/exfaust44/exfaust44-svg/process.svg" target="_blank"><img src="img/src/exfaust44/exfaust44-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = -;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust44/exfaust44.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="multiply-primitive">Multiply Primitive</h4>
+<p>The <code>*</code> primitive can be used to multiply two signals.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)*x_{2}(t)\)</span></li>
+</ul>
+<p><strong>Example: Multiplying a Signal by 0.5</strong></p>
+<div class="faust-run"><a href="img/src/exfaust45/exfaust45-svg/process.svg" target="_blank"><img src="img/src/exfaust45/exfaust45-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = *(0.5);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust45/exfaust45.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="divide-primitive">Divide Primitive</h4>
+<p>The <code>/</code> primitive can be used to divide two signals.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)/{x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example: Dividing a Signal by 2</strong></p>
+<div class="faust-run"><a href="img/src/exfaust46/exfaust46-svg/process.svg" target="_blank"><img src="img/src/exfaust46/exfaust46-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = ^(2);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust46/exfaust46.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="power-primitive">Power Primitive</h4>
+<p>The <code>^</code> primitive can be used to raise to the power of <code>N</code> a signal.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)^{x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example: Power of Two of a Signal</strong></p>
+<div class="faust-run"><a href="img/src/exfaust47/exfaust47-svg/process.svg" target="_blank"><img src="img/src/exfaust47/exfaust47-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = ^(2);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust47/exfaust47.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="modulo-primitive">Modulo Primitive</h4>
+<p>The <code>%</code> primitive can be used to take the modulo of a signal.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)\%{x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example: Phaser</strong></p>
+<p>The following example uses a counter and the <code>%</code> primitive to implement a basic phaser:</p>
+<div class="faust-run"><a href="img/src/exfaust48/exfaust48-svg/process.svg" target="_blank"><img src="img/src/exfaust48/exfaust48-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _~+(1) : -(1) : %(10);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust48/exfaust48.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>will output a signal: <code>(0,1,2,3,4,5,6,7,8,9,0,1,2,3,4)</code></p>
+<h4 id="and-primitive">AND Primitive</h4>
+<p>Logical AND can be expressed in Faust with the <code>&amp;</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)\&amp;{x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>TODO</p>
+<h4 id="or-primitive">OR Primitive</h4>
+<p>Logical OR can be expressed in Faust with the <code>|</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)|{x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>The following example will output 1 if the incoming signal is smaller than 0.5 or greater than 0.7 and 0 otherwise. Note that the result of this operation could be multiplied to another signal to create a condition.</p>
+<div class="faust-run"><a href="img/src/exfaust49/exfaust49-svg/process.svg" target="_blank"><img src="img/src/exfaust49/exfaust49-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _ &lt;: &lt;(0.5) | &gt;(0.7);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust49/exfaust49.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="xor-primitive">XOR Primitive</h4>
+<p>Logical XOR can be expressed in Faust with the <code>xor</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t)\land {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust50/exfaust50-svg/process.svg" target="_blank"><img src="img/src/exfaust50/exfaust50-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _ &lt;: &lt;(0.5) xor &gt;(0.7);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust50/exfaust50.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="left-shift-primitive">Left Shift Primitive</h4>
+<p>Left shift can be expressed in Faust with the <code>&lt;&lt;</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &lt;&lt; {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust51/exfaust51-svg/process.svg" target="_blank"><img src="img/src/exfaust51/exfaust51-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1 &lt;&lt; 2 ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust51/exfaust51.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="right-shift-primitive">Right Shift Primitive</h4>
+<p>Right shift can be expressed in Faust with the <code>&gt;&gt;</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &gt;&gt; {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust52/exfaust52-svg/process.svg" target="_blank"><img src="img/src/exfaust52/exfaust52-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 1 &gt;&gt; 2 ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust52/exfaust52.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="smaller-than-primitive">Smaller Than Primitive</h4>
+<p>The smaller than comparison can be expressed in Faust with the <code>&lt;</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &lt; {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>The following code will output 1 if the input signal is smaller than 0.5 and 0 otherwise.</p>
+<div class="faust-run"><a href="img/src/exfaust53/exfaust53-svg/process.svg" target="_blank"><img src="img/src/exfaust53/exfaust53-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = &lt;(0.5) ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust53/exfaust53.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="smaller-or-equal-than-primitive">Smaller or Equal Than Primitive</h4>
+<p>The smaller or equal than comparison can be expressed in Faust with the <code>&lt;=</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &lt;= {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>The following code will output 1 if the input signal is smaller or equal than 0.5 and 0 otherwise.</p>
+<div class="faust-run"><a href="img/src/exfaust54/exfaust54-svg/process.svg" target="_blank"><img src="img/src/exfaust54/exfaust54-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = &lt;=(0.5) ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust54/exfaust54.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="greater-than-primitive">Greater Than Primitive</h4>
+<p>The greater than comparison can be expressed in Faust with the <code>&gt;</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &gt; {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>The following code will output 1 if the input signal is greater than 0.5 and 0 otherwise.</p>
+<div class="faust-run"><a href="img/src/exfaust55/exfaust55-svg/process.svg" target="_blank"><img src="img/src/exfaust55/exfaust55-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = &gt;(0.5) ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust55/exfaust55.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="greater-or-equal-than-primitive">Greater or Equal Than Primitive</h4>
+<p>The greater or equal than comparison can be expressed in Faust with the <code>&gt;=</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) &gt;= {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<p>The following code will output 1 if the input signal is greater or equal than 0.5 and 0 otherwise.</p>
+<div class="faust-run"><a href="img/src/exfaust56/exfaust56-svg/process.svg" target="_blank"><img src="img/src/exfaust56/exfaust56-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = &gt;=(0.5) ;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust56/exfaust56.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="equal-to-primitive">Equal to Primitive</h4>
+<p>The equal to comparison can be expressed in Faust with the <code>==</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) == {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust57/exfaust57-svg/process.svg" target="_blank"><img src="img/src/exfaust57/exfaust57-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0 == 1;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust57/exfaust57.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="different-than-primitive">Different Than Primitive</h4>
+<p>The different than comparison can be expressed in Faust with the <code>!=</code> primitive.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=x_{1}(t) != {x_{2}(t)}\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust58/exfaust58-svg/process.svg" target="_blank"><img src="img/src/exfaust58/exfaust58-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0 != 1;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust58/exfaust58.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="math.h-equivalent-primitives"><code>math.h</code>-Equivalent Primitives</h3>
+<p>Most of the C <code>math.h</code> functions are also built-in as primitives (the others are defined as external functions in file <code>math.lib</code>).</p>
+<h4 id="acos-primitive"><code>acos</code> Primitive</h4>
+<p>Arc cosine can be expressed as <code>acos</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{acosf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust59/exfaust59-svg/process.svg" target="_blank"><img src="img/src/exfaust59/exfaust59-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : acos;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust59/exfaust59.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="asin-primitive"><code>asin</code> Primitive</h4>
+<p>Arc sine can be expressed as <code>asin</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{asinf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust60/exfaust60-svg/process.svg" target="_blank"><img src="img/src/exfaust60/exfaust60-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : asin;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust60/exfaust60.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="atan-primitive"><code>atan</code> Primitive</h4>
+<p>Arc tangent can be expressed as <code>atan</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{atanf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust61/exfaust61-svg/process.svg" target="_blank"><img src="img/src/exfaust61/exfaust61-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : atan;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust61/exfaust61.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="atan2-primitive"><code>atan2</code> Primitive</h4>
+<p>The arc tangent of 2 signals can be expressed as <code>atan2</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{atan2f}(x_{1}(t), x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust62/exfaust62-svg/process.svg" target="_blank"><img src="img/src/exfaust62/exfaust62-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1,-0.1 : atan2;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust62/exfaust62.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="cos-primitive"><code>cos</code> Primitive</h4>
+<p>Cosine can be expressed as <code>cos</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{cosf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust63/exfaust63-svg/process.svg" target="_blank"><img src="img/src/exfaust63/exfaust63-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : cos;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust63/exfaust63.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="sin-primitive"><code>sin</code> Primitive</h4>
+<p>Sine can be expressed as <code>sin</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{sinf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust64/exfaust64-svg/process.svg" target="_blank"><img src="img/src/exfaust64/exfaust64-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : sin;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust64/exfaust64.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="tan-primitive"><code>tan</code> Primitive</h4>
+<p>Sine can be expressed as <code>tan</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{tanf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust65/exfaust65-svg/process.svg" target="_blank"><img src="img/src/exfaust65/exfaust65-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : tan;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust65/exfaust65.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
 <!-- TODO give use examples after description here -->

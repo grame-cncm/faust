@@ -1779,7 +1779,7 @@ process = +;
 ```
 <!-- /faust-run -->	
 
-Note that this is equivalent to:
+Note that this is equivalent to (see [Identity Function](#identity-function)):
 
 <!-- faust-run -->
 ```
@@ -1794,47 +1794,492 @@ such that $\forall t\in\mathbb{N}, y(t)=x_{1}(t)-x_{2}(t)$.
 **Be aware that** the unary `-` only exists in a limited form. It can be used 
 with numbers: `-0.5` and variables: `-myvar`, but not with expressions 
 surrounded by parenthesis, because in this case it represents a partial 
-application.  For instance,  `-(a * b)` is a partial application. It is 
-syntactic sugar for `_,(a * b) : -`. If you want to negate a complex 
-term in parenthesis, you'll have to use `0 - (a * b)` instead.
+application.  For instance,  `-(a*b)` is a partial application. It is 
+syntactic sugar for `_,(a*b) : -`. If you want to negate a complex 
+term in parenthesis, you'll have to use `0 - (a*b)` instead.
 
 <!-- TODO: need to make sure that the identify function and the exclamation
 are properly documented/mentioned somewhere and demonstrated -->
 
-| Syntax | Type | Description |
-| ------ | ---- | ----------- |
-| $n$    | $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ | Integer number: $y(t)=n$ |
-| $n.m$  | $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ | Floating point number: $y(t)=n.m$ |
+#### Integer Number
 
-<!--
-\texttt{\_} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & identity function: $y(t)=x(t)$ \\
-\texttt{!} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{0}$ & cut function: $\forall x\in\mathbb{S},(x)\rightarrow ()$\\
+Integer numbers are of type $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ in Faust
+and can be described mathematically as $y(t)=n$.
 
-\texttt{int} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an int signal: $y(t)=(int)x(t)$  \\
-\texttt{float} & $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ & cast into an float signal: $y(t)=(float)x(t)$  \\
+**Example: DC Offset of 1**
 
-\texttt{+} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & addition: $y(t)=x_{1}(t)+x_{2}(t)$  \\
-\texttt{-} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & subtraction: $y(t)=x_{1}(t)-x_{2}(t)$   \\
-\texttt{*} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & multiplication: $y(t)=x_{1}(t)*x_{2}(t)$   \\
-\texttt{$\land$} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & power: $y(t)=x_{1}(t)^{x_{2}(t)}$   \\
-\texttt{/} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & division: $y(t)=x_{1}(t)/x_{2}(t)$   \\
-\texttt{\%} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & modulo: $y(t)=x_{1}(t)\%x_{2}(t)$   \\
+<!-- faust-run -->
+```
+process = 1;
+```
+<!-- /faust-run -->		
 
-\texttt{\&} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical AND: $y(t)=x_{1}(t)\&x_{2}(t)$   \\
-\texttt{|} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical OR: $y(t)=x_{1}(t)|x_{2}(t)$   \\
-\texttt{xor} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & logical XOR: $y(t)=x_{1}(t)\land x_{2}(t)$   \\
+#### Floating Point Number
 
-\texttt{<}\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift left: $y(t)=x_{1}(t) << x_{2}(t)$   \\
-\texttt{>}\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & arith. shift right: $y(t)=x_{1}(t) >> x_{2}(t)$   \\
+Floating point numbers are of type $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ in 
+Faust and can be described as $y(t)=n.m$.
 
+**Example: DC Offset of 0.5**
 
-\texttt{<} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less than: $y(t)=x_{1}(t) < x_{2}(t)$   \\
-\texttt{<=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & less or equal: $y(t)=x_{1}(t) <= x_{2}(t)$   \\
-\texttt{>} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater than: $y(t)=x_{1}(t) > x_{2}(t)$   \\
-\texttt{>=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & greater or equal: $y(t)=x_{1}(t) >= x_{2}(t)$   \\
-\texttt{==} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & equal: $y(t)=x_{1}(t) == x_{2}(t)$   \\
-\texttt{!=} & $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ & different: $y(t)=x_{1}(t) != x_{2}(t)$   \\
--->
+<!-- faust-run -->
+```
+process = 0.5;
+```
+<!-- /faust-run -->		
+
+#### Identity Function
+
+The identity function is expressed in Faust with the `_` primitive. 
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x(t)$
+
+**Example: a Signal Passing Through**
+
+In the following example, the `_` primitive is used to connect the single
+audio input of a Faust program to its output:
+
+<!-- faust-run -->
+```
+process = _;
+```
+<!-- /faust-run -->	
+
+#### Cut Primitive
+
+The cut primitive is expressed in Faust with `!`. It can be used to 
+"stop"/terminate a signal.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{0}$ 
+* **Mathematical Description:** $\forall x\in\mathbb{S},(x)\rightarrow ()$
+
+**Example: Stopping a Signal**
+
+In the following example, the `!` primitive is used to stop one of two parallel
+signals:
+
+<!-- faust-run -->
+```
+process = 1,2 : !,_;
+```
+<!-- /faust-run -->	
+
+#### `int` Primitive
+
+The `int` primitive can be used to force the cast of a signal to int. It is 
+of type $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ and can be described 
+mathematically as $y(t)=(int)x(t)$. This primitive is useful when declaring
+indices to read in a table, etc.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=(int)x(t)$
+
+**Example: Simple Cast**
+
+<!-- faust-run -->
+```
+process = 1.5 : int;
+```
+<!-- /faust-run -->	
+
+#### `float` Primitive
+
+The `float` primitive can be used to force the cast of a signal to float.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=(float)x(t)$
+
+**Example: Simple Cast**
+
+<!-- faust-run -->
+```
+process = 1.5 : float;
+```
+<!-- /faust-run -->	
+
+#### Add Primitive
+
+The `+` primitive can be used to add two signals together. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)+x_{2}(t)$
+
+**Example: Simple Mixer**
+
+<!-- faust-run -->
+```
+process = +;
+```
+<!-- /faust-run -->	
+
+#### Subtract Primitive
+
+The `-` primitive can be used to subtract two signals. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)-x_{2}(t)$
+
+**Example: Subtracting Two Input Signals**
+
+<!-- faust-run -->
+```
+process = -;
+```
+<!-- /faust-run -->	
+
+#### Multiply Primitive
+
+The `*` primitive can be used to multiply two signals. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)*x_{2}(t)$
+
+**Example: Multiplying a Signal by 0.5**
+
+<!-- faust-run -->
+```
+process = *(0.5);
+```
+<!-- /faust-run -->	
+
+#### Divide Primitive
+
+The `/` primitive can be used to divide two signals. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)/{x_{2}(t)}$
+
+**Example: Dividing a Signal by 2**
+
+<!-- faust-run -->
+```
+process = ^(2);
+```
+<!-- /faust-run -->	
+
+#### Power Primitive
+
+The `^` primitive can be used to raise to the power of `N` a signal. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)^{x_{2}(t)}$
+
+**Example: Power of Two of a Signal**
+
+<!-- faust-run -->
+```
+process = ^(2);
+```
+<!-- /faust-run -->	
+
+#### Modulo Primitive
+
+The `%` primitive can be used to take the modulo of a signal. 
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)\%{x_{2}(t)}$
+
+**Example: Phaser**
+
+The following example uses a counter and the `%` primitive to implement a 
+basic phaser:
+
+<!-- faust-run -->
+```
+process = _~+(1) : -(1) : %(10);
+```
+<!-- /faust-run -->	
+
+will output a signal: `(0,1,2,3,4,5,6,7,8,9,0,1,2,3,4)`
+
+#### AND Primitive
+
+Logical AND can be expressed in Faust with the `&` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)\&{x_{2}(t)}$
+
+**Example**
+
+TODO
+
+#### OR Primitive
+
+Logical OR can be expressed in Faust with the `|` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)|{x_{2}(t)}$
+
+**Example**
+
+The following example will output 1 if the incoming signal is smaller than 0.5
+or greater than 0.7 and 0 otherwise. Note that the result of this operation
+could be multiplied to another signal to create a condition.
+
+<!-- faust-run -->
+```
+process = _ <: <(0.5) | >(0.7);
+```
+<!-- /faust-run -->	
+
+#### XOR Primitive
+
+Logical XOR can be expressed in Faust with the `xor` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t)\land {x_{2}(t)}$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = _ <: <(0.5) xor >(0.7);
+```
+<!-- /faust-run -->	
+
+#### Left Shift Primitive
+
+Left shift can be expressed in Faust with the `<<` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) << {x_{2}(t)}$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 1 << 2 ;
+```
+<!-- /faust-run -->	
+
+#### Right Shift Primitive
+
+Right shift can be expressed in Faust with the `>>` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) >> {x_{2}(t)}$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 1 >> 2 ;
+```
+<!-- /faust-run -->	
+
+#### Smaller Than Primitive
+
+The smaller than comparison can be expressed in Faust with the `<` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) < {x_{2}(t)}$
+
+**Example**
+
+The following code will output 1 if the input signal is smaller than 0.5 and
+0 otherwise.
+
+<!-- faust-run -->
+```
+process = <(0.5) ;
+```
+<!-- /faust-run -->	
+
+#### Smaller or Equal Than Primitive
+
+The smaller or equal than comparison can be expressed in Faust with the `<=` 
+primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) <= {x_{2}(t)}$
+
+**Example**
+
+The following code will output 1 if the input signal is smaller or equal than 
+0.5 and 0 otherwise.
+
+<!-- faust-run -->
+```
+process = <=(0.5) ;
+```
+<!-- /faust-run -->	
+
+#### Greater Than Primitive
+
+The greater than comparison can be expressed in Faust with the `>` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) > {x_{2}(t)}$
+
+**Example**
+
+The following code will output 1 if the input signal is greater than 0.5 and
+0 otherwise.
+
+<!-- faust-run -->
+```
+process = >(0.5) ;
+```
+<!-- /faust-run -->	
+
+#### Greater or Equal Than Primitive
+
+The greater or equal than comparison can be expressed in Faust with the `>=` 
+primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) >= {x_{2}(t)}$
+
+**Example**
+
+The following code will output 1 if the input signal is greater or equal than 
+0.5 and 0 otherwise.
+
+<!-- faust-run -->
+```
+process = >=(0.5) ;
+```
+<!-- /faust-run -->	
+
+#### Equal to Primitive
+
+The equal to comparison can be expressed in Faust with the `==` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) == {x_{2}(t)}$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0 == 1;
+```
+<!-- /faust-run -->	
+
+#### Different Than Primitive
+
+The different than comparison can be expressed in Faust with the `!=` primitive.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=x_{1}(t) != {x_{2}(t)}$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0 != 1;
+```
+<!-- /faust-run -->	
+
+### `math.h`-Equivalent Primitives
+
+Most of the C `math.h` functions are also built-in as primitives (the others 
+are defined as external functions in file `math.lib`).
+
+#### `acos` Primitive
+
+Arc cosine can be expressed as `acos` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{acosf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : acos;
+```
+<!-- /faust-run -->	
+
+#### `asin` Primitive
+
+Arc sine can be expressed as `asin` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{asinf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : asin;
+```
+<!-- /faust-run -->	
+
+#### `atan` Primitive
+
+Arc tangent can be expressed as `atan` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{atanf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : atan;
+```
+<!-- /faust-run -->	
+
+#### `atan2` Primitive
+
+The arc tangent of 2 signals can be expressed as `atan2` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{atan2f}(x_{1}(t), x_{2}(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1,-0.1 : atan2;
+```
+<!-- /faust-run -->	
+
+#### `cos` Primitive
+
+Cosine can be expressed as `cos` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{cosf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : cos;
+```
+<!-- /faust-run -->	
+
+#### `sin` Primitive
+
+Sine can be expressed as `sin` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{sinf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : sin;
+```
+<!-- /faust-run -->	
+
+#### `tan` Primitive
+
+Sine can be expressed as `tan` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{tanf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : tan;
+```
+<!-- /faust-run -->	
 
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->

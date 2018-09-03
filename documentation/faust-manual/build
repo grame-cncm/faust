@@ -26,7 +26,7 @@ do
   mkdir $EXFAUSTDIR$CNT
   # Formating code from file
   # TODO: files could be trimed to get rid of empty line at beginning and end
-  echo "$FAUSTCODES" | awk '1;/<!-- \/faust-run -->/{exit}' | awk '{gsub(/<!-- faust-run -->/,"")}1' | awk '{gsub(/<!-- \/faust-run -->/,"")}1' | awk '{gsub(/<pre><code>/,"")}1' | awk '{gsub(/<\/code><\/pre>/,"")}1' | awk '{gsub(/&quot;/,"\"")}1' | awk '{gsub(/&lt;/,"<")}1' | awk '{gsub(/&gt;/,">")}1' | awk '{gsub(/&#39;/,"\x27")}1' > $CURRENT_FAUST_FILE
+  echo "$FAUSTCODES" | awk '1;/<!-- \/faust-run -->/{exit}' | awk '{gsub(/<!-- faust-run -->/,"")}1' | awk '{gsub(/<!-- \/faust-run -->/,"")}1' | awk '{gsub(/<pre><code>/,"")}1' | awk '{gsub(/<\/code><\/pre>/,"")}1' | awk '{gsub(/&quot;/,"\"")}1' | awk '{gsub(/&lt;/,"<")}1' | awk '{gsub(/&gt;/,">")}1' | awk '{gsub(/&#39;/,"\x27")}1' | awk '{gsub(/&amp;/,"\x26")}1' > $CURRENT_FAUST_FILE
   # Generating SVG
   faust2svg $CURRENT_FAUST_FILE
   # Cleaning current example
