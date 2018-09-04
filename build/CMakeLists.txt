@@ -130,30 +130,6 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-####################################
-# Manual LLVM scan
-macro (llvm_config)
-	if ( NOT DEFINED LLVM_CONFIG)
-		set (LLVM_CONFIG llvm-config)
-	endif()
-	find_program (LC ${LLVM_CONFIG})
-	if (${LC} STREQUAL LC-NOTFOUND)
-		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
-	endif()
-	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
-	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-
-	execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-	execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
-endmacro()
 
 ####################################
 # Add the different targets
