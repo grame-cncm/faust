@@ -425,8 +425,9 @@ struct FunTyped : public Typed {
 struct ArrayTyped : public Typed {
     Typed* fType;
     int    fSize;
+    bool   fIsPtr;
 
-    ArrayTyped(Typed* type, int size) : fType(type), fSize(size) {}
+    ArrayTyped(Typed* type, int size, bool is_ptr = false) : fType(type), fSize(size), fIsPtr(is_ptr) {}
 
     virtual ~ArrayTyped() {}
 
@@ -1900,7 +1901,7 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size) { return new ArrayTyped(type, size); }
+    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false) { return new ArrayTyped(type, size, is_ptr); }
     static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields)
     {
         return new StructTyped(name, fields);

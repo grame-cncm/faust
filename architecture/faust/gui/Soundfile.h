@@ -33,7 +33,7 @@
 #define BUFFER_SIZE 1024
 #define SAMPLE_RATE 44100
 #define MAX_CHAN 64
-#define MAX_PART 256
+#define MAX_SOUNDFILE_PARTS 256
 
 #ifdef _MSC_VER
 #define PRE_PACKED_STRUCTURE __pragma(pack(push, 1))
@@ -46,7 +46,7 @@
 #endif
 
 /*
- The soundfile structure to be used by the DSP code. Soundfile has a MAX_PART parts 
+ The soundfile structure to be used by the DSP code. Soundfile has a MAX_SOUNDFILE_PARTS parts 
  (even a single soundfile or an empty soundfile). 
  fLength, fOffset and fSampleRate field are filled accordingly by repeating 
  the actual parts if needed.
@@ -54,7 +54,7 @@
  It has to be 'packed' to that the LLVM backend can correctly access it.
 
  New index computation:
-    - p is the current part number [0..MAX_PART-1] (must be proved by the type system)
+    - p is the current part number [0..MAX_SOUNDFILE_PARTS-1] (must be proved by the type system)
     - i is the current position in the part. It will be constrained between [0..length]
     - idx(p,i) = fOffset[p] + max(0, min(i, fLength[p]));
 */
@@ -62,9 +62,9 @@
 PRE_PACKED_STRUCTURE
 struct Soundfile {
     FAUSTFLOAT** fBuffers;
-    int fLength[MAX_PART];      // length of each part
-    int fOffset[MAX_PART];      // offset of each part in the global buffer
-    int fSampleRate[MAX_PART];  // sample rate of each part
+    int fLength[MAX_SOUNDFILE_PARTS];      // length of each part
+    int fSampleRate[MAX_SOUNDFILE_PARTS];  // sample rate of each part
+    int fOffset[MAX_SOUNDFILE_PARTS];      // offset of each part in the global buffer
     int fChannels;              // max number of channels of all concatenated files
 
     Soundfile()
@@ -161,7 +161,7 @@ class SoundfileReader {
             }
             
             // Complete with empty parts
-            total_length += (MAX_PART - path_name_list.size()) * BUFFER_SIZE;
+            total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
             
             std::cout << "read total_length " << total_length << " " << "cur_chan " << cur_chan << std::endl;
             
@@ -181,7 +181,7 @@ class SoundfileReader {
             }
             
             // Complete with empty parts
-            for (int i = path_name_list.size(); i < MAX_PART; i++) {
+            for (int i = path_name_list.size(); i < MAX_SOUNDFILE_PARTS; i++) {
                 empty(soundfile, i, offset, max_chan);
             }
             

@@ -39,9 +39,11 @@ entry = nentry("file", 0, 0, 10, 1);
 speed = hslider("speed", 1, 0, 4, 0.01);
 level = hslider("level", 0.5, 0, 1, 0.01);
 
-//process = nentry("part",0, 0, 10, 1), +(1)~_ : soundfile("files [url: {'RnB.wav';'tango.wav';'levot.wav'}]",2) :(!,!,_,_);
+//process = (entry, +(1)~_) : soundfile("files [url: {'RnB.wav';'tango.wav';'levot.wav'}]",2) :(!,!,_,_);
 
-///process = so_play(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), entry);
+//process = (entry, 1) : soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2):(_,!,!,!);
+
+//process = so_play(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), entry);
 
 
 //process = so_loop(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), entry);

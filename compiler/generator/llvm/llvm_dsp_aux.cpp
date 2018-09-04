@@ -73,13 +73,34 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 
 #endif
 
+// Debug tools
+EXPORT extern "C" void printInt32(int val)
+{
+    std::cout << "printInt32 : " << val << std::endl;
+}
+
+EXPORT extern "C" void printFloat(float val)
+{
+    std::cout << "printFloat : " << val << std::endl;
+}
+
+EXPORT extern "C" void printDouble(double val)
+{
+    std::cout << "printDouble : " << val << std::endl;
+}
+
+EXPORT extern "C" void printPtr(void* val)
+{
+    std::cout << "printPtr : " << val << std::endl;
+}
+
 // Factories instances management
 int llvm_dsp_factory_aux::gInstance = 0;
 
 dsp_factory_table<SDsp_factory> llvm_dsp_factory_aux::gLLVMFactoryTable;
 
 // Global API access lock
-TLockAble* llvm_dsp_factory_aux::gDSPFactoriesLock = 0;
+TLockAble* llvm_dsp_factory_aux::gDSPFactoriesLock = nullptr;
 
 void* llvm_dsp_factory_aux::loadOptimize(const string& function)
 {
@@ -182,24 +203,32 @@ void llvm_dsp_factory_aux::LLVMFatalErrorHandler(const char* reason)
 
 void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 {
-    fJIT                = 0;
-    fNew                = 0;
-    fDelete             = 0;
-    fGetNumInputs       = 0;
-    fGetNumOutputs      = 0;
-    fBuildUserInterface = 0;
-    fInit               = 0;
-    fInstanceInit       = 0;
-    fInstanceConstants  = 0;
-    fInstanceResetUI    = 0;
-    fInstanceClear      = 0;
-    fCompute            = 0;
+    fJIT                = nullptr;
+    fNew                = nullptr;
+    fDelete             = nullptr;
+    fGetNumInputs       = nullptr;
+    fGetNumOutputs      = nullptr;
+    fBuildUserInterface = nullptr;
+    fInit               = nullptr;
+    fInstanceInit       = nullptr;
+    fInstanceConstants  = nullptr;
+    fInstanceResetUI    = nullptr;
+    fInstanceClear      = nullptr;
+    fCompute            = nullptr;
     fClassName          = "mydsp";
     fName               = dsp_name;
     fTypeName           = type_name;
     fExpandedDSP        = "";
     fOptLevel           = 0;
     fTarget             = "";
+  
+    // To keep Debug functions in generated code
+#ifdef LLVM_DEBUG
+    printInt32(1);
+    printFloat(0.5f);
+    printDouble(0.8);
+    printPtr(this);
+#endif
 }
 
 bool llvm_dsp_factory_aux::initJIT(string& error_msg)
@@ -227,7 +256,7 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
     // Run static constructors.
     fJIT->runStaticConstructorsDestructors(false);
     fJIT->DisableLazyCompilation(true);
-    
+
     try {
         fNew                = (newDspFun)loadOptimize("new" + fClassName);
         fDelete             = (deleteDspFun)loadOptimize("delete" + fClassName);
@@ -413,7 +442,7 @@ EXPORT bool startMTDSPFactories()
 EXPORT void stopMTDSPFactories()
 {
     delete llvm_dsp_factory_aux::gDSPFactoriesLock;
-    llvm_dsp_factory_aux::gDSPFactoriesLock = 0;
+    llvm_dsp_factory_aux::gDSPFactoriesLock = nullptr;
 }
 
 EXPORT llvm_dsp_factory* getDSPFactoryFromSHAKey(const string& sha_key)

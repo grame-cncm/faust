@@ -70,7 +70,7 @@ struct LibsndfileReader : public SoundfileReader {
         std::cout << "length " << length << std::endl;
     }
     
-    // Will be called to fill all parts from 0 to MAX_PART-1
+    // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
     void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         // Open sndfile
