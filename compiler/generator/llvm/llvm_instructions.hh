@@ -1496,6 +1496,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
 
+        /*
+         Indexed adresses can actually be values in an array or fields in a struct type
+         */
         if (isStructType(indexed_address->getName())) {
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);

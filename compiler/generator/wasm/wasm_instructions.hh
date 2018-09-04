@@ -467,8 +467,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
-                // Should never happen...
-                faustassert(false);
+                // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
@@ -476,7 +475,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
             } else {
-                // Local variables declared by [var_num, type] pairs
+                // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);
             }
         }
@@ -823,8 +822,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
-                // Should never happen...
-                faustassert(false);
+                // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
             }
         } else {
             if (is_struct) {
@@ -832,7 +830,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
             } else {
-                // Local variables declared by [var_num, type] pairs
+                // Local variables declared by [var_num, type] pairs, separated as (local, set_local instruction)
                 faustassert(inst->fValue == nullptr);
             }
         }

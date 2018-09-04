@@ -1988,6 +1988,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
 
     if (ctype == Typed::kInt32) {
         Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
+        faustassert(int_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 int_array->setValue(k, i);
@@ -1997,6 +1998,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         }
     } else if (ctype == Typed::kFloat) {
         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+        faustassert(float_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 float_array->setValue(k, float(i));
@@ -2006,6 +2008,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         }
     } else if (ctype == Typed::kDouble) {
         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+        faustassert(double_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 double_array->setValue(k, double(i));

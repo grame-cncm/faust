@@ -429,8 +429,6 @@ void WASTScalarCodeContainer::generateCompute(int n)
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
 
-    // dump2FIR(block);
-
     block->accept(gGlobal->gWASTVisitor);
     tab(n + 1, fOutAux);
     fOutAux << ")";
