@@ -69,6 +69,7 @@ If `make` is available from your commands prompt, you can get similar results wi
 
 `> make  GENERATOR="Visual Studio 14 2015 Win64"`
 
+Read the MSVC [specific note](README-MSVC.md) for more details.
 
 ## Notes regarding the backends compilation
 
