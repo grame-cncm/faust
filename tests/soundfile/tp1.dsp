@@ -5,9 +5,7 @@ so_play(s, entry) = (entry, reader(s)) : outs(s)
 		length(s) = entry,0 : s : _,si.block(outputs(s)-1);
 		srate(s) = entry,0 : s : !,_,si.block(outputs(s)-2);
 		outs(s) = s : si.block(2), si.bus(outputs(s)-2);
-		cut(n) = par(i,n,!);
 		reader(s) = 1 : (+,length(s):fmod)~_ : int;
-		entry = nentry("file", 0, 0, 10, 1);
 	};
 	
 so_loop(s, entry) = (entry, reader(s)) : outs(s)
@@ -50,4 +48,4 @@ level = hslider("level", 0.5, 0, 1, 0.01);
 
 //process = so_loop_speed(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), entry, speed);
 
-process = so_loop_speed_level(soundfile("files [url: {'/Documents/faust-github-faust2/tests/soundfile/RnB.wav';'/Documents/faust-github-faust2/tests/soundfile/tango.wav';'/Documents/faust-github-faust2/tests/soundfile/levot.wav'}]",2), entry, speed, level);
+process = so_loop_speed_level(soundfile("files [url: {'RnB.wav' ;'tango.wav';  'levot.wav'}]",2), entry, speed, level);

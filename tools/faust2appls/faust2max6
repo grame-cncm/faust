@@ -189,7 +189,8 @@ for p in $FILES; do
                             /"url"/ {
                             if (SOFI) {
                                 match($2, /"[^"]*/);
-                                print substr($2, RSTART+1, RLENGTH-1);
+                                split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                for (x in res) print substr(res[x], 2, length(res[x])-2);
                                 SOFI=0;
                             }
                         }
