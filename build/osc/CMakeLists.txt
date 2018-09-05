@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 #######################################
 # versions management
-set (VERSION 1.1.0)
+set (VERSION 1.2.0)
 set (SOVERS 1)
 
 #######################################
@@ -66,7 +66,13 @@ endif()
 if (INCLUDE_OSC)
 	add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
 	target_include_directories (oscstatic PRIVATE ${INCLUDE} )
+	target_link_libraries(oscstatic  ws2_32 winmm)
 	set (TARGETS oscstatic)
+	if (MSVC)
+		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
+	else()
+		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
+	endif()
 endif()
 
 if (NOT IOS AND OSCDYNAMIC)
@@ -74,15 +80,12 @@ if (NOT IOS AND OSCDYNAMIC)
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 
 		VERSION ${VERSION}
-		SOVERSION ${SOVERS})
-	set (TARGETS ${TARGETS} oscdynamic)
-
+		SOVERSION ${SOVERS}
+		OUTPUT_NAME OSCFaust)
 	if (WIN32 OR MSYS) 
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 		target_link_libraries(oscdynamic ws2_32 winmm)
-	else()
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
+	set (TARGETS ${TARGETS} oscdynamic)
 endif()
 
 
@@ -105,19 +108,6 @@ if (IOS)
 	target_compile_definitions (oscstatic PRIVATE -DOSC_HOST_LITTLE_ENDIAN=1)
 
 else()
-	if (INCLUDE_OSC) 
-		if (WIN32 OR MSYS) 
-			if (MSVC)
-				set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
-			else()
-				set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
-			endif()
-			target_link_libraries(oscstatic  ws2_32 winmm)
-		else()
-			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
-		endif()
-	endif()
-
 	#######################################
 	# check for endianness
 	include (TestBigEndian)
