@@ -733,7 +733,7 @@ inline std::string pathToContent(const std::string& path)
     
     // Terminate the string
     buffer[size] = 0;
-    string result = buffer;
+    std::string result = buffer;
     file.close();
     delete [] buffer;
     return result;

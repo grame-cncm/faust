@@ -27,8 +27,8 @@
 #include <vector>
 #include <map>
 #include <utility>
-#include <assert.h>
 #include <cstdlib>
+#include <sstream>
 
 #include "faust/gui/UI.h"
 #include "faust/gui/meta.h"
@@ -47,7 +47,7 @@ inline FAUSTFLOAT STR2REAL(const std::string& s) { return (std::strtod(s.c_str()
 
 struct Soundfile;
 
-typedef std::map<std::string, pair <int, FAUSTFLOAT*> > controlMap;
+typedef std::map<std::string, std::pair <int, FAUSTFLOAT*> > controlMap;
 
 struct JSONUIDecoder {
 
@@ -76,12 +76,12 @@ struct JSONUIDecoder {
     
     controlMap fPathInputTable;     // [path, <index, zone>]
     controlMap fPathOutputTable;    // [path, <index, zone>]
-    
-    bool isInput(const string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
-    bool isOutput(const string& type) { return (type == "hbargraph" || type == "vbargraph"); }
-    bool isSoundfile(const string& type) { return (type == "soundfile"); }
-    
-    JSONUIDecoder(const std::string& json)
+
+    bool isInput(const std::string& type) { return (type == "vslider" || type == "hslider" || type == "nentry" || type == "button" || type == "checkbox"); }
+    bool isOutput(const std::string& type) { return (type == "hbargraph" || type == "vbargraph"); }
+    bool isSoundfile(const std::string& type) { return (type == "soundfile"); }
+
+    JSONUIDecoder(const std::string& json) 
     {
         fJSON = json;
         const char* p = fJSON.c_str();
@@ -152,9 +152,9 @@ struct JSONUIDecoder {
         fOutputItems = 0;
         fSoundfileItems = 0;
         
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             if (isInput(type)) {
                 fInputItems++;
             } else if (isOutput(type)) {
@@ -173,11 +173,11 @@ struct JSONUIDecoder {
         
         // Prepare the fPathTable and init zone
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             // Meta data declaration for input items
             if (isInput(type)) {
                 if ((*it)->address != "") {
-                    fPathInputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
+                    fPathInputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fInControl[counterIn]);
                 }
                 fInControl[counterIn] = STR2REAL((*it)->init);
                 counterIn++;
@@ -185,7 +185,7 @@ struct JSONUIDecoder {
             // Meta data declaration for output items
             else if (isOutput(type)) {
                 if ((*it)->address != "") {
-                    fPathOutputTable[(*it)->address] = make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
+                    fPathOutputTable[(*it)->address] = std::make_pair(std::atoi((*it)->index.c_str()), &fOutControl[counterOut]);
                 }
                 fOutControl[counterOut] = FAUSTFLOAT(0);
                 counterOut++;
@@ -195,7 +195,7 @@ struct JSONUIDecoder {
     
     virtual ~JSONUIDecoder() 
     {
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             delete(*it);
         }
@@ -213,7 +213,7 @@ struct JSONUIDecoder {
     
     void resetUserInterface()
     {
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         int item = 0;
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             if (isInput((*it)->type)) {
@@ -231,11 +231,11 @@ struct JSONUIDecoder {
         int counterIn = 0;
         int counterOut = 0;
         int counterSound = 0;
-        vector<itemInfo*>::iterator it;
+        std::vector<itemInfo*>::iterator it;
         
         for (it = fUiItems.begin(); it != fUiItems.end(); it++) {
             
-            string type = (*it)->type;
+            std::string type = (*it)->type;
             
             FAUSTFLOAT init = STR2REAL((*it)->init);
             FAUSTFLOAT min = STR2REAL((*it)->min);
@@ -301,7 +301,7 @@ struct JSONUIDecoder {
         setlocale(LC_ALL, tmp_local);
     }
     
-    bool hasCompileOption(const string& option)
+    bool hasCompileOption(const std::string& option)
     {
         std::istringstream iss(fCompileOptions);
         std::string token;

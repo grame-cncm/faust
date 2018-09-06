@@ -928,8 +928,8 @@ class uiRadioButtons : public QGroupBox, public uiItem
     
 protected:
     
-    vector<double>          fValues;
-    vector<QRadioButton*>   fButtons;
+    std::vector<double>          fValues;
+    std::vector<QRadioButton*>   fButtons;
     
 public:
     
@@ -938,8 +938,8 @@ public:
                     bool vertical, const char* mdescr, QWidget* parent)
     : QGroupBox(label, parent),  uiItem(ui, z)
     {
-        vector<string>  names;
-        vector<double>  values;
+        std::vector<std::string>  names;
+        std::vector<double>  values;
         
         if (parseMenuList(mdescr, names, values)) {
             
@@ -1012,7 +1012,7 @@ class uiMenu : public QComboBox, public uiItem
     
 protected:
     
-    vector<double>  fValues;
+    std::vector<double>  fValues;
     
 public:
     
@@ -1021,8 +1021,8 @@ public:
             const char* mdescr, QWidget* parent)
     : QComboBox(parent),  uiItem(ui, z)
     {
-        vector<string>  names;
-        vector<double>  values;
+        std::vector<std::string>  names;
+        std::vector<double>  values;
         
         if (parseMenuList(mdescr, names, values)) {
             
