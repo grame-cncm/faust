@@ -159,11 +159,11 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L3 = simplify(L2);  // simplify by executing every computable operation
     endTiming("simplification");
 
-    startTiming("Constant propagation 2");
-    SignalConstantPropagation SK2;
-    // SK2.trace(true, "ConstProp2");
-    Tree L4 = SK2.mapself(L3);
-    endTiming("Constant propagation 2");
+    startTiming("Constant propagation");
+    SignalConstantPropagation SK;
+    // SK.trace(true, "ConstProp2");
+    Tree L4 = SK.mapself(L3);
+    endTiming("Constant propagation");
 
     Tree L5 = privatise(L4);  // Un-share tables with multiple writers
 
