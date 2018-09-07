@@ -75,11 +75,6 @@ struct JuceReader : public SoundfileReader {
                     FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
                 }
             }
-        
-            // Copy the read buffer up to soundfile->fChannels is necessary
-            for (int chan = 0; chan < (soundfile->fChannels - channels); chan++) {
-                memcpy(&soundfile->fBuffers[chan + channels][offset], &soundfile->fBuffers[chan][offset], sizeof(FAUSTFLOAT) * int(formatReader->lengthInSamples));
-            }
             
         } else {
             std::cerr << "Error reading the file : " << path_name << std::endl;

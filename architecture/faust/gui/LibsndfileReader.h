@@ -57,8 +57,6 @@ struct LibsndfileReader : public SoundfileReader {
     // Open the file and returns its length and channels
     void open(const std::string& path_name, int& channels, int& length)
     {
-        std::cout << "open " << path_name << std::endl;
-        
         SF_INFO	snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
@@ -66,8 +64,6 @@ struct LibsndfileReader : public SoundfileReader {
         channels = int(snd_info.channels);
         length = int(snd_info.frames);
         sf_close(snd_file);
-        std::cout << "channels " << channels << std::endl;
-        std::cout << "length " << length << std::endl;
     }
     
     // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
@@ -78,8 +74,6 @@ struct LibsndfileReader : public SoundfileReader {
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
         assert(snd_file);
-        
-        std::cout << "readOne " <<  path_name << std::endl;
         
         int channels = std::min(max_chan, snd_info.channels);
         
@@ -107,15 +101,6 @@ struct LibsndfileReader : public SoundfileReader {
             // Update offset
             offset += nbf;
         } while (nbf == BUFFER_SIZE);
-        
-        // Copy the read buffer up to soundfile->fChannels is necessary
-        for (int chan = 0; chan < (soundfile->fChannels - channels); chan++) {
-            memcpy(&soundfile->fBuffers[chan + channels][offset], &soundfile->fBuffers[chan][offset], sizeof(FAUSTFLOAT) * int(snd_info.frames));
-        }
-        
-        std::cout << "readOne soundfile->fLength[part] " <<  soundfile->fLength[part] << std::endl;
-        std::cout << "readOne soundfile->fOffset[part] " <<  soundfile->fOffset[part] << std::endl;
-        std::cout << "readOne soundfile->fSampleRate[part] " <<  soundfile->fSampleRate[part] << std::endl;
         
         sf_close(snd_file);
     }

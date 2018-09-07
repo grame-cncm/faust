@@ -229,10 +229,6 @@ static void jack_shutdown_callback(const char* message, void* arg)
     oscOutputPortText = [[NSUserDefaults standardUserDefaults] stringForKey:@"oscOutputPortText"];
     oscOutputPortText = (oscOutputPortText) ? oscOutputPortText : @"5511";
     
-    [self openAudio];
-    
-    // Build Faust interface
-    DSP->init(int(sample_rate));
     DSP->buildUserInterface(uiinterface);
     DSP->buildUserInterface(finterface);
     
@@ -248,6 +244,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
 #if MIDICTRL
     DSP->buildUserInterface(midiinterface);
 #endif
+    
+    [self openAudio];
+    
+    // Build Faust interface
+    DSP->init(int(sample_rate));
     
     [self displayTitle];
 

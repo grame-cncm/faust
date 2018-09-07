@@ -65,7 +65,7 @@ struct Soundfile {
     int fLength[MAX_SOUNDFILE_PARTS];      // length of each part
     int fSampleRate[MAX_SOUNDFILE_PARTS];  // sample rate of each part
     int fOffset[MAX_SOUNDFILE_PARTS];      // offset of each part in the global buffer
-    int fChannels;              // max number of channels of all concatenated files
+    int fChannels;                         // max number of channels of all concatenated files
 
     Soundfile()
     {
@@ -92,7 +92,6 @@ class SoundfileReader {
    protected:
     void empty(Soundfile* soundfile, int part, int& offset, int max_chan)
     {
-        std::cout << "empty_sound" << std::endl;
         soundfile->fLength[part] = BUFFER_SIZE;
         soundfile->fOffset[part] = offset;
         soundfile->fSampleRate[part] = SAMPLE_RATE;
@@ -101,7 +100,7 @@ class SoundfileReader {
         offset += soundfile->fLength[part];
     }
 
-    Soundfile* create(int cur_channels, int length, int max_chan)
+    Soundfile* create(int cur_chan, int length, int max_chan)
     {
         Soundfile* soundfile = new Soundfile();
         if (!soundfile) {
@@ -113,7 +112,7 @@ class SoundfileReader {
             throw std::bad_alloc();
         }
         
-        for (int chan = 0; chan < max_chan; chan++) {
+        for (int chan = 0; chan < cur_chan; chan++) {
             soundfile->fBuffers[chan] = new FAUSTFLOAT[length];
             if (!soundfile->fBuffers[chan]) {
                 throw std::bad_alloc();
@@ -121,7 +120,7 @@ class SoundfileReader {
             memset(soundfile->fBuffers[chan], 0, sizeof(FAUSTFLOAT) * length);
         }
         
-        soundfile->fChannels = cur_channels;
+        soundfile->fChannels = cur_chan;
         return soundfile;
     }
     
@@ -144,7 +143,7 @@ class SoundfileReader {
     Soundfile* read(const std::vector<std::string>& path_name_list, int max_chan)
     {
         try {
-            int cur_chan = 0;
+            int cur_chan = 1; // At least one buffer
             int total_length = 0;
             
             // Compute total length and chan max of all files
@@ -162,8 +161,6 @@ class SoundfileReader {
             
             // Complete with empty parts
             total_length += (MAX_SOUNDFILE_PARTS - path_name_list.size()) * BUFFER_SIZE;
-            
-            std::cout << "read total_length " << total_length << " " << "cur_chan " << cur_chan << std::endl;
             
             // Create the soundfile
             Soundfile* soundfile = create(cur_chan, total_length, max_chan);
@@ -183,6 +180,11 @@ class SoundfileReader {
             // Complete with empty parts
             for (int i = path_name_list.size(); i < MAX_SOUNDFILE_PARTS; i++) {
                 empty(soundfile, i, offset, max_chan);
+            }
+            
+            // Share the same buffers for all other channels so that we have max_chan channels available
+            for (int chan = cur_chan; chan < max_chan; chan++) {
+                soundfile->fBuffers[chan] = soundfile->fBuffers[chan % cur_chan];
             }
             
             return soundfile;
