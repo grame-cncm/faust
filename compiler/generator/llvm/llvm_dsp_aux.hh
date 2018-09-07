@@ -212,7 +212,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
 
     virtual bool initJIT(std::string& error_msg);
-    bool initJITAux(string& error_msg);
+    bool initJITAux(std::string& error_msg);
 
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
