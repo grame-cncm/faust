@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,11 +19,26 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIMPLIFY_
-#define _SIMPLIFY_
+#ifndef __SIGPROMOTION__
+#define __SIGPROMOTION__
 
-Tree simplify(Tree sig);
+#include "sigIdentity.hh"
 
-Tree docTableConvertion(Tree sig);
+//-------------------------SignalPromotion-------------------------------
+// Adds explicite int or float cast when needed. This is needed prior
+// to any optimisations to avoid to scramble int and float expressions
+//----------------------------------------------------------------------
+
+class SignalPromotion : public SignalIdentity {
+    bool fVisitGen;
+
+   public:
+    SignalPromotion() : fVisitGen(true) {}
+
+   protected:
+    virtual Tree transformation(Tree sig);
+    Tree         smartIntCast(Type t, Tree sig);
+    Tree         smartFloatCast(Type t, Tree sig);
+};
 
 #endif

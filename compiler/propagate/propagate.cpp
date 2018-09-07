@@ -22,6 +22,7 @@
 #include "propagate.hh"
 #include "Text.hh"
 #include "exception.hh"
+#include "floats.hh"
 #include "global.hh"
 #include "labels.hh"
 #include "names.hh"
@@ -311,7 +312,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         Tree sig;
         faustassert(lsig.size() == 0);
         if (!searchEnv(box, sig, slotenv)) {
-            // test YO simplification des diagrames
+            // test YO simplification des diagrammes
             // fprintf(stderr, "propagate : internal error (slot undefined)\n");
             sig = sigInput(++gGlobal->gDummyInput);
         }
@@ -332,7 +333,13 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
-        return makeList(simplify(p1(lsig[0])));
+        num n;
+        if (isNum(lsig[0], n)) {
+            // cerr << "simplify 335" << endl;
+            return makeList(simplify(p1(lsig[0])));
+        } else {
+            return makeList(p1(lsig[0]));
+        }
     }
 
     else if (isBoxPrim2(box, &p2)) {
@@ -356,8 +363,15 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
                 // We gEnableFlag is false we replace control by identity function
                 return makeList(lsig[0]);
             }
+        } else {
+            num n, m;
+            if (isNum(lsig[0], n) && isNum(lsig[1], m)) {
+                // cerr << "simplify 369" << endl;
+                return makeList(simplify(p2(lsig[0], lsig[1])));
+            } else {
+                return makeList(p2(lsig[0], lsig[1]));
+            }
         }
-        return makeList(simplify(p2(lsig[0], lsig[1])));
     }
 
     else if (isBoxPrim3(box, &p3)) {

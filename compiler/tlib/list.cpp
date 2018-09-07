@@ -106,6 +106,7 @@ This file contains several extensions to the tree library :
 #include <map>
 #include "compatibility.hh"
 #include "global.hh"
+#include "property.hh"
 
 Tree cons(Tree a, Tree b)
 {

@@ -352,6 +352,7 @@ static Tree realeval(Tree exp, Tree visited, Tree localValEnv)
 
             Tree lres = boxPropagateSig(gGlobal->nil, a2, lsig);
             if (isList(lres) && isNil(tl(lres))) {
+                // cerr << "simplify 355" << endl;
                 Tree r = simplify(hd(lres));
                 if (isNum(r)) {
                     return r;
@@ -654,7 +655,8 @@ static bool isBoxNumeric(Tree in, Tree& out)
         if (getBoxType(v, &numInputs, &numOutputs) && (numInputs == 0) && (numOutputs == 1)) {
             // potential numerical expression
             Tree lsignals = boxPropagateSig(gGlobal->nil, v, makeSigInputList(numInputs));
-            Tree res      = simplify(hd(lsignals));
+            // cerr << "simplify 658" << endl;
+            Tree res = simplify(hd(lsignals));
             if (isSigReal(res, &x)) {
                 out = boxReal(x);
                 return true;
@@ -705,7 +707,8 @@ static double eval2double(Tree exp, Tree visited, Tree localValEnv)
         return 1;
     } else {
         Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
-        Tree val      = simplify(hd(lsignals));
+        // cerr << "simplify 710" << endl;
+        Tree val = simplify(hd(lsignals));
         return tree2float(val);
     }
 }
@@ -733,7 +736,8 @@ static int eval2int(Tree exp, Tree visited, Tree localValEnv)
         return 1;
     } else {
         Tree lsignals = boxPropagateSig(gGlobal->nil, diagram, makeSigInputList(numInputs));
-        Tree val      = simplify(hd(lsignals));
+        // cerr << "simplify 739" << endl;
+        Tree val = simplify(hd(lsignals));
         return tree2int(val);
     }
 }
@@ -936,14 +940,14 @@ static Tree iterateProd(Tree id, int num, Tree body, Tree visited, Tree localVal
     return res;
 }
 
-    /**
-     * Compute the sum of outputs of a list of boxes. The sum is
-     * valid if all the boxes have a valid boxType
-     *
-     * @param boxlist the list of boxes
-     * @param outputs sum of outputs of the boxes
-     * @return true if outputs is valid, false otherwise
-     */
+/**
+ * Compute the sum of outputs of a list of boxes. The sum is
+ * valid if all the boxes have a valid boxType
+ *
+ * @param boxlist the list of boxes
+ * @param outputs sum of outputs of the boxes
+ * @return true if outputs is valid, false otherwise
+ */
 #if 1
 static bool boxlistOutputs(Tree boxlist, int* outputs)
 {
@@ -1382,7 +1386,8 @@ Tree numericBoxSimplification(Tree box)
             int    i;
             double x;
             Tree   lsignals = boxPropagateSig(gGlobal->nil, box, makeSigInputList(0));
-            Tree   s        = simplify(hd(lsignals));
+            // cerr << "simplify 1389" << endl;
+            Tree s = simplify(hd(lsignals));
 
             if (isSigReal(s, &x)) {
                 result = boxReal(x);

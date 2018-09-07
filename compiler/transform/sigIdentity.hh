@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,11 +19,31 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _SIMPLIFY_
-#define _SIMPLIFY_
+#ifndef __SIGIDENTITY__
+#define __SIGIDENTITY__
 
-Tree simplify(Tree sig);
+#include <stdlib.h>
+#include <cstdlib>
+#include "property.hh"
+#include "sigtyperules.hh"
+#include "tree.hh"
+#include "treeTransform.hh"
 
-Tree docTableConvertion(Tree sig);
+//-------------------------SignalIdentity-------------------------------
+// An identity transformation on signals. Can be used to test
+// that everything works, and as a pattern for real transformations.
+//----------------------------------------------------------------------
+
+class SignalIdentity : public TreeTransform {
+    bool fVisitGen;
+
+   public:
+    SignalIdentity() : fVisitGen(false) {}
+
+   protected:
+    virtual Tree transformation(Tree t);
+    virtual void traceEnter(Tree t);
+    virtual void traceExit(Tree t, Tree r);
+};
 
 #endif

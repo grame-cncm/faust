@@ -33,6 +33,8 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
+#include "sigConstantPropagation.hh"
+#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
@@ -138,39 +140,55 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-    // startTiming("first simplification");
-    // LS = simplify(LS);
-    // endTiming("first simplification");
+
     startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
+    Tree L1 = deBruijn2Sym(LS);  // convert deBruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
-    startTiming("second simplification");
-    Tree L2 = simplify(L1);  // simplify by executing every computable operation
-    endTiming("second simplification");
-    Tree L3 = privatise(L2);  // Un-share tables with multiple writers
+
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1);  // Annotate L1 with type information (needed by castAndPromotion())
+    endTiming("L1 typeAnnotation");
+
+    startTiming("Cast and Promotion");
+    SignalPromotion SP;
+    // SP.trace(true, "Cast");
+    Tree L2 = SP.mapself(L1);
+    endTiming("Cast and Promotion");
+
+    startTiming("simplification");
+    Tree L3 = simplify(L2);  // simplify by executing every computable operation
+    endTiming("simplification");
+
+    startTiming("Constant propagation 2");
+    SignalConstantPropagation SK2;
+    // SK2.trace(true, "ConstProp2");
+    Tree L4 = SK2.mapself(L3);
+    endTiming("Constant propagation 2");
+
+    Tree L5 = privatise(L4);  // Un-share tables with multiple writers
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
-        cout << ppsig(L3) << endl;
+        cout << ppsig(L5) << endl;
         throw faustexception("Dump normal form finished...\n");
     }
 
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+    recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
 
-    startTiming("typeAnnotation");
-    typeAnnotation(L3);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
+    startTiming("L5 typeAnnotation");
+    typeAnnotation(L5);  // Annotate L5 with type information
+    endTiming("L5 typeAnnotation");
 
-    sharingAnalysis(L3);  // annotate L3 with sharing count
-    fOccMarkup.mark(L3);  // annotate L3 with occurences analysis
+    sharingAnalysis(L5);  // annotate L5 with sharing count
+    fOccMarkup.mark(L5);  // annotate L5 with occurrences analysis
     // annotationStatistics();
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L3, dotfile);
+        sigToGraph(L5, dotfile);
     }
-    return L3;
+    return L5;
 }
 
 Tree InstructionsCompiler::prepare2(Tree L0)

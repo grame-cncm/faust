@@ -296,9 +296,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else {
-        stringstream error;
-        error << "ERROR  in ppsig::print, not a signal : " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "[[" << *sig << "]]";
     }
     return fout;
 }

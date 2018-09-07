@@ -39,6 +39,8 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
+#include "sigConstantPropagation.hh"
+#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -93,10 +95,28 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
+
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1);  // Annotate L1 with type information (needed by castAndPromotion())
+    endTiming("L1 typeAnnotation");
+
+    startTiming("Cast and Promotion");
+    SignalPromotion SP;
+    // SP.trace(true, "Cast");
+    Tree L1b = SP.mapself(L1);
+    endTiming("Cast and Promotion");
+
     startTiming("second simplification");
-    Tree L2 = simplify(L1);  // simplify by executing every computable operation
+    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
     endTiming("second simplification");
-    Tree L3 = privatise(L2);  // Un-share tables with multiple writers
+
+    startTiming("Constant propagation");
+    SignalConstantPropagation SK;
+    // SK.trace(true, "ConstProp2");
+    Tree L2b = SK.mapself(L2);
+    endTiming("Constant propagation");
+
+    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
 
     conditionAnnotation(L3);
     // conditionStatistics(L3);        // count condition occurences
