@@ -188,6 +188,15 @@ extern "C"
     const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
     
     /**
+     * Get the compile options of the Faust DSP factory.
+     *
+     * @param factory - the DSP factory.
+     *
+     * @return the LLVM compile options as a string (to be deleted by the caller using freeCMemory).
+     */
+    char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+    
+    /**
      * Delete all Faust DSP factories kept in the library cache. Beware : all kept factory pointers (in local variables...) thus become invalid.
      * 
      */                                 
