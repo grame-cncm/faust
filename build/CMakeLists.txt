@@ -25,7 +25,7 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
-option ( MSVC_STATIC		"Use static runtimes withMSVC" off)
+option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
 	set ( DEPLOYMENT_TARGET_VERSION  10.11)
