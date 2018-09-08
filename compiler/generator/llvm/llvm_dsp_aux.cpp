@@ -715,6 +715,16 @@ EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory)
         return nullptr;
     }
 }
+    
+EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory)
+{
+    if (factory) {
+        string const dspcode = factory->getCompileOptions();
+        return strdup(dspcode.c_str());
+    } else {
+        return nullptr;
+    }
+}
 
 EXPORT void deleteAllCDSPFactories()
 {
