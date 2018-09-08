@@ -39,8 +39,7 @@
 Tree SignalPromotion::transformation(Tree sig)
 {
     int    i;
-    double r;
-    Tree   c, sel, x, y, z, u, v, var, le, label, id, ff, largs, type, name, file, sf;
+    Tree   sel, x, y, z;
 
     if (isSigFixDelay(sig, x, y)) {
         return sigFixDelay(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
