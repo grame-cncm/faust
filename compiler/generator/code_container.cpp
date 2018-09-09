@@ -773,8 +773,6 @@ void CodeContainer::generateJSONFile()
     xout << json_visitor.JSON();
 }
 
-#include "faust/gui/JSONUIDecoder.h"
-
 void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 {
     // Prepare compilation options
