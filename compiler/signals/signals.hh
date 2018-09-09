@@ -329,8 +329,7 @@ bool isSigControl(Tree s, Tree& x, Tree& y);
 A boxSounfile(label,c) has 2 inputs and c+3 outputs:
     0   sigSoundfileLength(label, part):  the number of frames of the soundfile part (NK)
     1   sigSoundfileRate(label): the sampling rate encoded in the file (NK)
-    2   sigSoundfileChannels(label): the number of channels of the file (NK)
-    3.. sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
+    2.. sigSoundfileBuffer(label, c, part, ridx): the cth channel content (RK ou RS)
 */
 
 Tree sigSoundfile(Tree label);

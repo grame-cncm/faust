@@ -169,14 +169,12 @@ Tree SignalIdentity::transformation(Tree sig)
     // Sounfile length, rate, channels, buffer
     else if (isSigSoundfile(sig, label)) {
         return sig;
-    } else if (isSigSoundfileLength(sig, sf)) {
-        return sigSoundfileLength(self(sf));
-    } else if (isSigSoundfileRate(sig, sf)) {
-        return sigSoundfileRate(self(sf));
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        return sigSoundfileChannels(self(sf));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return sigSoundfileBuffer(self(sf), self(x), self(y));
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        return sigSoundfileLength(self(sf), self(x));
+    } else if (isSigSoundfileRate(sig, sf, x)) {
+        return sigSoundfileRate(self(sf), self(x));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        return sigSoundfileBuffer(self(sf), self(x), self(y), self(z));
     }
 
     // Attach, Enable, Control

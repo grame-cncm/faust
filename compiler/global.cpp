@@ -361,7 +361,6 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     SIGSOUNDFILE         = symbol("SigSoundfile");
     SIGSOUNDFILELENGTH   = symbol("SigSoundfileLength");
     SIGSOUNDFILERATE     = symbol("SigSoundfileRate");
-    SIGSOUNDFILECHANNELS = symbol("SigSoundfileChannels");
     SIGSOUNDFILEBUFFER   = symbol("SigSoundfileBuffer");
     SIGTUPLE             = symbol("SigTuple");
     SIGTUPLEACCESS       = symbol("SigTupleAccess");
