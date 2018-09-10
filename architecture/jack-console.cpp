@@ -45,6 +45,7 @@
 #include "faust/gui/GUI.h"
 #include "faust/gui/console.h"
 #include "faust/audio/jack-dsp.h"
+#include "faust/gui/JSONUIDecoder.h"
 
 #ifdef HTTPCTRL
 #include "faust/gui/httpdUI.h"

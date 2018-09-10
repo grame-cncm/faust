@@ -22,6 +22,7 @@
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "faust/dsp/dsp.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/meta.h"
