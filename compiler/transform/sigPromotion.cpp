@@ -30,6 +30,7 @@
 #include "sigtyperules.hh"
 #include "tlib.hh"
 #include "tree.hh"
+#include "xtended.hh"
 
 //-------------------------SignalPromotion-------------------------------
 // Adds explicite int or float cast when needed. This is needed prior
@@ -38,8 +39,8 @@
 
 Tree SignalPromotion::transformation(Tree sig)
 {
-    int    i;
-    Tree   sel, x, y, z;
+    int  i;
+    Tree sel, x, y, z;
 
     if (isSigFixDelay(sig, x, y)) {
         return sigFixDelay(self(x), smartIntCast(getCertifiedSigType(y), self(y)));
@@ -55,7 +56,6 @@ Tree SignalPromotion::transformation(Tree sig)
             case kAdd:
             case kSub:
             case kMul:
-            case kRem:
             case kGT:
             case kLT:
             case kGE:
@@ -70,9 +70,20 @@ Tree SignalPromotion::transformation(Tree sig)
                     return sigBinOp(i, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
                 }
 
+            case kRem:
+                if (tx->nature() == kInt && ty->nature() == kInt) {
+                    // int arguments => no promotion needed
+                    return sigBinOp(i, self(x), self(y));
+                } else {
+                    // float promotion needed, rem (%) replaced by fmod
+                    vector<Tree> lsig = {smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y))};
+                    return gGlobal->gFmodPrim->computeSigOutput(lsig);
+                }
+
             case kDiv:
                 // the result of a division is always a float
                 return sigBinOp(i, smartFloatCast(tx, self(x)), smartFloatCast(ty, self(y)));
+
             default:
                 // TODO: no clear rules here
                 return sigBinOp(i, self(x), self(y));
