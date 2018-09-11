@@ -1689,7 +1689,7 @@ $\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}$ that transforms an empty tuple of
 signals $()$ into a 1-tuple of signals $(y)$ such that 
 $\forall t\in\mathbb{N}, y(t)=0.95$.
 
-### The `waveform` Primitive
+### `waveform` Primitive
 
 The waveform primitive was designed to facilitate the use of 
 [`rdtable`](#rdtable) (read table). It allows us to specify a fixed periodic 
@@ -1722,9 +1722,7 @@ which is then used with a [`rdtable`](TODO) controlled by a phasor to
 implement a triangle wave oscillator. Note that the quality of this oscillator
 is very low because of the low resolution of the triangle waveform.
 
-### The `soundfile` Primitive
-
-<!-- -->
+### `soundfile` Primitive
 
 The `soundfile("label[url:path]", n)` primitive allows for the access of 
 externally defined sound file/resource. `soundfile` has one input (the read 
@@ -2477,6 +2475,9 @@ process = 3.6 : rint;
 ```
 <!-- /faust-run -->	
 
+<!-- TODO: say something about the fact that things are expressed in core
+syntax -->
+
 ### Delay Primitives and Modifiers
 
 Faust hosts various modifiers and primitives to define one sample or integer
@@ -2529,6 +2530,16 @@ standard libraries.
 * **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
 * **Mathematical Description:** $y(t+x_{2}(t))=x_{1}(t), y(t<x_{2}(t))=0$
 
+**Usage**
+
+```
+_ : @(N) : _
+```
+
+Where:
+
+* `N`: the length of the delay as a number of samples
+
 **Example: Static N Samples Delay**
 
 <!-- faust-run -->
@@ -2555,21 +2566,31 @@ TODO
 
 The `rtable` primitive can be used to read through a read-only (pre-defined
 before compilation) table. The table can either be implemented using a 
-function controlled by a timer as demonstrated in the first example or by using
-the `waveform` primitive (as shown in the second example).
+function controlled by a timer (such as [`ba.time`](TODO)) as demonstrated in 
+the first example, or by using the `waveform` primitive (as shown in the 
+second example). The idea is that the table is parsed during the initialization
+step and before audio computation begins. 
 
-`rtable(n,s,r)` has three arguments such that:
+* **Type:** $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=T[r(t)]$
+
+**Usage**
+
+```
+rtable(n,s,r) : _
+```
+
+Where:
 
 * `n`: the table size
 * `s`: the table
 * `r`: the read index (an `int` between 0 and `n`)
 
-* **Type:** $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 
-* **Mathematical Description:** $y(t)=T[r(t)]$
-
 **Example: Basic Triangle Wave Oscillator Using the `waveform` Primitive**
 
-TODO
+In this example, a basic (and dirty) triangle wave-table is defined using the 
+[`waveform`](#waveform-primitive). It is then used with the `rdtable` primitive
+and a phasor to implement a triangle wave oscillator. Note that the output of
 
 <!-- faust-run -->
 ```
@@ -2583,7 +2604,10 @@ process = triangleOsc(f);
 
 **Example: Basic Triangle Wave Oscillator Using the `waveform` Primitive**
 
-TODO
+In this example, a sine table is implemented using the 
+[`sin` primitive](#sin-primitive) and a timer ([`ba.time`](TODO)). The timer 
+parses the `sin` function during the initialization step of the Faust program.
+It is then used with `rdtable` to implement a sine wave oscillator. 
 
 <!-- faust-run -->
 ```
@@ -2596,8 +2620,674 @@ process = triangleOsc(f);
 ```
 <!-- /faust-run -->	
 
+#### `rwtable` Primitive
+
+The `rwtable` primitive can be used to implement a read/write table. It takes
+an audio input that can be written in the table using a *record index* (i.e.,
+`w` below) and read using a read index (i.e., `r` below).
+
+* **Type:** $\mathbb{S}^{5}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $T[w(t)]=c(t); y(t)=T[r(t)]$
+
+**Usage**
+
+```
+_ : rwtable(n,s,w,_,r) : _
+```
+
+Where:
+
+* `n`: the table size
+* `s`: the table
+* `w`: the write index (an `int` between 0 and `n`) 
+* `r`: the read index (an `int` between 0 and `n`)
+
+Note that the fourth argument of `rwtable` corresponds to the input of the 
+table.
+
+**Example: Simple Looper**
+
+In this example, an input signal is written in the table when `record` is true
+(equal to 1). The read index is constantly updated to loop through the table.
+The table size is set to 48000, which corresponds to one second if the sampling
+rate is 48000 KHz. 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+tableSize = 48000;
+recIndex = (+(1) : %(tableSize)) ~ *(record);
+readIndex = readSpeed/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tableSize)) : int;
+readSpeed = hslider("[0]Read Speed",1,0.001,10,0.01);
+record = button("[1]Record") : int;
+looper = rwtable(tableSize,0.0,recIndex,_,readIndex);
+process = looper;
+```
+<!-- /faust-run -->	
+
+<!-- TODO: we might want to have a better example here -->
+
 ### Selector Primitives
 
+Selector primitives can be used to create conditions in Faust and to implement
+switches to choose between several signals. Note that selector primitives
+optimize the code generated by the Faust compiler by only computing the
+selected signal.
+
+#### `select2` Primitives
+
+The `select2` primitive is a "two-ways selector" that can be used to select 
+between 2 signals.
+
+* **Type:** $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $T[]=\{x_{0}(t),x_{1}(t)\}; y(t)=T[s(t)]$ 
+
+**Usage**
+
+```
+_,_ : select2(s) : _,_
+```
+
+Where:
+
+* `s`: the selector (`0` for the first signal, `1` for the second one)
+
+**Example: Signal Selector**
+
+The following example allows the user to choose between a sine and a sawtooth 
+wave oscillator.  
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = nentry("Selector",0,0,1,1);
+sig = os.osc(440),os.sawtooth(440) : select2(s);
+process = sig;
+```
+<!-- /faust-run -->	
+
+Note that `select2` could be easily implemented from scratch in Faust using
+Boolean primitives:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = nentry("Selector",0,0,1,1);
+mySelect2(s) = *(s==0),*(s==1) :> _;
+sig = os.osc(440),os.sawtooth(440) : mySelect2(s);
+process = sig;
+```
+<!-- /faust-run -->	
+
+While the behavior of this last solution is identical to the first one, the
+generated code will be less optimized as the sine and the sawtooth waves
+will both be computed all the time.
+
+#### `select3` Primitives
+
+The `select3` primitive is a "three-ways selector" that can be used to select 
+between 3 signals.
+
+* **Type:** $\mathbb{S}^{4}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $T[]=\{x_{0}(t),x_{1}(t),x_{2}(t)\}; y(t)=T[s(t)]$ 
+
+**Usage**
+
+```
+_,_,_ : select3(s) : _,_,_
+```
+
+Where:
+
+* `s`: the selector (`0` for the first signal, `1` for the second one, `2` for
+the third one)
+
+**Example: Signal Selector**
+
+The following example allows the user to choose between a sine, a sawtooth and 
+a triangle wave oscillator.  
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = nentry("Selector",0,0,1,1);
+sig = os.osc(440),os.sawtooth(440),os.triangle(440) : select3(s);
+process = sig;
+```
+<!-- /faust-run -->	
+
+Note that `select2` could be easily implemented from scratch in Faust using
+Boolean primitives:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = nentry("Selector",0,0,2,1);
+mySelect3(s) = *(s==0),*(s==1),*(s==2) :> _;
+sig = os.osc(440),os.sawtooth(440),os.triangle(440) : mySelect3(s);
+process = sig;
+```
+<!-- /faust-run -->	
+
+While the behavior of this last solution is identical to the first one, the
+generated code will be less optimized as the sine, the sawtooth and the 
+triangle waves will all be computed all the time.
+
+### User Interface Primitives
+
+Faust user interface widgets/primitives allow for an **abstract** description 
+of a user interface from within the Faust code. This description is independent 
+from any GUI toolkits/frameworks and is purely abstract. Widgets can be
+**discrete** (e.g., [`button`](TODO), [`checkbox`](TODO), etc.), **continuous**
+(e.g., [`hslider`](TODO), [`vslider`](TODO), [`nentry`](TODO)), and 
+**organizational** (e.g., [`vgroup`](TODO), [`hgroup`](TODO)).
+
+Discrete and continuous elements are signal generators. For example, a `button`
+produces a signal which is 1 when the button is pressed and 0 otherwise: 
+
+<img src="img/button.svg" class="mx-auto d-block" width="50%">
+
+These signals can be freely combined with other audio signals. In fact, the
+following code is perfectly valid and will generate sound:
+
+<!-- faust-run -->
+```
+process = button("DC");
+```
+<!-- /faust-run -->	
+
+Each primitive implements a specific UI element, but their appearance can
+also be completely modified using [metadata](TODO) (a little bit like HTML and
+CSS in the web). Therefore, [`hslider`](TODO), [`vslider`](TODO), and 
+[`nentry`](TODO)) can for example be turned into a knob, a dropdown menu, etc.
+This concept is further developed in the [section on UI metadata](TODO).
+
+#### `button` Primitive 
+
+The `button` primitive implements a button.
+
+**Usage**
+
+```
+button("label") : _
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+
+**Example: Trigger**
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = no.noise*button("gate");
+```
+<!-- /faust-run -->
+
+#### `checkbox` Primitive 
+
+The `checkbox` primitive implements a checkbox/toggle.
+
+**Usage**
+
+```
+checkbox("label") : _
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+
+**Example: Trigger**
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = no.noise*checkbox("gate");
+```
+<!-- /faust-run -->
+
+#### `hslider` Primitive 
+
+The `hslider` primitive implements a horizontal slider.
+
+**Usage**
+
+```
+hslider("label",init,min,max,step) : _
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `init`: the initial value of the slider
+* `min`: the minimum value of the slider
+* `max`: the maximum value of the slider
+* `step`: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count
+0.1 by 0.1, etc.)
+
+**Example: Gain Control**
+
+<!-- faust-run -->
+```
+gain = hslider("gain",0,0,1,0.01);
+process = *(gain);
+```
+<!-- /faust-run -->
+
+#### `vslider` Primitive 
+
+The `vslider` primitive implements a vertical slider.
+
+**Usage**
+
+```
+vslider("label",init,min,max,step) : _
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `init`: the initial value of the slider
+* `min`: the minimum value of the slider
+* `max`: the maximum value of the slider
+* `step`: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count
+0.1 by 0.1, etc.)
+
+**Example**
+
+<!-- faust-run -->
+```
+gain = vslider("gain",0,0,1,0.01);
+process = *(gain);
+```
+<!-- /faust-run -->
+
+#### `nentry` Primitive 
+
+The `nentry` primitive implements a "numerical entry".
+
+**Usage**
+
+```
+nentry("label",init,min,max,step) : _
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `init`: the initial value of the numerical entry
+* `min`: the minimum value of the numerical entry
+* `max`: the maximum value of the numerical entry
+* `step`: the precision (step) of the numerical entry (1 to count 1 by 1, 0.1 
+to count 0.1 by 0.1, etc.)
+
+**Example**
+
+<!-- faust-run -->
+```
+gain = nentry("gain",0,0,1,0.01);
+process = *(gain);
+```
+<!-- /faust-run -->
+
+#### `hgroup` Primitive 
+
+The `hgroup` primitive implements a horizontal group. A group contains other
+UI elements that can also be groups. `hgroup` is not a signal processor per se
+and is just a way to label/delimitate part of a Faust code.
+
+**Usage**
+
+```
+hgroup("label",x)
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `x`: the encapsulated/labeled Faust code
+
+**Example**
+
+In the following example, the 2 UI elements controlling an oscillator are
+encapsulated in a group.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = vslider("freq",440,50,1000,0.1);
+gain = vslider("gain",0,0,1,0.01);
+process = hgroup("Oscillator",os.sawtooth(freq)*gain);
+```
+<!-- /faust-run -->
+
+Note that the `Oscillator` group can be placed in a function in case we'd
+like to add elements to it multiple times. 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+oscGroup(x) = hgroup("Oscillator",x);
+freq = oscGroup(vslider("freq",440,50,1000,0.1));
+gain = oscGroup(vslider("gain",0,0,1,0.01));
+process = os.sawtooth(freq)*gain;
+```
+<!-- /faust-run -->
+
+#### `vgroup` Primitive 
+
+The `vgroup` primitive implements a vertical group. A group contains other
+UI elements that can also be groups. `vgroup` is not a signal processor per se
+and is just a way to label/delimitate part of a Faust code.
+
+**Usage**
+
+```
+vgroup("label",x)
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `x`: the encapsulated/labeled Faust code
+
+**Example**
+
+In the following example, the 2 UI elements controlling an oscillator are
+encapsulated in a group.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,1000,0.1);
+gain = hslider("gain",0,0,1,0.01);
+process = vgroup("Oscillator",os.sawtooth(freq)*gain);
+```
+<!-- /faust-run -->
+
+Note that the `Oscillator` group can be placed in a function in case we'd
+like to add elements to it multiple times. 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+oscGroup(x) = vgroup("Oscillator",x);
+freq = oscGroup(hslider("freq",440,50,1000,0.1));
+gain = oscGroup(hslider("gain",0,0,1,0.01));
+process = os.sawtooth(freq)*gain;
+```
+<!-- /faust-run -->
+
+#### `tgroup` Primitive 
+
+The `tgroup` primitive implements a "tab group." Tab groups can be used to
+group UI elements in tabs in the interface. A group contains other
+UI elements that can also be groups. `tgroup` is not a signal processor per se
+and is just a way to label/delimitate part of a Faust code.
+
+**Usage**
+
+```
+tgroup("label",x)
+```
+
+Where:
+
+* `label`: the [label](#ui-labels-configuration) (expressed as a string) of the 
+element in the interface
+* `x`: the encapsulated/labeled Faust code
+
+**Example**
+
+In the following example, the 2 UI elements controlling an oscillator are
+encapsulated in a group.
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = hslider("freq",440,50,1000,0.1);
+gain = hslider("gain",0,0,1,0.01);
+process = tgroup("Oscillator",os.sawtooth(freq)*gain);
+```
+<!-- /faust-run -->
+
+Note that the `Oscillator` group can be placed in a function in case we'd
+like to add elements to it multiple times. 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+oscGroup(x) = tgroup("Oscillator",x);
+freq = oscGroup(hslider("freq",440,50,1000,0.1));
+gain = oscGroup(hslider("gain",0,0,1,0.01));
+process = os.sawtooth(freq)*gain;
+```
+<!-- /faust-run -->
+
+#### `vbargraph` Primitive
+
+The `vbargraph` primitive implements a vertical bar-graph (typically a meter
+displaying the level of a signal).
+
+**Usage**
+
+`vbargraph` takes an input signal and outputs it while making it available to
+the UI.
+
+```
+_ : vbargraph("label",min,max) : _
+``` 
+
+Where:
+
+* `min`: the minimum value of the signal in the interface
+* `max`: the maximum value of the signal in the interface
+
+**Example: Simple VU Meter** 
+
+A simple VU meter can be implemented using the `vbargraph` primitive:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = _ <: attach(_,abs : ba.linear2db : vbargraph("Level",-60,0));
+```
+<!-- /faust-run -->
+
+Note the use of the [`attach`](#attach-primitive) primitive here that forces 
+the compilation of the `vbargraph` without using its output signal (see section 
+on the [`attach` primitive](#attach-primitive)).
+
+#### `hbargraph` Primitive
+
+The `hbargraph` primitive implements a horizontal bar-graph (typically a meter
+displaying the level of a signal).
+
+**Usage**
+
+`hbargraph` takes an input signal and outputs it while making it available to
+the UI.
+
+```
+_ : hbargraph("label",min,max) : _
+``` 
+
+Where:
+
+* `min`: the minimum value of the signal in the interface
+* `max`: the maximum value of the signal in the interface
+
+**Example: Simple VU Meter** 
+
+A simple VU meter can be implemented using the `hbargraph` primitive:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+process = _ <: attach(_,abs : ba.linear2db : hbargraph("Level",-60,0));
+```
+<!-- /faust-run -->
+
+Note the use of the [`attach`](#attach-primitive) primitive here that forces 
+the compilation of the `hbargraph` without using its output signal (see 
+section on the [`attach` primitive](#attach-primitive)).
+
+#### `attach` Primitive
+
+The `attach` primitive takes two input signals and produces one output signal 
+which is a copy of the first input. The role of `attach` is to force its second 
+input signal to be compiled with the first one. From a mathematical standpoint 
+`attach(x,y)` is equivalent to `1*x+0*y`, which is in turn equivalent to 
+`x`, but it tells the compiler not to optimize-out `y`.
+
+To illustrate this role, let's say that we want to develop a mixer application 
+with a vumeter for each input signals. Such vumeters can be easily coded in 
+Faust using an envelope detector connected to a bargraph. The problem is that 
+the signal of the envelope generators has no role in the output signals. Using 
+`attach(x,vumeter(x))` one can tell the compiler that when `x` is compiled 
+`vumeter(x)` should also be compiled. 
+
+The examples in the [`hbargraph` Primitive](#hbargraph-primitive) and the
+[`vbargraph` Primitive](#vbargraph-primitive) illustrate well the use of
+`attach`.
+
+#### Variable Parts of a Label
+
+Labels can contain variable parts. These are indicated with the sign `%` 
+followed by the name of a variable. During compilation each label is processed 
+in order to replace the variable parts by the value of the variable. 
+For example:
+
+<!-- faust-run -->
+```
+process = par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01));
+```
+<!-- /faust-run -->
+
+creates 8 sliders in parallel with different names while 
+`par(i,8,hslider("Voice", 0.9, 0, 1, 0.01))` would have created only one 
+slider and duplicated its output 8 times.
+
+The variable part can have an optional format digit. For example `"Voice %2i"` 
+would indicate to use two digit when inserting the value of `i` in the string.
+
+An escape mechanism is provided. If the sign `%` is followed by itself, it will 
+be included in the resulting string. For example `"feedback (%%)"` will result 
+in `"feedback (%)"`.
+
+#### Labels as Pathnames
+
+Thanks to [horizontal](#hgroup-primitive), [vertical](#vgroup-primitive), and 
+[tabs](#tgroup-primitive) groups, user interfaces have a hierarchical structure 
+analog to a hierarchical file system. Each widget has an associated *path name* 
+obtained by concatenating the labels of all its surrounding groups with its own 
+label.
+
+In the following example :
+
+```
+hgroup("Foo",
+	...
+	vgroup("Faa", 
+		...
+		hslider("volume",...)
+		...
+	)
+	...
+)
+```
+
+the volume slider has pathname `/h:Foo/v:Faa/volume`.
+
+In order to give more flexibility to the design of user interfaces, it is 
+possible to explicitly specify the absolute or relative pathname of a widget 
+directly in its label. 
+
+Elements of a path are separated using `/`. Group types are defined with the
+following identifiers:
+
+| Group Type | Group Identifier  |
+| ---------- | ----------------- |
+| `hgroup`   | `h:`              |
+| `vgroup`   | `v:`              |
+| `tgroup`   | `t:`              |
+
+Hence, the example presented in the 
+[section on the `hgroup` primitive](#hgroup-primitive) can be rewritten as:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = vslider("h:Oscillator/freq",440,50,1000,0.1);
+gain = vslider("h:Oscillator/gain",0,0,1,0.01);
+process = os.sawtooth(freq)*gain;
+```
+<!-- /faust-run -->
+
+which will be reflected in C++ as:
+
+```
+virtual void buildUserInterface(UI* ui_interface) {
+  ui_interface->openHorizontalBox("Oscillator");
+  ui_interface->addVerticalSlider("freq", &fVslider1, 440.0f, 50.0f, 1000.0f, 0.100000001f);
+  ui_interface->addVerticalSlider("gain", &fVslider0, 0.0f, 0.0f, 1.0f, 0.00999999978f);
+  ui_interface->closeBox();
+}
+```
+
+Note that path names are inherent to the use of tools gravitating around Faust
+such as [OSC control](TODO) or [faust2api](TODO).
+
+#### Labels Metadata
+
+Widget labels can contain metadata enclosed in square brackets. These metadata 
+associate a key with a value and are used to provide additional information to 
+the architecture file. They are typically used to improve the look and feel of 
+the user interface, configure OSC and accelerometer control/mapping, etc. 
+
+The Faust code:
+
+```
+process = *(hslider("foo[key1: val 1][key2: val 2]",0,0,1,0.1));
+```
+
+will produce the corresponding C++ code:
+
+```
+class mydsp : public dsp {
+  ...
+  virtual void buildUserInterface(UI* ui_interface) {
+    ui_interface->openVerticalBox("tst");
+    ui_interface->declare(&fHslider0, "key1", "val 1");
+    ui_interface->declare(&fHslider0, "key2", "val 2");
+    ui_interface->addHorizontalSlider("foo", &fHslider0, 0.0f, 0.0f, 1.0f, 0.100000001f);
+    ui_interface->closeBox();
+  }
+  ...
+};
+```
+
+All metadata are removed from the label by the compiler and transformed in 
+calls to the `UI::declare()` method. All these `UI::declare()` calls will 
+always take place before the `UI::AddSomething()` call that creates the 
+User Interface element. This allows the `UI::AddSomething()` method to make 
+full use of the available metadata.
+
+#### Links to Generated Code
+
+<!--
+Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
+For example \lstinline'par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01))' creates 8 different sliders in parallel :
+-->
 
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->

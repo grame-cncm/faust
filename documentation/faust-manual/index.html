@@ -177,8 +177,8 @@
 </ul></li>
 <li><a href="#primitives">Primitives</a><ul>
 <li><a href="#numbers">Numbers</a></li>
-<li><a href="#the-waveform-primitive">The <code>waveform</code> Primitive</a></li>
-<li><a href="#the-soundfile-primitive">The <code>soundfile</code> Primitive</a></li>
+<li><a href="#waveform-primitive"><code>waveform</code> Primitive</a></li>
+<li><a href="#soundfile-primitive"><code>soundfile</code> Primitive</a></li>
 <li><a href="#c-equivalent-primitives">C-Equivalent Primitives</a><ul>
 <li><a href="#integer-number">Integer Number</a></li>
 <li><a href="#floating-point-number">Floating Point Number</a></li>
@@ -233,8 +233,29 @@
 </ul></li>
 <li><a href="#table-primitives">Table Primitives</a><ul>
 <li><a href="#rtable-primitive"><code>rtable</code> Primitive</a></li>
+<li><a href="#rwtable-primitive"><code>rwtable</code> Primitive</a></li>
 </ul></li>
-<li><a href="#selector-primitives">Selector Primitives</a></li>
+<li><a href="#selector-primitives">Selector Primitives</a><ul>
+<li><a href="#select2-primitives"><code>select2</code> Primitives</a></li>
+<li><a href="#select3-primitives"><code>select3</code> Primitives</a></li>
+</ul></li>
+<li><a href="#user-interface-primitives">User Interface Primitives</a><ul>
+<li><a href="#button-primitive"><code>button</code> Primitive</a></li>
+<li><a href="#checkbox-primitive"><code>checkbox</code> Primitive</a></li>
+<li><a href="#hslider-primitive"><code>hslider</code> Primitive</a></li>
+<li><a href="#vslider-primitive"><code>vslider</code> Primitive</a></li>
+<li><a href="#nentry-primitive"><code>nentry</code> Primitive</a></li>
+<li><a href="#hgroup-primitive"><code>hgroup</code> Primitive</a></li>
+<li><a href="#vgroup-primitive"><code>vgroup</code> Primitive</a></li>
+<li><a href="#tgroup-primitive"><code>tgroup</code> Primitive</a></li>
+<li><a href="#vbargraph-primitive"><code>vbargraph</code> Primitive</a></li>
+<li><a href="#hbargraph-primitive"><code>hbargraph</code> Primitive</a></li>
+<li><a href="#attach-primitive"><code>attach</code> Primitive</a></li>
+<li><a href="#variable-parts-of-a-label">Variable Parts of a Label</a></li>
+<li><a href="#labels-as-pathnames">Labels as Pathnames</a></li>
+<li><a href="#labels-metadata">Labels Metadata</a></li>
+<li><a href="#links-to-generated-code">Links to Generated Code</a></li>
+</ul></li>
 </ul></li>
 </ul></li>
 <li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
@@ -1114,7 +1135,7 @@ we should put a table summarizing everything. -->
 <p>Faust considers two types of numbers: <em>integers</em> and <em>floats</em>. Integers are implemented as 32-bits integers, and floats are implemented either with a simple, double, or extended precision depending of the compiler options. Floats are available in decimal or scientific notation.</p>
 <p><img src="img/numbers.svg" class="mx-auto d-block"></p>
 <p>Like any other Faust expression, numbers are signal processors. For example the number 0.95 is a signal processor of type <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}^{1}\)</span> that transforms an empty tuple of signals <span class="math inline">\(()\)</span> into a 1-tuple of signals <span class="math inline">\((y)\)</span> such that <span class="math inline">\(\forall t\in\mathbb{N}, y(t)=0.95\)</span>.</p>
-<h3 id="the-waveform-primitive">The <code>waveform</code> Primitive</h3>
+<h3 id="waveform-primitive"><code>waveform</code> Primitive</h3>
 <p>The waveform primitive was designed to facilitate the use of <a href="#rdtable"><code>rdtable</code></a> (read table). It allows us to specify a fixed periodic signal as a list of samples.</p>
 <p><code>waveform</code> has two outputs:</p>
 <ul>
@@ -1132,8 +1153,7 @@ f = hslider(&quot;freq&quot;,440,50,2000,0.01);
 process = triangleOsc(f);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust34/exfaust34.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p><code>waveform</code> is used to define a triangle waveform (in its most primitive form), which is then used with a <a href="TODO"><code>rdtable</code></a> controlled by a phasor to implement a triangle wave oscillator. Note that the quality of this oscillator is very low because of the low resolution of the triangle waveform.</p>
-<h3 id="the-soundfile-primitive">The <code>soundfile</code> Primitive</h3>
-<!-- -->
+<h3 id="soundfile-primitive"><code>soundfile</code> Primitive</h3>
 <p>The <code>soundfile(&quot;label[url:path]&quot;, n)</code> primitive allows for the access of externally defined sound file/resource. <code>soundfile</code> has one input (the read index in the sound), three fixed outputs:</p>
 <ul>
 <li>the audio wave length in frames</li>
@@ -1591,6 +1611,8 @@ are properly documented/mentioned somewhere and demonstrated -->
 <div class="faust-run"><a href="img/src/exfaust78/exfaust78-svg/process.svg" target="_blank"><img src="img/src/exfaust78/exfaust78-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>process = 3.6 : rint;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust78/exfaust78.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<!-- TODO: say something about the fact that things are expressed in core
+syntax -->
 <h3 id="delay-primitives-and-modifiers">Delay Primitives and Modifiers</h3>
 <p>Faust hosts various modifiers and primitives to define one sample or integer delay of arbitrary length. They are presented in this section.</p>
 <h4 id="mem-primitive"><code>mem</code> Primitive</h4>
@@ -1617,6 +1639,12 @@ are properly documented/mentioned somewhere and demonstrated -->
 <li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
 <li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t+x_{2}(t))=x_{1}(t), y(t&lt;x_{2}(t))=0\)</span></li>
 </ul>
+<p><strong>Usage</strong></p>
+<pre><code>_ : @(N) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>N</code>: the length of the delay as a number of samples</li>
+</ul>
 <p><strong>Example: Static N Samples Delay</strong></p>
 <div class="faust-run"><a href="img/src/exfaust81/exfaust81-svg/process.svg" target="_blank"><img src="img/src/exfaust81/exfaust81-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>N = 10;
@@ -1630,17 +1658,21 @@ process = @(N);</code></pre>
 <h3 id="table-primitives">Table Primitives</h3>
 <p>TODO</p>
 <h4 id="rtable-primitive"><code>rtable</code> Primitive</h4>
-<p>The <code>rtable</code> primitive can be used to read through a read-only (pre-defined before compilation) table. The table can either be implemented using a function controlled by a timer as demonstrated in the first example or by using the <code>waveform</code> primitive (as shown in the second example).</p>
-<p><code>rtable(n,s,r)</code> has three arguments such that:</p>
+<p>The <code>rtable</code> primitive can be used to read through a read-only (pre-defined before compilation) table. The table can either be implemented using a function controlled by a timer (such as <a href="TODO"><code>ba.time</code></a>) as demonstrated in the first example, or by using the <code>waveform</code> primitive (as shown in the second example). The idea is that the table is parsed during the initialization step and before audio computation begins.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=T[r(t)]\)</span></li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>rtable(n,s,r) : _</code></pre>
+<p>Where:</p>
 <ul>
 <li><code>n</code>: the table size</li>
 <li><code>s</code>: the table</li>
-<li><p><code>r</code>: the read index (an <code>int</code> between 0 and <code>n</code>)</p></li>
-<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}\)</span></li>
-<li><p><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=T[r(t)]\)</span></p></li>
+<li><code>r</code>: the read index (an <code>int</code> between 0 and <code>n</code>)</li>
 </ul>
 <p><strong>Example: Basic Triangle Wave Oscillator Using the <code>waveform</code> Primitive</strong></p>
-<p>TODO</p>
+<p>In this example, a basic (and dirty) triangle wave-table is defined using the <a href="#waveform-primitive"><code>waveform</code></a>. It is then used with the <code>rdtable</code> primitive and a phasor to implement a triangle wave oscillator. Note that the output of</p>
 <div class="faust-run"><a href="img/src/exfaust83/exfaust83-svg/process.svg" target="_blank"><img src="img/src/exfaust83/exfaust83-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
@@ -1649,7 +1681,7 @@ f = hslider(&quot;freq&quot;,440,50,2000,0.01);
 process = triangleOsc(f);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust83/exfaust83.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p><strong>Example: Basic Triangle Wave Oscillator Using the <code>waveform</code> Primitive</strong></p>
-<p>TODO</p>
+<p>In this example, a sine table is implemented using the <a href="#sin-primitive"><code>sin</code> primitive</a> and a timer (<a href="TODO"><code>ba.time</code></a>). The timer parses the <code>sin</code> function during the initialization step of the Faust program. It is then used with <code>rdtable</code> to implement a sine wave oscillator.</p>
 <div class="faust-run"><a href="img/src/exfaust84/exfaust84-svg/process.svg" target="_blank"><img src="img/src/exfaust84/exfaust84-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 sineWave(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
@@ -1658,7 +1690,375 @@ triangleOsc(f) = tableSize,sineWave(tableSize),int(os.phasor(tableSize,f)) : rdt
 f = hslider(&quot;freq&quot;,440,50,2000,0.01);
 process = triangleOsc(f);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust84/exfaust84.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="rwtable-primitive"><code>rwtable</code> Primitive</h4>
+<p>The <code>rwtable</code> primitive can be used to implement a read/write table. It takes an audio input that can be written in the table using a <em>record index</em> (i.e., <code>w</code> below) and read using a read index (i.e., <code>r</code> below).</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{5}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(T[w(t)]=c(t); y(t)=T[r(t)]\)</span></li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>_ : rwtable(n,s,w,_,r) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>n</code>: the table size</li>
+<li><code>s</code>: the table</li>
+<li><code>w</code>: the write index (an <code>int</code> between 0 and <code>n</code>)</li>
+<li><code>r</code>: the read index (an <code>int</code> between 0 and <code>n</code>)</li>
+</ul>
+<p>Note that the fourth argument of <code>rwtable</code> corresponds to the input of the table.</p>
+<p><strong>Example: Simple Looper</strong></p>
+<p>In this example, an input signal is written in the table when <code>record</code> is true (equal to 1). The read index is constantly updated to loop through the table. The table size is set to 48000, which corresponds to one second if the sampling rate is 48000 KHz.</p>
+<div class="faust-run"><a href="img/src/exfaust85/exfaust85-svg/process.svg" target="_blank"><img src="img/src/exfaust85/exfaust85-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+tableSize = 48000;
+recIndex = (+(1) : %(tableSize)) ~ *(record);
+readIndex = readSpeed/float(ma.SR) : (+ : ma.decimal) ~ _ : *(float(tableSize)) : int;
+readSpeed = hslider(&quot;[0]Read Speed&quot;,1,0.001,10,0.01);
+record = button(&quot;[1]Record&quot;) : int;
+looper = rwtable(tableSize,0.0,recIndex,_,readIndex);
+process = looper;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust85/exfaust85.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<!-- TODO: we might want to have a better example here -->
 <h3 id="selector-primitives">Selector Primitives</h3>
+<p>Selector primitives can be used to create conditions in Faust and to implement switches to choose between several signals. Note that selector primitives optimize the code generated by the Faust compiler by only computing the selected signal.</p>
+<h4 id="select2-primitives"><code>select2</code> Primitives</h4>
+<p>The <code>select2</code> primitive is a “two-ways selector” that can be used to select between 2 signals.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(T[]=\{x_{0}(t),x_{1}(t)\}; y(t)=T[s(t)]\)</span></li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>_,_ : select2(s) : _,_</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>s</code>: the selector (<code>0</code> for the first signal, <code>1</code> for the second one)</li>
+</ul>
+<p><strong>Example: Signal Selector</strong></p>
+<p>The following example allows the user to choose between a sine and a sawtooth wave oscillator.</p>
+<div class="faust-run"><a href="img/src/exfaust86/exfaust86-svg/process.svg" target="_blank"><img src="img/src/exfaust86/exfaust86-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = nentry(&quot;Selector&quot;,0,0,1,1);
+sig = os.osc(440),os.sawtooth(440) : select2(s);
+process = sig;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust86/exfaust86.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that <code>select2</code> could be easily implemented from scratch in Faust using Boolean primitives:</p>
+<div class="faust-run"><a href="img/src/exfaust87/exfaust87-svg/process.svg" target="_blank"><img src="img/src/exfaust87/exfaust87-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = nentry(&quot;Selector&quot;,0,0,1,1);
+mySelect2(s) = *(s==0),*(s==1) :&gt; _;
+sig = os.osc(440),os.sawtooth(440) : mySelect2(s);
+process = sig;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust87/exfaust87.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>While the behavior of this last solution is identical to the first one, the generated code will be less optimized as the sine and the sawtooth waves will both be computed all the time.</p>
+<h4 id="select3-primitives"><code>select3</code> Primitives</h4>
+<p>The <code>select3</code> primitive is a “three-ways selector” that can be used to select between 3 signals.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{4}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(T[]=\{x_{0}(t),x_{1}(t),x_{2}(t)\}; y(t)=T[s(t)]\)</span></li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>_,_,_ : select3(s) : _,_,_</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>s</code>: the selector (<code>0</code> for the first signal, <code>1</code> for the second one, <code>2</code> for the third one)</li>
+</ul>
+<p><strong>Example: Signal Selector</strong></p>
+<p>The following example allows the user to choose between a sine, a sawtooth and a triangle wave oscillator.</p>
+<div class="faust-run"><a href="img/src/exfaust88/exfaust88-svg/process.svg" target="_blank"><img src="img/src/exfaust88/exfaust88-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = nentry(&quot;Selector&quot;,0,0,1,1);
+sig = os.osc(440),os.sawtooth(440),os.triangle(440) : select3(s);
+process = sig;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust88/exfaust88.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that <code>select2</code> could be easily implemented from scratch in Faust using Boolean primitives:</p>
+<div class="faust-run"><a href="img/src/exfaust89/exfaust89-svg/process.svg" target="_blank"><img src="img/src/exfaust89/exfaust89-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = nentry(&quot;Selector&quot;,0,0,2,1);
+mySelect3(s) = *(s==0),*(s==1),*(s==2) :&gt; _;
+sig = os.osc(440),os.sawtooth(440),os.triangle(440) : mySelect3(s);
+process = sig;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust89/exfaust89.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>While the behavior of this last solution is identical to the first one, the generated code will be less optimized as the sine, the sawtooth and the triangle waves will all be computed all the time.</p>
+<h3 id="user-interface-primitives">User Interface Primitives</h3>
+<p>Faust user interface widgets/primitives allow for an <strong>abstract</strong> description of a user interface from within the Faust code. This description is independent from any GUI toolkits/frameworks and is purely abstract. Widgets can be <strong>discrete</strong> (e.g., <a href="TODO"><code>button</code></a>, <a href="TODO"><code>checkbox</code></a>, etc.), <strong>continuous</strong> (e.g., <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, <a href="TODO"><code>nentry</code></a>), and <strong>organizational</strong> (e.g., <a href="TODO"><code>vgroup</code></a>, <a href="TODO"><code>hgroup</code></a>).</p>
+<p>Discrete and continuous elements are signal generators. For example, a <code>button</code> produces a signal which is 1 when the button is pressed and 0 otherwise:</p>
+<p><img src="img/button.svg" class="mx-auto d-block" width="50%"></p>
+<p>These signals can be freely combined with other audio signals. In fact, the following code is perfectly valid and will generate sound:</p>
+<div class="faust-run"><a href="img/src/exfaust90/exfaust90-svg/process.svg" target="_blank"><img src="img/src/exfaust90/exfaust90-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = button(&quot;DC&quot;);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust90/exfaust90.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Each primitive implements a specific UI element, but their appearance can also be completely modified using <a href="TODO">metadata</a> (a little bit like HTML and CSS in the web). Therefore, <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, and <a href="TODO"><code>nentry</code></a>) can for example be turned into a knob, a dropdown menu, etc. This concept is further developed in the <a href="TODO">section on UI metadata</a>.</p>
+<h4 id="button-primitive"><code>button</code> Primitive</h4>
+<p>The <code>button</code> primitive implements a button.</p>
+<p><strong>Usage</strong></p>
+<pre><code>button(&quot;label&quot;) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+</ul>
+<p><strong>Example: Trigger</strong></p>
+<div class="faust-run"><a href="img/src/exfaust91/exfaust91-svg/process.svg" target="_blank"><img src="img/src/exfaust91/exfaust91-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = no.noise*button(&quot;gate&quot;);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust91/exfaust91.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="checkbox-primitive"><code>checkbox</code> Primitive</h4>
+<p>The <code>checkbox</code> primitive implements a checkbox/toggle.</p>
+<p><strong>Usage</strong></p>
+<pre><code>checkbox(&quot;label&quot;) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+</ul>
+<p><strong>Example: Trigger</strong></p>
+<div class="faust-run"><a href="img/src/exfaust92/exfaust92-svg/process.svg" target="_blank"><img src="img/src/exfaust92/exfaust92-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = no.noise*checkbox(&quot;gate&quot;);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust92/exfaust92.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="hslider-primitive"><code>hslider</code> Primitive</h4>
+<p>The <code>hslider</code> primitive implements a horizontal slider.</p>
+<p><strong>Usage</strong></p>
+<pre><code>hslider(&quot;label&quot;,init,min,max,step) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>init</code>: the initial value of the slider</li>
+<li><code>min</code>: the minimum value of the slider</li>
+<li><code>max</code>: the maximum value of the slider</li>
+<li><code>step</code>: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
+</ul>
+<p><strong>Example: Gain Control</strong></p>
+<div class="faust-run"><a href="img/src/exfaust93/exfaust93-svg/process.svg" target="_blank"><img src="img/src/exfaust93/exfaust93-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>gain = hslider(&quot;gain&quot;,0,0,1,0.01);
+process = *(gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust93/exfaust93.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="vslider-primitive"><code>vslider</code> Primitive</h4>
+<p>The <code>vslider</code> primitive implements a vertical slider.</p>
+<p><strong>Usage</strong></p>
+<pre><code>vslider(&quot;label&quot;,init,min,max,step) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>init</code>: the initial value of the slider</li>
+<li><code>min</code>: the minimum value of the slider</li>
+<li><code>max</code>: the maximum value of the slider</li>
+<li><code>step</code>: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust94/exfaust94-svg/process.svg" target="_blank"><img src="img/src/exfaust94/exfaust94-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>gain = vslider(&quot;gain&quot;,0,0,1,0.01);
+process = *(gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust94/exfaust94.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="nentry-primitive"><code>nentry</code> Primitive</h4>
+<p>The <code>nentry</code> primitive implements a “numerical entry”.</p>
+<p><strong>Usage</strong></p>
+<pre><code>nentry(&quot;label&quot;,init,min,max,step) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>init</code>: the initial value of the numerical entry</li>
+<li><code>min</code>: the minimum value of the numerical entry</li>
+<li><code>max</code>: the maximum value of the numerical entry</li>
+<li><code>step</code>: the precision (step) of the numerical entry (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust95/exfaust95-svg/process.svg" target="_blank"><img src="img/src/exfaust95/exfaust95-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>gain = nentry(&quot;gain&quot;,0,0,1,0.01);
+process = *(gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust95/exfaust95.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="hgroup-primitive"><code>hgroup</code> Primitive</h4>
+<p>The <code>hgroup</code> primitive implements a horizontal group. A group contains other UI elements that can also be groups. <code>hgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
+<p><strong>Usage</strong></p>
+<pre><code>hgroup(&quot;label&quot;,x)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>x</code>: the encapsulated/labeled Faust code</li>
+</ul>
+<p><strong>Example</strong></p>
+<p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
+<div class="faust-run"><a href="img/src/exfaust96/exfaust96-svg/process.svg" target="_blank"><img src="img/src/exfaust96/exfaust96-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = vslider(&quot;freq&quot;,440,50,1000,0.1);
+gain = vslider(&quot;gain&quot;,0,0,1,0.01);
+process = hgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust96/exfaust96.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
+<div class="faust-run"><a href="img/src/exfaust97/exfaust97-svg/process.svg" target="_blank"><img src="img/src/exfaust97/exfaust97-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+oscGroup(x) = hgroup(&quot;Oscillator&quot;,x);
+freq = oscGroup(vslider(&quot;freq&quot;,440,50,1000,0.1));
+gain = oscGroup(vslider(&quot;gain&quot;,0,0,1,0.01));
+process = os.sawtooth(freq)*gain;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust97/exfaust97.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="vgroup-primitive"><code>vgroup</code> Primitive</h4>
+<p>The <code>vgroup</code> primitive implements a vertical group. A group contains other UI elements that can also be groups. <code>vgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
+<p><strong>Usage</strong></p>
+<pre><code>vgroup(&quot;label&quot;,x)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>x</code>: the encapsulated/labeled Faust code</li>
+</ul>
+<p><strong>Example</strong></p>
+<p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
+<div class="faust-run"><a href="img/src/exfaust98/exfaust98-svg/process.svg" target="_blank"><img src="img/src/exfaust98/exfaust98-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,1000,0.1);
+gain = hslider(&quot;gain&quot;,0,0,1,0.01);
+process = vgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust98/exfaust98.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
+<div class="faust-run"><a href="img/src/exfaust99/exfaust99-svg/process.svg" target="_blank"><img src="img/src/exfaust99/exfaust99-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+oscGroup(x) = vgroup(&quot;Oscillator&quot;,x);
+freq = oscGroup(hslider(&quot;freq&quot;,440,50,1000,0.1));
+gain = oscGroup(hslider(&quot;gain&quot;,0,0,1,0.01));
+process = os.sawtooth(freq)*gain;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust99/exfaust99.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="tgroup-primitive"><code>tgroup</code> Primitive</h4>
+<p>The <code>tgroup</code> primitive implements a “tab group.” Tab groups can be used to group UI elements in tabs in the interface. A group contains other UI elements that can also be groups. <code>tgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
+<p><strong>Usage</strong></p>
+<pre><code>tgroup(&quot;label&quot;,x)</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
+<li><code>x</code>: the encapsulated/labeled Faust code</li>
+</ul>
+<p><strong>Example</strong></p>
+<p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
+<div class="faust-run"><a href="img/src/exfaust100/exfaust100-svg/process.svg" target="_blank"><img src="img/src/exfaust100/exfaust100-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,440,50,1000,0.1);
+gain = hslider(&quot;gain&quot;,0,0,1,0.01);
+process = tgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust100/exfaust100.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
+<div class="faust-run"><a href="img/src/exfaust101/exfaust101-svg/process.svg" target="_blank"><img src="img/src/exfaust101/exfaust101-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+oscGroup(x) = tgroup(&quot;Oscillator&quot;,x);
+freq = oscGroup(hslider(&quot;freq&quot;,440,50,1000,0.1));
+gain = oscGroup(hslider(&quot;gain&quot;,0,0,1,0.01));
+process = os.sawtooth(freq)*gain;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust101/exfaust101.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="vbargraph-primitive"><code>vbargraph</code> Primitive</h4>
+<p>The <code>vbargraph</code> primitive implements a vertical bar-graph (typically a meter displaying the level of a signal).</p>
+<p><strong>Usage</strong></p>
+<p><code>vbargraph</code> takes an input signal and outputs it while making it available to the UI.</p>
+<pre><code>_ : vbargraph(&quot;label&quot;,min,max) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>min</code>: the minimum value of the signal in the interface</li>
+<li><code>max</code>: the maximum value of the signal in the interface</li>
+</ul>
+<p><strong>Example: Simple VU Meter</strong></p>
+<p>A simple VU meter can be implemented using the <code>vbargraph</code> primitive:</p>
+<div class="faust-run"><a href="img/src/exfaust102/exfaust102-svg/process.svg" target="_blank"><img src="img/src/exfaust102/exfaust102-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = _ &lt;: attach(_,abs : ba.linear2db : vbargraph(&quot;Level&quot;,-60,0));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust102/exfaust102.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note the use of the <a href="#attach-primitive"><code>attach</code></a> primitive here that forces the compilation of the <code>vbargraph</code> without using its output signal (see section on the <a href="#attach-primitive"><code>attach</code> primitive</a>).</p>
+<h4 id="hbargraph-primitive"><code>hbargraph</code> Primitive</h4>
+<p>The <code>hbargraph</code> primitive implements a horizontal bar-graph (typically a meter displaying the level of a signal).</p>
+<p><strong>Usage</strong></p>
+<p><code>hbargraph</code> takes an input signal and outputs it while making it available to the UI.</p>
+<pre><code>_ : hbargraph(&quot;label&quot;,min,max) : _</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>min</code>: the minimum value of the signal in the interface</li>
+<li><code>max</code>: the maximum value of the signal in the interface</li>
+</ul>
+<p><strong>Example: Simple VU Meter</strong></p>
+<p>A simple VU meter can be implemented using the <code>hbargraph</code> primitive:</p>
+<div class="faust-run"><a href="img/src/exfaust103/exfaust103-svg/process.svg" target="_blank"><img src="img/src/exfaust103/exfaust103-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = _ &lt;: attach(_,abs : ba.linear2db : hbargraph(&quot;Level&quot;,-60,0));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust103/exfaust103.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note the use of the <a href="#attach-primitive"><code>attach</code></a> primitive here that forces the compilation of the <code>hbargraph</code> without using its output signal (see section on the <a href="#attach-primitive"><code>attach</code> primitive</a>).</p>
+<h4 id="attach-primitive"><code>attach</code> Primitive</h4>
+<p>The <code>attach</code> primitive takes two input signals and produces one output signal which is a copy of the first input. The role of <code>attach</code> is to force its second input signal to be compiled with the first one. From a mathematical standpoint <code>attach(x,y)</code> is equivalent to <code>1*x+0*y</code>, which is in turn equivalent to <code>x</code>, but it tells the compiler not to optimize-out <code>y</code>.</p>
+<p>To illustrate this role, let’s say that we want to develop a mixer application with a vumeter for each input signals. Such vumeters can be easily coded in Faust using an envelope detector connected to a bargraph. The problem is that the signal of the envelope generators has no role in the output signals. Using <code>attach(x,vumeter(x))</code> one can tell the compiler that when <code>x</code> is compiled <code>vumeter(x)</code> should also be compiled.</p>
+<p>The examples in the <a href="#hbargraph-primitive"><code>hbargraph</code> Primitive</a> and the <a href="#vbargraph-primitive"><code>vbargraph</code> Primitive</a> illustrate well the use of <code>attach</code>.</p>
+<h4 id="variable-parts-of-a-label">Variable Parts of a Label</h4>
+<p>Labels can contain variable parts. These are indicated with the sign <code>%</code> followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. For example:</p>
+<div class="faust-run"><a href="img/src/exfaust104/exfaust104-svg/process.svg" target="_blank"><img src="img/src/exfaust104/exfaust104-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = par(i,8,hslider(&quot;Voice %i&quot;, 0.9, 0, 1, 0.01));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust104/exfaust104.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>creates 8 sliders in parallel with different names while <code>par(i,8,hslider(&quot;Voice&quot;, 0.9, 0, 1, 0.01))</code> would have created only one slider and duplicated its output 8 times.</p>
+<p>The variable part can have an optional format digit. For example <code>&quot;Voice %2i&quot;</code> would indicate to use two digit when inserting the value of <code>i</code> in the string.</p>
+<p>An escape mechanism is provided. If the sign <code>%</code> is followed by itself, it will be included in the resulting string. For example <code>&quot;feedback (%%)&quot;</code> will result in <code>&quot;feedback (%)&quot;</code>.</p>
+<h4 id="labels-as-pathnames">Labels as Pathnames</h4>
+<p>Thanks to <a href="#hgroup-primitive">horizontal</a>, <a href="#vgroup-primitive">vertical</a>, and <a href="#tgroup-primitive">tabs</a> groups, user interfaces have a hierarchical structure analog to a hierarchical file system. Each widget has an associated <em>path name</em> obtained by concatenating the labels of all its surrounding groups with its own label.</p>
+<p>In the following example :</p>
+<pre><code>hgroup(&quot;Foo&quot;,
+    ...
+    vgroup(&quot;Faa&quot;, 
+        ...
+        hslider(&quot;volume&quot;,...)
+        ...
+    )
+    ...
+)</code></pre>
+<p>the volume slider has pathname <code>/h:Foo/v:Faa/volume</code>.</p>
+<p>In order to give more flexibility to the design of user interfaces, it is possible to explicitly specify the absolute or relative pathname of a widget directly in its label.</p>
+<p>Elements of a path are separated using <code>/</code>. Group types are defined with the following identifiers:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Group Type</th>
+<th>Group Identifier</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>hgroup</code></td>
+<td><code>h:</code></td>
+</tr>
+<tr class="even">
+<td><code>vgroup</code></td>
+<td><code>v:</code></td>
+</tr>
+<tr class="odd">
+<td><code>tgroup</code></td>
+<td><code>t:</code></td>
+</tr>
+</tbody>
+</table>
+<p>Hence, the example presented in the <a href="#hgroup-primitive">section on the <code>hgroup</code> primitive</a> can be rewritten as:</p>
+<div class="faust-run"><a href="img/src/exfaust105/exfaust105-svg/process.svg" target="_blank"><img src="img/src/exfaust105/exfaust105-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = vslider(&quot;h:Oscillator/freq&quot;,440,50,1000,0.1);
+gain = vslider(&quot;h:Oscillator/gain&quot;,0,0,1,0.01);
+process = os.sawtooth(freq)*gain;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust105/exfaust105.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>which will be reflected in C++ as:</p>
+<pre><code>virtual void buildUserInterface(UI* ui_interface) {
+  ui_interface-&gt;openHorizontalBox(&quot;Oscillator&quot;);
+  ui_interface-&gt;addVerticalSlider(&quot;freq&quot;, &amp;fVslider1, 440.0f, 50.0f, 1000.0f, 0.100000001f);
+  ui_interface-&gt;addVerticalSlider(&quot;gain&quot;, &amp;fVslider0, 0.0f, 0.0f, 1.0f, 0.00999999978f);
+  ui_interface-&gt;closeBox();
+}</code></pre>
+<p>Note that path names are inherent to the use of tools gravitating around Faust such as <a href="TODO">OSC control</a> or <a href="TODO">faust2api</a>.</p>
+<h4 id="labels-metadata">Labels Metadata</h4>
+<p>Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file. They are typically used to improve the look and feel of the user interface, configure OSC and accelerometer control/mapping, etc.</p>
+<p>The Faust code:</p>
+<pre><code>process = *(hslider(&quot;foo[key1: val 1][key2: val 2]&quot;,0,0,1,0.1));</code></pre>
+<p>will produce the corresponding C++ code:</p>
+<pre><code>class mydsp : public dsp {
+  ...
+  virtual void buildUserInterface(UI* ui_interface) {
+    ui_interface-&gt;openVerticalBox(&quot;tst&quot;);
+    ui_interface-&gt;declare(&amp;fHslider0, &quot;key1&quot;, &quot;val 1&quot;);
+    ui_interface-&gt;declare(&amp;fHslider0, &quot;key2&quot;, &quot;val 2&quot;);
+    ui_interface-&gt;addHorizontalSlider(&quot;foo&quot;, &amp;fHslider0, 0.0f, 0.0f, 1.0f, 0.100000001f);
+    ui_interface-&gt;closeBox();
+  }
+  ...
+};</code></pre>
+<h4 id="links-to-generated-code">Links to Generated Code</h4>
+<!--
+Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
+For example \lstinline'par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01))' creates 8 different sliders in parallel :
+-->
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
 <!-- TODO give use examples after description here -->
