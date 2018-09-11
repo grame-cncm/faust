@@ -38,6 +38,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
+        if (inst->fAddress->getAccess() & Address::kStruct)  *fOut << ",";
     }
 
     // Generate zero intialisation code for simple int/real scalar and arrays types
@@ -48,15 +49,16 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
 
         if (array_type) {
             if (isIntPtrType(type)) {
-                *fOut << "[0;" << array_type->fSize << "],";
+                *fOut << "[0;" << array_type->fSize << "]";
             } else if (isRealPtrType(type)) {
-                *fOut << "[0.0;" << array_type->fSize << "],";
+                *fOut << "[0.0;" << array_type->fSize << "]";
             }
         } else {
+            
             if (isIntType(type)) {
-                *fOut << "0,";
+                *fOut << "0";
             } else if (isRealType(type)) {
-                *fOut << "0.0,";
+                *fOut << "0.0";
             }
         }
     }
@@ -226,7 +228,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << "static ";
+            *fOut << "static mut ";
         }
 
         if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
@@ -234,11 +236,12 @@ class RustInstVisitor : public TextInstVisitor {
         }
 
         *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
-
+  
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
         } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << " = ";
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         }
 
@@ -322,7 +325,18 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " as usize]";
         }
     }
-
+    
+    virtual void visit(LoadVarInst* inst)
+    {
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << "unsafe { ";
+        }
+        inst->fAddress->accept(this);
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << " }";
+        }
+    }
+ 
     virtual void visit(LoadVarAddressInst* inst)
     {
         *fOut << "&";

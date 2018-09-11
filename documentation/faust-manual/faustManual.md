@@ -1718,7 +1718,7 @@ process = triangleOsc(f);
 <!-- /faust-run -->			
 
 `waveform` is used to define a triangle waveform (in its most primitive form),
-which is then used with a [`rdtable`](#rdtable) controlled by a phasor to
+which is then used with a [`rdtable`](TODO) controlled by a phasor to
 implement a triangle wave oscillator. Note that the quality of this oscillator
 is very low because of the low resolution of the triangle waveform.
 
@@ -2268,7 +2268,7 @@ process = 0.1 : sin;
 
 #### `tan` Primitive
 
-Sine can be expressed as `tan` in Faust.
+Tangent can be expressed as `tan` in Faust.
 
 * **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
 * **Mathematical Description:** $y(t)=\mathrm{tanf}(x(t))$
@@ -2280,6 +2280,324 @@ Sine can be expressed as `tan` in Faust.
 process = 0.1 : tan;
 ```
 <!-- /faust-run -->	
+
+#### `exp` Primitive
+
+Base-e exponential can be expressed as `exp` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{expf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : exp;
+```
+<!-- /faust-run -->	
+
+#### `log` Primitive
+
+Base-e logarithm can be expressed as `log` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{logf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : log;
+```
+<!-- /faust-run -->	
+
+#### `log10` Primitive
+
+Base-10 logarithm can be expressed as `log10` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{log10}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 0.1 : log10;
+```
+<!-- /faust-run -->	
+
+#### `pow` Primitive
+
+Power can be expressed as `pow` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{powf}(x_{1}(t),x_{2}(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 2,4 : pow;
+```
+<!-- /faust-run -->	
+
+#### `sqrt` Primitive
+
+Square root can be expressed as `sqrt` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{sqrtf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 4 : sqrt;
+```
+<!-- /faust-run -->	
+
+#### `abs` Primitive
+
+Absolute value can be expressed as `abs` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{abs}(x(t))$ (int) or  
+$y(t)=\mathrm{fabsf}(x(t))$ (float)
+
+**Example**
+
+<!-- faust-run -->
+```
+process = -0.5 : abs;
+```
+<!-- /faust-run -->	
+
+#### `min` Primitive
+
+*Minimum* can be expressed as `min` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{min}(x_{1}(t),x_{2}(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = -0.5,0.2 : min;
+```
+<!-- /faust-run -->
+
+#### `max` Primitive
+
+*Maximum* can be expressed as `max` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{max}(x_{1}(t),x_{2}(t))$ 
+
+**Example**
+
+<!-- faust-run -->
+```
+process = -0.5,0.2 : max;
+```
+<!-- /faust-run -->	
+
+#### `fmod` Primitive
+
+Float modulo can be expressed as `fmod` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{fmodf}(x_{1}(t),x_{2}(t))$ 
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 5.3,2 : fmod;
+```
+<!-- /faust-run -->	
+
+#### `remainder` Primitive
+
+Float remainder can be expressed as `remainder` in Faust.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{remainderf}(x_{1}(t),x_{2}(t))$ 
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 5.3,2 : remainder;
+```
+<!-- /faust-run -->	
+
+#### `floor` Primitive
+
+Largest int can be expressed as `floor` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $\leq$: $y(t)=\mathrm{floorf}(x(t))$ 
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 3.6 : floor;
+```
+<!-- /faust-run -->	
+
+#### `ceil` Primitive
+
+Smallest int can be expressed as `ceil` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $\geq$: $y(t)=\mathrm{ceilf}(x(t))$ 
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 3.6 : ceil;
+```
+<!-- /faust-run -->	
+
+#### `rint` Primitive
+
+Closest int can be expressed as `rint` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=\mathrm{rintf}(x(t))$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = 3.6 : rint;
+```
+<!-- /faust-run -->	
+
+### Delay Primitives and Modifiers
+
+Faust hosts various modifiers and primitives to define one sample or integer
+delay of arbitrary length. They are presented in this section.  
+
+#### `mem` Primitive
+
+A 1 sample delay can be expressed as `mem` in Faust.
+
+* **Type:** $\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t+1)=x(t),y(0)=0$
+
+**Example**
+
+<!-- faust-run -->
+```
+process = mem;
+```
+<!-- /faust-run -->	
+
+Note that this is equivalent to `process = _'` (see [`'` Modifier](#modifier))
+and `process = @(1)` (see [`@` Primitive](TODO))
+
+#### `'` Modifier
+
+`'` can be used to apply a 1 sample delay to a signal in Faust. It can be seen
+as syntactic sugar to the [`mem` primitive](#mem-primitive). `'` is very 
+convenient when implementing filters and can help significantly decrease the 
+size of the Faust code.
+
+**Example**
+
+<!-- faust-run -->
+```
+process = _';
+```
+<!-- /faust-run -->	
+
+#### `@` Primitive
+
+An integer delay of `N` samples can be expressed as `@(N)` in Faust. Note that
+`N` can be dynamic but that its range must be bounded. This can be done by
+using a UI primitive (see example below) allowing for the definition of a 
+range such as [`hslider`](TODO), [`vslider`](TODO), or [`nentry`](TODO).
+
+Note that floating point delay is also available in Faust by the mean of
+[various fractional delay implementations](TODO) available in the Faust 
+standard libraries.
+
+* **Type:** $\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t+x_{2}(t))=x_{1}(t), y(t<x_{2}(t))=0$
+
+**Example: Static N Samples Delay**
+
+<!-- faust-run -->
+```
+N = 10;
+process = @(N);
+```
+<!-- /faust-run -->	
+
+**Example: Dynamic N Samples Delay**
+
+<!-- faust-run -->
+```
+N = hslider("N",10,1,10,1);
+process = @(N);
+```
+<!-- /faust-run -->	
+
+### Table Primitives
+
+TODO
+
+#### `rtable` Primitive
+
+The `rtable` primitive can be used to read through a read-only (pre-defined
+before compilation) table. The table can either be implemented using a 
+function controlled by a timer as demonstrated in the first example or by using
+the `waveform` primitive (as shown in the second example).
+
+`rtable(n,s,r)` has three arguments such that:
+
+* `n`: the table size
+* `s`: the table
+* `r`: the read index (an `int` between 0 and `n`)
+
+* **Type:** $\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}$ 
+* **Mathematical Description:** $y(t)=T[r(t)]$
+
+**Example: Basic Triangle Wave Oscillator Using the `waveform` Primitive**
+
+TODO
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
+triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
+f = hslider("freq",440,50,2000,0.01);
+process = triangleOsc(f);
+```
+<!-- /faust-run -->	
+
+**Example: Basic Triangle Wave Oscillator Using the `waveform` Primitive**
+
+TODO
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+sineWave(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
+tableSize = 1 << 16;
+triangleOsc(f) = tableSize,sineWave(tableSize),int(os.phasor(tableSize,f)) : rdtable;
+f = hslider("freq",440,50,2000,0.01);
+process = triangleOsc(f);
+```
+<!-- /faust-run -->	
+
+### Selector Primitives
+
 
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->

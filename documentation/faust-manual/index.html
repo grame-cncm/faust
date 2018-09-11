@@ -212,7 +212,29 @@
 <li><a href="#cos-primitive"><code>cos</code> Primitive</a></li>
 <li><a href="#sin-primitive"><code>sin</code> Primitive</a></li>
 <li><a href="#tan-primitive"><code>tan</code> Primitive</a></li>
+<li><a href="#exp-primitive"><code>exp</code> Primitive</a></li>
+<li><a href="#log-primitive"><code>log</code> Primitive</a></li>
+<li><a href="#log10-primitive"><code>log10</code> Primitive</a></li>
+<li><a href="#pow-primitive"><code>pow</code> Primitive</a></li>
+<li><a href="#sqrt-primitive"><code>sqrt</code> Primitive</a></li>
+<li><a href="#abs-primitive"><code>abs</code> Primitive</a></li>
+<li><a href="#min-primitive"><code>min</code> Primitive</a></li>
+<li><a href="#max-primitive"><code>max</code> Primitive</a></li>
+<li><a href="#fmod-primitive"><code>fmod</code> Primitive</a></li>
+<li><a href="#remainder-primitive"><code>remainder</code> Primitive</a></li>
+<li><a href="#floor-primitive"><code>floor</code> Primitive</a></li>
+<li><a href="#ceil-primitive"><code>ceil</code> Primitive</a></li>
+<li><a href="#rint-primitive"><code>rint</code> Primitive</a></li>
 </ul></li>
+<li><a href="#delay-primitives-and-modifiers">Delay Primitives and Modifiers</a><ul>
+<li><a href="#mem-primitive"><code>mem</code> Primitive</a></li>
+<li><a href="#modifier"><code>'</code> Modifier</a></li>
+<li><a href="#primitive"><code>@</code> Primitive</a></li>
+</ul></li>
+<li><a href="#table-primitives">Table Primitives</a><ul>
+<li><a href="#rtable-primitive"><code>rtable</code> Primitive</a></li>
+</ul></li>
+<li><a href="#selector-primitives">Selector Primitives</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
@@ -1109,7 +1131,7 @@ triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
 f = hslider(&quot;freq&quot;,440,50,2000,0.01);
 process = triangleOsc(f);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust34/exfaust34.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<p><code>waveform</code> is used to define a triangle waveform (in its most primitive form), which is then used with a <a href="#rdtable"><code>rdtable</code></a> controlled by a phasor to implement a triangle wave oscillator. Note that the quality of this oscillator is very low because of the low resolution of the triangle waveform.</p>
+<p><code>waveform</code> is used to define a triangle waveform (in its most primitive form), which is then used with a <a href="TODO"><code>rdtable</code></a> controlled by a phasor to implement a triangle wave oscillator. Note that the quality of this oscillator is very low because of the low resolution of the triangle waveform.</p>
 <h3 id="the-soundfile-primitive">The <code>soundfile</code> Primitive</h3>
 <!-- -->
 <p>The <code>soundfile(&quot;label[url:path]&quot;, n)</code> primitive allows for the access of externally defined sound file/resource. <code>soundfile</code> has one input (the read index in the sound), three fixed outputs:</p>
@@ -1429,7 +1451,7 @@ are properly documented/mentioned somewhere and demonstrated -->
 <pre><code>process = 0.1 : sin;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust64/exfaust64.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="tan-primitive"><code>tan</code> Primitive</h4>
-<p>Sine can be expressed as <code>tan</code> in Faust.</p>
+<p>Tangent can be expressed as <code>tan</code> in Faust.</p>
 <ul>
 <li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
 <li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{tanf}(x(t))\)</span></li>
@@ -1438,6 +1460,205 @@ are properly documented/mentioned somewhere and demonstrated -->
 <div class="faust-run"><a href="img/src/exfaust65/exfaust65-svg/process.svg" target="_blank"><img src="img/src/exfaust65/exfaust65-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>process = 0.1 : tan;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust65/exfaust65.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="exp-primitive"><code>exp</code> Primitive</h4>
+<p>Base-e exponential can be expressed as <code>exp</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{expf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust66/exfaust66-svg/process.svg" target="_blank"><img src="img/src/exfaust66/exfaust66-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : exp;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust66/exfaust66.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="log-primitive"><code>log</code> Primitive</h4>
+<p>Base-e logarithm can be expressed as <code>log</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{logf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust67/exfaust67-svg/process.svg" target="_blank"><img src="img/src/exfaust67/exfaust67-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : log;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust67/exfaust67.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="log10-primitive"><code>log10</code> Primitive</h4>
+<p>Base-10 logarithm can be expressed as <code>log10</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{log10}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust68/exfaust68-svg/process.svg" target="_blank"><img src="img/src/exfaust68/exfaust68-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 0.1 : log10;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust68/exfaust68.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="pow-primitive"><code>pow</code> Primitive</h4>
+<p>Power can be expressed as <code>pow</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{powf}(x_{1}(t),x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust69/exfaust69-svg/process.svg" target="_blank"><img src="img/src/exfaust69/exfaust69-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 2,4 : pow;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust69/exfaust69.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="sqrt-primitive"><code>sqrt</code> Primitive</h4>
+<p>Square root can be expressed as <code>sqrt</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{sqrtf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust70/exfaust70-svg/process.svg" target="_blank"><img src="img/src/exfaust70/exfaust70-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 4 : sqrt;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust70/exfaust70.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="abs-primitive"><code>abs</code> Primitive</h4>
+<p>Absolute value can be expressed as <code>abs</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{abs}(x(t))\)</span> (int) or<br />
+<span class="math inline">\(y(t)=\mathrm{fabsf}(x(t))\)</span> (float)</li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust71/exfaust71-svg/process.svg" target="_blank"><img src="img/src/exfaust71/exfaust71-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = -0.5 : abs;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust71/exfaust71.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="min-primitive"><code>min</code> Primitive</h4>
+<p><em>Minimum</em> can be expressed as <code>min</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{min}(x_{1}(t),x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust72/exfaust72-svg/process.svg" target="_blank"><img src="img/src/exfaust72/exfaust72-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = -0.5,0.2 : min;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust72/exfaust72.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="max-primitive"><code>max</code> Primitive</h4>
+<p><em>Maximum</em> can be expressed as <code>max</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{max}(x_{1}(t),x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust73/exfaust73-svg/process.svg" target="_blank"><img src="img/src/exfaust73/exfaust73-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = -0.5,0.2 : max;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust73/exfaust73.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="fmod-primitive"><code>fmod</code> Primitive</h4>
+<p>Float modulo can be expressed as <code>fmod</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{fmodf}(x_{1}(t),x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust74/exfaust74-svg/process.svg" target="_blank"><img src="img/src/exfaust74/exfaust74-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 5.3,2 : fmod;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust74/exfaust74.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="remainder-primitive"><code>remainder</code> Primitive</h4>
+<p>Float remainder can be expressed as <code>remainder</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{remainderf}(x_{1}(t),x_{2}(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust75/exfaust75-svg/process.svg" target="_blank"><img src="img/src/exfaust75/exfaust75-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 5.3,2 : remainder;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust75/exfaust75.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="floor-primitive"><code>floor</code> Primitive</h4>
+<p>Largest int can be expressed as <code>floor</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(\leq\)</span>: <span class="math inline">\(y(t)=\mathrm{floorf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust76/exfaust76-svg/process.svg" target="_blank"><img src="img/src/exfaust76/exfaust76-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 3.6 : floor;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust76/exfaust76.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="ceil-primitive"><code>ceil</code> Primitive</h4>
+<p>Smallest int can be expressed as <code>ceil</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(\geq\)</span>: <span class="math inline">\(y(t)=\mathrm{ceilf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust77/exfaust77-svg/process.svg" target="_blank"><img src="img/src/exfaust77/exfaust77-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 3.6 : ceil;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust77/exfaust77.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="rint-primitive"><code>rint</code> Primitive</h4>
+<p>Closest int can be expressed as <code>rint</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=\mathrm{rintf}(x(t))\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust78/exfaust78-svg/process.svg" target="_blank"><img src="img/src/exfaust78/exfaust78-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = 3.6 : rint;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust78/exfaust78.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="delay-primitives-and-modifiers">Delay Primitives and Modifiers</h3>
+<p>Faust hosts various modifiers and primitives to define one sample or integer delay of arbitrary length. They are presented in this section.</p>
+<h4 id="mem-primitive"><code>mem</code> Primitive</h4>
+<p>A 1 sample delay can be expressed as <code>mem</code> in Faust.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{1}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t+1)=x(t),y(0)=0\)</span></li>
+</ul>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust79/exfaust79-svg/process.svg" target="_blank"><img src="img/src/exfaust79/exfaust79-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = mem;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust79/exfaust79.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that this is equivalent to <code>process = _'</code> (see <a href="#modifier"><code>'</code> Modifier</a>) and <code>process = @(1)</code> (see <a href="TODO"><code>@</code> Primitive</a>)</p>
+<h4 id="modifier"><code>'</code> Modifier</h4>
+<p><code>'</code> can be used to apply a 1 sample delay to a signal in Faust. It can be seen as syntactic sugar to the <a href="#mem-primitive"><code>mem</code> primitive</a>. <code>'</code> is very convenient when implementing filters and can help significantly decrease the size of the Faust code.</p>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust80/exfaust80-svg/process.svg" target="_blank"><img src="img/src/exfaust80/exfaust80-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = _&#39;;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust80/exfaust80.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="primitive"><code>@</code> Primitive</h4>
+<p>An integer delay of <code>N</code> samples can be expressed as <code>@(N)</code> in Faust. Note that <code>N</code> can be dynamic but that its range must be bounded. This can be done by using a UI primitive (see example below) allowing for the definition of a range such as <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, or <a href="TODO"><code>nentry</code></a>.</p>
+<p>Note that floating point delay is also available in Faust by the mean of <a href="TODO">various fractional delay implementations</a> available in the Faust standard libraries.</p>
+<ul>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><strong>Mathematical Description:</strong> <span class="math inline">\(y(t+x_{2}(t))=x_{1}(t), y(t&lt;x_{2}(t))=0\)</span></li>
+</ul>
+<p><strong>Example: Static N Samples Delay</strong></p>
+<div class="faust-run"><a href="img/src/exfaust81/exfaust81-svg/process.svg" target="_blank"><img src="img/src/exfaust81/exfaust81-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>N = 10;
+process = @(N);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust81/exfaust81.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Example: Dynamic N Samples Delay</strong></p>
+<div class="faust-run"><a href="img/src/exfaust82/exfaust82-svg/process.svg" target="_blank"><img src="img/src/exfaust82/exfaust82-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>N = hslider(&quot;N&quot;,10,1,10,1);
+process = @(N);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust82/exfaust82.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="table-primitives">Table Primitives</h3>
+<p>TODO</p>
+<h4 id="rtable-primitive"><code>rtable</code> Primitive</h4>
+<p>The <code>rtable</code> primitive can be used to read through a read-only (pre-defined before compilation) table. The table can either be implemented using a function controlled by a timer as demonstrated in the first example or by using the <code>waveform</code> primitive (as shown in the second example).</p>
+<p><code>rtable(n,s,r)</code> has three arguments such that:</p>
+<ul>
+<li><code>n</code>: the table size</li>
+<li><code>s</code>: the table</li>
+<li><p><code>r</code>: the read index (an <code>int</code> between 0 and <code>n</code>)</p></li>
+<li><strong>Type:</strong> <span class="math inline">\(\mathbb{S}^{3}\rightarrow\mathbb{S}^{1}\)</span></li>
+<li><p><strong>Mathematical Description:</strong> <span class="math inline">\(y(t)=T[r(t)]\)</span></p></li>
+</ul>
+<p><strong>Example: Basic Triangle Wave Oscillator Using the <code>waveform</code> Primitive</strong></p>
+<p>TODO</p>
+<div class="faust-run"><a href="img/src/exfaust83/exfaust83-svg/process.svg" target="_blank"><img src="img/src/exfaust83/exfaust83-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+triangleWave = waveform{0,0.5,1,0.5,0,-0.5,-1,-.5};
+triangleOsc(f) = triangleWave,int(os.phasor(8,f)) : rdtable;
+f = hslider(&quot;freq&quot;,440,50,2000,0.01);
+process = triangleOsc(f);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust83/exfaust83.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Example: Basic Triangle Wave Oscillator Using the <code>waveform</code> Primitive</strong></p>
+<p>TODO</p>
+<div class="faust-run"><a href="img/src/exfaust84/exfaust84-svg/process.svg" target="_blank"><img src="img/src/exfaust84/exfaust84-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+sineWave(tablesize) = float(ba.time)*(2.0*ma.PI)/float(tablesize) : sin;
+tableSize = 1 &lt;&lt; 16;
+triangleOsc(f) = tableSize,sineWave(tableSize),int(os.phasor(tableSize,f)) : rdtable;
+f = hslider(&quot;freq&quot;,440,50,2000,0.01);
+process = triangleOsc(f);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust84/exfaust84.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h3 id="selector-primitives">Selector Primitives</h3>
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
 <!-- TODO give use examples after description here -->

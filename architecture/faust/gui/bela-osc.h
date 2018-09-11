@@ -49,13 +49,7 @@ public:
     {}
     
     virtual void reflectZone()
-    {
-        FAUSTFLOAT v = *fZone;
-        fCache = v;
-        fSender->queueMessage(fSender->newMessage.to(fPath).add(float(v)).end());
-        //send(fPath, float(v));//<-- revoir ici. send...
-        //
-    }
+    {}
     
 };
 
@@ -106,10 +100,10 @@ public:
         oscClient.setup(fInputPort, fIP);
         rt_printf("initconnect\n");
         if (fOSCItems.size() == 0) {
-            rt_printf("%i widgets\nOSC Adresses:\n", fAPIUI.getParamsCount());
+            rt_printf("%i widgets, OSC Adresses:\n", fAPIUI.getParamsCount());
             
             for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
-                rt_printf("%s\n", fAPIUI.getParamAddress(p));
+                rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
                 fOSCItems.push_back(new oscItem(&oscClient, this, fAPIUI.getParamAddress(p), fAPIUI.getParamZone(p)));
             }
         }
