@@ -87,7 +87,7 @@ class SoundUI : public GenericUI
         virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
             std::vector<std::string> file_name_list;
-            bool menu = parseMenuList2(url, file_name_list);
+            bool menu = parseMenuList2(url, file_name_list, true);
             // If not a list, we have as single file
             if (!menu) { file_name_list.push_back(url); }
             

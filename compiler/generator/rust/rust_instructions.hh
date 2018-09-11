@@ -38,7 +38,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
-        if (inst->fAddress->getAccess() & Address::kStruct)  *fOut << ",";
+        if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
     }
 
     // Generate zero intialisation code for simple int/real scalar and arrays types

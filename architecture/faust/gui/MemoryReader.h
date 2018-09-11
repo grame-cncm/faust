@@ -33,15 +33,16 @@
  A 'MemoryReader' object can be used to prepare a set of sound resources in memory, to be used by SoundUI::addSoundfile.
  */
 
-struct MemoryReader : public SoundfileReader {
-    
+class MemoryReader : public SoundfileReader {
+  protected:
     std::map<std::string, Soundfile*> fSoundMap;
     
-    std::string CheckAux(const std::string& path_name_str)
+    std::string checkAux(const std::string& path_name_str)
     {
         return (fSoundMap.find(path_name_str) != fSoundMap.end()) ? path_name_str : "";
     }
     
+  public:
     ~MemoryReader()
     {
         // Delete all remaining soundfiles
@@ -51,23 +52,12 @@ struct MemoryReader : public SoundfileReader {
         }
     }
     
-    /*
-      The Soundfile is removed from this map to be kept in SoundUI one. 
-      A more sophisticated scheme using 'std::shared_ptr' could be used instead.
-    */
-    Soundfile* Read(const std::string& path_name_str, int max_chan)
-    {
-        assert(fSoundMap.find(path_name_str) != fSoundMap.end());
-        Soundfile* res = fSoundMap[path_name_str];
-        fSoundMap.erase(path_name_str);
-        return res;
-    }
+    // TODO
+    virtual void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
     
-    // To be used to prepare all soundfiles
-    void Add(const std::string& path_name_str, Soundfile* sf)
-    {
-        fSoundMap[path_name_str] = sf;
-    }
+    virtual std::string checkAux(const std::string& path_name) { return ""; }
+    
+    virtual void open(const std::string& path_name, int& channels, int& length) {}
     
     static MemoryReader* gReader;
 };
@@ -79,14 +69,6 @@ struct MemoryReader : public SoundfileReader {
  
 MemoryReader* MemoryReader::gReader = new MemoryReader();
  
-MemoryReader::gReader->Add("sound1", buildSoundfile(...));
-MemoryReader::gReader->Add("sound2", buildSoundfile(...));
-MemoryReader::gReader->Add("sound3", buildSoundfile(...));
- 
-Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
-{
-    return MemoryReader::gReader->Read(path_name_str, max_chan);
-}
 */
 
 #endif

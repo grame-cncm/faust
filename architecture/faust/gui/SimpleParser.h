@@ -60,7 +60,7 @@ bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<
 bool parseMenuItem(const char*& p, std::string& name, double& value);
 
 // Menu {'foo.wav'; 'bar.wav'}
-bool parseMenuList2(const char*& p, std::vector<std::string>& names);
+bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug = false);
 bool parseMenuItem2(const char*& p, std::string& name);
 
 void skipBlank(const char*& p);
@@ -115,10 +115,9 @@ inline bool parseMenuList(const char*& p, std::vector<std::string>& names, std::
     return false;
 }
 
-inline bool parseMenuList2(const char*& p, std::vector<std::string>& names)
+inline bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug)
 {
     std::vector<std::string> tmpnames;
-    
     const char* saved = p;  // to restore position if we fail
     
     if (parseChar(p, '{')) {
@@ -127,8 +126,7 @@ inline bool parseMenuList2(const char*& p, std::vector<std::string>& names)
             if (parseMenuItem2(p, n)) {
                 tmpnames.push_back(n);
             } else {
-                p = saved;
-                return false;
+                goto error;
             }
         } while (parseChar(p, ';'));
         if (parseChar(p, '}')) {
@@ -137,6 +135,9 @@ inline bool parseMenuList2(const char*& p, std::vector<std::string>& names)
             return true;
         }
     }
+    
+error:
+    if (debug) { std::cerr << "parseMenuList2 : (" << saved << ") is not a valid list !\n"; }
     p = saved;
     return false;
 }
