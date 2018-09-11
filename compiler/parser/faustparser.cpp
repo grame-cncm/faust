@@ -102,21 +102,23 @@ char replaceCR(char c)
 	return (c!='\n') ? c : ' ';
 }
 
+#define STRING_SIZE 16384
+
 Tree unquote(char* str)
 {
 	//-----------copy unquoted filename-------------
-	char buf[512];
+	char buf[STRING_SIZE];
 	int j=0;
 
 	if (str[0] == '"') {
 		//it is a quoted string, we remove the quotes
-		for (int i=1; j<511 && str[i];) {
+		for (int i=1; j<STRING_SIZE && str[i];) {
 			buf[j++] = replaceCR(str[i++]);
 		}
 		// remove last quote
 		if (j>0) buf[j-1] = 0;
 	} else {
-		for (int i=0; j<511 && str[i];) {
+		for (int i=0; j<STRING_SIZE && str[i];) {
 			buf[j++] = replaceCR(str[i++]);
 		}
 	}
