@@ -91,6 +91,24 @@ public:
             int paramIndex = fAPIUI.getParamIndex(msg.addressPattern().c_str());
             if (msg.match(msgAdress).popFloat(floatArg).isOkNoMoreArgs() && paramIndex !=-1){
                 fAPIUI.setParamValue(paramIndex, floatArg);
+            // "get" message with correct address
+            } else if (msg.match("/get").isOkNoMoreArgs()){
+                for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
+                    // show datat to console.
+                    rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
+                    // set data by OSC.
+                    oscClient.queueMessage(oscClient.newMessage.to(std::string(fAPIUI.getParamAddress(p))).add(fAPIUI.getParamMin(p)).add(fAPIUI.getParamMax(p)).end());
+                }
+            // "hello" message
+            } else if (msg.match("/hello").isOkNoMoreArgs()){
+                // show datat to console.
+                rt_printf("adresses:%s, in:%i, out:%i\n", fIP, fInputPort, fOutputPort );
+                // set data by OSC.
+                std::string s = fAPIUI.getParamAddress(0);
+                s.erase(0, 1);
+                s = s.substr(0, s.find("/"));
+                s.insert (0, 1, '/');
+                oscClient.queueMessage(oscClient.newMessage.to(s).add(std::string(fIP)).add(fInputPort).add(fOutputPort).end());//("/adress IP")
             }
         }
     }
