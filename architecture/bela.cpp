@@ -58,12 +58,12 @@ using namespace std;
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
 
-//#ifdef MIDICTRL
+#ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
 #include "faust/midi/bela-midi.h"
-//#endif
+#endif
 
-// Pour OSC
+// OSC
 #ifdef OSCCTRL
 #include <OSCServer.h>
 #include <OSCClient.h>
@@ -72,19 +72,18 @@ using namespace std;
 #include "faust/gui/bela-osc.h"
 #endif
 
-// Usage ???
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
-#endif
 
-// Pour POLY et tt synthé
+// Polyphonic instrument
 #include "faust/dsp/poly-dsp.h"
 
-// POLY2 = POLY avec effet
+// POLY2 = polyphonic instrument + effect
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
 #endif
+
+
+
 
 const char* const pinNamesStrings[] =
 {
@@ -112,7 +111,16 @@ const char* const pinNamesStrings[] =
   "DIGITAL_12",
   "DIGITAL_13",
   "DIGITAL_14",
-  "DIGITAL_15"
+  "DIGITAL_15",
+  "ANALOG_OUT_0",// outputs
+  "ANALOG_OUT_1",
+  "ANALOG_OUT_2",
+  "ANALOG_OUT_3",
+  "ANALOG_OUT_4",
+  "ANALOG_OUT_5",
+  "ANALOG_OUT_6",
+  "ANALOG_OUT_7",
+  "ANALOG_OUT_8"
  };
 
 enum EInputPin
@@ -143,6 +151,15 @@ enum EInputPin
   kDIGITAL_13,
   kDIGITAL_14,
   kDIGITAL_15,
+  kANALOG_OUT_0,
+  kANALOG_OUT_1,
+  kANALOG_OUT_2,
+  kANALOG_OUT_3,
+  kANALOG_OUT_4,
+  kANALOG_OUT_5,
+  kANALOG_OUT_6,
+  kANALOG_OUT_7,
+  kANALOG_OUT_8,
   kNumInputPins
  };
 
@@ -219,6 +236,16 @@ protected:
       case kDIGITAL_15:
         *fZone = digitalRead(context, 0 /* TODO: average frame?*/, ((int) fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
         break;
+      case kANALOG_OUT_0:
+      case kANALOG_OUT_1:
+      case kANALOG_OUT_2:
+      case kANALOG_OUT_3:
+      case kANALOG_OUT_4:
+      case kANALOG_OUT_5:
+      case kANALOG_OUT_6:
+      case kANALOG_OUT_7:
+        analogWrite(context, 0, ((int) fBelaPin)-kANALOG_OUT_0, (*fZone -fMin)/(fRange+fMin));
+        break;
       default:
       break;
     };
@@ -237,7 +264,8 @@ protected:
 ***************************************************************************************/
 
 // The maximum number of mappings between Bela parameters and Faust widgets
-#define MAXBELAWIDGETS 8
+// To be modified: We can have 8 inputs, 8 outputs, and 16 digital In or Out.
+#define MAXBELAWIDGETS 16
 
 class BelaUI : public UI
 {
@@ -293,8 +321,8 @@ class BelaUI : public UI
   virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
 
   // -- passive widgets
-  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
-  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { skip(); }
+  virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi);  }
+  virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi);  }
     
   // -- soundfiles
   virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
@@ -353,6 +381,7 @@ dsp* DSP;
 BelaOSCUI fOSCUI("192.168.7.1", 12001, 12002);
 #endif
 
+
 bool setup(BelaContext* context, void* userData)
 {
     
@@ -363,18 +392,18 @@ bool setup(BelaContext* context, void* userData)
   gNumBuffers = context->audioInChannels
     + context->audioOutChannels;
 
-// Polyphonique avec effet
+// Polyphonic instrument with effet
 #ifdef POLY2
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
     
     DSP = new dsp_sequencer(dsp_poly, new effect());
-// Polyphonique sans effet
+// Polyphonic instrument without effet
 #elif NVOICES
-    // Si il y a plusieur voix, alors c'est un POLY simple
+    // It's a polyphonic synth
     if (nvoices > 0) {
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
         DSP = dsp_poly;
-    // Si on n'a pas de voix = ce n'est pas un synthé (un FX par exemple)    
+    // It's not a synth
     } else {
         DSP = new mydsp();
     }
@@ -403,19 +432,22 @@ bool setup(BelaContext* context, void* userData)
   for(int ch=0; ch<context->audioOutChannels; ++ch)
     gFaustOuts[ch] = gOutputBuffers + (ch * context->audioFrames);
     
-// Cas si MIDI, comportement différent en Poly et non Poly:
+// Case with MIDI
 #ifdef MIDICTRL
+// MIDI for synth
 #ifdef 	NVOICES
         fMIDI.addMidiIn(dsp_poly);
         midiinterface = new MidiUI(&fMIDI);
         DSP->buildUserInterface(midiinterface);
         midiinterface->run();
+// MIDI without synth
 #else
         midiinterface = new MidiUI(&fMIDI);
         DSP->buildUserInterface(midiinterface);
         midiinterface->run();
 #endif
 #endif
+        
 // OSC:
 #ifdef OSCCTRL
     DSP->buildUserInterface(&fOSCUI);
