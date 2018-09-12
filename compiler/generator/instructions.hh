@@ -1197,11 +1197,13 @@ struct ForLoopInst : public StatementInst {
 
 struct SimpleForLoopInst : public StatementInst {
     ValueInst*  fUpperBound;
-    BlockInst*     fCode;
     string fName;
+    ValueInst* fLowerBound;
+    bool fReverse;
+    BlockInst*     fCode;
 
-    SimpleForLoopInst(string index, ValueInst* upperBound, BlockInst* code)
-        : fUpperBound(upperBound), fCode(code), fName(index)
+    SimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
+        : fUpperBound(upperBound), fName(index), fLowerBound(lowerBound), fReverse(reverse), fCode(code)
     {
     }
 
@@ -1363,7 +1365,7 @@ class BasicCloneVisitor : public CloneVisitor {
 
     virtual StatementInst* visit(SimpleForLoopInst* inst)
     {
-      return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), static_cast<BlockInst*>(inst->fCode->clone(this)));
+      return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this), inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -1921,11 +1923,12 @@ struct InstBuilder {
         return new ForLoopInst(init, end, increment, code);
     }
 
-    static SimpleForLoopInst* genSimpleForLoopInst(string index, ValueInst* upperBound,
+    static SimpleForLoopInst* genSimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0), bool reverse=false,
                                        BlockInst* code = new BlockInst())
     {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
-        return new SimpleForLoopInst(index, upperBound, code);
+        faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
+        return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
     }
 
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) { return new WhileLoopInst(cond, code); }

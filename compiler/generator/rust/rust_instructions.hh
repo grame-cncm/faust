@@ -453,8 +453,18 @@ class RustInstVisitor : public TextInstVisitor {
     {
       if (inst->fCode->size() == 0) return;
 
-      *fOut << "for " << inst->getName() << " in 0..";
+      *fOut << "for " << inst->getName() << " in ";
+      if(inst->fReverse)
+      {
+        *fOut << "(";
+      }
+      inst->fLowerBound->accept(this);
+      *fOut << "..";
       inst->fUpperBound->accept(this);
+      if(inst->fReverse)
+      {
+        *fOut << ").rev() ";// rev() iterates from the end, excluded, to the beginningm included
+      }
       *fOut << " {";
       fTab++;
       tab(fTab, *fOut);

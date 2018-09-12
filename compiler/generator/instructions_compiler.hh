@@ -69,9 +69,10 @@ class InstructionsCompiler : public virtual Garbageable {
     void setTableNameProperty(Tree sig, const string& vecname);
     bool getTableNameProperty(Tree sig, string& vecname);
 
-    StatementInst*         generateInitArray(const string& vname, Typed::VarType ctype, int delay);
-    StatementInst*         generateCopyArray(const string& vname, int index_from, int index_to);
-    StatementInst*         generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    //Redefined by RustInstructionsCompiler
+    virtual StatementInst*         generateInitArray(const string& vname, Typed::VarType ctype, int delay);
+    virtual StatementInst*         generateCopyArray(const string& vname, int index_from, int index_to);
+    virtual StatementInst*         generateCopyArray(const string& vname_to, const string& vname_from, int size);
     virtual StatementInst* generateShiftArray(const string& vname,
                                               int           delay);  // Redefined in InterpreterInstructionsCompiler
 

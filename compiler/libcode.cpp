@@ -45,6 +45,7 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions_compiler.hh"
+#include "rust_instructions_compiler.hh"
 #include "libfaust.h"
 #include "ppbox.hh"
 #include "ppsig.hh"
@@ -1347,7 +1348,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         if (container) {
             if (gGlobal->gVectorSwitch) {
                 new_comp = new DAGInstructionsCompiler(container);
-            } else {
+            }
+            else if(gGlobal->gOutputLang == "rust") {
+              new_comp = new RustInstructionsCompiler(container);
+            }
+            else {
                 new_comp = new InstructionsCompiler(container);
             }
 
