@@ -317,4 +317,3 @@ string replaceCharList(string str, const vector<char>& ch1, char ch2)
     }
     return str;
 }
-

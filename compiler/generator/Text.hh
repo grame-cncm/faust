@@ -181,7 +181,7 @@ inline string pathToContent(const string& path)
 // put a unique file in a {...} list
 inline string prepareURL(const string& url)
 {
-    bool in_str = false;
+    bool         in_str = false;
     stringstream dst;
     for (size_t i = 0; i < url.size(); i++) {
         switch (url[i]) {
@@ -203,7 +203,7 @@ inline string prepareURL(const string& url)
         }
     }
     string res = dst.str();
-    
+
     // If unique file, create a list with it
     return (res[0] != '{') ? "{'" + res + "'}" : res;
 }

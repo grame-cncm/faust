@@ -211,7 +211,8 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                     InstBuilder::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
@@ -222,7 +223,8 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                     InstBuilder::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
@@ -233,7 +235,8 @@ struct MoveVariablesInFront2 : public BasicCloneVisitor {
                                     InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else {
                         faustassert(false);
@@ -333,7 +336,8 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                     InstBuilder::genInt32NumInst(int_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kFloat || ctype == Typed::kFloatMacro) {
                         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(inst->fValue);
@@ -344,7 +348,8 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                     InstBuilder::genFloatNumInst(float_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else if (ctype == Typed::kDouble) {
                         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(inst->fValue);
@@ -355,7 +360,8 @@ struct MoveVariablesInFront3 : public BasicCloneVisitor {
                                     InstBuilder::genDoubleNumInst(double_array->getValue(i))));
                             }
                         } else {
-                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner), inst->fValue->clone(&cloner));
+                            return InstBuilder::genStoreVarInst(inst->fAddress->clone(&cloner),
+                                                                inst->fValue->clone(&cloner));
                         }
                     } else {
                         faustassert(false);

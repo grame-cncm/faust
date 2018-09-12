@@ -29,8 +29,8 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
-#include "faust/gui/meta.h"
 #include "faust/gui/JSONUIDecoder.h"
+#include "faust/gui/meta.h"
 
 #include "TMutex.h"
 #include "dsp_aux.hh"
@@ -169,7 +169,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string fTarget;
     std::string fClassName;
     std::string fTypeName;
-  
+
     newDspFun             fNew;
     deleteDspFun          fDelete;
     getNumInputsFun       fGetNumInputs;
@@ -200,19 +200,19 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string writeDSPFactoryToMachineAux(const std::string& target);
 
    public:
-    llvm_dsp_factory_aux(const std::string& sha_key, llvm::Module* module,
-                         llvm::LLVMContext* context, const std::string& target, int opt_level = 0);
+    llvm_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
+                         const std::string& target, int opt_level = 0);
 
     llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
 
     virtual ~llvm_dsp_factory_aux();
-    
-    std::string getCompileOptions() { return fDecoder->fCompileOptions; }
+
+    std::string              getCompileOptions() { return fDecoder->fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fDecoder->fLibraryList; }
     std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
 
     virtual bool initJIT(std::string& error_msg);
-    bool initJITAux(std::string& error_msg);
+    bool         initJITAux(std::string& error_msg);
 
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
@@ -272,12 +272,12 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string getDSPCode() { return fFactory->getDSPCode(); }
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
-    
+
     std::string getCompileOptions() { return fFactory->getCompileOptions(); }
-    
+
     std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
     std::vector<std::string> getIncludePathnames() { return fFactory->getIncludePathnames(); }
- 
+
     std::string getTarget() { return fFactory->getTarget(); }
 
     llvm_dsp* createDSPInstance();
@@ -347,7 +347,7 @@ EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::s
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 // Public C interface
 
 EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
@@ -415,10 +415,9 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
 
 EXPORT void generateCSHA1(const char* data, char* key);
-    
+
 #ifdef __cplusplus
 }
 #endif
-
 
 #endif

@@ -675,7 +675,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         llvm::StructType*  dsp_type     = LLVMTypeHelper::createStructType(fModule, "struct.dsp" + fPrefix, fDSPFields);
         llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
-        fSize = fDataLayout->getTypeSizeInBits(dsp_type)/8;
+        fSize = fDataLayout->getTypeSizeInBits(dsp_type) / 8;
 
         // Create llvm_free_dsp function
         generateFreeDsp(dsp_type_ptr, internal);

@@ -26,8 +26,8 @@
 
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
    public:
-    llvm_dynamic_dsp_factory_aux(const std::string& sha_key, llvm::Module* module,
-                                 llvm::LLVMContext* context, const std::string& target, int opt_level = -1)
+    llvm_dynamic_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
+                                 const std::string& target, int opt_level = -1)
         : llvm_dsp_factory_aux(sha_key, module, context, target, opt_level)
     {
     }
@@ -95,7 +95,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level);
-    
+
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 
 EXPORT char* writeCDSPFactoryToBitcode(llvm_dsp_factory* factory);

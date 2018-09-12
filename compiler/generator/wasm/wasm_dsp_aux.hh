@@ -322,15 +322,15 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
 
     std::string getDSPCode();
     void        setDSPCode(std::string code);
-    
-    std::string getCompileOptions() { return fDecoder->fCompileOptions; }
+
+    std::string              getCompileOptions() { return fDecoder->fCompileOptions; }
     std::vector<std::string> getLibraryList() { return fDecoder->fLibraryList; }
     std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
-  
+
     JSONUIDecoder* getDecoder() { return fDecoder; }
-    
+
     std::string getJSON() { return fJSON; }
-    
+
     wasm_dsp* createDSPInstance();
 
     void                setMemoryManager(dsp_memory_manager* manager);

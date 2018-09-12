@@ -344,8 +344,7 @@ void WASTCodeContainer::produceClass()
 
     // "name", "filename" found in medata
     JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
-                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                  size.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, size.str(),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);

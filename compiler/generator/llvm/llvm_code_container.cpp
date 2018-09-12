@@ -705,29 +705,27 @@ void LLVMCodeContainer::generateGetSize(LLVMValue size)
 */
 void LLVMCodeContainer::generateGetJSON(int dsp_size)
 {
-    PointerType* string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
+    PointerType*    string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
     VECTOR_OF_TYPES llvm_getJSON_args;
-    FunctionType*   llvm_getJSON_type =
-        FunctionType::get(string_ptr, MAKE_VECTOR_OF_TYPES(llvm_getJSON_args), false);
-    Function* llvm_getJSON =
+    FunctionType*   llvm_getJSON_type = FunctionType::get(string_ptr, MAKE_VECTOR_OF_TYPES(llvm_getJSON_args), false);
+    Function*       llvm_getJSON =
         Function::Create(llvm_getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
-    
+
     // Prepare compilation options
     stringstream compile_options;
     gGlobal->printCompilationOptions(compile_options, false);
-    
+
     // Prepare JSON
     std::map<std::string, int> path_index_table;
-    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, "", "",
-                                 FAUSTVERSION, compile_options.str(),
-                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList,
-                                 std::to_string(dsp_size),
+    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, std::to_string(dsp_size),
                                  path_index_table);
     generateUserInterface(&json_visitor);
     generateMetaData(&json_visitor);
- 
+
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getJSON);
-    ReturnInst::Create(getContext(), fCodeProducer->getStringConstant(removeChar(json_visitor.JSON(true), '\\')), return_block);
+    ReturnInst::Create(getContext(), fCodeProducer->getStringConstant(removeChar(json_visitor.JSON(true), '\\')),
+                       return_block);
     verifyFunction(*llvm_getJSON);
     fBuilder->ClearInsertionPoint();
 }
@@ -892,7 +890,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateBuildUserInterfaceBegin();
     generateUserInterface(fCodeProducer);
     generateBuildUserInterfaceEnd();
-  
+
     generateGetJSON(fTypeBuilder.getSize());
 
     // Compute

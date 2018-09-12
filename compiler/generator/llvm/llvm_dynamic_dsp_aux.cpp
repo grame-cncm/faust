@@ -317,7 +317,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
     string target_suffix = "-elf";
 #else
-    string target_suffix = "";
+    string        target_suffix = "";
 #endif
 
     string triple, cpu;
@@ -394,7 +394,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 #if defined(LLVM_60)
         // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
 #else
-        TargetRegistry::printRegisteredTargetsForVersion();
+            TargetRegistry::printRegisteredTargetsForVersion();
 #endif
             dumpLLVM(fModule);
         }
@@ -409,7 +409,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
 #if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
-            // TODO
+        // TODO
 #else
             tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
 #endif
@@ -610,8 +610,8 @@ static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const str
         if (!module) return nullptr;
 
         setlocale(LC_ALL, tmp_local);
-        string                   error_msg;
-    
+        string error_msg;
+
         llvm_dynamic_dsp_factory_aux* factory_aux =
             new llvm_dynamic_dsp_factory_aux(sha_key, module, context, target, opt_level);
 
@@ -725,7 +725,7 @@ Module* linkAllModules(llvm::LLVMContext* context, Module* dst, char* error)
     return dst;
 }
 
-// Public C interface : lock management is done by called C++ API
+    // Public C interface : lock management is done by called C++ API
 
 #ifdef __cplusplus
 extern "C" {
@@ -750,7 +750,7 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const
     strncpy(error_msg, error_msg_aux.c_str(), 4096);
     return factory;
 }
-    
+
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level)
 {
     return readDSPFactoryFromBitcode(bit_code, target, opt_level);

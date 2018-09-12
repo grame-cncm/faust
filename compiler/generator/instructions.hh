@@ -1901,7 +1901,10 @@ struct InstBuilder {
         return new FunTyped(args, result, attribute);
     }
     static VectorTyped* genVectorTyped(BasicTyped* type, int size) { return new VectorTyped(type, size); }
-    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false) { return new ArrayTyped(type, size, is_ptr); }
+    static ArrayTyped*  genArrayTyped(Typed* type, int size, bool is_ptr = false)
+    {
+        return new ArrayTyped(type, size, is_ptr);
+    }
     static StructTyped* genStructTyped(const string& name, const vector<NamedTyped*>& fields)
     {
         return new StructTyped(name, fields);

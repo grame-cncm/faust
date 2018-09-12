@@ -780,11 +780,9 @@ void CodeContainer::generateJSON(JSONInstVisitor* visitor)
     gGlobal->printCompilationOptions(compile_options);
 
     // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, "", "",
-                  FAUSTVERSION, compile_options.str(),
-                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "",
-                  std::map<std::string, int>());
-     
+    visitor->init("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "", std::map<std::string, int>());
+
     generateUserInterface(visitor);
     generateMetaData(visitor);
 }

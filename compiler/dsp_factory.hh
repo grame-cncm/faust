@@ -80,10 +80,10 @@ class dsp_factory_base {
 
 class dsp_factory_imp : public dsp_factory_base {
    protected:
-    std::string              fName;
-    std::string              fSHAKey;
-    std::string              fExpandedDSP;
-    dsp_memory_manager*      fManager;
+    std::string         fName;
+    std::string         fSHAKey;
+    std::string         fExpandedDSP;
+    dsp_memory_manager* fManager;
 
    public:
     dsp_factory_imp(const std::string& name, const std::string& sha_key, const std::string& dsp)
@@ -115,7 +115,7 @@ class dsp_factory_imp : public dsp_factory_base {
 
     std::string getDSPCode() { return fExpandedDSP; }
     void        setDSPCode(const std::string& code) { fExpandedDSP = code; }
-    
+
     virtual dsp* createDSPInstance(dsp_factory* factory)
     {
         faustassert(false);
@@ -148,7 +148,6 @@ class dsp_factory_imp : public dsp_factory_base {
     virtual void write(std::ostream* out, bool binary = false, bool small = false) {}
 
     virtual std::string getBinaryCode() { return ""; }
-    
 };
 
 /* To be used by textual backends. */
@@ -158,11 +157,8 @@ class text_dsp_factory_aux : public dsp_factory_imp {
     std::string fHelpers;
 
    public:
-    text_dsp_factory_aux(const std::string& name,
-                         const std::string& sha_key,
-                         const std::string& dsp,
-                         const std::string& code,
-                         const std::string& helpers)
+    text_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
+                         const std::string& code, const std::string& helpers)
         : dsp_factory_imp(name, sha_key, dsp), fCode(code), fHelpers(helpers)
     {
     }

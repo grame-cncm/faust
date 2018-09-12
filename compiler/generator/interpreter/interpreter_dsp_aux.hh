@@ -70,8 +70,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FIRBlockInstruction<T>*              fComputeBlock;
     FIRBlockInstruction<T>*              fComputeDSPBlock;
 
-    interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key,
-                                int version_num, int inputs,
+    interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
                                 int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
                                 int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* firinterface, FIRBlockInstruction<T>* static_init,
@@ -329,10 +328,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         getline(*in, dummy);  // Read "dsp_block" line
         FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
 
-        return new interpreter_dsp_factory_aux(
-            factory_name, sha_key, file_num, inputs, outputs, int_heap_size, real_heap_size,
-            sound_heap_size, sr_offset, count_offset, iota_offset, opt_level, meta_block, ui_block, static_init_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        return new interpreter_dsp_factory_aux(factory_name, sha_key, file_num, inputs, outputs, int_heap_size,
+                                               real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset,
+                                               opt_level, meta_block, ui_block, static_init_block, init_block,
+                                               resetui_block, clear_block, compute_control_block, compute_dsp_block);
     }
 
     static std::string parseStringToken(std::stringstream* inst)
@@ -1037,7 +1036,7 @@ class EXPORT interpreter_dsp_factory : public dsp_factory, public faust_smartabl
 
     std::string getDSPCode() { return fFactory->getDSPCode(); }
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
-    
+
     std::string getCompileOptions() { return ""; }
 
     interpreter_dsp* createDSPInstance();

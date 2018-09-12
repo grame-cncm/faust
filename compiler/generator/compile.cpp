@@ -331,9 +331,10 @@ void Compiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 
     } else if (isSigSoundfile(sig, path)) {
         fClass->incUIActiveCount();
-        fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label), ((url == "") ? label.c_str() : url.c_str()),
-                                tree2str(varname)));
-        fJSON.addSoundfile(checkNullLabel(varname, label).c_str(), ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
+        fClass->addUICode(subst("ui_interface->addSoundfile(\"$0\", \"$1\", &$2);", checkNullLabel(varname, label),
+                                ((url == "") ? label.c_str() : url.c_str()), tree2str(varname)));
+        fJSON.addSoundfile(checkNullLabel(varname, label).c_str(),
+                           ((url == "") ? prepareURL(label).c_str() : url.c_str()), NULL);
     } else {
         throw faustexception("ERROR in generating widget code 3\n");
     }
