@@ -204,7 +204,7 @@ class jackaudio : public audio {
     public:
 
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
-            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect)
+            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect), fControlCb(NULL), fControlCbArg(NULL)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);

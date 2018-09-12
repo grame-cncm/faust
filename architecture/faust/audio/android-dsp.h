@@ -192,7 +192,8 @@ class androidaudio : public audio {
         : fDsp(0), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
-        fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS)
+        fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS),
+        fControlCb(NULL), fControlCbArg(NULL)
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "Constructor");
             

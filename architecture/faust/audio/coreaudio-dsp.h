@@ -988,7 +988,9 @@ class TCoreAudioRenderer
             fDSP(0),
             fInputData(0),
             fDeviceID(0),fAUHAL(0),
-            fState(false)
+            fState(false),
+            fControlCb(NULL),
+            fControlCbArg(NULL)
         {}
 
         virtual ~TCoreAudioRenderer()

@@ -977,6 +977,8 @@ public:
             // check the best candidate to represent the current value
             if (defaultbutton) { defaultbutton->setChecked(true); }
             setLayout(l);
+        } else {
+            std::cerr << "parseMenuList : (" << mdescr << ") is not a menu !\n";
         }
         *fZone = cur;
     }
@@ -1047,6 +1049,8 @@ public:
             }
             // check the best candidate to represent the current value
             if (defaultitem > -1) { setCurrentIndex(defaultitem); }
+        } else {
+            std::cerr << "parseMenuList : (" << mdescr << ") is not a menu !\n";
         }
         connect(this,SIGNAL(activated(int)), this, SLOT(updateZone(int)));
         *fZone = cur;
@@ -1631,6 +1635,12 @@ public:
     {
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
+            return;
+        } else if (isRadio(zone)) {
+            addVerticalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
+            return;
+        } else if (isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
         //insert(label, new QDoubleSpinBox());
