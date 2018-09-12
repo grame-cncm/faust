@@ -448,6 +448,32 @@ class RustInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
     }
 
+    virtual void visit(SimpleForLoopInst* inst)
+    {
+      if (inst->fCode->size() == 0) return;
+
+      *fOut << "for " << inst->getName() << " in ";
+      if(inst->fReverse)
+      {
+        *fOut << "(";
+      }
+      inst->fLowerBound->accept(this);
+      *fOut << "..";
+      inst->fUpperBound->accept(this);
+      if(inst->fReverse)
+      {
+        *fOut << ").rev() ";// rev() iterates from the end, excluded, to the beginningm included
+      }
+      *fOut << " {";
+      fTab++;
+      tab(fTab, *fOut);
+      inst->fCode->accept(this);
+      fTab--;
+      tab(fTab, *fOut);
+      *fOut << "}";
+      tab(fTab, *fOut);
+    }
+
     virtual void visit(::SwitchInst* inst)
     {
         *fOut << "match (";

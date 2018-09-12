@@ -148,7 +148,7 @@ void RustCodeContainer::produceInternal()
     tab(n + 2, *fOut);
     fCodeProducer.Tab(n + 2);
     generateComputeBlock(&fCodeProducer);
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(counter);
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(counter);
     loop->accept(&fCodeProducer);
     tab(n + 1, *fOut);
     *fOut << "}" << endl;
@@ -421,7 +421,7 @@ void RustScalarCodeContainer::generateCompute(int n)
     generateComputeBlock(&fCodeProducer);
 
     // Generates one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
+    SimpleForLoopInst* loop = fCurLoop->generateSimpleScalarLoop(fFullCount);
     loop->accept(&fCodeProducer);
 
     tab(n, *fOut);

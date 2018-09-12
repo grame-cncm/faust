@@ -79,6 +79,7 @@ struct FunCallInst;
 struct Select2Inst;
 struct IfInst;
 struct ForLoopInst;
+struct SimpleForLoopInst;
 struct WhileLoopInst;
 struct BlockInst;
 struct SwitchInst;
@@ -228,6 +229,7 @@ struct InstVisitor : public virtual Garbageable {
 
     // Loops
     virtual void visit(ForLoopInst* inst) {}
+    virtual void visit(SimpleForLoopInst* inst) {}
     virtual void visit(WhileLoopInst* inst) {}
 
     // Block
@@ -285,6 +287,7 @@ struct CloneVisitor : public virtual Garbageable {
 
     // Loops
     virtual StatementInst* visit(ForLoopInst* inst)   = 0;
+    virtual StatementInst* visit(SimpleForLoopInst* inst)   = 0;
     virtual StatementInst* visit(WhileLoopInst* inst) = 0;
 
     // Block
@@ -1192,6 +1195,31 @@ struct ForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+struct SimpleForLoopInst : public StatementInst {
+    ValueInst*  fUpperBound;
+    string fName;
+    ValueInst* fLowerBound;
+    bool fReverse;
+    BlockInst*     fCode;
+
+    SimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
+        : fUpperBound(upperBound), fName(index), fLowerBound(lowerBound), fReverse(reverse), fCode(code)
+    {
+    }
+
+    string getName() { return fName; }
+
+    virtual ~SimpleForLoopInst() {}
+
+    void pushFrontInst(StatementInst* inst) { fCode->pushFrontInst(inst); }
+
+    void pushBackInst(StatementInst* inst) { fCode->pushBackInst(inst); }
+
+    void accept(InstVisitor* visitor) { visitor->visit(this); }
+
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 struct WhileLoopInst : public StatementInst {
     ValueInst* fCond;
     BlockInst* fCode;
@@ -1333,6 +1361,11 @@ class BasicCloneVisitor : public CloneVisitor {
     {
         return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this),
                                static_cast<BlockInst*>(inst->fCode->clone(this)));
+    }
+
+    virtual StatementInst* visit(SimpleForLoopInst* inst)
+    {
+      return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this), inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -1504,6 +1537,12 @@ struct DispatchVisitor : public InstVisitor {
         inst->fInit->accept(this);
         inst->fEnd->accept(this);
         inst->fIncrement->accept(this);
+        inst->fCode->accept(this);
+    }
+
+    virtual void visit(SimpleForLoopInst* inst)
+    {
+        inst->fUpperBound->accept(this);
         inst->fCode->accept(this);
     }
 
@@ -1882,6 +1921,14 @@ struct InstBuilder {
     {
         faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
         return new ForLoopInst(init, end, increment, code);
+    }
+
+    static SimpleForLoopInst* genSimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0), bool reverse=false,
+                                       BlockInst* code = new BlockInst())
+    {
+        faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
+        faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
+        return new SimpleForLoopInst(index, upperBound, lowerBound, reverse, code);
     }
 
     static WhileLoopInst* genWhileLoopInst(ValueInst* cond, BlockInst* code) { return new WhileLoopInst(cond, code); }
@@ -2380,6 +2427,7 @@ Address := Access name | Address index
 Statement   := DeclareVar (Address, Type, Value)
             | DeclareFun (Name, Type, Block)
             | ForLoop (Statement, Value, Statement, Block)
+            | SimpleForLoop (string, Value, Block)
             | WhileLoop (Value, Block)
             | StoreVar (Address, Value)
             | Drop (Value)
