@@ -255,17 +255,17 @@
 <li><a href="#labels-as-pathnames">Labels as Pathnames</a></li>
 <li><a href="#links-to-generated-code">Links to Generated Code</a></li>
 </ul></li>
-<li><a href="#label-metadata">Label Metadata</a><ul>
+<li><a href="#ui-label-metadata">UI Label Metadata</a><ul>
 <li><a href="#ordering-ui-elements">Ordering UI Elements</a></li>
 <li><a href="#global-ui-metadata">Global UI Metadata</a></li>
 <li><a href="#styleknob-metadata"><code>[style:knob]</code> Metadata</a></li>
-<li><a href="#stylemenu-metadata"><code>style:menu</code> Metadata</a></li>
-<li><a href="#styleradio-metadata"><code>style:radio</code> Metadata</a></li>
-<li><a href="#styleled-metadata"><code>style:led</code> Metadata</a></li>
-<li><a href="#unitdb-metadata"><code>unit:dB</code> Metadata</a></li>
-<li><a href="#unitxx-metadata"><code>unit:xx</code> Metadata</a></li>
+<li><a href="#stylemenu-metadata"><code>[style:menu]</code> Metadata</a></li>
+<li><a href="#styleradio-metadata"><code>[style:radio]</code> Metadata</a></li>
+<li><a href="#styleled-metadata"><code>[style:led]</code> Metadata</a></li>
+<li><a href="#unitdb-metadata"><code>[unit:dB]</code> Metadata</a></li>
+<li><a href="#unitxx-metadata"><code>[unit:xx]</code> Metadata</a></li>
 <li><a href="#scalexx-metadata"><code>[scale:xx]</code> Metadata</a></li>
-<li><a href="#tooltipxx-metadata"><code>tooltip:xx</code> Metadata</a></li>
+<li><a href="#tooltipxx-metadata"><code>[tooltip:xx]</code> Metadata</a></li>
 <li><a href="#hiddenxx-metadata"><code>[hidden:xx]</code> Metadata</a></li>
 <li><a href="#screencolorxx-metadata"><code>[screencolor:xx]</code> Metadata</a></li>
 </ul></li>
@@ -2062,7 +2062,7 @@ process = os.sawtooth(freq)*gain;</code></pre>
 <p>Note that path names are inherent to the use of tools gravitating around Faust such as <a href="TODO">OSC control</a> or <a href="TODO"><code>faust2api</code></a>. In the case of <code>faust2api</code>, since no user interface is actually generated, UI elements just become a way to declare parameters of a Faust object. Therefore, there’s no distinction between <code>nentry</code>, <code>hslider</code>, <code>vslider</code>, etc.</p>
 <h4 id="links-to-generated-code">Links to Generated Code</h4>
 <!-- TODO -->
-<h3 id="label-metadata">Label Metadata</h3>
+<h3 id="ui-label-metadata">UI Label Metadata</h3>
 <p><a href="#user-interface-primitives-and-configuration">Widget labels</a> can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file. They are typically used to improve the look and feel of the user interface, configure OSC and accelerometer control/mapping, etc. Since the format of the value associated to a key is relatively open, metadata constitute a flexible way for programmers to add features to the language.</p>
 <p>The Faust code:</p>
 <pre><code>process = *(hslider(&quot;foo[key1: val 1][key2: val 2]&quot;,0,0,1,0.1));</code></pre>
@@ -2111,14 +2111,48 @@ process = hgroup(&quot;Oscillators&quot;,
 <!-- TODO Link to metadata declaration section -->
 <p>In the following subsections, the standard Faust UI metadata are documented. Other types of metadata (e.g., accelerometers, OSC, etc.) are documented in the sections related to these topics.</p>
 <h4 id="styleknob-metadata"><code>[style:knob]</code> Metadata</h4>
-<p>The <code>[style:knob]</code> metadata turns any continuous UI element (i.e., )</p>
-<h4 id="stylemenu-metadata"><code>style:menu</code> Metadata</h4>
-<h4 id="styleradio-metadata"><code>style:radio</code> Metadata</h4>
-<h4 id="styleled-metadata"><code>style:led</code> Metadata</h4>
-<h4 id="unitdb-metadata"><code>unit:dB</code> Metadata</h4>
-<h4 id="unitxx-metadata"><code>unit:xx</code> Metadata</h4>
+<p>The <code>[style:knob]</code> metadata turns any continuous UI element (i.e., <a href="#hslider-metadata"><code>hslider</code></a>, <a href="#vslider-metadata"><code>vslider</code></a>, <a href="#nentry-metadata"><code>nentry</code></a>) into a knob.</p>
+<p><strong>Example</strong></p>
+<div class="faust-run"><a href="img/src/exfaust110/exfaust110-svg/process.svg" target="_blank"><img src="img/src/exfaust110/exfaust110-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = vslider(&quot;freq[style:knob]&quot;,440,50,1000,0.1);
+process = os.sawtooth(freq);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust110/exfaust110.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="stylemenu-metadata"><code>[style:menu]</code> Metadata</h4>
+<p>The <code>[style:menu]</code> metadata turns any continuous UI element (i.e., <a href="#hslider-metadata"><code>hslider</code></a>, <a href="#vslider-metadata"><code>vslider</code></a>, <a href="#nentry-metadata"><code>nentry</code></a>) into a drop-down menu.</p>
+<p><strong>Usage</strong></p>
+<pre><code>[style:menu{&#39;Name0&#39;:value0;&#39;Name1&#39;:value1}]</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>NameN</code>: the name associated to <code>valueN</code></li>
+<li><code>valueN</code>: the value associated to <code>NameN</code></li>
+</ul>
+<p><strong>Example: Selector</strong></p>
+<div class="faust-run"><a href="img/src/exfaust111/exfaust111-svg/process.svg" target="_blank"><img src="img/src/exfaust111/exfaust111-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = vslider(&quot;Signal[style:menu{&#39;Noise&#39;:0;&#39;Sawtooth&#39;:1}]&quot;,0,0,1,1);
+process = select2(s,no.noise,os.sawtooth(440));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust111/exfaust111.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="styleradio-metadata"><code>[style:radio]</code> Metadata</h4>
+<p>The <code>[style:radio]</code> metadata turns a <a href="#hslider-metadata"><code>hslider</code></a> or a <a href="#vslider-metadata"><code>vslider</code></a> into a radio-button-menu. The orientation of the menu is determined by the type of UI element (i.e., <code>hslider</code> for horizontal and <code>vslider</code> for vertical).</p>
+<p><strong>Usage</strong></p>
+<pre><code>[style:radio{&#39;Name0&#39;:value0;&#39;Name1&#39;:value1}]</code></pre>
+<p>Where:</p>
+<ul>
+<li><code>NameN</code>: the name associated to <code>valueN</code></li>
+<li><code>valueN</code>: the value associated to <code>NameN</code></li>
+</ul>
+<p><strong>Example: Selector</strong></p>
+<div class="faust-run"><a href="img/src/exfaust112/exfaust112-svg/process.svg" target="_blank"><img src="img/src/exfaust112/exfaust112-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+s = vslider(&quot;Signal[style:radio{&#39;Noise&#39;:0;&#39;Sawtooth&#39;:1}]&quot;,0,0,1,1);
+process = select2(s,no.noise,os.sawtooth(440));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust112/exfaust112.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="styleled-metadata"><code>[style:led]</code> Metadata</h4>
+<h4 id="unitdb-metadata"><code>[unit:dB]</code> Metadata</h4>
+<h4 id="unitxx-metadata"><code>[unit:xx]</code> Metadata</h4>
 <h4 id="scalexx-metadata"><code>[scale:xx]</code> Metadata</h4>
-<h4 id="tooltipxx-metadata"><code>tooltip:xx</code> Metadata</h4>
+<h4 id="tooltipxx-metadata"><code>[tooltip:xx]</code> Metadata</h4>
 <h4 id="hiddenxx-metadata"><code>[hidden:xx]</code> Metadata</h4>
 <h4 id="screencolorxx-metadata"><code>[screencolor:xx]</code> Metadata</h4>
 <!-- TODO: {#something}. Also we need to specify the usage of functions in

@@ -3273,6 +3273,10 @@ since no user interface is actually generated, UI elements just become a
 way to declare parameters of a Faust object. Therefore, there's no
 distinction between `nentry`, `hslider`, `vslider`, etc.
 
+#### Smoothing
+
+<!-- TODO -->
+
 #### Links to Generated Code
 
 <!-- TODO -->
@@ -3385,19 +3389,80 @@ The `[style:knob]` metadata turns any continuous UI element (i.e.,
 [`hslider`](#hslider-metadata), [`vslider`](#vslider-metadata), 
 [`nentry`](#nentry-metadata)) into a knob.
 
-#### `style:menu` Metadata
+**Example**
 
-#### `style:radio` Metadata
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = vslider("freq[style:knob]",440,50,1000,0.1);
+process = os.sawtooth(freq);
+```
+<!-- /faust-run -->
 
-#### `style:led` Metadata
+#### `[style:menu]` Metadata
 
-#### `unit:dB` Metadata
+The `[style:menu]` metadata turns any continuous UI element (i.e., 
+[`hslider`](#hslider-metadata), [`vslider`](#vslider-metadata), 
+[`nentry`](#nentry-metadata)) into a drop-down menu.
 
-#### `unit:xx` Metadata
+**Usage**
+
+```
+[style:menu{'Name0':value0;'Name1':value1}]
+```
+
+Where:
+
+* `NameN`: the name associated to `valueN`
+* `valueN`: the value associated to `NameN`
+
+**Example: Selector**
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = vslider("Signal[style:menu{'Noise':0;'Sawtooth':1}]",0,0,1,1);
+process = select2(s,no.noise,os.sawtooth(440));
+```
+<!-- /faust-run -->
+
+#### `[style:radio]` Metadata
+
+The `[style:radio]` metadata turns a [`hslider`](#hslider-metadata) or a 
+[`vslider`](#vslider-metadata) into a radio-button-menu. The orientation of the
+menu is determined by the type of UI element (i.e., `hslider` for horizontal
+and `vslider` for vertical).
+
+**Usage**
+
+```
+[style:radio{'Name0':value0;'Name1':value1}]
+```
+
+Where:
+
+* `NameN`: the name associated to `valueN`
+* `valueN`: the value associated to `NameN`
+
+**Example: Selector**
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+s = vslider("Signal[style:radio{'Noise':0;'Sawtooth':1}]",0,0,1,1);
+process = select2(s,no.noise,os.sawtooth(440));
+```
+<!-- /faust-run -->
+
+#### `[style:led]` Metadata
+
+#### `[unit:dB]` Metadata
+
+#### `[unit:xx]` Metadata
 
 #### `[scale:xx]` Metadata
 
-#### `tooltip:xx` Metadata
+#### `[tooltip:xx]` Metadata
 
 #### `[hidden:xx]` Metadata
 
