@@ -1202,7 +1202,7 @@ struct SimpleForLoopInst : public StatementInst {
     bool fReverse;
     BlockInst*     fCode;
 
-    SimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
+    SimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
         : fUpperBound(upperBound), fName(index), fLowerBound(lowerBound), fReverse(reverse), fCode(code)
     {
     }
@@ -1923,7 +1923,7 @@ struct InstBuilder {
         return new ForLoopInst(init, end, increment, code);
     }
 
-    static SimpleForLoopInst* genSimpleForLoopInst(string index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0), bool reverse=false,
+    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0), bool reverse=false,
                                        BlockInst* code = new BlockInst())
     {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
@@ -1969,62 +1969,62 @@ struct InstBuilder {
 
     // Helper build methods
 
-    static DeclareVarInst* genDecArrayVar(string vname, Address::AccessType var_access, Typed* type, int size)
+    static DeclareVarInst* genDecArrayVar(const string& vname, Address::AccessType var_access, Typed* type, int size)
     {
         return genDeclareVarInst(genNamedAddress(vname, var_access), genArrayTyped(type, size));
     }
 
-    static LoadVarInst* genLoadArrayVar(string vname, Address::AccessType var_access, ValueInst* index)
+    static LoadVarInst* genLoadArrayVar(const string& vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index));
     }
     // Actually same as genLoadArrayVar
-    static LoadVarInst* genLoadStructPtrVar(string vname, Address::AccessType var_access, ValueInst* index)
+    static LoadVarInst* genLoadStructPtrVar(const string& vname, Address::AccessType var_access, ValueInst* index)
     {
         return genLoadArrayVar(vname, var_access, index);
     }
 
-    static StoreVarInst* genStoreArrayVar(string vname, Address::AccessType var_access, ValueInst* index,
+    static StoreVarInst* genStoreArrayVar(const string& vname, Address::AccessType var_access, ValueInst* index,
                                           ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, var_access), index), exp);
     }
 
     // Struct variable
-    static DeclareVarInst* genDecStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStruct), type, exp);
     }
 
-    static DeclareVarInst* genDecVolatileStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecVolatileStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
                                  type, exp);
     }
 
-    static DeclareVarInst* genDecArrayStructVar(string vname, Typed* type, int size)
+    static DeclareVarInst* genDecArrayStructVar(const string& vname, Typed* type, int size)
     {
         return genDecArrayVar(vname, Address::kStruct, type, size);
     }
 
-    static LoadVarInst* genLoadStructVar(string vname)
+    static LoadVarInst* genLoadStructVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
     }
 
-    static LoadVarInst* genLoadMutRefStructVar(string vname)
+    static LoadVarInst* genLoadMutRefStructVar(const string& vname)
     {
         return genLoadVarInst(
             genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kReference | Address::kMutable)));
     }
 
-    static LoadVarInst* genVolatileLoadStructVar(string vname)
+    static LoadVarInst* genVolatileLoadStructVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)));
     }
 
     template <typename Iterator>
-    static LoadVarInst* genLoadArrayStructVar(string vname, Iterator indexBegin, Iterator indexEnd)
+    static LoadVarInst* genLoadArrayStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
         Rit                                rbegin(indexEnd);
@@ -2038,36 +2038,36 @@ struct InstBuilder {
         return genLoadVarInst(address);
     }
 
-    static LoadVarInst* genLoadArrayStructVar(string vname, ValueInst* index)
+    static LoadVarInst* genLoadArrayStructVar(const string& vname, ValueInst* index)
     {
         vector<ValueInst*> indices;
         indices.push_back(index);
         return genLoadArrayStructVar(vname, indices.begin(), indices.end());
     }
 
-    static LoadVarInst* genLoadArrayStructVar(string vname)
+    static LoadVarInst* genLoadArrayStructVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStruct));
     }
 
-    static LoadVarAddressInst* genLoadArrayStructVarAddress(string vname, ValueInst* index)
+    static LoadVarAddressInst* genLoadArrayStructVarAddress(const string& vname, ValueInst* index)
     {
         return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStruct), index));
     }
 
-    static StoreVarInst* genStoreStructVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreStructVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
 
-    static StoreVarInst* genVolatileStoreStructVar(string vname, ValueInst* exp)
+    static StoreVarInst* genVolatileStoreStructVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, (Address::AccessType)(Address::kStruct | Address::kVolatile)),
                                exp);
     }
 
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
+    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
         Rit                                rbegin(indexEnd);
@@ -2081,42 +2081,42 @@ struct InstBuilder {
         return genStoreVarInst(address, exp);
     }
 
-    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* index, ValueInst* exp)
+    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
         vector<ValueInst*> indices;
         indices.push_back(index);
         return genStoreArrayStructVar(vname, exp, indices.begin(), indices.end());
     }
 
-    static StoreVarInst* genStoreArrayStructVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStruct), exp);
     }
 
     // static struct variable
-    static DeclareVarInst* genDecStaticStructVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStaticStructVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStaticStruct), type, exp);
     }
 
-    static LoadVarInst* genLoadStaticStructVar(string vname)
+    static LoadVarInst* genLoadStaticStructVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStaticStruct));
     }
 
-    static LoadVarInst* genLoadStaticMutRefStructVar(string vname)
+    static LoadVarInst* genLoadStaticMutRefStructVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(
             vname, (Address::AccessType)(Address::kStaticStruct | Address::kReference | Address::kMutable)));
     }
 
-    static StoreVarInst* genStoreStaticStructVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreStaticStructVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStaticStruct), exp);
     }
 
     template <typename Iterator>
-    static LoadVarInst* genLoadArrayStaticStructVar(string vname, Iterator indexBegin, Iterator indexEnd)
+    static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, Iterator indexBegin, Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
         Rit                                rbegin(indexEnd);
@@ -2130,7 +2130,7 @@ struct InstBuilder {
         return genLoadVarInst(address);
     }
 
-    static LoadVarInst* genLoadArrayStaticStructVar(string vname, ValueInst* index)
+    static LoadVarInst* genLoadArrayStaticStructVar(const string& vname, ValueInst* index)
     {
         vector<ValueInst*> indices;
         indices.push_back(index);
@@ -2138,7 +2138,7 @@ struct InstBuilder {
     }
 
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* exp, Iterator indexBegin,
+    static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
                                                       Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
@@ -2153,7 +2153,7 @@ struct InstBuilder {
         return genStoreVarInst(address, exp);
     }
 
-    static StoreVarInst* genStoreArrayStaticStructVar(string vname, ValueInst* index, ValueInst* exp)
+    static StoreVarInst* genStoreArrayStaticStructVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
         vector<ValueInst*> indices;
         indices.push_back(index);
@@ -2161,93 +2161,93 @@ struct InstBuilder {
     }
 
     // Stack variable
-    static DeclareVarInst* genDecStackVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecStackVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kStack), type, exp);
     }
 
-    static DeclareVarInst* genDecArrayStackVar(string vname, Typed* type, int size)
+    static DeclareVarInst* genDecArrayStackVar(const string& vname, Typed* type, int size)
     {
         return genDecArrayVar(vname, Address::kStack, type, size);
     }
 
-    static LoadVarInst* genLoadStackVar(string vname)
+    static LoadVarInst* genLoadStackVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kStack));
     }
 
-    static LoadVarAddressInst* genLoadStackVarAddress(string vname)
+    static LoadVarAddressInst* genLoadStackVarAddress(const string& vname)
     {
         return genLoadVarAddressInst(genNamedAddress(vname, Address::kStack));
     }
 
-    static LoadVarInst* genLoadArrayStackVar(string vname, ValueInst* index)
+    static LoadVarInst* genLoadArrayStackVar(const string& vname, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
     }
 
-    static LoadVarAddressInst* genLoadArrayStackVarAddress(string vname, ValueInst* index)
+    static LoadVarAddressInst* genLoadArrayStackVarAddress(const string& vname, ValueInst* index)
     {
         return genLoadVarAddressInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index));
     }
 
-    static StoreVarInst* genStoreStackVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreStackVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kStack), exp);
     }
 
-    static StoreVarInst* genStoreArrayStackVar(string vname, ValueInst* index, ValueInst* exp)
+    static StoreVarInst* genStoreArrayStackVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kStack), index), exp);
     }
 
     // Loop variable
-    static DeclareVarInst* genDecLoopVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecLoopVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
 
-    static LoadVarInst* genLoadLoopVar(string vname) { return genLoadVarInst(genNamedAddress(vname, Address::kLoop)); }
+    static LoadVarInst* genLoadLoopVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kLoop)); }
 
-    static StoreVarInst* genStoreLoopVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreLoopVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kLoop), exp);
     }
 
     // FunArgs variable
-    static LoadVarInst* genLoadFunArgsVar(string vname)
+    static LoadVarInst* genLoadFunArgsVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kFunArgs));
     }
 
-    static LoadVarInst* genLoadArrayFunArgsVar(string vname, ValueInst* index)
+    static LoadVarInst* genLoadArrayFunArgsVar(const string& vname, ValueInst* index)
     {
         return genLoadVarInst(genIndexedAddress(genNamedAddress(vname, Address::kFunArgs), index));
     }
 
-    static StoreVarInst* genStoreArrayFunArgsVar(string vname, ValueInst* index, ValueInst* exp)
+    static StoreVarInst* genStoreArrayFunArgsVar(const string& vname, ValueInst* index, ValueInst* exp)
     {
         return genStoreVarInst(genIndexedAddress(genNamedAddress(vname, Address::kFunArgs), index), exp);
     }
 
     // Global variable
-    static DeclareVarInst* genDecGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::kGlobal), type, exp);
     }
 
-    static DeclareVarInst* genDecExtGlobalVar(string vname, Typed* type, ValueInst* exp = NULL)
+    static DeclareVarInst* genDecExtGlobalVar(const string& vname, Typed* type, ValueInst* exp = NULL)
     {
         return genDeclareVarInst(genNamedAddress(vname, Address::AccessType(Address::kGlobal | Address::kExternal)),
                                  type, exp);
     }
 
-    static LoadVarInst* genLoadGlobalVar(string vname)
+    static LoadVarInst* genLoadGlobalVar(const string& vname)
     {
         return genLoadVarInst(genNamedAddress(vname, Address::kGlobal));
     }
 
-    static StoreVarInst* genStoreGlobalVar(string vname, ValueInst* exp)
+    static StoreVarInst* genStoreGlobalVar(const string& vname, ValueInst* exp)
     {
         return genStoreVarInst(genNamedAddress(vname, Address::kGlobal), exp);
     }

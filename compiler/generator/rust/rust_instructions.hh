@@ -462,7 +462,7 @@ class RustInstVisitor : public TextInstVisitor {
       inst->fUpperBound->accept(this);
       if(inst->fReverse)
       {
-        *fOut << ").rev() ";// rev() iterates from the end, excluded, to the beginningm included
+        *fOut << ").rev() ";// rev() iterates from the end, excluded, to the begining included
       }
       *fOut << " {";
       fTab++;
