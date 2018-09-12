@@ -83,6 +83,23 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
+SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
+{
+    ValueInst*      loop_end;
+
+    loop_end = InstBuilder::genLoadFunArgsVar(counter);
+
+    BlockInst* block = InstBuilder::genBlockInst();
+    pushBlock(fPreInst, block);
+    pushBlock(fComputeInst, block);
+    pushBlock(fPostInst, block);
+
+    SimpleForLoopInst* loop = InstBuilder::genSimpleForLoopInst(fLoopIndex, loop_end, block);
+
+    BasicCloneVisitor cloner;
+    return static_cast<SimpleForLoopInst*>(loop->clone(&cloner));
+}
+
 void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp)
 {
     // Generate code for extra loops

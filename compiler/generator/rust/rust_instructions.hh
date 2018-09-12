@@ -54,7 +54,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
                 *fOut << "[0.0;" << array_type->fSize << "]";
             }
         } else {
-            
+
             if (isIntType(type)) {
                 *fOut << "0";
             } else if (isRealType(type)) {
@@ -236,7 +236,7 @@ class RustInstVisitor : public TextInstVisitor {
         }
 
         *fOut << fTypeManager->generateType(inst->fType, inst->fAddress->getName());
-  
+
         if (inst->fValue) {
             *fOut << " = ";
             inst->fValue->accept(this);
@@ -325,7 +325,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " as usize]";
         }
     }
-    
+
     virtual void visit(LoadVarInst* inst)
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
@@ -336,7 +336,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " }";
         }
     }
- 
+
     virtual void visit(LoadVarAddressInst* inst)
     {
         *fOut << "&";
@@ -447,6 +447,22 @@ class RustInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
+    }
+
+    virtual void visit(SimpleForLoopInst* inst)
+    {
+      if (inst->fCode->size() == 0) return;
+
+      *fOut << "for " << inst->getName() << " in 0..";
+      inst->fUpperBound->accept(this);
+      *fOut << " {";
+      fTab++;
+      tab(fTab, *fOut);
+      inst->fCode->accept(this);
+      fTab--;
+      tab(fTab, *fOut);
+      *fOut << "}";
+      tab(fTab, *fOut);
     }
 
     virtual void visit(::SwitchInst* inst)
