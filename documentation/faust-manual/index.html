@@ -239,7 +239,7 @@
 <li><a href="#select2-primitives"><code>select2</code> Primitives</a></li>
 <li><a href="#select3-primitives"><code>select3</code> Primitives</a></li>
 </ul></li>
-<li><a href="#user-interface-primitives">User Interface Primitives</a><ul>
+<li><a href="#user-interface-primitives-and-configuration">User Interface Primitives and Configuration</a><ul>
 <li><a href="#button-primitive"><code>button</code> Primitive</a></li>
 <li><a href="#checkbox-primitive"><code>checkbox</code> Primitive</a></li>
 <li><a href="#hslider-primitive"><code>hslider</code> Primitive</a></li>
@@ -253,8 +253,21 @@
 <li><a href="#attach-primitive"><code>attach</code> Primitive</a></li>
 <li><a href="#variable-parts-of-a-label">Variable Parts of a Label</a></li>
 <li><a href="#labels-as-pathnames">Labels as Pathnames</a></li>
-<li><a href="#labels-metadata">Labels Metadata</a></li>
 <li><a href="#links-to-generated-code">Links to Generated Code</a></li>
+</ul></li>
+<li><a href="#label-metadata">Label Metadata</a><ul>
+<li><a href="#ordering-ui-elements">Ordering UI Elements</a></li>
+<li><a href="#global-ui-metadata">Global UI Metadata</a></li>
+<li><a href="#styleknob-metadata"><code>[style:knob]</code> Metadata</a></li>
+<li><a href="#stylemenu-metadata"><code>style:menu</code> Metadata</a></li>
+<li><a href="#styleradio-metadata"><code>style:radio</code> Metadata</a></li>
+<li><a href="#styleled-metadata"><code>style:led</code> Metadata</a></li>
+<li><a href="#unitdb-metadata"><code>unit:dB</code> Metadata</a></li>
+<li><a href="#unitxx-metadata"><code>unit:xx</code> Metadata</a></li>
+<li><a href="#scalexx-metadata"><code>[scale:xx]</code> Metadata</a></li>
+<li><a href="#tooltipxx-metadata"><code>tooltip:xx</code> Metadata</a></li>
+<li><a href="#hiddenxx-metadata"><code>[hidden:xx]</code> Metadata</a></li>
+<li><a href="#screencolorxx-metadata"><code>[screencolor:xx]</code> Metadata</a></li>
 </ul></li>
 </ul></li>
 </ul></li>
@@ -431,6 +444,7 @@ declare author &quot;MySelf&quot;;
 declare copyright &quot;MyCompany&quot;;
 declare version &quot;1.00&quot;;
 declare license &quot;BSD&quot;; </code></pre>
+<!-- TODO link to other metadata -->
 <h3 id="imports">Imports</h3>
 <p>File imports allow us to import definitions from other source files.</p>
 <p>For example <code>import(&quot;maths.lib&quot;);</code> imports the definitions of the <a href="TODO"><code>maths.lib</code></a> library.</p>
@@ -1779,7 +1793,7 @@ sig = os.osc(440),os.sawtooth(440),os.triangle(440) : mySelect3(s);
 process = sig;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust89/exfaust89.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>While the behavior of this last solution is identical to the first one, the generated code will be less optimized as the sine, the sawtooth and the triangle waves will all be computed all the time.</p>
-<h3 id="user-interface-primitives">User Interface Primitives</h3>
+<h3 id="user-interface-primitives-and-configuration">User Interface Primitives and Configuration</h3>
 <p>Faust user interface widgets/primitives allow for an <strong>abstract</strong> description of a user interface from within the Faust code. This description is independent from any GUI toolkits/frameworks and is purely abstract. Widgets can be <strong>discrete</strong> (e.g., <a href="TODO"><code>button</code></a>, <a href="TODO"><code>checkbox</code></a>, etc.), <strong>continuous</strong> (e.g., <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, <a href="TODO"><code>nentry</code></a>), and <strong>organizational</strong> (e.g., <a href="TODO"><code>vgroup</code></a>, <a href="TODO"><code>hgroup</code></a>).</p>
 <p>Discrete and continuous elements are signal generators. For example, a <code>button</code> produces a signal which is 1 when the button is pressed and 0 otherwise:</p>
 <p><img src="img/button.svg" class="mx-auto d-block" width="50%"></p>
@@ -1788,6 +1802,14 @@ process = sig;</code></pre>
 <pre><code>process = button(&quot;DC&quot;);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust90/exfaust90.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Each primitive implements a specific UI element, but their appearance can also be completely modified using <a href="TODO">metadata</a> (a little bit like HTML and CSS in the web). Therefore, <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, and <a href="TODO"><code>nentry</code></a>) can for example be turned into a knob, a dropdown menu, etc. This concept is further developed in the <a href="TODO">section on UI metadata</a>.</p>
+<p>Continuous UI elements (i.e., <a href="TODO"><code>hslider</code></a>, <a href="TODO"><code>vslider</code></a>, and <a href="TODO"><code>nentry</code></a>) must all declare a range for the parameter they’re controlling. In some cases, this range is used during compilation to allocate memory and will impact the generated code. For example, in the case of:</p>
+<div class="faust-run"><a href="img/src/exfaust91/exfaust91-svg/process.svg" target="_blank"><img src="img/src/exfaust91/exfaust91-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = @(hslider(&quot;N&quot;,1,1,10,1));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust91/exfaust91.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>a buffer of 10 samples will be allocated for the delay implemented with the <a href="#primitive"><code>@</code> primitive</a> while 20 samples will be allocated in the following example:</p>
+<div class="faust-run"><a href="img/src/exfaust92/exfaust92-svg/process.svg" target="_blank"><img src="img/src/exfaust92/exfaust92-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>process = @(hslider(&quot;N&quot;,1,1,20,1));</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust92/exfaust92.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="button-primitive"><code>button</code> Primitive</h4>
 <p>The <code>button</code> primitive implements a button.</p>
 <p><strong>Usage</strong></p>
@@ -1797,10 +1819,10 @@ process = sig;</code></pre>
 <li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
 </ul>
 <p><strong>Example: Trigger</strong></p>
-<div class="faust-run"><a href="img/src/exfaust91/exfaust91-svg/process.svg" target="_blank"><img src="img/src/exfaust91/exfaust91-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust93/exfaust93-svg/process.svg" target="_blank"><img src="img/src/exfaust93/exfaust93-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = no.noise*button(&quot;gate&quot;);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust91/exfaust91.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust93/exfaust93.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="checkbox-primitive"><code>checkbox</code> Primitive</h4>
 <p>The <code>checkbox</code> primitive implements a checkbox/toggle.</p>
 <p><strong>Usage</strong></p>
@@ -1810,10 +1832,10 @@ process = no.noise*button(&quot;gate&quot;);</code></pre>
 <li><code>label</code>: the <a href="#ui-labels-configuration">label</a> (expressed as a string) of the element in the interface</li>
 </ul>
 <p><strong>Example: Trigger</strong></p>
-<div class="faust-run"><a href="img/src/exfaust92/exfaust92-svg/process.svg" target="_blank"><img src="img/src/exfaust92/exfaust92-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust94/exfaust94-svg/process.svg" target="_blank"><img src="img/src/exfaust94/exfaust94-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = no.noise*checkbox(&quot;gate&quot;);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust92/exfaust92.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust94/exfaust94.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="hslider-primitive"><code>hslider</code> Primitive</h4>
 <p>The <code>hslider</code> primitive implements a horizontal slider.</p>
 <p><strong>Usage</strong></p>
@@ -1827,10 +1849,10 @@ process = no.noise*checkbox(&quot;gate&quot;);</code></pre>
 <li><code>step</code>: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
 </ul>
 <p><strong>Example: Gain Control</strong></p>
-<div class="faust-run"><a href="img/src/exfaust93/exfaust93-svg/process.svg" target="_blank"><img src="img/src/exfaust93/exfaust93-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust95/exfaust95-svg/process.svg" target="_blank"><img src="img/src/exfaust95/exfaust95-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>gain = hslider(&quot;gain&quot;,0,0,1,0.01);
 process = *(gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust93/exfaust93.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust95/exfaust95.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="vslider-primitive"><code>vslider</code> Primitive</h4>
 <p>The <code>vslider</code> primitive implements a vertical slider.</p>
 <p><strong>Usage</strong></p>
@@ -1844,10 +1866,10 @@ process = *(gain);</code></pre>
 <li><code>step</code>: the precision (step) of the slider (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
 </ul>
 <p><strong>Example</strong></p>
-<div class="faust-run"><a href="img/src/exfaust94/exfaust94-svg/process.svg" target="_blank"><img src="img/src/exfaust94/exfaust94-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust96/exfaust96-svg/process.svg" target="_blank"><img src="img/src/exfaust96/exfaust96-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>gain = vslider(&quot;gain&quot;,0,0,1,0.01);
 process = *(gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust94/exfaust94.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust96/exfaust96.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="nentry-primitive"><code>nentry</code> Primitive</h4>
 <p>The <code>nentry</code> primitive implements a “numerical entry”.</p>
 <p><strong>Usage</strong></p>
@@ -1861,10 +1883,10 @@ process = *(gain);</code></pre>
 <li><code>step</code>: the precision (step) of the numerical entry (1 to count 1 by 1, 0.1 to count 0.1 by 0.1, etc.)</li>
 </ul>
 <p><strong>Example</strong></p>
-<div class="faust-run"><a href="img/src/exfaust95/exfaust95-svg/process.svg" target="_blank"><img src="img/src/exfaust95/exfaust95-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust97/exfaust97-svg/process.svg" target="_blank"><img src="img/src/exfaust97/exfaust97-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>gain = nentry(&quot;gain&quot;,0,0,1,0.01);
 process = *(gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust95/exfaust95.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust97/exfaust97.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="hgroup-primitive"><code>hgroup</code> Primitive</h4>
 <p>The <code>hgroup</code> primitive implements a horizontal group. A group contains other UI elements that can also be groups. <code>hgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
 <p><strong>Usage</strong></p>
@@ -1876,20 +1898,20 @@ process = *(gain);</code></pre>
 </ul>
 <p><strong>Example</strong></p>
 <p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
-<div class="faust-run"><a href="img/src/exfaust96/exfaust96-svg/process.svg" target="_blank"><img src="img/src/exfaust96/exfaust96-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust98/exfaust98-svg/process.svg" target="_blank"><img src="img/src/exfaust98/exfaust98-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 freq = vslider(&quot;freq&quot;,440,50,1000,0.1);
 gain = vslider(&quot;gain&quot;,0,0,1,0.01);
 process = hgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust96/exfaust96.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust98/exfaust98.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
-<div class="faust-run"><a href="img/src/exfaust97/exfaust97-svg/process.svg" target="_blank"><img src="img/src/exfaust97/exfaust97-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust99/exfaust99-svg/process.svg" target="_blank"><img src="img/src/exfaust99/exfaust99-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 oscGroup(x) = hgroup(&quot;Oscillator&quot;,x);
 freq = oscGroup(vslider(&quot;freq&quot;,440,50,1000,0.1));
 gain = oscGroup(vslider(&quot;gain&quot;,0,0,1,0.01));
 process = os.sawtooth(freq)*gain;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust97/exfaust97.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust99/exfaust99.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="vgroup-primitive"><code>vgroup</code> Primitive</h4>
 <p>The <code>vgroup</code> primitive implements a vertical group. A group contains other UI elements that can also be groups. <code>vgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
 <p><strong>Usage</strong></p>
@@ -1901,20 +1923,20 @@ process = os.sawtooth(freq)*gain;</code></pre>
 </ul>
 <p><strong>Example</strong></p>
 <p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
-<div class="faust-run"><a href="img/src/exfaust98/exfaust98-svg/process.svg" target="_blank"><img src="img/src/exfaust98/exfaust98-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust100/exfaust100-svg/process.svg" target="_blank"><img src="img/src/exfaust100/exfaust100-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 freq = hslider(&quot;freq&quot;,440,50,1000,0.1);
 gain = hslider(&quot;gain&quot;,0,0,1,0.01);
 process = vgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust98/exfaust98.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust100/exfaust100.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
-<div class="faust-run"><a href="img/src/exfaust99/exfaust99-svg/process.svg" target="_blank"><img src="img/src/exfaust99/exfaust99-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust101/exfaust101-svg/process.svg" target="_blank"><img src="img/src/exfaust101/exfaust101-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 oscGroup(x) = vgroup(&quot;Oscillator&quot;,x);
 freq = oscGroup(hslider(&quot;freq&quot;,440,50,1000,0.1));
 gain = oscGroup(hslider(&quot;gain&quot;,0,0,1,0.01));
 process = os.sawtooth(freq)*gain;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust99/exfaust99.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust101/exfaust101.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="tgroup-primitive"><code>tgroup</code> Primitive</h4>
 <p>The <code>tgroup</code> primitive implements a “tab group.” Tab groups can be used to group UI elements in tabs in the interface. A group contains other UI elements that can also be groups. <code>tgroup</code> is not a signal processor per se and is just a way to label/delimitate part of a Faust code.</p>
 <p><strong>Usage</strong></p>
@@ -1926,20 +1948,20 @@ process = os.sawtooth(freq)*gain;</code></pre>
 </ul>
 <p><strong>Example</strong></p>
 <p>In the following example, the 2 UI elements controlling an oscillator are encapsulated in a group.</p>
-<div class="faust-run"><a href="img/src/exfaust100/exfaust100-svg/process.svg" target="_blank"><img src="img/src/exfaust100/exfaust100-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust102/exfaust102-svg/process.svg" target="_blank"><img src="img/src/exfaust102/exfaust102-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 freq = hslider(&quot;freq&quot;,440,50,1000,0.1);
 gain = hslider(&quot;gain&quot;,0,0,1,0.01);
 process = tgroup(&quot;Oscillator&quot;,os.sawtooth(freq)*gain);</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust100/exfaust100.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust102/exfaust102.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Note that the <code>Oscillator</code> group can be placed in a function in case we’d like to add elements to it multiple times.</p>
-<div class="faust-run"><a href="img/src/exfaust101/exfaust101-svg/process.svg" target="_blank"><img src="img/src/exfaust101/exfaust101-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust103/exfaust103-svg/process.svg" target="_blank"><img src="img/src/exfaust103/exfaust103-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 oscGroup(x) = tgroup(&quot;Oscillator&quot;,x);
 freq = oscGroup(hslider(&quot;freq&quot;,440,50,1000,0.1));
 gain = oscGroup(hslider(&quot;gain&quot;,0,0,1,0.01));
 process = os.sawtooth(freq)*gain;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust101/exfaust101.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust103/exfaust103.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="vbargraph-primitive"><code>vbargraph</code> Primitive</h4>
 <p>The <code>vbargraph</code> primitive implements a vertical bar-graph (typically a meter displaying the level of a signal).</p>
 <p><strong>Usage</strong></p>
@@ -1952,10 +1974,10 @@ process = os.sawtooth(freq)*gain;</code></pre>
 </ul>
 <p><strong>Example: Simple VU Meter</strong></p>
 <p>A simple VU meter can be implemented using the <code>vbargraph</code> primitive:</p>
-<div class="faust-run"><a href="img/src/exfaust102/exfaust102-svg/process.svg" target="_blank"><img src="img/src/exfaust102/exfaust102-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust104/exfaust104-svg/process.svg" target="_blank"><img src="img/src/exfaust104/exfaust104-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = _ &lt;: attach(_,abs : ba.linear2db : vbargraph(&quot;Level&quot;,-60,0));</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust102/exfaust102.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust104/exfaust104.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Note the use of the <a href="#attach-primitive"><code>attach</code></a> primitive here that forces the compilation of the <code>vbargraph</code> without using its output signal (see section on the <a href="#attach-primitive"><code>attach</code> primitive</a>).</p>
 <h4 id="hbargraph-primitive"><code>hbargraph</code> Primitive</h4>
 <p>The <code>hbargraph</code> primitive implements a horizontal bar-graph (typically a meter displaying the level of a signal).</p>
@@ -1969,10 +1991,10 @@ process = _ &lt;: attach(_,abs : ba.linear2db : vbargraph(&quot;Level&quot;,-60,
 </ul>
 <p><strong>Example: Simple VU Meter</strong></p>
 <p>A simple VU meter can be implemented using the <code>hbargraph</code> primitive:</p>
-<div class="faust-run"><a href="img/src/exfaust103/exfaust103-svg/process.svg" target="_blank"><img src="img/src/exfaust103/exfaust103-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust105/exfaust105-svg/process.svg" target="_blank"><img src="img/src/exfaust105/exfaust105-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 process = _ &lt;: attach(_,abs : ba.linear2db : hbargraph(&quot;Level&quot;,-60,0));</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust103/exfaust103.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust105/exfaust105.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>Note the use of the <a href="#attach-primitive"><code>attach</code></a> primitive here that forces the compilation of the <code>hbargraph</code> without using its output signal (see section on the <a href="#attach-primitive"><code>attach</code> primitive</a>).</p>
 <h4 id="attach-primitive"><code>attach</code> Primitive</h4>
 <p>The <code>attach</code> primitive takes two input signals and produces one output signal which is a copy of the first input. The role of <code>attach</code> is to force its second input signal to be compiled with the first one. From a mathematical standpoint <code>attach(x,y)</code> is equivalent to <code>1*x+0*y</code>, which is in turn equivalent to <code>x</code>, but it tells the compiler not to optimize-out <code>y</code>.</p>
@@ -1980,9 +2002,9 @@ process = _ &lt;: attach(_,abs : ba.linear2db : hbargraph(&quot;Level&quot;,-60,
 <p>The examples in the <a href="#hbargraph-primitive"><code>hbargraph</code> Primitive</a> and the <a href="#vbargraph-primitive"><code>vbargraph</code> Primitive</a> illustrate well the use of <code>attach</code>.</p>
 <h4 id="variable-parts-of-a-label">Variable Parts of a Label</h4>
 <p>Labels can contain variable parts. These are indicated with the sign <code>%</code> followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. For example:</p>
-<div class="faust-run"><a href="img/src/exfaust104/exfaust104-svg/process.svg" target="_blank"><img src="img/src/exfaust104/exfaust104-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust106/exfaust106-svg/process.svg" target="_blank"><img src="img/src/exfaust106/exfaust106-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>process = par(i,8,hslider(&quot;Voice %i&quot;, 0.9, 0, 1, 0.01));</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust104/exfaust104.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust106/exfaust106.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>creates 8 sliders in parallel with different names while <code>par(i,8,hslider(&quot;Voice&quot;, 0.9, 0, 1, 0.01))</code> would have created only one slider and duplicated its output 8 times.</p>
 <p>The variable part can have an optional format digit. For example <code>&quot;Voice %2i&quot;</code> would indicate to use two digit when inserting the value of <code>i</code> in the string.</p>
 <p>An escape mechanism is provided. If the sign <code>%</code> is followed by itself, it will be included in the resulting string. For example <code>&quot;feedback (%%)&quot;</code> will result in <code>&quot;feedback (%)&quot;</code>.</p>
@@ -2024,12 +2046,12 @@ process = _ &lt;: attach(_,abs : ba.linear2db : hbargraph(&quot;Level&quot;,-60,
 </tbody>
 </table>
 <p>Hence, the example presented in the <a href="#hgroup-primitive">section on the <code>hgroup</code> primitive</a> can be rewritten as:</p>
-<div class="faust-run"><a href="img/src/exfaust105/exfaust105-svg/process.svg" target="_blank"><img src="img/src/exfaust105/exfaust105-svg/process.svg" class="mx-auto d-block"></a>
+<div class="faust-run"><a href="img/src/exfaust107/exfaust107-svg/process.svg" target="_blank"><img src="img/src/exfaust107/exfaust107-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 freq = vslider(&quot;h:Oscillator/freq&quot;,440,50,1000,0.1);
 gain = vslider(&quot;h:Oscillator/gain&quot;,0,0,1,0.01);
 process = os.sawtooth(freq)*gain;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust105/exfaust105.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust107/exfaust107.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <p>which will be reflected in C++ as:</p>
 <pre><code>virtual void buildUserInterface(UI* ui_interface) {
   ui_interface-&gt;openHorizontalBox(&quot;Oscillator&quot;);
@@ -2037,9 +2059,11 @@ process = os.sawtooth(freq)*gain;</code></pre>
   ui_interface-&gt;addVerticalSlider(&quot;gain&quot;, &amp;fVslider0, 0.0f, 0.0f, 1.0f, 0.00999999978f);
   ui_interface-&gt;closeBox();
 }</code></pre>
-<p>Note that path names are inherent to the use of tools gravitating around Faust such as <a href="TODO">OSC control</a> or <a href="TODO">faust2api</a>.</p>
-<h4 id="labels-metadata">Labels Metadata</h4>
-<p>Widget labels can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file. They are typically used to improve the look and feel of the user interface, configure OSC and accelerometer control/mapping, etc.</p>
+<p>Note that path names are inherent to the use of tools gravitating around Faust such as <a href="TODO">OSC control</a> or <a href="TODO"><code>faust2api</code></a>. In the case of <code>faust2api</code>, since no user interface is actually generated, UI elements just become a way to declare parameters of a Faust object. Therefore, there’s no distinction between <code>nentry</code>, <code>hslider</code>, <code>vslider</code>, etc.</p>
+<h4 id="links-to-generated-code">Links to Generated Code</h4>
+<!-- TODO -->
+<h3 id="label-metadata">Label Metadata</h3>
+<p><a href="#user-interface-primitives-and-configuration">Widget labels</a> can contain metadata enclosed in square brackets. These metadata associate a key with a value and are used to provide additional information to the architecture file. They are typically used to improve the look and feel of the user interface, configure OSC and accelerometer control/mapping, etc. Since the format of the value associated to a key is relatively open, metadata constitute a flexible way for programmers to add features to the language.</p>
 <p>The Faust code:</p>
 <pre><code>process = *(hslider(&quot;foo[key1: val 1][key2: val 2]&quot;,0,0,1,0.1));</code></pre>
 <p>will produce the corresponding C++ code:</p>
@@ -2054,14 +2078,53 @@ process = os.sawtooth(freq)*gain;</code></pre>
   }
   ...
 };</code></pre>
-<h4 id="links-to-generated-code">Links to Generated Code</h4>
-<!--
-Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
-For example \lstinline'par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01))' creates 8 different sliders in parallel :
--->
+<p>All metadata are removed from the label by the compiler and transformed in calls to the <code>UI::declare()</code> method. All these <code>UI::declare()</code> calls will always take place before the <code>UI::AddSomething()</code> call that creates the User Interface element. This allows the <code>UI::AddSomething()</code> method to make full use of the available metadata.</p>
+<p>Metadata are architecture-specific: it is up to the architecture file to decide what to do with it. While some metadata will work with most architectures (e.g., accelerometer and OSC configuration, etc.), others might be more specific. Some of them are presented in the following sections.</p>
+<h4 id="ordering-ui-elements">Ordering UI Elements</h4>
+<p>The order of UI declarations in a Faust code doesn’t necessarily reflect the actual order of the UI elements in the corresponding interface. Therefore, UI elements can be ordered by placing a metadata before the declaration of the name of the UI element in the label. For example, in the following declaration:</p>
+<pre><code>gain = vslider(&quot;h:Oscillator/[1]gain&quot;,0,0,1,0.01);
+freq = vslider(&quot;h:Oscillator/[0]freq&quot;,440,50,1000,0.1);</code></pre>
+<p>the <code>freq</code> parameter will be placed before <code>gain</code> despite the fact that <code>gain</code> is declared first.</p>
+<p>This system can be used to order groups as well. Ordering will be carried out on elements at the same level. For example:</p>
+<div class="faust-run"><a href="img/src/exfaust108/exfaust108-svg/process.svg" target="_blank"><img src="img/src/exfaust108/exfaust108-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freqS = vslider(&quot;h:Oscillators/h:[0]Sawtooth/[0]freq&quot;,440,50,1000,0.1);
+gainS = vslider(&quot;h:Oscillators/h:[0]Sawtooth/[1]gain&quot;,0,0,1,0.01);
+freqT = vslider(&quot;h:Oscillators/h:[1]Triangle/[0]freq&quot;,440,50,1000,0.1);
+gainT = vslider(&quot;h:Oscillators/h:[1]Triangle/[1]gain&quot;,0,0,1,0.01);
+process = os.sawtooth(freqS)*gainS + os.triangle(freqT)*gainT;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust108/exfaust108.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that this could also be written as:</p>
+<div class="faust-run"><a href="img/src/exfaust109/exfaust109-svg/process.svg" target="_blank"><img src="img/src/exfaust109/exfaust109-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freqS = vslider(&quot;[0]freq&quot;,440,50,1000,0.1);
+gainS = vslider(&quot;[1]gain&quot;,0,0,1,0.01);
+freqT = vslider(&quot;[0]freq&quot;,440,50,1000,0.1);
+gainT = vslider(&quot;[1]gain&quot;,0,0,1,0.01);
+process = hgroup(&quot;Oscillators&quot;,
+  hgroup(&quot;[0]Sawtooth&quot;,os.sawtooth(freqS)*gainS) + 
+  hgroup(&quot;[1]Triangle&quot;,os.triangle(freqT)*gainT)
+);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust109/exfaust109.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<h4 id="global-ui-metadata">Global UI Metadata</h4>
+<p>Note that global user interfaces completely replacing the one defined using the standard Faust UI primitives may be declared using <a href="#metadata-declarations">global metadata declarations</a>. This is the case of the <a href="TODO">SmartKeyboard</a> interface for example.</p>
+<!-- TODO Link to metadata declaration section -->
+<p>In the following subsections, the standard Faust UI metadata are documented. Other types of metadata (e.g., accelerometers, OSC, etc.) are documented in the sections related to these topics.</p>
+<h4 id="styleknob-metadata"><code>[style:knob]</code> Metadata</h4>
+<p>The <code>[style:knob]</code> metadata turns any continuous UI element (i.e., )</p>
+<h4 id="stylemenu-metadata"><code>style:menu</code> Metadata</h4>
+<h4 id="styleradio-metadata"><code>style:radio</code> Metadata</h4>
+<h4 id="styleled-metadata"><code>style:led</code> Metadata</h4>
+<h4 id="unitdb-metadata"><code>unit:dB</code> Metadata</h4>
+<h4 id="unitxx-metadata"><code>unit:xx</code> Metadata</h4>
+<h4 id="scalexx-metadata"><code>[scale:xx]</code> Metadata</h4>
+<h4 id="tooltipxx-metadata"><code>tooltip:xx</code> Metadata</h4>
+<h4 id="hiddenxx-metadata"><code>[hidden:xx]</code> Metadata</h4>
+<h4 id="screencolorxx-metadata"><code>[screencolor:xx]</code> Metadata</h4>
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
 <!-- TODO give use examples after description here -->
+<!-- TODO: say something about smoothing -->
 <h1 id="using-the-faust-compiler">Using the Faust Compiler</h1>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>

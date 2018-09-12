@@ -400,6 +400,8 @@ declare version "1.00";
 declare license "BSD"; 
 ```
 
+<!-- TODO link to other metadata -->
+
 ### Imports
 
 File imports allow us to import definitions from other source files.  
@@ -2773,7 +2775,7 @@ While the behavior of this last solution is identical to the first one, the
 generated code will be less optimized as the sine, the sawtooth and the 
 triangle waves will all be computed all the time.
 
-### User Interface Primitives
+### User Interface Primitives and Configuration
 
 Faust user interface widgets/primitives allow for an **abstract** description 
 of a user interface from within the Faust code. This description is independent 
@@ -2801,6 +2803,27 @@ also be completely modified using [metadata](TODO) (a little bit like HTML and
 CSS in the web). Therefore, [`hslider`](TODO), [`vslider`](TODO), and 
 [`nentry`](TODO)) can for example be turned into a knob, a dropdown menu, etc.
 This concept is further developed in the [section on UI metadata](TODO).
+
+Continuous UI elements (i.e., [`hslider`](TODO), [`vslider`](TODO), and 
+[`nentry`](TODO)) must all declare a range for the parameter they're 
+controlling. In some cases, this range is used during compilation to allocate
+memory and will impact the generated code. For example, in the case of:
+
+<!-- faust-run -->
+```
+process = @(hslider("N",1,1,10,1));
+```
+<!-- /faust-run -->	
+
+a buffer of 10 samples will be allocated for the delay implemented with the 
+[`@` primitive](#primitive) while 20 samples will be allocated in the 
+following example:
+
+<!-- faust-run -->
+```
+process = @(hslider("N",1,1,20,1));
+```
+<!-- /faust-run -->	
 
 #### `button` Primitive 
 
@@ -3245,14 +3268,24 @@ virtual void buildUserInterface(UI* ui_interface) {
 ```
 
 Note that path names are inherent to the use of tools gravitating around Faust
-such as [OSC control](TODO) or [faust2api](TODO).
+such as [OSC control](TODO) or [`faust2api`](TODO). In the case of `faust2api`,
+since no user interface is actually generated, UI elements just become a 
+way to declare parameters of a Faust object. Therefore, there's no
+distinction between `nentry`, `hslider`, `vslider`, etc.
 
-#### Labels Metadata
+#### Links to Generated Code
 
-Widget labels can contain metadata enclosed in square brackets. These metadata 
-associate a key with a value and are used to provide additional information to 
-the architecture file. They are typically used to improve the look and feel of 
-the user interface, configure OSC and accelerometer control/mapping, etc. 
+<!-- TODO -->
+
+### UI Label Metadata
+
+[Widget labels](#user-interface-primitives-and-configuration) can contain 
+metadata enclosed in square brackets. These metadata associate a key with a 
+value and are used to provide additional information to the architecture file. 
+They are typically used to improve the look and feel of the user interface, 
+configure OSC and accelerometer control/mapping, etc. Since the format of the
+value associated to a key is relatively open, metadata constitute a flexible
+way for programmers to add features to the language.
 
 The Faust code:
 
@@ -3282,17 +3315,101 @@ always take place before the `UI::AddSomething()` call that creates the
 User Interface element. This allows the `UI::AddSomething()` method to make 
 full use of the available metadata.
 
-#### Links to Generated Code
+Metadata are architecture-specific: it is up to the architecture file to decide
+what to do with it. While some metadata will work with most architectures
+(e.g., accelerometer and OSC configuration, etc.), others might be more 
+specific. Some of them are presented in the following sections.
 
-<!--
-Labels can contain variable parts. These variable parts are indicated by the sign '\texttt{\%}' followed by the name of a variable. During compilation each label is processed in order to replace the variable parts by the value of the variable. 
-For example \lstinline'par(i,8,hslider("Voice %i", 0.9, 0, 1, 0.01))' creates 8 different sliders in parallel :
--->
+#### Ordering UI Elements
+
+The order of UI declarations in a Faust code doesn't necessarily reflect the
+actual order of the UI elements in the corresponding interface. Therefore,
+UI elements can be ordered by placing a metadata before the declaration of
+the name of the UI element in the label. For example, in the following 
+declaration:
+
+```
+gain = vslider("h:Oscillator/[1]gain",0,0,1,0.01);
+freq = vslider("h:Oscillator/[0]freq",440,50,1000,0.1);
+```
+
+the `freq` parameter will be placed before `gain` despite the fact that `gain`
+is declared first.
+
+This system can be used to order groups as well. Ordering will be carried out
+on elements at the same level. For example:  
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freqS = vslider("h:Oscillators/h:[0]Sawtooth/[0]freq",440,50,1000,0.1);
+gainS = vslider("h:Oscillators/h:[0]Sawtooth/[1]gain",0,0,1,0.01);
+freqT = vslider("h:Oscillators/h:[1]Triangle/[0]freq",440,50,1000,0.1);
+gainT = vslider("h:Oscillators/h:[1]Triangle/[1]gain",0,0,1,0.01);
+process = os.sawtooth(freqS)*gainS + os.triangle(freqT)*gainT;
+```
+<!-- /faust-run -->
+
+Note that this could also be written as:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freqS = vslider("[0]freq",440,50,1000,0.1);
+gainS = vslider("[1]gain",0,0,1,0.01);
+freqT = vslider("[0]freq",440,50,1000,0.1);
+gainT = vslider("[1]gain",0,0,1,0.01);
+process = hgroup("Oscillators",
+  hgroup("[0]Sawtooth",os.sawtooth(freqS)*gainS) + 
+  hgroup("[1]Triangle",os.triangle(freqT)*gainT)
+);
+```
+<!-- /faust-run -->
+
+#### Global UI Metadata
+
+Note that global user interfaces completely replacing the one defined using
+the standard Faust UI primitives may be declared using 
+[global metadata declarations](#metadata-declarations). This is the case of the
+[SmartKeyboard](TODO) interface for example. 
+
+<!-- TODO Link to metadata declaration section -->
+
+In the following subsections, the standard Faust UI metadata are documented.
+Other types of metadata (e.g., accelerometers, OSC, etc.) are documented in the
+sections related to these topics.
+
+#### `[style:knob]` Metadata
+
+The `[style:knob]` metadata turns any continuous UI element (i.e., 
+[`hslider`](#hslider-metadata), [`vslider`](#vslider-metadata), 
+[`nentry`](#nentry-metadata)) into a knob.
+
+#### `style:menu` Metadata
+
+#### `style:radio` Metadata
+
+#### `style:led` Metadata
+
+#### `unit:dB` Metadata
+
+#### `unit:xx` Metadata
+
+#### `[scale:xx]` Metadata
+
+#### `tooltip:xx` Metadata
+
+#### `[hidden:xx]` Metadata
+
+#### `[screencolor:xx]` Metadata
+
 
 <!-- TODO: {#something}. Also we need to specify the usage of functions in
 a better way -->
 
 <!-- TODO give use examples after description here -->
+
+<!-- TODO: say something about smoothing -->
 
 # Using the Faust Compiler
 
