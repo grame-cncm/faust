@@ -78,7 +78,10 @@ public:
     BelaOSCUI(const string& ip, int in_port, int out_port):fIP(ip), fInputPort(in_port), fOutputPort(out_port){}
     
     virtual ~BelaOSCUI()
-    {}
+    {
+       for (int i =0; i< fOSCItems.size();i++)
+        delete (fOSCItems[i]);
+    }
     
     // for auxiliaryTask:
     void oscMessageReceived()
