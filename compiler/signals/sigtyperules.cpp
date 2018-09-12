@@ -72,12 +72,14 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 /**
  * Fully annotate every subtree of term with type information.
  * @param sig the signal term tree to annotate
+ * @param causality when true check causality issues
  */
 
-void typeAnnotation(Tree sig)
+void typeAnnotation(Tree sig, bool causality)
 {
-    Tree sl = symlist(sig);
-    int  n  = len(sl);
+    gGlobal->gCausality = causality;
+    Tree sl             = symlist(sig);
+    int  n              = len(sl);
 
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
@@ -289,18 +291,20 @@ static Type infereSigType(Tree sig, Tree env)
         //        cerr << "for sig fix delay : s1 = "
         //				<< t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
-        if (!i.valid) {
-            stringstream error;
-            error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
-                  << "        used in delay expression : " << ppsig(sig) << endl
-                  << "        (probably a recursive signal)" << endl;
-            throw faustexception(error.str());
-        } else if (i.lo < 0) {
-            stringstream error;
-            error << "ERROR : possible negative values of : " << ppsig(s2) << endl
-                  << "        used in delay expression : " << ppsig(sig) << endl
-                  << "        " << i << endl;
-            throw faustexception(error.str());
+        if (gGlobal->gCausality) {
+            if (!i.valid) {
+                stringstream error;
+                error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
+                      << "        used in delay expression : " << ppsig(sig) << endl
+                      << "        (probably a recursive signal)" << endl;
+                throw faustexception(error.str());
+            } else if (i.lo < 0) {
+                stringstream error;
+                error << "ERROR : possible negative values of : " << ppsig(s2) << endl
+                      << "        used in delay expression : " << ppsig(sig) << endl
+                      << "        " << i << endl;
+                throw faustexception(error.str());
+            }
         }
 
         return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));

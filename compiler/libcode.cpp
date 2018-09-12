@@ -600,6 +600,10 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gEnableFlag = std::atoi(argv[i + 1]) == 1;
             i += 2;
 
+        } else if (isCmd(argv[i], "-lcc", "--local-causality-check")) {
+            gGlobal->gLocalCausalityCheck = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
             gGlobal->gLightMode = true;
             i += 1;
@@ -743,6 +747,7 @@ static void printHelp()
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise\n";
+    cout << "-lcc \t--local-causality-check, check causality also at local level \n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";

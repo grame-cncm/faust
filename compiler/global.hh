@@ -208,6 +208,10 @@ struct global {
 
     bool gMemoryManager;
 
+    bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
+    bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
+                      ///< (negative delay)
+
     Tree BOXTYPEPROP;
     Tree NUMERICPROPERTY;
     Tree DEFLINEPROP;

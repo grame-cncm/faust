@@ -97,7 +97,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     endTiming("deBruijn2Sym");
 
     startTiming("L1 typeAnnotation");
-    typeAnnotation(L1);  // Annotate L1 with type information (needed by castAndPromotion())
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
     endTiming("L1 typeAnnotation");
 
     startTiming("Cast and Promotion");
@@ -130,7 +130,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3);  // Annotate L3 with type information
+    typeAnnotation(L3, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
     sharingAnalysis(L3);  // annotate L3 with sharing count
@@ -156,7 +156,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
     recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0);          // Annotate L0 with type information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
 
     if (fOccMarkup != 0) {

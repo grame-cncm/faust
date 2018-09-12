@@ -42,9 +42,11 @@ extern bool gVectorSwitch;
  **/
 
 /**
- *	Annotates a signal term and its subterms with type information
+ * Fully annotate every subtree of term with type information.
+ * @param sig the signal term tree to annotate
+ * @param causality when true check causality issues
  */
-void typeAnnotation(Tree term);
+void typeAnnotation(Tree sig, bool causality);
 
 /**
  *	Return the type of a previously annotated signal term

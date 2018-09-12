@@ -74,10 +74,10 @@ string DocCompiler::getFreshID(const string& prefix)
 
 Tree DocCompiler::annotate(Tree LS)
 {
-    recursivnessAnnotation(LS);  // Annotate LS with recursivness information
-    typeAnnotation(LS);          // Annotate LS with type information
-    sharingAnalysis(LS);         // annotate LS with sharing count
-    fOccMarkup.mark(LS);         // annotate LS with occurences analysis
+    recursivnessAnnotation(LS);                         // Annotate LS with recursivness information
+    typeAnnotation(LS, gGlobal->gLocalCausalityCheck);  // Annotate LS with type information
+    sharingAnalysis(LS);                                // annotate LS with sharing count
+    fOccMarkup.mark(LS);                                // annotate LS with occurences analysis
 
     return LS;
 }
