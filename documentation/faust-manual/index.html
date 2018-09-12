@@ -97,7 +97,6 @@
 <li><a href="#design-principles">Design Principles</a></li>
 <li><a href="#signal-processor-semantic">Signal Processor Semantic</a></li>
 </ul></li>
-<li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#overview-of-the-faust-universe">Overview of the Faust Universe</a><ul>
 <li><a href="#the-faust-distribution">The Faust Distribution</a><ul>
 <li><a href="#command-line-compiler">Command-Line Compiler</a></li>
@@ -271,7 +270,6 @@
 </ul></li>
 </ul></li>
 </ul></li>
-<li><a href="#using-the-faust-compiler">Using the Faust Compiler</a></li>
 <li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
 <li><a href="#mathematical-documentation">Mathematical Documentation</a></li>
 </ul>
@@ -332,8 +330,7 @@ other words be a bit more specific here. -->
 <li>A <em>signal processors</em> <span class="math inline">\(p\)</span>, is a function from <em>n</em>-tuples of signals to <em>m</em>-tuples of signals <span class="math inline">\(p:\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span>. The set <span class="math inline">\(\mathbb{P}=\bigcup_{n,m}\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span> is the set of all possible signal processors.</li>
 </ul>
 <p>As an example, let’s express the semantic of the Faust primitive <code>+</code>. Like any Faust expression, it is a signal processor. Its signature is <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}\)</span>. It takes two input signals <span class="math inline">\(X_0\)</span> and <span class="math inline">\(X_1\)</span> and produces an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = X_0(t)+X_1(t)\)</span>.</p>
-<p>Numbers are signal processors too. For example the number <span class="math inline">\(3\)</span> has signature <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}\)</span>. It takes no input signals and produce an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = 3\)</span>.</p>
-<h1 id="quick-start">Quick Start</h1>
+<p>Numbers are signal processors too. For example the number <span class="math inline">\(3\)</span> has signature <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}\)</span>. It takes no input signals and produce an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = 3\)</span>. # Quick Start</p>
 <p>TODO Will be all based on the online editor… May be could be a simple copy and paste of the session 1 of the Kadenze course…</p>
 <h1 id="overview-of-the-faust-universe">Overview of the Faust Universe</h1>
 <p>While in its most <em>primitive</em> form, Faust is distributed as a command-line compiler, a wide range of tools have been developed around it in the course of the past few years. Their variety and their function might be hard to grab at first. This sort chapter provides an overview of their role and will hopefully help you decide which one is better suited for your personal use.</p>
@@ -2224,9 +2221,8 @@ process = os.sawtooth(freq);</code></pre>
 <p><strong>Compatibility</strong></p>
 <ul>
 <li>iOS</li>
-<li>Android</li>
+<li>Android # Using the Faust Compiler</li>
 </ul>
-<h1 id="using-the-faust-compiler">Using the Faust Compiler</h1>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->
