@@ -49,11 +49,9 @@
 #include <cstdlib>
 #include <Bela.h>
 #include <Utilities.h>
+#include "faust/gui/JSONUIDecoder.h"
 
 using namespace std;
-
-#ifndef __FaustCommonInfrastructure__
-#define __FaustCommonInfrastructure__
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
@@ -70,11 +68,6 @@ using namespace std;
 
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/bela-osc.h"
-#endif
-
-// Usage ???
-#ifdef SOUNDFILE
-#include "faust/gui/SoundUI.h"
 #endif
 
 
@@ -117,15 +110,15 @@ const char* const pinNamesStrings[] =
   "DIGITAL_13",
   "DIGITAL_14",
   "DIGITAL_15",
-    "ANALOG_OUT_0",// outputs
-    "ANALOG_OUT_1",
-    "ANALOG_OUT_2",
-    "ANALOG_OUT_3",
-    "ANALOG_OUT_4",
-    "ANALOG_OUT_5",
-    "ANALOG_OUT_6",
-    "ANALOG_OUT_7",
-    "ANALOG_OUT_8"
+  "ANALOG_OUT_0",// outputs
+  "ANALOG_OUT_1",
+  "ANALOG_OUT_2",
+  "ANALOG_OUT_3",
+  "ANALOG_OUT_4",
+  "ANALOG_OUT_5",
+  "ANALOG_OUT_6",
+  "ANALOG_OUT_7",
+  "ANALOG_OUT_8"
  };
 
 enum EInOutPin
@@ -475,12 +468,20 @@ void render(BelaContext* context, void* userData)
 
 void cleanup(BelaContext* context, void* userData)
 {
+    delete [] gFaustIns;      // array of pointers to gInputBuffer data
+    delete [] gFaustOuts;
+    delete DSP;
     
 #ifdef MIDICTRL
-  delete midiinterface;
+    delete midiinterface;
 #endif
-}
 
-#endif // __FaustBela_H__
+    
+#ifdef POLY2 | NVOICES
+    delete mydsp;
+    delete dsp_poly;
+#endif
+
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

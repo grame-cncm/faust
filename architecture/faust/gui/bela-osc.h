@@ -56,7 +56,7 @@ public:
 class BelaOSCUI : public GUI {
     
 private:
-    const char* fIP;
+    string fIP;
     int fInputPort;
     int fOutputPort;
     
@@ -74,8 +74,8 @@ private:
     }
     
 public:
-    
-    BelaOSCUI(const char* ip, int in_port, int out_port):fIP(ip), fInputPort(in_port), fOutputPort(out_port){}
+
+    BelaOSCUI(const string& ip, int in_port, int out_port):fIP(ip), fInputPort(in_port), fOutputPort(out_port){}
     
     virtual ~BelaOSCUI()
     {}
@@ -87,7 +87,7 @@ public:
             float floatArg;
             oscpkt::Message msg;
             msg = oscServer.popMessage();
-            string msgAdress = msg.addressPattern().c_str();
+            string msgAdress = msg.addressPattern();
             int paramIndex = fAPIUI.getParamIndex(msg.addressPattern().c_str());
             if (msg.match(msgAdress).popFloat(floatArg).isOkNoMoreArgs() && paramIndex !=-1){
                 fAPIUI.setParamValue(paramIndex, floatArg);
