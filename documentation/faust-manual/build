@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Generating html version of markdown
-PHTML=$(pandoc --standalone --toc --toc-depth=4 --metadata pagetitle="Faust Manual" --mathjax src/introduction.md src/quick-start.md src/overview.md src/compiling.md src/syntax.md src/faustManual.md)
+PHTML=$(pandoc --standalone --toc --toc-depth=4 --metadata pagetitle="Faust Manual" --mathjax src/introduction.md src/quick-start.md src/overview.md src/compiling.md src/syntax.md src/compiler.md src/embedding.md src/faustManual.md)
 
 # Detecting line of end of header added by pandoc
 LINECUT=$(echo "$PHTML" | awk '/<ul>/{ print NR; exit }')

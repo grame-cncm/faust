@@ -97,6 +97,7 @@
 <li><a href="#design-principles">Design Principles</a></li>
 <li><a href="#signal-processor-semantic">Signal Processor Semantic</a></li>
 </ul></li>
+<li><a href="#quick-start">Quick Start</a></li>
 <li><a href="#overview-of-the-faust-universe">Overview of the Faust Universe</a><ul>
 <li><a href="#the-faust-distribution">The Faust Distribution</a><ul>
 <li><a href="#command-line-compiler">Command-Line Compiler</a></li>
@@ -270,6 +271,15 @@
 </ul></li>
 </ul></li>
 </ul></li>
+<li><a href="#using-the-faust-compiler">Using the Faust Compiler</a><ul>
+<li><a href="#structure-of-the-generated-code">Structure of the Generated Code</a></li>
+<li><a href="#compilation-options">Compilation Options</a></li>
+</ul></li>
+<li><a href="#embedding-the-faust-compiler-using-libfaust">Embedding the Faust Compiler using <code>libfaust</code></a><ul>
+<li><a href="#dynamic-compilation-chain">Dynamic Compilation Chain</a></li>
+<li><a href="#llvm">LLVM</a></li>
+<li><a href="#compiling-in-memory">Compiling in Memory</a></li>
+</ul></li>
 <li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
 <li><a href="#mathematical-documentation">Mathematical Documentation</a></li>
 </ul>
@@ -330,7 +340,8 @@ other words be a bit more specific here. -->
 <li>A <em>signal processors</em> <span class="math inline">\(p\)</span>, is a function from <em>n</em>-tuples of signals to <em>m</em>-tuples of signals <span class="math inline">\(p:\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span>. The set <span class="math inline">\(\mathbb{P}=\bigcup_{n,m}\mathbb{S}^{n}\rightarrow\mathbb{S}^{m}\)</span> is the set of all possible signal processors.</li>
 </ul>
 <p>As an example, let’s express the semantic of the Faust primitive <code>+</code>. Like any Faust expression, it is a signal processor. Its signature is <span class="math inline">\(\mathbb{S}^{2}\rightarrow\mathbb{S}\)</span>. It takes two input signals <span class="math inline">\(X_0\)</span> and <span class="math inline">\(X_1\)</span> and produces an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = X_0(t)+X_1(t)\)</span>.</p>
-<p>Numbers are signal processors too. For example the number <span class="math inline">\(3\)</span> has signature <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}\)</span>. It takes no input signals and produce an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = 3\)</span>. # Quick Start</p>
+<p>Numbers are signal processors too. For example the number <span class="math inline">\(3\)</span> has signature <span class="math inline">\(\mathbb{S}^{0}\rightarrow\mathbb{S}\)</span>. It takes no input signals and produce an output signal <span class="math inline">\(Y\)</span> such that <span class="math inline">\(Y(t) = 3\)</span>.</p>
+<h1 id="quick-start">Quick Start</h1>
 <p>TODO Will be all based on the online editor… May be could be a simple copy and paste of the session 1 of the Kadenze course…</p>
 <h1 id="overview-of-the-faust-universe">Overview of the Faust Universe</h1>
 <p>While in its most <em>primitive</em> form, Faust is distributed as a command-line compiler, a wide range of tools have been developed around it in the course of the past few years. Their variety and their function might be hard to grab at first. This sort chapter provides an overview of their role and will hopefully help you decide which one is better suited for your personal use.</p>
@@ -2221,8 +2232,513 @@ process = os.sawtooth(freq);</code></pre>
 <p><strong>Compatibility</strong></p>
 <ul>
 <li>iOS</li>
-<li>Android # Using the Faust Compiler</li>
+<li>Android</li>
 </ul>
+<h1 id="using-the-faust-compiler">Using the Faust Compiler</h1>
+<p>While the Faust compiler is available in different forms (e.g., <a href="TODO">Embedded Compiler</a>, etc.), its most “common” one is the command line version, which can be invoked using the <code>faust</code> command. It translates a Faust program into code in a wide range of languages (C, O-C++, C++, Rust, JAVA, JavaScript, ASM JavaScript, LLVM, C-LLVM, FIR, and WebAssembly). The generated code can be wrapped into an optional <em>architecture file</em> allowing to directly produce a fully operational program.</p>
+<p>A typical call of the Faust command line compiler is:</p>
+<pre><code>faust [OPTIONS] faustFile.dsp</code></pre>
+<p>The Faust compiler outputs C++ code by default therefore running</p>
+<pre><code>faust noise.dsp </code></pre>
+<p>will compile <a href="misc/noise.dsp"><code>noise.dsp</code></a> and output the corresponding C++ code on the standard output. The option <code>-o</code> allows to reroute the standard output to a file:</p>
+<pre><code>faust noise.dsp -o noise.cpp</code></pre>
+<p>The <code>-a</code> option allows us to wrap the generated code into an architecture file:</p>
+<pre><code>faust -a alsa-gtk.cpp noise.dsp </code></pre>
+<p>which can either be placed in the same folder as the current Faust file (<code>noise.dsp</code> here) or be one of the standard Faust architectures.</p>
+<!-- TODO: we must check if talk about architectures somewhere in greater
+details and put a link to that here -->
+<p>To compile a Faust program into an ALSA application on Linux, the following commands can be used:</p>
+<pre><code>faust -a alsa-gtk.cpp noise.dsp -o noise.cpp
+g++ -lpthread -lasound `pkg-config --cflags --libs gtk+-2.0` noise.cpp -o noise</code></pre>
+<p>Note that a wide range of <a href="TODO"><code>faust2...</code> compilation scripts</a> can be used to facilitate this operation by taking a Faust file and returning the corresponding binary for your platform.</p>
+<h2 id="structure-of-the-generated-code">Structure of the Generated Code</h2>
+<p>A Faust DSP C++ class derives from the base <code>dsp</code> class defined as below (a similar structure is used for languages than C++):</p>
+<pre><code>class dsp {
+  public:
+  dsp() {}
+  virtual ~dsp() {}
+  
+  // Returns the number of inputs of the Faust program
+  virtual int getNumInputs() = 0;
+  
+  // Returns the number of outputs of the Faust program
+  virtual int getNumOutputs() = 0;
+  
+  // This method can be called to retrieve the UI description of
+  // the Faust program and its associated fields
+  virtual void buildUserInterface(UI* ui_interface) = 0;
+  
+  // Returns the current sampling rate
+  virtual int getSampleRate() = 0;
+  
+  // Init methods
+  virtual void init(int samplingRate) = 0;
+  virtual void instanceInit(int samplingRate) = 0;
+  virtual void instanceConstants(int samplingRate) = 0;
+  virtual void instanceResetUserInterface() = 0;
+  virtual void instanceClear() = 0;
+  
+  // Returns a clone of the instance
+  virtual dsp* clone() = 0;
+  
+  // Retrieve the global metadata of the Faust program
+  virtual void metadata(Meta* m) = 0;
+  
+  // Compute one audio frame
+  virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) = 0;
+  
+  // Compute a time-stamped audio frame
+  virtual void compute(double /*date_usec*/, int count, FAUSTFLOAT** inputs,
+     FAUSTFLOAT** outputs) { compute(count, inputs, outputs); }
+};</code></pre>
+<p>Methods are filled by the compiler with the actual code. In the case of <code>noise.dsp</code>:</p>
+<pre><code>class mydsp : public dsp {
+  private:
+  int iRec0[2];
+  int fSamplingFreq;
+  
+  public:
+  void metadata(Meta* m) { 
+    m-&gt;declare(&quot;author&quot;, &quot;GRAME&quot;);
+    m-&gt;declare(&quot;filename&quot;, &quot;noise&quot;);
+    m-&gt;declare(&quot;name&quot;, &quot;Noise&quot;);
+    m-&gt;declare(&quot;noises.lib/name&quot;, &quot;Faust Noise Generator Library&quot;);
+    m-&gt;declare(&quot;noises.lib/version&quot;, &quot;0.0&quot;);
+  }
+  virtual int getNumInputs() {
+    return 0;
+  }
+  virtual int getNumOutputs() {
+    return 1;
+  }
+  virtual int getInputRate(int channel) {
+    int rate;
+    switch (channel) {
+      default: {
+        rate = -1;
+        break;
+      }
+    }
+    return rate;
+  }
+  virtual int getOutputRate(int channel) {
+    int rate;
+    switch (channel) {
+      case 0: {
+        rate = 1;
+        break;
+      }
+      default: {
+        rate = -1;
+        break;
+      }
+    }
+    return rate;
+  }
+  static void classInit(int samplingFreq) {}
+  virtual void instanceConstants(int samplingFreq) {
+    fSamplingFreq = samplingFreq;
+  }
+  virtual void instanceResetUserInterface() {}
+  virtual void instanceClear() {
+    for (int l0 = 0; (l0 &lt; 2); l0 = (l0 + 1)) {
+      iRec0[l0] = 0;
+    }
+  }
+  virtual void init(int samplingFreq) {
+    classInit(samplingFreq);
+    instanceInit(samplingFreq);
+  }
+  virtual void instanceInit(int samplingFreq) {
+    instanceConstants(samplingFreq);
+    instanceResetUserInterface();
+    instanceClear();
+  }
+  virtual mydsp* clone() {
+    return new mydsp();
+  }
+  virtual int getSampleRate() {
+    return fSamplingFreq;
+  }
+  virtual void buildUserInterface(UI* ui_interface) {
+    ui_interface-&gt;openVerticalBox(&quot;Noise&quot;);
+    ui_interface-&gt;closeBox();
+  }
+  virtual void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs) {
+    FAUSTFLOAT* output0 = outputs[0];
+    for (int i = 0; (i &lt; count); i = (i + 1)) {
+      iRec0[0] = ((1103515245 * iRec0[1]) + 12345);
+      output0[i] = FAUSTFLOAT((4.65661287e-10f * float(iRec0[0])));
+      iRec0[1] = iRec0[0];
+    }
+  }
+};</code></pre>
+<p>Several fine-grained initialization methods are available. The <code>instanceInit</code> method calls several additional initialization methods. The <code>instanceConstants</code> method sets the instance constant state. The <code>instanceClear</code> method resets the instance dynamic state (delay lines…). The <code>instanceResetUserInterface</code> method resets all control value to their default state. All of those methods can be used individually on an allocated instance to reset part of its state.</p>
+<p>The <code>init</code> method combines class static state and instance initialization.</p>
+<p>When using a single instance, calling <code>init</code> is the simplest way to do “what is needed.” When using several instances, all of them can be initialized using <code>instanceInit</code>, with a single call to <code>classInit</code> to initialize the static shared state.</p>
+<h2 id="compilation-options">Compilation Options</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Short</th>
+<th>Long</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>-h</code></td>
+<td><code>--help</code></td>
+<td>print the help message</td>
+</tr>
+<tr class="even">
+<td><code>-v</code></td>
+<td><code>--version</code></td>
+<td>print the compiler version information</td>
+</tr>
+<tr class="odd">
+<td><code>-d</code></td>
+<td><code>--details</code></td>
+<td>print the compilation details</td>
+</tr>
+<tr class="even">
+<td><code>-tg</code></td>
+<td><code>--task-graph</code></td>
+<td>Draw a graph of all internal computational loops as <code>.dot</code> (graphviz) file</td>
+</tr>
+<tr class="odd">
+<td><code>-sg</code></td>
+<td><code>--signal-graph</code></td>
+<td>Draw a graph of all internal computational loops as <code>.dot</code> (graphviz) file</td>
+</tr>
+<tr class="even">
+<td><code>-ps</code></td>
+<td><code>--postscript</code></td>
+<td>Generate the block-diagram postscript file</td>
+</tr>
+<tr class="odd">
+<td><code>-svg</code></td>
+<td><code>--svg</code></td>
+<td>Generate the block-diagram svg file</td>
+</tr>
+<tr class="even">
+<td><code>-mdoc</code></td>
+<td><code>--mathdoc</code></td>
+<td>Generate the full mathematical documentation of a Faust program</td>
+</tr>
+<tr class="odd">
+<td><code>-mdlang &lt;l&gt;</code></td>
+<td><code>--mathdoc-lang</code></td>
+<td>Choose the language of the mathematical description (<em>l</em> = en, fr, etc.)</td>
+</tr>
+<tr class="even">
+<td><code>-stripmdoc</code></td>
+<td><code>--strip-mdoc-tags</code></td>
+<td>Remove documentation tags when printing Faust listings</td>
+</tr>
+<tr class="odd">
+<td><code>-sd</code></td>
+<td><code>--simplify-diagrams</code></td>
+<td>Try to further simplify block diagrams before drawing them</td>
+</tr>
+<tr class="even">
+<td><code>-f &lt;n&gt;</code></td>
+<td><code>--fold &lt;n&gt;</code></td>
+<td>Max complexity of svg diagrams before splitting into several files (default 25 elements)</td>
+</tr>
+<tr class="odd">
+<td><code>-mns &lt;n&gt;</code></td>
+<td><code>--max-name-size &lt;n&gt;</code></td>
+<td>Max character size used in svg diagrams labels</td>
+</tr>
+<tr class="even">
+<td><code>-sn</code></td>
+<td><code>--simple-names</code></td>
+<td>Use simple names (without arguments) for block-diagram generation (default max size: 40 chars)</td>
+</tr>
+<tr class="odd">
+<td><code>-xml</code></td>
+<td><code>-xml</code></td>
+<td>Generate an XML description file</td>
+</tr>
+<tr class="even">
+<td><code>-exp10</code></td>
+<td><code>--generate-exp10</code></td>
+<td>Function call instead of pow(10) function</td>
+</tr>
+<tr class="odd">
+<td><code>-json</code></td>
+<td><code>-json</code></td>
+<td>Generate a JSON description file</td>
+</tr>
+<tr class="even">
+<td><code>-blur</code></td>
+<td><code>--shadow-blur</code></td>
+<td>Add a blur to boxes shadows in block diagrams</td>
+</tr>
+<tr class="odd">
+<td><code>-lb</code></td>
+<td><code>--left-balanced</code></td>
+<td>Generate left-balanced expressions in block diagrams</td>
+</tr>
+<tr class="even">
+<td><code>-mb</code></td>
+<td><code>--mid-balanced</code></td>
+<td>Generate mid-balanced expressions in block diagrams</td>
+</tr>
+<tr class="odd">
+<td><code>-rb</code></td>
+<td><code>--right-balanced</code></td>
+<td>Generate right-balanced expressions in block diagrams</td>
+</tr>
+<tr class="even">
+<td><code>-lt</code></td>
+<td><code>--less-temporaries</code></td>
+<td>Generate less temporaries in compiling delays</td>
+</tr>
+<tr class="odd">
+<td><code>-mcd &lt;n&gt;</code></td>
+<td><code>--max-copy-delay &lt;n&gt;</code></td>
+<td>Threshold between copy and ring buffer delays (default 16 samples)</td>
+</tr>
+<tr class="even">
+<td><code>-mem</code></td>
+<td><code>--memory</code></td>
+<td>Allocate static in global state using a custom memory manager</td>
+</tr>
+<tr class="odd">
+<td><code>-a &lt;file&gt;</code></td>
+<td><code>-a</code></td>
+<td>Specifies a wrapper architecture file</td>
+</tr>
+<tr class="even">
+<td><code>-i</code></td>
+<td><code>--inline-architecture-files</code></td>
+<td>Inline architecture files in the generated code</td>
+</tr>
+<tr class="odd">
+<td><code>-cn &lt;name&gt;</code></td>
+<td><code>--class-name &lt;name&gt;</code></td>
+<td>Specify the name of the DSP class to be used instead of <code>mydsp</code></td>
+</tr>
+<tr class="even">
+<td><code>-scn &lt;name&gt;</code></td>
+<td><code>--super-class-name &lt;name&gt;</code></td>
+<td>Specify the name of the super class to be used instead of <code>dsp</code></td>
+</tr>
+<tr class="odd">
+<td><code>-pn &lt;name&gt;</code></td>
+<td><code>--process-name &lt;name&gt;</code></td>
+<td>Specify the name of the dsp entry-point instead of process</td>
+</tr>
+<tr class="even">
+<td><code>-t &lt;sec&gt;</code></td>
+<td><code>--timeout &lt;sec&gt;</code></td>
+<td>Abort compilation after <code>&lt;sec&gt;</code> seconds (default 120)</td>
+</tr>
+<tr class="odd">
+<td><code>-time</code></td>
+<td><code>--compilation-time</code></td>
+<td>Flag to display compilation phases timing information</td>
+</tr>
+<tr class="even">
+<td><code>-o &lt;file&gt;</code></td>
+<td><code>-o &lt;file&gt;</code></td>
+<td>C, C++, JAVA, JavaScript, ASM JavaScript, WebAssembly, LLVM IR or FVM (interpreter) output file</td>
+</tr>
+<tr class="odd">
+<td><code>-scal</code></td>
+<td><code>--scalar</code></td>
+<td>Generate non-vectorized code</td>
+</tr>
+<tr class="even">
+<td><code>-vec</code></td>
+<td><code>--vectorize</code></td>
+<td>Generate easier to vectorize code</td>
+</tr>
+<tr class="odd">
+<td><code>-vs &lt;n&gt;</code></td>
+<td><code>--vec-size &lt;n&gt;</code></td>
+<td>Size of the vector (default 32 samples)</td>
+</tr>
+<tr class="even">
+<td><code>-lv &lt;n&gt;</code></td>
+<td><code>--loop-variant</code></td>
+<td>Loop variant when <code>-vec</code> [0:fastest (default), 1:simple]</td>
+</tr>
+<tr class="odd">
+<td><code>-omp</code></td>
+<td><code>--openMP</code></td>
+<td>Generate OpenMP pragmas, activates the <code>--vectorize</code> option</td>
+</tr>
+<tr class="even">
+<td><code>-pl</code></td>
+<td><code>--par-loop</code></td>
+<td>Generate parallel loops in <code>--openMP</code> mode</td>
+</tr>
+<tr class="odd">
+<td><code>-sch</code></td>
+<td><code>--scheduler</code></td>
+<td>Generate tasks and use a Work Stealing scheduler, activates the <code>--vectorize</code> option</td>
+</tr>
+<tr class="even">
+<td><code>-ocl</code></td>
+<td><code>--openCL</code></td>
+<td>Generate tasks with OpenCL (experimental)</td>
+</tr>
+<tr class="odd">
+<td><code>-cuda</code></td>
+<td><code>--cuda</code></td>
+<td>Generate tasks with CUDA (experimental)</td>
+</tr>
+<tr class="even">
+<td><code>-dfs</code></td>
+<td><code>--deepFirstScheduling</code></td>
+<td>Schedule vector loops in deep first order</td>
+</tr>
+<tr class="odd">
+<td><code>-g</code></td>
+<td><code>--groupTasks</code></td>
+<td>Group single-threaded sequential tasks together when <code>-omp</code> or <code>-sch</code> is used</td>
+</tr>
+<tr class="even">
+<td><code>-fun</code></td>
+<td><code>--funTasks</code></td>
+<td>Separate tasks code as separated functions (in <code>-vec</code>, <code>-sch</code>, or <code>-omp</code> mode)</td>
+</tr>
+<tr class="odd">
+<td><code>-lang &lt;lang&gt;</code></td>
+<td><code>--language</code></td>
+<td>Generate various output formats: <code>c</code>, <code>ocpp</code>, <code>cpp</code>, <code>rust</code>, <code>java</code>, <code>js</code>, <code>ajs</code>, <code>llvm</code>, <code>cllvm</code>, <code>fir</code>, <code>wast</code>/<code>wasm</code>, <code>interp</code> (default <code>cpp</code>)</td>
+</tr>
+<tr class="even">
+<td><code>-uim</code></td>
+<td><code>--user-interface-macros</code></td>
+<td>Add user interface macro definitions in the output code</td>
+</tr>
+<tr class="odd">
+<td><code>-single</code></td>
+<td><code>--single-precision-floats</code></td>
+<td>Use single precision floats for internal computations (default)</td>
+</tr>
+<tr class="even">
+<td><code>-double</code></td>
+<td><code>--double-precision-floats</code></td>
+<td>Use <code>--double-precision-floats</code> for internal computations</td>
+</tr>
+<tr class="odd">
+<td><code>-quad</code></td>
+<td><code>--quad-precision-floats</code></td>
+<td>Use quad precision floats for internal computations</td>
+</tr>
+<tr class="even">
+<td><code>-es 1|0</code></td>
+<td><code>--enable-semantics 1|0</code></td>
+<td>Use <code>--enable-semantics 1|0</code> when 1, and simple multiplication otherwise</td>
+</tr>
+<tr class="odd">
+<td><code>-flist</code></td>
+<td><code>--file-list</code></td>
+<td>Use –file-list used to eval process</td>
+</tr>
+<tr class="even">
+<td><code>-norm</code></td>
+<td><code>--normalized-form</code></td>
+<td>Prints signals in normalized form and exits</td>
+</tr>
+<tr class="odd">
+<td><code>-A &lt;dir&gt;</code></td>
+<td><code>--architecture-dir &lt;dir&gt;</code></td>
+<td>Add the directory <code>&lt;dir&gt;</code> to the architecture search path</td>
+</tr>
+<tr class="even">
+<td><code>-I &lt;dir&gt;</code></td>
+<td><code>--import-dir &lt;dir&gt;</code></td>
+<td>Add the directory <code>&lt;dir&gt;</code> to the import search path</td>
+</tr>
+<tr class="odd">
+<td><code>-L &lt;file&gt;</code></td>
+<td><code>--library &lt;file&gt;</code></td>
+<td>Link with the LLVM module <code>&lt;file&gt;</code></td>
+</tr>
+<tr class="even">
+<td><code>-O &lt;dir&gt;</code></td>
+<td><code>--output-dir &lt;dir&gt;</code></td>
+<td>Specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML, etc.)</td>
+</tr>
+<tr class="odd">
+<td><code>-e</code></td>
+<td><code>--export-dsp</code></td>
+<td>Export expanded DSP (all included libraries)</td>
+</tr>
+<tr class="even">
+<td><code>-inpl</code></td>
+<td><code>--in-place generates</code></td>
+<td>Code working when input and output buffers are the same (in scalar mode only)</td>
+</tr>
+<tr class="odd">
+<td><code>-inj &lt;f&gt;</code></td>
+<td><code>--inject &lt;f&gt;</code></td>
+<td>inject source file <code>&lt;f&gt;</code> into architecture file instead of compile a dsp file</td>
+</tr>
+<tr class="even">
+<td><code>-ftz</code></td>
+<td><code>--flush-to-zero</code></td>
+<td>Flush to zero the code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]</td>
+</tr>
+<tr class="odd">
+<td><code>-fm &lt;file&gt;</code></td>
+<td><code>--fast-math &lt;file&gt;</code></td>
+<td>Uses optimized versions of mathematical functions implemented in <code>&lt;file&gt;</code>, take the <code>/faust/dsp/fastmath.cpp</code> file if ‘def’ is used</td>
+</tr>
+</tbody>
+</table>
+<h1 id="embedding-the-faust-compiler-using-libfaust">Embedding the Faust Compiler using <code>libfaust</code></h1>
+<p>The combination of the awesome <a href="https://llvm.org/">LLVM technology</a> and <code>libfaust</code> (the library version of the Faust compiler) allows developers to compile and execute Faust DSP programs on the fly at full speed and without making compromises. In this section, we demonstrate how the Faust dynamic compilation chain can be used to embed the Faust compiler technology directly in applications or plugins.</p>
+<h2 id="dynamic-compilation-chain">Dynamic Compilation Chain</h2>
+<p>The Faust compiler uses an intermediate FIR representation (Faust Imperative Representation), which can be translated to several output languages. The FIR language describes the computation performed on the samples in a generic manner. It contains primitives to read and write variables and arrays, do arithmetic operations, and define the necessary control structures (<code>for</code> and <code>while</code> loops, <code>if</code> structure, etc.).</p>
+<p>To generate various output languages, several backends have been developed: for C, C++, Java, JavaScript, asm.js, LLVM IR, webassemble, etc. The native LLVM based compilation chain is particularly interesting: it provides direct compilation of a DSP source into executable code in memory, bypassing the external compiler requirement.</p>
+<h2 id="llvm">LLVM</h2>
+<p><a href="https://llvm.org/">LLVM (formerly Low Level Virtual Machine)</a> is a compiler infrastructure, designed for compile-time, link-time, and run-time optimization of programs written in arbitrary programming languages. Executable code is produced dynamically using a <em>Just In Time</em> compiler from a specific code representation, called LLVM IR. Clang, the LLVM native C/C++/Objective-C compiler is a front-end for the LLVM Compiler. It can, for instance, convert a C or C++ source file into LLVM IR code. Domain-specific languages like Faust can easily target the LLVM IR. This has been done by developing an LLVM IR backend in the Faust compiler.</p>
+<h2 id="compiling-in-memory">Compiling in Memory</h2>
+<p>The complete chain goes from the Faust DSP source code, compiled in LLVM IR using the LLVM backend, to finally produce the executable code using the LLVM JIT. All steps take place in memory, getting rid of the classical file-based approaches. Pointers to executable functions can be retrieved from the resulting LLVM module and the code directly called with the appropriate parameters.</p>
+<p>The Faust compiler has been packaged as an embeddable library called <code>libfaust</code>, published with an associated API that imitates the concept of oriented-object languages, like C++. Given a Faust source code (as a file or a string), calling the <code>createDSPFactoryXXX</code> function runs the compilation chain (Faust + LLVM JIT) and generates the <em>prototype</em> of the class, as a <code>llvm_dsp_factory</code> pointer.</p>
+<pre><code>class llvm_dsp_factory : public dsp_factory {
+  public:
+  virtual ~llvm_dsp_factory();
+  
+  // Return factory name
+  std::string getName();
+  
+  // Return factory LLVM target
+  std::string getTarget();
+  
+  // Return factory SHA key
+  std::string getSHAKey();
+  
+  // Return factory expanded DSP code
+  std::string getDSPCode();
+  
+  // Create a new DSP instance, to be deleted with C++ &#39;delete&#39;
+  llvm_dsp* createDSPInstance();
+  
+  // Set a custom memory manager to be used when creating instances
+  void setMemoryManager(dsp_memory_manager* manager);
+  
+  // Return the currently set custom memory manager
+  dsp_memory_manager* getMemoryManager();
+  
+  // Get the Faust DSP factory list of library dependancies
+  std::vector&lt;std::string&gt; getLibraryList();
+  
+  // Get the list of all used includes
+  std::vector&lt;std::string&gt; getIncludePathnames();
+};</code></pre>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->
