@@ -393,7 +393,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             if (fLibraryList.size() > 0) {
                 tab(fTab, fJSON);
                 fJSON << "\"library_list\": [";
-                for (int i = 0; i < fLibraryList.size(); i++) {
+                for (size_t i = 0; i < fLibraryList.size(); i++) {
                     fJSON << "\"" << fLibraryList[i] << "\"";
                     if (i < (fLibraryList.size() - 1)) fJSON << ",";
                 }
@@ -402,7 +402,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             if (fIncludePathnames.size() > 0) {
                 tab(fTab, fJSON);
                 fJSON << "\"include_pathnames\": [";
-                for (int i = 0; i < fIncludePathnames.size(); i++) {
+                for (size_t i = 0; i < fIncludePathnames.size(); i++) {
                     fJSON << "\"" << fIncludePathnames[i] << "\"";
                     if (i < (fIncludePathnames.size() - 1)) fJSON << ",";
                 }

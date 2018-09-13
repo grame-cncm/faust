@@ -52,7 +52,7 @@ On voudrait pouvoir connecter des boucles et supprimer les vecteurs intermédiai
 On part d'un DAG de loops, on veut pouvoir:
 
 - mettre ce DAG sur la forme d'une sequence de boucle (tri topologique)
-- "fusionner" toutes les boucles en une seule, donc en gros entraire le code des boucles et le fusionner
+- "fusionner" toutes les boucles en une seule, donc en gros extraire le code des boucles et le fusionner
 
 Scalarisation d'une boucle:
 

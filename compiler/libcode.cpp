@@ -1355,7 +1355,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
                 new_comp = new DAGInstructionsCompiler(container);
             }
             else if(gGlobal->gOutputLang == "rust") {
-              new_comp = new RustInstructionsCompiler(container);
+                new_comp = new RustInstructionsCompiler(container);
             }
             else {
                 new_comp = new InstructionsCompiler(container);
