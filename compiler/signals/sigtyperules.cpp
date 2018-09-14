@@ -349,20 +349,41 @@ static Type infereSigType(Tree sig, Tree env)
         return gGlobal->TGUI01;
     }
 
-    else if (isSigVSlider(sig, label, cur, min, max, step))
+    else if (isSigVSlider(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigHSlider(sig, label, cur, min, max, step))
+    else if (isSigHSlider(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigNumEntry(sig, label, cur, min, max, step))
+    else if (isSigNumEntry(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigHBargraph(sig, l, x, y, s1))
+    else if (isSigHBargraph(sig, l, x, y, s1)) {
+        Type t1 = T(x, env);
+        Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
+    }
 
-    else if (isSigVBargraph(sig, l, x, y, s1))
+    else if (isSigVBargraph(sig, l, x, y, s1)) {
+        Type t1 = T(x, env);
+        Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
+    }
 
     else if (isSigSoundfile(sig, l)) {
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
