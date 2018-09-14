@@ -34,6 +34,7 @@
 #include "privatise.hh"
 #include "recursivness.hh"
 #include "sigConstantPropagation.hh"
+#include "sigInsert.hh"
 #include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
@@ -156,8 +157,12 @@ Tree InstructionsCompiler::prepare(Tree LS)
     Tree L2 = SP.mapself(L1);
     endTiming("Cast and Promotion");
 
+    typeAnnotation(L2, gGlobal->gLocalCausalityCheck);  // Annotate L1 with type information
+    SignalInsert SI;
+    Tree         L2b = SI.mapself(L2);
+
     startTiming("simplification");
-    Tree L3 = simplify(L2);  // simplify by executing every computable operation
+    Tree L3 = simplify(L2b);  // simplify by executing every computable operation
     endTiming("simplification");
 
     startTiming("Constant propagation");
