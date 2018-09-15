@@ -793,12 +793,12 @@ EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* glue)
 
 EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp)
 {
-    return (dsp) ? dsp->getNumInputs() : 0;
+    return (dsp) ? dsp->getNumInputs() : -1;
 }
 
 EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp)
 {
-    return (dsp) ? dsp->getNumOutputs() : 0;
+    return (dsp) ? dsp->getNumOutputs() : -1;
 }
 
 EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate)
@@ -874,9 +874,7 @@ EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory)
 
 EXPORT void deleteCDSPInstance(llvm_dsp* dsp)
 {
-    if (dsp) {
-        delete (dsp);
-    }
+    delete dsp;
 }
 
 #ifdef __cplusplus

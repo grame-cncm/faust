@@ -12,9 +12,6 @@
 
 CXXFLAGS=$MYGCCFLAGS
 
-ARCHFILESTANDALONE="juce-standalone.cpp"
-ARCHFILEPLUGIN="juce-plugin.cpp"
-
 PATH=$PATH:/usr/local/bin
 DEBUG=false
 
@@ -159,12 +156,12 @@ for p in $FILES; do
 
     # standalone of plugin mode
     if [ $STANDALONE = "0" ]; then
-        faust -i -a $ARCHFILEPLUGIN $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
+        faust -i -a $FAUSTLIB/juce/juce-plugin.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustPluginProcessor.cpp" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
         fi
     else
-        faust -i -a $ARCHFILESTANDALONE $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
+        faust -i -a $FAUSTLIB/juce/juce-standalone.cpp $OPTIONS "$SRCDIR/$f" -o "$SRCDIR/$dspName/FaustAudioApplication.cpp" || exit
         if [ $POLY = "POLY2" ]; then
             faust -i -cn dsp_effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/dsp_effect.cpp" || exit
         fi
