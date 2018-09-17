@@ -284,6 +284,14 @@
 <li><a href="#using-the-libfaust-library">Using the <code>libfaust</code> Library</a></li>
 <li><a href="#use-case-examples">Use Case Examples</a></li>
 </ul></li>
+<li><a href="#osc-support">OSC Support</a><ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#simple-example">Simple Example</a></li>
+<li><a href="#automatic-port-allocation">Automatic Port Allocation</a></li>
+<li><a href="#discovering-osc-applications">Discovering OSC Applications</a></li>
+<li><a href="#discovering-the-osc-interface-of-an-application">Discovering the OSC Interface of an Application</a></li>
+<li><a href="#widgets-osc-address">Widget’s OSC Address</a></li>
+</ul></li>
 <li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
 <li><a href="#mathematical-documentation">Mathematical Documentation</a></li>
 </ul>
@@ -2703,6 +2711,7 @@ g++ -lpthread -lasound `pkg-config --cflags --libs gtk+-2.0` noise.cpp -o noise<
 </tbody>
 </table>
 <h1 id="embedding-the-faust-compiler-using-libfaust">Embedding the Faust Compiler using <code>libfaust</code></h1>
+<!-- TODO: this section could be further developed and better documented -->
 <p>The combination of the awesome <a href="https://llvm.org/">LLVM technology</a> and <code>libfaust</code> (the library version of the Faust compiler) allows developers to compile and execute Faust DSP programs on the fly at full speed and without making compromises. In this section, we demonstrate how the Faust dynamic compilation chain can be used to embed the Faust compiler technology directly in applications or plugins.</p>
 <h2 id="dynamic-compilation-chain">Dynamic Compilation Chain</h2>
 <p>The Faust compiler uses an intermediate FIR representation (Faust Imperative Representation), which can be translated to several output languages. The FIR language describes the computation performed on the samples in a generic manner. It contains primitives to read and write variables and arrays, do arithmetic operations, and define the necessary control structures (<code>for</code> and <code>while</code> loops, <code>if</code> structure, etc.).</p>
@@ -2778,6 +2787,224 @@ m_factory = NULL;</code></pre>
 <li>An experimental integration of Faust in <a href="http://forumnet.ircam.fr/product/antescofo-en/">Antescofo</a></li>
 <li>FaucK: the combination of the <a href="http://chuck.cs.princeton.edu/">ChucK Programming Language</a> and Faust</li>
 </ul>
+<h1 id="osc-support">OSC Support</h1>
+<h2 id="overview">Overview</h2>
+<p>Most Faust architectures provide <a href="http://opensoundcontrol.org/">Open Sound Control (OSC)</a> support (the implementation is based internally on the <em>oscpack</em> library by Ross Bencina). This allows applications to be remotely controlled from any OSC-capable application, programming language, or hardware device. OSC support can be activated using the <code>-osc</code> option when building the application with the appropriate <a href="TODO"><code>faust2xxx</code> command</a>. The following table provides a list of Faust architectures providing OSC support.</p>
+<table>
+<thead>
+<tr class="header">
+<th>Audio System</th>
+<th>Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Alsa</td>
+<td>GTK, Qt, Console</td>
+</tr>
+<tr class="even">
+<td>Jack</td>
+<td>GTK, Qt, Console</td>
+</tr>
+<tr class="odd">
+<td>Netjack</td>
+<td>GTK, Qt, Console</td>
+</tr>
+<tr class="even">
+<td>PortAudio</td>
+<td>GTK, Qt</td>
+</tr>
+</tbody>
+</table>
+<div style="text-align: center;">
+<p><strong><em>Linux Faust Architectures with OSC Support</em></strong></p>
+</div>
+<hr />
+<table>
+<thead>
+<tr class="header">
+<th>Audio System</th>
+<th>Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CoreAudio</td>
+<td>Qt</td>
+</tr>
+<tr class="even">
+<td>Jack</td>
+<td>Qt, Console</td>
+</tr>
+<tr class="odd">
+<td>Netjack</td>
+<td>Qt, Console</td>
+</tr>
+<tr class="even">
+<td>PortAudio</td>
+<td>Qt</td>
+</tr>
+</tbody>
+</table>
+<div style="text-align: center;">
+<p><strong><em>OSX Faust Architectures with OSC Support</em></strong></p>
+</div>
+<hr />
+<table>
+<thead>
+<tr class="header">
+<th>Audio System</th>
+<th>Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Jack</td>
+<td>Qt, Console</td>
+</tr>
+<tr class="even">
+<td>PortAudio</td>
+<td>Qt</td>
+</tr>
+</tbody>
+</table>
+<div style="text-align: center;">
+<p><strong><em>Windows Faust Architectures with OSC Support</em></strong></p>
+</div>
+<hr />
+<table>
+<thead>
+<tr class="header">
+<th>Environment</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Android</td>
+</tr>
+<tr class="even">
+<td>iOS</td>
+</tr>
+<tr class="odd">
+<td>JUCE</td>
+</tr>
+<tr class="even">
+<td>Bela</td>
+</tr>
+</tbody>
+</table>
+<div style="text-align: center;">
+<p><strong><em>Other Faust Architectures with OSC Support</em></strong></p>
+</div>
+<hr />
+<h2 id="simple-example">Simple Example</h2>
+<!-- TODO: check that we explain that some of these features are built-in in
+stuff like the online editor. -->
+<p>To illustrate how OSC support works let’s define a very simple noise generator with a level control (we’ll call it <code>noise.dsp</code>):</p>
+<div class="faust-run"><a href="img/src/exfaust119/exfaust119-svg/process.svg" target="_blank"><img src="img/src/exfaust119/exfaust119-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+process = no.noise*hslider(&quot;level&quot;,0,0,1,0.01);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust119/exfaust119.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>This example can be compiled as a standalone Jack Qt application with OSC support simply by running the following command:</p>
+<pre><code>faust2jaqt -osc noise.dsp</code></pre>
+<p>When the generated application is ran from the command line:</p>
+<pre><code>./noise </code></pre>
+<p>various information is printed in the standard output, including:</p>
+<pre><code>Faust OSC version 0.93 application &#39;noise&#39; is running on UDP ports 5510, 5511, 5512</code></pre>
+<p>Hence, the OSC module makes use of three different UDP ports:</p>
+<ul>
+<li><code>5510</code> is the listening port number: control messages should be addressed to this port.</li>
+<li><code>5511</code> is the output port number: control messages sent by the application and answers to query messages are sent to this port.</li>
+<li><code>5512</code> is the error port number: used for asynchronous error notifications.</li>
+</ul>
+<p>These OSC parameters can be changed from the command line using one of the following options:</p>
+<ul>
+<li><code>-port number</code> sets the port number used by the application to receive messages.</li>
+<li><code>-outport number</code> sets the port number used by the application to transmit messages.</li>
+<li><code>-errport number</code> sets the port number used by the application to transmit error messages.</li>
+<li><code>-desthost host</code> sets the destination host for the messages sent by the application.</li>
+<li><code>-xmit 0|1|2</code> turns transmission OFF, ALL, or ALIAS (default OFF). When transmission is OFF, input elements can be controlled using their addresses or aliases (if present). When transmission is ALL, input elements can be controlled using their addresses or aliases (if present), user’s actions and output elements (i.e., <code>bargraph</code>, etc.) are transmitted as OSC messages as well as aliases (if present). When transmission is ALIAS, input elements can only be controlled using their aliases, user’s actions and output elements are transmitted as aliases only.</li>
+<li><code>-xmitfilter path</code> allows to filter output messages. Note that <code>path</code> can be a regular expression (like <code>/freeverb/Reverb1/*</code>).</li>
+</ul>
+<p>For example:</p>
+<pre><code>./noise -xmit 1 -desthost 192.168.1.104 -outport 6000</code></pre>
+<p>will run <code>noise</code> with transmission mode ON, using <code>192.168.1.104</code> on port <code>6000</code> as destination.</p>
+<h2 id="automatic-port-allocation">Automatic Port Allocation</h2>
+<p>In order to address each application individually, only one application can be listening on a single port at one time. Therefore when the default incoming port 5510 is already opened by some other application, an application will automatically try increasing port numbers until it finds an available port. Let say that we start <code>noise</code> and <code>mixer</code> (two Faust-generated applications with OSC support) on the same machine, we’ll get the following:</p>
+<pre><code>$ ./noise &amp;
+...
+Faust OSC version 0.93 application &#39;noise&#39; is running on UDP ports 5510, 5511, 5512
+$ ./mixer
+...
+Faust OSC version 0.93 application &#39;mixer&#39; is running on UDP ports 5513, 5511, 5512</code></pre>
+<p>The <code>mixer</code> application fails to open the default incoming port <code>5510</code> because it is already opened by <code>noise</code>. Therefore it tries to find an available port starting from <code>5513</code> and opens it. Please note that the two outcoming ports <code>5511</code> and <code>5512</code> are shared by all running applications.</p>
+<h2 id="discovering-osc-applications">Discovering OSC Applications</h2>
+<p>The commands <code>oscsend</code> and <code>oscdump</code> from the liblo package provide a convenient mean to experiment with OSC control and potentially debug applications with OSC support.</p>
+<blockquote>
+<p><code>oscsend [hostname] [port] [address] [types] [values]</code>: sends OSC messages via UDP. <code>[types]</code> is a string, the letters indicates the type of the following values: <code>i=integer</code>, <code>f=float</code>, <code>s=string</code>, etc.</p>
+</blockquote>
+<blockquote>
+<p><code>oscdump [port]</code>: receives OSC messages via UDP and dump to standard output</p>
+</blockquote>
+<p>In the following example, we’ll use two separate terminal windows. The first one will be used to send OSC messages to the <code>noise</code> application using <code>oscsend</code>. The second terminal will be used to monitor the messages sent by the application using <code>oscdump</code>. Commands executed on terminal 1 will be preceded by <code>T1$</code>. Messages received on terminal 2 will be preceded by <code>T2:</code>. To monitor on terminal T2 the OSC messages received on UDP port 5511, <code>oscdump</code> will be used:</p>
+<pre><code>T2$ oscdump 5511</code></pre>
+<p>Once set we can use the <code>hello</code> message to scan UDP ports for Faust applications. For example:</p>
+<pre><code>T1$ oscsend localhost 5510 &quot;/*&quot; s hello</code></pre>
+<p>gives us the root message address, the network and the UDP ports used by the noise application:</p>
+<pre><code>T2: /noise siii &quot;192.168.1.102&quot; 5510 5511 5512</code></pre>
+<h2 id="discovering-the-osc-interface-of-an-application">Discovering the OSC Interface of an Application</h2>
+<p>The OSC interface of an application (the set of OSC messages we can use to control it) can be discovered by sending the <code>get</code> message to the root:</p>
+<pre><code>T1$ oscsend localhost 5510 /noise s get </code></pre>
+<p>As an answer to this OSC message, a full description is printed in terminal T2:</p>
+<pre><code>T2: /noise sF &quot;xmit&quot; #F
+T2: /noise ss &quot;desthost&quot; &quot;127.0.0.1&quot;
+T2: /noise si &quot;outport&quot; 5511
+T2: /noise si &quot;errport&quot; 5512
+T2: /noise/level fff 0.000000 0.000000 1.000000</code></pre>
+<p>The root of the OSC interface is <code>/noise</code>. Transmission is OFF, <code>xmit</code> is set to false. The destination host for sending messages is <code>127.0.0.1</code>, the output port is <code>5511</code> and the error port is <code>5512</code>. The application has only one user interface element: <code>/noise/level</code> with current value <code>0.0</code>, minimal value <code>0.0</code> and maximal value <code>1.0</code>.</p>
+<h2 id="widgets-osc-address">Widget’s OSC Address</h2>
+<p>Each widget of an application has a unique OSC address obtained by concatenating the labels of it’s surrounding groups with its own label.</p>
+<blockquote>
+<p>There are potential conflicts between widget’s labels and the OSC address space. An OSC symbolic name is an ASCII string consisting of a restricted set of printable characters. Therefore to ensure compatibility spaces are replaced by underscores and some other characters (asterisk, comma, forward, question mark, open bracket, close bracket, open curly brace, close curly brace) are replaced by hyphens.</p>
+</blockquote>
+<p>Here is as an example <a href="misc/mix4.dsp"><code>mix4.dsp</code></a>, a very simplified monophonic audio mixer with 4 inputs and one output. For each input we have a mute button and a level slider:</p>
+<div class="faust-run"><a href="img/src/exfaust120/exfaust120-svg/process.svg" target="_blank"><img src="img/src/exfaust120/exfaust120-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>input(v) = vgroup(&quot;input %v&quot;, *(1-checkbox(&quot;mute&quot;)) : *(vslider(&quot;level&quot;, 0, 0, 1, 0.01)));
+process = hgroup(&quot;mixer&quot;, par(i, 4, input(i)) :&gt; _);</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust120/exfaust120.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>If we query this application:</p>
+<pre><code>T1$ oscsend localhost 5510 &quot;/*&quot; s get </code></pre>
+<p>We get a full description of its OSC interface on terminal T2:</p>
+<pre><code>T2: /mixer sF &quot;xmit&quot; #F
+T2: /mixer ss &quot;desthost&quot; &quot;127.0.0.1&quot;
+T2: /mixer si &quot;outport&quot; 5511
+T2: /mixer si &quot;errport&quot; 5512
+T2: /mixer/input_0/level fff 0.0000 0.0000 1.0000
+T2: /mixer/input_0/mute  fff 0.0000 0.0000 1.0000
+T2: /mixer/input_1/level fff 0.0000 0.0000 1.0000
+T2: /mixer/input_1/mute  fff 0.0000 0.0000 1.0000
+T2: /mixer/input_2/level fff 0.0000 0.0000 1.0000
+T2: /mixer/input_2/mute  fff 0.0000 0.0000 1.0000
+T2: /mixer/input_3/level fff 0.0000 0.0000 1.0000
+T2: /mixer/input_3/mute  fff 0.0000 0.0000 1.0000</code></pre>
+<p>As we can see, each widget has a unique OSC address obtained by concatenating the top level group label “mixer,” with the “input” group label and the widget label (see the <a href="labels-as-pathnames">Labels as Pathnames Section</a>). Please, note that blank spaces are replaced by underscores and metadata are removed during this operation.</p>
+<p>All addresses must have a common root. This is the case in our example because there is a unique horizontal group <code>mixer</code> containing all widgets. If a common root is missing as in the following code:</p>
+<pre><code>input(v) = vgroup(&quot;input %v&quot;, *(1-checkbox(&quot;mute&quot;)) : *(vslider(&quot;level&quot;, 0, 0, 1, 0.01)));
+process = par(i, 4, input(i)) :&gt; _;</code></pre>
+<p>then a default vertical group is automatically create by the Faust compiler using the name of the file <code>mix4</code> as label:</p>
+<!-- TODO: is this still true? -->
+<pre><code>T2: /mix4 sF &quot;xmit&quot; #F
+T2: /mix4 ss &quot;desthost&quot; &quot;127.0.0.1&quot;
+T2: /mix4 si &quot;outport&quot; 5511
+T2: /mix4 si &quot;errport&quot; 5512
+T2: /mix4/input_0/level fff 0.0000 0.0000 1.0000
+T2: /mix4/input_0/mute  fff 0.0000 0.0000 1.0000
+T2: /mix4/input_1/level fff 0.0000 0.0000 1.0000
+T2: /mix4/input_1/mute  fff 0.0000 0.0000 1.0000
+T2: /mix4/input_2/level fff 0.0000 0.0000 1.0000
+T2: /mix4/input_2/mute  fff 0.0000 0.0000 1.0000
+T2: /mix4/input_3/level fff 0.0000 0.0000 1.0000
+T2: /mix4/input_3/mute  fff 0.0000 0.0000 1.0000</code></pre>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->

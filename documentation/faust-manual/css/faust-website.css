@@ -80,3 +80,8 @@ th, td {
   padding: 0.5rem;
 }
 
+blockquote{
+  padding-left: 1rem;
+  margin-left: 3rem;
+  border-left: solid 2px #ccc;
+}
