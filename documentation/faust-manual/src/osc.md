@@ -169,7 +169,10 @@ values: `i=integer`, `f=float`, `s=string`, etc.
 
 > `oscdump [port]`: receives OSC messages via UDP and dump to standard output
 
-In the following example, we'll use two separate terminal windows. The first 
+> Note that OSC messages can be sent from any OSC-compatible applications
+(e.g., PureData, Max/MSP, etc.).
+
+In the following examples, we'll use two separate terminal windows. The first 
 one will be used to send OSC messages to the `noise` application using 
 `oscsend`. The second terminal will be used to monitor the messages sent by the 
 application using `oscdump`. Commands executed on terminal 1 will be preceded 
@@ -300,3 +303,245 @@ T2: /mix4/input_2/mute  fff 0.0000 0.0000 1.0000
 T2: /mix4/input_3/level fff 0.0000 0.0000 1.0000
 T2: /mix4/input_3/mute  fff 0.0000 0.0000 1.0000
 ```
+
+## Controlling the Application Via OSC
+
+Any user interface element of the application can be controlled by sending one 
+of the previously discovered messages/addresses. For example, to set the noise 
+level of the application to `0.2` the following message can be sent:
+
+```
+T1$ oscsend localhost 5510 /noise/level f 0.2
+```
+	
+If we now query `/noise/level` we get, as expected, the value `0.2`:
+
+```
+T1$ oscsend localhost 5510 /noise/level s get
+T2: /noise/level fff 0.2000 0.0000 1.0000
+```
+
+## Turning Transmission ON
+
+The `xmit` message at the root level is used to control the realtime 
+transmission of OSC messages corresponding to user interface's actions. For 
+example:
+
+```
+T1$ oscsend localhost 5510 /noise si xmit 1
+```
+
+turns transmission in `ALL` mode. Now if we move the level slider we get a 
+bunch of messages:
+
+```
+T2: /noise/level f 0.024000
+T2: /noise/level f 0.032000
+T2: /noise/level f 0.105000
+T2: /noise/level f 0.250000
+T2: /noise/level f 0.258000
+T2: /noise/level f 0.185000
+T2: /noise/level f 0.145000
+T2: /noise/level f 0.121000
+T2: /noise/level f 0.105000
+T2: /noise/level f 0.008000
+T2: /noise/level f 0.000000
+```
+
+This feature can be typically used for automation to record and replay actions 
+on the user interface, or to remote control from one application to another. 
+It can be turned OFF any time using:
+
+```
+T1$ oscsend localhost 5510 /noise si xmit 0
+```
+
+Use the ALIAS (`xmit = 2`) mode if you need to restrict the access to your 
+program: when the ALIAS mode is used, only aliases of input elements (sliders, 
+buttons...) can be used to control them, and output elements (bargraph) will 
+only emit on their aliases.
+
+## Filtering OSC Messages
+
+When the transmission of OSC messages is ON, all the user interface elements 
+are sent through the OSC connection.  
+
+```
+T2: /harpe/level f 0.024000
+T2: /harpe/hand f 0.1
+T2: /harpe/level f 0.024000
+T2: /harpe/hand f 0.25
+T2: /harpe/level f 0.024000
+T2: /harpe/hand f 0.44
+T2: /noise/level f 0.145000
+T2: /harpe/hand f 0.78
+T2: /noise/level f 0.145000
+T2: /harpe/hand f 0.99
+```
+
+We can choose to filter unwanted parameters (or group of parameters).  For 
+example:
+
+```
+T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter /harpe/level
+```
+
+As a result, we will receive:
+
+```
+T2: /harpe/hand f 0.1
+T2: /harpe/hand f 0.25
+T2: /harpe/hand f 0.44
+T2: /harpe/hand f 0.78
+```
+
+To reset the filter, send:
+
+```
+T1$ oscsend localhost 5510 /harpe si xmit 1 xmitfilter
+```
+
+## Using OSC Aliases
+
+Aliases are a convenient mechanism to control a Faust application from a 
+preexisting set of OSC messages. 
+
+Let's say we want to control our previous noise example with 
+[TouchOSC](https://hexler.net/software/touchosc-android) on Android. The first 
+step is to configure the TouchOSC host to `192.168.1.102` (the host running our 
+noise application) and outgoing port to `5510`. 
+
+Then we can use `oscdump 5510` (after quitting the noise application in order 
+to free port `5510`) to visualize the OSC messages sent by TouchOSC. Let's use 
+for that the left slider of "simple layout". Here is what we get:
+
+<!-- TODO: not sure about all this: at least we could add a figure with the 
+interface but do we even want to use TouchOSC at all? -->
+
+```
+T2: /1/fader1 f 0.000000
+T2: /1/fader1 f 0.004975
+T2: /1/fader1 f 0.004975
+T2: /1/fader1 f 0.008125
+T2: /1/fader1 f 0.017473
+T2: /1/fader1 f 0.032499
+T2: /1/fader1 f 0.051032
+T2: ...
+T2: /1/fader1 f 0.993289
+T2: /1/fader1 f 1.000000
+```
+
+We can associate this OSC message to the noise level slider by inserting the 
+metadata `[osc:/1/fader1 0 1]` into the slider's label:
+
+> Several osc aliases can be inserted into a single label allowing the same 
+widget to be controlled by several OSC messages
+
+```
+import("stdfaust.lib");
+process = no.noise*hslider("level[osc:/1/fader1 0 1]",0,0,1,0.01);
+```
+	
+Because the range of `/1/fader1` is 0 to 1 (like the level slider), we can 
+remove the range mapping information and write simply :
+
+```
+import("stdfaust.lib");
+process = no.noise*hslider("level[osc:/1/fader1]",0,0,1,0.01);
+```
+	
+TouchOSC can also send accelerometer data by enabling 
+`Settings/Options/Accelerometer`. Using again `oscdump 5510` we can visualize 
+the messages sent by TouchOSC:
+
+```
+T2: ...
+T2: /accxyz fff -0.147842 0.019752 9.694721
+T2: /accxyz fff -0.157419 0.016161 9.686341
+T2: /accxyz fff -0.167594 0.012570 9.683948
+T2: ...
+```
+
+As we can see, TouchOSC sends the x, y and z accelerometers in a single message, 
+as a triplet of values ranging approximately from -9.81 to 9.81. In order to 
+select the appropriate accelerometer, we need to concatenate to `/accxyz` a 
+suffix `/0`, `/1` or `/2`. For example `/accxyz/0` will correspond to x, 
+`/accxyz/1` to y, etc. We also need to define a mapping because the ranges are 
+different:
+
+```
+import("stdfaust.lib");
+process = no.noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
+```
+
+| **alias** | **description** |
+| --- | --- |
+| `[osc:/1/rotary1 0 1]` | top left rotary knob |
+| `[osc:/1/rotary2 0 1]` | middle left rotary knob |
+| `[osc:/1/rotary3 0 1]` | bottom left rotary knob |
+| `[osc:/1/push1 0 1]` | bottom left push button |
+| `[osc:/1/push2 0 1]` | bottom center left push button |
+| `[osc:/1/toggle1 0 1]` | top center left toggle button |
+| `[osc:/1/toggle2 0 1]` | middle center left toggle button |
+| `[osc:/1/fader1 0 1]` | center left vertical fader |
+| `[osc:/1/toggle3 0 1]` | top center right toggle button |
+| `[osc:/1/toggle4 0 1]` | middle center right toggle button |
+| `[osc:/1/fader2 0 1]` | center right vertical toggle button |
+| `[osc:/1/rotary4 0 1]` | top right rotary knob |
+| `[osc:/1/rotary5 0 1]` | middle right rotary knob |
+| `[osc:/1/rotary6 0 1]` | bottom right rotary knob |
+| `[osc:/1/push3 0 1]` | bottom center right push button |
+| `[osc:/1/push4 0 1]` | bottom right push button |
+| `[osc:/1/fader3 0 1]` | bottom horizontal fader |
+| `[osc:/accxyz/0 -10 10]` |  $x$ accelerometer |
+| `[osc:/accxyz/1 -10 10]` |  $y$ accelerometer |
+| `[osc:/accxyz/2 -10 10]` |  $z$ accelerometer |
+
+<div style="text-align: center;">
+**_Examples of OSC Message Aliases for TouchOSC (Layout Mix2)._**
+</div>
+
+## OSC Cheat Sheet
+
+**Default Ports**
+
+| Port | Description |
+| --- | --- |
+| `5510` | default listening port |
+| `5511` | default transmission port |
+| `5512` | default error port |
+| `5513` | alternative listening ports |
+
+**Command Line Options**
+
+| Option | Description |
+| --- | --- |
+| `-port n` | set the port number used by the application to receive messages |
+| `-outport n` | set the port number used by the application to transmit messages |
+| `-errport n` | set the port number used by the application to transmit error messages |
+| `-desthost h` | set the destination host for the messages sent by the application |
+| `-xmit 0|1|2` | turn transmission OFF, ALL or ALIAS (default OFF) |
+| `-xmitfilter s` | filter the Faust paths at emission time |
+
+**Discovery Messages**
+
+| Message | Description |
+| --- | --- |
+| `oscsend host port "/*" s hello` | discover if any OSC application is listening on port *p* |
+| `oscsend host port "/*" s get` | query OSC interface of application listening on port *p* |
+
+**Control Messages**
+
+| Message | Description |
+| --- | --- |
+| `oscsend host port "/*" si xmit 0|1|2` | set transmission mode |
+| `oscsend host port widget s get` | get widget's value |
+| `oscsend host port widget f v` | set widget's value |
+
+**Alias**
+
+| Alias | Description |
+| --- | --- |
+| `"...[osc: address lo  hi ]..."` | alias with $lo \rightarrow min$, $hi \rightarrow max$ mapping |
+| `"...[osc:' address]..."` | alias with *min*, *max* clipping |
+
