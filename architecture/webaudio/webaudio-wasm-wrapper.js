@@ -1912,9 +1912,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.dspInChannnels = [];
     sp.dspOutChannnels = [];
 
-    sp.fFreqLabel = "";
-    sp.fGateLabel = "";
-    sp.fGainLabel = "";
+    sp.fFreqLabel = [];
+    sp.fGateLabel = [];
+    sp.fGainLabel = [];
     sp.fDate = 0;
 
     sp.fPitchwheelLabel = [];
@@ -2098,9 +2098,13 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             if (sp.dsp_voices_state[i] != sp.kFreeVoice) {
                 if (sp.dsp_voices_trigger[i]) {
                     // FIXME : properly cut the buffer in 2 slices...
-                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
+                    for (var j = 0; j < sp.fGateLabel.length; j++) {
+                        sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 0.0);
+                    }
                     sp.factory.compute(sp.dsp_voices[i], 1, sp.ins, sp.mixing);
-                    sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 1.0);
+                    for (var j = 0; j < sp.fGateLabel.length; j++) {
+                        sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 1.0);
+                    }
                     sp.factory.compute(sp.dsp_voices[i], buffer_size, sp.ins, sp.mixing);
                     sp.dsp_voices_trigger[i] = false;
                 } else {
@@ -2243,14 +2247,11 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         // keep 'keyOn/keyOff' labels
         for (i = 0; i < sp.inputs_items.length; i++) {
             if (sp.inputs_items[i].endsWith("/gate")) {
-                sp.fGateLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fGateLabel);
+                sp.fGateLabel.push(sp.pathTable[sp.inputs_items[i]]);
             } else if (sp.inputs_items[i].endsWith("/freq")) {
-                sp.fFreqLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fFreqLabel);
+                sp.fFreqLabel.push(sp.pathTable[sp.inputs_items[i]]);
             } else if (sp.inputs_items[i].endsWith("/gain")) {
-                sp.fGainLabel = sp.pathTable[sp.inputs_items[i]];
-                console.log(sp.fGainLabel);
+                sp.fGainLabel.push(sp.pathTable[sp.inputs_items[i]]);
             }
         }
 
@@ -2388,8 +2389,12 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
         if (faust.debug) {
             console.log("keyOn voice %d", voice);
         }
-        sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
-        sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
+        for (var i = 0; i < sp.fFreqLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel[i], sp.midiToFreq(pitch));
+        }
+        for (var i = 0; i < sp.fGainLabel.length; i++) {
+            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
+        }
         sp.dsp_voices_state[voice] = pitch;
     }
 
@@ -2408,7 +2413,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
                 console.log("keyOff voice %d", voice);
             }
             // No use of velocity for now...
-            sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel, 0.0);
+            for (var i = 0; i < sp.fGateLabel.length; i++) {
+                sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGateLabel[i], 0.0);
+            }
             // Release voice
             sp.dsp_voices_state[voice] = sp.kReleaseVoice;
         } else {
@@ -2424,7 +2431,9 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.allNotesOff = function ()
     {
         for (var i = 0; i < polyphony; i++) {
-            sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel, 0.0);
+            for (var j = 0; j < sp.fGateLabel.length; j++) {
+                sp.factory.setParamValue(sp.dsp_voices[i], sp.fGateLabel[j], 0.0);
+            }
             sp.dsp_voices_state[i] = sp.kReleaseVoice;
         }
     }
@@ -2894,9 +2903,9 @@ var mydspPolyProcessorString = `
             this.dspInChannnels = [];
             this.dspOutChannnels = [];
 
-            this.fFreqLabel = "";
-            this.fGateLabel = "";
-            this.fGainLabel = "";
+            this.fFreqLabel = [];
+            this.fGateLabel = [];
+            this.fGainLabel = [];
             this.fDate = 0;
 
             this.fPitchwheelLabel = [];
@@ -3179,14 +3188,11 @@ var mydspPolyProcessorString = `
                 // keep 'keyOn/keyOff' labels
                 for (i = 0; i < this.inputs_items.length; i++) {
                     if (this.inputs_items[i].endsWith("/gate")) {
-                        this.fGateLabel = this.pathTable[this.inputs_items[i]];
-                        console.log(this.fGateLabel);
+                        this.fGateLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/freq")) {
-                        this.fFreqLabel = this.pathTable[this.inputs_items[i]];
-                        console.log(this.fFreqLabel);
+                        this.fFreqLabel.push(this.pathTable[this.inputs_items[i]]);
                     } else if (this.inputs_items[i].endsWith("/gain")) {
-                        this.fGainLabel = this.pathTable[this.inputs_items[i]];
-                        console.log(this.fGainLabel);
+                        this.fGainLabel.push(this.pathTable[this.inputs_items[i]]);
                     }
                 }
 
@@ -3207,8 +3213,12 @@ var mydspPolyProcessorString = `
                 if (this.debug) {
                     console.log("keyOn voice %d", voice);
                 }
-                this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel, this.midiToFreq(pitch));
-                this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel, velocity/127.);
+                for (var i = 0; i < this.fFreqLabel.length; i++) {
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fFreqLabel[i], this.midiToFreq(pitch));
+                }
+                for (var i = 0; i < this.fGainLabel.length; i++) {
+                    this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
+                }
                 this.dsp_voices_state[voice] = pitch;
             }
 
@@ -3217,7 +3227,9 @@ var mydspPolyProcessorString = `
                 var voice = this.getPlayingVoice(pitch);
                 if (voice !== this.kNoVoice) {
                     // No use of velocity for now...
-                    this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel, 0.0);
+                    for (var i = 0; i < this.fGateLabel.length; i++) {
+                        this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 0.0);
+                    }
                     // Release voice
                     this.dsp_voices_state[voice] = this.kReleaseVoice;
                 } else {
@@ -3230,7 +3242,9 @@ var mydspPolyProcessorString = `
             this.allNotesOff = function ()
             {
                 for (var i = 0; i <  this.polyphony; i++) {
-                    this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
+                    for (var j = 0; j < this.fGateLabel.length; j++) {
+                        this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
+                    }
                     this.dsp_voices_state[i] = this.kReleaseVoice;
                 }
             }
@@ -3365,9 +3379,13 @@ var mydspPolyProcessorString = `
                 if (this.dsp_voices_state[i] != this.kFreeVoice) {
                     if (this.dsp_voices_trigger[i]) {
                         // FIXME : properly cut the buffer in 2 slices...
-                        this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 0.0);
+                        for (var j = 0; j < this.fGateLabel.length; j++) {
+                            this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 0.0);
+                        }
                         this.factory.compute(this.dsp_voices[i], 1, this.ins, this.mixing);
-                        this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel, 1.0);
+                        for (var j = 0; j < this.fGateLabel.length; j++) {
+                            this.factory.setParamValue(this.dsp_voices[i], this.fGateLabel[j], 1.0);
+                        }
                         this.factory.compute(this.dsp_voices[i], mydspPolyProcessor.buffer_size, this.ins, this.mixing);
                         this.dsp_voices_trigger[i] = false;
                     } else {
