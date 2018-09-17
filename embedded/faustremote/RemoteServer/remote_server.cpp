@@ -335,7 +335,11 @@ void dsp_server_connection_info::getJson(dsp_factory* factory)
                 tmp_dsp->getNumOutputs(),
                 factory->getSHAKey(),
                 base64_encode(code.c_str(), int(code.size())),
-                "", "", "", std::map<std::string, int>());
+                "", "",
+                std::vector<std::string>(),
+                std::vector<std::string>(),
+                "",
+                std::map<std::string, int>());
     tmp_dsp->metadata(&json);
     tmp_dsp->buildUserInterface(&json);
     delete tmp_dsp;

@@ -47,6 +47,7 @@ public class FaustJNI {
   public final static native String getCTarget(long jarg1, llvm_dsp_factory jarg1_);
   public final static native long getCDSPFactoryLibraryList(long jarg1, llvm_dsp_factory jarg1_);
   public final static native long getCDSPFactoryIncludePathnames(long jarg1, llvm_dsp_factory jarg1_);
+  public final static native String getCDSPFactoryCompileOptions(long jarg1, llvm_dsp_factory jarg1_);
   public final static native void deleteAllCDSPFactories();
   public final static native long getAllCDSPFactories();
   public final static native boolean startMTCDSPFactories();

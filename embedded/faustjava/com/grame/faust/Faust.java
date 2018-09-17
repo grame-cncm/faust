@@ -102,6 +102,10 @@ public class Faust {
     return (cPtr == 0) ? null : new SWIGTYPE_p_p_char(cPtr, false);
   }
 
+  public static String getCDSPFactoryCompileOptions(llvm_dsp_factory factory) {
+    return FaustJNI.getCDSPFactoryCompileOptions(llvm_dsp_factory.getCPtr(factory), factory);
+  }
+
   public static void deleteAllCDSPFactories() {
     FaustJNI.deleteAllCDSPFactories();
   }

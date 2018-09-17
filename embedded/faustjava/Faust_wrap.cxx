@@ -939,6 +939,21 @@ SWIGEXPORT jlong JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryIncludePath
 }
 
 
+SWIGEXPORT jstring JNICALL Java_com_grame_faust_FaustJNI_getCDSPFactoryCompileOptions(JNIEnv *jenv, jclass jcls, jlong jarg1, jobject jarg1_) {
+  jstring jresult = 0 ;
+  llvm_dsp_factory *arg1 = (llvm_dsp_factory *) 0 ;
+  char *result = 0 ;
+  
+  (void)jenv;
+  (void)jcls;
+  (void)jarg1_;
+  arg1 = *(llvm_dsp_factory **)&jarg1; 
+  result = (char *)getCDSPFactoryCompileOptions(arg1);
+  if (result) jresult = jenv->NewStringUTF((const char *)result);
+  return jresult;
+}
+
+
 SWIGEXPORT void JNICALL Java_com_grame_faust_FaustJNI_deleteAllCDSPFactories(JNIEnv *jenv, jclass jcls) {
   (void)jenv;
   (void)jcls;

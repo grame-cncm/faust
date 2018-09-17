@@ -367,6 +367,8 @@ EXPORT char* getCDSPMachineTarget();
 EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
 
 EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+    
+EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
 
 EXPORT void deleteAllCDSPFactories();
 
