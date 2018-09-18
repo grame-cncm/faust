@@ -503,7 +503,7 @@ process = no.noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 
 ## OSC Cheat Sheet
 
-**Default Ports**
+### Default Ports
 
 | Port | Description |
 | --- | --- |
@@ -512,7 +512,7 @@ process = no.noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 | `5512` | default error port |
 | `5513` | alternative listening ports |
 
-**Command Line Options**
+### Command Line Options
 
 | Option | Description |
 | --- | --- |
@@ -523,14 +523,14 @@ process = no.noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 | `-xmit 0|1|2` | turn transmission OFF, ALL or ALIAS (default OFF) |
 | `-xmitfilter s` | filter the Faust paths at emission time |
 
-**Discovery Messages**
+### Discovery Messages
 
 | Message | Description |
 | --- | --- |
 | `oscsend host port "/*" s hello` | discover if any OSC application is listening on port *p* |
 | `oscsend host port "/*" s get` | query OSC interface of application listening on port *p* |
 
-**Control Messages**
+### Control Messages
 
 | Message | Description |
 | --- | --- |
@@ -538,7 +538,7 @@ process = no.noise * hslider("level[osc:/accxyz/0 0 9.81]",0,0,1,0.01);
 | `oscsend host port widget s get` | get widget's value |
 | `oscsend host port widget f v` | set widget's value |
 
-**Alias**
+### Alias
 
 | Alias | Description |
 | --- | --- |
