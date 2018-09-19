@@ -26,17 +26,19 @@ static void tab(int n, ostream &fout)
  */
 static void printlines(int n, list<string> &lines, ostream &fout)
 {
-    string curr = "NONE";  // the current if-statement condition if any
+    string curr = "NONE";  // at first, no if-statement open
     for (auto s : lines) {
         string cond, body;
         if (isIfExpression(s, cond, body)) {
+            // We have a conditional statement
             if (cond != curr) {
-                // we have a new condition
+                // with a different condition from the current one
                 if (curr != "NONE") {
-                    // we need to close previously open if statement
+                    // There is a previously open if-statement that we need to close
                     tab(n, fout);
                     fout << "}";
                 }
+                // we need to open a new if-statement
                 tab(n, fout);
                 fout << "if (" << cond << ") {";
             }
@@ -44,9 +46,9 @@ static void printlines(int n, list<string> &lines, ostream &fout)
             fout << body;
             curr = cond;
         } else {
-            // we have no condition
+            // we have an unconditional statement
             if (curr != "NONE") {
-                // we need to close previously open if statement
+                // There is a previously open if-statement that we need to close
                 tab(n, fout);
                 fout << "}";
                 curr = "NONE";
@@ -54,6 +56,12 @@ static void printlines(int n, list<string> &lines, ostream &fout)
             tab(n, fout);
             fout << s;
         }
+    }
+    if (curr != "NONE") {
+        // There is a previously open if-statement that we need to close
+        tab(n, fout);
+        fout << "}";
+        curr = "NONE";
     }
 }
 
