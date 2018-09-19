@@ -23,10 +23,11 @@ static void tab(int n, ostream &fout) {
  * @param fout output stream
  */
 static void printlines(int n, list<string> &lines, ostream &fout) {
+  fout << "\n// loop.cpp printlines\n";
   list<string>::iterator s;
-  for (s = lines.begin(); s != lines.end(); s++) {
+  for (auto s : lines) {
     tab(n, fout);
-    fout << *s;
+    fout << s;
   }
 }
 
@@ -155,8 +156,8 @@ static bool isIfExpression(const string &expr, string &cond, string &body) {
     }
   }
   if (state == 6) {
-    cerr << "it is a if statement with condition : " << cpart
-         << " and with body: " << bpart << endl;
+    // cerr << "it is a if statement with condition : " << cpart
+    //     << " and with body: " << bpart << endl;
     cond = cpart;
     body = bpart;
     return true;
@@ -217,8 +218,8 @@ void Loop::println(int n, ostream &fout) {
 
   if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
     /*        if (gVectorSwitch) {
-    tab(n,fout);
-    fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
+tab(n,fout);
+fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
 }*/
 
     tab(n, fout);
@@ -313,8 +314,8 @@ void Loop::printParLoopln(int n, ostream &fout) {
 void Loop::printoneln(int n, ostream &fout) {
   if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
     /*        if (gVectorSwitch) {
-    tab(n,fout);
-    fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
+tab(n,fout);
+fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
 }*/
 
     if (fCommonRate == 1) {
