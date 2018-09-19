@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,31 +18,28 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
 #ifndef _ERRORMSG_
 #define _ERRORMSG_
 
 #include "tlib.hh"
 
-
-extern int 			yylineno;
-extern const char * yyfilename;
-extern int 			gErrorCount;
+extern int         yylineno;
+extern const char* yyfilename;
+extern int         gErrorCount;
 
 // associate and retrieve file and line properties to a symbol
-void 		setDefProp(Tree sym, const char* filename, int lineno);
+void        setDefProp(Tree sym, const char* filename, int lineno);
 const char* getDefFileProp(Tree sym);
-int 		getDefLineProp(Tree sym);
+int         getDefLineProp(Tree sym);
 
 // Parsing error
-void 		yyerror(const char* msg);
+void yyerror(const char* msg);
 
 // three levels or errors, warnings and remarks are provided during evaluation
-void 		evalerror(const char* filename, int linenum, const char* msg, Tree exp);
-void        evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp);
-void 		evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
-void 		evalremark(const char* filename, int linenum, const char* msg, Tree exp);
+void evalerror(const char* filename, int linenum, const char* msg, Tree exp);
+void evalerrorbox(const char* filename, int linenum, const char* msg, Tree exp);
+void evalwarning(const char* filename, int linenum, const char* msg, Tree exp);
+void evalremark(const char* filename, int linenum, const char* msg, Tree exp);
 
 #endif

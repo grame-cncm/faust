@@ -19,72 +19,67 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #include <stdio.h>
 
-#include <set>
-#include <vector>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "signals.hh"
 #include "sigtype.hh"
 #include "sigtyperules.hh"
 #include "xtended.hh"
 
+#include "Text.hh"
 #include "sigToGraph.hh"
 #include "sigraterules.hh"
-#include "Text.hh"
 
 using namespace std;
 
-static void     recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R );
-static string   commonattr(Type t);
-static string   nodeattr(Type t);
-static string   edgeattr(Type t, int rate);
-static string   sigLabel(Tree sig);
-
+static void   recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R);
+static string commonattr(Type t);
+static string nodeattr(Type t);
+static string edgeattr(Type t, int rate);
+static string sigLabel(Tree sig);
 
 /**
  * Draw a list of signals as a directed graph using graphviz's dot language
  */
-void sigToGraph (Tree L, ofstream& fout, RateInferrer* R)
+void sigToGraph(Tree L, ofstream& fout, RateInferrer* R)
 {
-    set<Tree>   alreadyDrawn;
+    set<Tree> alreadyDrawn;
 
     fout << "strict digraph loopgraph {\n"
-         << "    rankdir=LR; node [fontsize=10];"
-         << endl;
+         << "    rankdir=LR; node [fontsize=10];" << endl;
     int out = 0;
     while (isList(L)) {
         recdraw(hd(L), alreadyDrawn, fout, R);
 
         fout << "OUTPUT_" << out << "[color=\"red2\" style=\"filled\" fillcolor=\"pink\"];" << endl;
-        fout << 'S' << hd(L) << " -> " << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L)), R->rate(hd(L))) << "];" << endl;
+        fout << 'S' << hd(L) << " -> "
+             << "OUTPUT_" << out++ << "[" << edgeattr(getCertifiedSigType(hd(L)), R->rate(hd(L))) << "];" << endl;
         L = tl(L);
     }
 
     fout << "}" << endl;
 }
 
-
 /******************************* IMPLEMENTATION ***********************************/
-
 
 /**
  * Draw recursively a signal
  */
-static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R )
+static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R)
 {
-    //cerr << ++TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
-    vector<Tree>    subsig;
-    int             n;
+    // cerr << ++TABBER << "ENTER REC DRAW OF " << sig << "$" << *sig << endl;
+    vector<Tree> subsig;
+    int          n;
 
     if (drawn.count(sig) == 0) {
         // the signal has never been drawn
-        drawn.insert(sig);                  // remember it
+        drawn.insert(sig);  // remember it
         if (isList(sig)) {
             // it's a list of signals : we draw each signal of the list
             do {
@@ -94,9 +89,8 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R 
         } else {
             // it is a regular signal
             // first draw the node
-            fout    << 'S' << sig << "[label=\"" << sigLabel(sig) << "\""
-                    << nodeattr(getCertifiedSigType(sig)) << "];"
-                    << endl;
+            fout << 'S' << sig << "[label=\"" << sigLabel(sig) << "\"" << nodeattr(getCertifiedSigType(sig)) << "];"
+                 << endl;
 
             // then draw the subsignals if any
             n = getSubSignals(sig, subsig);
@@ -104,11 +98,11 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R 
                 Tree id, body;
                 // check special recursion case, recreate a vector of subsignals instead of the
                 // list provided by getSubSignal
-                if (n==1 && isList(subsig[0])) {
-					Tree id, body;
-                    assert(isRec(sig,id,body));
-					if (!isRec(sig,id,body)) {
-					}
+                if (n == 1 && isList(subsig[0])) {
+                    Tree id, body;
+                    assert(isRec(sig, id, body));
+                    if (!isRec(sig, id, body)) {
+                    }
                     // special recursion case, recreate a vector of subsignals instead of the
                     // list provided by getSubSignal
                     Tree L = subsig[0];
@@ -122,26 +116,22 @@ static void recdraw(Tree sig, set<Tree>& drawn, ofstream& fout, RateInferrer* R 
                 }
 
                 // draw each subsignal
-                for (int i=0; i<n; i++) {
+                for (int i = 0; i < n; i++) {
                     recdraw(subsig[i], drawn, fout, R);
-                    if (isRec(subsig[i],id,body)) {
+                    if (isRec(subsig[i], id, body)) {
                         // special case when source is a recursive group, we don't want a rate
-                        fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                                << "[style=dashed];"
-                                << endl;
+                        fout << 'S' << subsig[i] << " -> " << 'S' << sig << "[style=dashed];" << endl;
                     } else {
                         // special case when source is a recursive group, we don't want a rate
-                        fout    << 'S' << subsig[i] << " -> " << 'S' << sig
-                                << "[" << edgeattr(getCertifiedSigType(subsig[i]), R->rate(subsig[i])) << "];"
-                                << endl;
+                        fout << 'S' << subsig[i] << " -> " << 'S' << sig << "["
+                             << edgeattr(getCertifiedSigType(subsig[i]), R->rate(subsig[i])) << "];" << endl;
                     }
                 }
             }
         }
     }
-    //cerr << --TABBER << "EXIT REC DRAW OF " << sig << endl;
+    // cerr << --TABBER << "EXIT REC DRAW OF " << sig << endl;
 }
-
 
 /**
  * Convert a signal type into attributes common to edges and nodes
@@ -151,14 +141,14 @@ static string commonattr(Type t)
     string s;
 
     // nature
-    if (t->nature()==kInt) {
+    if (t->nature() == kInt) {
         s += " color=\"blue\"";
     } else {
         s += " color=\"red\"";
     }
 
     // vectorability
-    if (t->vectorability()==kVect && t->variability()==kSamp) {
+    if (t->vectorability() == kVect && t->variability() == kSamp) {
         s += " style=\"bold\"";
     }
 
@@ -167,7 +157,7 @@ static string commonattr(Type t)
 /**
  * Convert a signal type into edge attributes
  */
-    static string edgeattr(Type t, int rate)
+static string edgeattr(Type t, int rate)
 {
     string      s;
     vector<int> d;
@@ -177,14 +167,13 @@ static string commonattr(Type t)
 
     // add rate information as label at the head of the arrow
     s += " label=\"";
-    for (int i=0; i<d.size(); i++) {
+    for (int i = 0; i < d.size(); i++) {
         s += subst("[$0]", T(d[i]));
     }
     s += subst("x$0\" fontsize=8", T(rate));
 
     return s;
 }
-
 
 /**
  * Convert a signal type into node attributes
@@ -194,75 +183,98 @@ static string nodeattr(Type t)
     string s = commonattr(t);
 
     // variability
-    if (t->variability()==kKonst) {
+    if (t->variability() == kKonst) {
         s += " shape=\"box\"";
-    } else if (t->variability()==kBlock) {
+    } else if (t->variability() == kBlock) {
         s += " shape=\"hexagon\"";
-    } else if (t->variability()==kSamp) {
+    } else if (t->variability() == kSamp) {
         s += " shape=\"ellipse\"";
     }
 
     return s;
 }
 
-
 /**
  * translate signal binary operations into strings
  */
-static const char* binopname[]= {
-        "+", "-", "*", "/", "%",
-        "<<", ">>",
-        ">", "<", ">=", "<=", "==", "!=",
-        "&", "|", "^"
-};
-
+static const char* binopname[] = {"+", "-", "*", "/", "%", "<<", ">>", ">", "<", ">=", "<=", "==", "!=", "&", "|", "^"};
 
 /**
  * return the label of a signal as a string
  */
 static string sigLabel(Tree sig)
 {
-    int         i;
-    double      r;
-    Tree        x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label;
+    int    i;
+    double r;
+    Tree   x, y, z, c, type, name, file, ff, largs, id, le, sel, var, label;
 
-    xtended*    p = (xtended*) getUserData(sig);
+    xtended* p = (xtended*)getUserData(sig);
 
     stringstream fout;
 
-         if (p)                                     { fout << p->name(); }
-    else if ( isSigInt(sig, &i) )                   { fout << i;	}
-    else if ( isSigReal(sig, &r) )                  { fout << r;	}
-    else if ( isSigWaveform(sig))                   { fout << "waveform";  }
+    if (p) {
+        fout << p->name();
+    } else if (isSigInt(sig, &i)) {
+        fout << i;
+    } else if (isSigReal(sig, &r)) {
+        fout << r;
+    } else if (isSigWaveform(sig)) {
+        fout << "waveform";
+    }
 
-    else if ( isSigInput(sig, &i) )                 { fout << "INPUT_" << i; }
-    else if ( isSigOutput(sig, &i, x) )             { fout << "OUTPUT_" << i; }
+    else if (isSigInput(sig, &i)) {
+        fout << "INPUT_" << i;
+    } else if (isSigOutput(sig, &i, x)) {
+        fout << "OUTPUT_" << i;
+    }
 
-    else if ( isSigDelay1(sig, x) )                 { fout << "mem";		}
-    else if ( isSigFixDelay(sig, x, y) )            { fout << "@";          }
-    else if ( isSigPrefix(sig, x, y) )              { fout << "prefix";		}
-    else if ( isSigIota(sig, x) )                   { fout << "iota";       }
-    else if ( isSigBinOp(sig, &i, x, y) )           { fout << binopname[i]; }
-    else if ( isSigFFun(sig, ff, largs) )			{ fout << "ffunction:" << *ff; }
-    else if ( isSigFConst(sig, type, name, file) )  { fout << *name; }
-    else if ( isSigFVar(sig, type, name, file) )    { fout << *name; }
+    else if (isSigDelay1(sig, x)) {
+        fout << "mem";
+    } else if (isSigFixDelay(sig, x, y)) {
+        fout << "@";
+    } else if (isSigPrefix(sig, x, y)) {
+        fout << "prefix";
+    } else if (isSigIota(sig, x)) {
+        fout << "iota";
+    } else if (isSigBinOp(sig, &i, x, y)) {
+        fout << binopname[i];
+    } else if (isSigFFun(sig, ff, largs)) {
+        fout << "ffunction:" << *ff;
+    } else if (isSigFConst(sig, type, name, file)) {
+        fout << *name;
+    } else if (isSigFVar(sig, type, name, file)) {
+        fout << *name;
+    }
 
-    else if ( isSigTable(sig, id, x, y) ) 			{ fout << "table:" << id;	}
-    else if ( isSigWRTbl(sig, id, x, y, z) )		{ fout << "write:" << id;	}
-    else if ( isSigRDTbl(sig, x, y) ) 				{ fout << "read";	}
+    else if (isSigTable(sig, id, x, y)) {
+        fout << "table:" << id;
+    } else if (isSigWRTbl(sig, id, x, y, z)) {
+        fout << "write:" << id;
+    } else if (isSigRDTbl(sig, x, y)) {
+        fout << "read";
+    }
 
+    else if (isSigSelect2(sig, sel, x, y)) {
+        fout << "select2";
+    } else if (isSigSelect3(sig, sel, x, y, z)) {
+        fout << "select3";
+    }
 
+    else if (isSigGen(sig, x)) {
+        fout << "generator";
+    }
 
-    else if ( isSigSelect2(sig, sel, x, y) ) 		{ fout << "select2"; }
-    else if ( isSigSelect3(sig, sel, x, y, z) ) 	{ fout << "select3"; }
+    else if (isProj(sig, &i, x)) {
+        fout << "Proj" << i;
+    } else if (isRec(sig, var, le)) {
+        fout << "REC " << *var;
+    }
 
-    else if ( isSigGen(sig, x) ) 					{ fout << "generator"; }
-
-    else if ( isProj(sig, &i, x) )                  { fout << "Proj" << i;	}
-    else if ( isRec(sig, var, le) )                 { fout << "REC " << *var; }
-
-    else if ( isSigIntCast(sig, x) ) 				{ fout << "int"; }
-    else if ( isSigFloatCast(sig, x) ) 				{ fout << "float"; }
+    else if (isSigIntCast(sig, x)) {
+        fout << "int";
+    } else if (isSigFloatCast(sig, x)) {
+        fout << "float";
+    }
 #if 0
     else if ( isSigButton(sig, label) ) 			{ fout << "button \"" << *label << '"'; }
     else if ( isSigCheckbox(sig, label) ) 			{ fout << "checkbox \"" << *label << '"'; }
@@ -273,24 +285,43 @@ static string sigLabel(Tree sig)
     else if ( isSigVBargraph(sig, label,x,y,z) )	{ fout << "vbargraph \"" << *label << '"'; 	}
     else if ( isSigHBargraph(sig, label,x,y,z) )	{ fout << "hbargraph \"" << *label << '"'; 	}
 #else
-    else if ( isSigButton(sig, label) ) 			{ fout << "button"; }
-    else if ( isSigCheckbox(sig, label) ) 			{ fout << "checkbox"; }
-    else if ( isSigVSlider(sig, label,c,x,y,z) )	{ fout << "vslider";  }
-    else if ( isSigHSlider(sig, label,c,x,y,z) )	{ fout << "hslider";  }
-    else if ( isSigNumEntry(sig, label,c,x,y,z) )	{ fout << "nentry";  }
+    else if (isSigButton(sig, label)) {
+        fout << "button";
+    } else if (isSigCheckbox(sig, label)) {
+        fout << "checkbox";
+    } else if (isSigVSlider(sig, label, c, x, y, z)) {
+        fout << "vslider";
+    } else if (isSigHSlider(sig, label, c, x, y, z)) {
+        fout << "hslider";
+    } else if (isSigNumEntry(sig, label, c, x, y, z)) {
+        fout << "nentry";
+    }
 
-    else if ( isSigVBargraph(sig, label,x,y,z) )	{ fout << "vbargraph"; 	}
-    else if ( isSigHBargraph(sig, label,x,y,z) )	{ fout << "hbargraph"; 	}
+    else if (isSigVBargraph(sig, label, x, y, z)) {
+        fout << "vbargraph";
+    } else if (isSigHBargraph(sig, label, x, y, z)) {
+        fout << "hbargraph";
+    }
 #endif
-    else if ( isSigAttach(sig, x, y) )              { fout << "attach";		}
+    else if (isSigAttach(sig, x, y)) {
+        fout << "attach";
+    }
 
-    else if ( isSigVectorize(sig, x, y) )      { fout << "vectorize";		}
-    else if ( isSigSerialize(sig, x) )         { fout << "serialize";		}
-    else if ( isSigConcat(sig, x, y) )         { fout << "#";		}
-    else if ( isSigVectorAt(sig, x, y) )       { fout << "[]";		}
+    else if (isSigVectorize(sig, x, y)) {
+        fout << "vectorize";
+    } else if (isSigSerialize(sig, x)) {
+        fout << "serialize";
+    } else if (isSigConcat(sig, x, y)) {
+        fout << "#";
+    } else if (isSigVectorAt(sig, x, y)) {
+        fout << "[]";
+    }
 
-    else if ( isSigUpSample(sig, x, y) )       { fout << "up";		}
-    else if ( isSigDownSample(sig, x, y) )     { fout << "down";		}
+    else if (isSigUpSample(sig, x, y)) {
+        fout << "up";
+    } else if (isSigDownSample(sig, x, y)) {
+        fout << "down";
+    }
 
     else {
         cerr << "ERROR in sigLabel(), unrecognized signal : " << *sig << endl;

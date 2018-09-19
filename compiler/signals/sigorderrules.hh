@@ -6,4 +6,3 @@
 int getSigOrder(Tree sig);
 
 #endif
-

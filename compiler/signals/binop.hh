@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,45 +18,44 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
 #ifndef _BINOP_
 #define _BINOP_
 
 #include "node.hh"
 
-typedef const Node	(*comp) (const Node& a, const Node& b);
-typedef bool 		(*pred) (const Node& a);
+typedef const Node (*comp)(const Node& a, const Node& b);
+typedef bool (*pred)(const Node& a);
 
-struct BinOp 
-{
-	const char*	fName;
-    const char*	fNameVec;
-  	const char*	fNameScal;
-	comp 		fCompute;
-	pred		fLeftNeutral;
-	pred		fRightNeutral;
-	int			fPriority;
-	//
-	BinOp (const char* name, const char* namevec, const char* namescal, comp f, pred ln, pred rn, int priority) 
-			: fName(name), fNameVec(namevec), fNameScal(namescal), fCompute(f), fLeftNeutral(ln), fRightNeutral(rn), fPriority(priority) {  }
-	//
-	Node compute(const Node& a, const Node& b) { return fCompute(a,b); 	}
-	//
-	bool isRightNeutral(const Node& a)	{ return fRightNeutral(a); 	}
-	bool isLeftNeutral(const Node& a)	{ return fLeftNeutral(a); 	}
+struct BinOp {
+    const char* fName;
+    const char* fNameVec;
+    const char* fNameScal;
+    comp        fCompute;
+    pred        fLeftNeutral;
+    pred        fRightNeutral;
+    int         fPriority;
+    //
+    BinOp(const char* name, const char* namevec, const char* namescal, comp f, pred ln, pred rn, int priority)
+        : fName(name),
+          fNameVec(namevec),
+          fNameScal(namescal),
+          fCompute(f),
+          fLeftNeutral(ln),
+          fRightNeutral(rn),
+          fPriority(priority)
+    {
+    }
+    //
+    Node compute(const Node& a, const Node& b) { return fCompute(a, b); }
+    //
+    bool isRightNeutral(const Node& a) { return fRightNeutral(a); }
+    bool isLeftNeutral(const Node& a) { return fLeftNeutral(a); }
 };
 
 extern BinOp* gBinOpTable[];
 extern BinOp* gBinOpLateqTable[];
 
-
-enum {
-	kAdd, kSub, kMul, kDiv, kRem,
-	kLsh, kRsh,
-	kGT, kLT, kGE, kLE, kEQ, kNE,
-	kAND, kOR, kXOR
-};
+enum { kAdd, kSub, kMul, kDiv, kRem, kLsh, kRsh, kGT, kLT, kGE, kLE, kEQ, kNE, kAND, kOR, kXOR };
 
 #endif

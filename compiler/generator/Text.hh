@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -23,12 +23,12 @@
 #define _stringFAUST_H
 
 /**********************************************************************
-			- string.h : Chaines de caractere -
+            - string.h : Chaines de caractere -
 
 
-		Historique :
-		-----------
-		17-11-2001 : implementation initiale (yo)
+        Historique :
+        -----------
+        17-11-2001 : implementation initiale (yo)
 ***********************************************************************/
 #include <string>
 #include <vector>
@@ -39,14 +39,17 @@ string subst(const string &m, const vector<string> &vargs);
 string subst(const string &m, const string &a0, const string &a1);
 string subst(const string &m, const string &a0, const string &a1, const string &a2);
 string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3);
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4);
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5);
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5, const string &a6);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4, const string &a5);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4, const string &a5, const string &a6);
 
 string T(char *c);
 string T(int n);
 string T(long n);
-//string T (float n);
+// string T (float n);
 string T(double n);
 
 // add and remove quotes of a string

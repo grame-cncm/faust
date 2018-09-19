@@ -1,5 +1,6 @@
 #ifndef __NORMALIZE__
 #define __NORMALIZE__
+#include "tree.hh"
 
 Tree normalizeAddTerm(Tree t);
 

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,38 +18,33 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #ifndef __EVALBOXES__
 #define __EVALBOXES__
- 
- 
- 
-/** 						
- * \file eval.hh 
+
+/**
+ * \file eval.hh
  *
  * Interface of the block diagram evaluator.
  *
  * A strict lambda-calculus evaluator for block diagram expressions.
  *
  **/
- 
- 
 
 #include "boxes.hh"
-#include "sourcereader.hh"
 #include "environment.hh"
+#include "sourcereader.hh"
 
 /**
  * Eval the definition of 'process'.
- * 
+ *
  * Eval the definition of 'process' in the environment passed as argument
  * @param eqlist the global environment (a list of definitions)
  * @return the 'process' block diagram in normal form that is
  **/
- 
-Tree evalprocess (Tree eqlist);
-Tree evaldocexpr (Tree docexpr, Tree eqlist);
 
+Tree evalprocess(Tree eqlist);
+Tree evaldocexpr(Tree docexpr, Tree eqlist);
 
 /**
  * Push a new layer and add a single definition.
@@ -61,6 +56,6 @@ Tree evaldocexpr (Tree docexpr, Tree eqlist);
 Tree pushValueDef(Tree id, Tree def, Tree lenv);
 
 /* numeric simplification of pattern arguments */
-Tree simplifyPattern (Tree pattern);
+Tree simplifyPattern(Tree pattern);
 
 #endif

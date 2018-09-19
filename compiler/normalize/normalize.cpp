@@ -1,17 +1,17 @@
-#include <stdio.h>
-#include <assert.h>
-#include "tlib.hh"
-#include "signals.hh"
-#include "sigprint.hh"
-#include "ppsig.hh"
-#include "simplify.hh"
 #include "normalize.hh"
-#include "sigorderrules.hh"
-#include <map>
+#include <assert.h>
+#include <stdio.h>
 #include <list>
+#include <map>
+#include "ppsig.hh"
+#include "signals.hh"
+#include "sigorderrules.hh"
+#include "sigprint.hh"
+#include "simplify.hh"
+#include "tlib.hh"
 
-#include "mterm.hh"
 #include "aterm.hh"
+#include "mterm.hh"
 
 #if 0
 static void countAddTerm (map<Tree,Tree>& M, Tree t, bool invflag);
@@ -32,20 +32,19 @@ static void factorizeAddTerm(map<Tree,Tree>& M);
 Tree normalizeAddTerm(Tree t)
 {
 #ifdef TRACE
-	cerr << "START normalizeAddTerm : " << ppsig(t) << endl;
+    cerr << "START normalizeAddTerm : " << ppsig(t) << endl;
 #endif
-	
-	aterm A(t);
-	//cerr << "ATERM IS : " << A << endl;
-	mterm D = A.greatestDivisor();
-	while (D.isNotZero() && D.complexity() > 0) {
-		//cerr << "GREAT DIV : " << D << endl;
-		A = A.factorize(D);
-		D = A.greatestDivisor();
-	}
-	return A.normalizedTree();
-}
 
+    aterm A(t);
+    // cerr << "ATERM IS : " << A << endl;
+    mterm D = A.greatestDivisor();
+    while (D.isNotZero() && D.complexity() > 0) {
+        // cerr << "GREAT DIV : " << D << endl;
+        A = A.factorize(D);
+        D = A.greatestDivisor();
+    }
+    return A.normalizedTree();
+}
 
 /**
  * Compute the normal form of a 1-sample delay term s'.
@@ -58,9 +57,8 @@ Tree normalizeAddTerm(Tree t)
  */
 Tree normalizeDelay1Term(Tree s)
 {
-	return normalizeFixedDelayTerm(s, tree(1));
+    return normalizeFixedDelayTerm(s, tree(1));
 }
-
 
 /**
  * Compute the normal form of a fixed delay term (s@d).
@@ -80,43 +78,37 @@ Tree normalizeDelay1Term(Tree s)
 
 Tree normalizeFixedDelayTerm(Tree s, Tree d)
 {
-	Tree x, y, r;
-	int i;
+    Tree x, y, r;
+    int  i;
 
-	if (isZero(d) && ! isProj(s, &i, r)) {
-
+    if (isZero(d) && !isProj(s, &i, r)) {
         return s;
 
-	} else if (isZero(s)) {
-
+    } else if (isZero(s)) {
         return s;
 
-	} else if (isSigMul(s, x, y)) {
+    } else if (isSigMul(s, x, y)) {
+        if (getSigOrder(x) < 2) {
+            return /*simplify*/ (sigMul(x, normalizeFixedDelayTerm(y, d)));
+        } else if (getSigOrder(y) < 2) {
+            return /*simplify*/ (sigMul(y, normalizeFixedDelayTerm(x, d)));
+        } else {
+            return sigFixDelay(s, d);
+        }
 
-		if (getSigOrder(x) < 2) {
-            return /*simplify*/(sigMul(x,normalizeFixedDelayTerm(y,d)));
-		} else if (getSigOrder(y) < 2) {
-            return /*simplify*/(sigMul(y,normalizeFixedDelayTerm(x,d)));
-		} else {
-			return sigFixDelay(s,d);
-		}
+    } else if (isSigDiv(s, x, y)) {
+        if (getSigOrder(y) < 2) {
+            return /*simplify*/ (sigDiv(normalizeFixedDelayTerm(x, d), y));
+        } else {
+            return sigFixDelay(s, d);
+        }
 
-	} else if (isSigDiv(s, x, y)) {
+    } else if (isSigFixDelay(s, x, y)) {
+        // (x@n)@m = x@(n+m)
+        //		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
+        return normalizeFixedDelayTerm(x, simplify(sigAdd(d, y)));
 
-		if (getSigOrder(y) < 2) {
-            return /*simplify*/(sigDiv(normalizeFixedDelayTerm(x,d),y));
-		} else {
-			return sigFixDelay(s,d);
-		}
-
-	} else if (isSigFixDelay(s, x, y)) {
-		// (x@n)@m = x@(n+m)
-//		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
-		return normalizeFixedDelayTerm(x,simplify(sigAdd(d,y))); 
-
-	} else {
-
-		return sigFixDelay(s,d);
-	}
+    } else {
+        return sigFixDelay(s, d);
+    }
 }
-

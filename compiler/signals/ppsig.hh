@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,18 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _PPSIG_H
 #define _PPSIG_H
 
 /**********************************************************************
-			- ppsig.h : pretty print signals expressions (projet FAUST) -
+            - ppsig.h : pretty print signals expressions (projet FAUST) -
 
 
-		Historique :
-		-----------
-		05-07-2006  first implementation  (yo)
+        Historique :
+        -----------
+        05-07-2006  first implementation  (yo)
 
 ***********************************************************************/
 
@@ -40,43 +38,44 @@
 
 using namespace std;
 
-//void 		fppbox (FILE* fout, Tree box, int priority=0);
+// void 		fppbox (FILE* fout, Tree box, int priority=0);
 
 // box pretty printer.
 // usage : out << boxpp(aBoxExp);
 
-class ppsig
-{
-	Tree 	sig;
-	Tree 	fEnv;		///< recursive environment stack
-	int		fPriority;	///< priority context
-	bool	fHideRecursion; 	///<
-public:
-	ppsig(Tree s) : sig(s), fEnv(nil), fPriority(0), fHideRecursion(false)  {}
-	ostream& print (ostream& fout) const;
+class ppsig {
+    Tree sig;
+    Tree fEnv;            ///< recursive environment stack
+    int  fPriority;       ///< priority context
+    bool fHideRecursion;  ///<
+   public:
+    ppsig(Tree s) : sig(s), fEnv(nil), fPriority(0), fHideRecursion(false) {}
+    ostream& print(ostream& fout) const;
 
-private:
-	ppsig(Tree s, Tree env, int priority=0) : sig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
-	ostream& printinfix (ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
-	ostream& printfun (ostream& fout, const string& funame, Tree x) const;
-	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y) const;
-	ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
-    ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
-    ostream& printfun (ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
-    ostream& printout (ostream& fout, int i, Tree x) const;
-	ostream& printlist (ostream& fout, Tree largs) const;
-	ostream& printff (ostream& fout, Tree ff, Tree largs) const;
-	ostream& printrec (ostream& fout, Tree var, Tree lexp, bool hide) const;
-	ostream& printrec (ostream& fout, Tree lexp, bool hide) const;
-	ostream& printextended (ostream& fout, Tree sig) const;
-	ostream& printui (ostream& fout, const string& funame, Tree label) const;
-	ostream& printui (ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
-	ostream& printui (ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
-	ostream& printlabel (ostream& fout, Tree pathname) const;
-	ostream& printFixDelay (ostream& fout, Tree exp, Tree delay) const;
-
+   private:
+    ppsig(Tree s, Tree env, int priority = 0) : sig(s), fEnv(env), fPriority(priority), fHideRecursion(false) {}
+    ostream& printinfix(ostream& fout, const string& opname, int priority, Tree x, Tree y) const;
+    ostream& printfun(ostream& fout, const string& funame, Tree x) const;
+    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y) const;
+    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z) const;
+    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree zz) const;
+    ostream& printfun(ostream& fout, const string& funame, Tree x, Tree y, Tree z, Tree z2, Tree z3) const;
+    ostream& printout(ostream& fout, int i, Tree x) const;
+    ostream& printlist(ostream& fout, Tree largs) const;
+    ostream& printff(ostream& fout, Tree ff, Tree largs) const;
+    ostream& printrec(ostream& fout, Tree var, Tree lexp, bool hide) const;
+    ostream& printrec(ostream& fout, Tree lexp, bool hide) const;
+    ostream& printextended(ostream& fout, Tree sig) const;
+    ostream& printui(ostream& fout, const string& funame, Tree label) const;
+    ostream& printui(ostream& fout, const string& funame, Tree label, Tree lo, Tree hi, Tree step) const;
+    ostream& printui(ostream& fout, const string& funame, Tree label, Tree cur, Tree lo, Tree hi, Tree step) const;
+    ostream& printlabel(ostream& fout, Tree pathname) const;
+    ostream& printFixDelay(ostream& fout, Tree exp, Tree delay) const;
 };
 
-inline ostream& operator << (ostream& file, const ppsig& pp) { return pp.print(file); }
+inline ostream& operator<<(ostream& file, const ppsig& pp)
+{
+    return pp.print(file);
+}
 
 #endif

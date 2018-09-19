@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,16 +18,14 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
 
-#ifndef     __COMPATIBILITY__
-#define     __COMPATIBILITY__
-
+#ifndef __COMPATIBILITY__
+#define __COMPATIBILITY__
 
 #ifdef WIN32
-#include <windows.h>
-#include <time.h>
 #include <assert.h>
+#include <time.h>
+#include <windows.h>
 
 #undef min
 #undef max
@@ -35,29 +33,31 @@
 //#define int64_t __int64
 #define YY_NO_UNISTD_H 1
 
-struct timezone 
-{
-	int  tz_minuteswest; /* minutes W of Greenwich */
-	int  tz_dsttime;     /* type of dst correction */
+struct timezone {
+    int tz_minuteswest; /* minutes W of Greenwich */
+    int tz_dsttime;     /* type of dst correction */
 };
 
 #define alarm(x)
 #define strdup _strdup
 #define snprintf _snprintf
 extern "C" {
-double  rint(double nr);
-int		gettimeofday(struct timeval *tv, struct timezone *tz);
-int chdir(const char *path);
-int		mkdir(const char* path, unsigned int attribute);
-char*	getcwd(char* str, int size);
-int		isatty(int file);
+double rint(double nr);
+int    gettimeofday(struct timeval* tv, struct timezone* tz);
+int    chdir(const char* path);
+int    mkdir(const char* path, unsigned int attribute);
+char*  getcwd(char* str, int size);
+int    isatty(int file);
 }
-void	getFaustPathname(char* str, unsigned int size);
-void	getFaustPathname(char* str, unsigned int size);
+void getFaustPathname(char* str, unsigned int size);
+void getFaustPathname(char* str, unsigned int size);
 
-#ifdef  NDEBUG
+#ifdef NDEBUG
 #undef assert
-#define assert(_Expression) do { bool bTest = (_Expression) != 0; } while (0)
+#define assert(_Expression)              \
+    do {                                 \
+        bool bTest = (_Expression) != 0; \
+    } while (0)
 #endif
 
 #define snprintf _snprintf
@@ -65,8 +65,8 @@ void	getFaustPathname(char* str, unsigned int size);
 #define FAUST_PATH_MAX 1024
 
 #if !defined(__MINGW32__)
-	double	remainder(double numerator, double denominator);
-	#define S_IRWXU 0
+double remainder(double numerator, double denominator);
+#define S_IRWXU 0
 #endif
 
 #define S_IRWXG 0

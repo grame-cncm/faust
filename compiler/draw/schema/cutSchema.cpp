@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,22 +19,18 @@
  ************************************************************************
  ************************************************************************/
 
-
 #include "cutSchema.h"
 #include <assert.h>
 
 using namespace std;
 
-
-
 /**
  * Creates a new Cut schema.
  */
-schema* makeCutSchema ()
+schema* makeCutSchema()
 {
-	return new cutSchema();
+    return new cutSchema();
 }
-
 
 /**
  * A Cut is represented by a small black dot. It has 1 input
@@ -42,40 +38,39 @@ schema* makeCutSchema ()
  * constructor is private in order to enforce the usage of
  * makeCutSchema.
  */
-cutSchema::cutSchema ()
-    : 	schema (1, 0, 0, dWire/100.0), fPoint(0,0)
-{}
-
+cutSchema::cutSchema() : schema(1, 0, 0, dWire / 100.0), fPoint(0, 0)
+{
+}
 
 /**
  * The input point is placed in the middle
  */
 void cutSchema::place(double ox, double oy, int orientation)
 {
-	beginPlace(ox, oy, orientation);
-    fPoint = point(ox, oy + height()*0.5); //, -1);
-	endPlace();
+    beginPlace(ox, oy, orientation);
+    fPoint = point(ox, oy + height() * 0.5);  //, -1);
+    endPlace();
 }
-
 
 /**
  * A cut is represented by a small black dot
  */
 void cutSchema::draw(device& dev)
 {
-    //dev.rond(fPoint.x, fPoint.y, dWire/8.0);
+    // dev.rond(fPoint.x, fPoint.y, dWire/8.0);
 }
 
 void cutSchema::collectTraits(collector& c)
-{}
+{
+}
 
 /**
  * By definition a Cut has only one input point
  */
 point cutSchema::inputPoint(unsigned int i) const
 {
-	assert(i==0);
-	return fPoint;
+    assert(i == 0);
+    return fPoint;
 }
 
 /**
@@ -83,8 +78,6 @@ point cutSchema::inputPoint(unsigned int i) const
  */
 point cutSchema::outputPoint(unsigned int) const
 {
-	assert(false);
-    return point(-1,-1);
+    assert(false);
+    return point(-1, -1);
 }
-
-

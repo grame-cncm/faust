@@ -15,8 +15,7 @@ using namespace std;
 static void tab(int n, ostream &fout)
 {
     fout << '\n';
-    while (n--)
-        fout << '\t';
+    while (n--) fout << '\t';
 }
 
 /**
@@ -27,34 +26,34 @@ static void tab(int n, ostream &fout)
  */
 static void printlines(int n, list<string> &lines, ostream &fout)
 {
-    tab(n, fout);
-    fout << "// loop.cpp printlines\n";
-    list<string>::iterator s;
-    string curr, cond, body;
-    curr = "NONE";
-    for (auto s : lines)
-    {
-        if (isIfExpression(s, cond, body))
-        {
-            if (curr == "NONE")
-            {
+    string curr = "NONE";  // the current if-statement condition if any
+    for (auto s : lines) {
+        string cond, body;
+        if (isIfExpression(s, cond, body)) {
+            if (cond != curr) {
+                // we have a new condition
+                if (curr != "NONE") {
+                    // we need to close previously open if statement
+                    tab(n, fout);
+                    fout << "}";
+                }
                 tab(n, fout);
                 fout << "if (" << cond << ") {";
-                tab(n + 1, fout);
-                fout << body;
             }
-            else if (curr == cond)
-            {
-                tab(n + 1, fout);
-                fout << body;
+            tab(n + 1, fout);
+            fout << body;
+            curr = cond;
+        } else {
+            // we have no condition
+            if (curr != "NONE") {
+                // we need to close previously open if statement
+                tab(n, fout);
+                fout << "}";
+                curr = "NONE";
             }
-            else
-            {
-                // we switched to a new condition
-            }
+            tab(n, fout);
+            fout << s;
         }
-        tab(n, fout);
-        fout << s;
     }
 }
 
@@ -65,9 +64,17 @@ static void printlines(int n, list<string> &lines, ostream &fout)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Tree recsymbol, Loop *encl, const string &size)
-    : fIsRecursive(true), fCommonRate(1), fRecSymbolSet(singleton(recsymbol)),
-      fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0),
-      fPrinted(0) {}
+    : fIsRecursive(true),
+      fCommonRate(1),
+      fRecSymbolSet(singleton(recsymbol)),
+      fEnclosingLoop(encl),
+      fSize(size),
+      fOrder(-1),
+      fIndex(-1),
+      fUseCount(0),
+      fPrinted(0)
+{
+}
 
 /**
  * Create a non recursive loop
@@ -75,9 +82,17 @@ Loop::Loop(Tree recsymbol, Loop *encl, const string &size)
  * @param size the number of iterations of the loop
  */
 Loop::Loop(Loop *encl, const string &size)
-    : fIsRecursive(false), fCommonRate(1), fRecSymbolSet(nil),
-      fEnclosingLoop(encl), fSize(size), fOrder(-1), fIndex(-1), fUseCount(0),
-      fPrinted(0) {}
+    : fIsRecursive(false),
+      fCommonRate(1),
+      fRecSymbolSet(nil),
+      fEnclosingLoop(encl),
+      fSize(size),
+      fOrder(-1),
+      fIndex(-1),
+      fUseCount(0),
+      fPrinted(0)
+{
+}
 
 /**
  * A loop with recursive dependencies can't be run alone.
@@ -89,8 +104,7 @@ Loop::Loop(Loop *encl, const string &size)
 bool Loop::hasRecDependencyIn(Tree S)
 {
     Loop *l = this;
-    while (l && isNil(setIntersection(l->fRecSymbolSet, S)))
-        l = l->fEnclosingLoop;
+    while (l && isNil(setIntersection(l->fRecSymbolSet, S))) l = l->fEnclosingLoop;
     return l != 0;
 }
 
@@ -100,8 +114,7 @@ bool Loop::hasRecDependencyIn(Tree S)
  */
 bool Loop::isEmpty()
 {
-    return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() &&
-           (fExtraLoops.begin() == fExtraLoops.end());
+    return fPreCode.empty() && fExecCode.empty() && fPostCode.empty() && (fExtraLoops.begin() == fExtraLoops.end());
 }
 
 /**
@@ -116,7 +129,10 @@ void Loop::addPreCode(const string &str)
 /**
  * Add a line of pre code  (begin of the loop)
  */
-void Loop::setCommonRate(int rate) { fCommonRate = rate; }
+void Loop::setCommonRate(int rate)
+{
+    fCommonRate = rate;
+}
 
 /**
  * Add a line of exec code
@@ -151,8 +167,7 @@ void Loop::absorb(Loop *l)
     fRecSymbolSet = setUnion(fRecSymbolSet, l->fRecSymbolSet);
 
     // update loop dependencies by adding those from the absorbed loop
-    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(),
-                                     l->fBackwardLoopDependencies.end());
+    fBackwardLoopDependencies.insert(l->fBackwardLoopDependencies.begin(), l->fBackwardLoopDependencies.end());
 
     // add the line of code of the absorbed loop
     fPreCode.insert(fPreCode.end(), l->fPreCode.begin(), l->fPreCode.end());
@@ -167,14 +182,11 @@ void Loop::absorb(Loop *l)
  */
 void Loop::println(int n, ostream &fout)
 {
-    for (list<Loop *>::const_iterator s = fExtraLoops.begin();
-         s != fExtraLoops.end(); s++)
-    {
+    for (list<Loop *>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
         (*s)->println(n, fout);
     }
 
-    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0)
-    {
+    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         /*        if (gVectorSwitch) {
 tab(n,fout);
 fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
@@ -182,8 +194,7 @@ fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
 
         tab(n, fout);
         fout << "// LOOP " << this;
-        if (fPreCode.size() > 0)
-        {
+        if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "// pre processing";
             printlines(n, fPreCode, fout);
@@ -197,8 +208,7 @@ fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
         tab(n, fout);
         fout << "}";
 
-        if (fPostCode.size() > 0)
-        {
+        if (fPostCode.size() > 0) {
             tab(n, fout);
             fout << "// post processing";
             printlines(n, fPostCode, fout);
@@ -215,9 +225,7 @@ fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
  */
 void Loop::printParLoopln(int n, ostream &fout)
 {
-    for (list<Loop *>::const_iterator s = fExtraLoops.begin();
-         s != fExtraLoops.end(); s++)
-    {
+    for (list<Loop *>::const_iterator s = fExtraLoops.begin(); s != fExtraLoops.end(); s++) {
         tab(n, fout);
         fout << "#pragma omp single";
         tab(n, fout);
@@ -227,13 +235,10 @@ void Loop::printParLoopln(int n, ostream &fout)
         fout << "}";
     }
 
-    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0)
-    {
-
+    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         tab(n, fout);
         fout << "// LOOP " << this;
-        if (fPreCode.size() > 0)
-        {
+        if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "#pragma omp single";
             tab(n, fout);
@@ -255,8 +260,7 @@ void Loop::printParLoopln(int n, ostream &fout)
         tab(n, fout);
         fout << "}";
 
-        if (fPostCode.size() > 0)
-        {
+        if (fPostCode.size() > 0) {
             tab(n, fout);
             fout << "#pragma omp single";
             tab(n, fout);
@@ -278,32 +282,26 @@ void Loop::printParLoopln(int n, ostream &fout)
  */
 void Loop::printoneln(int n, ostream &fout)
 {
-    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0)
-    {
+    if (fPreCode.size() + fExecCode.size() + fPostCode.size() > 0) {
         /*        if (gVectorSwitch) {
 tab(n,fout);
 fout << ((fIsRecursive) ? "// recursive loop" : "// vectorizable loop");
 }*/
 
-        if (fCommonRate == 1)
-        {
+        if (fCommonRate == 1) {
             tab(n, fout);
             fout << "for (int i=0; i<" << fSize << "; i++) {";
-        }
-        else
-        {
+        } else {
             tab(n, fout);
             fout << "for (int i=0; i<" << fSize << "*" << fCommonRate << "; i++) {";
         }
-        if (fPreCode.size() > 0)
-        {
+        if (fPreCode.size() > 0) {
             tab(n + 1, fout);
             fout << "// pre processing";
             printlines(n + 1, fPreCode, fout);
         }
         printlines(n + 1, fExecCode, fout);
-        if (fPostCode.size() > 0)
-        {
+        if (fPostCode.size() > 0) {
             tab(n + 1, fout);
             fout << "// post processing";
             printlines(n + 1, fPostCode, fout);

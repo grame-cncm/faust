@@ -32,11 +32,11 @@
 
 ***********************************************************************/
 
+#include <stdio.h>
 #include <iostream>
 #include <list>
 #include <map>
 #include <sstream>
-#include <stdio.h>
 #include <string>
 
 #include "Text.hh"
@@ -48,25 +48,24 @@
 #include "smartpointer.hh"
 #include "uitree.hh"
 
-extern int gFloatSize;
+extern int  gFloatSize;
 extern bool gVectorSwitch;
 extern bool gDeepFirstSwitch;
 extern bool gOpenMPSwitch;
 extern bool gOpenMPLoop;
 extern bool gSchedulerSwitch;
-extern int gVecSize;
+extern int  gVecSize;
 extern bool gUIMacroSwitch;
-extern int gVectorLoopVariant;
+extern int  gVectorLoopVariant;
 extern bool gGroupTaskSwitch;
 
 extern map<Tree, set<Tree>> gMetaDataSet;
-static int gTaskCount = 0;
+static int                  gTaskCount = 0;
 
 void tab(int n, ostream &fout)
 {
     fout << '\n';
-    while (n--)
-        fout << '\t';
+    while (n--) fout << '\t';
 }
 
 bool Klass::fNeedPowerDef = false;
@@ -74,7 +73,10 @@ bool Klass::fNeedPowerDef = false;
 /**
  * Store the loop used to compute a signal
  */
-void Klass::setLoopProperty(Tree sig, Loop *l) { fLoopProperty.set(sig, l); }
+void Klass::setLoopProperty(Tree sig, Loop *l)
+{
+    fLoopProperty.set(sig, l);
+}
 
 /**
  * Returns the loop used to compute a signal
@@ -113,7 +115,7 @@ void Klass::openLoop(Tree recsymbol, const string &size)
 void Klass::closeLoop(Tree sig)
 {
     assert(fTopLoop);
-    Loop *l = fTopLoop;
+    Loop *l  = fTopLoop;
     fTopLoop = l->fEnclosingLoop;
     assert(fTopLoop);
 
@@ -122,24 +124,20 @@ void Klass::closeLoop(Tree sig)
 
     Tree S = symlist(sig);
     // cerr << "CLOSE LOOP :" << l << " with symbols " << *S  << endl;
-    if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S))
-    {
+    if (l->isEmpty() || fTopLoop->hasRecDependencyIn(S)) {
         // cout << " will absorb" << endl;
         // empty or dependent loop -> absorbed by enclosing one
         // cerr << "absorbed by : " << fTopLoop << endl;
         fTopLoop->absorb(l);
         // delete l; HACK !!!
-    }
-    else
-    {
+    } else {
         // cout << " will NOT absorb" << endl;
         // we have an independent loop
-        setLoopProperty(sig, l); // associate the signal
+        setLoopProperty(sig, l);  // associate the signal
         fTopLoop->fBackwardLoopDependencies.insert(l);
         // we need to indicate that all recursive symbols defined
         // in this loop are defined in this loop
-        for (Tree lsym = l->fRecSymbolSet; !isNil(lsym); lsym = tl(lsym))
-        {
+        for (Tree lsym = l->fRecSymbolSet; !isNil(lsym); lsym = tl(lsym)) {
             this->setLoopProperty(hd(lsym), l);
             // cerr << "loop " << l << " defines " << *hd(lsym) << endl;
         }
@@ -152,30 +150,24 @@ void Klass::closeLoop(Tree sig)
  */
 void printlines(int n, list<string> &lines, ostream &fout)
 {
-    list<string>::iterator s;
-    fout << "\n// klass.cpp printlines\n";
-    for (s = lines.begin(); s != lines.end(); s++)
-    {
+    for (auto s : lines) {
         tab(n, fout);
-        fout << *s;
+        fout << s;
     }
 }
 
 /**
  * Print a list of elements (e1, e2,...)
  */
-void printdecllist(int n, const string &decl, list<string> &content,
-                   ostream &fout)
+void printdecllist(int n, const string &decl, list<string> &content, ostream &fout)
 {
-    if (!content.empty())
-    {
+    if (!content.empty()) {
         list<string>::iterator s;
         fout << "\\";
         tab(n, fout);
         fout << decl;
         string sep = "(";
-        for (s = content.begin(); s != content.end(); s++)
-        {
+        for (s = content.begin(); s != content.end(); s++) {
             fout << sep << *s;
             sep = ", ";
         }
@@ -188,14 +180,13 @@ void printdecllist(int n, const string &decl, list<string> &content,
  */
 void Klass::printLibrary(ostream &fout)
 {
-    set<string> S;
+    set<string>           S;
     set<string>::iterator f;
 
     string sep;
     collectLibrary(S);
     fout << "/* link with ";
-    for (f = S.begin(), sep = ": "; f != S.end(); f++, sep = ", ")
-    {
+    for (f = S.begin(), sep = ": "; f != S.end(); f++, sep = ", ") {
         fout << sep << *f;
     }
     fout << " */\n";
@@ -206,22 +197,19 @@ void Klass::printLibrary(ostream &fout)
  */
 void Klass::printIncludeFile(ostream &fout)
 {
-    set<string> S;
+    set<string>           S;
     set<string>::iterator f;
 
-    if (gOpenMPSwitch)
-    {
+    if (gOpenMPSwitch) {
         fout << "#include <omp.h>"
              << "\n";
     }
 
     collectIncludeFile(S);
-    for (f = S.begin(); f != S.end(); f++)
-    {
+    for (f = S.begin(); f != S.end(); f++) {
         string inc = *f;
         // Only print non-empty include (inc is actually quoted)
-        if (inc.size() > 2)
-        {
+        if (inc.size() > 2) {
             fout << "#include " << *f << "\n";
         }
     }
@@ -232,8 +220,7 @@ void Klass::printIncludeFile(ostream &fout)
  */
 void Klass::printAdditionalCode(ostream &fout)
 {
-    if (fNeedPowerDef)
-    {
+    if (fNeedPowerDef) {
         // Add faustpower definition to C++ code
         fout << "#ifndef FAUSTPOWER" << endl;
         fout << "#define FAUSTPOWER" << endl;
@@ -274,29 +261,18 @@ void Klass::printMetadata(int n, const map<Tree, set<Tree>> &S, ostream &fout)
 
     // We do not want to accumulate metadata from all hierachical levels, so the
     // upper level only is kept
-    for (map<Tree, set<Tree>>::iterator i = gMetaDataSet.begin();
-         i != gMetaDataSet.end(); i++)
-    {
-        if (i->first != tree("author"))
-        {
+    for (map<Tree, set<Tree>>::iterator i = gMetaDataSet.begin(); i != gMetaDataSet.end(); i++) {
+        if (i->first != tree("author")) {
             tab(n + 1, fout);
-            fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin())
-                 << ");";
-        }
-        else
-        {
+            fout << "m->declare(\"" << *(i->first) << "\", " << **(i->second.begin()) << ");";
+        } else {
             // But the "author" meta data is accumulated, the upper level becomes the
             // main author and sub-levels become "contributor"
-            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end();
-                 j++)
-            {
-                if (j == i->second.begin())
-                {
+            for (set<Tree>::iterator j = i->second.begin(); j != i->second.end(); j++) {
+                if (j == i->second.begin()) {
                     tab(n + 1, fout);
                     fout << "m->declare(\"" << *(i->first) << "\", " << **j << ");";
-                }
-                else
-                {
+                } else {
                     tab(n + 1, fout);
                     fout << "m->declare(\""
                          << "contributor"
@@ -318,20 +294,16 @@ inline bool isElement(const set<Loop *> &S, Loop *l)
 /**
  * Print a loop graph deep first
  */
-void Klass::printLoopDeepFirst(int n, ostream &fout, Loop *l,
-                               set<Loop *> &visited)
+void Klass::printLoopDeepFirst(int n, ostream &fout, Loop *l, set<Loop *> &visited)
 {
     // avoid printing already printed loops
-    if (isElement(visited, l))
-        return;
+    if (isElement(visited, l)) return;
 
     // remember we have printed this loop
     visited.insert(l);
 
     // print the dependencies loops (that need to be computed before this one)
-    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin();
-         p != l->fBackwardLoopDependencies.end(); p++)
-    {
+    for (lset::const_iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
         printLoopDeepFirst(n, fout, *p, visited);
     }
     // the print the loop itself
@@ -347,11 +319,8 @@ void Klass::printLoopDeepFirst(int n, ostream &fout, Loop *l,
 static void computeUseCount(Loop *l)
 {
     l->fUseCount++;
-    if (l->fUseCount == 1)
-    {
-        for (lset::iterator p = l->fBackwardLoopDependencies.begin();
-             p != l->fBackwardLoopDependencies.end(); p++)
-        {
+    if (l->fUseCount == 1) {
+        for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
             computeUseCount(*p);
         }
     }
@@ -363,29 +332,19 @@ static void computeUseCount(Loop *l)
 static void groupSeqLoops(Loop *l)
 {
     int n = (int)l->fBackwardLoopDependencies.size();
-    if (n == 0)
-    {
+    if (n == 0) {
         return;
-    }
-    else if (n == 1)
-    {
+    } else if (n == 1) {
         Loop *f = *(l->fBackwardLoopDependencies.begin());
-        if (f->fUseCount == 1)
-        {
+        if (f->fUseCount == 1) {
             l->concat(f);
             groupSeqLoops(l);
-        }
-        else
-        {
+        } else {
             groupSeqLoops(f);
         }
         return;
-    }
-    else if (n > 1)
-    {
-        for (lset::iterator p = l->fBackwardLoopDependencies.begin();
-             p != l->fBackwardLoopDependencies.end(); p++)
-        {
+    } else if (n > 1) {
+        for (lset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end(); p++) {
             groupSeqLoops(*p);
         }
     }
@@ -401,8 +360,7 @@ void Klass::buildTasksList()
 {
     lgraph G;
 
-    if (gGroupTaskSwitch)
-    {
+    if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
@@ -421,13 +379,10 @@ void Klass::buildTasksList()
     addDeclCode("int fDynamicNumThreads;");
 
     // Compute forward dependencies
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-        {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
+        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             for (lset::const_iterator p1 = (*p)->fBackwardLoopDependencies.begin();
-                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++)
-            {
+                 p1 != (*p)->fBackwardLoopDependencies.end(); p1++) {
                 (*p1)->fForwardLoopDependencies.insert((*p));
             }
             (*p)->fIndex = index_task;
@@ -437,111 +392,87 @@ void Klass::buildTasksList()
 
     // Compute ready tasks list
     vector<int> task_num;
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
         lset::const_iterator next;
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-        {
-            if ((*p)->fBackwardLoopDependencies.size() == 0)
-            {
+        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+            if ((*p)->fBackwardLoopDependencies.size() == 0) {
                 task_num.push_back((*p)->fIndex);
             }
         }
     }
 
-    if (task_num.size() < START_TASK_MAX)
-    {
-
+    if (task_num.size() < START_TASK_MAX) {
         // Push ready tasks thread 0, execute one task directly
 
         addZone3("if (cur_thread == 0) {");
 
         Loop *keep = NULL;
-        for (int l = (int)G.size() - 1; l >= 0; l--)
-        {
+        for (int l = (int)G.size() - 1; l >= 0; l--) {
             lset::const_iterator next;
-            for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-            {
-                if ((*p)->fBackwardLoopDependencies.size() == 0)
-                {
-                    if (keep == NULL)
-                    {
+            for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
+                if ((*p)->fBackwardLoopDependencies.size() == 0) {
+                    if (keep == NULL) {
                         keep = *p;
-                    }
-                    else
-                    {
+                    } else {
                         addZone3(subst("    taskqueue.PushHead($0);", T((*p)->fIndex)));
                     }
                 }
             }
         }
 
-        if (keep != NULL)
-        {
+        if (keep != NULL) {
             addZone3(subst("    tasknum = $0;", T(keep->fIndex)));
         }
 
         addZone3("} else {");
-        addZone3("    tasknum = TaskQueue::GetNextTask(cur_thread, "
-                 "fDynamicNumThreads);");
+        addZone3(
+            "    tasknum = TaskQueue::GetNextTask(cur_thread, "
+            "fDynamicNumThreads);");
         addZone3("}");
-    }
-    else
-    {
-
+    } else {
         // Cut ready tasks list and have each thread (dynamically) use a subpart
         addZone3(subst("int task_list_size = $0;", T((int)task_num.size())));
         stringstream buf;
         buf << "int task_list[" << task_num.size() << "] = {";
-        for (size_t i = 0; i < task_num.size(); i++)
-        {
+        for (size_t i = 0; i < task_num.size(); i++) {
             buf << task_num[i];
-            if (i != (task_num.size() - 1))
-                buf << ",";
+            if (i != (task_num.size() - 1)) buf << ",";
         }
         buf << "};";
 
         addZone3(buf.str());
-        addZone3("taskqueue.InitTaskList(task_list_size, task_list, "
-                 "fDynamicNumThreads, cur_thread, tasknum);");
+        addZone3(
+            "taskqueue.InitTaskList(task_list_size, task_list, "
+            "fDynamicNumThreads, cur_thread, tasknum);");
     }
 
     // Last stage connected to end task
-    if (G[0].size() > 1)
-    {
+    if (G[0].size() > 1) {
         addZone2c("// Initialize end task, if more than one input");
-        addZone2c(subst("fGraph.InitTask($0,$1);", T(LAST_TASK_INDEX),
-                        T((int)G[0].size())));
-    }
-    else
-    {
+        addZone2c(subst("fGraph.InitTask($0,$1);", T(LAST_TASK_INDEX), T((int)G[0].size())));
+    } else {
         addZone2c("// End task has only one input, so will be directly activated");
     }
 
     // Compute init section
     addZone2c("// Only initialize taks with more than one input");
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-        {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
+        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             if ((*p)->fBackwardLoopDependencies.size() >
-                1)
-            { // Only initialize taks with more than 1 input, since taks with
+                1) {  // Only initialize taks with more than 1 input, since taks with
                 // one input are "directly" activated.
-                addZone2c(subst("fGraph.InitTask($0,$1);",
-                                T(START_TASK_INDEX + gTaskCount++),
+                addZone2c(subst("fGraph.InitTask($0,$1);", T(START_TASK_INDEX + gTaskCount++),
                                 T((int)(*p)->fBackwardLoopDependencies.size())));
-            }
-            else
-            {
+            } else {
                 gTaskCount++;
             }
         }
     }
 
     addInitCode("fStaticNumThreads = get_max_cpu();");
-    addInitCode("fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? "
-                "atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
+    addInitCode(
+        "fDynamicNumThreads = getenv(\"OMP_NUM_THREADS\") ? "
+        "atoi(getenv(\"OMP_NUM_THREADS\")) : fStaticNumThreads;");
     addInitCode("fThreadPool = DSPThreadPool::Init();");
     addInitCode("fThreadPool->StartAll(fStaticNumThreads - 1, false);");
 
@@ -553,8 +484,7 @@ void Klass::buildTasksList()
  */
 void Klass::printLoopGraphVector(int n, ostream &fout)
 {
-    if (gGroupTaskSwitch)
-    {
+    if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
@@ -564,8 +494,7 @@ void Klass::printLoopGraphVector(int n, ostream &fout)
 
 #if 1
     // EXPERIMENTAL
-    if (gVectorSwitch && gDeepFirstSwitch)
-    {
+    if (gVectorSwitch && gDeepFirstSwitch) {
         set<Loop *> visited;
         printLoopDeepFirst(n, fout, fTopLoop, visited);
         return;
@@ -573,15 +502,12 @@ void Klass::printLoopGraphVector(int n, ostream &fout)
 #endif
 
     // normal mode
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
-        if (gVectorSwitch)
-        {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
+        if (gVectorSwitch) {
             tab(n, fout);
             fout << "// SECTION : " << G.size() - l;
         }
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-        {
+        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->println(n, fout);
         }
     }
@@ -592,8 +518,7 @@ void Klass::printLoopGraphVector(int n, ostream &fout)
  */
 void Klass::printLoopGraphOpenMP(int n, ostream &fout)
 {
-    if (gGroupTaskSwitch)
-    {
+    if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
@@ -602,8 +527,7 @@ void Klass::printLoopGraphOpenMP(int n, ostream &fout)
     sortGraph(fTopLoop, G);
 
     // OpenMP mode : add OpenMP directives
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
         tab(n, fout);
         fout << "// SECTION : " << G.size() - l;
         printLoopLevelOpenMP(n, (int)G.size() - l, G[l], fout);
@@ -615,8 +539,7 @@ void Klass::printLoopGraphOpenMP(int n, ostream &fout)
  */
 void Klass::printLoopGraphScheduler(int n, ostream &fout)
 {
-    if (gGroupTaskSwitch)
-    {
+    if (gGroupTaskSwitch) {
         computeUseCount(fTopLoop);
         groupSeqLoops(fTopLoop);
     }
@@ -625,8 +548,7 @@ void Klass::printLoopGraphScheduler(int n, ostream &fout)
     sortGraph(fTopLoop, G);
 
     // OpenMP mode : add OpenMP directives
-    for (int l = (int)G.size() - 1; l > 0; l--)
-    {
+    for (int l = (int)G.size() - 1; l > 0; l--) {
         tab(n, fout);
         fout << "// SECTION : " << G.size() - l;
         printLoopLevelScheduler(n, (int)G.size() - l, G[l], fout);
@@ -645,24 +567,19 @@ void Klass::printGraphDotFormat(ostream &fout)
 
     fout << "strict digraph loopgraph {" << endl;
     fout << '\t' << "rankdir=LR;" << endl;
-    fout << '\t'
-         << "node[color=blue, fillcolor=lightblue, style=filled, fontsize=9];"
-         << endl;
+    fout << '\t' << "node[color=blue, fillcolor=lightblue, style=filled, fontsize=9];" << endl;
 
-    int lnum = 0; // used for loop numbers
+    int lnum = 0;  // used for loop numbers
     // for each level of the graph
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
         // for each task in the level
-        for (lset::const_iterator t = G[l].begin(); t != G[l].end(); t++)
-        {
+        for (lset::const_iterator t = G[l].begin(); t != G[l].end(); t++) {
             // print task label "Lxxx : 0xffffff"
-            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L"
-                 << lnum++ << "</font> : " << (*t) << ">];" << endl;
+            fout << '\t' << 'L' << (*t) << "[label=<<font face=\"verdana,bold\">L" << lnum++ << "</font> : " << (*t)
+                 << ">];" << endl;
             // for each source of the task
             for (lset::const_iterator src = (*t)->fBackwardLoopDependencies.begin();
-                 src != (*t)->fBackwardLoopDependencies.end(); src++)
-            {
+                 src != (*t)->fBackwardLoopDependencies.end(); src++) {
                 // print the connection Lxxx -> Lyyy;
                 fout << '\t' << 'L' << (*src) << "->" << 'L' << (*t) << ';' << endl;
             }
@@ -680,15 +597,12 @@ void Klass::printLoopGraphInternal(int n, ostream &fout)
     sortGraph(fTopLoop, G);
 
     // normal mode
-    for (int l = (int)G.size() - 1; l >= 0; l--)
-    {
-        if (gVectorSwitch)
-        {
+    for (int l = (int)G.size() - 1; l >= 0; l--) {
+        if (gVectorSwitch) {
             tab(n, fout);
             fout << "// SECTION : " << G.size() - l;
         }
-        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++)
-        {
+        for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->printoneln(n, fout);
         }
     }
@@ -707,10 +621,8 @@ void Klass::printLoopGraphScalar(int n, ostream &fout)
  */
 static bool nonRecursiveLevel(const lset &L)
 {
-    for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-    {
-        if ((*p)->fIsRecursive)
-            return false;
+    for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+        if ((*p)->fIsRecursive) return false;
     }
     return true;
 }
@@ -719,21 +631,14 @@ static bool nonRecursiveLevel(const lset &L)
  * Print the 'level' of the loop graph as a set of
  * parallel loops
  */
-void Klass::printLoopLevelOpenMP(int n, int lnum, const lset &L,
-                                 ostream &fout)
+void Klass::printLoopLevelOpenMP(int n, int lnum, const lset &L, ostream &fout)
 {
-    if (nonRecursiveLevel(L) && L.size() == 1)
-    {
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-        {
-            if ((*p)->isEmpty() == false)
-            {
-                if (gOpenMPLoop)
-                {
+    if (nonRecursiveLevel(L) && L.size() == 1) {
+        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
+            if ((*p)->isEmpty() == false) {
+                if (gOpenMPLoop) {
                     (*p)->printParLoopln(n, fout);
-                }
-                else
-                {
+                } else {
                     tab(n, fout);
                     fout << "#pragma omp single ";
                     tab(n, fout);
@@ -744,15 +649,12 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset &L,
                 }
             }
         }
-    }
-    else if (L.size() > 1)
-    {
+    } else if (L.size() > 1) {
         tab(n, fout);
         fout << "#pragma omp sections ";
         tab(n, fout);
         fout << "{ ";
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-        {
+        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
             tab(n + 1, fout);
             fout << "#pragma omp section ";
             tab(n + 1, fout);
@@ -763,15 +665,12 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset &L,
         }
         tab(n, fout);
         fout << "} ";
-    }
-    else if (L.size() == 1 && !(*L.begin())->isEmpty())
-    {
+    } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
         tab(n, fout);
         fout << "#pragma omp single ";
         tab(n, fout);
         fout << "{ ";
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-        {
+        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
             (*p)->println(n + 1, fout);
         }
         tab(n, fout);
@@ -783,12 +682,9 @@ void Klass::printLoopLevelOpenMP(int n, int lnum, const lset &L,
  * Print the 'level' of the loop graph as a set of
  * parallel loops
  */
-void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset &L,
-                                        ostream &fout)
+void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset &L, ostream &fout)
 {
-    if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty())
-    {
-
+    if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty()) {
         lset::const_iterator p = L.begin();
         tab(n, fout);
         fout << "case " << gTaskCount++ << ": { ";
@@ -799,12 +695,8 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset &L,
         fout << "break;";
         tab(n, fout);
         fout << "} ";
-    }
-    else if (L.size() > 1)
-    {
-
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-        {
+    } else if (L.size() > 1) {
+        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
             tab(n, fout);
             fout << "case " << gTaskCount++ << ": { ";
             (*p)->println(n + 1, fout);
@@ -816,10 +708,7 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset &L,
             tab(n, fout);
             fout << "} ";
         }
-    }
-    else if (L.size() == 1 && !(*L.begin())->isEmpty())
-    {
-
+    } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
         lset::const_iterator p = L.begin();
         tab(n, fout);
         fout << "case " << gTaskCount++ << ": { ";
@@ -833,89 +722,62 @@ void Klass::printLastLoopLevelScheduler(int n, int lnum, const lset &L,
     }
 }
 
-void Klass::printOneLoopScheduler(lset::const_iterator p, int n,
-                                  ostream &fout)
+void Klass::printOneLoopScheduler(lset::const_iterator p, int n, ostream &fout)
 {
     tab(n, fout);
     fout << "case " << gTaskCount++ << ": { ";
     (*p)->println(n + 1, fout);
 
     // One output only
-    if ((*p)->fForwardLoopDependencies.size() == 1)
-    {
-
+    if ((*p)->fForwardLoopDependencies.size() == 1) {
         lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
-        if ((*p1)->fBackwardLoopDependencies.size() == 1)
-        {
+        if ((*p1)->fBackwardLoopDependencies.size() == 1) {
             tab(n + 1, fout);
             fout << subst("tasknum = $0;", T((*p1)->fIndex));
-        }
-        else
-        {
+        } else {
             tab(n + 1, fout);
-            fout << subst("fGraph.ActivateOneOutputTask(taskqueue, $0, tasknum);",
-                          T((*p1)->fIndex));
+            fout << subst("fGraph.ActivateOneOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
         }
-    }
-    else
-    {
-
+    } else {
         Loop *keep = NULL;
         // Find one output with only one backward dependencies
         for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
-             p1 != (*p)->fForwardLoopDependencies.end(); p1++)
-        {
-            if ((*p1)->fBackwardLoopDependencies.size() == 1)
-            {
+             p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
+            if ((*p1)->fBackwardLoopDependencies.size() == 1) {
                 keep = *p1;
                 break;
             }
         }
 
-        if (keep == NULL)
-        {
+        if (keep == NULL) {
             tab(n + 1, fout);
             fout << "tasknum = WORK_STEALING_INDEX;";
         }
 
         for (lset::const_iterator p1 = (*p)->fForwardLoopDependencies.begin();
-             p1 != (*p)->fForwardLoopDependencies.end(); p1++)
-        {
-            if ((*p1)->fBackwardLoopDependencies.size() ==
-                1)
-            { // Task is the only input
-                if (*p1 != keep)
-                {
+             p1 != (*p)->fForwardLoopDependencies.end(); p1++) {
+            if ((*p1)->fBackwardLoopDependencies.size() == 1) {  // Task is the only input
+                if (*p1 != keep) {
                     tab(n + 1, fout);
                     fout << subst("taskqueue.PushHead($0);", T((*p1)->fIndex));
                 }
-            }
-            else
-            {
-                if (keep == NULL)
-                {
+            } else {
+                if (keep == NULL) {
                     tab(n + 1, fout);
-                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0, tasknum);",
-                                  T((*p1)->fIndex));
-                }
-                else
-                {
+                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0, tasknum);", T((*p1)->fIndex));
+                } else {
                     tab(n + 1, fout);
-                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0);",
-                                  T((*p1)->fIndex));
+                    fout << subst("fGraph.ActivateOutputTask(taskqueue, $0);", T((*p1)->fIndex));
                 }
             }
         }
 
-        if (keep != NULL)
-        {
+        if (keep != NULL) {
             tab(n + 1, fout);
-            fout << subst("tasknum = $0;", T(keep->fIndex)); // Last one
-        }
-        else
-        {
+            fout << subst("tasknum = $0;", T(keep->fIndex));  // Last one
+        } else {
             tab(n + 1, fout);
-            fout << "fGraph.GetReadyTask(taskqueue, tasknum);"; // Last one
+            fout << "fGraph.GetReadyTask(taskqueue, tasknum);";  // Last one
         }
     }
 
@@ -930,22 +792,15 @@ void Klass::printOneLoopScheduler(lset::const_iterator p, int n,
  * parallel loops
  */
 
-void Klass::printLoopLevelScheduler(int n, int lnum, const lset &L,
-                                    ostream &fout)
+void Klass::printLoopLevelScheduler(int n, int lnum, const lset &L, ostream &fout)
 {
-    if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty())
-    {
+    if (nonRecursiveLevel(L) && L.size() == 1 && !(*L.begin())->isEmpty()) {
         printOneLoopScheduler(L.begin(), n, fout);
-    }
-    else if (L.size() > 1)
-    {
-        for (lset::const_iterator p = L.begin(); p != L.end(); p++)
-        {
+    } else if (L.size() > 1) {
+        for (lset::const_iterator p = L.begin(); p != L.end(); p++) {
             printOneLoopScheduler(p, n, fout);
         }
-    }
-    else if (L.size() == 1 && !(*L.begin())->isEmpty())
-    {
+    } else if (L.size() == 1 && !(*L.begin())->isEmpty()) {
         printOneLoopScheduler(L.begin(), n, fout);
     }
 }
@@ -962,31 +817,23 @@ void Klass::println(int n, ostream &fout)
     fout << "#define FAUSTCLASS " << fKlassName << endl;
     fout << "#endif" << endl;
 
-    if (gSchedulerSwitch)
-    {
+    if (gSchedulerSwitch) {
         tab(n, fout);
-        fout << "class " << fKlassName << " : public " << fSuperKlassName
-             << ", public Runnable {";
-    }
-    else
-    {
+        fout << "class " << fKlassName << " : public " << fSuperKlassName << ", public Runnable {";
+    } else {
         tab(n, fout);
         fout << "class " << fKlassName << " : public " << fSuperKlassName << " {";
     }
 
-    if (gUIMacroSwitch)
-    {
+    if (gUIMacroSwitch) {
         tab(n, fout);
         fout << "  public:";
-    }
-    else
-    {
+    } else {
         tab(n, fout);
         fout << "  private:";
     }
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++)
-        (*k)->println(n + 1, fout);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -995,8 +842,7 @@ void Klass::println(int n, ostream &fout)
 
     printMetadata(n + 1, gMetaDataSet, fout);
 
-    if (gSchedulerSwitch)
-    {
+    if (gSchedulerSwitch) {
         tab(n + 1, fout);
         fout << "virtual ~" << fKlassName << "() \t{ "
              << "DSPThreadPool::Destroy()"
@@ -1011,11 +857,9 @@ void Klass::println(int n, ostream &fout)
          << "return " << fNumOutputs << "; }";
 
     tab(n + 1, fout);
-    fout << "virtual int getInputRate (int i) \t{int rate[]="
-         << getInputRateString() << "; return rate[i]; }";
+    fout << "virtual int getInputRate (int i) \t{int rate[]=" << getInputRateString() << "; return rate[i]; }";
     tab(n + 1, fout);
-    fout << "virtual int getOutputRate(int i) \t{int rate[]="
-         << getOutputRateString() << "; return rate[i]; }";
+    fout << "virtual int getOutputRate(int i) \t{int rate[]=" << getOutputRateString() << "; return rate[i]; }";
 
     tab(n + 1, fout);
     fout << "static void classInit(int samplingFreq) {";
@@ -1049,14 +893,12 @@ void Klass::println(int n, ostream &fout)
     printComputeMethod(n, fout);
 
     tab(n, fout);
-    fout << "};\n"
-         << endl;
+    fout << "};\n" << endl;
 
     printlines(n, fStaticFields, fout);
 
     // generate user interface macros if needed
-    if (gUIMacroSwitch)
-    {
+    if (gUIMacroSwitch) {
         tab(n, fout);
         fout << "#ifdef FAUST_UIMACROS";
         tab(n + 1, fout);
@@ -1080,31 +922,23 @@ void Klass::println(int n, ostream &fout)
  */
 void Klass::printComputeMethod(int n, ostream &fout)
 {
-    if (gSchedulerSwitch)
-    {
+    if (gSchedulerSwitch) {
         printComputeMethodScheduler(n, fout);
-    }
-    else if (gOpenMPSwitch)
-    {
+    } else if (gOpenMPSwitch) {
         printComputeMethodOpenMP(n, fout);
-    }
-    else if (gVectorSwitch)
-    {
-        switch (gVectorLoopVariant)
-        {
-        case 0:
-            printComputeMethodVectorFaster(n, fout);
-            break;
-        case 1:
-            printComputeMethodVectorSimple(n, fout);
-            break;
-        default:
-            cerr << "unknown loop variant " << gVectorLoopVariant << endl;
-            exit(1);
+    } else if (gVectorSwitch) {
+        switch (gVectorLoopVariant) {
+            case 0:
+                printComputeMethodVectorFaster(n, fout);
+                break;
+            case 1:
+                printComputeMethodVectorSimple(n, fout);
+                break;
+            default:
+                cerr << "unknown loop variant " << gVectorLoopVariant << endl;
+                exit(1);
         }
-    }
-    else
-    {
+    } else {
         printComputeMethodScalar(n, fout);
     }
 }
@@ -1112,8 +946,7 @@ void Klass::printComputeMethod(int n, ostream &fout)
 void Klass::printComputeMethodScalar(int n, ostream &fout)
 {
     tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {",
-                  xfloat());
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1133,8 +966,7 @@ void Klass::printComputeMethodVectorFaster(int n, ostream &fout)
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
     tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {",
-                  xfloat());
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1145,8 +977,7 @@ void Klass::printComputeMethodVectorFaster(int n, ostream &fout)
     fout << "int fullcount = count;";
 
     tab(n + 2, fout);
-    fout << "for (index = 0; index <= fullcount - " << gVecSize
-         << "; index += " << gVecSize << ") {";
+    fout << "for (index = 0; index <= fullcount - " << gVecSize << "; index += " << gVecSize << ") {";
     tab(n + 3, fout);
     fout << "// compute by blocks of " << gVecSize << " samples";
     tab(n + 3, fout);
@@ -1179,8 +1010,7 @@ void Klass::printComputeMethodVectorSimple(int n, ostream &fout)
     // in vector mode we need to split loops in smaller pieces not larger
     // than gVecSize
     tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {",
-                  xfloat());
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     printlines(n + 2, fZone2bCode, fout);
@@ -1188,8 +1018,7 @@ void Klass::printComputeMethodVectorSimple(int n, ostream &fout)
     tab(n + 2, fout);
     fout << "int fullcount = count;";
     tab(n + 2, fout);
-    fout << "for (int index = 0; index < fullcount; index += " << gVecSize
-         << ") {";
+    fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
     tab(n + 3, fout);
     fout << "int count = min(" << gVecSize << ", fullcount-index);";
     printlines(n + 3, fZone3Code, fout);
@@ -1256,8 +1085,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream &fout)
     // in openMP mode we need to split loops in smaller pieces not larger
     // than gVecSize and add OpenMP pragmas
     tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {",
-                  xfloat());
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
     printlines(n + 2, fZone1Code, fout);
     printlines(n + 2, fZone2Code, fout);
     tab(n + 2, fout);
@@ -1268,8 +1096,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream &fout)
 
     tab(n + 2, fout);
     fout << "{";
-    if (!fZone2bCode.empty())
-    {
+    if (!fZone2bCode.empty()) {
         tab(n + 3, fout);
         fout << "#pragma omp single";
         tab(n + 3, fout);
@@ -1280,8 +1107,7 @@ void Klass::printComputeMethodOpenMP(int n, ostream &fout)
     }
 
     tab(n + 3, fout);
-    fout << "for (int index = 0; index < fullcount; index += " << gVecSize
-         << ") {";
+    fout << "for (int index = 0; index < fullcount; index += " << gVecSize << ") {";
     tab(n + 4, fout);
     fout << "int count = min (" << gVecSize << ", fullcount-index);";
 
@@ -1373,8 +1199,7 @@ void Klass::printComputeMethodScheduler(int n, ostream &fout)
     fout << "}";
 
     tab(n + 1, fout);
-    fout << subst("virtual void compute (int count, $0** input, $0** output) {",
-                  xfloat());
+    fout << subst("virtual void compute (int count, $0** input, $0** output) {", xfloat());
 
     tab(n + 2, fout);
     fout << "GetRealTime();";
@@ -1391,8 +1216,7 @@ void Klass::printComputeMethodScheduler(int n, ostream &fout)
     fout << "int fullcount = count;";
 
     tab(n + 2, fout);
-    fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gVecSize
-         << ") {";
+    fout << "for (fIndex = 0; fIndex < fullcount; fIndex += " << gVecSize << ") {";
 
     tab(n + 3, fout);
     fout << "fCount = min (" << gVecSize << ", fullcount-fIndex);";
@@ -1497,8 +1321,7 @@ void SigIntGenKlass::println(int n, ostream &fout)
     tab(n + 1, fout);
     fout << "int \tfSamplingFreq;";
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++)
-        (*k)->println(n + 1, fout);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1531,8 +1354,7 @@ void SigIntGenKlass::println(int n, ostream &fout)
     fout << "}";
 
     tab(n, fout);
-    fout << "};\n"
-         << endl;
+    fout << "};\n" << endl;
 }
 
 /**
@@ -1550,8 +1372,7 @@ void SigFloatGenKlass::println(int n, ostream &fout)
     tab(n + 1, fout);
     fout << "int \tfSamplingFreq;";
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++)
-        (*k)->println(n + 1, fout);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->println(n + 1, fout);
 
     printlines(n + 1, fDeclCode, fout);
 
@@ -1584,23 +1405,20 @@ void SigFloatGenKlass::println(int n, ostream &fout)
     fout << "}";
 
     tab(n, fout);
-    fout << "};\n"
-         << endl;
+    fout << "};\n" << endl;
 }
 
 static void merge(set<string> &dst, set<string> &src)
 {
     set<string>::iterator i;
-    for (i = src.begin(); i != src.end(); i++)
-        dst.insert(*i);
+    for (i = src.begin(); i != src.end(); i++) dst.insert(*i);
 }
 
 void Klass::collectIncludeFile(set<string> &S)
 {
     list<Klass *>::iterator k;
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++)
-        (*k)->collectIncludeFile(S);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->collectIncludeFile(S);
     merge(S, fIncludeFileSet);
 }
 
@@ -1608,18 +1426,15 @@ void Klass::collectLibrary(set<string> &S)
 {
     list<Klass *>::iterator k;
 
-    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++)
-        (*k)->collectLibrary(S);
+    for (k = fSubClassList.begin(); k != fSubClassList.end(); k++) (*k)->collectLibrary(S);
     merge(S, fLibrarySet);
 }
 
 string Klass::getInputRateString()
 {
     string s("{");
-    for (int i = 0; i < fNumInputs; i++)
-    {
-        if (i > 0)
-            s += ',';
+    for (int i = 0; i < fNumInputs; i++) {
+        if (i > 0) s += ',';
         s += T(fInputRate[i]);
     }
     s += '}';
@@ -1629,10 +1444,8 @@ string Klass::getInputRateString()
 string Klass::getOutputRateString()
 {
     string s("{");
-    for (int i = 0; i < fNumOutputs; i++)
-    {
-        if (i > 0)
-            s += ',';
+    for (int i = 0; i < fNumOutputs; i++) {
+        if (i > 0) s += ',';
         s += T(fOutputRate[i]);
     }
     s += '}';

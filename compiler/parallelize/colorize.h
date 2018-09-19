@@ -1,9 +1,9 @@
 #ifndef __COLORIZE__
 #define __COLORIZE__
 
-#include <set>
 #include <algorithm>
 #include <iterator>
+#include <set>
 
 #include "tlib.hh"
 

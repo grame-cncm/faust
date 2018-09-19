@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,18 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _COMPILE_SCAL_
 #define _COMPILE_SCAL_
 
-#include <utility>
 #include <set>
+#include <utility>
 #include "compile.hh"
-#include "sigtyperules.hh"
-#include "sigraterules.hh"
 #include "occurences.hh"
 #include "property.hh"
+#include "sigraterules.hh"
+#include "sigtyperules.hh"
 #include "xtended.hh"
 
 ////////////////////////////////////////////////////////////////////////
@@ -39,138 +37,128 @@
  */
 ///////////////////////////////////////////////////////////////////////
 
-class ScalarCompiler : public Compiler
-{
-  protected:
-    set<string>                 fDeclaredTypes;                 // Used to avoid duplicated type declaration
-    property<string>            fCompileProperty;
-    property<string>            fVectorProperty;
-    property<pair<string,string> >  fStaticInitProperty;        // property added to solve 20101208 kjetil bug
-    property<pair<string,string> >  fInstanceInitProperty;      // property added to solve 20101208 kjetil bug
+class ScalarCompiler : public Compiler {
+   protected:
+    set<string>                     fDeclaredTypes;  // Used to avoid duplicated type declaration
+    property<string>                fCompileProperty;
+    property<string>                fVectorProperty;
+    property<pair<string, string> > fStaticInitProperty;    // property added to solve 20101208 kjetil bug
+    property<pair<string, string> > fInstanceInitProperty;  // property added to solve 20101208 kjetil bug
 
-	static map<string, int>		fIDCounters;
-	Tree                      	fSharingKey;
-	OccMarkup					fOccMarkup;
-    bool						fHasIota;
+    static map<string, int> fIDCounters;
+    Tree                    fSharingKey;
+    OccMarkup               fOccMarkup;
+    bool                    fHasIota;
 
-    RateInferrer*               fRates;
+    RateInferrer* fRates;
 
-  public:
+   public:
+    ScalarCompiler(const string& name, const string& super, int numInputs, int numOutputs)
+        : Compiler(name, super, numInputs, numOutputs, false), fHasIota(false), fRates(0)
+    {
+    }
 
-	ScalarCompiler ( const string& name, const string& super, int numInputs, int numOutputs) :
-		Compiler(name,super,numInputs,numOutputs,false),
-        fHasIota(false),
-        fRates(0)
-	{}
-	
-	ScalarCompiler ( Klass* k) : 
-		Compiler(k),
-        fHasIota(false)
-	{}
-	
-	virtual void 		compileMultiSignal  (Tree lsig);
-	virtual void		compileSingleSignal (Tree lsig);
+    ScalarCompiler(Klass* k) : Compiler(k), fHasIota(false) {}
 
+    virtual void compileMultiSignal(Tree lsig);
+    virtual void compileSingleSignal(Tree lsig);
 
-  protected:
+   protected:
+    virtual string CS(Tree sig);
+    virtual string generateCode(Tree sig);
+    virtual string generateCacheCode(Tree sig, const string& exp);
+    virtual string forceCacheCode(Tree sig, const string& exp);
+    virtual string generateSeparateCode(Tree sig, const string& exp);
+    virtual string generateVariableStore(Tree sig, const string& exp);
 
-    virtual string      CS (Tree sig);
-    virtual string      generateCode (Tree sig);
-    virtual string      generateCacheCode(Tree sig, const string& exp);
-    virtual string      forceCacheCode(Tree sig, const string& exp);
-    virtual string      generateSeparateCode(Tree sig, const string& exp);
-    virtual string      generateVariableStore(Tree sig, const string& exp);
+    string getFreshID(const string& prefix);
 
-	string 		getFreshID (const string& prefix);
+    void compilePreparedSignalList(Tree lsig);
+    Tree prepare(Tree L0);
+    Tree prepare2(Tree L0);
 
-	void 		compilePreparedSignalList (Tree lsig);
-	Tree      	prepare(Tree L0);
-	Tree 		prepare2 (Tree L0);
-	
-	
-	bool 		getCompiledExpression(Tree sig, string& name);
-	string		setCompiledExpression(Tree sig, const string& name);
+    bool   getCompiledExpression(Tree sig, string& name);
+    string setCompiledExpression(Tree sig, const string& name);
 
-	void 		setVectorNameProperty(Tree sig, const string& vecname);
-	bool 		getVectorNameProperty(Tree sig, string& vecname);
+    void setVectorNameProperty(Tree sig, const string& vecname);
+    bool getVectorNameProperty(Tree sig, string& vecname);
 
-	int 		getSharingCount(Tree t);
-	void 		setSharingCount(Tree t, int count);
-	void 		sharingAnalysis(Tree t);
-	void 		sharingAnnotation(int vctxt, Tree t);
-	
-	
-	// generation du code
-    string          declareCType        (Tree sig);     ///< Add C type declaration to class, return ctype name
-    string          declareCType        (Type t);       ///< Add C type declaration to class, return ctype name
+    int  getSharingCount(Tree t);
+    void setSharingCount(Tree t, int count);
+    void sharingAnalysis(Tree t);
+    void sharingAnnotation(int vctxt, Tree t);
 
-    string          generateXtended		(Tree sig);
-	virtual string 	generateFixDelay	(Tree sig, Tree arg, Tree size);
-    string          generatePrefix 		(Tree sig, Tree x, Tree e);
-    string          generateIota		(Tree sig, Tree arg);
-    string          generateBinOp 		(Tree sig, int opcode, Tree arg1, Tree arg2);
-	
-    string          generateFFun  		(Tree sig, Tree ff, Tree largs);
-    virtual string  generateWaveform    (Tree sig);
+    // generation du code
+    string declareCType(Tree sig);  ///< Add C type declaration to class, return ctype name
+    string declareCType(Type t);    ///< Add C type declaration to class, return ctype name
 
-    string          generateInput 		(Tree sig, const string& idx);
-    string          generateOutput		(Tree sig, const string& idx, const string& arg1);
-	
-    string          generateTable 		(Tree sig, Tree tsize, Tree content);
-    string          generateStaticTable	(Tree sig, Tree tsize, Tree content);
-    string          generateWRTbl 		(Tree sig, Tree tbl, Tree idx, Tree data);
-    string          generateRDTbl 		(Tree sig, Tree tbl, Tree idx);
-    string          generateSigGen		(Tree sig, Tree content);
-    string          generateStaticSigGen(Tree sig, Tree content);
-	
-    string          generateSelect2 	(Tree sig, Tree sel, Tree s1, Tree s2);
-    string          generateSelect3 	(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
-	
-    string          generateRecProj 	(Tree sig, Tree exp, int i);
-    void            generateRec         (Tree sig, Tree var, Tree le);
-	
-    string          generateIntCast   	(Tree sig, Tree x);
-    string          generateFloatCast 	(Tree sig, Tree x);
-	
-    string          generateButton 		(Tree sig, Tree label);
-    string          generateCheckbox 	(Tree sig, Tree label);
-    string          generateVSlider 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    string          generateHSlider	 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-    string          generateNumEntry 	(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
-	
-    string          generateVBargraph 	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
-    string          generateHBargraph	(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string         generateXtended(Tree sig);
+    virtual string generateFixDelay(Tree sig, Tree arg, Tree size);
+    string         generatePrefix(Tree sig, Tree x, Tree e);
+    string         generateIota(Tree sig, Tree arg);
+    string         generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2);
 
-    string          generateNumber(Tree sig, const string& exp);
-    string          generateFConst (Tree sig, const string& file, const string& name);
-    string          generateFVar (Tree sig, const string& file, const string& name);
-	
-    virtual string  generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    string          generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-	//string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
-    virtual void    generateDelayLine(Tree sig, const string& ctype, const string& vname, int mxd, const string& exp);
+    string         generateFFun(Tree sig, Tree ff, Tree largs);
+    virtual string generateWaveform(Tree sig);
 
-    void            getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
-    void            ensureIotaCode();
-    int             pow2limit(int x);
+    string generateInput(Tree sig, const string& idx);
+    string generateOutput(Tree sig, const string& idx, const string& arg1);
 
-    void            declareWaveform(Tree sig, string& vname, int& size);
+    string generateTable(Tree sig, Tree tsize, Tree content);
+    string generateStaticTable(Tree sig, Tree tsize, Tree content);
+    string generateWRTbl(Tree sig, Tree tbl, Tree idx, Tree data);
+    string generateRDTbl(Tree sig, Tree tbl, Tree idx);
+    string generateSigGen(Tree sig, Tree content);
+    string generateStaticSigGen(Tree sig, Tree content);
 
-    string          generateDownSample(Tree sig, Tree w, Tree x);
-    string          generateUpSample(Tree sig, Tree w, Tree x);
+    string generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2);
+    string generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tree s3);
 
-    string          generateVectorize(Tree sig, Tree x, Tree y);
-    string          generateSerialize(Tree sig, Tree x);
+    string generateRecProj(Tree sig, Tree exp, int i);
+    void   generateRec(Tree sig, Tree var, Tree le);
 
-    string          generateConcat(Tree sig, Tree x, Tree y);
-    string          generateVectorAt(Tree sig, Tree x, Tree y);
+    string generateIntCast(Tree sig, Tree x);
+    string generateFloatCast(Tree sig, Tree x);
 
-    void            pointwise(const string& op, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2);
-    void            unarywise(xtended* foo, Type t, int idx, const string& dst, const vector<int>& D, const string& src1);
-    void            binarywise(xtended* foo, Type t1, Type t2, int idx, const string& dst, const vector<int>& d3, const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2 );
+    string generateButton(Tree sig, Tree label);
+    string generateCheckbox(Tree sig, Tree label);
+    string generateVSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    string generateHSlider(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
+    string generateNumEntry(Tree sig, Tree label, Tree cur, Tree min, Tree max, Tree step);
 
+    string generateVBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
+    string generateHBargraph(Tree sig, Tree label, Tree min, Tree max, const string& exp);
 
+    string generateNumber(Tree sig, const string& exp);
+    string generateFConst(Tree sig, const string& file, const string& name);
+    string generateFVar(Tree sig, const string& file, const string& name);
 
+    virtual string generateDelayVec(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    string generateDelayVecNoTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int mxd);
+    // string		generateDelayVecWithTemp(Tree sig, const string& exp, const string& ctype, const string& vname, int
+    // mxd);
+    virtual void generateDelayLine(Tree sig, const string& ctype, const string& vname, int mxd, const string& exp);
+
+    void getTypedNames(Type t, const string& prefix, string& ctype, string& vname);
+    void ensureIotaCode();
+    int  pow2limit(int x);
+
+    void declareWaveform(Tree sig, string& vname, int& size);
+
+    string generateDownSample(Tree sig, Tree w, Tree x);
+    string generateUpSample(Tree sig, Tree w, Tree x);
+
+    string generateVectorize(Tree sig, Tree x, Tree y);
+    string generateSerialize(Tree sig, Tree x);
+
+    string generateConcat(Tree sig, Tree x, Tree y);
+    string generateVectorAt(Tree sig, Tree x, Tree y);
+
+    void pointwise(const string& op, int idx, const string& dst, const vector<int>& d3, const string& src1,
+                   const vector<int>& d1, const string& src2, const vector<int>& d2);
+    void unarywise(xtended* foo, Type t, int idx, const string& dst, const vector<int>& D, const string& src1);
+    void binarywise(xtended* foo, Type t1, Type t2, int idx, const string& dst, const vector<int>& d3,
+                    const string& src1, const vector<int>& d1, const string& src2, const vector<int>& d2);
 };
 
 #endif

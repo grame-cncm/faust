@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,17 +19,17 @@
  ************************************************************************
  ************************************************************************/
 
+#include "Text.hh"
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Text.hh"
-#include "compatibility.hh"
-#include <string>
-#include <vector>
 #include <iostream>
 #include <sstream>
-#include <assert.h>
+#include <string>
+#include <vector>
+#include "compatibility.hh"
 
 #include "floats.hh"
 
@@ -87,7 +87,8 @@ string subst(const string &model, const string &a0, const string &a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4)
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4)
 {
     vector<string> args(10);
 
@@ -100,7 +101,8 @@ string subst(const string &model, const string &a0, const string &a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5)
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4, const string &a5)
 {
     vector<string> args(10);
 
@@ -114,7 +116,8 @@ string subst(const string &model, const string &a0, const string &a1, const stri
     return substitution(model, args);
 }
 
-string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5, const string &a6)
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3,
+             const string &a4, const string &a5, const string &a6)
 {
     vector<string> args(10);
 
@@ -131,36 +134,31 @@ string subst(const string &model, const string &a0, const string &a1, const stri
 
 static string substitution(const string &model, const vector<string> &args)
 {
-    char c;
-    int i = 0, ilast = (int)model.length() - 1;
+    char   c;
+    int    i = 0, ilast = (int)model.length() - 1;
     string result;
 
-    while (i < ilast)
-    {
+    while (i < ilast) {
         c = model[i++];
-        if (c != '$')
-        {
+        if (c != '$') {
             result += c;
-        }
-        else
-        {
+        } else {
             c = model[i++];
-            if (c >= '0' && c <= '9')
-            {
+            if (c >= '0' && c <= '9') {
                 result += args[c - '0'];
-            }
-            else
-            {
+            } else {
                 result += c;
             }
         }
     }
-    if (i == ilast)
-        result += model[i];
+    if (i == ilast) result += model[i];
     return result;
 }
 
-string T(char *c) { return string(c); }
+string T(char *c)
+{
+    return string(c);
+}
 string T(int n)
 {
     char c[64];
@@ -182,18 +180,15 @@ string T(long n)
 static void ensureFloat(char *c)
 {
     bool isInt = true;
-    while (*c != 0)
-    {
-        if ((*c == '.') | (*c == 'e'))
-            isInt = false;
+    while (*c != 0) {
+        if ((*c == '.') | (*c == 'e')) isInt = false;
         c++;
     }
 
-    if (isInt)
-    {
+    if (isInt) {
         *c++ = '.';
         *c++ = '0';
-        *c = 0;
+        *c   = 0;
     }
 }
 
@@ -205,18 +200,14 @@ static void ensureFloat(char *c)
 string T(double n)
 {
     char c[64];
-    int p = 1;
-    if (isfinite(n))
-    {
-        do
-        {
+    int  p = 1;
+    if (isfinite(n)) {
+        do {
             snprintf(c, 32, "%.*g", p++, n);
         } while (atof(c) != n);
         ensureFloat(c);
         return string(c) + inumix();
-    }
-    else
-    {
+    } else {
         snprintf(c, 32, "%g", n);
         return string(c);
     }
@@ -246,12 +237,9 @@ string rmWhiteSpaces(const string &s)
     size_t i = s.find_first_not_of(" \t");
     size_t j = s.find_last_not_of(" \t");
 
-    if ((i != string::npos) & (j != string::npos))
-    {
+    if ((i != string::npos) & (j != string::npos)) {
         return s.substr(i, 1 + j - i);
-    }
-    else
-    {
+    } else {
         return "";
     }
 }
@@ -264,96 +252,73 @@ string rmWhiteSpaces(const string &s)
 bool isIfExpression(const string &expr, string &cond, string &body)
 {
     string cpart, bpart;
-    int state = 0;
-    int depth = 0;
+    int    state = 0;
+    int    depth = 0;
 
-    for (char c : expr)
-    {
-        switch (state)
-        {
-        case 0:
-            if (c == 'i')
-            {
-                state = 1;
+    for (char c : expr) {
+        switch (state) {
+            case 0:
+                if (c == 'i') {
+                    state = 1;
+                    break;
+                }
+            case 1:
+                if (c == 'f') {
+                    state = 2;
+                } else {
+                    state = 0;
+                }
                 break;
-            }
-        case 1:
-            if (c == 'f')
-            {
-                state = 2;
-            }
-            else
-            {
-                state = 0;
-            }
-            break;
 
-        case 2:
-            if (c == '(')
-            {
-                state = 3;
-                depth = 1;
-            }
-            break;
-        case 3:
-            if (c == '(')
-            {
-                depth++;
-            }
-            else if (c == ')')
-            {
-                depth--;
-            }
-            if (depth > 0)
-            {
-                // we are inside the condition part
-                cpart += c;
-            }
-            else
-            {
-                state = 4;
-            }
-            break;
-        case 4:
-            if (c == '{')
-            {
-                depth = 1;
-                state = 5;
-            }
-            break;
-        case 5:
-            if (c == '{')
-            {
-                depth++;
-            }
-            else if (c == '}')
-            {
-                depth--;
-            }
-            if (depth > 0)
-            {
-                // we are inside the body part
-                bpart += c;
-            }
-            else
-            {
-                state = 6;
-            }
-            break;
-        default:
-            break;
+            case 2:
+                if (c == '(') {
+                    state = 3;
+                    depth = 1;
+                }
+                break;
+            case 3:
+                if (c == '(') {
+                    depth++;
+                } else if (c == ')') {
+                    depth--;
+                }
+                if (depth > 0) {
+                    // we are inside the condition part
+                    cpart += c;
+                } else {
+                    state = 4;
+                }
+                break;
+            case 4:
+                if (c == '{') {
+                    depth = 1;
+                    state = 5;
+                }
+                break;
+            case 5:
+                if (c == '{') {
+                    depth++;
+                } else if (c == '}') {
+                    depth--;
+                }
+                if (depth > 0) {
+                    // we are inside the body part
+                    bpart += c;
+                } else {
+                    state = 6;
+                }
+                break;
+            default:
+                break;
         }
     }
-    if (state == 6)
-    {
+    if (state == 6) {
         // cerr << "it is a if statement with condition : " << cpart
         //     << " and with body: " << bpart << endl;
         cond = cpart;
         body = bpart;
         return true;
-    }
-    else
-    {
+    } else {
         return false;
     }
 }

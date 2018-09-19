@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
+
 #include "files.hh"
 #include "compatibility.hh"
 
@@ -33,59 +33,58 @@
 
 using namespace std;
 
-static string gCurrentDir;			///< Room to save current directory name.
+static string gCurrentDir;  ///< Room to save current directory name.
 
 /**
  *Switch back to the previously stored current directory
  */
- 
-int	cholddir()
+
+int cholddir()
 {
     if (chdir(gCurrentDir.c_str()) == 0) {
-		return 0;
-	} else {
-		perror("cholddir");
-		exit(errno);
-	}
+        return 0;
+    } else {
+        perror("cholddir");
+        exit(errno);
+    }
 }
 
 /**
  * Create a new directory in the current one to store the diagrams.
  * The current directory is saved to be later restored.
  */
- 
+
 int mkchdir(string dirname)
 {
     getCurrentDir();
     if (gCurrentDir != "") {
-		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			if (chdir(dirname.c_str()) == 0) {
-				return 0;
-			}
-		}
-	}
-	perror("mkchdir");
-	exit(errno);
+        int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (status == 0 || errno == EEXIST) {
+            if (chdir(dirname.c_str()) == 0) {
+                return 0;
+            }
+        }
+    }
+    perror("mkchdir");
+    exit(errno);
 }
 
-int	makedir(string dirname)
+int makedir(string dirname)
 {
     getCurrentDir();
     if (gCurrentDir != "") {
-		int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-		if (status == 0 || errno == EEXIST) {
-			return 0;
-		}
-	}
-	perror("makedir");
-	exit(errno);
+        int status = mkdir(dirname.c_str(), S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+        if (status == 0 || errno == EEXIST) {
+            return 0;
+        }
+    }
+    perror("makedir");
+    exit(errno);
 }
 
 void getCurrentDir()
 {
-    char buffer[FAUST_PATH_MAX];
+    char  buffer[FAUST_PATH_MAX];
     char* current_dir = getcwd(buffer, FAUST_PATH_MAX);
-    gCurrentDir = (current_dir) ? current_dir : "";
+    gCurrentDir       = (current_dir) ? current_dir : "";
 }
-

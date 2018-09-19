@@ -1,7 +1,6 @@
 #ifndef ENVIRONMENT_HH
 #define ENVIRONMENT_HH
 
-
 #include "tlib.hh"
 
 Tree pushValueDef(Tree id, Tree def, Tree lenv);
@@ -16,5 +15,4 @@ bool isEnvBarrier(Tree t);
 
 Tree pushEnvBarrier(Tree lenv);
 
-
-#endif // ENVIRONMENT_HH
+#endif  // ENVIRONMENT_HH

@@ -3,21 +3,20 @@
 
 #include "tree.hh"
 
-template<class P> class property
-{
-    Tree	fKey;
+template <class P>
+class property {
+    Tree fKey;
 
-    P*	access(Tree t)
+    P* access(Tree t)
     {
         Tree d = t->getProperty(fKey);
         return d ? (P*)(d->node().getPointer()) : 0;
     }
 
-public:
+   public:
+    property() : fKey(tree(Node(unique("property_")))) {}
 
-    property () : fKey(tree(Node(unique("property_")))) {}
-
-    property (const char* keyname) : fKey(tree(Node(keyname))) {}
+    property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
     void set(Tree t, const P& data)
     {
@@ -43,26 +42,23 @@ public:
     void clear(Tree t)
     {
         P* p = access(t);
-        if (p) { delete p; }
+        if (p) {
+            delete p;
+        }
         t->clearProperty(fKey);
     }
 };
 
+template <>
+class property<Tree> {
+    Tree fKey;
 
-template<> class property<Tree>
-{
-    Tree	fKey;
+   public:
+    property() : fKey(tree(Node(unique("property_")))) {}
 
-public:
+    property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
-    property () : fKey(tree(Node(unique("property_")))) {}
-
-    property (const char* keyname) : fKey(tree(Node(keyname))) {}
-
-    void set(Tree t, Tree data)
-    {
-        t->setProperty(fKey, data);
-    }
+    void set(Tree t, Tree data) { t->setProperty(fKey, data); }
 
     bool get(Tree t, Tree& data)
     {
@@ -75,27 +71,19 @@ public:
         }
     }
 
-    void clear(Tree t)
-    {
-        t->clearProperty(fKey);
-    }
+    void clear(Tree t) { t->clearProperty(fKey); }
 };
 
+template <>
+class property<int> {
+    Tree fKey;
 
-template<> class property<int>
-{
-    Tree	fKey;
+   public:
+    property() : fKey(tree(Node(unique("property_")))) {}
 
-public:
+    property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
-    property () : fKey(tree(Node(unique("property_")))) {}
-
-    property (const char* keyname) : fKey(tree(Node(keyname))) {}
-
-    void set(Tree t, int i)
-    {
-        t->setProperty(fKey, tree(Node(i)));
-    }
+    void set(Tree t, int i) { t->setProperty(fKey, tree(Node(i))); }
 
     bool get(Tree t, int& i)
     {
@@ -108,27 +96,19 @@ public:
         }
     }
 
-    void clear(Tree t)
-    {
-        t->clearProperty(fKey);
-    }
+    void clear(Tree t) { t->clearProperty(fKey); }
 };
 
+template <>
+class property<double> {
+    Tree fKey;
 
-template<> class property<double>
-{
-    Tree	fKey;
+   public:
+    property() : fKey(tree(Node(unique("property_")))) {}
 
-public:
+    property(const char* keyname) : fKey(tree(Node(keyname))) {}
 
-    property () : fKey(tree(Node(unique("property_")))) {}
-
-    property (const char* keyname) : fKey(tree(Node(keyname))) {}
-
-    void set(Tree t, double x)
-    {
-        t->setProperty(fKey, tree(Node(x)));
-    }
+    void set(Tree t, double x) { t->setProperty(fKey, tree(Node(x))); }
 
     bool get(Tree t, double& x)
     {
@@ -141,12 +121,7 @@ public:
         }
     }
 
-    void clear(Tree t)
-    {
-        t->clearProperty(fKey);
-    }
+    void clear(Tree t) { t->clearProperty(fKey); }
 };
-
-
 
 #endif

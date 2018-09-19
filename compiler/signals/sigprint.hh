@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-	Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -18,17 +18,15 @@
     Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  ************************************************************************
  ************************************************************************/
- 
- 
- 
+
 #ifndef _SIGPRINT_
 #define _SIGPRINT_
 
 #include "signals.hh"
 
-//void printSigType (Tree tp);
-//void printSigTypeList (Tree l);
-void printSigType (int n, int v, int c);
-void printSignal(Tree sig, FILE* out=stdout, int prec=0 );
+// void printSigType (Tree tp);
+// void printSigTypeList (Tree l);
+void printSigType(int n, int v, int c);
+void printSignal(Tree sig, FILE* out = stdout, int prec = 0);
 
 #endif
