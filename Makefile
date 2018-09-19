@@ -1,6 +1,6 @@
 version := 0.9.73-mr2
 
-DESTDIR ?= 
+DESTDIR ?=
 PREFIX ?= /usr/local
 CROSS=i586-mingw32msvc-
 
@@ -49,7 +49,7 @@ win32 :
 	$(MAKE) -C compiler -f $(MAKEFILE) prefix=$(prefix) CXX=$(CROSS)g++
 	$(MAKE) -C architecture/osclib CXX=$(CROSS)g++ system=Win32
 
-sound2faust: 
+sound2faust:
 
 	$(MAKE) -C tools/sound2faust
 
@@ -122,10 +122,10 @@ install :
 	# install additional binary libraries (osc, http,...)
 	([ -e architecture/httpdlib/libHTTPDFaust.a ] && cp architecture/httpdlib/libHTTPDFaust.a $(prefix)/lib/) || echo libHTTPDFaust.a not available
 	([ -e architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) ] && cp architecture/httpdlib/libHTTPDFaust.$(LIB_EXT) $(prefix)/lib/) || echo libHTTPDFaust.$(LIB_EXT) not available
-		
+
 	([ -e architecture/osclib/libOSCFaust.a ] && cp architecture/osclib/libOSCFaust.a $(prefix)/lib/) || echo libOSCFaust.a not available
 	([ -e architecture/osclib/libOSCFaust.$(LIB_EXT) ] && cp -a architecture/osclib/libOSCFaust*.$(LIB_EXT)* $(prefix)/lib/) || echo libOSCFaust.$(LIB_EXT) not available
-	
+
 	cp -r architecture/httpdlib/html/js $(prefix)/lib/faust/js
 	([ -e architecture/httpdlib/src/hexa/stylesheet ] && cp architecture/httpdlib/src/hexa/stylesheet $(prefix)/lib/faust/js/stylesheet.js) || echo stylesheet not available
 	([ -e architecture/httpdlib/src/hexa/jsscripts ] && cp architecture/httpdlib/src/hexa/jsscripts $(prefix)/lib/faust/js/jsscripts.js) || echo jsscripts not available
@@ -143,7 +143,7 @@ install :
 	cp -r architecture/webaudio $(prefix)/lib/faust/
 	# install Max/MSP
 	cp -r architecture/max-msp $(prefix)/lib/faust/
-        
+
 
 
 uninstall :
@@ -235,7 +235,13 @@ deb-us:
 debsrc-us:
 	$(MAKE) deb DEBUILD_FLAGS="-S -us -uc"
 
-$(debsrc) :
+$(debsrc):
 	git archive --format=tar.gz -o $(debsrc) --prefix=$(debdist)/ HEAD
+
+format:
+	find compiler -path compiler/parser -prune -o -iname '*.cpp' -execdir clang-format-mp-5.0 -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.hh' -execdir clang-format-mp-5.0 -i -style=file {} \;
+	find compiler -path compiler/parser -prune -o -iname '*.h' -execdir clang-format-mp-5.0 -i -style=file {} \;
+
 
 # DO NOT DELETE
