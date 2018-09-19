@@ -19,8 +19,6 @@
  ************************************************************************
  ************************************************************************/
 
-
-
 #ifndef _stringFAUST_H
 #define _stringFAUST_H
 
@@ -36,25 +34,26 @@
 #include <vector>
 using namespace std;
 
+string subst(const string &m, const string &a0);
+string subst(const string &m, const vector<string> &vargs);
+string subst(const string &m, const string &a0, const string &a1);
+string subst(const string &m, const string &a0, const string &a1, const string &a2);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5);
+string subst(const string &model, const string &a0, const string &a1, const string &a2, const string &a3, const string &a4, const string &a5, const string &a6);
 
-string subst (const string& m, const string& a0);
-string subst (const string& m, const vector<string>& vargs);
-string subst (const string& m, const string& a0, const string& a1);
-string subst (const string& m, const string& a0, const string& a1, const string& a2);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5);
-string subst (const string& model, const string& a0, const string& a1, const string& a2, const string& a3, const string& a4, const string& a5, const string& a6);
-
-string T (char* c);
-string T (int n);
-string T (long n);
+string T(char *c);
+string T(int n);
+string T(long n);
 //string T (float n);
-string T (double n);
+string T(double n);
 
 // add and remove quotes of a string
-string unquote(const string& s);
-string quote(const string& s);
-string rmWhiteSpaces(const string& s);
+string unquote(const string &s);
+string quote(const string &s);
+string rmWhiteSpaces(const string &s);
+
+bool isIfExpression(const string &expr, string &cond, string &body);
 
 #endif
