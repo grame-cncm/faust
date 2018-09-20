@@ -18,9 +18,15 @@ sudo make install
 Note that `make httpd` will fail if *libmicrohttpd* is not available on the 
 system.
 
-The HTTP support can be activated using the `-httpd` option when building the 
-audio application with the appropriate `faust2xxx` command. The following tables 
-lists Faust's architectures providing HTTP support. 
+HTTP support can be added to any Faust program (as long as the target 
+architecture supports it: see tables below) simply by adding the `[http:on]` 
+metadata to the [standard `option` metadata](#standard-metadata):
+
+```
+declare options "[http:on]";
+```
+
+The following tables lists Faust's architectures providing HTTP support: 
 
 | Audio System | Environment |
 | --- | --- |

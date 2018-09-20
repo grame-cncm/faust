@@ -11,11 +11,22 @@ Polyphonic instruments.
 
 ## Configuring MIDI in Faust
 
+MIDI support can be added to any Faust program (as long as the target 
+architecture supports it: see tables below) simply by adding the `[midi:on]` 
+metadata to the [standard `option` metadata](#standard-metadata):
+
+```
+declare options "[midi:on]";
+```
+
+<!-- TODO: the tables indicating which architectures implement MIDI support
+should be placed here. -->
+
 MIDI control is configured in Faust using [metadata](#ui-label-metadata) 
 in [UI elements](#user-interface-primitives-and-configuration). They are 
-decoded by a special architecture (`MidiUI` class) that parses incoming MIDI 
-messages and updates the appropriate control parameters, or send MIDI messages 
-when the UI elements (i.e., sliders, buttons, etc.) are moved.
+decoded by a special architecture that parses incoming MIDI messages and 
+updates the appropriate control parameters, or send MIDI messages when the UI 
+elements (i.e., sliders, buttons, etc.) are moved.
 
 All MIDI configuration metadata in Faust follow the following format:
 
@@ -223,7 +234,71 @@ process = os.sawtooth(freq);
 ```
 <!-- /faust-run -->
 
-<!-- TODO: Check that you talk about the -midi option -->
+### `[midi:start]` Metadata
+
+When used with a button or a checkbox, `[midi:start]` will trigger a value of 
+1 when a `start` MIDI message is received. 
+
+**Usage**
+
+```
+toto = checkbox("toto[midi:start]");
+```
+
+### `[midi:stop]` Metadata
+
+When used with a button or a checkbox, `[midi:stop]` will trigger a value of 
+0 when a `stop` MIDI message is received. 
+
+**Usage**
+
+```
+toto = checkbox("toto[midi:stop]");
+```
+
+### `[midi:clock]` Metadata
+
+When used with a button or a checkbox, `[midi:clock]` will deliver a sequence 
+of successive 1 and 0 values each time a `clock` MIDI message is received (seen
+by Faust code as a square command signal, to be used to compute higher level
+information).
+
+**Usage**
+
+```
+toto = checkbox("toto[midi:clock]");
+```
+
+### MIDI Sync
+
+MIDI clock-based synchronization can be used to slave a given Faust program
+using the metadata presented in the 3 past sections.
+
+A typical Faust program will then use the MIDI clock stream to possibly compute 
+the BPM information, or for any synchronization need it may have.  Here is a 
+simple example of a sinus generated which a frequency controlled by the MIDI 
+clock stream, and starting/stopping when receiving the MIDI start/stop 
+messages:
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+
+// square signal (1/0), changing state at each received clock
+clocker = checkbox("MIDI clock[midi:clock]");    
+
+// ON/OFF button controlled with MIDI start/stop messages
+play = checkbox("ON/OFF [midi:start] [midi:stop]");    
+
+// detect front
+front(x) = (x-x') != 0.0;      
+
+// count number of peaks during one second
+freq(x) = (x-x@ma.SR) : + ~ _;   
+   
+process = os.osc(8*freq(front(clocker))) * play;
+```
+<!-- /faust-run -->
 
 ## MIDI Polyphony Support
 
@@ -237,9 +312,17 @@ computed, this approach could be too CPU costly for simpler or more limited
 needs. In this case describing a single voice in a Faust DSP program and 
 externally combining several of them with a special *polyphonic instrument 
 aware* architecture file is a better solution. Moreover, this special 
-architecture file takes care of dynamic voice allocations and control MIDI 
-messages decoding and mapping. In this section, we demonstrate how to use and
-configure this system.
+architecture file takes care of dynamic voice allocation and control MIDI 
+messages decoding and mapping. 
+
+Polyphony support can be added to any Faust program (as long as the target 
+architecture supports it) simply by adding the `[nvoices:n]` metadata
+to the [standard `option` metadata](#standard-metadata) where `n` is the
+maximum number of voices of polyphony to be allocated:
+
+```
+declare options "[nvoices:12]";
+```
 
 ### Standard Polyphony Parameters
 
@@ -312,15 +395,15 @@ option/flag during compilation (e.g., typically `-poly` or `-nvoices` in the
 be used to turn polyphony on or off.
 
 However, the most standard way to activate polyphony in Faust is to declare
-the `nvoices` metadata which allows us to specify the maximum number of voices 
-of polyphony that will be allocated in the generated program.
+the `[nvoices:n]` metadata which allows us to specify the maximum number of 
+voices of polyphony (`n`) that will be allocated in the generated program.
 
 For example, the Faust program from the previous section could be modified such
 that: 
 
 <!-- faust-run -->
 ```
-declare nvoices "12";
+declare options "[midi:on][nvoices:12]";
 import("stdfaust.lib");
 freq = hslider("freq",200,50,1000,0.01);
 gain = hslider("gain",0.5,0,1,0.01);
@@ -329,6 +412,9 @@ envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
 process = os.sawtooth(freq)*envelope;
 ```
 <!-- /faust-run -->
+
+> Note that the `[midi:on]` metadata must also be declared in order to be able
+to control this program with an external MIDI keyboard.
 
 which when compiled running (for example):
 
@@ -361,20 +447,127 @@ writing:
 
 <!-- faust-run -->
 ```
-declare nvoices "12";
+declare options "[midi:on][nvoices:12]";
 import("stdfaust.lib");
 freq = hslider("freq",200,50,1000,0.01);
 gain = hslider("gain",0.5,0,1,0.01);
 gate = button("gate");
 envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
-process = os.sawtooth(freq)*envelope;
+process = os.sawtooth(freq)*envelope <: _,_;
 effect = dm.zita_light;
 ```
 <!-- /faust-run -->
 
 In this case, the polyphonic part is based on `process` and a single instance
-of the effect defined in `effect` will be created.
+of the effect defined in `effect` will be created and shared by all voices.
+
+Note that since [`dm.zita_light`](TODO) is a stereo effect, the output of
+`process` must be split into 2 signals. Also, be aware that this type of
+construction wont be visible in the corresponding block diagram that will only
+show what's implemented in the `process` line.
+
+<!-- TODO: in poly mode, effect should automatically activated -->
 
 ### Polyphony and Continuous Pitch
 
-<!-- TODO: see where to integrate declare options "" -->
+Key-on and key-off MIDI messages only send the "base pitch" of the instance of
+a note. Hence, if only the `freq` standard parameter is used to control the
+frequency of the synthesizer, its pitch will always be "quantized" to the 
+nearest semitone. In order to be able to do glissandi, vibrato, etc., a
+variable associated to the pitch-wheel needs to be declared and must interact
+with the "base frequency" value retrieved from `freq` as such:
+
+```
+f = hslider("freq",300,50,2000,0.01);
+bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01);
+freq = f*bend; // the "final" freq parameter to be used
+```
+
+The `bend` variable is controlled by the pitch-wheel thanks to 
+[`[midi:pitchwheel]` metadata](#midipitchwheel-metadata). `bend` is used as a
+factor multiplied to the base frequency retrieved from `freq`. Therefore, the
+default value of `bend` should always be 1 which corresponds to the central
+position of the pitch wheel (MIDI value 64). A value smaller than 1 will
+decrease the pitch and a value greater than 1 will increase it. 
+
+While the above example will have the expected behavior, it is likely that 
+clicking will happen when changing the value of `bend` since this parameter is
+not smoothed. Unfortunately, regular smoothing (through the use of 
+[`si.smoo`](TODO), for example) is not a good option here. This is due to the
+fact that instances of polyphonic voices are frozen when a voice is not being
+used. Since the value of `bend` might jump from one value to another when a
+voice is being reactivated/reused, continuous smoothing would probably create
+an "ugly sweep" in that case. Hence, [`si.polySmooth`](TODO) should be used in
+this context instead of [`si.smoo`](TODO). This function shuts down smoothing
+for a given number of samples when a trigger is activated.
+
+Reusing the example from the previous section, we can implement a click-free 
+polyphonic synthesizer with continuous pitch control:
+
+<!-- faust-run -->
+```
+declare options "[midi:on][nvoices:12]";
+import("stdfaust.lib");
+f = hslider("freq",300,50,2000,0.01);
+bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+gain = hslider("gain",0.5,0,1,0.01);
+gate = button("gate");
+freq = f*bend; 
+envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
+process = os.sawtooth(freq)*envelope <: _,_;
+effect = dm.zita_light;
+```
+<!-- /faust-run -->
+
+Observe the usage of [`si.polySmooth`](TODO) here: when `gate=0` the signal is
+not smoothed, when `gate=1` the signal is smoothed with a factor of 0.999 after
+one sample.
+
+### Complete Example: Sustain Pedal and Additional Parameters
+
+Just for fun ;), we improve in this section the example from the previous one
+by implementing sustain pedal control as well as some modulation controlled by 
+the modulation wheel of the MIDI keyboard. 
+
+Sustain pedal control can be easily added simply by declaring a sustain
+parameter controlled by MIDI CC 64 (which is directly linked to the sustain
+pedal) and interacting with the standard `gate` parameter:
+
+```
+s = hslider("sustain[midi:ctrl 64]",0,0,1,1);
+t = button("gate");
+gate = t+s : min(1);
+```
+
+Hence, `gate` will remain equal to 1 as long as the sustain pedal is pressed.
+
+The simple synthesizer from the previous section (which is literally just a
+sawtooth oscillator) can be slightly improved by processing it with a 
+dynamically-controlled lowpass filter:
+
+<!-- faust-run -->
+```
+declare options "[midi:on][nvoices:12]";
+import("stdfaust.lib");
+f = hslider("freq",300,50,2000,0.01);
+bend = hslider("bend[midi:pitchwheel]",1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+gain = hslider("gain",0.5,0,1,0.01);
+s = hslider("sustain[midi:ctrl 64]",0,0,1,1);
+cutoff = hslider("cutoff[midi:ctrl 1]",1000,50,4000,0.01) : si.smoo;
+t = button("gate");
+freq = f*bend; 
+gate = t+s : min(1);
+envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
+process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) <: _,_;
+effect = dm.zita_light;
+```
+<!-- /faust-run -->
+
+MIDI CC 1 corresponds to the modulation wheel which is used here to control
+the cut-off frequency of the lowpass filter.
+
+<!-- Note: the original documentation of polyphony support from the quick 
+reference hasn't been integrated to this new doc. We believe that it scares
+people more than it helps them. We do think that it would be nice to have a
+proper description of the C++ implementation of poly-dsp, but this is the
+wrong place for it. -->

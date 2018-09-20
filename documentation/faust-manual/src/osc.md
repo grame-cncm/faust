@@ -6,10 +6,17 @@ Most Faust architectures provide
 [Open Sound Control (OSC)](http://opensoundcontrol.org/) support (the 
 implementation is based internally on the *oscpack* library by Ross Bencina). 
 This allows applications to be remotely controlled from any OSC-capable 
-application, programming language, or hardware device. OSC support can be 
-activated using the `-osc` option when building the application with the 
-appropriate [`faust2xxx` command](TODO). The following table provides a list of 
-Faust architectures providing OSC support. 
+application, programming language, or hardware device. 
+
+OSC support can be added to any Faust program (as long as the target 
+architecture supports it: see tables below) simply by adding the `[osc:on]` 
+metadata to the [standard `option` metadata](#standard-metadata):
+
+```
+declare options "[osc:on]";
+```
+
+The following tables provides a list of Faust architectures providing OSC support. 
 
 | Audio System | Environment |
 | --- | --- |

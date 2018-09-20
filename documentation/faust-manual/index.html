@@ -121,7 +121,10 @@
 <li><a href="#faust-syntax">Faust Syntax</a><ul>
 <li><a href="#faust-program">Faust Program</a></li>
 <li><a href="#statements">Statements</a><ul>
-<li><a href="#metadata-declarations">Metadata Declarations</a></li>
+<li><a href="#metadata">Metadata</a></li>
+<li><a href="#global-metadata">Global Metadata</a></li>
+<li><a href="#function-metadata">Function Metadata</a></li>
+<li><a href="#standard-metadata">Standard Metadata</a></li>
 <li><a href="#imports">Imports</a></li>
 <li><a href="#documentation-tags">Documentation Tags</a></li>
 </ul></li>
@@ -324,12 +327,17 @@
 <li><a href="#midikey-midikey-metadata"><code>[midi:key midikey]</code> Metadata</a></li>
 <li><a href="#midikeypress-midikey-metadata"><code>[midi:keypress midikey]</code> Metadata</a></li>
 <li><a href="#midipitchwheel-metadata"><code>[midi:pitchwheel]</code> Metadata</a></li>
+<li><a href="#midistart-metadata"><code>[midi:start]</code> Metadata</a></li>
+<li><a href="#midistop-metadata"><code>[midi:stop]</code> Metadata</a></li>
+<li><a href="#midiclock-metadata"><code>[midi:clock]</code> Metadata</a></li>
+<li><a href="#midi-sync">MIDI Sync</a></li>
 </ul></li>
 <li><a href="#midi-polyphony-support">MIDI Polyphony Support</a><ul>
 <li><a href="#standard-polyphony-parameters">Standard Polyphony Parameters</a></li>
 <li><a href="#configuring-and-activating-polyphony">Configuring and Activating Polyphony</a></li>
 <li><a href="#audio-effects-and-polyphonic-synthesizer">Audio Effects and Polyphonic Synthesizer</a></li>
 <li><a href="#polyphony-and-continuous-pitch">Polyphony and Continuous Pitch</a></li>
+<li><a href="#complete-example-sustain-pedal-and-additional-parameters">Complete Example: Sustain Pedal and Additional Parameters</a></li>
 </ul></li>
 </ul></li>
 <li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
@@ -468,10 +476,10 @@ cd faust</code></pre>
 about it. It'd be nice to make it interactive so that when people click on it,
 they are brought to the right section. -->
 <h2 id="faust-program">Faust Program</h2>
-<p>A Faust program is essentially a list of <em>statements</em>. These statements can be <a href="#metadata-declarations"><em>metadata declarations</em></a>, <a href="#imports"><em>imports</em></a>, <a href="#definitions"><em>definitions</em></a>, and <a href="#documentation-tags"><em>documentation tags</em></a>, with optional C++ style (<code>//...</code> and <code>/*...*/</code>) comments.</p>
-<p>Here is a short Faust program that implements of a simple noise generator (called from the <code>noises.lib</code> Faust library). It exhibits various kind of statements : two <a href="#metadata-declarations"><em>metadata declarations</em></a>, an <a href="#imports"><em>imports</em></a>, a <em>comment</em>, and a <a href="#definitions"><em>definition</em></a>. We will study later how <a href="#documentation-tags"><em>documentation statements</em></a> work:</p>
+<p>A Faust program is essentially a list of <em>statements</em>. These statements can be <em>metadata declarations</em> (either <a href="#global-metadata">global metadata</a> or <a href="#function-metadata">function metadata</a>), <a href="#imports"><em>imports</em></a>, <a href="#definitions"><em>definitions</em></a>, and <a href="#documentation-tags"><em>documentation tags</em></a>, with optional C++ style (<code>//...</code> and <code>/*...*/</code>) comments.</p>
+<p>Here is a short Faust program that implements of a simple noise generator (called from the <code>noises.lib</code> Faust library). It exhibits various kind of statements : two <a href="#global-metadata"><em>global metadata</em></a> declarations, an <a href="#imports"><em>imports</em></a>, a <em>comment</em>, and a <a href="#definitions"><em>definition</em></a>. We will study later how <a href="#documentation-tags"><em>documentation statements</em></a> work:</p>
 <div class="faust-run"><a href="img/src/exfaust3/exfaust3-svg/process.svg" target="_blank"><img src="img/src/exfaust3/exfaust3-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>declare name  &quot;Noise&quot;;
+<pre><code>declare name &quot;Noise&quot;;
 declare copyright &quot;(c)GRAME 2018&quot;;
 
 import(&quot;stdfaust.lib&quot;);
@@ -489,22 +497,55 @@ process = no.noise * hslider(&quot;gain&quot;,0,0,1, 0.1);</code></pre>
 <li><em>documentation</em>.</li>
 </ul>
 <p>All statements but <em>documentation</em> end with a semicolon <code>;</code>.</p>
-<h3 id="metadata-declarations">Metadata Declarations</h3>
-<p>All metadata declaration in Faust start with <code>declare</code>.</p>
-<p>When used in the context of Faust program (e.g., <code>.dsp</code> file), they are followed by a key and a string. For example:</p>
+<h3 id="metadata">Metadata</h3>
+<p>Metadata allow us to add elements which are not part of the language to Faust code. These can range to the name of a Faust program, its author, to potential compilation options or user interface element customizations.</p>
+<p>There are three different types of metadata in Faust:</p>
+<ul>
+<li><a href="#global-metadata">Global Metadata</a>: metadata global to a Faust code</li>
+<li><a href="#function-metadata">Function Metadata</a>: metadata specific to a function</li>
+<li><a href="#ui-label-metadata">UI Metadata</a>: metadata specific to a UI element</li>
+</ul>
+<p>Note that some <a href="#global-metadata">Global Metadata</a> have standard names and can be used for specific tasks. Their role is described in the <a href="#standard-metadata">Standard Metadata</a> section.</p>
+<h3 id="global-metadata">Global Metadata</h3>
+<p>All global metadata declaration in Faust start with <code>declare</code>, followed by a key and a string. For example:</p>
 <pre><code>declare name &quot;Noise&quot;;</code></pre>
 <p>allows us to specify the name of a Faust program in its whole.</p>
-<p>When used in the context of a library (e.g., <code>.lib</code> file), metadata declarations can either be “global” (as in the previous example), or associated to a specific function. In that case, <code>declare</code> will be followed by the name of the function, a key, and a string. For example:</p>
-<pre><code>declare add author &quot;John Doe&quot;
-add = +;</code></pre>
-<p>This is very useful when a library has several contributors and that functions potentially have different license terms.</p>
 <p>Unlike regular comments, metadata declarations will appear in the C++ code generated by the Faust compiler. A good practice is to start a Faust program with some standard declarations:</p>
 <pre><code>declare name &quot;MyProgram&quot;;
 declare author &quot;MySelf&quot;;
 declare copyright &quot;MyCompany&quot;;
 declare version &quot;1.00&quot;;
 declare license &quot;BSD&quot;; </code></pre>
-<!-- TODO link to other metadata -->
+<h3 id="function-metadata">Function Metadata</h3>
+<p>Metadata can be associated to a specific function. In that case, <code>declare</code> is followed by the name of the function, a key, and a string. For example:</p>
+<pre><code>declare add author &quot;John Doe&quot;
+add = +;</code></pre>
+<p>This is very useful when a library has several contributors and that functions potentially have different license terms, etc.</p>
+<h3 id="standard-metadata">Standard Metadata</h3>
+<p>There exists a series of standard <a href="#global-metadata">global metadata</a> in Faust whose role role is described in the following table:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Metadata</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>declare options &quot;[key0:value][key1:value]&quot;</code></td>
+<td>This metadata can be used to specify various options associated to a Faust code such as the fact its polyphonic, if it should have OSC, MIDI support, etc. Specific <code>keys</code> usable with this metadata are described throughout this documentation.</td>
+</tr>
+<tr class="even">
+<td><code>declare interface &quot;xxx&quot;</code></td>
+<td>Specifies an interface replacing the standard Faust UI.</td>
+</tr>
+</tbody>
+</table>
+<!-- TODO: some are missing here: incomplete -->
 <h3 id="imports">Imports</h3>
 <p>File imports allow us to import definitions from other source files.</p>
 <p>For example <code>import(&quot;maths.lib&quot;);</code> imports the definitions of the <a href="TODO"><code>maths.lib</code></a> library.</p>
@@ -523,7 +564,7 @@ process = os.osc(440); // the &quot;hello world&quot; of computer music</code></
 <p><img src="img/diagram.svg" class="mx-auto d-block"></p>
 <p>Similarly, the generation of the graphical block-diagram of a Faust expression can be requested by placing this expression between an opening <code>&lt;diagram&gt;</code> and a closing <code>&lt;/diagram&gt;</code> tag. The expression is evaluated within the lexical context of the Faust program.</p>
 <p><img src="img/metadata.svg" class="mx-auto d-block"></p>
-<p>The <code>&lt;metadata&gt;</code> tags allow to reference Faust <a href="#metadata-declarations">metadata declarations</a>, calling the corresponding keyword.</p>
+<p>The <code>&lt;metadata&gt;</code> tags allow to reference Faust <a href="#global-metadata">global metadatas</a>, calling the corresponding keyword.</p>
 <p><img src="img/notice.svg" class="mx-auto d-block"></p>
 <p>The <code>&lt;notice/&gt;</code> empty-element tag is used to generate the conventions used in the mathematical equations.</p>
 <p><img src="img/listing.svg" class="mx-auto d-block"></p>
@@ -2193,7 +2234,7 @@ process = hgroup(&quot;Oscillators&quot;,
 );</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust111/exfaust111.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h4 id="global-ui-metadata">Global UI Metadata</h4>
-<p>Note that global user interfaces completely replacing the one defined using the standard Faust UI primitives may be declared using <a href="#metadata-declarations">global metadata declarations</a>. This is the case of the <a href="TODO">SmartKeyboard</a> interface for example.</p>
+<p>Note that global user interfaces completely replacing the one defined using the standard Faust UI primitives may be declared using <a href="#global-metadata">global metadata</a>. This is the case of the <a href="TODO">SmartKeyboard</a> interface for example.</p>
 <!-- TODO Link to metadata declaration section -->
 <p>In the following subsections, the standard Faust UI metadata are documented. Other types of metadata (e.g., accelerometers, OSC, etc.) are documented in the sections related to these topics.</p>
 <h4 id="styleknob-metadata"><code>[style:knob]</code> Metadata</h4>
@@ -2829,7 +2870,10 @@ m_factory = NULL;</code></pre>
 </ul>
 <h1 id="osc-support">OSC Support</h1>
 <h2 id="overview">Overview</h2>
-<p>Most Faust architectures provide <a href="http://opensoundcontrol.org/">Open Sound Control (OSC)</a> support (the implementation is based internally on the <em>oscpack</em> library by Ross Bencina). This allows applications to be remotely controlled from any OSC-capable application, programming language, or hardware device. OSC support can be activated using the <code>-osc</code> option when building the application with the appropriate <a href="TODO"><code>faust2xxx</code> command</a>. The following table provides a list of Faust architectures providing OSC support.</p>
+<p>Most Faust architectures provide <a href="http://opensoundcontrol.org/">Open Sound Control (OSC)</a> support (the implementation is based internally on the <em>oscpack</em> library by Ross Bencina). This allows applications to be remotely controlled from any OSC-capable application, programming language, or hardware device.</p>
+<p>OSC support can be added to any Faust program (as long as the target architecture supports it: see tables below) simply by adding the <code>[osc:on]</code> metadata to the <a href="#standard-metadata">standard <code>option</code> metadata</a>:</p>
+<pre><code>declare options &quot;[osc:on]&quot;;</code></pre>
+<p>The following tables provides a list of Faust architectures providing OSC support.</p>
 <table>
 <thead>
 <tr class="header">
@@ -3363,7 +3407,9 @@ process = no.noise * hslider(&quot;level[osc:/accxyz/0 0 9.81]&quot;,0,0,1,0.01)
 make
 sudo make install</code></pre>
 <p>Note that <code>make httpd</code> will fail if <em>libmicrohttpd</em> is not available on the system.</p>
-<p>The HTTP support can be activated using the <code>-httpd</code> option when building the audio application with the appropriate <code>faust2xxx</code> command. The following tables lists Faust’s architectures providing HTTP support.</p>
+<p>HTTP support can be added to any Faust program (as long as the target architecture supports it: see tables below) simply by adding the <code>[http:on]</code> metadata to the <a href="#standard-metadata">standard <code>option</code> metadata</a>:</p>
+<pre><code>declare options &quot;[http:on]&quot;;</code></pre>
+<p>The following tables lists Faust’s architectures providing HTTP support:</p>
 <table>
 <thead>
 <tr class="header">
@@ -3627,7 +3673,11 @@ process  = hgroup(&quot;mixer&quot;, par(i, 4, input(i)) :&gt; _);</code></pre>
 <p>Similarly to <a href="#osc-support">OSC</a>, several Faust architectures also provide MIDI support. This allows Faust applications to be controlled from any MIDI device (or to control MIDI devices). MIDI is also the preferable way to control Polyphonic instruments.</p>
 <!-- TODO: more about link between MIDI and polyphony in general -->
 <h2 id="configuring-midi-in-faust">Configuring MIDI in Faust</h2>
-<p>MIDI control is configured in Faust using <a href="#ui-label-metadata">metadata</a> in <a href="#user-interface-primitives-and-configuration">UI elements</a>. They are decoded by a special architecture (<code>MidiUI</code> class) that parses incoming MIDI messages and updates the appropriate control parameters, or send MIDI messages when the UI elements (i.e., sliders, buttons, etc.) are moved.</p>
+<p>MIDI support can be added to any Faust program (as long as the target architecture supports it: see tables below) simply by adding the <code>[midi:on]</code> metadata to the <a href="#standard-metadata">standard <code>option</code> metadata</a>:</p>
+<pre><code>declare options &quot;[midi:on]&quot;;</code></pre>
+<!-- TODO: the tables indicating which architectures implement MIDI support
+should be placed here. -->
+<p>MIDI control is configured in Faust using <a href="#ui-label-metadata">metadata</a> in <a href="#user-interface-primitives-and-configuration">UI elements</a>. They are decoded by a special architecture that parses incoming MIDI messages and updates the appropriate control parameters, or send MIDI messages when the UI elements (i.e., sliders, buttons, etc.) are moved.</p>
 <p>All MIDI configuration metadata in Faust follow the following format:</p>
 <pre><code>[midi:xxx yyy...]</code></pre>
 <p>This section provides a list of the most common metadata that can be used to configure of the MIDI behavior of a Faust program.</p>
@@ -3726,9 +3776,42 @@ process = os.sawtooth(freq);</code></pre>
 freq = hslider(&quot;frequency[midi:pitchwheel]&quot;,200,50,1000,0.01) : si.smoo;
 process = os.sawtooth(freq);</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust127/exfaust127.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<!-- TODO: Check that you talk about the -midi option -->
+<h3 id="midistart-metadata"><code>[midi:start]</code> Metadata</h3>
+<p>When used with a button or a checkbox, <code>[midi:start]</code> will trigger a value of 1 when a <code>start</code> MIDI message is received.</p>
+<p><strong>Usage</strong></p>
+<pre><code>toto = checkbox(&quot;toto[midi:start]&quot;);</code></pre>
+<h3 id="midistop-metadata"><code>[midi:stop]</code> Metadata</h3>
+<p>When used with a button or a checkbox, <code>[midi:stop]</code> will trigger a value of 0 when a <code>stop</code> MIDI message is received.</p>
+<p><strong>Usage</strong></p>
+<pre><code>toto = checkbox(&quot;toto[midi:stop]&quot;);</code></pre>
+<h3 id="midiclock-metadata"><code>[midi:clock]</code> Metadata</h3>
+<p>When used with a button or a checkbox, <code>[midi:clock]</code> will deliver a sequence of successive 1 and 0 values each time a <code>clock</code> MIDI message is received (seen by Faust code as a square command signal, to be used to compute higher level information).</p>
+<p><strong>Usage</strong></p>
+<pre><code>toto = checkbox(&quot;toto[midi:clock]&quot;);</code></pre>
+<h3 id="midi-sync">MIDI Sync</h3>
+<p>MIDI clock-based synchronization can be used to slave a given Faust program using the metadata presented in the 3 past sections.</p>
+<p>A typical Faust program will then use the MIDI clock stream to possibly compute the BPM information, or for any synchronization need it may have. Here is a simple example of a sinus generated which a frequency controlled by the MIDI clock stream, and starting/stopping when receiving the MIDI start/stop messages:</p>
+<div class="faust-run"><a href="img/src/exfaust128/exfaust128-svg/process.svg" target="_blank"><img src="img/src/exfaust128/exfaust128-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+
+// square signal (1/0), changing state at each received clock
+clocker = checkbox(&quot;MIDI clock[midi:clock]&quot;);    
+
+// ON/OFF button controlled with MIDI start/stop messages
+play = checkbox(&quot;ON/OFF [midi:start] [midi:stop]&quot;);    
+
+// detect front
+front(x) = (x-x&#39;) != 0.0;      
+
+// count number of peaks during one second
+freq(x) = (x-x@ma.SR) : + ~ _;   
+   
+process = os.osc(8*freq(front(clocker))) * play;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust128/exfaust128.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
 <h2 id="midi-polyphony-support">MIDI Polyphony Support</h2>
-<p>Polyphony is conveniently handled in Faust directly by <a href="TODO">Faust Architectures</a>. Note that programming polyphonic instrument completely from scratch in Faust and without relying on architectures is also possible. In fact, this feature is indispensable if complex signal interactions between the different voices have to be described (like sympathetic strings resonance in a physical model, etc.). However, since all voices would always be computed, this approach could be too CPU costly for simpler or more limited needs. In this case describing a single voice in a Faust DSP program and externally combining several of them with a special <em>polyphonic instrument aware</em> architecture file is a better solution. Moreover, this special architecture file takes care of dynamic voice allocations and control MIDI messages decoding and mapping. In this section, we demonstrate how to use and configure this system.</p>
+<p>Polyphony is conveniently handled in Faust directly by <a href="TODO">Faust Architectures</a>. Note that programming polyphonic instrument completely from scratch in Faust and without relying on architectures is also possible. In fact, this feature is indispensable if complex signal interactions between the different voices have to be described (like sympathetic strings resonance in a physical model, etc.). However, since all voices would always be computed, this approach could be too CPU costly for simpler or more limited needs. In this case describing a single voice in a Faust DSP program and externally combining several of them with a special <em>polyphonic instrument aware</em> architecture file is a better solution. Moreover, this special architecture file takes care of dynamic voice allocation and control MIDI messages decoding and mapping.</p>
+<p>Polyphony support can be added to any Faust program (as long as the target architecture supports it) simply by adding the <code>[nvoices:n]</code> metadata to the <a href="#standard-metadata">standard <code>option</code> metadata</a> where <code>n</code> is the maximum number of voices of polyphony to be allocated:</p>
+<pre><code>declare options &quot;[nvoices:12]&quot;;</code></pre>
 <h3 id="standard-polyphony-parameters">Standard Polyphony Parameters</h3>
 <p>Most Faust architectures allow for the implementation of polyphonic instruments simply by using a set of “standard user interface names.” Hence, any Faust program declaring the <code>freq</code>, <code>gain</code>, and <code>gate</code> parameter is polyphony-compatible. These 3 parameters are directly associated to key-on and key-off events and have the following behavior:</p>
 <ul>
@@ -3738,40 +3821,43 @@ process = os.sawtooth(freq);</code></pre>
 </ul>
 <p><strong>Example: Simple Polyphonic Synthesizer</strong></p>
 <p>In the following example, the standard <code>freq</code>, <code>gain</code>, and <code>gate</code> parameters are used to implement a simple polyphonic synth.</p>
-<div class="faust-run"><a href="img/src/exfaust128/exfaust128-svg/process.svg" target="_blank"><img src="img/src/exfaust128/exfaust128-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>import(&quot;stdfaust.lib&quot;);
-freq = hslider(&quot;freq&quot;,200,50,1000,0.01);
-gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
-gate = button(&quot;gate&quot;);
-process = os.sawtooth(freq)*gain*gate;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust128/exfaust128.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<blockquote>
-<p>Note that if you execute this code in the <a href="https://faust.grame.fr/editor">Faust online editor</a> with polyphony mode activated, you should be able to control this simple synth with any MIDI keyboard connected to your computer. This will only work if you’re using Google Chrome (most other browsers are not MIDI-compatible).</p>
-</blockquote>
-<p>The previous example can be slightly improved by adding an envelope generator and controlling it with <code>gain</code> and <code>gate</code>:</p>
 <div class="faust-run"><a href="img/src/exfaust129/exfaust129-svg/process.svg" target="_blank"><img src="img/src/exfaust129/exfaust129-svg/process.svg" class="mx-auto d-block"></a>
 <pre><code>import(&quot;stdfaust.lib&quot;);
 freq = hslider(&quot;freq&quot;,200,50,1000,0.01);
 gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
 gate = button(&quot;gate&quot;);
-envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
-process = os.sawtooth(freq)*envelope;</code></pre>
+process = os.sawtooth(freq)*gain*gate;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust129/exfaust129.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<p><strong>Warning:</strong> Note that all the active voices of polyphony are added together without scaling! This means that the previous example will likely click if several voices are played at the same time. It is the Faust programmer’s responsibility to take this into account in his code. For example, assuming that the number of active voices will always be smaller or equal to 4, the following safeguard could be added to the previous example:</p>
-<pre><code>process = os.sawtooth(freq)*envelope : /(4);</code></pre>
-<h3 id="configuring-and-activating-polyphony">Configuring and Activating Polyphony</h3>
-<p>Polyphony can be activated “manually” in some Faust architectures using an option/flag during compilation (e.g., typically <code>-poly</code> or <code>-nvoices</code> in the <a href="TODO">faust2…</a> scripts). That’s also how the <a href="https://faust.grame.fr/editor">Faust online editor</a> works where a button can be used to turn polyphony on or off.</p>
-<p>However, the most standard way to activate polyphony in Faust is to declare the <code>nvoices</code> metadata which allows us to specify the maximum number of voices of polyphony that will be allocated in the generated program.</p>
-<p>For example, the Faust program from the previous section could be modified such that:</p>
+<blockquote>
+<p>Note that if you execute this code in the <a href="https://faust.grame.fr/editor">Faust online editor</a> with polyphony mode activated, you should be able to control this simple synth with any MIDI keyboard connected to your computer. This will only work if you’re using Google Chrome (most other browsers are not MIDI-compatible).</p>
+</blockquote>
+<p>The previous example can be slightly improved by adding an envelope generator and controlling it with <code>gain</code> and <code>gate</code>:</p>
 <div class="faust-run"><a href="img/src/exfaust130/exfaust130-svg/process.svg" target="_blank"><img src="img/src/exfaust130/exfaust130-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>declare nvoices &quot;12&quot;;
-import(&quot;stdfaust.lib&quot;);
+<pre><code>import(&quot;stdfaust.lib&quot;);
 freq = hslider(&quot;freq&quot;,200,50,1000,0.01);
 gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
 gate = button(&quot;gate&quot;);
 envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
 process = os.sawtooth(freq)*envelope;</code></pre>
 <a href="http://faust.grame.fr/editor?code=img/src/exfaust130/exfaust130.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p><strong>Warning:</strong> Note that all the active voices of polyphony are added together without scaling! This means that the previous example will likely click if several voices are played at the same time. It is the Faust programmer’s responsibility to take this into account in his code. For example, assuming that the number of active voices will always be smaller or equal to 4, the following safeguard could be added to the previous example:</p>
+<pre><code>process = os.sawtooth(freq)*envelope : /(4);</code></pre>
+<h3 id="configuring-and-activating-polyphony">Configuring and Activating Polyphony</h3>
+<p>Polyphony can be activated “manually” in some Faust architectures using an option/flag during compilation (e.g., typically <code>-poly</code> or <code>-nvoices</code> in the <a href="TODO">faust2…</a> scripts). That’s also how the <a href="https://faust.grame.fr/editor">Faust online editor</a> works where a button can be used to turn polyphony on or off.</p>
+<p>However, the most standard way to activate polyphony in Faust is to declare the <code>[nvoices:n]</code> metadata which allows us to specify the maximum number of voices of polyphony (<code>n</code>) that will be allocated in the generated program.</p>
+<p>For example, the Faust program from the previous section could be modified such that:</p>
+<div class="faust-run"><a href="img/src/exfaust131/exfaust131-svg/process.svg" target="_blank"><img src="img/src/exfaust131/exfaust131-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>declare options &quot;[midi:on][nvoices:12]&quot;;
+import(&quot;stdfaust.lib&quot;);
+freq = hslider(&quot;freq&quot;,200,50,1000,0.01);
+gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
+gate = button(&quot;gate&quot;);
+envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
+process = os.sawtooth(freq)*envelope;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust131/exfaust131.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<blockquote>
+<p>Note that the <code>[midi:on]</code> metadata must also be declared in order to be able to control this program with an external MIDI keyboard.</p>
+</blockquote>
 <p>which when compiled running (for example):</p>
 <pre><code>faust2jaqt faustProgram.dsp</code></pre>
 <p>will generate a MIDI-controllable polyphonic synthesizer.</p>
@@ -3781,19 +3867,69 @@ process = os.sawtooth(freq)*envelope;</code></pre>
 <p>it is not a good practice since a new instance of that effect will be created for each active voice of polyphony. The main consequence of this would be an increased CPU cost.</p>
 <p>Similarly to <code>process</code>, Faust allows for the declaration of an <code>effect</code> line, which identifies an audio effect to be connected to the output of the polyphonic synthesizer. <code>effect</code> is a standard variable in Faust (just like <code>process</code>).</p>
 <p>For example, a simple reverb can be added to the previous example simply by writing:</p>
-<div class="faust-run"><a href="img/src/exfaust131/exfaust131-svg/process.svg" target="_blank"><img src="img/src/exfaust131/exfaust131-svg/process.svg" class="mx-auto d-block"></a>
-<pre><code>declare nvoices &quot;12&quot;;
+<div class="faust-run"><a href="img/src/exfaust132/exfaust132-svg/process.svg" target="_blank"><img src="img/src/exfaust132/exfaust132-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>declare options &quot;[midi:on][nvoices:12]&quot;;
 import(&quot;stdfaust.lib&quot;);
 freq = hslider(&quot;freq&quot;,200,50,1000,0.01);
 gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
 gate = button(&quot;gate&quot;);
 envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
-process = os.sawtooth(freq)*envelope;
+process = os.sawtooth(freq)*envelope &lt;: _,_;
 effect = dm.zita_light;</code></pre>
-<a href="http://faust.grame.fr/editor?code=img/src/exfaust131/exfaust131.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
-<p>In this case, the polyphonic part is based on <code>process</code> and a single instance of the effect defined in <code>effect</code> will be created.</p>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust132/exfaust132.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>In this case, the polyphonic part is based on <code>process</code> and a single instance of the effect defined in <code>effect</code> will be created and shared by all voices.</p>
+<p>Note that since <a href="TODO"><code>dm.zita_light</code></a> is a stereo effect, the output of <code>process</code> must be split into 2 signals. Also, be aware that this type of construction wont be visible in the corresponding block diagram that will only show what’s implemented in the <code>process</code> line.</p>
+<!-- TODO: in poly mode, effect should automatically activated -->
 <h3 id="polyphony-and-continuous-pitch">Polyphony and Continuous Pitch</h3>
-<!-- TODO: see where to integrate declare options "" -->
+<p>Key-on and key-off MIDI messages only send the “base pitch” of the instance of a note. Hence, if only the <code>freq</code> standard parameter is used to control the frequency of the synthesizer, its pitch will always be “quantized” to the nearest semitone. In order to be able to do glissandi, vibrato, etc., a variable associated to the pitch-wheel needs to be declared and must interact with the “base frequency” value retrieved from <code>freq</code> as such:</p>
+<pre><code>f = hslider(&quot;freq&quot;,300,50,2000,0.01);
+bend = hslider(&quot;bend[midi:pitchwheel]&quot;,1,0,10,0.01);
+freq = f*bend; // the &quot;final&quot; freq parameter to be used</code></pre>
+<p>The <code>bend</code> variable is controlled by the pitch-wheel thanks to <a href="#midipitchwheel-metadata"><code>[midi:pitchwheel]</code> metadata</a>. <code>bend</code> is used as a factor multiplied to the base frequency retrieved from <code>freq</code>. Therefore, the default value of <code>bend</code> should always be 1 which corresponds to the central position of the pitch wheel (MIDI value 64). A value smaller than 1 will decrease the pitch and a value greater than 1 will increase it.</p>
+<p>While the above example will have the expected behavior, it is likely that clicking will happen when changing the value of <code>bend</code> since this parameter is not smoothed. Unfortunately, regular smoothing (through the use of <a href="TODO"><code>si.smoo</code></a>, for example) is not a good option here. This is due to the fact that instances of polyphonic voices are frozen when a voice is not being used. Since the value of <code>bend</code> might jump from one value to another when a voice is being reactivated/reused, continuous smoothing would probably create an “ugly sweep” in that case. Hence, <a href="TODO"><code>si.polySmooth</code></a> should be used in this context instead of <a href="TODO"><code>si.smoo</code></a>. This function shuts down smoothing for a given number of samples when a trigger is activated.</p>
+<p>Reusing the example from the previous section, we can implement a click-free polyphonic synthesizer with continuous pitch control:</p>
+<div class="faust-run"><a href="img/src/exfaust133/exfaust133-svg/process.svg" target="_blank"><img src="img/src/exfaust133/exfaust133-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>declare options &quot;[midi:on][nvoices:12]&quot;;
+import(&quot;stdfaust.lib&quot;);
+f = hslider(&quot;freq&quot;,300,50,2000,0.01);
+bend = hslider(&quot;bend[midi:pitchwheel]&quot;,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
+gate = button(&quot;gate&quot;);
+freq = f*bend; 
+envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
+process = os.sawtooth(freq)*envelope &lt;: _,_;
+effect = dm.zita_light;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust133/exfaust133.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Observe the usage of <a href="TODO"><code>si.polySmooth</code></a> here: when <code>gate=0</code> the signal is not smoothed, when <code>gate=1</code> the signal is smoothed with a factor of 0.999 after one sample.</p>
+<h3 id="complete-example-sustain-pedal-and-additional-parameters">Complete Example: Sustain Pedal and Additional Parameters</h3>
+<p>Just for fun ;), we improve in this section the example from the previous one by implementing sustain pedal control as well as some modulation controlled by the modulation wheel of the MIDI keyboard.</p>
+<p>Sustain pedal control can be easily added simply by declaring a sustain parameter controlled by MIDI CC 64 (which is directly linked to the sustain pedal) and interacting with the standard <code>gate</code> parameter:</p>
+<pre><code>s = hslider(&quot;sustain[midi:ctrl 64]&quot;,0,0,1,1);
+t = button(&quot;gate&quot;);
+gate = t+s : min(1);</code></pre>
+<p>Hence, <code>gate</code> will remain equal to 1 as long as the sustain pedal is pressed.</p>
+<p>The simple synthesizer from the previous section (which is literally just a sawtooth oscillator) can be slightly improved by processing it with a dynamically-controlled lowpass filter:</p>
+<div class="faust-run"><a href="img/src/exfaust134/exfaust134-svg/process.svg" target="_blank"><img src="img/src/exfaust134/exfaust134-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>declare options &quot;[midi:on][nvoices:12]&quot;;
+import(&quot;stdfaust.lib&quot;);
+f = hslider(&quot;freq&quot;,300,50,2000,0.01);
+bend = hslider(&quot;bend[midi:pitchwheel]&quot;,1,0,10,0.01) : si.polySmooth(gate,0.999,1);
+gain = hslider(&quot;gain&quot;,0.5,0,1,0.01);
+s = hslider(&quot;sustain[midi:ctrl 64]&quot;,0,0,1,1);
+cutoff = hslider(&quot;cutoff[midi:ctrl 1]&quot;,1000,50,4000,0.01) : si.smoo;
+t = button(&quot;gate&quot;);
+freq = f*bend; 
+gate = t+s : min(1);
+envelope = en.adsr(0.01,0.01,0.8,0.1,gate)*gain;
+process = os.sawtooth(freq)*envelope : fi.lowpass(3,cutoff) &lt;: _,_;
+effect = dm.zita_light;</code></pre>
+<a href="http://faust.grame.fr/editor?code=img/src/exfaust134/exfaust134.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>MIDI CC 1 corresponds to the modulation wheel which is used here to control the cut-off frequency of the lowpass filter.</p>
+<!-- Note: the original documentation of polyphony support from the quick 
+reference hasn't been integrated to this new doc. We believe that it scares
+people more than it helps them. We do think that it would be nice to have a
+proper description of the C++ implementation of poly-dsp, but this is the
+wrong place for it. -->
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->
