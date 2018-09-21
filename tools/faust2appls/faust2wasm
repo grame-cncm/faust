@@ -198,21 +198,28 @@ EndOfCode
     fi
 
 	if [ $WAP = true ]; then
+
    		# create the main.json file
     	echo "{" > main.json
     	echo "\"name\": \"$name\"," >> main.json
-    	echo "\"vendor\": \"GRAME\"," >> main.json
+    	echo "\"vendor\": \"Faust\"," >> main.json
     	echo "\"version\": \"1.0\"," >> main.json
     	echo "\"url\": \"$name.js\"," >> main.json
     	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
     	echo "\"thumbnail\": \"\"" >> main.json
     	echo "}" >> main.json
+    	
+        # compose the HTML test page
+        cp  $FAUSTLIB/webaudio/testWAP.html test$name-tmp1.html
+        sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
+        sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
     	if [ $WAP = "true" ]; then
-        	BINARIES="$BINARIES$name.js, $name-processor.js, main.json;"
+        	BINARIES="$BINARIES$name.js, $name-processor.js, main.json, test$name.html;"
+        	rm test$name-tmp1.html test$name-tmp2.html
         else
         	BINARIES="$BINARIES$name.js, $name-processor.js;"
         fi
