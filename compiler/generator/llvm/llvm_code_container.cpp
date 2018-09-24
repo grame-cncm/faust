@@ -68,7 +68,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60)
+#if defined(LLVM_60) || defined(LLVM_70)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -98,7 +98,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60)
+#if defined(LLVM_60) || defined(LLVM_70)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -220,7 +220,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
         Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if !defined(LLVM_50) && !defined(LLVM_60)
+#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #endif

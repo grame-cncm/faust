@@ -37,7 +37,7 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #else
@@ -224,7 +224,7 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
     fTarget             = "";
 
     // To keep Debug functions in generated code
-#ifdef LLVM_DEBUG
+#if 0
     printInt32(1);
     printFloat(0.5f);
     printDouble(0.8);

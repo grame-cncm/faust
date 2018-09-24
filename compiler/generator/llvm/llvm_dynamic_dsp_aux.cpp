@@ -72,7 +72,7 @@
 #include <llvm/Target/TargetLibraryInfo.h>
 #endif
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #include <llvm/Transforms/IPO/AlwaysInliner.h>
@@ -117,7 +117,7 @@ static bool isParam(int argc, const char* argv[], const string& param)
     return false;
 }
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
 static Module* ParseBitcodeFile(MEMORY_BUFFER Buffer, LLVMContext& Context, string* ErrMsg)
 {
     using namespace llvm;
@@ -161,7 +161,11 @@ void llvm_dynamic_dsp_factory_aux::write(std::ostream* out, bool binary, bool sm
     string             res;
     raw_string_ostream out_str(res);
     if (binary) {
+    #if defined(LLVM_70)
+        WriteBitcodeToFile(*fModule, out_str);
+    #else
         WriteBitcodeToFile(fModule, out_str);
+    #endif
     } else {
         out_str << *fModule;
     }
@@ -173,7 +177,11 @@ string llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcode()
 {
     string             res;
     raw_string_ostream out(res);
+#if defined(LLVM_70)
+    WriteBitcodeToFile(*fModule, out);
+#else
     WriteBitcodeToFile(fModule, out);
+#endif
     out.flush();
     return base64_encode(res);
 }
@@ -182,7 +190,11 @@ void llvm_dynamic_dsp_factory_aux::writeDSPFactoryToBitcodeFile(const string& bi
 {
     STREAM_ERROR   err;
     raw_fd_ostream out(bit_code_path.c_str(), err, sysfs_binary_flag);
+#if defined(LLVM_70)
+    WriteBitcodeToFile(*fModule, out);
+#else
     WriteBitcodeToFile(fModule, out);
+#endif
 }
 
 // IR
@@ -233,7 +245,7 @@ static void AddOptimizationPasses(PassManagerBase& MPM, FUNCTION_PASS_MANAGER& F
         }
         Builder.Inliner = createFunctionInliningPass(Threshold);
     } else {
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
         Builder.Inliner = createAlwaysInlinerLegacyPass();
 #else
         Builder.Inliner = createAlwaysInlinerPass();
@@ -299,7 +311,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     builder.setOptLevel(CodeGenOpt::Aggressive);
     builder.setEngineKind(EngineKind::JIT);
-#if !defined(LLVM_60)
+#if !defined(LLVM_60) && !defined(LLVM_70)
     builder.setCodeModel(CodeModel::JITDefault);
 #endif
 
@@ -317,7 +329,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
     string target_suffix = "-elf";
 #else
-    string        target_suffix = "";
+    string target_suffix = "";
 #endif
 
     string triple, cpu;
@@ -329,7 +341,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
 
     // -fastmath is activated at IR level, and has to be setup at JIT level also
 
-#if !defined(LLVM_50) && !defined(LLVM_60)
+#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70)
     targetOptions.LessPreciseFPMADOption = true;
 #endif
     targetOptions.AllowFPOpFusion       = FPOpFusion::Fast;
@@ -338,7 +350,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     targetOptions.NoNaNsFPMath          = true;
     targetOptions.GuaranteedTailCallOpt = true;
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
     targetOptions.NoTrappingFPMath = true;
     targetOptions.FPDenormalMode   = FPDenormal::IEEE;
 #endif
@@ -391,7 +403,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         }
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM1") != string::npos)) {
-#if defined(LLVM_60)
+#if defined(LLVM_60) || defined(LLVM_70)
         // TargetRegistry::printRegisteredTargetsForVersion(std::cout);
 #else
             TargetRegistry::printRegisteredTargetsForVersion();
@@ -408,7 +420,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
         pm.add(createVerifierPass());
 
         if ((debug_var != "") && (debug_var.find("FAUST_LLVM4") != string::npos)) {
-#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_38) || defined(LLVM_39) || defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
         // TODO
 #else
             tm->addPassesToEmitFile(pm, fouts(), TargetMachine::CGFT_AssemblyFile, true);
