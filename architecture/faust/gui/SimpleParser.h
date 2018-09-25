@@ -89,7 +89,6 @@ inline bool parseMenuList(const char*& p, std::vector<std::string>& names, std::
 {
     std::vector<std::string> tmpnames;
     std::vector<double> tmpvalues;
-
     const char* saved = p; // to restore position if we fail
 
     if (parseChar(p, '{')) {

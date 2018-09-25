@@ -47,8 +47,8 @@ do
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
-         echo "Use '-wap' to generate WAP (Web Audio Plugin), which forces -worklet mode and generated additional files"
-        echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+        echo "Use '-wap' to generate a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        echo "Use '-comb' to combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     elif [ $p = "-comb" ]; then

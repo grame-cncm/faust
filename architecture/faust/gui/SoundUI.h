@@ -86,21 +86,23 @@ class SoundUI : public GenericUI
         // -- soundfiles
         virtual void addSoundfile(const char* label, const char* url, Soundfile** sf_zone)
         {
+            const char* saved_url = url; // 'url' is consumed by parseMenuList2
             std::vector<std::string> file_name_list;
+            
             bool menu = parseMenuList2(url, file_name_list, true);
             // If not a list, we have as single file
-            if (!menu) { file_name_list.push_back(url); }
+            if (!menu) { file_name_list.push_back(saved_url); }
             
             // Parse the possible list
-            if (fSoundfileMap.find(url) == fSoundfileMap.end()) {
+            if (fSoundfileMap.find(saved_url) == fSoundfileMap.end()) {
                 // Check all files and get their complete path
                 std::vector<std::string> path_name_list = SoundfileReader::checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                fSoundfileMap[url] = createSoundfile(path_name_list, MAX_CHAN);
+                fSoundfileMap[saved_url] = createSoundfile(path_name_list, MAX_CHAN);
             }
             
             // Get the soundfile
-            *sf_zone = fSoundfileMap[url];
+            *sf_zone = fSoundfileMap[saved_url];
         }
     
         static std::string getBinaryPath(std::string folder = "")
