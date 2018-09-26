@@ -1,7 +1,9 @@
 #!/bin/sh
 
+TRYIT_SERVER="https://faust.grame.fr/manual/"
+
 # Generating html version of markdown
-PHTML=$(pandoc --standalone --toc --toc-depth=4 --metadata pagetitle="Faust Manual" --mathjax src/introduction.md src/quick-start.md src/overview.md src/compiling.md src/syntax.md src/compiler.md src/embedding.md src/osc.md src/http.md src/midi.md src/faustManual.md)
+PHTML=$(pandoc --standalone --toc --toc-depth=4 --metadata pagetitle="Faust Manual" --mathjax src/introduction.md src/quick-start.md src/overview.md src/compiling.md src/syntax.md src/compiler.md src/embedding.md src/osc.md src/http.md src/midi.md src/juce.md src/faustManual.md)
 
 # Detecting line of end of header added by pandoc
 LINECUT=$(echo "$PHTML" | awk '/<ul>/{ print NR; exit }')
@@ -35,13 +37,13 @@ do
   # Formating Faust runnable examples in html
   FAUST_HEADER="<div class=\"faust-run\"><a href=\"$EXFAUSTDIR$CNT/exfaust$CNT-svg/process.svg\" target=\"_blank\"><img src=\"$EXFAUSTDIR$CNT/exfaust$CNT-svg/process.svg\" class=\"mx-auto d-block\"></a>"
   PHTML=$(echo "$PHTML" | awk -v var="$FAUST_HEADER" '/<!-- faust-run -->/ && n==0 {sub(/<!-- faust-run -->/,var);++n}{print}')
-  FAUST_FOOTER="<a href=\"http://faust.grame.fr/editor?code=$CURRENT_FAUST_FILE\"><button type=\"button\" class=\"btn btn-primary\">Try it Yourself >></button></a></div>"
+  FAUST_FOOTER="<a href=\"https://faust.grame.fr/editor?code=$TRYIT_SERVER$CURRENT_FAUST_FILE\"><button type=\"button\" class=\"btn btn-primary\">Try it Yourself >></button></a></div>"
   PHTML=$(echo "$PHTML" | awk -v var="$FAUST_FOOTER" '/<!-- \/faust-run -->/ && n==0 {sub(/<!-- \/faust-run -->/,var);++n}{print}')
   # Going to next code...
   ((CNT++))
 done
 
 # Add the header and the footer of the future Faust website
-echo "$PHTML</div></div></div></main>" | cat lib/header-faust.html - lib/footer.html > index.html
+#echo "$PHTML</div></div></div></main>" | cat lib/header-faust.html - lib/footer.html > index.html
 # Add the header and the footer to make a standalone HTML page
-#echo "$PHTML</div></div></div></main>" | cat lib/header-doc.html - lib/footer.html > index.html
+echo "$PHTML</div></div></div></main>" | cat lib/header-doc.html - lib/footer.html > index.html
