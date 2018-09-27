@@ -54,7 +54,7 @@ Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int m
 
 // To be used by dsp code if no SoundUI is used
 std::vector<std::string> path_name_list;
-extern "C" Soundfile* defaultsound = createSoundfile(path_name_list, MAX_CHAN);
+Soundfile* defaultsound = createSoundfile(path_name_list, MAX_CHAN);
 
 class SoundUI : public GenericUI
 {

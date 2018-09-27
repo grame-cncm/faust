@@ -145,41 +145,43 @@ for p in $FILES; do
 	    $QMAKE $SPEC
         make
     ) > /dev/null || exit
-    
-     if [ "$SOUNDFILE" = "1" ]; then
-        # get all soundfiles from the JSON file
-        cat $p.json | awk '
-                        BEGIN { FS=":"; SOFI=0; }
-                            /"soundfile"/ { SOFI=1; }
-                            /"url"/ {
-                            if (SOFI) {
-                                match($2, /"[^"]*/);
-                                split(substr($2, RSTART+2, RLENGTH-3), res, ";");
-                                for (x in res) print substr(res[x], 2, length(res[x])-2);
-                                SOFI=0;
+
+    if [[ $(uname) == Darwin ]]; then
+        if [ "$SOUNDFILE" = "1" ]; then
+            # get all soundfiles from the JSON file
+            cat $p.json | awk '
+                            BEGIN { FS=":"; SOFI=0; }
+                                /"soundfile"/ { SOFI=1; }
+                                /"url"/ {
+                                if (SOFI) {
+                                    match($2, /"[^"]*/);
+                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
+                                    SOFI=0;
+                                }
                             }
-                        }
-        ' > $p-tmp.txt
-        # copy found soundfiles in the final binary
-        for snd in $(cat $p-tmp.txt); do
-            if [ -f $snd ]; then
-            	if [ ${snd:0:1} = "/" ]; then 
-                    echo "Warning: soundfile with absolute path is not copied !"
-            	else
-                    #create destination path and possibly create directory
-                    sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
-                    if ! [ -d $sfpath ]; then
-                        echo "Create $sfpath"
-                        mkdir $sfpath
+            ' > $p-tmp.txt
+            # copy found soundfiles in the final binary
+            for snd in $(cat $p-tmp.txt); do
+                if [ -f $snd ]; then
+                    if [ ${snd:0:1} = "/" ]; then 
+                        echo "Warning: soundfile with absolute path is not copied !"
+                    else
+                        #create destination path and possibly create directory
+                        sfpath="$TMP/${f%.dsp}$EXT/Contents/Resources/$(dirname $snd)/"
+                        if ! [ -d $sfpath ]; then
+                            echo "Create $sfpath"
+                            mkdir $sfpath
+                        fi
+                        echo "Copy $snd in ${f%.dsp}$EXT"
+                        cp $snd $sfpath
                     fi
-                    echo "Copy $snd in ${f%.dsp}$EXT"
-                    cp $snd $sfpath
+                else
+                    echo "Error: file $snd not found !"
                 fi
-            else
-                echo "Error: file $snd not found !"
-            fi
-        done
-        rm $p-tmp.txt
+            done
+            rm $p-tmp.txt
+        fi
     fi
 
     # on Mac add the qt libraries to the bundle
