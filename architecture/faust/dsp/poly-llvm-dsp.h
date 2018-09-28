@@ -44,11 +44,12 @@ struct llvm_dsp_poly_factory : public dsp_poly_factory {
         if (fProcessFactory) {
             fEffectFactory = createDSPFactoryFromString(name_app, getEffectCode(dsp_content), argc, argv, target, error_msg);
             if (!fEffectFactory) {
+                std::cerr << "llvm_dsp_poly_factory : fEffectFactory " << error_msg << std::endl;
                 // The error message is not really needed...
                 error_msg = "";
             }
         } else {
-            std::cerr << "llvm_dsp_poly_factory : " << error_msg << std::endl;
+            std::cerr << "llvm_dsp_poly_factory : fProcessFactory " << error_msg << std::endl;
             throw std::bad_alloc();
         }
     }

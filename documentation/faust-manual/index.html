@@ -3903,6 +3903,7 @@ process = os.sawtooth(freq)*gain*gate : fi.lowpass(3,cutoff) &lt;: _,_;</code></
 <p>Alternatively (i.e., if you’re an unfortunate Windows user), you can use the Faust web editor to carry out the same task by choosing <code>source/juce</code> in the export function.</p>
 <p>In both cases, you’ll end up with with a zip file containing a C++ file and its companion header file as well as some automatically generated markdown documentation.</p>
 <h3 id="creating-an-empty-juce-plug-in-project">Creating an Empty JUCE Plug-In Project</h3>
+<p><a href="misc/juce/SawtoothSynth.zip">&lt;&lt; Download the source of this tutorial &gt;&gt;</a></p>
 <p>In this section, we’ll assume that your a bit familiar with <a href="https://juce.com/">JUCE</a>. If that’s not your case, don’t panic and just read their <a href="https://docs.juce.com/master/tutorial_new_projucer_project.html">Getting started with the Projucer</a> tutorial. We also recommend you to have a look a the next few following tutorials to have a sense of how things work. They’re nice and easy to read!</p>
 <p>In the Projucer, create a new Audio Plug-In, add the targets that you want, in the settings, make sure that “Plugin is a Synth” is enabled. In our case, we named it “SawtoothSynth” (choose this name wisely as it will impact the class names of your program).</p>
 <p><img src="img/juce/newPlugin.jpg" class="mx-auto d-block" width="70%"></p>
@@ -4056,8 +4057,125 @@ void SawtoothSynthAudioProcessor::setCutoff(float cutoff)
   g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
 }</code></pre>
 <p>Note that the same approach can be used to create an audio effect: <code>DspFaust</code> will take care of instantiating the input buffers, etc. so it should just work right away as for this synth example.</p>
+<p>Compile your plug-in and run it, it should look like this:</p>
+<p><img src="img/juce/plugin.jpg" class="mx-auto d-block" width="60%"></p>
 <p>The goal of this section was just to show you how to integrate a Faust DSP engine into a JUCE plug-in project and how to control it with a simple UI. Once again, JUCE is a powerful tool to implement sophisticated UI in a very simple way. You’ll find all the documentation you need on <a href="https://juce.com/">their website</a> to start making beautiful plug-ins!</p>
 <h2 id="creating-and-using-a-polyphonic-faust-dsp-object">Creating and Using a Polyphonic Faust DSP Object</h2>
+<p><a href="misc/juce/SawtoothSynthPoly.zip">&lt;&lt; Download the source of this tutorial &gt;&gt;</a></p>
+<p>In the second part of this tutorial, we demonstrate how to generate a polyphonic DSP engine with <code>faust2api</code> and how to control it with the “standard” JUCE keyboard.</p>
+<p>The following code is almost the same as the one used in the previous section, except that <a href="TODO">we declared a global effect using the <code>effect</code> standard variable</a> (<a href="TODO"><code>filteredSawtoothPoly.dsp</code></a>):</p>
+<div class="faust-run"><a href="img/src/exfaust136/exfaust136-svg/process.svg" target="_blank"><img src="img/src/exfaust136/exfaust136-svg/process.svg" class="mx-auto d-block"></a>
+<pre><code>import(&quot;stdfaust.lib&quot;);
+freq = nentry(&quot;freq&quot;,50,200,1000,0.01) : si.smoo;
+gain = nentry(&quot;gain&quot;,0.5,0,1,0.01) : si.smoo;
+gate = button(&quot;gate&quot;) : si.smoo;
+cutoff = nentry(&quot;cutoff&quot;,10000,50,10000,0.01) : si.smoo;
+process = os.sawtooth(freq)*gain*gate : fi.lowpass(3,cutoff) &lt;: _,_ ;
+effect = dm.zita_light;</code></pre>
+<a href="https://faust.grame.fr/editor?code=https://faust.grame.fr/manual/img/src/exfaust136/exfaust136.dsp"><button type="button" class="btn btn-primary">Try it Yourself >></button></a></div>
+<p>Note that the <code>freq</code>, <code>gain</code>, and <code>gate</code> parameters are declared, which means that this Faust program can be turned into a polyphonic synth (see the <a href="TODO">MIDI polyphonic documentation</a>). Hence, in the current configuration multiple instances (voices) of <code>process</code> will be created and connected to a single instance of <code>effect</code> (see <a href="TODO" class="uri">TODO</a>).</p>
+<p>A polyphonic DSP engine for JUCE can be generated from this code by running:</p>
+<pre><code>faust2api -juce -nvoices 12 filteredSawtoothPoly.dsp</code></pre>
+<p>where 12 is the maximum number of polyphonic voices (which can be changed from the generated C++ code as well by changing the value of the <code>NVOICES</code> macro at the beginning of <code>DspFaust.cpp</code>). The same result can be achieved using the <a href="https://faust.grame.fr/editor">Faust web editor</a> and by choosing <code>source/juce-poly</code> in the export function.</p>
+<p>Create a new JUCE audio plug-in project with the same configuration than in the previous section. Import the <code>DspFaust</code> files, create an instance of the <code>DspFaust</code> object and call the <code>dspFaust.start()</code> and <code>dspFaust.stop()</code> methods as we did before.</p>
+<p>Our goal is to create a simple plug-in with the following interface:</p>
+<p><img src="img/juce/polyPlugin.jpg" class="mx-auto d-block" width="60%"></p>
+<p>where the keyboard can be used to play several notes at the same time and the “cutoff” slider can be used to change the cutoff frequency of the lowpass filter of all active voices. This is an extremely primitive implementation where only the messages from the UI keyboard are processed: we’re just doing this for the sake of the example. If you’ve never worked with keyboards and MIDI in JUCE, we strongly recommend you to read <a href="https://docs.juce.com/master/tutorial_handling_midi_events.html">this tutorial</a></p>
+<p>In <code>PluginEditor.h</code>, let’s first add the following inheritance to the <code>SawtoothSynthAudioProcessorEditor</code> class:</p>
+<pre><code>class SawtoothSynthAudioProcessorEditor  : 
+  public AudioProcessorEditor, 
+  private MidiInputCallback, 
+  private MidiKeyboardStateListener
+{</code></pre>
+<p>This is necessary to implement the MIDI callback and the keyboard (UI) listener. This inheritance requires us to implement the following methods in the private section of <code>PluginEditor.h</code>. We also add an instance of a UI keyboard and its associated state as well as a slider and its label to control the cutoff frequency of the lowpass:</p>
+<pre><code>private:
+  void handleNoteOn (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
+  void handleNoteOff (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float /*velocity*/) override;
+  void handleIncomingMidiMessage (MidiInput* source, const MidiMessage&amp; message) override;
+  
+  MidiKeyboardState keyboardState;   
+  MidiKeyboardComponent keyboardComponent; 
+    
+  Slider cutoffSlider;
+  Label cutoffLabel;</code></pre>
+<p>In <code>PluginEditor.cpp</code>, we can add the keyboard and the slider to the constructor:</p>
+<pre><code>SawtoothSynthAudioProcessorEditor::SawtoothSynthAudioProcessorEditor (SawtoothSynthAudioProcessor&amp; p)
+  : AudioProcessorEditor (&amp;p), processor (p), keyboardComponent (keyboardState, MidiKeyboardComponent::horizontalKeyboard)
+{
+  setSize (800, 150);
+    
+  addAndMakeVisible (keyboardComponent);
+  keyboardState.addListener (this);
+    
+  addAndMakeVisible (cutoffSlider);
+  cutoffSlider.setRange (50.0, 10000.0);
+  cutoffSlider.setValue(5000.0);
+  cutoffSlider.onValueChange = [this] { 
+    processor.setCutoff(cutoffSlider.getValue()); 
+  };
+    
+  addAndMakeVisible(cutoffLabel);
+  cutoffLabel.setText (&quot;Cutoff&quot;, dontSendNotification);
+  cutoffLabel.attachToComponent (&amp;cutoffSlider, true);
+}</code></pre>
+<p>and we must de-allocate the keyboard state listener in the destructor:</p>
+<pre><code>SawtoothSynthAudioProcessorEditor::~SawtoothSynthAudioProcessorEditor()
+{
+  keyboardState.removeListener(this);
+}</code></pre>
+<p>The implementation of the <code>setCutoff</code> method is detailed later in this tutorial and is very similar to the one described in the previous section.</p>
+<p>We also need to define the size of the various elements in the interface (as we did before):</p>
+<pre><code>void SawtoothSynthAudioProcessorEditor::resized()
+{
+  const int sliderLeft = 80;
+  keyboardComponent.setBounds (10,10,getWidth()-30,100);
+  cutoffSlider.setBounds (sliderLeft, 120, getWidth() - sliderLeft - 20, 20);
+}</code></pre>
+<p>MIDI messages are retrieved from the keyboard simply by implementing the following inherited methods:</p>
+<pre><code>void SawtoothSynthAudioProcessorEditor::handleIncomingMidiMessage (MidiInput* source, const MidiMessage&amp; message) {}
+
+void SawtoothSynthAudioProcessorEditor::handleNoteOn (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity)
+{
+  processor.keyOn(midiNoteNumber,int(127*velocity));
+}
+
+void SawtoothSynthAudioProcessorEditor::handleNoteOff (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float /*velocity*/)
+{
+  processor.keyOff(midiNoteNumber);
+}</code></pre>
+<p>The implementation of the <code>keyOn</code> and <code>keyOff</code> methods is detailed below.</p>
+<p>On <code>PluginProcessor</code> side, the following methods must be declared in <code>PluginProcessor.h</code>:</p>
+<pre><code>void keyOn(int pitch, int  velocity);
+void keyOff(int pitch);
+void setCutoff(float cutoff);</code></pre>
+<p>They are ones that were used in the previous steps.</p>
+<p>Their corresponding implementation in <code>PluginProcessor.cpp</code> is very straight forward:</p>
+<pre><code>void SawtoothSynthAudioProcessor::keyOn(int pitch, int velocity)
+{
+  dspFaust.keyOn(pitch,velocity);
+}
+
+void SawtoothSynthAudioProcessor::keyOff(int pitch)
+{
+  dspFaust.keyOff(pitch);
+}
+
+void SawtoothSynthAudioProcessor::setCutoff(float cutoff)
+{
+  dspFaust.setParamValue(&quot;/Sequencer/DSP1/Polyphonic/Voices/synth/cutoff&quot;,cutoff);
+}</code></pre>
+<p><code>keyOn</code> and <code>keyOff</code> are methods from <code>DspFaust</code> that can be used to trigger and stop a note. <code>keyOn</code> will allocate a new voice, convert its <code>pitch</code> parameter into a frequency that will be sent automatically the Faust <code>freq</code> parameter, <code>velocity</code> is converted to a level that will be sent to the <code>gain</code> parameter, and the <code>gate</code> parameter is set to 1. Inversely, <code>keyOff</code> sets <code>gate</code> to 0 and wait for t60 to be reached to de-allocate the current voice.</p>
+<p><code>keyOn</code> returns a voice ID whose type is <code>unsigned long</code>. This ID can then be used to change the parameter of a specific voice. We’re not using this functionality in the example presented in this tutorial but here is how this would work:</p>
+<pre><code>unsigned long voiceID = dspFaust.keyOn(60,110);
+dspFaust.setVoiceParamValue(&quot;/synth/cutoff&quot;,voiceID,378);</code></pre>
+<p>Note that voices can also be allocated directly without using <code>keyOn</code> and <code>keyOff</code> with the <code>newVoice</code> and the <code>deleteVoice</code> methods:</p>
+<pre><code>unsigned long voiceID = dspFaust.newVoice();
+dspFaust.setVoiceParamValue(&quot;/synth/gate&quot;,voiceID,1);
+// do something...
+dspFaust.deleteVoice(voiceID);</code></pre>
+<p>Using <code>setParamValue</code> as we’re doing in the current example, we can set the value of a parameter for all the voices of the DSP engine. Unlike <code>setVoiceParamValue</code>, the parameter path must be the complete path provided in the README of the DSP package generated with <code>faust2api</code>. So once again, for <code>setVoiceParamValue</code>, the short path is enough but for <code>setParamValue</code>, the complete path is needed.</p>
+<p>You might wonder why the path is much more complex with a polyphonic DSP engine than with a regular one. Here is how it works. <code>Sequencer</code> is the full object (poly synth + effect), <code>DSP1</code> is the synth (<code>DSP2</code> is the effect), <code>Polyphonic</code> is the polyphonic layer of the object, and finally <code>Voices</code> addresses all the voices at once.</p>
+<p>That’s it folks! Try to compile and run your plug-in, it should just work. Of course, things could be significantly improved here but at this point, you should be able to sail on your own.</p>
 <h1 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h1>
 <h1 id="mathematical-documentation">Mathematical Documentation</h1></div></div></div></main>
     <!-- Optional JavaScript -->

@@ -97,6 +97,8 @@ documentation.
 
 ### Creating an Empty JUCE Plug-In Project
 
+[<< Download the source of this tutorial >>](misc/juce/SawtoothSynth.zip)
+
 In this section, we'll assume that your a bit familiar with 
 [JUCE](https://juce.com/). If that's not your case, don't panic and just read
 their [Getting started with the Projucer](https://docs.juce.com/master/tutorial_new_projucer_project.html)
@@ -337,6 +339,10 @@ Note that the same approach can be used to create an audio effect: `DspFaust`
 will take care of instantiating the input buffers, etc. so it should just
 work right away as for this synth example.
 
+Compile your plug-in and run it, it should look like this:
+
+<img src="img/juce/plugin.jpg" class="mx-auto d-block" width="60%">
+
 The goal of this section was just to show you how to integrate a Faust DSP
 engine into a JUCE plug-in project and how to control it with a simple UI. 
 Once again, JUCE is a powerful tool to implement sophisticated UI in a very
@@ -344,3 +350,231 @@ simple way. You'll find all the documentation you need on
 [their website](https://juce.com/) to start making beautiful plug-ins!
 
 ## Creating and Using a Polyphonic Faust DSP Object
+
+[<< Download the source of this tutorial >>](misc/juce/SawtoothSynthPoly.zip)
+
+In the second part of this tutorial, we demonstrate how to generate a polyphonic
+DSP engine with `faust2api` and how to control it with the "standard" JUCE 
+keyboard.
+
+The following code is almost the same as the one used in the previous section,
+except that [we declared a global effect using the `effect` standard variable](TODO)
+([`filteredSawtoothPoly.dsp`](TODO)): 
+
+<!-- faust-run -->
+```
+import("stdfaust.lib");
+freq = nentry("freq",50,200,1000,0.01) : si.smoo;
+gain = nentry("gain",0.5,0,1,0.01) : si.smoo;
+gate = button("gate") : si.smoo;
+cutoff = nentry("cutoff",10000,50,10000,0.01) : si.smoo;
+process = os.sawtooth(freq)*gain*gate : fi.lowpass(3,cutoff) <: _,_ ;
+effect = dm.zita_light;
+```
+<!-- /faust-run -->
+
+Note that the `freq`, `gain`, and `gate` parameters are declared, which means
+that this Faust program can be turned into a polyphonic synth (see the
+[MIDI polyphonic documentation](TODO)). Hence, in the current configuration
+multiple instances (voices) of `process` will be created and connected to a
+single instance of `effect` (see [TODO](TODO)).
+
+A polyphonic DSP engine for JUCE can be generated from this code by running:
+
+```
+faust2api -juce -nvoices 12 filteredSawtoothPoly.dsp
+``` 
+
+where 12 is the maximum number of polyphonic voices (which can be changed
+from the generated C++ code as well by changing the value of the `NVOICES` 
+macro at the beginning of `DspFaust.cpp`). The same result can be achieved
+using the [Faust web editor](https://faust.grame.fr/editor) and by choosing
+`source/juce-poly` in the export function.
+
+Create a new JUCE audio plug-in project with the same configuration than in
+the previous section. Import the `DspFaust` files, create an instance of the
+`DspFaust` object and call the `dspFaust.start()` and `dspFaust.stop()` methods
+as we did before.
+
+Our goal is to create a simple plug-in with the following interface:
+
+<img src="img/juce/polyPlugin.jpg" class="mx-auto d-block" width="60%">
+
+where the keyboard can be used to play several notes at the same time and
+the "cutoff" slider can be used to change the cutoff frequency of the lowpass
+filter of all active voices. This is an extremely primitive implementation
+where only the messages from the UI keyboard are processed: we're just
+doing this for the sake of the example. If you've never worked with keyboards 
+and MIDI in JUCE, we strongly recommend you to read [this tutorial](https://docs.juce.com/master/tutorial_handling_midi_events.html)
+
+In `PluginEditor.h`, let's first add the following inheritance to the 
+`SawtoothSynthAudioProcessorEditor` class:
+
+```
+class SawtoothSynthAudioProcessorEditor  : 
+  public AudioProcessorEditor, 
+  private MidiInputCallback, 
+  private MidiKeyboardStateListener
+{
+```
+
+This is necessary to implement the MIDI callback and the keyboard (UI) listener.
+This inheritance requires us to implement the following methods in the
+private section of `PluginEditor.h`. We also add an instance of a UI keyboard
+and its associated state as well as a slider and its label to control the
+cutoff frequency of the lowpass:
+
+```
+private:
+  void handleNoteOn (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity) override;
+  void handleNoteOff (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float /*velocity*/) override;
+  void handleIncomingMidiMessage (MidiInput* source, const MidiMessage& message) override;
+  
+  MidiKeyboardState keyboardState;   
+  MidiKeyboardComponent keyboardComponent; 
+    
+  Slider cutoffSlider;
+  Label cutoffLabel;
+``` 
+
+In `PluginEditor.cpp`, we can add the keyboard and the slider to the constructor:
+
+```
+SawtoothSynthAudioProcessorEditor::SawtoothSynthAudioProcessorEditor (SawtoothSynthAudioProcessor& p)
+  : AudioProcessorEditor (&p), processor (p), keyboardComponent (keyboardState, MidiKeyboardComponent::horizontalKeyboard)
+{
+  setSize (800, 150);
+    
+  addAndMakeVisible (keyboardComponent);
+  keyboardState.addListener (this);
+    
+  addAndMakeVisible (cutoffSlider);
+  cutoffSlider.setRange (50.0, 10000.0);
+  cutoffSlider.setValue(5000.0);
+  cutoffSlider.onValueChange = [this] { 
+    processor.setCutoff(cutoffSlider.getValue()); 
+  };
+    
+  addAndMakeVisible(cutoffLabel);
+  cutoffLabel.setText ("Cutoff", dontSendNotification);
+  cutoffLabel.attachToComponent (&cutoffSlider, true);
+}
+```
+
+and we must de-allocate the keyboard state listener in the destructor:
+
+```
+SawtoothSynthAudioProcessorEditor::~SawtoothSynthAudioProcessorEditor()
+{
+  keyboardState.removeListener(this);
+}
+``` 
+
+The implementation of the `setCutoff` method is detailed later in this tutorial
+and is very similar to the one described in the previous section.
+
+We also need to define the size of the various elements in the interface
+(as we did before):
+
+```
+void SawtoothSynthAudioProcessorEditor::resized()
+{
+  const int sliderLeft = 80;
+  keyboardComponent.setBounds (10,10,getWidth()-30,100);
+  cutoffSlider.setBounds (sliderLeft, 120, getWidth() - sliderLeft - 20, 20);
+}
+```
+
+MIDI messages are retrieved from the keyboard simply by implementing the
+following inherited methods:
+
+```
+void SawtoothSynthAudioProcessorEditor::handleIncomingMidiMessage (MidiInput* source, const MidiMessage& message) {}
+
+void SawtoothSynthAudioProcessorEditor::handleNoteOn (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float velocity)
+{
+  processor.keyOn(midiNoteNumber,int(127*velocity));
+}
+
+void SawtoothSynthAudioProcessorEditor::handleNoteOff (MidiKeyboardState*, int midiChannel, int midiNoteNumber, float /*velocity*/)
+{
+  processor.keyOff(midiNoteNumber);
+}
+```
+
+The implementation of the `keyOn` and `keyOff` methods is detailed below.
+
+On `PluginProcessor` side, the following methods must be declared in 
+`PluginProcessor.h`:
+
+```
+void keyOn(int pitch, int  velocity);
+void keyOff(int pitch);
+void setCutoff(float cutoff);
+```
+
+They are ones that were used in the previous steps.
+
+Their corresponding implementation in `PluginProcessor.cpp` is very straight
+forward:
+
+```
+void SawtoothSynthAudioProcessor::keyOn(int pitch, int velocity)
+{
+  dspFaust.keyOn(pitch,velocity);
+}
+
+void SawtoothSynthAudioProcessor::keyOff(int pitch)
+{
+  dspFaust.keyOff(pitch);
+}
+
+void SawtoothSynthAudioProcessor::setCutoff(float cutoff)
+{
+  dspFaust.setParamValue("/Sequencer/DSP1/Polyphonic/Voices/synth/cutoff",cutoff);
+}
+```
+
+`keyOn` and `keyOff` are methods from `DspFaust` that can be used to trigger
+and stop a note. `keyOn` will allocate a new voice, convert its `pitch` 
+parameter into a frequency that will be sent automatically the Faust `freq` 
+parameter, `velocity` is converted to a level that will be sent to the `gain` 
+parameter, and the `gate` parameter is set to 1. Inversely, `keyOff` sets 
+`gate` to 0 and wait for t60 to be reached to de-allocate the current voice.
+
+`keyOn` returns a voice ID whose type is `unsigned long`. This ID can then
+be used to change the parameter of a specific voice. We're not using this
+functionality in the example presented in this tutorial but here is how this
+would work:
+
+```
+unsigned long voiceID = dspFaust.keyOn(60,110);
+dspFaust.setVoiceParamValue("/synth/cutoff",voiceID,378);
+```
+
+Note that voices can also be allocated directly without using `keyOn` and 
+`keyOff` with the `newVoice` and the `deleteVoice` methods:
+
+```
+unsigned long voiceID = dspFaust.newVoice();
+dspFaust.setVoiceParamValue("/synth/gate",voiceID,1);
+// do something...
+dspFaust.deleteVoice(voiceID);
+```
+
+Using `setParamValue` as we're doing in the current example, we can set the
+value of a parameter for all the voices of the DSP engine. Unlike
+`setVoiceParamValue`, the parameter path must be the complete path provided
+in the README of the DSP package generated with `faust2api`. So once again,
+for `setVoiceParamValue`, the short path is enough but for `setParamValue`,
+the complete path is needed.
+
+You might wonder why the path is much more complex with a polyphonic DSP
+engine than with a regular one. Here is how it works. `Sequencer` is the full
+object (poly synth + effect), `DSP1` is the synth (`DSP2` is the effect), 
+`Polyphonic` is the polyphonic layer of the object, and finally `Voices` 
+addresses all the voices at once.
+
+That's it folks! Try to compile and run your plug-in, it should just work. Of
+course, things could be significantly improved here but at this point, you
+should be able to sail on your own.  
