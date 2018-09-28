@@ -1,4 +1,4 @@
-# Embedding the Faust Compiler using `libfaust`
+# Embedding the Faust Compiler Using `libfaust`
 
 <!-- TODO: this section could be further developed and better documented -->
 

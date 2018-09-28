@@ -20,7 +20,7 @@ involving polyphony, etc.
 ## "The Old Way": Brut-Force Method 
 
 > If you're not interested by this brief page of history, you can jump directly 
-to the next section.
+to the [next section](#simple-synth-plug-in).
 
 Before `faust2api` existed, it was already possible to use Faust to implement
 the DSP portion of a JUCE plug-in. Indeed, the most basic way to use Faust is
@@ -35,29 +35,31 @@ ready-to-use audio callback (see [this tutorial](TODO)). Hence, it was just
 a matter of using this class in your JUCE project, pass it the input buffers, 
 retrieve the output buffers, and change potential parameters, etc. 
 [This short (and potentially outdated) tutorial](https://ccrma.stanford.edu/courses/256a-fall-2016/lectures/faust/)
-from 2016 demonstrate how this can be done.
+from 2016 demonstrates how this can be done.
  
 Fortunately, things are simpler than ever nowadays and `faust2api` greatly
 simplifies this process.
 
 ## Simple Synth Plug-In
 
+[<< Download the source of this tutorial >>](misc/juce/SawtoothSynth.zip)
+
 In this section, we demonstrate how to use a Faust synth to build a plug-in
 in JUCE with a custom UI from scratch.
 
 > This tutorial only demonstrates how to make a JUCE plug-in. Making a JUCE
-standalone application following the same method is perfectly possible with 
+standalone application following the same method is perfhttp://faust.grame.fr/manual/ectly possible with 
 some adjustments.
 
 ### Generating the DSP Engine
 
 First, let's implement a basic subtractive synthesizer in Faust based on a
-filtered sawtooth wave ([`filteredSawtooth.dsp`](TODO)):
+filtered sawtooth wave ([`filteredSawtooth.dsp`](misc/juce/filteredSawtooth.dsp)):
 
 <!-- faust-run -->
 ```
 import("stdfaust.lib");
-freq = nentry("freq",50,200,1000,0.01) : si.smoo;
+freq = nentry("freq",50,200,1000,0.01);
 gain = nentry("gain",0.5,0,1,0.01) : si.smoo;
 gate = button("gate") : si.smoo;
 cutoff = nentry("cutoff",10000,50,10000,0.01) : si.smoo;
@@ -71,13 +73,15 @@ Feel free to run it in the web editor to see how it sounds!
 object.
 
 Note that all the parameters are smoothed to prevent clicking (we want our
-plug-in to be clean!). Even `gate` is smoothed which will apply a gently
+plug-in to be clean!). Even `gate` is smoothed, which will apply a gentle
 exponential envelope when the trigger signal is sent, etc.
 
 Since Faust will not build its own UI here, the type of UI element used in this
 code doesn't really matter. They just serve as a point of entry to control the
 parameters of the audio engine we're about to generate. So `nentry`, could be
 replaced by `hslider` or `vslider`, it would not make any difference.
+However, we encourage you to always write "coherent" interfaces in case
+someone would like to use your Faust code "as such" at some point.
 
 This Faust program can be turned into an audio engine for JUCE simply by
 running the following command (assuming that Faust is properly installed on
@@ -97,9 +101,7 @@ documentation.
 
 ### Creating an Empty JUCE Plug-In Project
 
-[<< Download the source of this tutorial >>](misc/juce/SawtoothSynth.zip)
-
-In this section, we'll assume that your a bit familiar with 
+In this section, we'll assume that you're a bit familiar with 
 [JUCE](https://juce.com/). If that's not your case, don't panic and just read
 their [Getting started with the Projucer](https://docs.juce.com/master/tutorial_new_projucer_project.html)
 tutorial. We also recommend you to have a look a the next few following 
@@ -311,8 +313,8 @@ The methods that we declared in the previous step are basically called to set
 the value of the parameters of our DSP engine thanks to the `processor`
 object.
 
-The `resize` must be implemented so that the various UI elements that we
-created actually have a size:
+The `resized` method must be implemented so that the various UI elements that 
+we created actually have a size:
 
 ```
 void SawtoothSynthAudioProcessorEditor::resized()
@@ -377,7 +379,7 @@ Note that the `freq`, `gain`, and `gate` parameters are declared, which means
 that this Faust program can be turned into a polyphonic synth (see the
 [MIDI polyphonic documentation](TODO)). Hence, in the current configuration
 multiple instances (voices) of `process` will be created and connected to a
-single instance of `effect` (see [TODO](TODO)).
+single instance of `effect`.
 
 A polyphonic DSP engine for JUCE can be generated from this code by running:
 
@@ -405,7 +407,7 @@ the "cutoff" slider can be used to change the cutoff frequency of the lowpass
 filter of all active voices. This is an extremely primitive implementation
 where only the messages from the UI keyboard are processed: we're just
 doing this for the sake of the example. If you've never worked with keyboards 
-and MIDI in JUCE, we strongly recommend you to read [this tutorial](https://docs.juce.com/master/tutorial_handling_midi_events.html)
+and MIDI in JUCE, we strongly recommend you to read [this tutorial](https://docs.juce.com/master/tutorial_handling_midi_events.html).
 
 In `PluginEditor.h`, let's first add the following inheritance to the 
 `SawtoothSynthAudioProcessorEditor` class:
@@ -504,7 +506,7 @@ void SawtoothSynthAudioProcessorEditor::handleNoteOff (MidiKeyboardState*, int m
 
 The implementation of the `keyOn` and `keyOff` methods is detailed below.
 
-On `PluginProcessor` side, the following methods must be declared in 
+On the `PluginProcessor` side, the following methods must be declared in 
 `PluginProcessor.h`:
 
 ```
@@ -513,7 +515,7 @@ void keyOff(int pitch);
 void setCutoff(float cutoff);
 ```
 
-They are ones that were used in the previous steps.
+They are the ones that were used in the previous steps.
 
 Their corresponding implementation in `PluginProcessor.cpp` is very straight
 forward:
@@ -537,10 +539,10 @@ void SawtoothSynthAudioProcessor::setCutoff(float cutoff)
 
 `keyOn` and `keyOff` are methods from `DspFaust` that can be used to trigger
 and stop a note. `keyOn` will allocate a new voice, convert its `pitch` 
-parameter into a frequency that will be sent automatically the Faust `freq` 
+parameter into a frequency that will be sent automatically to the Faust `freq` 
 parameter, `velocity` is converted to a level that will be sent to the `gain` 
 parameter, and the `gate` parameter is set to 1. Inversely, `keyOff` sets 
-`gate` to 0 and wait for t60 to be reached to de-allocate the current voice.
+`gate` to 0 and waits for t60 to be reached to de-allocate the current voice.
 
 `keyOn` returns a voice ID whose type is `unsigned long`. This ID can then
 be used to change the parameter of a specific voice. We're not using this
@@ -570,10 +572,10 @@ for `setVoiceParamValue`, the short path is enough but for `setParamValue`,
 the complete path is needed.
 
 You might wonder why the path is much more complex with a polyphonic DSP
-engine than with a regular one. Here is how it works. `Sequencer` is the full
-object (poly synth + effect), `DSP1` is the synth (`DSP2` is the effect), 
-`Polyphonic` is the polyphonic layer of the object, and finally `Voices` 
-addresses all the voices at once.
+engine than with a regular one. `Sequencer` is the full object (poly synth + 
+effect), `DSP1` is the synth (`DSP2` is the effect), `Polyphonic` is the 
+polyphonic layer of the object, and finally `Voices` addresses all the voices 
+at once.
 
 That's it folks! Try to compile and run your plug-in, it should just work. Of
 course, things could be significantly improved here but at this point, you
