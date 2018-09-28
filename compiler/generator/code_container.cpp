@@ -105,7 +105,7 @@ bool CodeContainer::getLoopProperty(Tree sig, CodeLoop*& l)
  * Open a non-recursive loop on top of the stack of open loops.
  * @param size the number of iterations of the loop
  */
-void CodeContainer::openLoop(string index_name, int size)
+void CodeContainer::openLoop(const string& index_name, int size)
 {
     fCurLoop = new CodeLoop(fCurLoop, index_name, size);
 }
@@ -115,7 +115,7 @@ void CodeContainer::openLoop(string index_name, int size)
  * @param recsymbol the recursive symbol defined in this loop
  * @param size the number of iterations of the loop
  */
-void CodeContainer::openLoop(Tree recsymbol, string index_name, int size)
+void CodeContainer::openLoop(Tree recsymbol, const string& index_name, int size)
 {
     fCurLoop = new CodeLoop(recsymbol, fCurLoop, index_name, size);
 }
@@ -776,12 +776,13 @@ void CodeContainer::generateJSONFile()
 void CodeContainer::generateJSON(JSONInstVisitor* visitor)
 {
     // Prepare compilation options
-    stringstream options;
-    gGlobal->printCompilationOptions(options);
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options);
 
     // "name", "filename" found in medata
-    visitor->init("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), "",
-                  std::map<std::string, int>());
+    visitor->init("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, "", std::map<std::string, int>());
+
     generateUserInterface(visitor);
     generateMetaData(visitor);
 }

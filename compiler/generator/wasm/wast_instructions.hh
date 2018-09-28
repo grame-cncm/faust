@@ -105,8 +105,8 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
-                // Should never happen...
-                faustassert(false);
+                *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
+                EndLine();
             }
         } else {
             if (is_struct) {

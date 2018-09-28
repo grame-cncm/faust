@@ -29,6 +29,7 @@
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/CInterface.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "faust/gui/meta.h"
 
 #include "TMutex.h"
@@ -36,6 +37,7 @@
 #include "dsp_factory.hh"
 #include "export.hh"
 #include "smartpointer.h"
+#include "timing.hh"
 
 #if defined(LLVM_35) || defined(LLVM_38)
 #define __STDC_LIMIT_MACROS
@@ -161,6 +163,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
 #endif
     llvm::Module*      fModule;
     llvm::LLVMContext* fContext;
+    JSONUIDecoder*     fDecoder;
 
     int         fOptLevel;
     std::string fTarget;
@@ -171,7 +174,6 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     deleteDspFun          fDelete;
     getNumInputsFun       fGetNumInputs;
     getNumOutputsFun      fGetNumOutputs;
-    getSizeFun            fGetSize;
     buildUserInterfaceFun fBuildUserInterface;
     initFun               fInit;
     initFun               fInstanceInit;
@@ -181,7 +183,7 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     getSampleRateFun      fGetSampleRate;
     computeFun            fCompute;
     metadataFun           fMetadata;
-    getSampleSizeFun      fGetSampleSize;
+    getJSONFun            fGetJSON;
     setDefaultSoundFun    fSetDefaultSound;
 
     void* loadOptimize(const std::string& function);
@@ -198,22 +200,19 @@ class llvm_dsp_factory_aux : public dsp_factory_imp {
     std::string writeDSPFactoryToMachineAux(const std::string& target);
 
    public:
-    llvm_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& library_list,
-                         const std::vector<std::string>& include_pathnames, llvm::Module* module,
-                         llvm::LLVMContext* context, const std::string& target, int opt_level = 0);
+    llvm_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
+                         const std::string& target, int opt_level = 0);
 
     llvm_dsp_factory_aux(const std::string& sha_key, const std::string& machine_code, const std::string& target);
 
-    llvm_dsp_factory_aux(const std::string& name, const std::string& sha_key, const std::string& dsp,
-                         const std::vector<std::string>& library_list,
-                         const std::vector<std::string>& include_pathnames)
-        : dsp_factory_imp(name, sha_key, dsp, library_list, include_pathnames)
-    {
-    }
-
     virtual ~llvm_dsp_factory_aux();
 
+    std::string              getCompileOptions() { return fDecoder->fCompileOptions; }
+    std::vector<std::string> getLibraryList() { return fDecoder->fLibraryList; }
+    std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
+
     virtual bool initJIT(std::string& error_msg);
+    bool         initJITAux(std::string& error_msg);
 
     // Bitcode
     virtual std::string writeDSPFactoryToBitcode() { return ""; }
@@ -274,6 +273,11 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     std::string getDSPCode() { return fFactory->getDSPCode(); }
     void        setDSPCode(std::string code) { fFactory->setDSPCode(code); }
 
+    std::string getCompileOptions() { return fFactory->getCompileOptions(); }
+
+    std::vector<std::string> getLibraryList() { return fFactory->getLibraryList(); }
+    std::vector<std::string> getIncludePathnames() { return fFactory->getIncludePathnames(); }
+
     std::string getTarget() { return fFactory->getTarget(); }
 
     llvm_dsp* createDSPInstance();
@@ -288,10 +292,6 @@ class EXPORT llvm_dsp_factory : public dsp_factory, public faust_smartable {
     }
 
     void write(std::ostream* out, bool binary, bool small = false) {}
-
-    std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-
-    std::vector<std::string> getDSPFactoryIncludePathnames() { return fFactory->getDSPFactoryIncludePathnames(); }
 
     std::string writeDSPFactoryToBitcode() { return fFactory->writeDSPFactoryToBitcode(); }
 
@@ -323,7 +323,7 @@ EXPORT bool deleteDSPFactory(llvm_dsp_factory* factory);
 
 EXPORT std::string getDSPMachineTarget();
 
-EXPORT std::vector<std::string> getDSPFactoryLibraryList(llvm_dsp_factory* factory);
+EXPORT std::vector<std::string> getLibraryList(llvm_dsp_factory* factory);
 
 EXPORT std::vector<std::string> getAllDSPFactories();
 
@@ -338,5 +338,88 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const std::string& machine_co
 
 // machine <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target);
+
+EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
+
+EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
+                                         const std::string& target);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// Public C interface
+
+EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
+
+EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory);
+
+EXPORT char* getCName(llvm_dsp_factory* factory);
+
+EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
+
+EXPORT char* getCTarget(llvm_dsp_factory* factory);
+
+EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
+
+EXPORT char* getCDSPMachineTarget();
+
+EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
+
+EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
+    
+EXPORT char* getCDSPFactoryCompileOptions(llvm_dsp_factory* factory);
+
+EXPORT void deleteAllCDSPFactories();
+
+EXPORT const char** getAllCDSPFactories();
+
+EXPORT bool startMTCDSPFactories();
+
+EXPORT void stopMTCDSPFactories();
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
+
+EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
+
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
+
+EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
+
+EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
+
+EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
+
+EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
+
+EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
+
+EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
+
+EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
+
+EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
+
+EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
+
+EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager);
+
+EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
+
+EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
+
+EXPORT void generateCSHA1(const char* data, char* key);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

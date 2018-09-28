@@ -928,8 +928,8 @@ class uiRadioButtons : public QGroupBox, public uiItem
     
 protected:
     
-    vector<double>          fValues;
-    vector<QRadioButton*>   fButtons;
+    std::vector<double>          fValues;
+    std::vector<QRadioButton*>   fButtons;
     
 public:
     
@@ -938,8 +938,8 @@ public:
                     bool vertical, const char* mdescr, QWidget* parent)
     : QGroupBox(label, parent),  uiItem(ui, z)
     {
-        vector<string>  names;
-        vector<double>  values;
+        std::vector<std::string>  names;
+        std::vector<double>  values;
         
         if (parseMenuList(mdescr, names, values)) {
             
@@ -977,6 +977,8 @@ public:
             // check the best candidate to represent the current value
             if (defaultbutton) { defaultbutton->setChecked(true); }
             setLayout(l);
+        } else {
+            std::cerr << "parseMenuList : (" << mdescr << ") is not a menu !\n";
         }
         *fZone = cur;
     }
@@ -1012,7 +1014,7 @@ class uiMenu : public QComboBox, public uiItem
     
 protected:
     
-    vector<double>  fValues;
+    std::vector<double>  fValues;
     
 public:
     
@@ -1021,8 +1023,8 @@ public:
             const char* mdescr, QWidget* parent)
     : QComboBox(parent),  uiItem(ui, z)
     {
-        vector<string>  names;
-        vector<double>  values;
+        std::vector<std::string>  names;
+        std::vector<double>  values;
         
         if (parseMenuList(mdescr, names, values)) {
             
@@ -1047,6 +1049,8 @@ public:
             }
             // check the best candidate to represent the current value
             if (defaultitem > -1) { setCurrentIndex(defaultitem); }
+        } else {
+            std::cerr << "parseMenuList : (" << mdescr << ") is not a menu !\n";
         }
         connect(this,SIGNAL(activated(int)), this, SLOT(updateZone(int)));
         *fZone = cur;
@@ -1631,6 +1635,12 @@ public:
     {
         if (isKnob(zone)) {
             addVerticalKnob(label, zone, init, min, max, step);
+            return;
+        } else if (isRadio(zone)) {
+            addVerticalRadioButtons(label, zone, init, min, max, step, fRadioDescription[zone].c_str());
+            return;
+        } else if (isMenu(zone)) {
+            addMenu(label, zone, init, min, max, step, fMenuDescription[zone].c_str());
             return;
         }
         //insert(label, new QDoubleSpinBox());

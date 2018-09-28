@@ -130,7 +130,7 @@ class CStringTypeManager : public StringTypeManager {
         } else if (array_typed) {
             std::ostringstream num_str;
             num_str << array_typed->fSize;
-            return (array_typed->fSize == 0)
+            return (array_typed->fSize == 0 || array_typed->fIsPtr)
                        ? generateType(array_typed->fType) + fPtrPosfix + " " + name
                        : generateType(array_typed->fType) + " " + name + "[" + num_str.str() + "]";
         } else {

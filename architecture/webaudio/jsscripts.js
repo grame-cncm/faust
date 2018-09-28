@@ -4795,6 +4795,9 @@ _f4u$t.actualize_buffer = function() {
 }
 
 _f4u$t.buffer_backspace = function() {
+  if (_f4u$t._N == "") {
+    return 0;
+  }
   var id = _f4u$t.unique(_f4u$t._N);
   if (_f4u$t.IDS_TO_ATTRIBUTES[id]["buffer"].length == 0) {
     return 0;

@@ -52,7 +52,7 @@ On voudrait pouvoir connecter des boucles et supprimer les vecteurs intermédiai
 On part d'un DAG de loops, on veut pouvoir:
 
 - mettre ce DAG sur la forme d'une sequence de boucle (tri topologique)
-- "fusionner" toutes les boucles en une seule, donc en gros entraire le code des boucles et le fusionner
+- "fusionner" toutes les boucles en une seule, donc en gros extraire le code des boucles et le fusionner
 
 Scalarisation d'une boucle:
 
@@ -155,6 +155,8 @@ class CodeLoop : public virtual Garbageable {
     ValueInst* getLoopIndex() { return InstBuilder::genLoadLoopVar(fLoopIndex); }
 
     ForLoopInst* generateScalarLoop(const string& counter, bool loop_var_in_bytes = false);
+
+    SimpleForLoopInst* generateSimpleScalarLoop(const string& counter);
 
     void generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bool omp);
 

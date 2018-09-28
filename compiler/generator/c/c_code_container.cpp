@@ -33,7 +33,7 @@ map<string, bool> CInstVisitor::gFunctionSymbolTable;
 dsp_factory_base* CCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+        fKlassName, "", "",
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 

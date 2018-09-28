@@ -192,8 +192,8 @@ class CodeContainer : public virtual Garbageable {
 
     void setGeneratedSR() { fGeneratedSR = true; }
 
-    void openLoop(string index_name, int size = 0);
-    void openLoop(Tree recsymbol, string index_name, int size = 0);
+    void openLoop(const string& index_name, int size = 0);
+    void openLoop(Tree recsymbol, const string& index_name, int size = 0);
     void closeLoop(Tree sig);
 
     int inputs() { return fNumInputs; }

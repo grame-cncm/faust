@@ -277,14 +277,12 @@ ostream& ppsig::print(ostream& fout) const
 
     else if (isSigSoundfile(sig, label)) {
         printui(fout, "soundfile", label);
-    } else if (isSigSoundfileLength(sig, sf)) {
-        printfun(fout, "length", sf);
-    } else if (isSigSoundfileRate(sig, sf)) {
-        printfun(fout, "rate", sf);
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        printfun(fout, "channels", sf);
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        printfun(fout, "buffer", sf, x, y);
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        printfun(fout, "length", sf, x);
+    } else if (isSigSoundfileRate(sig, sf, x)) {
+        printfun(fout, "rate", sf, x);
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        printfun(fout, "buffer", sf, x, y, z);
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -296,9 +294,7 @@ ostream& ppsig::print(ostream& fout) const
     }
 
     else {
-        stringstream error;
-        error << "ERROR  in ppsig::print, not a signal : " << *sig << endl;
-        throw faustexception(error.str());
+        cerr << "[[" << *sig << "]]";
     }
     return fout;
 }

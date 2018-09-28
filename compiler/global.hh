@@ -208,6 +208,10 @@ struct global {
 
     bool gMemoryManager;
 
+    bool gLocalCausalityCheck;  ///< when true trigs local causality errors (negative delay)
+    bool gCausality;  ///< (FIXME: global used as a parameter of typeAnnotation) when true trigs causality errors
+                      ///< (negative delay)
+
     Tree BOXTYPEPROP;
     Tree NUMERICPROPERTY;
     Tree DEFLINEPROP;
@@ -367,7 +371,6 @@ struct global {
     Sym SIGSOUNDFILE;
     Sym SIGSOUNDFILELENGTH;
     Sym SIGSOUNDFILERATE;
-    Sym SIGSOUNDFILECHANNELS;
     Sym SIGSOUNDFILEBUFFER;
     Sym SIGTUPLE;
     Sym SIGTUPLEACCESS;
@@ -538,7 +541,7 @@ struct global {
 
     Typed::VarType getVarType(const string& name) { return gVarTypeTable[name]->getType(); }
 
-    void printCompilationOptions(ostream& dst);
+    void printCompilationOptions(ostream& dst, bool backend = true);
 };
 
 // Unique shared global pointer
@@ -546,5 +549,6 @@ extern global* gGlobal;
 
 #define FAUST_LIB_PATH "FAUST_LIB_PATH"
 #define MAX_STACK_SIZE 50000
+#define MAX_SOUNDFILE_PARTS 256
 
 #endif

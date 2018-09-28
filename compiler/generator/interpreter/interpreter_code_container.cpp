@@ -207,60 +207,61 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     const char* trace = getenv("FAUST_INTERP_TRACE");
     int         mode  = (trace) ? std::atoi(trace) : 0;
 
-    if (mode == 1) {
-        return new interpreter_dsp_factory_aux<T, 1>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+    switch (mode) {
+        case 1:
+            return new interpreter_dsp_factory_aux<T, 1>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 
-    } else if (mode == 2) {
-        return new interpreter_dsp_factory_aux<T, 2>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        case 2:
+            return new interpreter_dsp_factory_aux<T, 2>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 
-    } else if (mode == 3) {
-        return new interpreter_dsp_factory_aux<T, 3>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        case 3:
+            return new interpreter_dsp_factory_aux<T, 3>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 
-    } else if (mode == 4) {
-        return new interpreter_dsp_factory_aux<T, 4>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        case 4:
+            return new interpreter_dsp_factory_aux<T, 4>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 
-    } else if (mode == 5) {
-        return new interpreter_dsp_factory_aux<T, 5>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        case 5:
+            return new interpreter_dsp_factory_aux<T, 5>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
 
-    } else {
-        // Default case, no trace...
-        return new interpreter_dsp_factory_aux<T, 0>(
-            name, "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, INTERP_FILE_VERSION, fNumInputs,
-            fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset, getInterpreterVisitor<T>()->fRealHeapOffset,
-            getInterpreterVisitor<T>()->fSoundHeapOffset, getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
-            getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
-            INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
-            init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
+        default:
+            // Default case, no trace...
+            return new interpreter_dsp_factory_aux<T, 0>(
+                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
+                getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
+                getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
+                INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
+                init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
     }
 }
 

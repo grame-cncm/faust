@@ -24,71 +24,70 @@
 #ifndef __JuceReader__
 #define __JuceReader__
 
+#include <assert.h>
+
 #include "faust/gui/Soundfile.h"
 
 struct JuceReader : public SoundfileReader {
     
-    std::string CheckAux(const std::string& path_name_str)
+    AudioFormatManager fFormatManager;
+    
+    JuceReader() { fFormatManager.registerBasicFormats(); }
+    
+    std::string checkAux(const std::string& path_name)
     {
-        File file(path_name_str);
+        File file(path_name);
         if (file.existsAsFile()) {
-            return path_name_str;
+            return path_name;
         } else {
-            std::cerr << "ERROR : cannot open '" << path_name_str << std::endl;
+            std::cerr << "ERROR : cannot open '" << path_name << std::endl;
             return "";
         }
     }
     
-    JuceReader() {}
-    
-    Soundfile* Read(const std::string& path_name_str, int max_chan)
+    void open(const std::string& path_name, int& channels, int& length)
     {
-        Soundfile* soundfile = Create(max_chan);
+        ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
+        assert(formatReader);
+        channels = int(formatReader->numChannels);
+        length = int(formatReader->lengthInSamples);
+    }
+    
+    void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    {
+        ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
         
-        AudioFormatManager formatManager;
-        formatManager.registerBasicFormats();
+        int channels = std::min(max_chan, int(formatReader->numChannels));
         
-        ScopedPointer<AudioFormatReader> formatReader = formatManager.createReaderFor(File(path_name_str));
-        if (formatReader) {
+        soundfile->fLength[part] = int(formatReader->lengthInSamples);
+        soundfile->fOffset[part] = offset;
+        soundfile->fSampleRate[part] = int(formatReader->sampleRate);
+        
+        FAUSTFLOAT* buffers[soundfile->fChannels];
+        getBuffersOffset(soundfile, buffers, offset);
+        
+        if (formatReader->read(reinterpret_cast<int *const *>(buffers), int(formatReader->numChannels), 0, int(formatReader->lengthInSamples), false)) {
             
-            soundfile->fChannels = int(formatReader->numChannels);
-            soundfile->fSampleRate = int(formatReader->sampleRate);
-            soundfile->fLength = int(formatReader->lengthInSamples);
-            
-            for (int chan = 0; chan < soundfile->fChannels; chan++) {
-                soundfile->fBuffers[chan] = new FAUSTFLOAT[soundfile->fLength];
-                if (!soundfile->fBuffers[chan]) {
-                    throw std::bad_alloc();
+            // Possibly concert samples
+            if (!formatReader->usesFloatingPointData) {
+                for (int chan = 0; chan < int(formatReader->numChannels); ++chan) {
+                    FAUSTFLOAT* buffer = &soundfile->fBuffers[chan][soundfile->fOffset[part]];
+                    FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, int(formatReader->lengthInSamples));
                 }
-            }
-            
-            if (formatReader->read(reinterpret_cast<int *const *>(soundfile->fBuffers), soundfile->fChannels, 0, soundfile->fLength, false)) {
-                // Possibly concert samples
-                if (!formatReader->usesFloatingPointData) {
-                    for (int chan = 0; chan < soundfile->fChannels; ++chan) {
-                        FAUSTFLOAT* buffer = soundfile->fBuffers[chan];
-                        FloatVectorOperations::convertFixedToFloat(buffer, reinterpret_cast<const int*>(buffer), 1.0f/0x7fffffff, soundfile->fLength);
-                    }
-                }
-                // Share the same buffers for all other channels so that we have max_chan channels available
-                for (int chan = soundfile->fChannels; chan < max_chan; chan++) {
-                    soundfile->fBuffers[chan] = soundfile->fBuffers[chan % soundfile->fChannels];
-                }
-            } else {
-                std::cerr << "Error opening the file : " << path_name_str << std::endl;
             }
             
         } else {
-            FillDefault(soundfile, path_name_str, max_chan);
+            std::cerr << "Error reading the file : " << path_name << std::endl;
         }
-        
-        return soundfile;
+            
+        // Update offset
+        offset += soundfile->fLength[part];
     }
     
-    static Soundfile* createSoundfile(const std::string& path_name_str, int max_chan)
+    static Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
     {
         JuceReader reader;
-        return reader.Read(path_name_str, max_chan);
+        return reader.read(path_name_list, max_chan);
     }
     
 };

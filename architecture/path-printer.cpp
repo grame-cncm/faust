@@ -24,6 +24,7 @@
 #include "faust/dsp/dsp.h"
 #include "faust/gui/meta.h"
 #include "faust/gui/UI.h"
+#include "faust/gui/JSONUIDecoder.h"
 
 #ifdef SOUNDFILE
 #include "faust/gui/SoundUI.h"

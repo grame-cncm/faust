@@ -325,49 +325,48 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     PATHCURRENT = symbol(".");
     FFUN        = symbol("ForeignFunction");
 
-    SIGINPUT             = symbol("SigInput");
-    SIGOUTPUT            = symbol("SigOutput");
-    SIGDELAY1            = symbol("SigDelay1");
-    SIGFIXDELAY          = symbol("SigFixDelay");
-    SIGPREFIX            = symbol("SigPrefix");
-    SIGIOTA              = symbol("SigIota");
-    SIGRDTBL             = symbol("SigRDTbl");
-    SIGWRTBL             = symbol("SigWRTbl");
-    SIGTABLE             = symbol("SigTable");
-    SIGGEN               = symbol("SigGen");
-    SIGDOCONSTANTTBL     = symbol("SigDocConstantTbl");
-    SIGDOCWRITETBL       = symbol("SigDocWriteTbl");
-    SIGDOCACCESSTBL      = symbol("SigDocAccessTbl");
-    SIGSELECT2           = symbol("SigSelect2");
-    SIGSELECT3           = symbol("SigSelect3");
-    SIGBINOP             = symbol("SigBinOp");
-    SIGFFUN              = symbol("SigFFun");
-    SIGFCONST            = symbol("SigFConst");
-    SIGFVAR              = symbol("SigFVar");
-    SIGPROJ              = symbol("SigProj");
-    SIGINTCAST           = symbol("SigIntCast");
-    SIGFLOATCAST         = symbol("SigFloatCast");
-    SIGBUTTON            = symbol("SigButton");
-    SIGCHECKBOX          = symbol("SigCheckbox");
-    SIGWAVEFORM          = symbol("SigWaveform");
-    SIGHSLIDER           = symbol("SigHSlider");
-    SIGVSLIDER           = symbol("SigVSlider");
-    SIGNUMENTRY          = symbol("SigNumEntry");
-    SIGHBARGRAPH         = symbol("SigHBargraph");
-    SIGVBARGRAPH         = symbol("SigVBargraph");
-    SIGATTACH            = symbol("SigAttach");
-    SIGENABLE            = symbol("SigEnable");
-    SIGCONTROL           = symbol("SigControl");
-    SIGSOUNDFILE         = symbol("SigSoundfile");
-    SIGSOUNDFILELENGTH   = symbol("SigSoundfileLength");
-    SIGSOUNDFILERATE     = symbol("SigSoundfileRate");
-    SIGSOUNDFILECHANNELS = symbol("SigSoundfileChannels");
-    SIGSOUNDFILEBUFFER   = symbol("SigSoundfileBuffer");
-    SIGTUPLE             = symbol("SigTuple");
-    SIGTUPLEACCESS       = symbol("SigTupleAccess");
-    SIMPLETYPE           = symbol("SimpleType");
-    TABLETYPE            = symbol("TableType");
-    TUPLETTYPE           = symbol("TupletType");
+    SIGINPUT           = symbol("SigInput");
+    SIGOUTPUT          = symbol("SigOutput");
+    SIGDELAY1          = symbol("SigDelay1");
+    SIGFIXDELAY        = symbol("SigFixDelay");
+    SIGPREFIX          = symbol("SigPrefix");
+    SIGIOTA            = symbol("SigIota");
+    SIGRDTBL           = symbol("SigRDTbl");
+    SIGWRTBL           = symbol("SigWRTbl");
+    SIGTABLE           = symbol("SigTable");
+    SIGGEN             = symbol("SigGen");
+    SIGDOCONSTANTTBL   = symbol("SigDocConstantTbl");
+    SIGDOCWRITETBL     = symbol("SigDocWriteTbl");
+    SIGDOCACCESSTBL    = symbol("SigDocAccessTbl");
+    SIGSELECT2         = symbol("SigSelect2");
+    SIGSELECT3         = symbol("SigSelect3");
+    SIGBINOP           = symbol("SigBinOp");
+    SIGFFUN            = symbol("SigFFun");
+    SIGFCONST          = symbol("SigFConst");
+    SIGFVAR            = symbol("SigFVar");
+    SIGPROJ            = symbol("SigProj");
+    SIGINTCAST         = symbol("SigIntCast");
+    SIGFLOATCAST       = symbol("SigFloatCast");
+    SIGBUTTON          = symbol("SigButton");
+    SIGCHECKBOX        = symbol("SigCheckbox");
+    SIGWAVEFORM        = symbol("SigWaveform");
+    SIGHSLIDER         = symbol("SigHSlider");
+    SIGVSLIDER         = symbol("SigVSlider");
+    SIGNUMENTRY        = symbol("SigNumEntry");
+    SIGHBARGRAPH       = symbol("SigHBargraph");
+    SIGVBARGRAPH       = symbol("SigVBargraph");
+    SIGATTACH          = symbol("SigAttach");
+    SIGENABLE          = symbol("SigEnable");
+    SIGCONTROL         = symbol("SigControl");
+    SIGSOUNDFILE       = symbol("SigSoundfile");
+    SIGSOUNDFILELENGTH = symbol("SigSoundfileLength");
+    SIGSOUNDFILERATE   = symbol("SigSoundfileRate");
+    SIGSOUNDFILEBUFFER = symbol("SigSoundfileBuffer");
+    SIGTUPLE           = symbol("SigTuple");
+    SIGTUPLEACCESS     = symbol("SigTupleAccess");
+    SIMPLETYPE         = symbol("SimpleType");
+    TABLETYPE          = symbol("TableType");
+    TUPLETTYPE         = symbol("TupletType");
 
     // recursive trees
     DEBRUIJN    = symbol("DEBRUIJN");
@@ -551,16 +550,20 @@ void global::init()
     vector<NamedTyped*> sf_type_fields;
     sf_type_fields.push_back(
         InstBuilder::genNamedTyped("fBuffers", InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fLength", InstBuilder::genBasicTyped(Typed::kInt32)));
-    sf_type_fields.push_back(InstBuilder::genNamedTyped("fSampleRate", InstBuilder::genBasicTyped(Typed::kInt32)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped(
+        "fLength", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped(
+        "fSampleRate", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
+    sf_type_fields.push_back(InstBuilder::genNamedTyped(
+        "fOffset", InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS)));
     sf_type_fields.push_back(InstBuilder::genNamedTyped("fChannels", InstBuilder::genBasicTyped(Typed::kInt32)));
     gExternalStructTypes[Typed::kSound] =
         InstBuilder::genDeclareStructTypeInst(InstBuilder::genStructTyped("Soundfile", sf_type_fields));
 }
 
-void global::printCompilationOptions(ostream& dst)
+void global::printCompilationOptions(ostream& dst, bool backend)
 {
-    dst << gOutputLang << ", ";
+    if (backend) dst << gOutputLang << ", ";
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

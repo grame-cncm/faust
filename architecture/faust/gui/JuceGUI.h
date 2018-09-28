@@ -749,7 +749,7 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
     private:
         
         ComboBox fComboBox;
-        vector<double> fValues;
+        std::vector<double> fValues;
 
     public:
         /**
@@ -773,8 +773,8 @@ class uiMenu : public uiComponent, private juce::ComboBox::Listener
             fComboBox.addListener(this);
             addAndMakeVisible(fComboBox);
 
-            vector<string> names;
-            vector<double> values;
+            std::vector<std::string> names;
+            std::vector<double> values;
 
             if (parseMenuList(mdescr, names, values)) {
 
@@ -860,7 +860,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
         
         bool fIsVertical;
         OwnedArray<ToggleButton> fButtons;
-        vector<double> fValues;
+        std::vector<double> fValues;
 
     public:
         /**
@@ -882,7 +882,7 @@ class uiRadioButton : public uiComponent, private juce::Button::Listener
          * \param   fRadioGroupID               RadioButton being multiple CheckButton in JUCE,
          *                                      we need an ID to know which are linked together.
          */
-        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, vector<string>& names, vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
+        uiRadioButton(GUI* gui, FAUSTFLOAT* zone, String label, FAUSTFLOAT w, FAUSTFLOAT h, FAUSTFLOAT cur, FAUSTFLOAT lo, FAUSTFLOAT hi, bool vert, std::vector<std::string>& names, std::vector<double>& values, String tooltip, int radioGroupID) : uiComponent(gui, zone, w, h, label), fIsVertical(vert)
         {
             ToggleButton* defaultbutton = 0;
             double mindelta = FLT_MAX;
@@ -1863,8 +1863,8 @@ class JuceGUI : public GUI, public MetaDataUI, public Component
         /** Add a radio buttons to the user interface. */
         void addRadioButtons(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT min, FAUSTFLOAT max, FAUSTFLOAT step, const char* mdescr, bool vert)
         {
-            vector<string> names;
-            vector<double> values;
+            std::vector<std::string> names;
+            std::vector<double> values;
             parseMenuList(mdescr, names, values); // Set names and values vectors
             
             // and not just n checkButtons :

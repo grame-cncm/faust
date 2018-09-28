@@ -63,6 +63,9 @@ class jackaudio : public audio {
 
         std::vector<char*> fPhysicalInputs;
         std::vector<char*> fPhysicalOutputs;
+    
+        compute_callback fControlCb;
+        void* fControlCbArg;
 
         shutdown_callback fShutdown;        // Shutdown callback to be called by libjack
         void*           fShutdownArg;       // Shutdown callback data
@@ -191,13 +194,17 @@ class jackaudio : public audio {
             }
 
             fDSP->compute(nframes, reinterpret_cast<FAUSTFLOAT**>(fInChannel), reinterpret_cast<FAUSTFLOAT**>(fOutChannel));
+            
+            if (fControlCb) {
+                fControlCb(fControlCbArg);
+            }
             return 0;
         }
  
     public:
 
         jackaudio(const void* icon_data = 0, size_t icon_size = 0, bool auto_connect = true)
-            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect)
+            : fDSP(0), fClient(0), fShutdown(0), fShutdownArg(0), fAutoConnect(auto_connect), fControlCb(NULL), fControlCbArg(NULL)
         {
             if (icon_data) {
                 fIconData = malloc(icon_size);
@@ -309,10 +316,16 @@ class jackaudio : public audio {
             }
         }
 
-        virtual void shutdown(shutdown_callback cb, void* arg)
+        virtual void setShutdownCb(shutdown_callback cb, void* arg)
         {
             fShutdown = cb;
             fShutdownArg = arg;
+        }
+    
+        void setComputeCb(compute_callback cb, void* arg)
+        {
+            fControlCb = cb;
+            fControlCbArg = arg;
         }
 
         virtual int getBufferSize() { return jack_get_buffer_size(fClient); }

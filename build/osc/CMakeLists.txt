@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.4.0)
 
 #######################################
 # versions management
-set (VERSION 1.1.0)
+set (VERSION 1.2.0)
 set (SOVERS 1)
 
 #######################################
@@ -54,7 +54,7 @@ set( INCLUDE
 	${FAUSTOSC}/threads  
 	${OSC}/..)
 
-if (WIN32)
+if (WIN32 OR MSYS)
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/win32/*.cpp ${OSC}/faust/src/threads/winthreads_impl.cpp)
 else()
 	file (GLOB PLATFORM_SRC	${OSC}/oscpack/ip/posix/*.cpp ${OSC}/faust/src/threads/pthreads_impl.cpp)
@@ -63,24 +63,29 @@ endif()
 
 #######################################
 # add libraries
-add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
-target_include_directories (oscstatic PRIVATE ${INCLUDE} )
-set (TARGETS oscstatic)
+if (INCLUDE_OSC)
+	add_library( oscstatic STATIC ${SRC} ${SRCH} ${PLATFORM_SRC})
+	target_include_directories (oscstatic PRIVATE ${INCLUDE} )
+	target_link_libraries(oscstatic  ws2_32 winmm)
+	set (TARGETS oscstatic)
+	if (MSVC)
+		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
+	else()
+		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
+	endif()
+endif()
+
 if (NOT IOS AND OSCDYNAMIC)
 	add_library( oscdynamic SHARED ${SRC} ${SRCH} ${PLATFORM_SRC} )
 	target_include_directories (oscdynamic PRIVATE ${INCLUDE} )
 	set_target_properties(oscdynamic PROPERTIES 
 		VERSION ${VERSION}
-		SOVERSION ${SOVERS})
-	set (TARGETS ${TARGETS} oscdynamic)
-
-	if (WIN32) 
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
+		SOVERSION ${SOVERS}
+		OUTPUT_NAME OSCFaust)
+	if (WIN32 OR MSYS) 
 		target_link_libraries(oscdynamic ws2_32 winmm)
-	else()
-		set_target_properties(oscdynamic PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
-
+	set (TARGETS ${TARGETS} oscdynamic)
 endif()
 
 
@@ -91,8 +96,11 @@ set_target_properties(${TARGETS} PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
-set_target_properties(oscstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
-	
+if (INCLUDE_OSC)
+	set_target_properties(oscstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+else()
+	set_target_properties(oscdynamic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+endif()	
 
 if (IOS)
 	set_target_properties(oscstatic PROPERTIES OUTPUT_NAME OSCFaust.ios)
@@ -100,17 +108,6 @@ if (IOS)
 	target_compile_definitions (oscstatic PRIVATE -DOSC_HOST_LITTLE_ENDIAN=1)
 
 else()
-	if (WIN32) 
-		if (MSVC)
-			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
-		else()
-			set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
-		endif()
-		target_link_libraries(oscstatic  ws2_32 winmm)
-	else()
-		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
-	endif()
-
 	#######################################
 	# check for endianness
 	include (TestBigEndian)

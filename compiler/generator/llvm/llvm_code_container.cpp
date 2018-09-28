@@ -53,9 +53,9 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     initializeCodeContainer(numInputs, numOutputs);
     fKlassName = name;
     fContext   = new LLVMContext();
-    stringstream options;
-    gGlobal->printCompilationOptions(options);
-    fModule = new Module(options.str() + ", v" + string(FAUSTVERSION), getContext());
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options);
+    fModule = new Module(compile_options.str() + ", v" + string(FAUSTVERSION), getContext());
 #if defined(LLVM_35)
     fModule->setDataLayout(
         "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-"
@@ -68,7 +68,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60)
+#if defined(LLVM_60) || defined(LLVM_70)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -98,7 +98,7 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
 
     // Set "-fast-math"
     FastMathFlags FMF;
-#if defined(LLVM_60)
+#if defined(LLVM_60) || defined(LLVM_70)
     FMF.setFast();  // has replaced the below function
 #else
     FMF.setUnsafeAlgebra();
@@ -220,7 +220,7 @@ void LLVMCodeContainer::generateComputeBegin(const string& counter)
         Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute" + fKlassName, fModule);
     llvm_compute->setCallingConv(CallingConv::C);
 
-#if !defined(LLVM_50) && !defined(LLVM_60)
+#if !defined(LLVM_50) && !defined(LLVM_60) && !defined(LLVM_70)
     llvm_compute->setDoesNotAlias(3U);
     llvm_compute->setDoesNotAlias(4U);
 #endif
@@ -688,6 +688,7 @@ void LLVMCodeContainer::generateBuildUserInterfaceEnd()
     fBuilder->ClearInsertionPoint();
 }
 
+/*
 void LLVMCodeContainer::generateGetSize(LLVMValue size)
 {
     VECTOR_OF_TYPES llvm_getSize_args;
@@ -699,6 +700,33 @@ void LLVMCodeContainer::generateGetSize(LLVMValue size)
     BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getSize);
     ReturnInst::Create(getContext(), size, return_block);
     verifyFunction(*llvm_getSize);
+    fBuilder->ClearInsertionPoint();
+}
+*/
+void LLVMCodeContainer::generateGetJSON(int dsp_size)
+{
+    PointerType*    string_ptr = PointerType::get(fBuilder->getInt8Ty(), 0);
+    VECTOR_OF_TYPES llvm_getJSON_args;
+    FunctionType*   llvm_getJSON_type = FunctionType::get(string_ptr, MAKE_VECTOR_OF_TYPES(llvm_getJSON_args), false);
+    Function*       llvm_getJSON =
+        Function::Create(llvm_getJSON_type, GlobalValue::ExternalLinkage, "getJSON" + fKlassName, fModule);
+
+    // Prepare compilation options
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options, false);
+
+    // Prepare JSON
+    std::map<std::string, int> path_index_table;
+    JSONInstVisitor json_visitor("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+                                 gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, std::to_string(dsp_size),
+                                 path_index_table);
+    generateUserInterface(&json_visitor);
+    generateMetaData(&json_visitor);
+
+    BasicBlock* return_block = BasicBlock::Create(getContext(), "return_block", llvm_getJSON);
+    ReturnInst::Create(getContext(), fCodeProducer->getStringConstant(removeChar(json_visitor.JSON(true), '\\')),
+                       return_block);
+    verifyFunction(*llvm_getJSON);
     fBuilder->ClearInsertionPoint();
 }
 
@@ -863,22 +891,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
     generateUserInterface(fCodeProducer);
     generateBuildUserInterfaceEnd();
 
-    generateGetSize(fTypeBuilder.getSize());
-
-    // Generate getSampleSize()
-    {
-        list<NamedTyped*> args;
-        BlockInst*        block = InstBuilder::genBlockInst();
-        block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genInt32NumInst(audioSampleSize())));
-
-        // Creates function
-        FunTyped* fun_type =
-            InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
-        DeclareFunInst* function = InstBuilder::genDeclareFunInst("getSampleSize" + fKlassName, fun_type, block);
-
-        // Generate it
-        function->accept(fCodeProducer);
-    }
+    generateGetJSON(fTypeBuilder.getSize());
 
     // Compute
     generateCompute();
@@ -917,8 +930,7 @@ dsp_factory_base* LLVMCodeContainer::produceFactory()
         throw faustexception(llvm_error.str());
     }
 
-    return new llvm_dynamic_dsp_factory_aux("", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList, fModule,
-                                            fContext, "", -1);
+    return new llvm_dynamic_dsp_factory_aux("", fModule, fContext, "", -1);
 }
 
 // Scalar

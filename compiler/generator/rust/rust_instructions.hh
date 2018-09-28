@@ -38,6 +38,7 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
         tab(fTab, *fOut);
         *fOut << inst->fAddress->getName() << ": ";
         ZeroInitializer(fOut, inst->fType);
+        if (inst->fAddress->getAccess() & Address::kStruct) *fOut << ",";
     }
 
     // Generate zero intialisation code for simple int/real scalar and arrays types
@@ -48,15 +49,15 @@ struct RustInitFieldsVisitor : public DispatchVisitor {
 
         if (array_type) {
             if (isIntPtrType(type)) {
-                *fOut << "[0;" << array_type->fSize << "],";
+                *fOut << "[0;" << array_type->fSize << "]";
             } else if (isRealPtrType(type)) {
-                *fOut << "[0.0;" << array_type->fSize << "],";
+                *fOut << "[0.0;" << array_type->fSize << "]";
             }
         } else {
             if (isIntType(type)) {
-                *fOut << "0,";
+                *fOut << "0";
             } else if (isRealType(type)) {
-                *fOut << "0.0,";
+                *fOut << "0.0";
             }
         }
     }
@@ -226,7 +227,7 @@ class RustInstVisitor : public TextInstVisitor {
     virtual void visit(DeclareVarInst* inst)
     {
         if (inst->fAddress->getAccess() & Address::kStaticStruct) {
-            *fOut << "static ";
+            *fOut << "static mut ";
         }
 
         if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
@@ -239,6 +240,7 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << " = ";
             inst->fValue->accept(this);
         } else if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << " = ";
             RustInitFieldsVisitor::ZeroInitializer(fOut, inst->fType);
         }
 
@@ -320,6 +322,17 @@ class RustInstVisitor : public TextInstVisitor {
             *fOut << "[";
             indexed->fIndex->accept(this);
             *fOut << " as usize]";
+        }
+    }
+
+    virtual void visit(LoadVarInst* inst)
+    {
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << "unsafe { ";
+        }
+        inst->fAddress->accept(this);
+        if (inst->fAddress->getAccess() & Address::kStaticStruct) {
+            *fOut << " }";
         }
     }
 
@@ -433,6 +446,32 @@ class RustInstVisitor : public TextInstVisitor {
         tab(fTab, *fOut);
         *fOut << "}";
         tab(fTab, *fOut);
+    }
+
+    virtual void visit(SimpleForLoopInst* inst)
+    {
+      if (inst->fCode->size() == 0) return;
+
+      *fOut << "for " << inst->getName() << " in ";
+      if(inst->fReverse)
+      {
+        *fOut << "(";
+      }
+      inst->fLowerBound->accept(this);
+      *fOut << "..";
+      inst->fUpperBound->accept(this);
+      if(inst->fReverse)
+      {
+        *fOut << ").rev() ";// rev() iterates from the end, excluded, to the beginning included
+      }
+      *fOut << " {";
+      fTab++;
+      tab(fTab, *fOut);
+      inst->fCode->accept(this);
+      fTab--;
+      tab(fTab, *fOut);
+      *fOut << "}";
+      tab(fTab, *fOut);
     }
 
     virtual void visit(::SwitchInst* inst)

@@ -46,7 +46,7 @@ class proxy_dsp : public dsp {
         
     public:
     
-        proxy_dsp(const string& json)
+        proxy_dsp(const std::string& json)
         {
             fDecoder = new JSONUIDecoder(json);
             fSamplingFreq = -1;

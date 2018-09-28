@@ -69,8 +69,8 @@ class AsinPrim : public xtended {
 
     virtual string old_generateCode(Klass* klass, const vector<string>& args, const vector<Type>& types)
     {
-        assert(args.size() == arity());
-        assert(types.size() == arity());
+        faustassert(args.size() == arity());
+        faustassert(types.size() == arity());
 
         return subst("asin$1($0)", args[0], isuffix());
     }

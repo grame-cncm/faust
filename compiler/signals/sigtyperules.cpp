@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 #include <time.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 
@@ -71,12 +72,14 @@ static interval arithmetic(int opcode, const interval& x, const interval& y);
 /**
  * Fully annotate every subtree of term with type information.
  * @param sig the signal term tree to annotate
+ * @param causality when true check causality issues
  */
 
-void typeAnnotation(Tree sig)
+void typeAnnotation(Tree sig, bool causality)
 {
-    Tree sl = symlist(sig);
-    int  n  = len(sl);
+    gGlobal->gCausality = causality;
+    Tree sl             = symlist(sig);
+    int  n              = len(sl);
 
     vector<Tree> vrec, vdef;
     vector<Type> vtype;
@@ -217,6 +220,17 @@ static Type T(Tree term, Tree ignoreenv)
     }
 }
 
+static void CheckPartInterval(Tree s, Type t)
+{
+    interval i = t->getInterval();
+    if (!i.valid || (i.lo < 0) || (i.hi >= MAX_SOUNDFILE_PARTS)) {
+        stringstream error;
+        error << "ERROR : out of range soundfile part number (" << i << " instead of interval(0,"
+              << MAX_SOUNDFILE_PARTS - 1 << ")) in expression : " << ppsig(s) << endl;
+        throw faustexception(error.str());
+    }
+}
+
 /**
  * Infere the type of a term according to its surrounding type environment
  * @param sig the signal to aanlyze
@@ -228,7 +242,7 @@ static Type infereSigType(Tree sig, Tree env)
 {
     int    i;
     double r;
-    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, u, var, body, type, name, file, sf;
+    Tree   sel, s1, s2, s3, ff, id, ls, l, x, y, z, part, u, var, body, type, name, file, sf;
     Tree   label, cur, min, max, step;
 
     gGlobal->gCountInferences++;
@@ -277,18 +291,20 @@ static Type infereSigType(Tree sig, Tree env)
         //        cerr << "for sig fix delay : s1 = "
         //				<< t1 << ':' << ppsig(s1) << ", s2 = "
         //                << t2 << ':' << ppsig(s2) << endl;
-        if (!i.valid) {
-            stringstream error;
-            error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
-                  << "        used in delay expression : " << ppsig(sig) << endl
-                  << "        (probably a recursive signal)" << endl;
-            throw faustexception(error.str());
-        } else if (i.lo < 0) {
-            stringstream error;
-            error << "ERROR : possible negative values of : " << ppsig(s2) << endl
-                  << "        used in delay expression : " << ppsig(sig) << endl
-                  << "        " << i << endl;
-            throw faustexception(error.str());
+        if (gGlobal->gCausality) {
+            if (!i.valid) {
+                stringstream error;
+                error << "ERROR : can't compute the min and max values of : " << ppsig(s2) << endl
+                      << "        used in delay expression : " << ppsig(sig) << endl
+                      << "        (probably a recursive signal)" << endl;
+                throw faustexception(error.str());
+            } else if (i.lo < 0) {
+                stringstream error;
+                error << "ERROR : possible negative values of : " << ppsig(s2) << endl
+                      << "        used in delay expression : " << ppsig(sig) << endl
+                      << "        " << i << endl;
+                throw faustexception(error.str());
+            }
         }
 
         return castInterval(sampCast(t1), reunion(t1->getInterval(), interval(0, 0)));
@@ -333,36 +349,69 @@ static Type infereSigType(Tree sig, Tree env)
         return gGlobal->TGUI01;
     }
 
-    else if (isSigVSlider(sig, label, cur, min, max, step))
+    else if (isSigVSlider(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigHSlider(sig, label, cur, min, max, step))
+    else if (isSigHSlider(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigNumEntry(sig, label, cur, min, max, step))
+    else if (isSigNumEntry(sig, label, cur, min, max, step)) {
+        Type t1 = T(cur, env);
+        Type t2 = T(min, env);
+        Type t3 = T(max, env);
+        Type t4 = T(step, env);
         return castInterval(gGlobal->TGUI, interval(tree2float(min), tree2float(max)));
+    }
 
-    else if (isSigHBargraph(sig, l, x, y, s1))
+    else if (isSigHBargraph(sig, l, x, y, s1)) {
+        Type t1 = T(x, env);
+        Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
+    }
 
-    else if (isSigVBargraph(sig, l, x, y, s1))
+    else if (isSigVBargraph(sig, l, x, y, s1)) {
+        Type t1 = T(x, env);
+        Type t2 = T(y, env);
         return T(s1, env)->promoteVariability(kBlock);
+    }
 
     else if (isSigSoundfile(sig, l)) {
         return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileLength(sig, sf)) {
-        T(sf, env);
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileRate(sig, sf)) {
-        T(sf, env);
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        T(sf, env);
-        return makeSimpleType(kInt, kBlock, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
-    } else if (isSigSoundfileBuffer(sig, sf, x, s1)) {
+    }
+
+    else if (isSigSoundfileLength(sig, sf, part)) {
+        Type t1 = T(sf, env);
+        Type t2 = T(part, env);
+        CheckPartInterval(sig, t2);
+        int c = std::max(int(kBlock), t2->variability());
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));  // A REVOIR (YO)
+    }
+
+    else if (isSigSoundfileRate(sig, sf, part)) {
+        Type t1 = T(sf, env);
+        Type t2 = T(part, env);
+        CheckPartInterval(sig, t2);
+        int c = std::max(int(kBlock), t2->variability());
+        return makeSimpleType(kInt, c, kExec, kVect, kNum, interval(0, 0x7FFFFFFF));
+    }
+
+    else if (isSigSoundfileBuffer(sig, sf, x, part, z)) {
         T(sf, env);
         T(x, env);
-        T(s1, env);
+        Type tp = T(part, env);
+        T(z, env);
+
+        CheckPartInterval(sig, tp);
         return makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
     }
 

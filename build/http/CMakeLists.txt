@@ -94,7 +94,7 @@ else ()
 
 	find_package(PkgConfig REQUIRED)
 	if (${PKG_CONFIG_FOUND}) 
-		if ( WIN32 )
+		if ( WIN32 OR MSYS )
 			set_pkg_config_path ()
 			message(STATUS "Using MSYS PKG_CONFIG_PATH $ENV{PKG_CONFIG_PATH}")
 		endif()
@@ -118,49 +118,52 @@ else ()
 endif()
 endif()
 
-if ( WIN32 )
+if ( WIN32 OR MSYS )
 	if (MSVC)
 		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} ws2_32" )
 	else()
-		set (LIBMICROHTTPD__LDFLAGS "${LIBMICROHTTPD__LDFLAGS} -lws2_32" )
+		set (LIBMICROHTTPD__LDFLAGS "-lws2_32 ${LIBMICROHTTPD__LDFLAGS}" )
 	endif()
 endif()
 
 
 #######################################
 # add libraries
-add_library( httpstatic STATIC  ${SRC})
-target_include_directories (httpstatic PRIVATE ${INCLUDE} )
-set (TARGETS httpstatic)
-if (WIN32 AND MSVC) 
-	target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
-	if (MSVC)
-		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
+if (INCLUDE_HTTP)
+	add_library( httpstatic STATIC  ${SRC})
+	target_include_directories (httpstatic PRIVATE ${INCLUDE} )
+	set (TARGETS httpstatic)
+	if (WIN32 AND MSVC) 
+		target_compile_definitions (httpstatic PRIVATE -D_WIN32 -DMHD_W32LIB)
+		if (MSVC)
+			set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME lib${TARGET})
+		else()
+			set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME ${TARGET})
+		endif()
+		target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
 	else()
-		set_target_properties(httpstatic  PROPERTIES OUTPUT_NAME ${TARGET})
+		set_target_properties (httpstatic PROPERTIES 
+			OUTPUT_NAME ${TARGET}
+			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
+			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 	endif()
-	target_link_libraries(httpstatic  ws2_32 ${LMHLIB})
-else()
-	set_target_properties (httpstatic PROPERTIES 
-		OUTPUT_NAME ${TARGET}
-		COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
-		LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 endif()
 
 if (HTTPDYNAMIC)
 	add_library( httpdynamic SHARED  ${SRC})
 	target_include_directories (httpdynamic PRIVATE ${INCLUDE} )
+	set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 	set_target_properties(httpdynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS})
 	set (TARGETS ${TARGETS} httpdynamic)
 	if (WIN32 AND MSVC) 
 		target_compile_definitions (httpdynamic PRIVATE -D_WIN32 -DMHD_W32LIB)
-		set_target_properties(httpdynamic PROPERTIES OUTPUT_NAME ${TARGET})
 		target_link_libraries(httpdynamic ws2_32 ${LMHLIB})
+	elseif(MSYS)
+		target_link_libraries (httpdynamic ${LIBMICROHTTPD__LDFLAGS})
 	else()
-		set_target_properties(httpdynamic PROPERTIES 
-			OUTPUT_NAME ${TARGET}
+		set_target_properties (httpdynamic PROPERTIES 
 			COMPILE_FLAGS  "${LIBMICROHTTPD__CFLAGS}"
 			LINK_FLAGS     "${LIBMICROHTTPD__LDFLAGS}")
 	endif()
@@ -174,7 +177,11 @@ set_target_properties(${TARGETS} PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
-set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+if (INCLUDE_HTTP)
+	set_target_properties(httpstatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+else()
+	set_target_properties(httpdynamic PROPERTIES PUBLIC_HEADER "${HEADERS}")
+endif()
 
 ####################################
 # install section

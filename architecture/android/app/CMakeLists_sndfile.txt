@@ -1,0 +1,16 @@
+cmake_minimum_required(VERSION 3.4.1)
+
+# including libsndfile
+include_directories( lib/libsndfile/include )
+add_library( libsndfile SHARED IMPORTED )
+set_target_properties( libsndfile PROPERTIES IMPORTED_LOCATION ../../../../lib/libsndfile/lib/${ANDROID_ABI}/libsndfile.so )
+
+# activate android code
+add_definitions(-DANDROID_DRIVER -DSOUNDFILE)
+
+# add other libs
+add_library( dsp_faust SHARED src/main/cpp/java_interface_wrap.cpp src/main/cpp/DspFaust.cpp )
+find_library( log-lib log )
+
+# linking
+target_link_libraries( dsp_faust ${log-lib} libsndfile )

@@ -25,6 +25,7 @@
 
 #include <stdlib.h>
 #include <iostream>
+#include <sstream>
 
 #include "faust/OSCControler.h"
 #include "faust/osc/FaustFactory.h"
@@ -40,13 +41,14 @@ using namespace std;
 namespace oscfaust
 {
 
-#define kVersion	 1.10f
-#define kVersionStr	"1.10"
+#define kVersion	 1.20f
+#define kVersionStr	"1.20"
 
 static const char* kUDPPortOpt	= "-port";
 static const char* kUDPOutOpt	= "-outport";
 static const char* kUDPErrOpt	= "-errport";
 static const char* kUDPDestOpt	= "-desthost";
+static const char* kBundleOpt	= "-bundle";
 static const char* kXmitOpt		= "-xmit";
 static const char* kXmitFilterOpt = "-xmitfilter";
 static const char* kReuseOpt 	= "-reuse";
@@ -57,6 +59,7 @@ static const char* kMulticastAddress = "224.0.0.1";
 
 int OSCControler::gXmit = 0;		// a static variable to control the transmission of values
                                     // i.e. the use of the interface as a controler
+int OSCControler::gBundle = 0;		// a static variable to control the transmission of values
 
 std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
 	
@@ -66,12 +69,13 @@ std::vector<OSCRegexp*> OSCControler::fFilteredPaths;
 static void osc_usage()
 {
 	cout << "OSC UI options: " << endl;
-	cout << "\t" << kUDPPortOpt 	<< " num            (default: 5510)" << endl;
-	cout << "\t" << kUDPOutOpt  	<< " num            (default: 5511)" << endl;
-	cout << "\t" << kUDPErrOpt  	<< " num            (default: 5512)" << endl;
-	cout << "\t" << kUDPDestOpt  	<< " [ip|hostname]  (default: localhost)" << endl;
-	cout << "\t" << kReuseOpt  		<< " [0|1]          (default: 0)" << endl;
-	cout << "\t" << kXmitOpt  		<< " [0|1|2]        (default: 0)" << endl;
+	cout << "\t" << kUDPPortOpt 	<< " num \t\t(default: 5510)" << endl;
+	cout << "\t" << kUDPOutOpt  	<< " num \t\t(default: 5511)" << endl;
+	cout << "\t" << kUDPErrOpt  	<< " num  \t\t(default: 5512)" << endl;
+	cout << "\t" << kUDPDestOpt  	<< " [ip|hostname] (default: localhost)" << endl;
+	cout << "\t" << kReuseOpt  		<< " [0|1] \t\t(default: 0)" << endl;
+	cout << "\t" << kBundleOpt  	<< " [0|1] \t\t(default: 0)" << endl;
+	cout << "\t" << kXmitOpt  		<< " [0|1|2] \t\t(default: 0)" << endl;
 	cout << "\t" << kXmitFilterOpt  << " <filtered paths list>" << endl;
 }
 
@@ -141,7 +145,8 @@ OSCControler::OSCControler(int argc, char *argv[], GUI* ui, OSCIO* io, ErrorCall
 	fUDPOut  = getPortOption(argc, argv, kUDPOutOpt, fUDPOut);
 	fUPDErr  = getPortOption(argc, argv, kUDPErrOpt, fUPDErr);
 	fDestAddress = getDestOption (argc, argv, kUDPDestOpt, "localhost");
-	gXmit = getIntOption(argc, argv, kXmitOpt, kNoXmit);
+	gXmit   = getIntOption(argc, argv, kXmitOpt, kNoXmit);
+	gBundle = getIntOption(argc, argv, kBundleOpt, 0);
 
 	if (getIntOption(argc, argv, kReuseOpt, 0)) {
 		fBindAddress = kMulticastAddress;
@@ -175,6 +180,24 @@ static std::string quote(const char* str)
 
 //--------------------------------------------------------------------------
 // start the network services
+string OSCControler::getInfos() const
+{
+	SRootNode rootnode = fFactory->root();		// first get the root node
+	if (!rootnode) return "no root node defined";
+
+	stringstream sstr;
+	sstr << "Faust OSC version " << versionstr() << " - " << quote(rootnode->getName()) << " is running on UDP ports "
+    << fUDPPort << ", " << fUDPOut << ", " << fUPDErr << ", sending on " << fDestAddress;
+	if (gBundle) sstr << ", with bundle mode ON.";
+	if (!fBindAddress.empty())
+		 sstr << " Listening is bound to " << fBindAddress << ".";
+	if (fIO)
+		sstr << " Using OSC IO with " << fIO->numInputs() << " input channel(s) and " << fIO->numOutputs() << " output channel(s)" << fIO->numOutputs();
+	return sstr.str();
+}
+
+//--------------------------------------------------------------------------
+// start the network services
 void OSCControler::run()
 {
 	SRootNode rootnode = fFactory->root();		// first get the root node
@@ -183,31 +206,24 @@ void OSCControler::run()
 		rootnode->setPorts (&fUDPPort, &fUDPOut, &fUPDErr);
 		
         // starts the network services
-		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str() );
+		fOsc->start (rootnode, fUDPPort, fUDPOut, fUPDErr, gBundle, getDestAddress(), fBindAddress.empty() ? 0 : fBindAddress.c_str() );
 
+		string infos = getInfos();
 		// and outputs a message on the osc output port
-		oscout << OSCStart("Faust OSC version") << versionstr() << "-"
-				<< quote(rootnode->getName()).c_str() << "is running on UDP ports "
-				<<  fUDPPort << fUDPOut << fUPDErr;
-        
+		oscout << OSCStart("Faust") << infos.substr(5) << OSCEnd();
         // and also on the standard output 
-        cout << "Faust OSC version " << versionstr() << " application "
-             << quote(rootnode->getName()).c_str() << " is running on UDP ports "
-             <<  fUDPPort << ", " << fUDPOut << ", " << fUPDErr;
-		if (!fBindAddress.empty()) {
-			 cout << " - listening is bound to " << fBindAddress;
-			 oscout << "listening to" << fBindAddress;
-		}
-		cout << endl;
-
-		if (fIO) oscout << " using OSC IO - in chans: " << fIO->numInputs() << " out chans: " << fIO->numOutputs();
-		oscout << OSCEnd();
-	}
+        cout << infos << endl;
+    } else {
+        cerr << "Cannot start OSC controler\n";
+    }
 }
 
 //--------------------------------------------------------------------------
+void OSCControler::endBundle() { if (gBundle && fOsc) fOsc->endBundle(); }
+
+//--------------------------------------------------------------------------
 const char*	OSCControler::getRootName() const { return fFactory->root()->getName(); }
-    
+
 //--------------------------------------------------------------------------    
 void OSCControler::addFilteredPath(std::string path) 
 {

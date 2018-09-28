@@ -19,8 +19,6 @@
     that contains this FAUST architecture section and distribute
     that work under terms of your choice, so long as this FAUST
     architecture section is not modified.
-
-
  ************************************************************************
  ************************************************************************/
 
@@ -34,7 +32,7 @@
 //#include "faust/sound-file.h"
 #endif
 
-int faustgen_factory::gFaustCounter = 0;
+int faustgen_factory::gFaustCounter = NULL;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
 t_jrgba faustgen::gDefaultColor = {-1., -1., -1., -1.};
 
@@ -163,7 +161,7 @@ faustgen_factory::faustgen_factory(const string& name)
     
     fDefaultPath = path_getdefault();
     fName = name;
-    fDSPfactory = 0;
+    fDSPfactory = NULL;
     fBitCodeSize = 0;
     fBitCode = 0;
     fSourceCodeSize = 0;
@@ -172,7 +170,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fFaustNumber = gFaustCounter;
     fOptLevel = LLVM_OPTIMIZATION;
     fPolyphonic = false;
-    fSoundInterface = NULL;
+    fSoundUI = NULL;
     
     fMidiHandler.start_midi();
     
@@ -323,9 +321,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
 #endif
    
     if (factory) {
-        // Reset fSoundInterface with the new factory getDSPFactoryIncludePathnames
-        delete fSoundInterface;
-        fSoundInterface = new SoundUI(factory->getDSPFactoryIncludePathnames());
+        // Reset fSoundUI with the new factory getIncludePathnames
+        delete fSoundUI;
+        fSoundUI = new SoundUI(factory->getIncludePathnames());
         return factory;
     } else {
         // Update all instances
@@ -1025,14 +1023,17 @@ bool faustgen::allocate_factory(const string& effect_name)
     return res;
 }
 
-faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv) 
-{ 
+faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
+{
     m_siginlets = 0;
     m_sigoutlets = 0;
     
-    fDSP = 0;
-    fDSPfactory = 0;
-    fEditor = 0;
+    fDSP = NULL;
+    fDSPUI = NULL;
+    fMidiUI = NULL;
+    fOSCUI = NULL;
+    fDSPfactory = NULL;
+    fEditor = NULL;
     fMute = false;
     
     int i;
@@ -1056,9 +1057,6 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
         res = allocate_factory(effect_name);
     }
     
-    // One MidiUI for each polyphonic DSP
-    fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
-    
     t_object* box; 
     object_obex_lookup((t_object*)&m_ob, gensym("#B"), &box);
     if (gDefaultColor.red == -1.) {
@@ -1081,26 +1079,32 @@ faustgen::faustgen(t_symbol* sym, long ac, t_atom* argv)
 
 // Called upon deleting the object inside the patcher
 faustgen::~faustgen() 
-{ 
+{
     free_dsp();
      
     if (fEditor) {
         object_free(fEditor);
-        fEditor = 0;
+        fEditor = NULL;
     }
     
-    // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
-    delete fMidiUI;
-     
     fDSPfactory->remove_instance(this);
 }
 
 void faustgen::free_dsp()
 {
+    // Has to be done *before* remove_instance that may free fDSPfactory and thus fDSPfactory->fMidiHandler
     remove_midihandler();
+    delete fMidiUI;
+    fMidiUI = NULL;
+   
+    delete fOSCUI;
+    fOSCUI = NULL;
+    
+    delete fDSPUI;
+    fDSPUI = NULL;
+    
     delete fDSP;
-    fDSP = 0;
-    fDSPUI.clear();
+    fDSP = NULL;
 }
 
 t_dictionary* faustgen::json_reader(const char* jsontext)
@@ -1152,12 +1156,12 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
     string name = string((s)->s_name);
     
     // Check if no argument is there, consider it is a toggle message for a button
-    if (ac == 0 && fDSPUI.isValue(name)) {
+    if (ac == 0 && fDSPUI->isValue(name)) {
       
         float off = 0.0f;
         float on = 1.0f;
-        fDSPUI.setValue(name, off);
-        fDSPUI.setValue(name, on);
+        fDSPUI->setValue(name, off);
+        fDSPUI->setValue(name, on);
         
         av[0].a_type = A_FLOAT;
         av[0].a_w.w_float = off;
@@ -1223,11 +1227,11 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
             }
        
             // Try special naming scheme for list of parameters
-            res = fDSPUI.setValue(param_name, value); 
+            res = fDSPUI->setValue(param_name, value); 
             
             // Otherwise try standard name
             if (!res) {
-                res = fDSPUI.setValue(name, value);
+                res = fDSPUI->setValue(name, value);
             }
             
             if (!res) {
@@ -1238,7 +1242,7 @@ void faustgen::anything(long inlet, t_symbol* s, long ac, t_atom* av)
     } else {
         // Standard parameter name
         float value = (av[0].a_type == A_LONG) ? (float)av[0].a_w.w_long : av[0].a_w.w_float;
-        res = fDSPUI.setValue(name, value);
+        res = fDSPUI->setValue(name, value);
     }  
     
     if (!res) {
@@ -1285,7 +1289,53 @@ void faustgen::polyphony(long inlet, t_symbol* s, long ac, t_atom* av)
     }
 }
 
-void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av) 
+// osc 'IP inport outport bundle'
+void faustgen::osc(long inlet, t_symbol* s, long ac, t_atom* av)
+{
+    if (ac == 4) {
+        if (fDSPfactory->lock()) {
+        
+            delete fOSCUI;
+            const char* argv1[32];
+            int argc1 = 0;
+            
+            argv1[argc1++] = "Faust";
+            argv1[argc1++] = "-xmit";
+            argv1[argc1++] = "1";
+            
+            argv1[argc1++]  = "-desthost";
+            argv1[argc1++]  = atom_getsym(&av[0])->s_name;
+        
+            char inport[32];
+            snprintf(inport, 32, "%ld", long(av[1].a_w.w_long));
+            argv1[argc1++] = "-port";
+            argv1[argc1++] = inport;
+            
+            char outport[32];
+            snprintf(outport, 32, "%ld", long(av[2].a_w.w_long));
+            argv1[argc1++] = "-outport";
+            argv1[argc1++] = outport;
+            
+            if (av[3].a_w.w_long == 1) {
+                argv1[argc1++] = "-bundle";
+                argv1[argc1++] = "1";
+            }
+            
+            fOSCUI = new OSCUI("Faust", argc1, (char**)argv1); 
+            fDSP->buildUserInterface(fOSCUI);
+            fOSCUI->run();
+            
+            post(fOSCUI->getInfos().c_str());
+            fDSPfactory->unlock();
+        } else {
+            post("Mutex lock cannot be taken...");
+        }
+    } else {
+        post("Should be : osc 'IP inport outport bundle(0/1)'");
+    }
+}
+
+void faustgen::midievent(long inlet, t_symbol* s, long ac, t_atom* av)
 {
     if (ac > 0) {
         int type = (int)av[0].a_w.w_long & 0xf0;
@@ -1384,7 +1434,7 @@ void faustgen::edclose(long inlet, char** source_code, long size)
     // Edclose "may" be called with an already deallocated object (like closing the patcher with a still opened editor)
     if (fDSP && fEditor) {
         fDSPfactory->update_sourcecode(size, *source_code);
-        fEditor = 0;
+        fEditor = NULL;
     } 
 }
 
@@ -1404,6 +1454,7 @@ inline void faustgen::perform(int vs, t_sample** inputs, long numins, t_sample**
         // Has to be tested again when the lock has been taken...
         if (fDSP) {
             fDSP->compute(vs, (FAUSTFLOAT**)inputs, (FAUSTFLOAT**)outputs);
+            if (fOSCUI) fOSCUI->endBundle();
             update_outputs();
         }
         GUI::updateAllGuis();
@@ -1443,8 +1494,7 @@ void faustgen::display_dsp_source()
 // Display the Faust module's parameters along with their standard values
 void faustgen::display_dsp_params()
 {
-    fDSPUI.displayControls();
-    
+    fDSPUI->displayControls();
     post("JSON : %s", fDSPfactory->get_json());
 }
 
@@ -1505,22 +1555,28 @@ void faustgen::remove_midihandler()
 void faustgen::init_controllers()
 {
     // Initialize User Interface (here connnection with controls)
-    fDSP->buildUserInterface(&fDSPUI);
+    if (!fDSPUI) {
+        fDSPUI = new mspUI();
+        fDSP->buildUserInterface(fDSPUI);
+    }
     
     // MIDI handling
-    add_midihandler();
-    fDSP->buildUserInterface(fMidiUI);
+    if (!fMidiUI) {
+        fMidiUI = new MidiUI(&fDSPfactory->fMidiHandler);
+        add_midihandler();
+        fDSP->buildUserInterface(fMidiUI);
+    }
     
     // Soundfile handling
-    if (fDSPfactory->fSoundInterface) {
+    if (fDSPfactory->fSoundUI) {
         if (fDSPfactory->fPolyphonic) {
             mydsp_poly* poly = static_cast<mydsp_poly*>(fDSP);
             // SoundUI has to be dispatched on all internal voices
             poly->setGroup(false);
-            fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
+            fDSP->buildUserInterface(fDSPfactory->fSoundUI);
             poly->setGroup(true);
         } else {
-            fDSP->buildUserInterface(fDSPfactory->fSoundInterface);
+            fDSP->buildUserInterface(fDSPfactory->fSoundUI);
         }
     }
 }
@@ -1612,7 +1668,7 @@ void faustgen::create_jsui()
         obj = jbox_get_object(box);
         t_symbol* scriptingname = jbox_get_varname(obj); // scripting name
         // Keep control outputs
-        if (scriptingname && fDSPUI.isOutputValue(scriptingname->s_name)) {
+        if (scriptingname && fDSPUI->isOutputValue(scriptingname->s_name)) {
             fOutputTable[scriptingname->s_name].push_back(obj);
         }
     }
@@ -1623,7 +1679,7 @@ void faustgen::update_outputs()
     map<string, vector<t_object*> >::iterator it1;
     vector<t_object*>::iterator it2;
     for (it1 = fOutputTable.begin(); it1 != fOutputTable.end(); it1++) {
-        FAUSTFLOAT value = fDSPUI.getOutputValue((*it1).first);
+        FAUSTFLOAT value = fDSPUI->getOutputValue((*it1).first);
         if (value != NAN) {
             t_atom at_value;
             atom_setfloat(&at_value, value);
@@ -1636,7 +1692,7 @@ void faustgen::update_outputs()
 
 void faustgen::dsp_status(const char* mess)
  {
-    t_pxobject* dac = 0;
+    t_pxobject* dac = NULL;
     
     if ((dac = check_dac())) {
         t_atom msg[1];
@@ -1695,6 +1751,9 @@ extern "C" void ext_main(void* r)
     
     // Process the "polyphony" message
     REGISTER_METHOD_GIMME(faustgen, polyphony);
+    
+    // Process the "osc" message
+    REGISTER_METHOD_GIMME(faustgen, osc);
     
     // Register inside Max the necessary methods
     REGISTER_METHOD_DEFSYM(faustgen, read);

@@ -97,35 +97,35 @@ int yylex();
 // unquote() : remove enclosing quotes and carriage return 
 // characters from string. Returns a Tree 
 //----------------------------------------------------------
-char replaceCR(char c)
+inline char replaceCR(char c)
 {
 	return (c!='\n') ? c : ' ';
 }
 
 Tree unquote(char* str)
 {
-	//-----------copy unquoted filename-------------
-	char buf[512];
-	int j=0;
+    size_t size = strlen(str) + 1;
+    //-----------copy unquoted filename-------------
+    char buf[size];
+    int j=0;
 
-	if (str[0] == '"') {
-		//it is a quoted string, we remove the quotes
-		for (int i=1; j<511 && str[i];) {
-			buf[j++] = replaceCR(str[i++]);
-		}
-		// remove last quote
-		if (j>0) buf[j-1] = 0;
-	} else {
-		for (int i=0; j<511 && str[i];) {
-			buf[j++] = replaceCR(str[i++]);
-		}
-	}
-	buf[j] = 0;
+    if (str[0] == '"') {
+        //it is a quoted string, we remove the quotes
+        for (int i=1; j<size-1 && str[i];) {
+            buf[j++] = replaceCR(str[i++]);
+        }
+        // remove last quote
+        if (j>0) buf[j-1] = 0;
+    } else {
+        for (int i=0; j<size-1 && str[i];) {
+            buf[j++] = replaceCR(str[i++]);
+        }
+    }
+    buf[j] = 0;
 
-	return tree(buf);
-	//----------------------------------------------
+    return tree(buf);
+    //----------------------------------------------
 }
-
 
 #line 131 "faustparser.cpp" /* yacc.c:339  */
 

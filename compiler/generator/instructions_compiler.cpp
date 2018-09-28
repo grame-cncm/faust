@@ -33,6 +33,8 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
+#include "sigConstantPropagation.hh"
+#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtyperules.hh"
@@ -138,39 +140,56 @@ void InstructionsCompiler::sharingAnnotation(int vctxt, Tree sig)
 Tree InstructionsCompiler::prepare(Tree LS)
 {
     startTiming("prepare");
-    // startTiming("first simplification");
-    // LS = simplify(LS);
-    // endTiming("first simplification");
+
     startTiming("deBruijn2Sym");
-    Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
+    Tree L1 = deBruijn2Sym(LS);  // convert deBruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
-    startTiming("second simplification");
-    Tree L2 = simplify(L1);  // simplify by executing every computable operation
-    endTiming("second simplification");
-    Tree L3 = privatise(L2);  // Un-share tables with multiple writers
+
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);  // Annotate L1 with type information (needed by
+                                                        // castAndPromotion(), but don't check causality)
+    endTiming("L1 typeAnnotation");
+
+    startTiming("Cast and Promotion");
+    SignalPromotion SP;
+    // SP.trace(true, "Cast");
+    Tree L2 = SP.mapself(L1);
+    endTiming("Cast and Promotion");
+
+    startTiming("simplification");
+    Tree L3 = simplify(L2);  // simplify by executing every computable operation
+    endTiming("simplification");
+
+    startTiming("Constant propagation");
+    SignalConstantPropagation SK;
+    // SK.trace(true, "ConstProp2");
+    Tree L4 = SK.mapself(L3);
+    endTiming("Constant propagation");
+
+    Tree L5 = privatise(L4);  // Un-share tables with multiple writers
 
     // dump normal form
     if (gGlobal->gDumpNorm) {
-        cout << ppsig(L3) << endl;
+        cout << ppsig(L5) << endl;
         throw faustexception("Dump normal form finished...\n");
     }
 
-    recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
+    recursivnessAnnotation(L5);  // Annotate L5 with recursivness information
 
-    startTiming("typeAnnotation");
-    typeAnnotation(L3);  // Annotate L3 with type information
-    endTiming("typeAnnotation");
+    startTiming("L5 typeAnnotation");
+    typeAnnotation(L5, true);  // Annotate L5 with type information and check causality
+    endTiming("L5 typeAnnotation");
 
-    sharingAnalysis(L3);  // annotate L3 with sharing count
-    fOccMarkup.mark(L3);  // annotate L3 with occurences analysis
+    sharingAnalysis(L5);  // annotate L5 with sharing count
+    fOccMarkup.mark(L5);  // annotate L5 with occurrences analysis
     // annotationStatistics();
     endTiming("prepare");
 
     if (gGlobal->gDrawSignals) {
         ofstream dotfile(subst("$0-sig.dot", gGlobal->makeDrawPath()).c_str());
-        sigToGraph(L3, dotfile);
+        sigToGraph(L5, dotfile);
     }
-    return L3;
+    return L5;
 }
 
 Tree InstructionsCompiler::prepare2(Tree L0)
@@ -178,7 +197,7 @@ Tree InstructionsCompiler::prepare2(Tree L0)
     startTiming("prepare2");
 
     recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0);          // Annotate L0 with type information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
     fOccMarkup.mark(L0);         // annotate L0 with occurences analysis
 
@@ -292,6 +311,14 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
 
     startTiming("compileMultiSignal");
 
+#ifdef LLVM_DEBUG
+    // Add function declaration
+    pushGlobalDeclare(InstBuilder::genFunction1("printInt32", Typed::kVoid, "val", Typed::kInt32));
+    pushGlobalDeclare(InstBuilder::genFunction1("printFloat", Typed::kVoid, "val", Typed::kFloat));
+    pushGlobalDeclare(InstBuilder::genFunction1("printDouble", Typed::kVoid, "val", Typed::kDouble));
+    pushGlobalDeclare(InstBuilder::genFunction1("printPtr", Typed::kVoid, "val", Typed::kVoid_ptr));
+#endif
+
     Typed* type = InstBuilder::genBasicTyped(Typed::kFloatMacro);
 
     if (!gGlobal->gOpenCLSwitch && !gGlobal->gCUDASwitch) {  // HACK
@@ -402,7 +429,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     int    i;
     double r;
-    Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, part, label, id, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 
@@ -484,14 +511,12 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
-    } else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf)));
-    } else if (isSigSoundfileRate(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf)));
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        return generateCacheCode(sig, generateSoundfileChannels(sig, CS(sf)));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y)));
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        return generateCacheCode(sig, generateSoundfileLength(sig, CS(sf), CS(x)));
+    } else if (isSigSoundfileRate(sig, sf, x)) {
+        return generateCacheCode(sig, generateSoundfileRate(sig, CS(sf), CS(x)));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        return generateCacheCode(sig, generateSoundfileBuffer(sig, CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -1412,44 +1437,61 @@ ValueInst* InstructionsCompiler::generateSoundfile(Tree sig, Tree path)
     return InstBuilder::genLoadStructVar(varname);
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf)
+ValueInst* InstructionsCompiler::generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* x)
 {
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
+
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
+
+    string SFcache        = load->fAddress->getName() + "ca";
+    string SFcache_length = gGlobal->getFreshID(SFcache + "_le");
+
     // Struct access using an index that will be converted as a field name
-    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(1));
+    ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
+                                                     InstBuilder::genInt32NumInst(1));
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_length, type, v1));
+
+    return InstBuilder::genLoadArrayStackVar(SFcache_length, x);
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf)
+ValueInst* InstructionsCompiler::generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* x)
 {
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
+
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
+
+    string SFcache        = load->fAddress->getName() + "ca";
+    string SFcache_length = gGlobal->getFreshID(SFcache + "_ra");
+
     // Struct access using an index that will be converted as a field name
-    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(2));
+    ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
+                                                     InstBuilder::genInt32NumInst(2));
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_length, type, v1));
+
+    return InstBuilder::genLoadArrayStackVar(SFcache_length, x);
 }
 
-ValueInst* InstructionsCompiler::generateSoundfileChannels(Tree sig, ValueInst* sf)
-{
-    LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
-    faustassert(load);
-    // Struct access using an index that will be converted as a field name
-    return InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
-                                            InstBuilder::genInt32NumInst(3));
-}
-
-ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y)
+ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y,
+                                                         ValueInst* z)
 {
     LoadVarInst* load = dynamic_cast<LoadVarInst*>(sf);
     faustassert(load);
 
     Typed* type1 = InstBuilder::genBasicTyped(Typed::kFloatMacro_ptr_ptr);
     Typed* type2 = InstBuilder::genBasicTyped(Typed::kFloatMacro);
+    Typed* type3 = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kInt32), MAX_SOUNDFILE_PARTS, true);
 
     string SFcache             = load->fAddress->getName() + "ca";
     string SFcache_buffer      = gGlobal->getFreshID(SFcache + "_bu");
     string SFcache_buffer_chan = gGlobal->getFreshID(SFcache + "_bu_ch");
+    string SFcache_offset      = gGlobal->getFreshID(SFcache + "_of");
+
+    // Struct access using an index that will be converted as a field name
+    ValueInst* v1 = InstBuilder::genLoadStructPtrVar(load->fAddress->getName() + "ca", Address::kStack,
+                                                     InstBuilder::genInt32NumInst(3));
+    pushComputeBlockMethod(InstBuilder::genDecStackVar(SFcache_offset, type3, v1));
 
     // Struct access using an index that will be converted as a field name
     LoadVarInst* load1 = InstBuilder::genLoadStructPtrVar(SFcache, Address::kStack, InstBuilder::genInt32NumInst(0));
@@ -1459,7 +1501,9 @@ ValueInst* InstructionsCompiler::generateSoundfileBuffer(Tree sig, ValueInst* sf
         InstBuilder::genDecStackVar(SFcache_buffer_chan, InstBuilder::genArrayTyped(type2, 0),
                                     InstBuilder::genLoadStructPtrVar(SFcache_buffer, Address::kStack, x)));
 
-    return InstBuilder::genLoadStructPtrVar(SFcache_buffer_chan, Address::kStack, y);
+    return InstBuilder::genLoadStructPtrVar(
+        SFcache_buffer_chan, Address::kStack,
+        InstBuilder::genAdd(InstBuilder::genLoadArrayStackVar(SFcache_offset, y), z));
 }
 
 ValueInst* InstructionsCompiler::generateIntNumber(Tree sig, int num)
@@ -1764,6 +1808,7 @@ void InstructionsCompiler::generateUserInterfaceElements(Tree elements)
  * Generate buildUserInterface C++ lines of code corresponding
  * to user interface widget t
  */
+
 void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree sig)
 {
     Tree                      path, c, x, y, z;
@@ -1779,7 +1824,7 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
             const set<string> values = i->second;
             for (set<string>::const_iterator j = values.begin(); j != values.end(); j++) {
                 if (key == "url") {
-                    url = rmWhiteSpaces(*j);
+                    url = prepareURL(*j);
                 }
             }
         }
@@ -1833,8 +1878,8 @@ void InstructionsCompiler::generateWidgetCode(Tree fulllabel, Tree varname, Tree
 
     } else if (isSigSoundfile(sig, path)) {
         fContainer->incUIActiveCount();
-        pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(checkNullLabel(varname, label, true),
-                                                                 ((url == "") ? label : url), tree2str(varname)));
+        pushUserInterfaceMethod(InstBuilder::genAddSoundfileInst(
+            checkNullLabel(varname, label, true), ((url == "") ? prepareURL(label) : url), tree2str(varname)));
 
     } else {
         throw faustexception("ERROR in generating widget code\n");
@@ -1946,6 +1991,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
 
     if (ctype == Typed::kInt32) {
         Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(num_array);
+        faustassert(int_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 int_array->setValue(k, i);
@@ -1955,6 +2001,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         }
     } else if (ctype == Typed::kFloat) {
         FloatArrayNumInst* float_array = dynamic_cast<FloatArrayNumInst*>(num_array);
+        faustassert(float_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 float_array->setValue(k, float(i));
@@ -1964,6 +2011,7 @@ void InstructionsCompiler::declareWaveform(Tree sig, string& vname, int& size)
         }
     } else if (ctype == Typed::kDouble) {
         DoubleArrayNumInst* double_array = dynamic_cast<DoubleArrayNumInst*>(num_array);
+        faustassert(double_array);
         for (int k = 0; k < size; k++) {
             if (isSigInt(sig->branch(k), &i)) {
                 double_array->setValue(k, double(i));

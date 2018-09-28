@@ -32,6 +32,7 @@
 #define __OSCUI__
 
 #include <vector>
+#include <string>
 
 #include "faust/gui/OSCControler.h"
 #include "faust/gui/GUI.h"
@@ -161,12 +162,12 @@ class OSCUI : public GUI
         fCtrl->run();
         return true;
     }
+	
+    void stop()			{ fCtrl->stop(); }
+    void endBundle() 	{ fCtrl->endBundle(); }
     
-    void stop()
-    {
-        fCtrl->stop(); 
-    }
-    
+    std::string getInfos()          { return fCtrl->getInfos(); }
+
     const char* getRootName()		{ return fCtrl->getRootName(); }
     int getUDPPort()                { return fCtrl->getUDPPort(); }
     int getUDPOut()                 { return fCtrl->getUDPOut(); }

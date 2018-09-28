@@ -36,8 +36,8 @@ using namespace std;
 static int xVariability(int v, int r)
 {
     // cerr << "xVariability (" << v << ", " <<  r << ")" << endl;
-    // assert (v < 3);				// kKonst=0, kBlock=1, kSamp=2
-    // assert(r==0 | v==2);
+    // faustassert(v < 3);				// kKonst=0, kBlock=1, kSamp=2
+    // faustassert(r==0 | v==2);
     if (r > 1) r = 1;
     return min(3, v + r);
 }

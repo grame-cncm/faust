@@ -49,20 +49,14 @@ public:
     {}
     
     virtual void reflectZone()
-    {
-        FAUSTFLOAT v = *fZone;
-        fCache = v;
-        fSender->queueMessage(fSender->newMessage.to(fPath).add(float(v)).end());
-        //send(fPath, float(v));//<-- revoir ici. send...
-        //
-    }
+    {}
     
 };
 
 class BelaOSCUI : public GUI {
     
 private:
-    const char* fIP;
+    string fIP;
     int fInputPort;
     int fOutputPort;
     
@@ -80,11 +74,14 @@ private:
     }
     
 public:
-    
-    BelaOSCUI(const char* ip, int in_port, int out_port):fIP(ip), fInputPort(in_port), fOutputPort(out_port){}
+
+    BelaOSCUI(const string& ip, int in_port, int out_port):fIP(ip), fInputPort(in_port), fOutputPort(out_port){}
     
     virtual ~BelaOSCUI()
-    {}
+    {
+       for (int i =0; i< fOSCItems.size();i++)
+        delete (fOSCItems[i]);
+    }
     
     // for auxiliaryTask:
     void oscMessageReceived()
@@ -93,10 +90,28 @@ public:
             float floatArg;
             oscpkt::Message msg;
             msg = oscServer.popMessage();
-            string msgAdress = msg.addressPattern().c_str();
+            string msgAdress = msg.addressPattern();
             int paramIndex = fAPIUI.getParamIndex(msg.addressPattern().c_str());
             if (msg.match(msgAdress).popFloat(floatArg).isOkNoMoreArgs() && paramIndex !=-1){
                 fAPIUI.setParamValue(paramIndex, floatArg);
+            // "get" message with correct address
+            } else if (msg.match("/get").isOkNoMoreArgs()){
+                for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
+                    // show datat to console.
+                    rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
+                    // set data by OSC.
+                    oscClient.queueMessage(oscClient.newMessage.to(std::string(fAPIUI.getParamAddress(p))).add(fAPIUI.getParamMin(p)).add(fAPIUI.getParamMax(p)).end());
+                }
+            // "hello" message
+            } else if (msg.match("/hello").isOkNoMoreArgs()){
+                // show datat to console.
+                rt_printf("adresses:%s, in:%i, out:%i\n", fIP, fInputPort, fOutputPort );
+                // set data by OSC.
+                std::string s = fAPIUI.getParamAddress(0);
+                s.erase(0, 1);
+                s = s.substr(0, s.find("/"));
+                s.insert (0, 1, '/');
+                oscClient.queueMessage(oscClient.newMessage.to(s).add(std::string(fIP)).add(fInputPort).add(fOutputPort).end());//("/adress IP")
             }
         }
     }
@@ -106,10 +121,10 @@ public:
         oscClient.setup(fInputPort, fIP);
         rt_printf("initconnect\n");
         if (fOSCItems.size() == 0) {
-            rt_printf("%i widgets\nOSC Adresses:\n", fAPIUI.getParamsCount());
+            rt_printf("%i widgets, OSC Adresses:\n", fAPIUI.getParamsCount());
             
             for (int p = 0; p < fAPIUI.getParamsCount(); ++p) {
-                rt_printf("%s\n", fAPIUI.getParamAddress(p));
+                rt_printf("%s %f to %f\n", fAPIUI.getParamAddress(p), fAPIUI.getParamMin(p), fAPIUI.getParamMax(p));
                 fOSCItems.push_back(new oscItem(&oscClient, this, fAPIUI.getParamAddress(p), fAPIUI.getParamZone(p)));
             }
         }

@@ -107,7 +107,7 @@ Tree normalizeDelay1Term(Tree s)
 
 Tree normalizeFixedDelayTerm(Tree s, Tree d)
 {
-    Tree x, y, r, var, le;
+    Tree x, y, r;
     int  i;
 
     if (isZero(d)) {

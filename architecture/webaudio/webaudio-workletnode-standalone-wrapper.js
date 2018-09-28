@@ -490,3 +490,8 @@ window.mydsp = class mydsp {
    	}
 
 }
+
+// WAP factory
+window.Faustmydsp = window.mydsp;
+    
+

@@ -565,7 +565,7 @@ static schema* generateBargraphSchema(Tree t)
 }
 
 /**
- * Generate a 1->c+2 block schema for soundfile("toto",c)
+ * Generate a 2->3+c block schema for soundfile("toto",c)
  */
 static schema* generateSoundfileSchema(Tree t)
 {
@@ -574,7 +574,7 @@ static schema* generateSoundfileSchema(Tree t)
         int    n = tree2int(chan);
         string s;
         UserInterfaceDescription(t, s);
-        return makeBlockSchema(1, 3 + n, s, uicolor, "");
+        return makeBlockSchema(2, 2 + n, s, uicolor, "");
     } else {
         throw faustexception("ERROR : soundfile\n");
     }

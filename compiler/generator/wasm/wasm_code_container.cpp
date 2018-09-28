@@ -57,7 +57,7 @@ using namespace std;
 dsp_factory_base* WASMCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+        fKlassName, "", "",
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), fHelper.str());
 }
 
@@ -328,8 +328,8 @@ void WASMCodeContainer::produceClass()
     // JSON generation
 
     // Prepare compilation options
-    stringstream options;
-    gGlobal->printCompilationOptions(options);
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options, false);
 
     stringstream size;
     size << gGlobal->gWASMVisitor->getStructSize();
@@ -347,7 +347,8 @@ void WASMCodeContainer::produceClass()
     }
 
     // "name", "filename" found in metadata
-    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, options.str(), size.str(),
+    JSONInstVisitor json_visitor2("", "", fNumInputs, fNumOutputs, "", "", FAUSTVERSION, compile_options.str(),
+                                  gGlobal->gReader.listLibraryFiles(), gGlobal->gImportDirList, size.str(),
                                   path_index_table);
     generateUserInterface(&json_visitor2);
     generateMetaData(&json_visitor2);

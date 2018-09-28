@@ -18,6 +18,7 @@ COMB_SEP=
 WASM=
 WORKLET="false"
 EFFECT=""
+WAP="false"
 
 OPT="false"
 EMCC="false"
@@ -40,13 +41,14 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2wasm [-poly] [-effect auto|<effect.dsp>] [-comb] [-opt] [-worklet] [-emcc] <file.dsp>"
+        echo "faust2wasm [-poly] [-effect auto|<effect.dsp>] [-comb] [-opt] [-worklet] [-emcc] [-wap] <file.dsp>"
         echo "Use '-poly' to produce a polyphonic DSP, ready to be used with MIDI events"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-opt' to optimize the wasm module using Binaryen tools (https://github.com/WebAssembly/binaryen)"
         echo "Use '-worklet' to generate AudioWorklet compatible code"
-        echo "Use '-comb' to combine several DSP in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
+        echo "Use '-wap' to generate a WAP (Web Audio Plugin). This forces -worklet mode, and create additional files"
+        echo "Use '-comb' to combine several DSPs in a unique resulting 'comb.js' file, sharing the same Emscripten runtime"
         echo "Use '-emcc' to compile C++ generated code to wasm with Emscripten, otherwise the internal wasm backend is used"
         exit
     elif [ $p = "-comb" ]; then
@@ -62,6 +64,10 @@ do
         WORKLET="true"
     elif [ $p = "-emcc" ]; then
         EMCC="true"
+    elif [ $p = "-wap" ]; then
+        WAP="true"
+        echo "Forcing -worklet mode"
+        WORKLET="true"
     elif [ ${p:0:1} = "-" ]; then
 	    OPTIONS="$OPTIONS $p"
 	elif [[ -e "$p" ]]; then
@@ -191,19 +197,32 @@ EndOfCode
         fi
     fi
 
-    # create the main.json file
-    echo "{" > main.json
-    echo "\"name\": \"$name\"," >> main.json
-    echo "\"vendor\": \"GRAME\"," >> main.json
-    echo "\"version\": \"1.0\"," >> main.json
-    echo "\"url\": \"$name.js\"," >> main.json
-    echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
-    echo "\"thumbnail\": \"\"" >> main.json
-    echo "}" >> main.json
+	if [ $WAP = true ]; then
+
+   		# create the main.json file
+    	echo "{" > main.json
+    	echo "\"name\": \"$name\"," >> main.json
+    	echo "\"vendor\": \"Faust\"," >> main.json
+    	echo "\"version\": \"1.0\"," >> main.json
+    	echo "\"url\": \"$name.js\"," >> main.json
+    	echo "\"homepage\": \"https://faust.grame.fr\"," >> main.json
+    	echo "\"thumbnail\": \"\"" >> main.json
+    	echo "}" >> main.json
+    	
+        # compose the HTML test page
+        cp  $FAUSTLIB/webaudio/testWAP.html test$name-tmp1.html
+        sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
+        sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
+    fi
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
-        BINARIES="$BINARIES$name.js, $name-processor.js, main.json;"
+    	if [ $WAP = "true" ]; then
+        	BINARIES="$BINARIES$name.js, $name-processor.js, main.json, test$name.html;"
+        	rm test$name-tmp1.html test$name-tmp2.html
+        else
+        	BINARIES="$BINARIES$name.js, $name-processor.js;"
+        fi
         rm $name.wasm
         rm -f $name"_effect".wasm
     else
@@ -214,7 +233,7 @@ done
 
 else
 
-# TODDO : worklet support
+# TODO : worklet support
 echo "Compiled with 'comb' mode"
 
 for f in $FILES; do

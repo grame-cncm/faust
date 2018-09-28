@@ -138,7 +138,7 @@ inline string flatten(const string& src)
 {
     stringstream dst;
     size_t       size = src.size();
-    for (size_t i = 0; i < src.size(); i++) {
+    for (size_t i = 0; i < size; i++) {
         switch (src[i]) {
             case '\n':
             case '\t':
@@ -175,6 +175,37 @@ inline string pathToContent(const string& path)
     file.close();
     delete[] buffer;
     return result;
+}
+
+// For soundfile : remove spaces between filenames and possibly
+// put a unique file in a {...} list
+inline string prepareURL(const string& url)
+{
+    bool         in_str = false;
+    stringstream dst;
+    for (size_t i = 0; i < url.size(); i++) {
+        switch (url[i]) {
+            case '\n':
+            case '\t':
+            case '\r':
+                break;
+            case '\'':
+                in_str = !in_str;
+                dst << url[i];
+                break;
+            case ' ':
+                // Do not remove spaces in path ('....')
+                if (in_str) dst << url[i];
+                break;
+            default:
+                dst << url[i];
+                break;
+        }
+    }
+    string res = dst.str();
+
+    // If unique file, create a list with it
+    return (res[0] != '{') ? "{'" + res + "'}" : res;
 }
 
 #endif

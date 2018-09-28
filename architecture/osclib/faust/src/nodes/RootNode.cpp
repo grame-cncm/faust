@@ -51,6 +51,7 @@ static const char* kHelloMsg		= "hello";
 static const char* kDestMsg         = "desthost";
 static const char* kUdpOutPortMsg	= "outport";
 static const char* kUdpErrPortMsg	= "errport";
+static const char* kBundleMsg       = "bundle";
 static const char* kXmitMsg         = "xmit";
 static const char* kXmitFilter      = "xmitfilter";
 
@@ -103,6 +104,8 @@ void RootNode::get(unsigned long ipdest, const std::string& what) const		///< ha
 
 	if (what == kXmitMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	if (what == kBundleMsg)
+		oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	else if (what == kDestMsg)
 		oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
 	else if (what == kUdpOutPortMsg)
@@ -123,6 +126,7 @@ void RootNode::get(unsigned long ipdest) const		///< handler for the 'get' messa
 	oscout.setAddress(ipdest);						// sets the osc stream dest IP to the request src IP
 
 	oscout << OSCStart(getOSCAddress().c_str()) << kXmitMsg << OSCControler::gXmit << OSCEnd();
+	oscout << OSCStart(getOSCAddress().c_str()) << kBundleMsg << OSCControler::gBundle << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kDestMsg << ip2string(savedip) << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpOutPortMsg << oscout.getPort() << OSCEnd();
 	oscout << OSCStart(getOSCAddress().c_str()) << kUdpErrPortMsg << oscerr.getPort() << OSCEnd();
@@ -312,6 +316,10 @@ bool RootNode::accept(const Message* msg)
 		} else if ((val == kUdpErrPortMsg) && (msg->param(1, num))) {
 			*fUDPErr = num;
 			oscerr.setPort(num);
+		} else if ((val == kBundleMsg) && (msg->param(1, num))) {
+			OSCControler::gBundle = num;
+			oscout.setBundle(num);
+			
 		} else if ((val == kXmitMsg) && (msg->param(1, num))) {
 			OSCControler::gXmit = num;
         } else if (val == kXmitFilter) {
@@ -324,6 +332,9 @@ bool RootNode::accept(const Message* msg)
         if (val == kXmitFilter) {
             OSCControler::resetFilteredPaths();
         }
+        if (val == kBundleMsg) {
+            oscout.endBundle();
+		}
     } else if (fIO) {						// when still not handled and if a IO controler is set
 		return acceptSignal(msg);			// try to read signal data
     }

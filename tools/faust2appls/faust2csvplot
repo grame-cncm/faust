@@ -1,0 +1,79 @@
+#! /bin/bash -e
+
+#####################################################################
+#                                                                   #
+#               Compiles Faust programs to plotters					#
+#               (c) Grame, 2009                                     #
+#                                                                   #
+#####################################################################
+
+. faustpath
+. faustoptflags
+
+#-------------------------------------------------------------------
+# Analyze command arguments :
+# faust options                 -> OPTIONS
+# if -omp : -openmp or -fopenmp -> OPENMP
+# existing *.dsp files          -> FILES
+#
+
+# PHASE 1 : Look for -icc option to force use of intel icc (actually icpc)
+# without having to configure CXX and CXXFLAGS
+CXX=g++
+CXXFLAGS=$MYGCCFLAGS
+for p in $@; do
+	if [ "$p" = -icc ]; then
+		CXX=icpc
+		CXXFLAGS=$MYICCFLAGS
+    fi
+done
+
+#PHASE 2 : dispatch command arguments
+for p in $@; do
+
+    if [ $p = "-help" ] || [ $p = "-h" ]; then
+        echo "faust2csvplot <file.dsp>"
+        exit
+    fi
+
+    if [ "$p" = -omp ]; then
+        if [[ $CXX == "icpc" ]]; then
+            OMP="-openmp"
+        else
+            OMP="-fopenmp"
+        fi
+    fi
+  
+    if [ "$p" = -icc ]; then
+        ignore=" "
+    elif [ $p = "-arch32" ]; then
+        PROCARCH="-m32 -L/usr/lib32"
+    elif [ $p = "-arch64" ]; then
+        PROCARCH="-m64"
+    elif [ ${p:0:1} = "-" ]; then
+        OPTIONS="$OPTIONS $p"
+    elif [[ -f "$p" ]]; then
+        FILES="$FILES $p"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
+done
+
+#-------------------------------------------------------------------
+# compile the *.dsp files 
+
+for f in $FILES; do
+	
+	# compile faust to c++
+    faust -i -a csvplot.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+
+	# compile c++ to binary
+	(
+		${CXX=g++} $CXXFLAGS $PROCARCH $OMP "$f.cpp" -o "${f%.dsp}"
+	) > /dev/null || exit
+	rm "$f.cpp"
+
+	# collect binary file name for FaustWorks
+	BINARIES="$BINARIES${f%.dsp};"
+done
+echo $BINARIES

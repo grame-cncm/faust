@@ -39,6 +39,8 @@
 #include "prim2.hh"
 #include "privatise.hh"
 #include "recursivness.hh"
+#include "sigConstantPropagation.hh"
+#include "sigPromotion.hh"
 #include "sigToGraph.hh"
 #include "sigprint.hh"
 #include "sigtype.hh"
@@ -93,10 +95,28 @@ Tree ScalarCompiler::prepare(Tree LS)
     startTiming("deBruijn2Sym");
     Tree L1 = deBruijn2Sym(LS);  // convert debruijn recursion into symbolic recursion
     endTiming("deBruijn2Sym");
+
+    startTiming("L1 typeAnnotation");
+    typeAnnotation(L1, gGlobal->gLocalCausalityCheck);
+    endTiming("L1 typeAnnotation");
+
+    startTiming("Cast and Promotion");
+    SignalPromotion SP;
+    // SP.trace(true, "Cast");
+    Tree L1b = SP.mapself(L1);
+    endTiming("Cast and Promotion");
+
     startTiming("second simplification");
-    Tree L2 = simplify(L1);  // simplify by executing every computable operation
+    Tree L2 = simplify(L1b);  // simplify by executing every computable operation
     endTiming("second simplification");
-    Tree L3 = privatise(L2);  // Un-share tables with multiple writers
+
+    startTiming("Constant propagation");
+    SignalConstantPropagation SK;
+    // SK.trace(true, "ConstProp2");
+    Tree L2b = SK.mapself(L2);
+    endTiming("Constant propagation");
+
+    Tree L3 = privatise(L2b);  // Un-share tables with multiple writers
 
     conditionAnnotation(L3);
     // conditionStatistics(L3);        // count condition occurences
@@ -110,7 +130,7 @@ Tree ScalarCompiler::prepare(Tree LS)
     recursivnessAnnotation(L3);  // Annotate L3 with recursivness information
 
     startTiming("typeAnnotation");
-    typeAnnotation(L3);  // Annotate L3 with type information
+    typeAnnotation(L3, true);  // Annotate L3 with type information
     endTiming("typeAnnotation");
 
     sharingAnalysis(L3);  // annotate L3 with sharing count
@@ -136,7 +156,7 @@ Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
     recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
-    typeAnnotation(L0);          // Annotate L0 with type information
+    typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
 
     if (fOccMarkup != 0) {
@@ -428,14 +448,13 @@ string ScalarCompiler::generateCode(Tree sig)
 
     else if (isSigSoundfile(sig, label)) {
         return generateSoundfile(sig, label);
-    } else if (isSigSoundfileLength(sig, sf)) {
-        return generateCacheCode(sig, subst("$0cache->fLength", CS(sf)));
-    } else if (isSigSoundfileRate(sig, sf)) {
-        return generateCacheCode(sig, subst("$0cache->fSampleRate", CS(sf)));
-    } else if (isSigSoundfileChannels(sig, sf)) {
-        return generateCacheCode(sig, subst("$0cache->fChannels", CS(sf)));
-    } else if (isSigSoundfileBuffer(sig, sf, x, y)) {
-        return generateCacheCode(sig, subst("$0cache->fBuffers[$1][$2]", CS(sf), CS(x), CS(y)));
+    } else if (isSigSoundfileLength(sig, sf, x)) {
+        return generateCacheCode(sig, subst("$0cache->fLength[$1]", CS(sf), CS(x)));
+    } else if (isSigSoundfileRate(sig, sf, x)) {
+        return generateCacheCode(sig, subst("$0cache->fSampleRate[$1]", CS(sf), CS(x)));
+    } else if (isSigSoundfileBuffer(sig, sf, x, y, z)) {
+        return generateCacheCode(sig,
+                                 subst("$0cache->fBuffers[$1][$0cache->fOffset[$2]+$3]", CS(sf), CS(x), CS(y), CS(z)));
     }
 
     else if (isSigAttach(sig, x, y)) {
@@ -820,7 +839,7 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
     addUIWidget(reverse(tl(path)), uiWidget(hd(path), tree(varname), sig));
 
     // SL
-    fClass->addInitUICode(subst("if (!$0) $0 = defaultsound;", varname));
+    fClass->addInitUICode(subst("if (uintptr_t($0) == 0) $0 = defaultsound;", varname));
     fClass->addFirstPrivateDecl(subst("$0cache", varname));
 
     // SL

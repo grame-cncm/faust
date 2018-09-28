@@ -438,6 +438,19 @@ vector<string> SourceReader::listSrcFiles()
 }
 
 /**
+ * Return a vector of pathnames representing the list
+ * of all the source files that have been required
+ * to evaluate process, without the DSP file itself
+ */
+
+vector<string> SourceReader::listLibraryFiles()
+{
+    vector<string> tmp = fFilePathnames;
+    tmp.erase(tmp.begin());
+    return tmp;
+}
+
+/**
  * Return the list of definitions where all imports have been expanded.
  *
  * @param ldef the list of definitions to expand

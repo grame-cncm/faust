@@ -111,10 +111,10 @@ class wasm_dsp_factory : public dsp_factory {
     dsp_memory_manager* getMemoryManager();
 
     /* Get the Faust DSP factory list of library dependancies */
-    std::vector<std::string> getDSPFactoryLibraryList();
+    std::vector<std::string> getLibraryList();
 
     /* Get the list of all used includes */
-    std::vector<std::string> getDSPFactoryIncludePathnames();
+    std::vector<std::string> getIncludePathnames();
 };
 
 /**

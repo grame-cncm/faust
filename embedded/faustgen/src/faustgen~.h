@@ -44,6 +44,10 @@
 #include "faust/gui/MidiUI.h"
 #include "faust/gui/SoundUI.h"
 
+#include "faust/gui/OSCUI.h"
+#define OSC_IN_PORT     "5510"
+#define OSC_OUT_PORT    "5511"
+
 #include "maxcpp5.h"
 
 #ifndef WIN32
@@ -56,7 +60,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.26"
+#define FAUSTGEN_VERSION "1.28"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -93,10 +97,9 @@ class faustgen_factory {
       
         set<faustgen*> fInstances;      // set of all DSP 
         llvm_dsp_factory* fDSPfactory;  // pointer to the LLVM Faust factory
-        midi_handler fMidiHandler;      // Generic MIDI handler
+        midi_handler fMidiHandler;      // generic MIDI handler
+        SoundUI* fSoundUI;              // generic Soundfile interface
     
-        SoundUI* fSoundInterface;       // Generic Soundfile interface
-   
         long fSourceCodeSize;           // length of source code string
         char** fSourceCode;             // source code string
         
@@ -120,7 +123,7 @@ class faustgen_factory {
         int fOptLevel;                  // the LLVM optimization level
         bool fPolyphonic;               // Whether the created DSP is polyphonic
     
-        short fDefaultPath;             // Default path to be saved in factory constructor (using path_getdefault)
+        short fDefaultPath;             // default path to be saved in factory constructor (using path_getdefault)
                                         // and explicitely set in 'read' and 'write' (using path_setdefault)
     
         int m_siginlets;
@@ -211,11 +214,13 @@ class faustgen : public MspCpp5<faustgen> {
     private:
     
         faustgen_factory* fDSPfactory;
-        map<string, vector <t_object*> > fOutputTable;
+        map<string, vector<t_object*> > fOutputTable;
         
-        mspUI fDSPUI;               // DSP UI
+        mspUI* fDSPUI;              // Control UI
         MidiUI* fMidiUI;            // Midi UI
-        ::dsp* fDSP;                // pointer to the LLVM Faust dsp
+        OSCUI* fOSCUI;              // OSC UI
+    
+        ::dsp* fDSP;                // LLVM Faust dsp
         t_object* fEditor;          // text editor object
         bool fMute;                 // DSP mute state
         static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
@@ -281,6 +286,7 @@ class faustgen : public MspCpp5<faustgen> {
         
         void polyphony(long inlet, t_symbol* s, long argc, t_atom* argv);
         void midievent(long inlet, t_symbol* s, long argc, t_atom* argv);
+        void osc(long inlet, t_symbol* s, long argc, t_atom* argv);
         
         void librarypath(long inlet, t_symbol* s);
    

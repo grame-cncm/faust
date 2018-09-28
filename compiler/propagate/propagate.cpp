@@ -22,6 +22,7 @@
 #include "propagate.hh"
 #include "Text.hh"
 #include "exception.hh"
+#include "floats.hh"
 #include "global.hh"
 #include "labels.hh"
 #include "names.hh"
@@ -311,7 +312,7 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         Tree sig;
         faustassert(lsig.size() == 0);
         if (!searchEnv(box, sig, slotenv)) {
-            // test YO simplification des diagrames
+            // test YO simplification des diagrammes
             // fprintf(stderr, "propagate : internal error (slot undefined)\n");
             sig = sigInput(++gGlobal->gDummyInput);
         }
@@ -332,7 +333,13 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
 
     else if (isBoxPrim1(box, &p1)) {
         faustassert(lsig.size() == 1);
-        return makeList(simplify(p1(lsig[0])));
+        num n;
+        if (isNum(lsig[0], n)) {
+            // cerr << "simplify 335" << endl;
+            return makeList(simplify(p1(lsig[0])));
+        } else {
+            return makeList(p1(lsig[0]));
+        }
     }
 
     else if (isBoxPrim2(box, &p2)) {
@@ -356,8 +363,15 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
                 // We gEnableFlag is false we replace control by identity function
                 return makeList(lsig[0]);
             }
+        } else {
+            num n, m;
+            if (isNum(lsig[0], n) && isNum(lsig[1], m)) {
+                // cerr << "simplify 369" << endl;
+                return makeList(simplify(p2(lsig[0], lsig[1])));
+            } else {
+                return makeList(p2(lsig[0], lsig[1]));
+            }
         }
-        return makeList(simplify(p2(lsig[0], lsig[1])));
     }
 
     else if (isBoxPrim3(box, &p3)) {
@@ -419,19 +433,19 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
     }
 
     else if (isBoxSoundfile(box, label, chan)) {
-        faustassert(lsig.size() == 1);
+        faustassert(lsig.size() == 2);
         Tree    soundfile = sigSoundfile(normalizePath(cons(label, path)));
+        Tree    part      = sigIntCast(lsig[0]);
         int     c         = tree2int(chan);
-        siglist lsig2(c + 3);
-        lsig2[0] = sigSoundfileLength(soundfile);
-        lsig2[1] = sigSoundfileRate(soundfile);
-        lsig2[2] = sigSoundfileChannels(soundfile);
+        siglist lsig2(c + 2);
+        lsig2[0] = sigSoundfileLength(soundfile, part);
+        lsig2[1] = sigSoundfileRate(soundfile, part);
 
         // compute bound limited read index : int(max(0, min(ridx,length-1)))
         Tree ridx = sigIntCast(tree(gGlobal->gMaxPrim->symbol(), sigInt(0),
-                                    tree(gGlobal->gMinPrim->symbol(), lsig[0], sigAdd(lsig2[0], sigInt(-1)))));
+                                    tree(gGlobal->gMinPrim->symbol(), lsig[1], sigAdd(lsig2[0], sigInt(-1)))));
         for (int i = 0; i < c; i++) {
-            lsig2[i + 3] = sigSoundfileBuffer(soundfile, sigInt(i), ridx);
+            lsig2[i + 2] = sigSoundfileBuffer(soundfile, sigInt(i), part, ridx);
         }
         return lsig2;
     }

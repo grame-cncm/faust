@@ -26,6 +26,8 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <vector>
 
 /*
 #ifndef FAUSTFLOAT
@@ -68,6 +70,13 @@ struct malloc_memory_manager : public dsp_memory_manager {
     }
     
 };
+
+static void printList(const vector<string>& list)
+{
+    for (int i = 0; i < list.size(); i++) {
+        std::cout << "item: " << list[i] << "\n";
+    }
+}
 
 int main(int argc, char* argv[])
 {
@@ -137,14 +146,25 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
+        
         /*
         // Test Write/Read
         string path_name = factory->getName();
+        
         cout << "Test writeDSPFactoryToBitcodeFile/readDSPFactoryFromBitcodeFile" << endl;
         writeDSPFactoryToBitcodeFile(static_cast<llvm_dsp_factory*>(factory), path_name);
         deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
         factory = readDSPFactoryFromBitcodeFile(path_name, "", -1);
+        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+        
+        printList(factory->getLibraryList());
+        printList(factory->getIncludePathnames());
         */
+        
     } else {
         cout << "Using interpreter backend" << endl;
         // argc : without the filename (last element);

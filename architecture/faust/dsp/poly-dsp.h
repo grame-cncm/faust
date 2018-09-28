@@ -161,13 +161,13 @@ class GroupUI : public GUI, public PathBuilder
 
 struct dsp_voice : public MapUI, public decorator_dsp {
 
-    int fNote;              // Playing note actual pitch
-    int fDate;              // KeyOn date
-    bool fTrigger;          // True if stolen note and need for envelop trigger
-    FAUSTFLOAT fLevel;      // Last audio block level
-    std::string fGatePath;  // Path of 'gate' control
-    std::string fGainPath;  // Path of 'gain' control
-    std::string fFreqPath;  // Path of 'freq' control
+    int fNote;                          // Playing note actual pitch
+    int fDate;                          // KeyOn date
+    bool fTrigger;                      // True if stolen note and need for envelop trigger
+    FAUSTFLOAT fLevel;                  // Last audio block level
+    std::vector<std::string> fGatePath; // Paths of 'gate' control
+    std::vector<std::string> fGainPath; // Paths of 'gain' control
+    std::vector<std::string> fFreqPath; // Paths of 'freq' control
     FAUSTFLOAT** fInputsSlice;
     FAUSTFLOAT** fOutputsSlice;
  
@@ -188,18 +188,18 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         delete [] fOutputsSlice;
     }
 
-    void extractPaths(std::string& gate, std::string& freq, std::string& gain)
+    void extractPaths(std::vector<std::string>& gate, std::vector<std::string>& freq, std::vector<std::string>& gain)
     {
         // Keep gain, freq and gate labels
         std::map<std::string, FAUSTFLOAT*>::iterator it;
         for (it = getMap().begin(); it != getMap().end(); it++) {
             std::string path = (*it).first;
             if (endsWith(path, "/gate")) {
-                gate = path;
+                gate.push_back(path);
             } else if (endsWith(path, "/freq")) {
-                freq = path;
+                freq.push_back(path);
             } else if (endsWith(path, "/gain")) {
-                gain = path;
+                gain.push_back(path);
             }
         }
     }
@@ -207,8 +207,12 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // MIDI velocity [0..127]
     void keyOn(int pitch, int velocity, bool trigger)
     {
-        setParamValue(fFreqPath, midiToFreq(pitch));
-        setParamValue(fGainPath, float(velocity)/127.f);
+        for (int i = 0; i < fFreqPath.size(); i++) {
+            setParamValue(fFreqPath[i], midiToFreq(pitch));
+        }
+        for (int i = 0; i < fGainPath.size(); i++) {
+            setParamValue(fGainPath[i], float(velocity)/127.f);
+        }
         fNote = pitch;
         fTrigger = trigger;
     }
@@ -216,8 +220,12 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, float velocity, bool trigger)
     {
-        setParamValue(fFreqPath, midiToFreq(pitch));
-        setParamValue(fGainPath, velocity);
+        for (int i = 0; i < fFreqPath.size(); i++) {
+            setParamValue(fFreqPath[i], midiToFreq(pitch));
+        }
+        for (int i = 0; i < fGainPath.size(); i++) {
+            setParamValue(fGainPath[i], float(velocity)/127.f);
+        }
         fNote = pitch;
         fTrigger = trigger;
     }
@@ -225,7 +233,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     void keyOff(bool hard = false)
     {
         // No use of velocity for now...
-        setParamValue(fGatePath, FAUSTFLOAT(0));
+        for (int i = 0; i < fGatePath.size(); i++) {
+            setParamValue(fGatePath[i], FAUSTFLOAT(0));
+        }
         
         if (hard) {
             // Stop immediately
@@ -250,9 +260,13 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     void trigger(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        setParamValue(fGatePath, FAUSTFLOAT(0));
+        for (int i = 0; i < fGatePath.size(); i++) {
+            setParamValue(fGatePath[i], FAUSTFLOAT(0));
+        }
         computeSlice(0, 1, inputs, outputs);
-        setParamValue(fGatePath, FAUSTFLOAT(1));
+        for (int i = 0; i < fGatePath.size(); i++) {
+            setParamValue(fGatePath[i], FAUSTFLOAT(1));
+        }
         computeSlice(1, count - 1, inputs, outputs);
         fTrigger = false;
     }
@@ -733,7 +747,7 @@ inline std::string pathToContent(const std::string& path)
     
     // Terminate the string
     buffer[size] = 0;
-    string result = buffer;
+    std::string result = buffer;
     file.close();
     delete [] buffer;
     return result;
@@ -834,9 +848,9 @@ struct dsp_poly_factory : public dsp_factory {
     virtual std::string getName() { return fProcessFactory->getName(); }
     virtual std::string getSHAKey() { return fProcessFactory->getSHAKey(); }
     virtual std::string getDSPCode() { return fProcessFactory->getDSPCode(); }
-    
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fProcessFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames() { return fProcessFactory->getDSPFactoryIncludePathnames(); }
+    virtual std::string getCompileOptions() { return fProcessFactory->getCompileOptions(); }
+    virtual std::vector<std::string> getLibraryList() { return fProcessFactory->getLibraryList(); }
+    virtual std::vector<std::string> getIncludePathnames() { return fProcessFactory->getIncludePathnames(); }
     
     virtual void setMemoryManager(dsp_memory_manager* manager)
     {

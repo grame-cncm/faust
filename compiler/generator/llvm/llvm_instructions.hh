@@ -58,7 +58,7 @@
 #include <llvm/Support/raw_ostream.h>
 #include <llvm/Transforms/Scalar.h>
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #else
@@ -244,8 +244,8 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
     Module*      fModule;
     IRBuilder<>* fBuilder;
 
-    // DSP struct size in bytes coded as an LLVMValue
-    LLVMValue fSize;
+    // DSP struct size in bytes
+    int fSize;
 
     // DSP structure creation
     std::map<string, int> fDSPFieldsNames;    // map of field names and indexes
@@ -361,7 +361,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
 
         vector<LLVMValue> calloc_fun_args;
         calloc_fun_args.push_back(genInt64(fModule, 1));
-        calloc_fun_args.push_back(fSize);
+        calloc_fun_args.push_back(genInt64(fModule, fSize));
 
         llvm::CallInst* call_inst1 = CREATE_CALL1(func_calloc, calloc_fun_args, "", entry_func_llvm_create_dsp);
         call_inst1->setCallingConv(CallingConv::C);
@@ -571,7 +571,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
     LLVMTypeInstVisitor(Module* module, const string& prefix = "")
         : fModule(module), fDSPFieldsCounter(0), fPrefix(prefix)
     {
-        fSize    = nullptr;
+        fSize    = -1;
         fBuilder = new IRBuilder<>(fModule->getContext());
 
         initTypes(module);
@@ -590,7 +590,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         delete fDataLayout;
     }
 
-    LLVMValue getSize() { return fSize; }
+    int getSize() { return fSize; }
 
     virtual void visit(DeclareVarInst* inst)
     {
@@ -675,7 +675,7 @@ class LLVMTypeInstVisitor : public DispatchVisitor, public LLVMTypeHelper {
         llvm::StructType*  dsp_type     = LLVMTypeHelper::createStructType(fModule, "struct.dsp" + fPrefix, fDSPFields);
         llvm::PointerType* dsp_type_ptr = PointerType::get(dsp_type, 0);
 
-        fSize = genInt64(fModule, fDataLayout->getTypeSizeInBits(dsp_type) / 8);
+        fSize = fDataLayout->getTypeSizeInBits(dsp_type) / 8;
 
         // Create llvm_free_dsp function
         generateFreeDsp(dsp_type_ptr, internal);
@@ -1496,6 +1496,9 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
             return nullptr;
         }
 
+        /*
+         Indexed adresses can actually be values in an array or fields in a struct type
+         */
         if (isStructType(indexed_address->getName())) {
             Value* idx[2];
             idx[0] = genInt64(fModule, 0);

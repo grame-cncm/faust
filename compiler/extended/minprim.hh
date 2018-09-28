@@ -183,7 +183,7 @@ class MinPrim : public xtended {
                 // both are floats, no need to cast
                 return subst("min($0, $1)", args[0], args[1]);
             } else {
-                assert(n1 == kInt);  // second argument is not float, cast it to float
+                faustassert(n1 == kInt);  // second argument is not float, cast it to float
                 return subst("min($0, $2$1)", args[0], args[1], icast());
             }
         } else if (n1 == kReal) {
@@ -199,7 +199,7 @@ class MinPrim : public xtended {
                     // both are integers, no need to cast
                     return subst("min($0, $1)", args[0], args[1]);
                 } else {
-                    assert(b1 == kBool);  // second is boolean, cast to int
+                    faustassert(b1 == kBool);  // second is boolean, cast to int
                     return subst("min($0, (int)$1)", args[0], args[1]);
                 }
             } else if (b1 == kNum) {

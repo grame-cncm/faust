@@ -33,7 +33,7 @@ map<string, string> JAVAInstVisitor::gMathLibTable;
 dsp_factory_base* JAVACodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "", gGlobal->gReader.listSrcFiles(), gGlobal->gImportDirList,
+        fKlassName, "", "",
         ((dynamic_cast<std::stringstream*>(fOut)) ? dynamic_cast<std::stringstream*>(fOut)->str() : ""), "");
 }
 

@@ -1127,15 +1127,23 @@ process = waveform {10,20,30,40,50,60,70}, %(7)~+(3) : rdtable;
 \subsection{Soundfiles}
 %--------------------------------------------------------------------------------------------------------------
 
-The  \lstinline'soundfile("label[url:path]", n)' primitive allows to access an externally defined sound resource. A soundfile has one input (the read index in the sound), three fixed outputs (the first one is the sound length in frames, the second one is the sound nominal sample rate, the third one is the sound number of channels) and several more outputs for the sound channels themselves. 
+The  \lstinline'soundfile("label[url:\{'path1';'path2';'path3';\}]", n)' primitive allows to access a list of externally defined sound resources, described as the list of their filename, or complete paths. The \lstinline'soundfile("label[url:path]", n)' simplified syntax allows to use a single file. 
+
+A soundfile has:
+
+\begin{itemize} 
+\item two inputs: the sound number (as a integer between 0 and 255 checked at compilation time), and the read index in the sound (which will access the last sample of the sound if the read index is greater than the sound length)
+\item two fixed outputs: the first one is the currently accessed sound length in frames, the second one is the currently accessed sound nominal sample rate in frames
+\item several more outputs for the sound channels themselves
+\end{itemize}
 
 If more outputs than the actual number of channels in the soundfile are used, the sound channels will be automatically duplicated up to the wanted number of outputs (so for instance if a stereo sound is used with four output channels, the same group of two channels will be duplicated).
 
-If the soundfile cannot be loaded for whatever reason, a default sound with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file.
+If the soundfile cannot be loaded for whatever reason, a default sound with one channel, a length of 1024 frames and null outputs (with samples of value 0) will be used. Note also that soundfiles are entirely loaded in memory by the architecture file, so that the read index signal can access any sample.
 
-Architecture files are responsible to load the actual soundfile. The \lstinline'SoundUI' C++ class located in the \lstinline'faust/gui/SoundUI.h' file implements the \lstinline'void  addSoundfile(label, path, sf_zone)' method, which loads the actual soundfiles using the {\it libsndfile} library, and set up the \lstinline'sf_zone' sound memory pointers. If {\it label} is used without any {\it url} metadata, it will be considered as the soundfile pathname. 
+Architecture files are responsible to load the actual soundfile. The \lstinline'SoundUI' C++ class located in the \lstinline'faust/gui/SoundUI.h' file implements the \lstinline'void  addSoundfile(label, url, sf_zone)' method, which loads the actual soundfiles using the {\it libsndfile} library, or possibly specific audio file loading code (in the case of the JUCE framework for instance), and set up the \lstinline'sf_zone' sound memory pointers. If {\it label} is used without any {\it url} metadata, it will be considered as the soundfile pathname. 
 
-Note that a special architecture file can perfectly decide to access and use sound resources created by another means (that is, not directly loaded from a soundfile). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge to actually setup all sound memory pointers when \lstinline'void  addSoundfile(label, path, sf_zone)'  is called by the \lstinline'buidUserInterface' mechanism.
+Note that a special architecture file can perfectly decide to access and use sound resources created by another means (that is, not directly loaded from a soundfile). For instance a mapping between labels and sound resources defined in memory could be used, with some additional code in charge to actually setup all sound memory pointers when \lstinline'void  addSoundfile(label, url, sf_zone)'  is called by the \lstinline'buidUserInterface' mechanism.
 
 %--------------------------------------------------------------------------------------------------------------
 \subsection{C-equivalent primitives}

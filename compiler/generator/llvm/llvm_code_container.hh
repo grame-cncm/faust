@@ -98,7 +98,7 @@ class LLVMCodeContainer : public virtual CodeContainer {
     void generateBuildUserInterfaceBegin();
     void generateBuildUserInterfaceEnd();
 
-    void generateGetSize(LLVMValue size);
+    void generateGetJSON(int dsp_size);
 
     LLVMContext& getContext();
 

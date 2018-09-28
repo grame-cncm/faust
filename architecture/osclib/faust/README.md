@@ -24,6 +24,15 @@ responds with its root address, followed by its IP address, followed
 by the UDP ports numbers (listening port, output port, error port).
 See the note about network management below for ports numbering scheme.
 
+#### 'xmit' message
+
+The `xmit` message is handled by any module root address. It must be followed by an integer value (Ø|1|2). It turns the OSC UI transmit mode on or all or alias. When `all`, any change of a UI element generates the corresponding OSC message including aliases messages if any and the module could be used as a remote control for similar modules. In `alias` mode, only the aliases messages are sent.
+
+#### 'bundle' message
+
+The `bundle` message is handled by any module root address. It must be followed by a boolean value (Ø|1). The `bundle` mode affects the transmition mode (see `xmit` message above). When the `bundle` mode is on, all the OSC messages are generated in an OSC bundle that must be sent at regular interval. To do so, the OSCUI class provides an `endBundle()` method, it's the architecture responsability to call this method to trigger the current bundle transmission. A typical implementation could call it just after the compute method.
+
+
 #### 'alias' message
 
 The `alias` mechanism provided at metadata level to control a Faust application from a preexisting set of OSC messages, is dynamically available using OSC message as well. The general form of the OSC `alias` message is the following:
@@ -89,6 +98,7 @@ Different listening port numbers can be used to create a group of applications r
 - `-xmit [0|1|2]`: controls UI values transmition  (default: 0)
 - `-xmitfilter <paths list>`: sets OSC paths to be filtered on output.
 - `-reuse [0|1]`: turns listening port sharing on or off  (default: 0)
+- `-bundle [0|1]`: turns OSC bundles on or off  (default: 0)
 - `-help`: print a summary of the OSC options
 
 

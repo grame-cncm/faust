@@ -44,8 +44,11 @@ struct JSONInstVisitor : public DispatchVisitor, public JSONUI {
 
     JSONInstVisitor(const std::string& name, const std::string& filename, int inputs, int outputs,
                     const std::string& sha_key, const std::string& dsp_code, const std::string& version,
-                    const std::string& options, const std::string& size, const std::map<std::string, int>& path_table)
-        : JSONUI(name, filename, inputs, outputs, sha_key, dsp_code, version, options, size, path_table)
+                    const std::string& compile_options, const std::vector<std::string>& library_list,
+                    const std::vector<std::string>& include_pathnames, const std::string& size,
+                    const std::map<std::string, int>& path_table)
+        : JSONUI(name, filename, inputs, outputs, sha_key, dsp_code, version, compile_options, library_list,
+                 include_pathnames, size, path_table)
     {
     }
 

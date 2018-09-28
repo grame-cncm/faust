@@ -320,9 +320,9 @@ class TableType : public AudioType {
     const Type fContent;  ///< type of that data stored in the table
 
    public:
-    TableType(const Type& t)
-        : AudioType(t->nature(), kKonst, kInit, kVect, t->boolean()),
-          fContent(t) {}  ///< construct a TableType with a content of a type t
+    TableType(const Type& t) : AudioType(t->nature(), kKonst, kInit, kVect, t->boolean(), t->getInterval()), fContent(t)
+    {
+    }  ///< construct a TableType with a content of a type t
 #if 0
 	TableType(const Type& t, int v, int c) :
 		  AudioType(t->nature(), t->variability()|v, t->computability()|c, t->vectorability(), t->boolean()),

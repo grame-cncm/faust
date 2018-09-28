@@ -69,9 +69,10 @@ class InstructionsCompiler : public virtual Garbageable {
     void setTableNameProperty(Tree sig, const string& vecname);
     bool getTableNameProperty(Tree sig, string& vecname);
 
-    StatementInst*         generateInitArray(const string& vname, Typed::VarType ctype, int delay);
-    StatementInst*         generateCopyArray(const string& vname, int index_from, int index_to);
-    StatementInst*         generateCopyArray(const string& vname_to, const string& vname_from, int size);
+    //Redefined by RustInstructionsCompiler
+    virtual StatementInst*         generateInitArray(const string& vname, Typed::VarType ctype, int delay);
+    virtual StatementInst*         generateCopyArray(const string& vname, int index_from, int index_to);
+    virtual StatementInst*         generateCopyArray(const string& vname_to, const string& vname_from, int size);
     virtual StatementInst* generateShiftArray(const string& vname,
                                               int           delay);  // Redefined in InterpreterInstructionsCompiler
 
@@ -181,10 +182,9 @@ class InstructionsCompiler : public virtual Garbageable {
     virtual ValueInst* generateHBargraph(Tree sig, Tree label, Tree min, Tree max, ValueInst* exp);
 
     virtual ValueInst* generateSoundfile(Tree sig, Tree label);
-    virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf);
-    virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf);
-    virtual ValueInst* generateSoundfileChannels(Tree sig, ValueInst* sf);
-    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y);
+    virtual ValueInst* generateSoundfileLength(Tree sig, ValueInst* sf, ValueInst* part);
+    virtual ValueInst* generateSoundfileRate(Tree sig, ValueInst* sf, ValueInst* part);
+    virtual ValueInst* generateSoundfileBuffer(Tree sig, ValueInst* sf, ValueInst* x, ValueInst* y, ValueInst* z);
 
     virtual ValueInst* generateIntNumber(Tree sig, int num);
     virtual ValueInst* generateRealNumber(Tree sig, double num);

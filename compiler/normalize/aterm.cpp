@@ -21,6 +21,8 @@
 
 #include "aterm.hh"
 #include "ppsig.hh"
+#include "sigtype.hh"
+
 // static void collectMulTerms (Tree& coef, map<Tree,int>& M, Tree t, bool invflag=false);
 
 #undef TRACE
@@ -168,7 +170,10 @@ Tree aterm::normalizedTree() const
     }
 
     if (!signe) {
-        SUM = sigSub(sigInt(0), SUM);
+        AudioType* ty   = (AudioType*)SUM->getType();
+        Tree       zero = (ty && ty->nature() == kReal) ? sigReal(0.0) : sigInt(0);
+
+        SUM = sigSub(zero, SUM);
     }
 #ifdef TRACE
     cerr << __LINE__ << ":" << __FUNCTION__ << "(" << *this << ") ---> " << ppsig(SUM) << endl;

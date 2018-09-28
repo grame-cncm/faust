@@ -6,7 +6,7 @@ android {
     defaultConfig {
         applicationId "com.faust"
         minSdkVersion 11
-        targetSdkVersion 11
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -14,8 +14,15 @@ android {
         externalNativeBuild {
             cmake {
                 cppFlags "-O3 -fexceptions -frtti -lOpenSLES"
-                abiFilters 'x86', 'armeabi-v7a'
+                // abiFilters 'x86', 'armeabi-v7a'
+                abiFilters 'armeabi-v7a', 'arm64-v8a'
             }
+        }
+    }
+
+    sourceSets {
+        main {
+            jniLibs.srcDirs 'lib/libsndfile/lib'
         }
     }
 

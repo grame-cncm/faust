@@ -39,7 +39,7 @@ BUILDOPT ?= --config Release
 #===============================================================
 # options
 JOBS	 ?= -j 4
-BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo backends.cmake)
+BACKENDS ?= $(shell [ -f $(BCACHE) ] && (grep BACKENDS $(BCACHE) | cut -d= -f2) || echo regular.cmake)
 TARGETS  ?= $(shell [ -f $(TCACHE) ] && (grep TARGETS $(TCACHE) | cut -d= -f2) || echo regular.cmake)
 EMCC 	 ?= emcc
 
@@ -96,24 +96,25 @@ help:
 	@echo "  JOBS        : intended to set the number of tasks to run in parallel (default is $(JOBS))"
 	@echo
 	@echo "Backends:"
-	@echo "  the FAUST backends included by default are described in the '$(BACKENDS)' file"
+	@echo "  the FAUST backends currently included are described in the '$(BACKENDS)' file"
 	@echo "  you can freely customize this file or use another file with the BACKENDS option"
 	@echo
 	@echo "Targets:"
-	@echo "  the targets included by default are described in the '$(TARGETS)' file"
+	@echo "  the targets currently included are described in the '$(TARGETS)' file"
 	@echo "  you can freely customize this file or use another file with the TARGETS option"
 	@echo
 	@echo "Project configuration targets:"
 	@echo "the following targets do not recompile but change the cmake generated project."
+	@echo ">>> These targets are deprecated and will be removed in a future release. <<<"
 	@echo " 'configstatic'  : includes the static library in the project."
 	@echo " 'configdynamic' : includes the dynamic library in the project."
 	@echo " 'configall'     : includes all libraries in the project."
 	@echo " 'configoscdynamic'  : includes the dynamic OSC library in the project."
 	@echo " 'confighttpdynamic' : includes the dynamic HTTP library in the project."
 	@echo " 'reset'      : reset the project to the basic targets (faust, osc and http)."
-	@echo " 'cmake'      : regenerate the project using the current config"
 	@echo
 	@echo "Utilities targets:"
+	@echo " 'cmake'      : regenerate the project using the current config"
 	@echo " 'universal'  : [MacOSX] set the universal binaries option ON."
 	@echo " 'native'     : [MacOSX] set the universal binaries option OFF."
 	@echo " 'verbose'    : turn the verbose makefile option ON."

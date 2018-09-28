@@ -45,6 +45,7 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions_compiler.hh"
+#include "rust_instructions_compiler.hh"
 #include "libfaust.h"
 #include "ppbox.hh"
 #include "ppsig.hh"
@@ -285,6 +286,7 @@ static bool processCmdline(int argc, const char* argv[])
     int          i   = 1;
     int          err = 0;
     stringstream parse_error;
+    bool         float_size = false;
 
     /*
     for (int i = 0; i < argc; i++) {
@@ -457,14 +459,29 @@ static bool processCmdline(int argc, const char* argv[])
 
             // double float options
         } else if (isCmd(argv[i], "-single", "--single-precision-floats")) {
+            if (float_size) {
+                throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
+            } else {
+                float_size = true;
+            }
             gGlobal->gFloatSize = 1;
             i += 1;
 
         } else if (isCmd(argv[i], "-double", "--double-precision-floats")) {
+            if (float_size) {
+                throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
+            } else {
+                float_size = true;
+            }
             gGlobal->gFloatSize = 2;
             i += 1;
 
         } else if (isCmd(argv[i], "-quad", "--quad-precision-floats")) {
+            if (float_size) {
+                throw faustexception("ERROR : cannot using -single, -double or -quad at the same time\n");
+            } else {
+                float_size = true;
+            }
             gGlobal->gFloatSize = 3;
             i += 1;
 
@@ -583,6 +600,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-es", "--enable-semantics")) {
             gGlobal->gEnableFlag = std::atoi(argv[i + 1]) == 1;
             i += 2;
+
+        } else if (isCmd(argv[i], "-lcc", "--local-causality-check")) {
+            gGlobal->gLocalCausalityCheck = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
             gGlobal->gLightMode = true;
@@ -727,6 +748,7 @@ static void printHelp()
     cout << "-double \tuse --double-precision-floats for internal computations\n";
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise\n";
+    cout << "-lcc \t--local-causality-check, check causality also at local level \n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
@@ -1331,7 +1353,13 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         if (container) {
             if (gGlobal->gVectorSwitch) {
                 new_comp = new DAGInstructionsCompiler(container);
-            } else {
+            }
+        #ifdef RUST_BUILD
+            else if (gGlobal->gOutputLang == "rust") {
+                new_comp = new RustInstructionsCompiler(container);
+            }
+        #endif
+            else {
                 new_comp = new InstructionsCompiler(container);
             }
 
@@ -1509,7 +1537,7 @@ static void generateOutputFiles()
 #ifdef OCPP_BUILD
         } else if (old_comp) {
             Description* D = old_comp->getDescription();
-            assert(D);
+            faustassert(D);
             ofstream xout(subst("$0.xml", gGlobal->makeDrawPath()).c_str());
 
             if (gGlobal->gMetaDataSet.count(tree("name")) > 0)

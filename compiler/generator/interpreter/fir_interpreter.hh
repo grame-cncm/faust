@@ -49,7 +49,6 @@
 #define DIV_BY_ZERO -2
 
 //#define interp_assert(exp) faustassert(exp)
-
 #define interp_assert(exp)
 
 template <class T, int TRACE>

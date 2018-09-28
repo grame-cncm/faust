@@ -31,7 +31,8 @@
 #include "export.hh"
 #include "wasm_binary.hh"
 
-class JSONUIDecoder;
+#include "faust/gui/JSONUIDecoder.h"
+
 class wasm_dsp_factory;
 
 /*
@@ -322,23 +323,21 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::string getDSPCode();
     void        setDSPCode(std::string code);
 
+    std::string              getCompileOptions() { return fDecoder->fCompileOptions; }
+    std::vector<std::string> getLibraryList() { return fDecoder->fLibraryList; }
+    std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
+
     JSONUIDecoder* getDecoder() { return fDecoder; }
 
     std::string getJSON() { return fJSON; }
 
     wasm_dsp* createDSPInstance();
 
-    virtual std::vector<std::string> getDSPFactoryLibraryList() { return fFactory->getDSPFactoryLibraryList(); }
-    virtual std::vector<std::string> getDSPFactoryIncludePathnames()
-    {
-        return fFactory->getDSPFactoryIncludePathnames();
-    }
-
     void                setMemoryManager(dsp_memory_manager* manager);
     dsp_memory_manager* getMemoryManager();
 
-    void write(std::ostream* out, bool binary, bool small = false);
-    void writeAux(std::ostream* out, bool binary, bool small = false);
+    void write(std::ostream* out, bool binary, bool smallflag = false);
+    void writeAux(std::ostream* out, bool binary, bool smallflag = false);
 
     std::string getBinaryCode();
 

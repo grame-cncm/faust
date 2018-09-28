@@ -3,7 +3,7 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.8.0)
+set (VERSION 2.11.0)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -25,6 +25,7 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
+option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
 	set ( DEPLOYMENT_TARGET_VERSION  10.11)
@@ -49,122 +50,17 @@ set (FAUST_INC ${SRCDIR}
 	${SRCDIR}/generator
 	${SRCDIR}/generator/fir
 	${SRCDIR}/generator/interpreter
+	${SRCDIR}/generator/rust
 	${SRCDIR}/normalize ${SRCDIR}/parallelize ${SRCDIR}/parser
 	${SRCDIR}/patternmatcher ${SRCDIR}/propagate ${SRCDIR}/signals
-	${SRCDIR}/tlib ${SRCDIR}/utils
+	${SRCDIR}/tlib ${SRCDIR}/transform ${SRCDIR}/utils
 	${SRCDIR}/draw/device ${SRCDIR}/draw/schema
 	${SRCDIR}/../architecture /usr/local/include)
 
 
 ####################################
-function(backend NAME DIR TARGET)
-	message(STATUS "In target ${TARGET}: include ${NAME} backend")
-	target_compile_definitions (${TARGET} PRIVATE -D${NAME}_BUILD)
-	if (NOT "${DIR}" STREQUAL "")
-		file (GLOB BACKEND_SRC	${SRCDIR}/generator/${DIR}/*.cpp ${SRCDIR}/generator/${DIR}/*.hh)
-		target_sources (${TARGET} PRIVATE ${BACKEND_SRC})
-		target_include_directories (${TARGET} PRIVATE ${SRCDIR}/generator/${DIR})
-	endif()
-endfunction()
-
-####################################
-function (scan_backends TARGET FLAG)
-	string (FIND "${ASMJS_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (ASMJS asmjs ${TARGET})
-	endif()
-	string (FIND "${C_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (C c ${TARGET})
-	endif()
-	string (FIND "${CPP_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (CPP cpp ${TARGET})
-	endif()
-	string (FIND "${FIR_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (FIR "" ${TARGET})
-	endif()
-	string (FIND "${INTERP_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (INTERP interpreter ${TARGET})
-	endif()
-	string (FIND "${JAVA_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (JAVA java ${TARGET})
-	endif()
-	string (FIND "${JS_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (JS js ${TARGET})
-	endif()
-	string (FIND "${OLDCPP_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (OCPP "" ${TARGET})
-	endif()
-	string (FIND "${RUST_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (RUST rust ${TARGET})
-	endif()
-	string (FIND "${WASM_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (WASM wasm ${TARGET})
-	endif()
-	string (FIND "${LLVM_BACKEND}" ${FLAG} POS)
-	if (${POS} GREATER -1)
-		backend (LLVM llvm ${TARGET})
-		target_compile_definitions (${TARGET} PRIVATE -D${LLVM_VERSION})
-		target_include_directories (${TARGET} PRIVATE ${SRCDIR}/generator/c ${SRCDIR}/generator/cpp  ${LLVM_INCLUDE_DIRS})
-	endif()
-endfunction()
-
-####################################
-# Manual LLVM scan
-macro (llvm_config)
-	if ( NOT DEFINED LLVM_CONFIG)
-		set (LLVM_CONFIG llvm-config)
-	endif()
-	find_program (LC ${LLVM_CONFIG})
-	if (${LC} STREQUAL LC-NOTFOUND)
-		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
-	endif()
-	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
-	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-
-	execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-	execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
-endmacro()
-
-####################################
-# Manual LLVM scan
-macro (include_llvm)
-	set (INCLUDE_LLVM off)
-	if (LLVM_BACKEND)
-		string (FIND "${LLVM_BACKEND}" "STATIC"  POS)
-		if (${POS} GREATER -1 AND INCLUDE_STATIC)
-			set (INCLUDE_LLVM on)
-		endif()
-		string (FIND "${LLVM_BACKEND}" "DYNAMIC" POS)
-		if (${POS} GREATER -1 AND INCLUDE_DYNAMIC)
-			set (INCLUDE_LLVM on)
-		endif()
-		string (FIND "${LLVM_BACKEND}" "COMPILER"  POS)
-		if (${POS} GREATER -1)
-			set (INCLUDE_LLVM on)
-		endif()
-	endif()
-endmacro()
-
-####################################
 # LLVM
-include_llvm()
+include (misc/llvm.cmake)
 if (INCLUDE_LLVM )
 	if(USE_LLVM_CONFIG)
 		llvm_config()
@@ -192,6 +88,9 @@ endif()
 
 ####################################
 # platform dependent settings
+if (WIN32 AND MSVC_STATIC)
+	include (misc/msvc_static_runtime.cmake)
+endif()
 if(APPLE)
 	if(IOS)
 		set (CMAKE_XCODE_EFFECTIVE_PLATFORMS "iphoneos")
@@ -214,16 +113,15 @@ if(APPLE)
 			set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_BUILD_UNIVERSAL)
 		endif()
 	endif()
-elseif(WIN32)
+elseif(WIN32 OR MSYS)
 	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
-	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32.lib)
+	set (FAUST_LIBS ${FAUST_LIBS} Ws2_32) #.lib)
 else()
 	set (FAUST_LIBS -lpthread ${FAUST_LIBS})
 endif()
-
 
 ####################################
 # compiler dependent settings
@@ -233,30 +131,6 @@ else()
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 endif()
 
-####################################
-# Manual LLVM scan
-macro (llvm_config)
-	if ( NOT DEFINED LLVM_CONFIG)
-		set (LLVM_CONFIG llvm-config)
-	endif()
-	find_program (LC ${LLVM_CONFIG})
-	if (${LC} STREQUAL LC-NOTFOUND)
-		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
-	endif()
-	execute_process (COMMAND ${LLVM_CONFIG} --version OUTPUT_VARIABLE LLVM_VERSION)
-	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-
-	execute_process (COMMAND ${LLVM_CONFIG} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-	execute_process (COMMAND ${LLVM_CONFIG} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
-	execute_process (COMMAND ${LLVM_CONFIG}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
-endmacro()
 
 ####################################
 # Add the different targets
@@ -283,7 +157,7 @@ if (INCLUDE_STATIC)
 		LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	if (WIN32)
+	if (WIN32 OR MSYS)
 		if (MSVC)
 			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
 		else()
@@ -308,7 +182,7 @@ if (INCLUDE_DYNAMIC)
 	target_compile_definitions (dynamiclib PRIVATE ${FAUST_DEFINITIONS})
 	target_include_directories (dynamiclib PRIVATE ${FAUST_INC} ${LLVM_INC})
 	target_link_libraries (dynamiclib PRIVATE ${FAUST_LIBS})
-	if (WIN32)
+	if (WIN32 OR MSYS)
 		enable_language(RC)
 		set_target_properties(dynamiclib PROPERTIES
 			ARCHIVE_OUTPUT_DIRECTORY  ${LIBDIR}
@@ -342,11 +216,11 @@ if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL 
 elseif (NOT IOS)
 	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
-if (INCLUDE_OSC)
+if (INCLUDE_OSC OR OSCDYNAMIC)
 	add_subdirectory (osc)
 	set (SUBTARGETS ${SUBTARGETS} osc)
 endif()
-if (INCLUDE_HTTP)
+if (INCLUDE_HTTP OR HTTPDYNAMIC)
 	add_subdirectory (http)
 	set (SUBTARGETS ${SUBTARGETS} http)
 endif()

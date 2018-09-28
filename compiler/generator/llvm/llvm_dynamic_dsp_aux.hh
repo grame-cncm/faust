@@ -26,10 +26,9 @@
 
 class llvm_dynamic_dsp_factory_aux : public llvm_dsp_factory_aux {
    public:
-    llvm_dynamic_dsp_factory_aux(const std::string& sha_key, const std::vector<std::string>& library_list,
-                                 const std::vector<std::string>& include_pathnames, llvm::Module* module,
-                                 llvm::LLVMContext* context, const std::string& target, int opt_level = -1)
-        : llvm_dsp_factory_aux(sha_key, library_list, include_pathnames, module, context, target, opt_level)
+    llvm_dynamic_dsp_factory_aux(const std::string& sha_key, llvm::Module* module, llvm::LLVMContext* context,
+                                 const std::string& target, int opt_level = -1)
+        : llvm_dsp_factory_aux(sha_key, module, context, target, opt_level)
     {
     }
 
@@ -84,18 +83,11 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const std::string& ir_code_pat
 
 EXPORT void writeDSPFactoryToIRFile(llvm_dsp_factory* factory, const std::string& ir_code_path);
 
-EXPORT std::string writeDSPFactoryToMachine(llvm_dsp_factory* factory, const std::string& target);
-
-EXPORT void writeDSPFactoryToMachineFile(llvm_dsp_factory* factory, const std::string& machine_code_path,
-                                         const std::string& target);
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 // Public C interface
-
-EXPORT llvm_dsp_factory* getCDSPFactoryFromSHAKey(const char* sha_key);
 
 EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int argc, const char* argv[],
                                                    const char* target, char* error_msg, int opt_level);
@@ -103,30 +95,6 @@ EXPORT llvm_dsp_factory* createCDSPFactoryFromFile(const char* filename, int arg
 EXPORT llvm_dsp_factory* createCDSPFactoryFromString(const char* name_app, const char* dsp_content, int argc,
                                                      const char* argv[], const char* target, char* error_msg,
                                                      int opt_level);
-
-EXPORT bool deleteCDSPFactory(llvm_dsp_factory* factory);
-
-EXPORT char* getCName(llvm_dsp_factory* factory);
-
-EXPORT char* getCSHAKey(llvm_dsp_factory* factory);
-
-EXPORT char* getCTarget(llvm_dsp_factory* factory);
-
-EXPORT char* getCDSPCode(llvm_dsp_factory* factory);
-
-EXPORT char* getCDSPMachineTarget();
-
-EXPORT const char** getCDSPFactoryLibraryList(llvm_dsp_factory* factory);
-
-EXPORT const char** getCDSPFactoryIncludePathnames(llvm_dsp_factory* factory);
-
-EXPORT void deleteAllCDSPFactories();
-
-EXPORT const char** getAllCDSPFactories();
-
-EXPORT bool startMTCDSPFactories();
-
-EXPORT void stopMTCDSPFactories();
 
 EXPORT llvm_dsp_factory* readCDSPFactoryFromBitcode(const char* bit_code, const char* target, int opt_level);
 
@@ -143,46 +111,6 @@ EXPORT char* writeCDSPFactoryToIR(llvm_dsp_factory* factory);
 EXPORT llvm_dsp_factory* readCDSPFactoryFromIRFile(const char* ir_code_path, const char* target, int opt_level);
 
 EXPORT void writeCDSPFactoryToIRFile(llvm_dsp_factory* factory, const char* ir_code_path);
-
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target);
-
-EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target);
-
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target);
-
-EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target);
-
-EXPORT void metadataCDSPInstance(llvm_dsp* dsp, MetaGlue* meta);
-
-EXPORT int getNumInputsCDSPInstance(llvm_dsp* dsp);
-
-EXPORT int getNumOutputsCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void buildUserInterfaceCDSPInstance(llvm_dsp* dsp, UIGlue* ui_interface);
-
-EXPORT int getSampleRateCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void initCDSPInstance(llvm_dsp* dsp, int samplingRate);
-
-EXPORT void instanceInitCDSPInstance(llvm_dsp* dsp, int samplingRate);
-
-EXPORT void instanceConstantsCDSPInstance(llvm_dsp* dsp, int samplingRate);
-
-EXPORT void instanceResetUserInterfaceCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void instanceClearCDSPInstance(llvm_dsp* dsp);
-
-EXPORT llvm_dsp* cloneCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void computeCDSPInstance(llvm_dsp* dsp, int count, FAUSTFLOAT** input, FAUSTFLOAT** output);
-
-EXPORT void setCMemoryManager(llvm_dsp_factory* factory, ManagerGlue* manager);
-
-EXPORT llvm_dsp* createCDSPInstance(llvm_dsp_factory* factory);
-
-EXPORT void deleteCDSPInstance(llvm_dsp* dsp);
-
-EXPORT void generateCSHA1(const char* data, char* key);
 
 #ifdef __cplusplus
 }

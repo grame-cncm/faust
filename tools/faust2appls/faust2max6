@@ -14,6 +14,9 @@
 CXXFLAGS=$MYGCCFLAGS
 CXXFLAGS+=" -fbracket-depth=512"
 
+UNIVERSAL=""
+OSCDEFS=""
+OSCLIB=""
 POLY=""
 NOPATCH="0"
 NVOICES=-1
@@ -78,26 +81,18 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-nopatch] [-soundfile] <file.dsp>"
+        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] <file.dsp>"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-universal' to generate a 64/32 bits external"
         echo "Use '-nopatch' to deactivate patch generation"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         exit
     fi
 
-    if [ "$p" = -omp ]; then
-        if [[ $CXX == "icpc" ]]; then
-            OMP="-openmp"
-        else
-            OMP="-fopenmp"
-        fi
-    fi
-  
-    if [ "$p" = -icc ]; then
-    	ignore=" "
-    elif [ $p = "-nvoices" ]; then
+    if [ $p = "-nvoices" ]; then
         POLY="POLY1"
         shift
         NVOICES=$1
@@ -110,10 +105,16 @@ do
         EFFECT=$1
     elif [ $p = "-midi" ]; then
         MIDIDEFS="-DMIDICTRL"
+    elif [ $p = "-universal" ]; then
+        UNIVERSAL="-arch i386 -arch x86_64"
+        echo "generate a 32/64 bits external"
     elif [ $p = "-soundfile" ]; then
         SOUNDFILE="1"
         SOUNDFILEDEFS="-DSOUNDFILE"
         SOUNDFILELIBS=`pkg-config --cflags --static --libs sndfile`
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="-DOSCCTRL"
+        OSCLIBS="-lOSCFaust"
     elif [ $p = "-nopatch" ]; then
         NOPATCH="1"
     elif [ ${p:0:1} = "-" ]; then
@@ -169,7 +170,7 @@ for p in $FILES; do
     (
         cd "$TMP"
         install -d "${f%.dsp}$EXT/Contents/MacOS"
-        $CC $CXXFLAGS -mmacosx-version-min=10.7 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI -arch i386 -arch x86_64 $SOUNDFILELIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
+        $CC $CXXFLAGS -mmacosx-version-min=10.9 -Wfatal-errors -framework Carbon $POLYDEFS $MIDIDEFS $SOUNDFILEDEFS $OSCDEFS -I ../../ -I$MAXINC -I$MSPINC -F$MAXINC -F$MSPINC -framework MaxAPI -framework MaxAudioAPI $UNIVERSAL $SOUNDFILELIBS $OSCLIBS -Wl,-U,_object_method_imp -Wl,-Y,1455 -bundle "${f%.dsp}.cpp" -o "${f%.dsp}$EXT/Contents/MacOS/${f%.dsp}~"
    	) > /dev/null || exit
 
     rm -rf "$SRCDIR/${f%.dsp}$EXT"
@@ -188,7 +189,8 @@ for p in $FILES; do
                             /"url"/ {
                             if (SOFI) {
                                 match($2, /"[^"]*/);
-                                print substr($2, RSTART+1, RLENGTH-1);
+                                split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                for (x in res) print substr(res[x], 2, length(res[x])-2);
                                 SOFI=0;
                             }
                         }
