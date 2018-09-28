@@ -114,7 +114,7 @@ struct ZoneUI : public GenericUI
     // -- passive widgets
     void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
     {
-       insertZone(zone);
+        insertZone(zone);
     }
     void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT fmin, FAUSTFLOAT fmax)
     {
