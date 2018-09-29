@@ -6,7 +6,9 @@ the past few years. Their variety and their function might be hard to grab at
 first. This sort chapter provides an overview of their role and will hopefully 
 help you decide which one is better suited for your personal use. 
 
-<!-- TODO: it'd be nice to have some kind of figure here summarizing everything -->
+<!-- TODO: it'd be nice to have some kind of figure here summarizing everything
+the various Faust branches should appear in this figure: we want something
+as complete as possible. -->
 
 TODO: here say a few words about the philosophy behind the disto: the online
 editor is the way to go for most users, then various pre-compiled packages
@@ -96,3 +98,7 @@ distribution.
 ### FaustLive
 
 ### FaustWorks
+
+## A Quick Tour of the Faust Targets
+
+TODO

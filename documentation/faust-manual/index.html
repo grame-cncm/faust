@@ -39,8 +39,26 @@
 <li><a href="#faustlive">FaustLive</a></li>
 <li><a href="#faustworks">FaustWorks</a></li>
 </ul></li>
+<li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
 </ul></li>
-<li><a href="#compiling-and-installing-faust">Compiling and Installing Faust</a><ul>
+<li><a href="#compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</a><ul>
+<li><a href="#basic-faust-installation">Basic Faust Installation</a><ul>
+<li><a href="#unix-systems">Unix Systems</a><ul>
+<li><a href="#compiling-the-compiler">Compiling the Compiler</a></li>
+</ul></li>
+<li><a href="#windows-systems">Windows Systems</a></li>
+</ul></li>
+<li><a href="#advanced-faust-build">Advanced Faust Build</a><ul>
+<li><a href="#faust-backends">Faust Backends</a><ul>
+<li><a href="#selecting-your-backends">Selecting Your Backends</a></li>
+<li><a href="#review-the-compiled-backends">Review the Compiled Backends</a></li>
+</ul></li>
+<li><a href="#building-steps">Building Steps</a><ul>
+<li><a href="#project-generation">Project Generation</a></li>
+<li><a href="#project-form-and-location">Project Form and Location</a></li>
+<li><a href="#project-targets">Project Targets</a></li>
+</ul></li>
+</ul></li>
 <li><a href="#getting-the-source-code">Getting the Source Code</a></li>
 </ul></li>
 <li><a href="#faust-syntax">Faust Syntax</a><ul>
@@ -365,7 +383,9 @@ other words be a bit more specific here. -->
 <p>TODO Will be all based on the online editor… May be could be a simple copy and paste of the session 1 of the Kadenze course…</p>
 <h1 id="overview-of-the-faust-universe">Overview of the Faust Universe</h1>
 <p>While in its most <em>primitive</em> form, Faust is distributed as a command-line compiler, a wide range of tools have been developed around it in the course of the past few years. Their variety and their function might be hard to grab at first. This sort chapter provides an overview of their role and will hopefully help you decide which one is better suited for your personal use.</p>
-<!-- TODO: it'd be nice to have some kind of figure here summarizing everything -->
+<!-- TODO: it'd be nice to have some kind of figure here summarizing everything
+the various Faust branches should appear in this figure: we want something
+as complete as possible. -->
 <p>TODO: here say a few words about the philosophy behind the disto: the online editor is the way to go for most users, then various pre-compiled packages of the compiler can be found, then source, then git. Finally other external tools for development.</p>
 <h2 id="the-faust-distribution">The Faust Distribution</h2>
 <p>The Faust distribution hosts the source of the Faust compiler (both in its command line and library version), the source of the Faust <em>architectures</em> (targets), the various Faust compilation scripts, a wide range of Faust-related-tools, the <a href="TODO">Faust DSP Libraries</a> (which in practice are hosted a separate Git submodule), etc.</p>
@@ -415,8 +435,129 @@ windows/               : Windows related ressources</code></pre>
 <h2 id="development-tools">Development Tools</h2>
 <h3 id="faustlive">FaustLive</h3>
 <h3 id="faustworks">FaustWorks</h3>
-<h1 id="compiling-and-installing-faust">Compiling and Installing Faust</h1>
+<h2 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h2>
+<p>TODO</p>
+<h1 id="compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</h1>
 <p>This chapter describes how to get and compile the Faust compiler as well as other tools related to Faust (e.g., <a href="#libfaust"><code>libfaust</code></a>, <code>libosc</code>, <code>libhttpd</code>, etc.).</p>
+<p>TODO: more info here: normalize and explain that there exist pre-compiled binaries: link to those.</p>
+<p>For many years, Faust was nearly dependencies-free, making it easy to compile using <code>make</code>. However, as the compiler developed and started supporting more backends and having more features, things slowly became more complicated. In particular, <a href="https://llvm.org/">LLVM</a> support added a significant layer of complexity to the compilation process. Moreover, the use of <code>make</code> was making the build process almost impossible for non-Unix systems (i.e., Windows).</p>
+<p>For all these reasons, Faust’s build system is now based on <a href="https://cmake.org/">CMake</a>. CMake offers great deal of flexibility, both in terms of defining the targets to be compiled as well as selecting the different backends to be included in each target. However, this flexibility is based on a set of states (cached by CMake), which can sometimes make the compilation process a bit obscure.</p>
+<p>The goal of this chapter is to provide practical information about this building system. The first section explains how to do a basic Faust installation, when LLVM is not required. The second section gives details on all the available options.</p>
+<h2 id="basic-faust-installation">Basic Faust Installation</h2>
+<p>If you don’t have special needs and if you just want to compile Faust code to your favorite target (i.e., C++, JAVA, JavaScript, WebAssembly, etc.), things are relatively straight forward. This section describes the steps to generate a basic Faust build for Unix systems and for windows.</p>
+<h3 id="unix-systems">Unix Systems</h3>
+<p>In this section, we describe the steps to install and run Faust on a fresh Ubuntu 16.04 distribution. While this process might slightly differ from one Linux distribution to another and on macOS, users used to using the command line should be able to easily adapt these steps to their needs.</p>
+<h4 id="compiling-the-compiler">Compiling the Compiler</h4>
+<p>The first step is to compile Faust itself. Let’s start with the minimal requirement in terms of packages: the building tools, <code>git</code> and <code>libmicrohttpd</code>:</p>
+<pre><code>sudo apt-get update
+sudo apt-get install -y build-essential cmake git libmicrohttpd-dev</code></pre>
+<p>We can now clone <a href="https://github.com/grame-cncm/faust">the GitHub repository of Faust</a>:</p>
+<pre><code>git clone https://github.com/grame-cncm/faust.git</code></pre>
+<p>Then compile and install Faust:</p>
+<pre><code>cd faust
+make
+sudo make install</code></pre>
+<p>Once the installation has been completed, it can be checked:</p>
+<pre><code>faust -v</code></pre>
+<p>This will give you the version of the Faust compiler with a list of the available backends:</p>
+<pre><code>FAUST : DSP to C, C++, Java, JavaScript, old C++, asm.js, WebAssembly 
+(wast/wasm) compiler, Version 2.11.1
+Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All 
+rights reserved. </code></pre>
+<p>As you probably noticed the LLVM backend is not installed in this basic setup. You will typically need LLVM if you want to compile the library version of Faust. A complete installation is described in <a href="TODO">the next section</a>.</p>
+<p>We dont have any audio development package installed, but we can nevertheless use Faust to compile some of the examples to C++, at least to make sure that the compiler works:</p>
+<pre><code>faust examples/generator/noise.dsp</code></pre>
+<p>The above command will compile <a href="https://github.com/grame-cncm/faust/blob/master-dev/examples/generator/noise.dsp"><code>noise.dsp</code> (from the Faust distribution)</a> and print the corresponding C++ code to the standard output.</p>
+<p>This C++ code has to be embedded into an architecture file (that describes how to relate the audio computation to the external world) before being compiled into standalone application or an audio plugin. For that, you will need to install some development packages depending of your targets. For example, in order to compile a Faust program as a <a href="http://jackaudio.org/">Jack</a> (or <a href="https://www.alsa-project.org/main/index.php/Main_Page">ALSA</a>) application with a <a href="https://www.qt.io/">Qt interface</a>, the following development packages will have to be installed:</p>
+<pre><code>sudo apt-get install -y libasound2-dev libjack-jackd2-dev libqt4-dev
+</code></pre>
+<p>It is then possible to use the corresponding <a href="TODO"><code>faust2</code> script</a> to generate the corresponding application:</p>
+<pre><code>faust2alqt foo.dsp</code></pre>
+<p>for an ALSA application with a Qt interface</p>
+<pre><code>faust2jaqt foo.dsp</code></pre>
+<p>for a Jack application with a Qt interface.</p>
+<p>An overview of all the available Faust targets and of their dependencies is available in <a href="#a-quick-tour-of-the-faust-targets">this section</a>.</p>
+<h3 id="windows-systems">Windows Systems</h3>
+<p>TODO</p>
+<h2 id="advanced-faust-build">Advanced Faust Build</h2>
+<p>The Faust distribution includes the Faust compiler, but also <a href="#overview-of-the-faust-universe">other elements that you may want to compile</a>, in particular <a href="libfaust"><code>libfaust</code></a>, the library version of the Faust compiler.</p>
+<p>The way these elements are compiled can be configured with the appropriate files. This section demonstrate how this system works.</p>
+<h3 id="faust-backends">Faust Backends</h3>
+<p>The Faust compiler can output DSP code for various languages. Support for these languages is provided using backends that may or may not be embedded into the compiler or into the Faust compiler library version. This is intended to simplify the compilation process: some backends (like LLVM) proved to be a bit complex to compile, some others are not supported by all compilers (like the interpreter backend). In addition, selecting only the set of backends to be used, can reduce significantly the size of the resulting binary.</p>
+<h4 id="selecting-your-backends">Selecting Your Backends</h4>
+<p>The backends selection is described using backends files which are actually <code>cmake</code> files that simply populate the <code>cmake</code> cache. These files are located in the <code>build/backends</code> folder of the <a href="https://github.com/grame-cncm/faust">Faust distribution</a>. They consist of a matrix where each line corresponds to a language support and where the columns select (or discard) the corresponding backend for each binary output i.e.:</p>
+<ul>
+<li>the Faust compiler,</li>
+<li>the <code>libfaust</code> static library,</li>
+<li>the <code>libfaust</code> dynamic library,</li>
+<li>the <code>libfaust asmjs</code> library,</li>
+<li>the <code>libfaust wasm</code> library.</li>
+</ul>
+<p>The following example selects the <code>ASMJS</code> backend for the <code>asmjs library</code>, the <code>cpp</code> backend for the compiler and the faust static and dynamic libraries and discards the interpreter backend.</p>
+<pre><code>set (ASMJS_BACKEND ASMJS CACHE STRING &quot;Include ASMJS backend&quot; FORCE)
+set (CPP_BACKEND COMPILER STATIC DYNAMIC CACHE STRING &quot;Include CPP backend&quot; FORCE)
+set (INTERP_BACKEND OFF CACHE STRING &quot;Include INTERPRETER backend&quot; FORCE)</code></pre>
+<p>A <code>BACKENDS</code> option is provided to select a backend file using make e.g.:</p>
+<pre><code>make BACKENDS=backends.cmake</code></pre>
+<p>By default the selected backends are taken from <code>backends.cmake</code>. Note that <code>make</code> always looks for the backend files in the backends folder.</p>
+<p>You can get similar results using direct <code>cmake</code> invocation:</p>
+<pre><code>cd faustdir
+cmake -C ../backends/backends.cmake ..</code></pre>
+<p>The <code>-C file</code> option instructs cmake to populate the cache using the file given as argument.</p>
+<p>Note that once the backends have been selected, they won’t change unless you specify another backend file.</p>
+<h4 id="review-the-compiled-backends">Review the Compiled Backends</h4>
+<p>During project generation, <code>cmake</code> prints a list of all the backends that will be compiled for each component. Below you have an example of this output:</p>
+<pre><code>-- In target faust: include ASMJS backend
+-- In target faust: include C backend
+-- In target faust: include CPP backend
+-- In target faust: include OCPP backend
+-- In target faust: include WASM backend
+-- In target staticlib: include ASMJS backend
+-- In target staticlib: include C backend
+-- In target staticlib: include CPP backend
+-- In target staticlib: include OCPP backend
+-- In target staticlib: include WASM backend
+-- In target staticlib: include LLVM backend
+-- In target wasmlib: include WASM backend
+-- In target asmjslib: include ASMJS backend</code></pre>
+<p>Note also that the command <code>faust -v</code> prints the list of embedded backends support by the compiler e.g.:</p>
+<pre><code>FAUST : DSP to C, C++, FIR, Java, JavaScript, old C++, Rust, asm.js, WebAssembly 
+(wast/wasm) compiler, Version 2.11.1
+Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All 
+rights reserved. </code></pre>
+<h3 id="building-steps">Building Steps</h3>
+<p>The compilation process takes place in 2 phases:</p>
+<ul>
+<li>project generation</li>
+<li>project compilation</li>
+</ul>
+<p>which are detailed in the following sections.</p>
+<h4 id="project-generation">Project Generation</h4>
+<p>This is the step where you choose what you want to include in your project (before compiling it in a second step). The Faust compiler, the OSC, and HTTP libraries are included by default, but you can add (or remove) the Faust libraries (static or dynamic versions). You can also choose the form of your project: a Makefile, an Xcode or Visual Studio project, or any of the generator provided by cmake on your platform.</p>
+<p>You may think of this step as the definition of the targets that will be available from your project. Note that you can also choose the Faust backends that you want to include in the different components (compiler and Faust libraries).</p>
+<h4 id="project-form-and-location">Project Form and Location</h4>
+<p><code>Cmake</code> provides support for a lot of development environments depending on you platform. To know what environments are supported, type <code>cmake --help</code> and you’ll get a list of the supported generators at the end of the help message.</p>
+<p>By default, the Makefile makes use of “Unix Makefiles” (or “MSYS Makefiles” on Windows). Thus, when you type <code>make</code>, it generates a Makefile and then runs a <code>make</code> command using this Makefile. To avoid overwriting the existing Makefile, the project is generated in a subfolder named <code>faustdir</code> by default and is created on the fly.</p>
+<p>You can freely change these default settings of <code>make</code> and the <code>FAUSTDIR</code> and <code>GENERATOR</code> options, that control the subfolder name and the generator to use. For example:</p>
+<pre><code>make GENERATOR=Xcode</code></pre>
+<p>will generate an Xcode project in the <code>faustdir</code> subfolder</p>
+<pre><code>make FAUSTDIR=macos GENERATOR=Xcode</code></pre>
+<p>will generate an Xcode project in the <code>macos</code> subfolder, etc.</p>
+<p>You can achieve similar results using direct <code>cmake</code> invocation:</p>
+<pre><code>mkdir macos
+cd macos
+cmake .. -G Xcode</code></pre>
+<h4 id="project-targets">Project Targets</h4>
+<p>By default, the generated project includes the Faust compiler and the OSC and HTTPD static libraries, but not the Faust static or dynamic libraries. The makefile provides specific targets to include these libraries in your project:</p>
+<ul>
+<li><code>make configstatic</code>: add the <code>libfaust</code> static library to your projects</li>
+<li><code>make configdynamic</code>: add the <code>libfaust</code> dynamic library to your projects</li>
+<li><code>make configall</code>: add the <code>libfaust</code> static and dynamic libraries to your projects</li>
+<li><code>make reset</code>: restore the default project settings.</li>
+</ul>
+<p>Equivalent settings using direct <code>cmake</code> invocation are also available. For example, to add/remove the <code>libfaust</code> static library to/from your project, you can run the following command from your <code>faustdir</code>:</p>
+<pre><code>cmake -DINCLUDE_STATIC=[on/off] ..</code></pre>
+<p>You can have a look at the Makefile to see the correspondence between the make targets and the <code>cmake</code> equivalent call. Note that since <code>cmake</code> is a state machine, it’ll keep all the current settings (i.e. the values of the <code>cmake</code> variables) unless specified with new values.</p>
 <h2 id="getting-the-source-code">Getting the Source Code</h2>
 <p>An overview of the various places where the Faust source can be downloaded is given <a href="#the-faust-distribution">here</a>.</p>
 <p>If you downloaded the latest Faust release, just un-compressed the archive file and open it in a terminal. For instance, something like (this might vary depending on the version of Faust you downloaded):</p>
