@@ -643,17 +643,20 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
         factory.module = module;
 
         // 'libfaust.js' wasm backend generates UI methods, then we compile the code
-        eval(helpers_code1);
-        factory.getJSON = eval("getJSON" + factory_name1);
-        factory.getBase64Code = eval("getBase64Code" + factory_name1);
+        //eval(helpers_code1);
+        //factory.getJSON = eval("getJSON" + factory_name1);
+        //factory.getBase64Code = eval("getBase64Code" + factory_name1);
 
         try {
-            factory.json_object = JSON.parse(factory.getJSON());
+            factory.json_object = JSON.parse(helpers_code1.match(/getJSON.+?return\s"(\{.+?)";}function/)[1].replace(/\\/g, ""));
+            factory.base64Code = helpers_code1.match(/([A-Za-z0-9+/=]+)";\s\}/)[1];
         } catch (e) {
             faust.error_msg = "Error in JSON.parse: " + e;
             callback(null);
             throw true;
         }
+        factory.getJSON = () => { return factory.json_object; };
+        factory.getBase64Code = () => { return factory.base64Code; }
 
         factory.name = factory_name1;
         factory.sha_key = sha_key;
@@ -670,18 +673,22 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
                   factory.module_effect = module_effect;
 
                   // 'libfaust.js' wasm backend generates UI methods, then we compile the code
-                  eval(helpers_code2);
-                  factory.getJSONeffect = eval("getJSON" + factory_name2);
-                  factory.getBase64Codeeffect = eval("getBase64Code" + factory_name2);
+                  //eval(helpers_code2);
+                  //factory.getJSONeffect = eval("getJSON" + factory_name2);
+                  //factory.getBase64Codeeffect = eval("getBase64Code" + factory_name2);
 
                   try {
-                    factory.effect_json_object = JSON.parse(factory.getJSONeffect());
+                    factory.effect_json_object = JSON.parse(helpers_code2.match(/getJSON.+?return\s"(\{.+?)";}function/)[1].replace(/\\/g, ""));
+                    factory.effect_base64Code = helpers_code2.match(/([A-Za-z0-9+/=]+)";\s\}/)[1];
+  
                   } catch (e) {
                     faust.error_msg = "Error in JSON.parse: " + e;
                     callback(null);
                     throw true;
                   }
-
+                  factory.getJSONeffect = () => { return factory.effect_json_object; };
+                  factory.getBase64Codeeffect = () => { return factory.effect_base64Code; }
+		  
                   factory.name_effect = factory_name2;
                   callback(factory);
             })
