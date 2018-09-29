@@ -88,9 +88,7 @@ print(peakst60)
 # Writing the dsp file #
 # #######################
 file = open(modelName + ".dsp", "w")
-file.write("import(\"pm.lib\");\n")
-file.write("import(\"libraries/old/music.lib\");\n\n")
-file.write("pi = 4*atan(1.0);\n")
+file.write("import(\"stdfaust.lib\");\n")
 file.write("nModes = ")
 file.write(str(len(peaksGains)))
 file.write(";\n")
@@ -118,11 +116,11 @@ for i in peakst60:
 		file.write(",")
 	k += 1
 file.write(");\n");
-file.write("modeFreqs=par(i,nModes,take(i+1, modeFrequencies));\n")
-file.write("modeGains=par(i,nModes,take(i+1, massEigenValues));\n")
-file.write("modeT60 = par(i,nModes,take(i+1,t60));\n")
+file.write("modeFreqs=par(i,nModes,ba.take(i+1, modeFrequencies));\n")
+file.write("modeGains=par(i,nModes,ba.take(i+1, massEigenValues));\n")
+file.write("modeT60 = par(i,nModes,ba.take(i+1,t60));\n")
 file.write(modelName)
-file.write("=modalModel(nModes,modeFrequencies,modeGains,modeT60);");
+file.write("=pm.modalModel(nModes,modeFrequencies,modeGains,modeT60);");
 file.write('\ngate = button("gate");')
-file.write("\nprocess = impulseExcitation(gate) : " + modelName + " <: _,_; ")
+file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
 file.close();
