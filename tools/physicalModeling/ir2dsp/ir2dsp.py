@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
 # Romain Michon and Jakob Dübel
@@ -88,6 +89,9 @@ print(peakst60)
 # Writing the dsp file #
 # #######################
 file = open(modelName + ".dsp", "w")
+file.write("// -*-Faust-*-\n")
+file.write("// generated with ir2dsp.py {0} {1} {2}\n".format(modelName, peakThreshold, peakDistance))
+file.write("declare name \"{0}\";\n".format(modelName))
 file.write("import(\"stdfaust.lib\");\n")
 file.write("nModes = ")
 file.write(str(len(peaksGains)))
