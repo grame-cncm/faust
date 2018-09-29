@@ -34,8 +34,9 @@
 #include <limits.h>
 #include <float.h>
 
+#include "faust/midi/midi.h"
 #include "faust/dsp/dsp-combiner.h"
-#include "faust/gui/MidiUI.h"
+#include "faust/gui/GUI.h"
 #include "faust/gui/MapUI.h"
 #include "faust/dsp/proxy-dsp.h"
 
@@ -44,7 +45,7 @@
 #define kReleaseVoice     -2
 #define kNoVoice          -3
 
-#define VOICE_STOP_LEVEL  0.0001    // -80 db
+#define VOICE_STOP_LEVEL  0.0005    // -70 db
 #define MIX_BUFFER_SIZE   4096
 
 // endsWith(<str>,<end>) : returns true if <str> ends with <end>
@@ -230,6 +231,9 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     void keyOff(bool hard = false)
     {
+        // Be sure the voice is not trigerred
+        fTrigger = false;
+        
         // No use of velocity for now...
         for (int i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(0));
@@ -238,7 +242,6 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         if (hard) {
             // Stop immediately
             fNote = kFreeVoice;
-            fTrigger = false;
         } else {
             // Release voice
             fNote = kReleaseVoice;
@@ -623,7 +626,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
         void compute(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
         {
-            assert(count < MIX_BUFFER_SIZE);
+            assert(count <= MIX_BUFFER_SIZE);
 
             // First clear the outputs
             clearOutput(count, outputs);

@@ -521,12 +521,15 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
             }
             this.dsp_voices_state[voice] = pitch;
+            this.dsp_voices_trigger[voice] = true;
         }
         
         this.keyOff = function (channel, pitch, velocity)
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
+                // Be sure the voice is not trigerred
+                this.dsp_voices_trigger[voice] = false;	
                 if (this.debug) {
                     console.log("keyOff voice %d", voice);
                 }

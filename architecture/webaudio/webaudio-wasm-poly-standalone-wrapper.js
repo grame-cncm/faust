@@ -567,6 +567,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fFreqLabel, sp.midiToFreq(pitch));
         sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel, velocity/127.);
         sp.dsp_voices_state[voice] = pitch;
+        sp.dsp_voices_trigger[voice] = true;
     }
 
     /**
@@ -579,7 +580,9 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.keyOff = function (channel, pitch, velocity)
     {
         var voice = sp.getPlayingVoice(pitch);
-        if (voice !== sp.kNoVoice) {
+        if (voice !== sp.kNoVoice) { 
+            // Be sure the voice is not trigerred
+            sp.dsp_voices_trigger[voice] = false;      
             if (faust.debug)
                 console.log("keyOff voice %d", voice);
             // No use of velocity for now...

@@ -2396,6 +2396,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             sp.factory.setParamValue(sp.dsp_voices[voice], sp.fGainLabel[i], velocity/127.);
         }
         sp.dsp_voices_state[voice] = pitch;
+        sp.dsp_voices_trigger[voice] = true;
     }
 
     /**
@@ -2409,6 +2410,8 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) {
+            // Be sure the voice is not trigerred
+            sp.dsp_voices_trigger[voice] = false;  
             if (faust.debug) {
                 console.log("keyOff voice %d", voice);
             }
@@ -3220,12 +3223,15 @@ var mydspPolyProcessorString = `
                     this.factory.setParamValue(this.dsp_voices[voice], this.fGainLabel[i], velocity/127.);
                 }
                 this.dsp_voices_state[voice] = pitch;
+                this.dsp_voices_trigger[voice] = true;
             }
 
             this.keyOff = function (channel, pitch, velocity)
             {
                 var voice = this.getPlayingVoice(pitch);
                 if (voice !== this.kNoVoice) {
+                    // Be sure the voice is not trigerred
+                    this.dsp_voices_trigger[voice] = false;  
                     // No use of velocity for now...
                     for (var i = 0; i < this.fGateLabel.length; i++) {
                         this.factory.setParamValue(this.dsp_voices[voice], this.fGateLabel[i], 0.0);
