@@ -33,11 +33,11 @@
 struct MemoryReader : public SoundfileReader {
     
     // To implement
-    virtual bool check(const std::string& path_name) { return false; }
+    virtual bool checkFile(const std::string& path_name) { return false; }
     
-    virtual void getParams(const std::string& path_name, int& channels, int& length) {}
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length) {}
     
-    virtual void read(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
     
 };
 
