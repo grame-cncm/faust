@@ -34,18 +34,18 @@ struct JuceReader : public SoundfileReader {
     
     JuceReader() { fFormatManager.registerBasicFormats(); }
     
-    std::string checkAux(const std::string& path_name)
+    bool checkFile(const std::string& path_name)
     {
         File file(path_name);
         if (file.existsAsFile()) {
-            return path_name;
+            return true;
         } else {
             std::cerr << "ERROR : cannot open '" << path_name << std::endl;
-            return "";
+            return false;
         }
     }
     
-    void open(const std::string& path_name, int& channels, int& length)
+    void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
         ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
         assert(formatReader);
@@ -53,7 +53,7 @@ struct JuceReader : public SoundfileReader {
         length = int(formatReader->lengthInSamples);
     }
     
-    void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
         
@@ -82,12 +82,6 @@ struct JuceReader : public SoundfileReader {
             
         // Update offset
         offset += soundfile->fLength[part];
-    }
-    
-    static Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
-    {
-        JuceReader reader;
-        return reader.read(path_name_list, max_chan);
     }
     
 };

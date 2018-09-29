@@ -24,51 +24,21 @@
 #ifndef __MemoryReader__
 #define __MemoryReader__
 
-#include <assert.h>
-#include <map>
-
 #include "faust/gui/Soundfile.h"
 
 /*
  A 'MemoryReader' object can be used to prepare a set of sound resources in memory, to be used by SoundUI::addSoundfile.
  */
 
-class MemoryReader : public SoundfileReader {
-  protected:
-    std::map<std::string, Soundfile*> fSoundMap;
+struct MemoryReader : public SoundfileReader {
     
-    std::string checkAux(const std::string& path_name_str)
-    {
-        return (fSoundMap.find(path_name_str) != fSoundMap.end()) ? path_name_str : "";
-    }
+    // To implement
+    virtual bool check(const std::string& path_name) { return false; }
     
-  public:
-    ~MemoryReader()
-    {
-        // Delete all remaining soundfiles
-        std::map<std::string, Soundfile*>::iterator it;
-        for (it = fSoundMap.begin(); it != fSoundMap.end(); ++it) {
-            delete (*it).second;
-        }
-    }
+    virtual void getParams(const std::string& path_name, int& channels, int& length) {}
     
-    // TODO
-    virtual void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
+    virtual void read(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
     
-    virtual std::string checkAux(const std::string& path_name) { return ""; }
-    
-    virtual void open(const std::string& path_name, int& channels, int& length) {}
-    
-    static MemoryReader* gReader;
 };
-
-/*
-// To be used in SoundUI.h
- 
-#include "faust/gui/MemoryReader.h"
- 
-MemoryReader* MemoryReader::gReader = new MemoryReader();
- 
-*/
 
 #endif

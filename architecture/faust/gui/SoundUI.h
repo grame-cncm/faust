@@ -40,21 +40,15 @@
 
 #if defined(JUCE_32BIT) || defined(JUCE_64BIT)
 #include "faust/gui/JuceReader.h"
-Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
-{
-    return JuceReader::createSoundfile(path_name_list, max_chan);
-}
+JuceReader reader;
 #else
 #include "faust/gui/LibsndfileReader.h"
-Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
-{
-    return LibsndfileReader::createSoundfile(path_name_list, max_chan);
-}
+LibsndfileReader reader;
 #endif
 
 // To be used by dsp code if no SoundUI is used
 std::vector<std::string> path_name_list;
-Soundfile* defaultsound = createSoundfile(path_name_list, MAX_CHAN);
+Soundfile* defaultsound = reader.createSoundfile(path_name_list, MAX_CHAN);
 
 class SoundUI : public GenericUI
 {
@@ -96,9 +90,9 @@ class SoundUI : public GenericUI
             // Parse the possible list
             if (fSoundfileMap.find(saved_url) == fSoundfileMap.end()) {
                 // Check all files and get their complete path
-                std::vector<std::string> path_name_list = SoundfileReader::checkFiles(fSoundfileDir, file_name_list);
+                std::vector<std::string> path_name_list = reader.checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                fSoundfileMap[saved_url] = createSoundfile(path_name_list, MAX_CHAN);
+                fSoundfileMap[saved_url] = reader.createSoundfile(path_name_list, MAX_CHAN);
             }
             
             // Get the soundfile
@@ -142,25 +136,5 @@ class SoundUI : public GenericUI
             return bundle_path_str;
         }
 };
-
-// Check if soundfile exists and return the real path_name
-std::string SoundfileReader::checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
-{
-#if defined(JUCE_32BIT) || defined(JUCE_64BIT)
-    JuceReader reader;
-#else
-    LibsndfileReader reader;
-#endif
-    std::string path_name = reader.checkAux(file_name);
-    if (path_name != "") {
-        return path_name;
-    } else {
-        for (int i = 0; i < sound_directories.size(); i++) {
-            path_name = reader.checkAux(sound_directories[i] + "/" + file_name);
-            if (path_name != "") { return path_name; }
-        }
-        return "";
-    }
-}
 
 #endif
