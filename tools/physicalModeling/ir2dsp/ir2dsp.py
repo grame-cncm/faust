@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
-# and Romain Michon
+# Romain Michon and Jakob Dübel
 
 from __future__ import division
 import math
@@ -120,7 +120,7 @@ file.write("modeFreqs=par(i,nModes,ba.take(i+1, modeFrequencies));\n")
 file.write("modeGains=par(i,nModes,ba.take(i+1, massEigenValues));\n")
 file.write("modeT60 = par(i,nModes,ba.take(i+1,t60));\n")
 file.write(modelName)
-file.write("=pm.modalModel(nModes,modeFrequencies,modeGains,modeT60);");
+file.write("=pm.modalModel(nModes,modeFreqs,modeT60,modeGains);");
 file.write('\ngate = button("gate");')
 file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
 file.close();
