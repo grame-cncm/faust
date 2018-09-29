@@ -206,14 +206,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // MIDI velocity [0..127]
     void keyOn(int pitch, int velocity, bool trigger)
     {
-        for (int i = 0; i < fFreqPath.size(); i++) {
-            setParamValue(fFreqPath[i], midiToFreq(pitch));
-        }
-        for (int i = 0; i < fGainPath.size(); i++) {
-            setParamValue(fGainPath[i], float(velocity)/127.f);
-        }
-        fNote = pitch;
-        fTrigger = trigger;
+        keyOn(pitch, float(velocity)/127.f, trigger);
     }
 
     // Normalized MIDI velocity [0..1]
@@ -223,7 +216,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
             setParamValue(fFreqPath[i], midiToFreq(pitch));
         }
         for (int i = 0; i < fGainPath.size(); i++) {
-            setParamValue(fGainPath[i], float(velocity)/127.f);
+            setParamValue(fGainPath[i], velocity);
         }
         fNote = pitch;
         fTrigger = trigger;
@@ -231,7 +224,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     void keyOff(bool hard = false)
     {
-        // Be sure the voice is not trigerred
+        // Be sure the voice is not triggered
         fTrigger = false;
         
         // No use of velocity for now...
@@ -240,7 +233,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         }
         
         if (hard) {
-            // Stop immediately
+            // Immediately stop voice
             fNote = kFreeVoice;
         } else {
             // Release voice
