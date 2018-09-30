@@ -101,4 +101,183 @@ distribution.
 
 ## A Quick Tour of the Faust Targets
 
-TODO
+### `faust2alqt`
+
+`faust2alqt` converts a Faust code into a standalone application with an 
+[ALSA](https://www.alsa-project.org) audio engine and a [Qt](https://www.qt.io)
+interface.
+
+**Platforms**
+
+* Linux only (because of ALSA)
+
+**Dependencies**
+
+* ASLA development libraries
+* Qt development libraries 
+
+**Usage**
+
+```
+faust2alqt [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2alqt -h
+```
+
+for additional help and options.
+
+### `faust2alsa`
+
+`faust2alsa` converts a Faust code into a standalone application with an 
+[ALSA](https://www.alsa-project.org) audio engine and a 
+[GTK](https://www.gtk.org/) interface.
+
+**Platforms**
+
+* Linux only (because of ALSA)
+
+**Dependencies**
+
+* ASLA development libraries
+* GTK development libraries 
+
+**Usage**
+
+```
+faust2alsa [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2alsa -h
+```
+
+for additional help and options.
+
+### `faust2alsaconsole`
+
+`faust2alsaconsole` converts a Faust code into a command line application with 
+an [ALSA](https://www.alsa-project.org) audio engine.
+
+**Platforms**
+
+* Linux only (because of ALSA)
+
+**Dependencies**
+
+* ASLA development libraries
+
+**Usage**
+
+```
+faust2alsaconsole [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2alsaconsole -h
+```
+
+for additional help and options.
+
+### `faust2android`
+
+`faust2android` converts a Faust code into a ready-to-use Android application.
+Additional information about this Faust target can be found on 
+[the corresponding website](https://ccrma.stanford.edu/~rmichon/faust2android/). 
+
+**Platforms**
+
+* Android only
+
+**Dependencies**
+
+* Android SDK and development tools (i.e., Android studio, etc.)
+* Android NDK
+
+**Usage**
+
+```
+faust2android [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2android -h
+```
+
+for additional help and options.
+
+### `faust2androidunity`
+
+`faust2android` converts a Faust code into an android library (`armeabi-v7a` 
+and `x86`) for the [Faust unity plugin](TODO).
+
+<!-- TODO: there might a webpage about this project -->
+
+**Platforms**
+
+* Android only (within [Unity](https://unity3d.com/))
+
+**Dependencies**
+
+* Android SDK and development tools (i.e., Android studio, etc.)
+* Android NDK
+
+**Usage**
+
+```
+faust2androidunity [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2androidunity -h
+```
+
+for additional help and options.
+
+### `faust2api`
+
+`faust2api` converts a Faust code into a C++ library that can be used with a
+simple API. It supports most of Faust's target platforms (i.e., Android, iOS,
+ALSA, CoreAudio, JUCE, Jack, etc.).
+
+Additional information about `faust2api` can be found on 
+[the corresponding website](https://ccrma.stanford.edu/~rmichon/faust2api/).
+
+**Platforms**
+
+* Android
+* iOS
+* Windows
+* Linux
+* OSX
+
+**Dependencies**
+
+Dependencies varies in functions of the target platform.
+
+**Usage**
+
+```
+faust2api [TARGET] [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2api -h
+```
+
+for additional help and options.
+
+

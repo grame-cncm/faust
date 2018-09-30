@@ -315,43 +315,120 @@ targets and the `cmake` equivalent call. Note that since `cmake` is a state
 machine, it’ll keep all the current settings (i.e. the values of the `cmake` 
 variables) unless specified with new values.
 
+#### Re-Generating the Project
 
-
-
-## Getting the Source Code
-
-An overview of the various places where the Faust source can be downloaded is
-given [here](#the-faust-distribution). 
-
-If you downloaded the latest Faust release, just un-compressed the archive 
-file and open it in a terminal. For instance, something like (this might vary 
-depending on the version of Faust you downloaded):
+The Makefile includes a special target to re-generate a given project. It can
+be used to change the backends, but it might also be a necessary step when
+including new source files (source files are scanned at project generation and 
+are not described explicitly). Simply type:
 
 ```
-tar xzf faust-2.5.31.tar.gz
-cd faust-2.5.31
-``` 
-
-If you wish to get the Faust source directly from the git repository, just
-run:
-
-```
-git clone --recursive https://github.com/grame-cncm/faust.git
-cd faust
+make cmake [options]
 ```
 
-in a terminal. Note that the `--recursive` option is necessary here since some 
-elements (e.g., the Faust DSP libraries) are placed in other repositories.
+All the options described in the previous sections can be specified when 
+running the cmake target (except the `GENERATOR` option that can’t be changed 
+at the cmake level).
 
-Finally, if you wish to use the development (and potentially unstable) branch, 
-just run:
+A `cmake` equivalent call has the following form:
 
 ```
-git checkout master-dev
+cd faustdir
+cmake .. [optional cmake options]
 ```
 
-after the previous 2 commands.
+#### Miscellaneous Project Configuration Targets
 
-TODO: see with Dominique for whatever comes next here...
+* `make verbose`: activates the printing of the exact command that is ran at 
+each make step
+* `make silent`: reverts what make verbose did
+* `make universal`: [MacOSX only] creates universal binaries
+* `make native`: [MacOSX only] reverts native only binaries (default state).
 
-Since release 2.5.18, Faust compilation and installation is based on `cmake`.
+### Compiling Using `make` or `cmake`
+
+Once your project has been generated (see [Building Steps](#building-steps)), 
+the default behavior is to compile all the targets that are included in the 
+project. So, typing `make` will build the Faust compiler, the OSC static
+library and the HTTP static library when these 3 components are included in 
+your project.
+
+#### Standard Single Targets
+
+Single targets are available to use with `make` or `cmake`:
+
+* `faust`: to build the Faust compiler
+* `osc`: to build the OSC library
+* `http`: to build the HTTP library
+
+#### Single Targets Requiring a Project Configuration
+
+* `staticlib`: to build the `libfaust` library in static mode. Requires to call 
+`make configstatic` first.
+* `dynamiclib`: to build `libfaust` library in dynamic mode. Requires to call 
+`make configdynamic` first.
+* `oscdynamic`: to build OSC library in dynamic mode. Requires to call 
+`make configoscdynamic` first.
+* `httpdynamic`: to build HTTP library in dynamic mode. Requires to call 
+`make confighttpdynamic` first.
+
+#### Targets Excluded From All
+
+* `wasmlib`: to build `libfaust` as a Web Assembly library.
+* `asmjslib`: to build `libfaust` as an ASM JS library.
+
+These targets require the `emcc` compiler to be available from your path.
+
+#### Platform-Specific Targets
+
+* `ioslib`: to build `libfaust` in static mode for iOS.
+
+#### Invoking Targets From `cmake`
+
+The general form to invoke a target using `cmake` commands is the following:
+
+```
+cmake --build <project dir> [--target target] [-- native project options]
+```
+
+The default `cmake` target is `all`. For example the following command builds 
+all the targets included in your project:
+
+```
+cmake --build faustdir
+```
+
+Cmake takes care of the generator you used and thus provides a universal way 
+to build your project from the command line whether it’s Makefile-based or 
+IDE-based (e.g. Xcode or Visual Studio).
+
+The following sequence creates and build a project using Visual Studio on 
+Windows in release mode :
+
+```
+cd your_build_folder
+cmake -C ../backends/backends.cmake .. -G "Visual Studio 14 2015 Win64"
+cmake --build . --config Release
+```
+
+> More information on how to build the Faust compiler on Windows can be
+found in the [corresponding section](#windows-systems).
+
+For more details and options, you should refer to the 
+[cmake documentation](TODO).
+
+#### The Install and Uninstall Targets
+
+Generated projects always include an `install` target, which installs all the 
+components included in the project. There is no `uninstall` target at the 
+`cmake` level (not supported by `cmake`). It is provided by the Makefile only 
+and is based on the `install_manifest.txt` file that is generated by the 
+install target in `build/faustdir`.
+
+Note that cmake ensures that all the targets of your project are up-to-date 
+before installing and thus may compile some or all the targets. It can be 
+annoying if you invoke `sudo make install`: the object files will then be 
+property of the superuser and you can then have errors during later 
+compilations due to access rights issues on object files. Hence, it is 
+recommended to make sure that all your targets are up-to-date by running `make` 
+before running `sudo make install`.

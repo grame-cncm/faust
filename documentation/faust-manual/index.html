@@ -39,7 +39,14 @@
 <li><a href="#faustlive">FaustLive</a></li>
 <li><a href="#faustworks">FaustWorks</a></li>
 </ul></li>
-<li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a></li>
+<li><a href="#a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</a><ul>
+<li><a href="#faust2alqt"><code>faust2alqt</code></a></li>
+<li><a href="#faust2alsa"><code>faust2alsa</code></a></li>
+<li><a href="#faust2alsaconsole"><code>faust2alsaconsole</code></a></li>
+<li><a href="#faust2android"><code>faust2android</code></a></li>
+<li><a href="#faust2androidunity"><code>faust2androidunity</code></a></li>
+<li><a href="#faust2api"><code>faust2api</code></a></li>
+</ul></li>
 </ul></li>
 <li><a href="#compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</a><ul>
 <li><a href="#basic-faust-installation">Basic Faust Installation</a><ul>
@@ -57,9 +64,18 @@
 <li><a href="#project-generation">Project Generation</a></li>
 <li><a href="#project-form-and-location">Project Form and Location</a></li>
 <li><a href="#project-targets">Project Targets</a></li>
+<li><a href="#re-generating-the-project">Re-Generating the Project</a></li>
+<li><a href="#miscellaneous-project-configuration-targets">Miscellaneous Project Configuration Targets</a></li>
+</ul></li>
+<li><a href="#compiling-using-make-or-cmake">Compiling Using <code>make</code> or <code>cmake</code></a><ul>
+<li><a href="#standard-single-targets">Standard Single Targets</a></li>
+<li><a href="#single-targets-requiring-a-project-configuration">Single Targets Requiring a Project Configuration</a></li>
+<li><a href="#targets-excluded-from-all">Targets Excluded From All</a></li>
+<li><a href="#platform-specific-targets">Platform-Specific Targets</a></li>
+<li><a href="#invoking-targets-from-cmake">Invoking Targets From <code>cmake</code></a></li>
+<li><a href="#the-install-and-uninstall-targets">The Install and Uninstall Targets</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#getting-the-source-code">Getting the Source Code</a></li>
 </ul></li>
 <li><a href="#faust-syntax">Faust Syntax</a><ul>
 <li><a href="#faust-program">Faust Program</a></li>
@@ -436,7 +452,104 @@ windows/               : Windows related ressources</code></pre>
 <h3 id="faustlive">FaustLive</h3>
 <h3 id="faustworks">FaustWorks</h3>
 <h2 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h2>
-<p>TODO</p>
+<h3 id="faust2alqt"><code>faust2alqt</code></h3>
+<p><code>faust2alqt</code> converts a Faust code into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.qt.io">Qt</a> interface.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Linux only (because of ALSA)</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>ASLA development libraries</li>
+<li>Qt development libraries</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2alqt [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2alqt -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2alsa"><code>faust2alsa</code></h3>
+<p><code>faust2alsa</code> converts a Faust code into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.gtk.org/">GTK</a> interface.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Linux only (because of ALSA)</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>ASLA development libraries</li>
+<li>GTK development libraries</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2alsa [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2alsa -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2alsaconsole"><code>faust2alsaconsole</code></h3>
+<p><code>faust2alsaconsole</code> converts a Faust code into a command line application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Linux only (because of ALSA)</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>ASLA development libraries</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2alsaconsole [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2alsaconsole -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2android"><code>faust2android</code></h3>
+<p><code>faust2android</code> converts a Faust code into a ready-to-use Android application. Additional information about this Faust target can be found on <a href="https://ccrma.stanford.edu/~rmichon/faust2android/">the corresponding website</a>.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Android only</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>Android SDK and development tools (i.e., Android studio, etc.)</li>
+<li>Android NDK</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2android [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2android -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2androidunity"><code>faust2androidunity</code></h3>
+<p><code>faust2android</code> converts a Faust code into an android library (<code>armeabi-v7a</code> and <code>x86</code>) for the <a href="TODO">Faust unity plugin</a>.</p>
+<!-- TODO: there might a webpage about this project -->
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Android only (within <a href="https://unity3d.com/">Unity</a>)</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>Android SDK and development tools (i.e., Android studio, etc.)</li>
+<li>Android NDK</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2androidunity [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2androidunity -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2api"><code>faust2api</code></h3>
+<p><code>faust2api</code> converts a Faust code into a C++ library that can be used with a simple API. It supports most of Faust’s target platforms (i.e., Android, iOS, ALSA, CoreAudio, JUCE, Jack, etc.).</p>
+<p>Additional information about <code>faust2api</code> can be found on <a href="https://ccrma.stanford.edu/~rmichon/faust2api/">the corresponding website</a>.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Android</li>
+<li>iOS</li>
+<li>Windows</li>
+<li>Linux</li>
+<li>OSX</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<p>Dependencies varies in functions of the target platform.</p>
+<p><strong>Usage</strong></p>
+<pre><code>faust2api [TARGET] [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2api -h</code></pre>
+<p>for additional help and options.</p>
 <h1 id="compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</h1>
 <p>This chapter describes how to get and compile the Faust compiler as well as other tools related to Faust (e.g., <a href="#libfaust"><code>libfaust</code></a>, <code>libosc</code>, <code>libhttpd</code>, etc.).</p>
 <p>TODO: more info here: normalize and explain that there exist pre-compiled binaries: link to those.</p>
@@ -558,20 +671,63 @@ cmake .. -G Xcode</code></pre>
 <p>Equivalent settings using direct <code>cmake</code> invocation are also available. For example, to add/remove the <code>libfaust</code> static library to/from your project, you can run the following command from your <code>faustdir</code>:</p>
 <pre><code>cmake -DINCLUDE_STATIC=[on/off] ..</code></pre>
 <p>You can have a look at the Makefile to see the correspondence between the make targets and the <code>cmake</code> equivalent call. Note that since <code>cmake</code> is a state machine, it’ll keep all the current settings (i.e. the values of the <code>cmake</code> variables) unless specified with new values.</p>
-<h2 id="getting-the-source-code">Getting the Source Code</h2>
-<p>An overview of the various places where the Faust source can be downloaded is given <a href="#the-faust-distribution">here</a>.</p>
-<p>If you downloaded the latest Faust release, just un-compressed the archive file and open it in a terminal. For instance, something like (this might vary depending on the version of Faust you downloaded):</p>
-<pre><code>tar xzf faust-2.5.31.tar.gz
-cd faust-2.5.31</code></pre>
-<p>If you wish to get the Faust source directly from the git repository, just run:</p>
-<pre><code>git clone --recursive https://github.com/grame-cncm/faust.git
-cd faust</code></pre>
-<p>in a terminal. Note that the <code>--recursive</code> option is necessary here since some elements (e.g., the Faust DSP libraries) are placed in other repositories.</p>
-<p>Finally, if you wish to use the development (and potentially unstable) branch, just run:</p>
-<pre><code>git checkout master-dev</code></pre>
-<p>after the previous 2 commands.</p>
-<p>TODO: see with Dominique for whatever comes next here…</p>
-<p>Since release 2.5.18, Faust compilation and installation is based on <code>cmake</code>.</p>
+<h4 id="re-generating-the-project">Re-Generating the Project</h4>
+<p>The Makefile includes a special target to re-generate a given project. It can be used to change the backends, but it might also be a necessary step when including new source files (source files are scanned at project generation and are not described explicitly). Simply type:</p>
+<pre><code>make cmake [options]</code></pre>
+<p>All the options described in the previous sections can be specified when running the cmake target (except the <code>GENERATOR</code> option that can’t be changed at the cmake level).</p>
+<p>A <code>cmake</code> equivalent call has the following form:</p>
+<pre><code>cd faustdir
+cmake .. [optional cmake options]</code></pre>
+<h4 id="miscellaneous-project-configuration-targets">Miscellaneous Project Configuration Targets</h4>
+<ul>
+<li><code>make verbose</code>: activates the printing of the exact command that is ran at each make step</li>
+<li><code>make silent</code>: reverts what make verbose did</li>
+<li><code>make universal</code>: [MacOSX only] creates universal binaries</li>
+<li><code>make native</code>: [MacOSX only] reverts native only binaries (default state).</li>
+</ul>
+<h3 id="compiling-using-make-or-cmake">Compiling Using <code>make</code> or <code>cmake</code></h3>
+<p>Once your project has been generated (see <a href="#building-steps">Building Steps</a>), the default behavior is to compile all the targets that are included in the project. So, typing <code>make</code> will build the Faust compiler, the OSC static library and the HTTP static library when these 3 components are included in your project.</p>
+<h4 id="standard-single-targets">Standard Single Targets</h4>
+<p>Single targets are available to use with <code>make</code> or <code>cmake</code>:</p>
+<ul>
+<li><code>faust</code>: to build the Faust compiler</li>
+<li><code>osc</code>: to build the OSC library</li>
+<li><code>http</code>: to build the HTTP library</li>
+</ul>
+<h4 id="single-targets-requiring-a-project-configuration">Single Targets Requiring a Project Configuration</h4>
+<ul>
+<li><code>staticlib</code>: to build the <code>libfaust</code> library in static mode. Requires to call <code>make configstatic</code> first.</li>
+<li><code>dynamiclib</code>: to build <code>libfaust</code> library in dynamic mode. Requires to call <code>make configdynamic</code> first.</li>
+<li><code>oscdynamic</code>: to build OSC library in dynamic mode. Requires to call <code>make configoscdynamic</code> first.</li>
+<li><code>httpdynamic</code>: to build HTTP library in dynamic mode. Requires to call <code>make confighttpdynamic</code> first.</li>
+</ul>
+<h4 id="targets-excluded-from-all">Targets Excluded From All</h4>
+<ul>
+<li><code>wasmlib</code>: to build <code>libfaust</code> as a Web Assembly library.</li>
+<li><code>asmjslib</code>: to build <code>libfaust</code> as an ASM JS library.</li>
+</ul>
+<p>These targets require the <code>emcc</code> compiler to be available from your path.</p>
+<h4 id="platform-specific-targets">Platform-Specific Targets</h4>
+<ul>
+<li><code>ioslib</code>: to build <code>libfaust</code> in static mode for iOS.</li>
+</ul>
+<h4 id="invoking-targets-from-cmake">Invoking Targets From <code>cmake</code></h4>
+<p>The general form to invoke a target using <code>cmake</code> commands is the following:</p>
+<pre><code>cmake --build &lt;project dir&gt; [--target target] [-- native project options]</code></pre>
+<p>The default <code>cmake</code> target is <code>all</code>. For example the following command builds all the targets included in your project:</p>
+<pre><code>cmake --build faustdir</code></pre>
+<p>Cmake takes care of the generator you used and thus provides a universal way to build your project from the command line whether it’s Makefile-based or IDE-based (e.g. Xcode or Visual Studio).</p>
+<p>The following sequence creates and build a project using Visual Studio on Windows in release mode :</p>
+<pre><code>cd your_build_folder
+cmake -C ../backends/backends.cmake .. -G &quot;Visual Studio 14 2015 Win64&quot;
+cmake --build . --config Release</code></pre>
+<blockquote>
+<p>More information on how to build the Faust compiler on Windows can be found in the <a href="#windows-systems">corresponding section</a>.</p>
+</blockquote>
+<p>For more details and options, you should refer to the <a href="TODO">cmake documentation</a>.</p>
+<h4 id="the-install-and-uninstall-targets">The Install and Uninstall Targets</h4>
+<p>Generated projects always include an <code>install</code> target, which installs all the components included in the project. There is no <code>uninstall</code> target at the <code>cmake</code> level (not supported by <code>cmake</code>). It is provided by the Makefile only and is based on the <code>install_manifest.txt</code> file that is generated by the install target in <code>build/faustdir</code>.</p>
+<p>Note that cmake ensures that all the targets of your project are up-to-date before installing and thus may compile some or all the targets. It can be annoying if you invoke <code>sudo make install</code>: the object files will then be property of the superuser and you can then have errors during later compilations due to access rights issues on object files. Hence, it is recommended to make sure that all your targets are up-to-date by running <code>make</code> before running <code>sudo make install</code>.</p>
 <h1 id="faust-syntax">Faust Syntax</h1>
 <!-- TODO we should make a new introductory figure here and add some comments
 about it. It'd be nice to make it interactive so that when people click on it,
