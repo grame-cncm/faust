@@ -60,8 +60,8 @@ struct JuceReader : public SoundfileReader {
         int channels = std::min(max_chan, int(formatReader->numChannels));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
-        soundfile->fOffset[part] = offset;
         soundfile->fSampleRate[part] = int(formatReader->sampleRate);
+        soundfile->fOffset[part] = offset;
         
         FAUSTFLOAT* buffers[soundfile->fChannels];
         getBuffersOffset(soundfile, buffers, offset);

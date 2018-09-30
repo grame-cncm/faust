@@ -28,6 +28,9 @@
 
 /*
  A 'MemoryReader' object can be used to prepare a set of sound resources in memory, to be used by SoundUI::addSoundfile.
+ 
+ A Soundfile* object will have to be filled with a list of sound resources: the fLength, fOffset, fSampleRate and fBuffers fields 
+ have to be completed with the appropriate values, and will be accessed in the dsp object while running.
  */
 
 struct MemoryReader : public SoundfileReader {
@@ -37,7 +40,19 @@ struct MemoryReader : public SoundfileReader {
     
     virtual void getParamsFile(const std::string& path_name, int& channels, int& length) {}
     
-    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) {}
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    {
+        /*
+         The soundfile fields have to be filled:
+         
+         soundfile->fLength[part] = ...
+         soundfile->fSampleRate[part] = ...
+         soundfile->fOffset[part] = ...
+         
+         // for each chan:
+         soundfile->fBuffers[chan][soundfile->fOffset[part]] = ...
+        */
+    }
     
 };
 
