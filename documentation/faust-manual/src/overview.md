@@ -101,9 +101,12 @@ distribution.
 
 ## A Quick Tour of the Faust Targets
 
+TODO: say something about the fact that faust2 scripts only works on the Mac
+and Linux and that web services can help Windows users.
+
 ### `faust2alqt`
 
-`faust2alqt` converts a Faust code into a standalone application with an 
+`faust2alqt` converts a Faust program into a standalone application with an 
 [ALSA](https://www.alsa-project.org) audio engine and a [Qt](https://www.qt.io)
 interface.
 
@@ -132,7 +135,7 @@ for additional help and options.
 
 ### `faust2alsa`
 
-`faust2alsa` converts a Faust code into a standalone application with an 
+`faust2alsa` converts a Faust program into a standalone application with an 
 [ALSA](https://www.alsa-project.org) audio engine and a 
 [GTK](https://www.gtk.org/) interface.
 
@@ -161,7 +164,7 @@ for additional help and options.
 
 ### `faust2alsaconsole`
 
-`faust2alsaconsole` converts a Faust code into a command line application with 
+`faust2alsaconsole` converts a Faust program into a command line application with 
 an [ALSA](https://www.alsa-project.org) audio engine.
 
 **Platforms**
@@ -188,7 +191,7 @@ for additional help and options.
 
 ### `faust2android`
 
-`faust2android` converts a Faust code into a ready-to-use Android application.
+`faust2android` converts a Faust program into a ready-to-use Android application.
 Additional information about this Faust target can be found on 
 [the corresponding website](https://ccrma.stanford.edu/~rmichon/faust2android/). 
 
@@ -217,7 +220,7 @@ for additional help and options.
 
 ### `faust2androidunity`
 
-`faust2android` converts a Faust code into an android library (`armeabi-v7a` 
+`faust2android` converts a Faust program into an android library (`armeabi-v7a` 
 and `x86`) for the [Faust unity plugin](TODO).
 
 <!-- TODO: there might a webpage about this project -->
@@ -247,7 +250,7 @@ for additional help and options.
 
 ### `faust2api`
 
-`faust2api` converts a Faust code into a C++ library that can be used with a
+`faust2api` converts a Faust program into a C++ library that can be used with a
 simple API. It supports most of Faust's target platforms (i.e., Android, iOS,
 ALSA, CoreAudio, JUCE, Jack, etc.).
 
@@ -260,7 +263,7 @@ Additional information about `faust2api` can be found on
 * iOS
 * Windows
 * Linux
-* OSX
+* MacOS
 
 **Dependencies**
 
@@ -276,6 +279,217 @@ Run:
 
 ```
 faust2api -h
+```
+
+for additional help and options.
+
+### `faust2asmjs`
+
+`faust2asmjs` converts a Faust program into an [AMS JavaScript](TODO) object to
+be used in a web-app.
+
+**Platforms**
+
+* Web
+
+**Usage**
+
+```
+faust2asmjs [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2asmjs -h
+```
+
+for additional help and options.
+
+<!-- NOTE: skipping faust2atomsnippets here -->
+
+### `faust2au`
+
+`faust2au` converts a Faust program into an [Audio Unit](TODO) plug-in.
+
+> Note that Audio Unit plug-ins can also be generated in Faust using 
+[`faust2juce`](#faust2juce). In fact, this option might lead to better results
+in many cases.
+
+**Platforms**
+
+* MacOS
+
+**Usage**
+
+```
+faust2au [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2au -h
+```
+
+for additional help and options.
+
+### `faust2bela`
+
+`faust2bela` converts a Faust program into a [BELA](TODO) plug-in.
+
+**Platforms**
+
+* BELA
+
+**Usage**
+
+```
+faust2bela [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2bela -h
+```
+
+for additional help and options.
+
+### `faust2caqt`
+
+`faust2caqt` converts a Faust program into a standalone application with an 
+[CoreAudio](TODO) audio engine and a [Qt](https://www.qt.io) interface.
+
+**Platforms**
+
+* MacOS only (because of CoreAudio)
+
+**Usage**
+
+```
+faust2caqt [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2caqt -h
+```
+
+for additional help and options.
+
+### `faust2caqtios`
+
+`faust2caqtios` converts a Faust program into an iOS app with a 
+[Qt](https://www.qt.io) interface.
+
+**Platforms**
+
+* iOS
+
+**Usage**
+
+```
+faust2caqtios [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2caqtios -h
+```
+
+for additional help and options.
+
+### `faust2ck`
+
+`faust2ck` converts a Faust program into a Chugin ([ChucK](TODO) plug-in). This
+tools was developed by Spencer Salazar.
+
+<!-- TODO: may be add a link to the project. -->
+
+**Platforms**
+
+* MacOS
+* Linux
+* Windows
+
+**Usage**
+
+```
+faust2ck [OPTIONS] faustFile.dsp
+```
+
+### `faust2csound`
+
+`faust2csound` converts a Faust program into a [CSOUND](TODO) opcode. 
+
+**Platforms**
+
+* MacOS
+* Linux
+* Windows
+
+**Usage**
+
+```
+faust2csound [OPTIONS] faustFile.dsp
+```
+
+### `faust2dssi`
+
+TODO 
+
+### `faust2dummy`
+
+TODO
+
+### `faust2dummymem`
+
+TODO
+
+### `faust2eps`
+
+`faust2eps` converts a Faust program into a diagram in EPS format. 
+
+**Usage**
+
+```
+faust2eps faustFile.dsp
+```
+
+### `faust2faustvst`
+
+`faust2faustvst` converts a Faust program into a [VST plug-in](TODO). This
+tool was developed by Albert Gräf.
+
+> Note that VST plug-ins can also be generated in Faust using 
+[`faust2vst`](#faust2vst) and [`faust2juce`](#faust2juce). The former was
+developed prior to `faust2faustvst` by another author and provides less 
+features. Hence `faust2faustvst` should be preferred to it. `faust2juce` is
+also a good option.   
+
+**Platforms**
+
+* MacOS
+* Windows
+* Linux
+
+**Dependencies**
+
+* VST SDK
+
+**Usage**
+
+```
+faust2faustvst [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2faustvst -h
 ```
 
 for additional help and options.

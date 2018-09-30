@@ -46,6 +46,18 @@
 <li><a href="#faust2android"><code>faust2android</code></a></li>
 <li><a href="#faust2androidunity"><code>faust2androidunity</code></a></li>
 <li><a href="#faust2api"><code>faust2api</code></a></li>
+<li><a href="#faust2asmjs"><code>faust2asmjs</code></a></li>
+<li><a href="#faust2au"><code>faust2au</code></a></li>
+<li><a href="#faust2bela"><code>faust2bela</code></a></li>
+<li><a href="#faust2caqt"><code>faust2caqt</code></a></li>
+<li><a href="#faust2caqtios"><code>faust2caqtios</code></a></li>
+<li><a href="#faust2ck"><code>faust2ck</code></a></li>
+<li><a href="#faust2csound"><code>faust2csound</code></a></li>
+<li><a href="#faust2dssi"><code>faust2dssi</code></a></li>
+<li><a href="#faust2dummy"><code>faust2dummy</code></a></li>
+<li><a href="#faust2dummymem"><code>faust2dummymem</code></a></li>
+<li><a href="#faust2eps"><code>faust2eps</code></a></li>
+<li><a href="#faust2faustvst"><code>faust2faustvst</code></a></li>
 </ul></li>
 </ul></li>
 <li><a href="#compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</a><ul>
@@ -452,8 +464,9 @@ windows/               : Windows related ressources</code></pre>
 <h3 id="faustlive">FaustLive</h3>
 <h3 id="faustworks">FaustWorks</h3>
 <h2 id="a-quick-tour-of-the-faust-targets">A Quick Tour of the Faust Targets</h2>
+<p>TODO: say something about the fact that faust2 scripts only works on the Mac and Linux and that web services can help Windows users.</p>
 <h3 id="faust2alqt"><code>faust2alqt</code></h3>
-<p><code>faust2alqt</code> converts a Faust code into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.qt.io">Qt</a> interface.</p>
+<p><code>faust2alqt</code> converts a Faust program into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.qt.io">Qt</a> interface.</p>
 <p><strong>Platforms</strong></p>
 <ul>
 <li>Linux only (because of ALSA)</li>
@@ -469,7 +482,7 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2alqt -h</code></pre>
 <p>for additional help and options.</p>
 <h3 id="faust2alsa"><code>faust2alsa</code></h3>
-<p><code>faust2alsa</code> converts a Faust code into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.gtk.org/">GTK</a> interface.</p>
+<p><code>faust2alsa</code> converts a Faust program into a standalone application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine and a <a href="https://www.gtk.org/">GTK</a> interface.</p>
 <p><strong>Platforms</strong></p>
 <ul>
 <li>Linux only (because of ALSA)</li>
@@ -485,7 +498,7 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2alsa -h</code></pre>
 <p>for additional help and options.</p>
 <h3 id="faust2alsaconsole"><code>faust2alsaconsole</code></h3>
-<p><code>faust2alsaconsole</code> converts a Faust code into a command line application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine.</p>
+<p><code>faust2alsaconsole</code> converts a Faust program into a command line application with an <a href="https://www.alsa-project.org">ALSA</a> audio engine.</p>
 <p><strong>Platforms</strong></p>
 <ul>
 <li>Linux only (because of ALSA)</li>
@@ -500,7 +513,7 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2alsaconsole -h</code></pre>
 <p>for additional help and options.</p>
 <h3 id="faust2android"><code>faust2android</code></h3>
-<p><code>faust2android</code> converts a Faust code into a ready-to-use Android application. Additional information about this Faust target can be found on <a href="https://ccrma.stanford.edu/~rmichon/faust2android/">the corresponding website</a>.</p>
+<p><code>faust2android</code> converts a Faust program into a ready-to-use Android application. Additional information about this Faust target can be found on <a href="https://ccrma.stanford.edu/~rmichon/faust2android/">the corresponding website</a>.</p>
 <p><strong>Platforms</strong></p>
 <ul>
 <li>Android only</li>
@@ -516,7 +529,7 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2android -h</code></pre>
 <p>for additional help and options.</p>
 <h3 id="faust2androidunity"><code>faust2androidunity</code></h3>
-<p><code>faust2android</code> converts a Faust code into an android library (<code>armeabi-v7a</code> and <code>x86</code>) for the <a href="TODO">Faust unity plugin</a>.</p>
+<p><code>faust2android</code> converts a Faust program into an android library (<code>armeabi-v7a</code> and <code>x86</code>) for the <a href="TODO">Faust unity plugin</a>.</p>
 <!-- TODO: there might a webpage about this project -->
 <p><strong>Platforms</strong></p>
 <ul>
@@ -533,7 +546,7 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2androidunity -h</code></pre>
 <p>for additional help and options.</p>
 <h3 id="faust2api"><code>faust2api</code></h3>
-<p><code>faust2api</code> converts a Faust code into a C++ library that can be used with a simple API. It supports most of Faust’s target platforms (i.e., Android, iOS, ALSA, CoreAudio, JUCE, Jack, etc.).</p>
+<p><code>faust2api</code> converts a Faust program into a C++ library that can be used with a simple API. It supports most of Faust’s target platforms (i.e., Android, iOS, ALSA, CoreAudio, JUCE, Jack, etc.).</p>
 <p>Additional information about <code>faust2api</code> can be found on <a href="https://ccrma.stanford.edu/~rmichon/faust2api/">the corresponding website</a>.</p>
 <p><strong>Platforms</strong></p>
 <ul>
@@ -541,7 +554,7 @@ windows/               : Windows related ressources</code></pre>
 <li>iOS</li>
 <li>Windows</li>
 <li>Linux</li>
-<li>OSX</li>
+<li>MacOS</li>
 </ul>
 <p><strong>Dependencies</strong></p>
 <p>Dependencies varies in functions of the target platform.</p>
@@ -549,6 +562,116 @@ windows/               : Windows related ressources</code></pre>
 <pre><code>faust2api [TARGET] [OPTIONS] faustFile.dsp</code></pre>
 <p>Run:</p>
 <pre><code>faust2api -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2asmjs"><code>faust2asmjs</code></h3>
+<p><code>faust2asmjs</code> converts a Faust program into an <a href="TODO">AMS JavaScript</a> object to be used in a web-app.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>Web</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2asmjs [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2asmjs -h</code></pre>
+<p>for additional help and options.</p>
+<!-- NOTE: skipping faust2atomsnippets here -->
+<h3 id="faust2au"><code>faust2au</code></h3>
+<p><code>faust2au</code> converts a Faust program into an <a href="TODO">Audio Unit</a> plug-in.</p>
+<blockquote>
+<p>Note that Audio Unit plug-ins can also be generated in Faust using <a href="#faust2juce"><code>faust2juce</code></a>. In fact, this option might lead to better results in many cases.</p>
+</blockquote>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>MacOS</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2au [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2au -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2bela"><code>faust2bela</code></h3>
+<p><code>faust2bela</code> converts a Faust program into a <a href="TODO">BELA</a> plug-in.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>BELA</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2bela [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2bela -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2caqt"><code>faust2caqt</code></h3>
+<p><code>faust2caqt</code> converts a Faust program into a standalone application with an <a href="TODO">CoreAudio</a> audio engine and a <a href="https://www.qt.io">Qt</a> interface.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>MacOS only (because of CoreAudio)</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2caqt [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2caqt -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2caqtios"><code>faust2caqtios</code></h3>
+<p><code>faust2caqtios</code> converts a Faust program into an iOS app with a <a href="https://www.qt.io">Qt</a> interface.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>iOS</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2caqtios [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2caqtios -h</code></pre>
+<p>for additional help and options.</p>
+<h3 id="faust2ck"><code>faust2ck</code></h3>
+<p><code>faust2ck</code> converts a Faust program into a Chugin (<a href="TODO">ChucK</a> plug-in). This tools was developed by Spencer Salazar.</p>
+<!-- TODO: may be add a link to the project. -->
+<p><strong>Platforms</strong></p>
+<ul>
+<li>MacOS</li>
+<li>Linux</li>
+<li>Windows</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2ck [OPTIONS] faustFile.dsp</code></pre>
+<h3 id="faust2csound"><code>faust2csound</code></h3>
+<p><code>faust2csound</code> converts a Faust program into a <a href="TODO">CSOUND</a> opcode.</p>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>MacOS</li>
+<li>Linux</li>
+<li>Windows</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2csound [OPTIONS] faustFile.dsp</code></pre>
+<h3 id="faust2dssi"><code>faust2dssi</code></h3>
+<p>TODO</p>
+<h3 id="faust2dummy"><code>faust2dummy</code></h3>
+<p>TODO</p>
+<h3 id="faust2dummymem"><code>faust2dummymem</code></h3>
+<p>TODO</p>
+<h3 id="faust2eps"><code>faust2eps</code></h3>
+<p><code>faust2eps</code> converts a Faust program into a diagram in EPS format.</p>
+<p><strong>Usage</strong></p>
+<pre><code>faust2eps faustFile.dsp</code></pre>
+<h3 id="faust2faustvst"><code>faust2faustvst</code></h3>
+<p><code>faust2faustvst</code> converts a Faust program into a <a href="TODO">VST plug-in</a>. This tool was developed by Albert Gräf.</p>
+<blockquote>
+<p>Note that VST plug-ins can also be generated in Faust using <a href="#faust2vst"><code>faust2vst</code></a> and <a href="#faust2juce"><code>faust2juce</code></a>. The former was developed prior to <code>faust2faustvst</code> by another author and provides less features. Hence <code>faust2faustvst</code> should be preferred to it. <code>faust2juce</code> is also a good option.</p>
+</blockquote>
+<p><strong>Platforms</strong></p>
+<ul>
+<li>MacOS</li>
+<li>Windows</li>
+<li>Linux</li>
+</ul>
+<p><strong>Dependencies</strong></p>
+<ul>
+<li>VST SDK</li>
+</ul>
+<p><strong>Usage</strong></p>
+<pre><code>faust2faustvst [OPTIONS] faustFile.dsp</code></pre>
+<p>Run:</p>
+<pre><code>faust2faustvst -h</code></pre>
 <p>for additional help and options.</p>
 <h1 id="compiling-and-installing-the-faust-compiler">Compiling and Installing the Faust Compiler</h1>
 <p>This chapter describes how to get and compile the Faust compiler as well as other tools related to Faust (e.g., <a href="#libfaust"><code>libfaust</code></a>, <code>libosc</code>, <code>libhttpd</code>, etc.).</p>
