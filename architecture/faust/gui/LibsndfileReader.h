@@ -27,7 +27,6 @@
 #include <sndfile.h>
 #include <string.h>
 #include <assert.h>
-
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -40,22 +39,22 @@ struct LibsndfileReader : public SoundfileReader {
     
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
     
-    std::string checkAux(const std::string& path_name)
+    bool checkFile(const std::string& path_name)
     {
         SF_INFO snd_info;
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
         if (snd_file) {
             sf_close(snd_file);
-            return path_name;
+            return true;
         } else {
             std::cerr << "ERROR : cannot open '" << path_name << "' (" << sf_strerror(NULL) << ")" << std::endl;
-            return "";
+            return false;
         }
     }
     
     // Open the file and returns its length and channels
-    void open(const std::string& path_name, int& channels, int& length)
+    void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
         SF_INFO	snd_info;
         snd_info.format = 0;
@@ -67,7 +66,7 @@ struct LibsndfileReader : public SoundfileReader {
     }
     
     // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
-    void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
+    void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
         // Open sndfile
         SF_INFO	snd_info;
@@ -104,12 +103,7 @@ struct LibsndfileReader : public SoundfileReader {
         
         sf_close(snd_file);
     }
-    
-    static Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
-    {
-        LibsndfileReader reader;
-        return reader.read(path_name_list, max_chan);
-    }
+
 };
 
 #endif

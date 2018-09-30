@@ -1372,12 +1372,12 @@ void faustgen::dblclick(long inlet)
 {
     // Create a popup menu inside the Max patcher
     t_jpopupmenu* popup = jpopupmenu_create(); 
-    jpopupmenu_additem(popup, 0, "Edit DSP code", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 1, "View DSP parameters", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 2, "View compile options", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 3, "View SVG diagram", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 4, "View PDF documentation", NULL, 0, 0, NULL);
-    jpopupmenu_additem(popup, 5, "View libraries", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 1, "Edit DSP code", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 2, "View DSP parameters", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 3, "View compile options", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 4, "View SVG diagram", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 5, "View PDF documentation", NULL, 0, 0, NULL);
+    jpopupmenu_additem(popup, 6, "View libraries", NULL, 0, 0, NULL);
     
     // Get mouse position
     int x,y;
@@ -1386,36 +1386,36 @@ void faustgen::dblclick(long inlet)
     coordinate.x = x;
     coordinate.y = y;
     
-    int choice = jpopupmenu_popup(popup, coordinate, 0);        
+    int choice = jpopupmenu_popup(popup, coordinate, 0);
     
     switch (choice) {
        
-        case 0: 
+        case 1:
             // Open the text editor to allow the user to input Faust sourcecode
             display_dsp_source();
             break;
     
-        case 1: 
+        case 2:
             // Display inside the max window the current values of the module's parameters, as well as their ranges
             display_dsp_params();
             break;
             
-        case 2: 
+        case 3:
             // Display compiler options
             fDSPfactory->print_compile_options();
             break;
   
-        case 3: 
+        case 4:
             // Open the SVG diagram file inside a web browser
             display_svg();
             break;
             
-        case 4: 
+        case 5:
             // Open the PDF documentation
             display_pdf();
             break;
             
-        case 5: 
+        case 6:
             // Open the libraries
             display_libraries();
             break;

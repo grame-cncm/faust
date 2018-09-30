@@ -201,6 +201,7 @@ struct JSONUIDecoder {
         }
         delete [] fInControl;
         delete [] fOutControl;
+        delete [] fSoundfiles;
     }
     
     void metadata(Meta* m)
@@ -312,6 +313,5 @@ struct JSONUIDecoder {
     }
     
 };
-
 
 #endif

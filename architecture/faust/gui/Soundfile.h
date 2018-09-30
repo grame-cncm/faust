@@ -95,7 +95,6 @@ class SoundfileReader {
         soundfile->fLength[part] = BUFFER_SIZE;
         soundfile->fOffset[part] = offset;
         soundfile->fSampleRate[part] = SAMPLE_RATE;
-     
         // Update offset
         offset += soundfile->fLength[part];
     }
@@ -131,16 +130,42 @@ class SoundfileReader {
         }
     }
     
-    virtual void readOne(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) = 0;
-  
-    virtual std::string checkAux(const std::string& path_name) = 0;
+    // To be implemented by subclasses
     
-    virtual void open(const std::string& path_name, int& channels, int& length) = 0;
+    /**
+     * Check the availability of a sound resource.
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     *
+     * @return true if the sound resource is available, false otherwise.
+     */
+    virtual bool checkFile(const std::string& path_name) = 0;
+    
+    /**
+     * Get the channels and length values of the given sound resource.
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     * @param channels - the channels value to be filled with the sound resource number of channel
+     * @param length - the length value to be filled with the sound resource length
+     *
+     */
+    virtual void getParamsFile(const std::string& path_name, int& channels, int& length) = 0;
+    
+    /**
+     * Read one sound resource and fille the 'soundfile' accordingly
+     *
+     * @param path_name - the name of the file, or sound resource identified this way
+     * @param part - the part number to be filled in the soundfile
+     * @param offset - the offset value to be incremented with the actual sound resource length in frames
+     * @param max_chan - the maximum number of mono channels to fill
+     *
+     */
+    virtual void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan) = 0;
     
    public:
     virtual ~SoundfileReader() {}
     
-    Soundfile* read(const std::vector<std::string>& path_name_list, int max_chan)
+    Soundfile* createSoundfile(const std::vector<std::string>& path_name_list, int max_chan)
     {
         try {
             int cur_chan = 1; // At least one buffer
@@ -153,7 +178,7 @@ class SoundfileReader {
                     length = BUFFER_SIZE;
                     chan = 1;
                 } else {
-                    open(path_name_list[i], chan, length);
+                    getParamsFile(path_name_list[i], chan, length);
                 }
                 cur_chan = std::max(cur_chan, chan);
                 total_length += length;
@@ -173,7 +198,7 @@ class SoundfileReader {
                 if (path_name_list[i] == "__empty_sound__") {
                     empty(soundfile, i, offset, max_chan);
                 } else {
-                    readOne(soundfile, path_name_list[i], i, offset, max_chan);
+                    readFile(soundfile, path_name_list[i], i, offset, max_chan);
                 }
             }
             
@@ -194,12 +219,23 @@ class SoundfileReader {
         }
     }
 
-    // Soundfile path checking code
-    static std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name);
+    // Check if a soundfile exists and return its real path_name
+    std::string checkFile(const std::vector<std::string>& sound_directories, const std::string& file_name)
+    {
+        if (checkFile(file_name)) {
+            return file_name;
+        } else {
+            for (int i = 0; i < sound_directories.size(); i++) {
+                std::string path_name = sound_directories[i] + "/" + file_name;
+                if (checkFile(path_name)) { return path_name; }
+            }
+            return "";
+        }
+    }
    
-    // Check if all soundfile exist and return their real path_name
-    static std::vector<std::string> checkFiles(const std::vector<std::string>& sound_directories,
-                                               const std::vector<std::string>& file_name_list)
+    // Check if all soundfiles exist and return their real path_name
+    std::vector<std::string> checkFiles(const std::vector<std::string>& sound_directories,
+                                        const std::vector<std::string>& file_name_list)
     {
         std::vector<std::string> path_name_list;
         for (int i = 0; i < file_name_list.size(); i++) {
