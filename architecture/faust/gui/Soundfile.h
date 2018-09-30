@@ -94,7 +94,6 @@ class SoundfileReader {
     
     void emptyFile(Soundfile* soundfile, int part, int& offset, int max_chan)
     {
-        std::cerr << "SoundfileReader : empty sound at part : " << part << std::endl;
         soundfile->fLength[part] = BUFFER_SIZE;
         soundfile->fSampleRate[part] = SAMPLE_RATE;
         soundfile->fOffset[part] = offset;
