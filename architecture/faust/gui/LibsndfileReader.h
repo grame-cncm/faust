@@ -74,7 +74,7 @@ struct LibsndfileReader : public SoundfileReader {
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
         assert(snd_file);
         
-        int channels = std::min(max_chan, snd_info.channels);
+        int channels = std::min<int>(max_chan, snd_info.channels);
         
         soundfile->fLength[part] = int(snd_info.frames);
         soundfile->fSampleRate[part] = snd_info.samplerate;

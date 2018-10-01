@@ -197,7 +197,7 @@ class SoundfileReader {
                 } else {
                     getParamsFile(path_name_list[i], chan, length);
                 }
-                cur_chan = std::max(cur_chan, chan);
+                cur_chan = std::max<int>(cur_chan, chan);
                 total_length += length;
             }
             

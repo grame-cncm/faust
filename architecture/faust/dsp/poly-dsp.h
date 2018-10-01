@@ -400,7 +400,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                 FAUSTFLOAT* mixChannel = mixBuffer[i];
                 FAUSTFLOAT* outChannel = outputBuffer[i];
                 for (int j = 0; j < count; j++) {
-                    level = std::max(level, (FAUSTFLOAT)fabs(outChannel[j]));
+                    level = std::max<FAUSTFLOAT>(level, (FAUSTFLOAT)fabs(outChannel[j]));
                     mixChannel[j] += outChannel[j];
                 }
             }

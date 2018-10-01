@@ -57,7 +57,7 @@ struct JuceReader : public SoundfileReader {
     {
         ScopedPointer<AudioFormatReader> formatReader = fFormatManager.createReaderFor(File(path_name));
         
-        int channels = std::min(max_chan, int(formatReader->numChannels));
+        int channels = std::min<int>(max_chan, int(formatReader->numChannels));
         
         soundfile->fLength[part] = int(formatReader->lengthInSamples);
         soundfile->fSampleRate[part] = int(formatReader->sampleRate);
