@@ -247,12 +247,13 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
-        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
+    bool is_virtual = lopt(argv, "--virtual-midi", false);
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
@@ -345,7 +346,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-    rt_midi midi_handler(name);
+    rt_midi midi_handler(name, is_virtual);
     midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
