@@ -151,7 +151,7 @@ class rt_midi : public midi_handler {
                     chooseMidiOutPort(fName);
                 } else {
                     if (!openMidiInputPorts())  { stop_midi(); return false; }
-                    std::cout << "Warning : MIDI outputs are not started in this mode !\n";
+                    //std::cout << "Warning : MIDI outputs are not started in this mode !\n";
                 }
             #endif
                 return true;
