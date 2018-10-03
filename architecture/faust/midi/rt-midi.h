@@ -79,8 +79,7 @@ class rt_midi : public midi_handler {
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
                 midi_in->setCallback(&midiCallback, this);
-                std::string portName = midi_in->getPortName(i);
-                std::cout << "Input port #" << i << ": " << portName << '\n';
+                //std::cout << "Input port #" << i << ": " << midi_in->getPortName(i) << '\n';
             }
             return true;
         }
@@ -100,8 +99,7 @@ class rt_midi : public midi_handler {
                 RtMidiOut* midi_out = new RtMidiOut();
                 fOutput.push_back(midi_out);
                 midi_out->openPort(i);
-                std::string portName = midi_out->getPortName(i);
-                std::cout << "Output port #" << i << ": " << portName << '\n';
+                //std::cout << "Output port #" << i << ": " << midi_out->getPortName(i) << '\n';
             }
             return true;
         }
@@ -153,7 +151,7 @@ class rt_midi : public midi_handler {
                     chooseMidiOutPort(fName);
                 } else {
                     if (!openMidiInputPorts())  { stop_midi(); return false; }
-                    if (!openMidiOutputPorts()) { stop_midi(); return false; }
+                    std::cout << "Warning : MIDI outputs are not started in this mode !\n";
                 }
             #endif
                 return true;

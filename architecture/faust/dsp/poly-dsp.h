@@ -212,10 +212,10 @@ struct dsp_voice : public MapUI, public decorator_dsp {
     // Normalized MIDI velocity [0..1]
     void keyOn(int pitch, float velocity, bool trigger)
     {
-        for (int i = 0; i < fFreqPath.size(); i++) {
+        for (size_t i = 0; i < fFreqPath.size(); i++) {
             setParamValue(fFreqPath[i], midiToFreq(pitch));
         }
-        for (int i = 0; i < fGainPath.size(); i++) {
+        for (size_t i = 0; i < fGainPath.size(); i++) {
             setParamValue(fGainPath[i], velocity);
         }
         fNote = pitch;
@@ -228,7 +228,7 @@ struct dsp_voice : public MapUI, public decorator_dsp {
         fTrigger = false;
         
         // No use of velocity for now...
-        for (int i = 0; i < fGatePath.size(); i++) {
+        for (size_t i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(0));
         }
         
@@ -254,11 +254,11 @@ struct dsp_voice : public MapUI, public decorator_dsp {
 
     void trigger(int count, FAUSTFLOAT** inputs, FAUSTFLOAT** outputs)
     {
-        for (int i = 0; i < fGatePath.size(); i++) {
+        for (size_t i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(0));
         }
         computeSlice(0, 1, inputs, outputs);
-        for (int i = 0; i < fGatePath.size(); i++) {
+        for (size_t i = 0; i < fGatePath.size(); i++) {
             setParamValue(fGatePath[i], FAUSTFLOAT(1));
         }
         computeSlice(1, count - 1, inputs, outputs);
