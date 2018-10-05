@@ -362,7 +362,7 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
-    
+
     static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };
 

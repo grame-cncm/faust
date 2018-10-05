@@ -387,7 +387,7 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 #endif
 
-// Instance API
+    // Instance API
 
 #ifdef EMCC
 

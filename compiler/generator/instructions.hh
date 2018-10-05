@@ -286,9 +286,9 @@ struct CloneVisitor : public virtual Garbageable {
     virtual StatementInst* visit(SwitchInst* inst)  = 0;
 
     // Loops
-    virtual StatementInst* visit(ForLoopInst* inst)   = 0;
-    virtual StatementInst* visit(SimpleForLoopInst* inst)   = 0;
-    virtual StatementInst* visit(WhileLoopInst* inst) = 0;
+    virtual StatementInst* visit(ForLoopInst* inst)       = 0;
+    virtual StatementInst* visit(SimpleForLoopInst* inst) = 0;
+    virtual StatementInst* visit(WhileLoopInst* inst)     = 0;
 
     // Block
     virtual StatementInst* visit(BlockInst* inst) = 0;
@@ -1196,11 +1196,11 @@ struct ForLoopInst : public StatementInst {
 };
 
 struct SimpleForLoopInst : public StatementInst {
-    ValueInst*  fUpperBound;
-    string fName;
+    ValueInst* fUpperBound;
+    string     fName;
     ValueInst* fLowerBound;
-    bool fReverse;
-    BlockInst*     fCode;
+    bool       fReverse;
+    BlockInst* fCode;
 
     SimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound, bool reverse, BlockInst* code)
         : fUpperBound(upperBound), fName(index), fLowerBound(lowerBound), fReverse(reverse), fCode(code)
@@ -1365,7 +1365,8 @@ class BasicCloneVisitor : public CloneVisitor {
 
     virtual StatementInst* visit(SimpleForLoopInst* inst)
     {
-      return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this), inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
+        return new SimpleForLoopInst(inst->fName, inst->fUpperBound->clone(this), inst->fLowerBound->clone(this),
+                                     inst->fReverse, static_cast<BlockInst*>(inst->fCode->clone(this)));
     }
 
     virtual StatementInst* visit(WhileLoopInst* inst)
@@ -1923,8 +1924,9 @@ struct InstBuilder {
         return new ForLoopInst(init, end, increment, code);
     }
 
-    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound, ValueInst* lowerBound = new Int32NumInst(0), bool reverse=false,
-                                       BlockInst* code = new BlockInst())
+    static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,
+                                                   ValueInst* lowerBound = new Int32NumInst(0), bool reverse = false,
+                                                   BlockInst* code = new BlockInst())
     {
         faustassert(dynamic_cast<Int32NumInst*>(upperBound) || dynamic_cast<LoadVarInst*>(upperBound));
         faustassert(dynamic_cast<Int32NumInst*>(lowerBound) || dynamic_cast<LoadVarInst*>(lowerBound));
@@ -2067,7 +2069,8 @@ struct InstBuilder {
     }
 
     template <typename Iterator>
-    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin, Iterator indexEnd)
+    static StoreVarInst* genStoreArrayStructVar(const string& vname, ValueInst* exp, Iterator indexBegin,
+                                                Iterator indexEnd)
     {
         typedef reverse_iterator<Iterator> Rit;
         Rit                                rbegin(indexEnd);
@@ -2207,7 +2210,10 @@ struct InstBuilder {
         return genDeclareVarInst(genNamedAddress(vname, Address::kLoop), type, exp);
     }
 
-    static LoadVarInst* genLoadLoopVar(const string& vname) { return genLoadVarInst(genNamedAddress(vname, Address::kLoop)); }
+    static LoadVarInst* genLoadLoopVar(const string& vname)
+    {
+        return genLoadVarInst(genNamedAddress(vname, Address::kLoop));
+    }
 
     static StoreVarInst* genStoreLoopVar(const string& vname, ValueInst* exp)
     {

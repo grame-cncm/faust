@@ -148,7 +148,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
 EXPORT void deleteAllWasmCDSPFactories()
 {
     deleteAllWasmDSPFactories();
