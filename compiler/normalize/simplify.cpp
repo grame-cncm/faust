@@ -109,6 +109,9 @@ static Tree simplification(Tree sig)
         if (isNum(n1) && isNum(n2))
             return tree(op->compute(n1, n2));
 
+        else if (opnum == kSub && isZero(n1))
+            return sigBinOp(kMul, sigInt(-1), t2);
+
         else if (op->isLeftNeutral(n1))
             return t2;
 
