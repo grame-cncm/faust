@@ -96,12 +96,12 @@ class CPPInstVisitor : public TextInstVisitor {
 
         // Polymath mapping int version
         gPolyMathLibTable["abs"]   = "std::abs";
-        gPolyMathLibTable["max_i"] = "std::max";
-        gPolyMathLibTable["min_i"] = "std::min";
+        gPolyMathLibTable["max_i"] = "std::max<int>";
+        gPolyMathLibTable["min_i"] = "std::min<int>";
 
         // Polymath mapping float version
-        gPolyMathLibTable["max_f"] = "std::max";
-        gPolyMathLibTable["min_f"] = "std::min";
+        gPolyMathLibTable["max_f"] = "std::max<float>";
+        gPolyMathLibTable["min_f"] = "std::min<float>";
 
         gPolyMathLibTable["fabsf"]      = "std::fabs";
         gPolyMathLibTable["acosf"]      = "std::acos";
@@ -126,8 +126,8 @@ class CPPInstVisitor : public TextInstVisitor {
         gPolyMathLibTable["tanf"]       = "std::tan";
 
         // Polymath mapping double version
-        gPolyMathLibTable["max_"] = "std::max";
-        gPolyMathLibTable["min_"] = "std::min";
+        gPolyMathLibTable["max_"] = "std::max<double>";
+        gPolyMathLibTable["min_"] = "std::min<double>";
 
         gPolyMathLibTable["fabs"]      = "std::fabs";
         gPolyMathLibTable["acos"]      = "std::acos";

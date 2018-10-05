@@ -528,7 +528,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         {
             var voice = this.getPlayingVoice(pitch);
             if (voice !== this.kNoVoice) {
-                // Be sure the voice is not trigerred
+                // Be sure the voice is not triggered
                 this.dsp_voices_trigger[voice] = false;	
                 if (this.debug) {
                     console.log("keyOff voice %d", voice);

@@ -74,22 +74,22 @@ extern "C" EXPORT const char* getCLibFaustVersion()
 #endif
 
 // Debug tools
-EXPORT extern "C" void printInt32(int val)
+extern "C" EXPORT void printInt32(int val)
 {
     std::cout << "printInt32 : " << val << std::endl;
 }
 
-EXPORT extern "C" void printFloat(float val)
+extern "C" EXPORT void printFloat(float val)
 {
     std::cout << "printFloat : " << val << std::endl;
 }
 
-EXPORT extern "C" void printDouble(double val)
+extern "C" EXPORT void printDouble(double val)
 {
     std::cout << "printDouble : " << val << std::endl;
 }
 
-EXPORT extern "C" void printPtr(void* val)
+extern "C" EXPORT void printPtr(void* val)
 {
     std::cout << "printPtr : " << val << std::endl;
 }

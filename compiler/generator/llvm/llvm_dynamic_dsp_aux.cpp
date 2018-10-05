@@ -161,11 +161,11 @@ void llvm_dynamic_dsp_factory_aux::write(std::ostream* out, bool binary, bool sm
     string             res;
     raw_string_ostream out_str(res);
     if (binary) {
-    #if defined(LLVM_70)
+#if defined(LLVM_70)
         WriteBitcodeToFile(*fModule, out_str);
-    #else
+#else
         WriteBitcodeToFile(fModule, out_str);
-    #endif
+#endif
     } else {
         out_str << *fModule;
     }
@@ -329,7 +329,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
     string target_suffix = "-elf";
 #else
-    string target_suffix = "";
+    string        target_suffix = "";
 #endif
 
     string triple, cpu;

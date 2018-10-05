@@ -19,22 +19,21 @@
  ************************************************************************
  ************************************************************************/
 
- #ifndef _RUST_INSTRUCTION_COMPILER_H
- #define _RUST_INSTRUCTION_COMPILER_H
+#ifndef _RUST_INSTRUCTION_COMPILER_H
+#define _RUST_INSTRUCTION_COMPILER_H
 
- #include "instructions_compiler.hh"
+#include "instructions_compiler.hh"
 
- class RustInstructionsCompiler : public InstructionsCompiler {
- public:
+class RustInstructionsCompiler : public InstructionsCompiler {
+   public:
     RustInstructionsCompiler(CodeContainer* container);
 
-private:
+   private:
     StatementInst* generateInitArray(const string& vname, Typed::VarType ctype, int delay);
 
     StatementInst* generateShiftArray(const string& vname, int delay);
 
     StatementInst* generateCopyArray(const string& vname_to, const string& vname_from, int size);
+};
 
- };
-
- #endif
+#endif

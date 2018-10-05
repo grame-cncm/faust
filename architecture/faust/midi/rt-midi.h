@@ -41,7 +41,8 @@ class rt_midi : public midi_handler {
     
         std::vector<RtMidiIn*> fInput;
         std::vector<RtMidiOut*> fOutput;
-        
+        bool fIsVirtual;
+    
         static void midiCallback(double time, std::vector<unsigned char>* message, void* arg)
         {
             rt_midi* midi = static_cast<rt_midi*>(arg);
@@ -78,8 +79,7 @@ class rt_midi : public midi_handler {
                 fInput.push_back(midi_in);
                 midi_in->openPort(i);
                 midi_in->setCallback(&midiCallback, this);
-                std::string portName = midi_in->getPortName(i);
-                std::cout << "Input port #" << i << ": " << portName << '\n';
+                //std::cout << "Input port #" << i << ": " << midi_in->getPortName(i) << '\n';
             }
             return true;
         }
@@ -99,8 +99,7 @@ class rt_midi : public midi_handler {
                 RtMidiOut* midi_out = new RtMidiOut();
                 fOutput.push_back(midi_out);
                 midi_out->openPort(i);
-                std::string portName = midi_out->getPortName(i);
-                std::cout << "Output port #" << i << ": " << portName << '\n';
+                //std::cout << "Output port #" << i << ": " << midi_out->getPortName(i) << '\n';
             }
             return true;
         }
@@ -131,7 +130,7 @@ class rt_midi : public midi_handler {
     
     public:
     
-        rt_midi(const std::string& name = "RtMidi"):midi_handler(name)
+        rt_midi(const std::string& name = "RtMidi", bool is_virtual = false):midi_handler(name), fIsVirtual(is_virtual)
         {}
         
         virtual ~rt_midi()
@@ -147,8 +146,13 @@ class rt_midi : public midi_handler {
                 if (!openMidiInputPorts())  { stop_midi(); return false; }
                 if (!openMidiOutputPorts()) { stop_midi(); return false; }
             #else
-                chooseMidiInputPort(fName);
-                chooseMidiOutPort(fName);
+                if (fIsVirtual) {
+                    chooseMidiInputPort(fName);
+                    chooseMidiOutPort(fName);
+                } else {
+                    if (!openMidiInputPorts())  { stop_midi(); return false; }
+                    //std::cout << "Warning : MIDI outputs are not started in this mode !\n";
+                }
             #endif
                 return true;
                 

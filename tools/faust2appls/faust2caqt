@@ -177,7 +177,6 @@ EndOfCode
         make
     ) > /dev/null || exit
 
-
     if [ "$SOUNDFILE" = "1" ]; then
         echo $p.json
         # get all soundfiles from the JSON file

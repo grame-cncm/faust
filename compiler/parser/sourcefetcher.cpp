@@ -658,8 +658,6 @@ void http_perror(const char* string)
  */
 const char* http_strerror()
 {
-	extern int errno;
-
 	if (errorSource == ERRNO)
 		return strerror(errno);
 	else if (errorSource == H_ERRNO)

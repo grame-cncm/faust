@@ -198,6 +198,7 @@ faust.debug = false;
 
 // Low-level API
 faust.createWasmCDSPFactoryFromString = faust_module.cwrap('createWasmCDSPFactoryFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
+faust.deleteAllWasmCDSPFactories = faust_module.cwrap('deleteAllWasmCDSPFactories', null, []);
 faust.expandCDSPFromString = faust_module.cwrap('expandCDSPFromString', 'number', ['number', 'number', 'number', 'number', 'number', 'number']);
 faust.getCLibFaustVersion = faust_module.cwrap('getCLibFaustVersion', 'number', []);
 faust.getWasmCModule = faust_module.cwrap('getWasmCModule', 'number', ['number']);
@@ -693,7 +694,13 @@ faust.readDSPFactoryFromMachineAux = function (factory_name1,
     .catch(function(error) { console.log(error); faust.error_msg = "Faust DSP factory cannot be compiled"; callback(null); });
 }
 
-faust.deleteDSPFactory = function (factory) { faust.factory_table[factory.sha_key] = null; };
+faust.deleteDSPFactory = function (factory) 
+{ 
+	// The JS side is cleared
+	faust.factory_table[factory.sha_key] = null;
+	// The native C++ is cleared each time (freeWasmCModule has been already called in faust.compile)  
+	faust.deleteAllWasmCDSPFactories();
+ };
 
 // 'mono' DSP
 
@@ -2410,7 +2417,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) {
-            // Be sure the voice is not trigerred
+            // Be sure the voice is not triggered
             sp.dsp_voices_trigger[voice] = false;  
             if (faust.debug) {
                 console.log("keyOff voice %d", voice);
@@ -3230,7 +3237,7 @@ var mydspPolyProcessorString = `
             {
                 var voice = this.getPlayingVoice(pitch);
                 if (voice !== this.kNoVoice) {
-                    // Be sure the voice is not trigerred
+                    // Be sure the voice is not triggered
                     this.dsp_voices_trigger[voice] = false;  
                     // No use of velocity for now...
                     for (var i = 0; i < this.fGateLabel.length; i++) {

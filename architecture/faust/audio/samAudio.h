@@ -130,7 +130,7 @@ class samAudio : public audio {
     
         void processAudioCallback()
         {
-            // faust compute function
+            // Faust compute function
             fDSP->compute(iBufferSize, inputsArray, outputsArray);
         }
          

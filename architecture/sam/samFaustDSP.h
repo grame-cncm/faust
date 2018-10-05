@@ -42,9 +42,6 @@ class samFaustDSP
     
     private:
     
-        // the dsp object
-        mydsp* fDSP;
-    
         // the polyphonic engine
         FaustPolyEngine* fPolyEngine;
     

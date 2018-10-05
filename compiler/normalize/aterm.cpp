@@ -105,7 +105,7 @@ static void addTermsWithSign(bool p1, Tree v1, bool p2, Tree v2, bool& p3, Tree&
         v3 = v1;
         return;
     }
-    if (p1 & p2) {
+    if (p1 && p2) {
         p3 = true;
         v3 = sigAdd(v1, v2);
         return;

@@ -160,7 +160,7 @@ class sound_base_player : public dsp {
         {
             if (fPlayButton == FAUSTFLOAT(1) && fMutex.try_lock()) {
                 
-                int rcount = std::min(count, int(fInfo.frames - fCurFrames));
+                int rcount = std::min<int>(count, int(fInfo.frames - fCurFrames));
                 playSlice(rcount, fCurFrames, 0, outputs);
                 
                 if (rcount < count) {

@@ -581,7 +581,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     {
         var voice = sp.getPlayingVoice(pitch);
         if (voice !== sp.kNoVoice) { 
-            // Be sure the voice is not trigerred
+            // Be sure the voice is not triggered
             sp.dsp_voices_trigger[voice] = false;      
             if (faust.debug)
                 console.log("keyOff voice %d", voice);

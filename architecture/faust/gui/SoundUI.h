@@ -92,7 +92,15 @@ class SoundUI : public GenericUI
                 // Check all files and get their complete path
                 std::vector<std::string> path_name_list = reader.checkFiles(fSoundfileDir, file_name_list);
                 // Read them and create the Soundfile
-                fSoundfileMap[saved_url] = reader.createSoundfile(path_name_list, MAX_CHAN);
+                Soundfile* sound_file = reader.createSoundfile(path_name_list, MAX_CHAN);
+                if (sound_file) {
+                    fSoundfileMap[saved_url] = sound_file;
+                } else {
+                    // If failure, use 'defaultsound'
+                    std::cerr << "addSoundfile : soundfile for " << saved_url << " cannot be created !" << std::endl;
+                    *sf_zone = defaultsound;
+                    return;
+                }
             }
             
             // Get the soundfile

@@ -1,14 +1,4 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
@@ -52,7 +42,7 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
@@ -72,8 +62,11 @@
 
 <<includeclass>>
 
-#ifdef POLY
 #include "faust/dsp/poly-dsp.h"
+
+#ifdef POLY2
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
 #endif
 
 /***************************END USER SECTION ***************************/
@@ -93,59 +86,90 @@ ztimedmap GUI::gTimedZoneMap;
 *******************************************************************************
 *******************************************************************************/
 
-static bool hasMIDISync()
-{
-    JSONUI jsonui;
-    mydsp* tmp_dsp = new mydsp();
-    tmp_dsp->buildUserInterface(&jsonui);
-    std::string json = jsonui.JSON();
-    delete tmp_dsp;
-    
-    return ((json.find("midi") != std::string::npos) &&
-            ((json.find("start") != std::string::npos) ||
-            (json.find("stop") != std::string::npos) ||
-            (json.find("clock") != std::string::npos)));
-}
-
 int main(int argc, char *argv[])
 {
     char name[256];
     char rcfilename[256];
     char* home = getenv("HOME");
+    bool midi_sync = false;
+    int nvoices = 0;
+    mydsp_poly* dsp_poly = NULL;
+    
+    mydsp* tmp_dsp = new mydsp();
+    MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
+    delete tmp_dsp;
 
     snprintf(name, 256, "%s", basename(argv[0]));
     snprintf(rcfilename, 256, "%s/.%src", home, name);
+    
+    if (isopt(argv, "-h")) {
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <num>] [--group <0/1>] [--virtual-midi <0/1>]\n";
+        exit(1);
+    }
 
     long srate = (long)lopt(argv, "--frequency", 44100);
     int fpb = lopt(argv, "--buffer", 128);
+    bool is_virtual = lopt(argv, "--virtual-midi", false);
      
-#ifdef POLY
-    int poly = lopt(argv, "--poly", 4);
+#ifdef POLY2
+    nvoices = lopt(argv, "--nvoices", nvoices);
     int group = lopt(argv, "--group", 1);
-
+    std::cout << "Started with " << nvoices << " voices\n";
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+    
 #if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp_poly(new mydsp(), poly, true, group));
+    if (midi_sync) {
+        DSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
     } else {
-        DSP = new mydsp_poly(new mydsp(), poly, true, group);
+        DSP = new dsp_sequencer(dsp_poly, new effect());
     }
 #else
-    DSP = new mydsp_poly(new mydsp(), poly, false, group);
+    DSP = new dsp_sequencer(dsp_poly, new effect());
 #endif
-
+    
 #else
-
+    nvoices = lopt(argv, "--nvoices", nvoices);
+    int group = lopt(argv, "--group", 1);
+    
+    std::cout << "nvoices  " << nvoices << " voices\n";
+    
+    
+    if (nvoices > 0) {
+        std::cout << "Started with " << nvoices << " voices\n";
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
+        
 #if MIDICTRL
-    if (hasMIDISync()) {
-        DSP = new timed_dsp(new mydsp());
+        if (midi_sync) {
+            DSP = new timed_dsp(dsp_poly);
+        } else {
+            DSP = dsp_poly;
+        }
+#else
+        DSP = dsp_poly;
+#endif
+        
     } else {
+#if MIDICTRL
+        if (midi_sync) {
+            DSP = new timed_dsp(new mydsp());
+        } else {
+            DSP = new mydsp();
+        }
+#else
+        // We possibly have a file...
+        /*
+         try {
+            DSP = new dsp_sequencer(new sound_player(stringify_expanded(SOUND_FILE)), new mydsp());
+         } catch (...) {
+            DSP = new mydsp();
+         }
+         */
         DSP = new mydsp();
+#endif
     }
-#else
-    DSP = new mydsp();
+    
 #endif
-
-#endif
+    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -159,7 +183,8 @@ int main(int argc, char *argv[])
     DSP->buildUserInterface(finterface);
 
 #ifdef MIDICTRL
-    rt_midi midi_handler(name);
+    rt_midi midi_handler(name, is_virtual);
+    midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
     std::cout << "MIDI is on" << std::endl;
@@ -181,9 +206,9 @@ int main(int argc, char *argv[])
     finterface->recallState(rcfilename);
     audio.start();
 
-    printf("ins %d\n", audio.getNumInputs());
-    printf("outs %d\n", audio.getNumOutputs());
-
+    std::cout << "ins " << audio.getNumInputs() << std::endl;
+    std::cout << "outs " << audio.getNumOutputs() << std::endl;
+    
 #ifdef HTTPCTRL
     httpdinterface.run();
 #ifdef QRCODECTRL
@@ -214,6 +239,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
 

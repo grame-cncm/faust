@@ -1,14 +1,4 @@
 /************************************************************************
-
-	IMPORTANT NOTE : this file contains two clearly delimited sections :
-	the ARCHITECTURE section (in two parts) and the USER section. Each section
-	is governed by its own copyright and license. Please check individually
-	each section for license and copyright information.
-*************************************************************************/
-
-/*******************BEGIN ARCHITECTURE SECTION (part 1/2)****************/
-
-/************************************************************************
     FAUST Architecture File
     Copyright (C) 2003-2011 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
@@ -72,7 +62,7 @@ static void osc_compute_callback(void* arg)
 #include "faust/gui/SoundUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL
@@ -247,12 +237,13 @@ int main(int argc, char *argv[])
 	snprintf(rcfilename, 256, "%s/.%src", home, name);
     
     if (isopt(argv, "-h")) {
-        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>]\n";
+        std::cout << "prog [--frequency <val>] [--buffer <val>] [--nvoices <val>] [--group <0/1>] [--virtual-midi <0/1>]\n";
         exit(1);
     }
     
     long srate = (long)lopt(argv, "--frequency", -1);
     int fpb = lopt(argv, "--buffer", 512);
+    bool is_virtual = lopt(argv, "--virtual-midi", false);
     
 #ifdef POLY2
     nvoices = lopt(argv, "--nvoices", nvoices);
@@ -310,9 +301,6 @@ int main(int argc, char *argv[])
     
 #endif
     
-    // To test dsp_sample_adapter
-    //DSP = new dsp_sample_adapter<float>(DSP);
-    
     if (DSP == 0) {
         std::cerr << "Unable to allocate Faust DSP object" << std::endl;
         exit(1);
@@ -345,7 +333,7 @@ int main(int argc, char *argv[])
 #endif
 
 #ifdef MIDICTRL
-    rt_midi midi_handler(name);
+    rt_midi midi_handler(name, is_virtual);
     midi_handler.addMidiIn(dsp_poly);
     MidiUI midiinterface(&midi_handler);
     DSP->buildUserInterface(&midiinterface);
@@ -406,7 +394,5 @@ int main(int argc, char *argv[])
     
     return 0;
 }
-
-/********************END ARCHITECTURE SECTION (part 2/2)****************/
 
 

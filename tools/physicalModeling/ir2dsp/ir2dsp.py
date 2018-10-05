@@ -1,7 +1,8 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 # id2dsp.py
 # Copyright Pierre-Amaury Grumiaux, Pierre Jouvelot, Emilio Jesus Gallego Arias,
-# and Romain Michon
+# Romain Michon and Jakob Dübel
 
 from __future__ import division
 import math
@@ -88,9 +89,10 @@ print(peakst60)
 # Writing the dsp file #
 # #######################
 file = open(modelName + ".dsp", "w")
-file.write("import(\"pm.lib\");\n")
-file.write("import(\"libraries/old/music.lib\");\n\n")
-file.write("pi = 4*atan(1.0);\n")
+file.write("// -*-Faust-*-\n")
+file.write("// generated with ir2dsp.py {0} {1} {2}\n".format(modelName, peakThreshold, peakDistance))
+file.write("declare name \"{0}\";\n".format(modelName))
+file.write("import(\"stdfaust.lib\");\n")
 file.write("nModes = ")
 file.write(str(len(peaksGains)))
 file.write(";\n")
@@ -118,11 +120,11 @@ for i in peakst60:
 		file.write(",")
 	k += 1
 file.write(");\n");
-file.write("modeFreqs=par(i,nModes,take(i+1, modeFrequencies));\n")
-file.write("modeGains=par(i,nModes,take(i+1, massEigenValues));\n")
-file.write("modeT60 = par(i,nModes,take(i+1,t60));\n")
+file.write("modeFreqs=par(i,nModes,ba.take(i+1, modeFrequencies));\n")
+file.write("modeGains=par(i,nModes,ba.take(i+1, massEigenValues));\n")
+file.write("modeT60 = par(i,nModes,ba.take(i+1,t60));\n")
 file.write(modelName)
-file.write("=modalModel(nModes,modeFrequencies,modeGains,modeT60);");
+file.write("=pm.modalModel(nModes,modeFreqs,modeT60,modeGains);");
 file.write('\ngate = button("gate");')
-file.write("\nprocess = impulseExcitation(gate) : " + modelName + " <: _,_; ")
+file.write("\nprocess = pm.impulseExcitation(gate) : " + modelName + " <: _,_; ")
 file.close();

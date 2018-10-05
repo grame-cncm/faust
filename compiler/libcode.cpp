@@ -45,13 +45,13 @@
 #include "garbageable.hh"
 #include "global.hh"
 #include "instructions_compiler.hh"
-#include "rust_instructions_compiler.hh"
 #include "libfaust.h"
 #include "ppbox.hh"
 #include "ppsig.hh"
 #include "privatise.hh"
 #include "propagate.hh"
 #include "recursivness.hh"
+#include "rust_instructions_compiler.hh"
 #include "schema.h"
 #include "signals.hh"
 #include "sigprint.hh"
@@ -1354,11 +1354,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gVectorSwitch) {
                 new_comp = new DAGInstructionsCompiler(container);
             }
-        #ifdef RUST_BUILD
+#ifdef RUST_BUILD
             else if (gGlobal->gOutputLang == "rust") {
                 new_comp = new RustInstructionsCompiler(container);
             }
-        #endif
+#endif
             else {
                 new_comp = new InstructionsCompiler(container);
             }

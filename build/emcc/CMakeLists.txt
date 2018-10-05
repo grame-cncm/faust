@@ -11,7 +11,7 @@ endif()
 
 ####################################
 # emscripten support
-set (WASM_EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']\"")
+set (WASM_EXPORTED "\"['_createWasmCDSPFactoryFromString', '_expandCDSPFromString', '_deleteAllWasmCDSPFactories', '_getCLibFaustVersion', '_getWasmCModule', '_getWasmCModuleSize', '_getWasmCHelpers', '_freeWasmCModule', '_freeCMemory', '_cleanupAfterException', '_getErrorAfterException']\"")
 set (WASM_EXTRA_EXPORTED "\"['cwrap', 'Pointer_stringify', 'stringToUTF8']\"")
 
 set (ASMJS_EXPORTED "\"['_createAsmCDSPFactoryFromString', '_expandCDSPFromString', '_getCLibFaustVersion', '_freeCMemory']\"")

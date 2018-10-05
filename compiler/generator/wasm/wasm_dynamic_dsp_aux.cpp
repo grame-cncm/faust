@@ -91,7 +91,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
 
         wasm_dsp_factory* factory = 0;
 
-        if (gWasmFactoryTable.getFactory(sha_key, it)) {
+        if (wasm_dsp_factory::gWasmFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
             sfactory->addReference();
             return sfactory;
@@ -101,7 +101,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
             if (dsp_factory_aux) {
                 dsp_factory_aux->setName(name_app);
                 wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
-                gWasmFactoryTable.setFactory(factory);
+                wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
                 factory->setSHAKey(sha_key);
                 factory->setDSPCode(expanded_dsp_content);
                 return factory;
@@ -136,7 +136,7 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
     if (dsp_factory_aux) {
         dsp_factory_aux->setName(name_app);
         wasm_dsp_factory* factory = new wasm_dsp_factory(dsp_factory_aux);
-        gWasmFactoryTable.setFactory(factory);
+        wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
         factory->setSHAKey(sha_key);
         factory->setDSPCode(expanded_dsp_content);
         return factory;
@@ -148,6 +148,11 @@ EXPORT wasm_dsp_factory* createWasmDSPFactoryFromString(const string& name_app, 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+EXPORT void deleteAllWasmCDSPFactories()
+{
+    deleteAllWasmDSPFactories();
+}
 
 EXPORT wasm_dsp_factory* createWasmCDSPFactoryFromFile2(const char* filename, int argc, const char* argv[],
                                                         char* error_msg, bool internal_memory)

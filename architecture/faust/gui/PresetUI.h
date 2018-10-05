@@ -27,7 +27,6 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
@@ -53,6 +52,7 @@ class PresetUI : public DecoratorUI
         FAUSTFLOAT fPreset;
         FAUSTFLOAT fLoad;
         FAUSTFLOAT fSave;
+        FAUSTFLOAT fReset;
         FUI fFileUI;
         LoaderUI fLoaderUI;
         std::string fRootFolder;
@@ -71,13 +71,22 @@ class PresetUI : public DecoratorUI
             }
         }
     
+        static void reset(FAUSTFLOAT val, void* arg)
+        {
+            if (val == FAUSTFLOAT(1)) {
+                static_cast<PresetUI*>(arg)->loadDefault();
+            }
+        }
+    
         void checkOpenFirstBox(const char* label)
         {
             if (fGroupCount++ == 0) {
+                // Start of top-level group
                 fUI->openHorizontalBox("Preset manager");
                 fUI->addButton("Save", &fSave);
-                fUI->addNumEntry("Number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
+                fUI->addNumEntry("Preset", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Load", &fLoad);
+                fUI->addButton("Reset", &fReset);
                 fUI->closeBox();
             }
         }
@@ -90,6 +99,7 @@ class PresetUI : public DecoratorUI
             fPreset(FAUSTFLOAT(0)),
             fSave(FAUSTFLOAT(0)),
             fLoad(FAUSTFLOAT(0)),
+            fReset(FAUSTFLOAT(0)),
             fLoaderUI(this),
             fRootFolder(root_folfer)
         {}
@@ -97,14 +107,28 @@ class PresetUI : public DecoratorUI
         virtual ~PresetUI()
         {}
     
-        virtual void saveState()
+        void saveDefault()
+        {
+            std::stringstream str;
+            str << fRootFolder << "_default";
+            fFileUI.saveState(str.str().c_str());
+        }
+        
+        void loadDefault()
+        {
+            std::stringstream str;
+            str << fRootFolder << "_default";
+            fFileUI.recallState(str.str().c_str());
+        }
+    
+        void saveState()
         {
             std::stringstream str;
             str << fRootFolder << "_preset" << int(fPreset);
             fFileUI.saveState(str.str().c_str());
         }
     
-        virtual void loadState()
+        void loadState()
         {
             std::stringstream str;
             str << fRootFolder << "_preset" << int(fPreset);
@@ -132,9 +156,11 @@ class PresetUI : public DecoratorUI
         }
         virtual void closeBox()
         {
-            fGroupCount--;
             fUI->closeBox();
-            fFileUI.closeBox();
+            if (fGroupCount-- == 0) {
+                // End of top-level group
+                saveDefault();
+            }
         }
     
         // -- active widgets
@@ -195,6 +221,7 @@ LoaderUI::LoaderUI(PresetUI* presetui)
 {
     new uiCallbackItem(this, &presetui->fLoad, PresetUI::load, presetui);
     new uiCallbackItem(this, &presetui->fSave, PresetUI::save, presetui);
+    new uiCallbackItem(this, &presetui->fReset, PresetUI::reset, presetui);
 }
 
 #endif
