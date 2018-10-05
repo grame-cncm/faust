@@ -185,7 +185,7 @@ gate = keyDown + keyDownHold + sustain : min(1);
 
 attT60 = 0.001 * ng(vslider("[0] AttackA [midi:ctrl 43] [tooltip: Attack Time] [unit:ms] [style: knob]",2,0,5000,0.1));
 decT60 = 0.001 * ng(vslider("[0] DecayA [midi:ctrl 44] [tooltip: Decay-to-Sustain Time] [unit:ms] [style: knob]",10,0,10000,0.1));
-susLvl = ng(vslider("[0] SustainA [midi:ctrl 45] [tooltip: Sustain level as percent of max] [style: knob]",80,0,100,0.1));
+susLvl = 0.01 * ng(vslider("[0] SustainA [midi:ctrl 45] [tooltip: Sustain level as percent of max] [style: knob]",80,0,100,0.1));
 relT60 = select2(decayButton,0.010,decT60); // right?
 envelopeAmpNoAM = en.adsre(attT60,decT60,susLvl,relT60,gate);
 AMDepth = 0.5;
