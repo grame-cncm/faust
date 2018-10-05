@@ -494,4 +494,475 @@ faust2faustvst -h
 
 for additional help and options.
 
+### `faust2firefox`
 
+`faust2faustvst` converts a Faust program into a block diagram and opens it
+in the default web browser of the system. It can be seen as a subset of
+[`faust2svg`](#faust2svg)
+
+**Platforms**
+
+* MacOS
+* Linux
+
+**Usage**
+
+```
+faust2firefox faustFile.dsp
+```
+
+### `faust2gen`
+
+`faust2gen` compiles a Faust program to a `faustgen~` patch for 
+[MaxMSP](https://cycling74.com/products/max/).
+
+**Platforms**
+
+* MacOS
+* Windows
+
+**Dependencies**
+
+* MaxMSP SDK
+
+**Usage**
+
+```
+faust2gen [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2gen -h
+```
+
+for additional help and options.
+
+### `faust2graph`
+
+`faust2graph` simply calls `faust` with the 
+[`-tg` option](#compilation-options) which generates the corresponding graph of
+internal computational loops.
+
+**Platforms**
+
+* MacOS
+* Linux
+
+**Usage**
+
+```
+faust2graph [OPTIONS] faustFile.dsp
+```
+
+### `faust2graphviewer`
+
+`faust2graphviewer` simply calls [`faust2graph`](#faust2graph) and then opens
+the generated file in the default viewer.
+
+**Platforms**
+
+* MacOS
+* Linux
+
+**Usage**
+
+```
+faust2graphviewer [OPTIONS] faustFile.dsp
+```
+
+### `faust2ios`
+
+`faust2ios` turns a Faust program into a ready-to-use iOS application. While
+the app might be compiled directly from the command line calling this script,
+it will be necessary in most cases to generate an Xcode project to fix the 
+bundle identifier of the app, etc.
+
+**Platforms**
+
+* iOS
+
+**Dependencies**
+
+* iOS SDK / development tools
+
+**Usage**
+
+```
+faust2ios [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2ios -h
+```
+
+for additional help and options.
+
+### `faust2jack`
+
+`faust2jack` turns a Faust program into a standalone application with a 
+[Jack audio engine](http://jackaudio.org/) and a [GTK](https://www.gtk.org/) 
+interface.
+
+**Platforms**
+
+* Linux
+* MacOS
+
+**Dependencies**
+
+* Jack development libraries
+* GTK development libraries
+
+**Usage**
+
+```
+faust2jack [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2jack -h
+```
+
+for additional help and options.
+
+### `faust2jackconsole`
+
+`faust2jackconsole` turns a Faust program into a command-line application with a 
+[Jack audio engine](http://jackaudio.org/).
+
+**Platforms**
+
+* Linux
+* MacOS
+
+**Dependencies**
+
+* Jack development libraries
+
+**Usage**
+
+```
+faust2jackconsole [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2jackconsole -h
+```
+
+for additional help and options.
+
+### `faust2jackinternal`
+
+TODO
+
+### `faust2jackrust`
+
+TODO 
+
+### `faust2jackserver`
+
+`faust2jackserver` turns a Faust program into a standalone application with a 
+[Jack audio engine](http://jackaudio.org/) and a [Qt](https://www.qt.io/)
+interface in server mode (similar to [`faust2jaqt`](#faust2jaqt)).
+
+**Platforms**
+
+* Linux
+* MacOS
+* Windows
+
+**Dependencies**
+
+* Jack development libraries
+* Qt development libraries
+
+**Usage**
+
+```
+faust2jackserver [OPTIONS] faustFile.dsp
+```
+
+### `faust2jaqt`
+
+`faust2jaqt` turns a Faust program into a standalone application with a 
+[Jack audio engine](http://jackaudio.org/) and a [Qt](https://www.qt.io/).
+
+**Platforms**
+
+* Linux
+* MacOS
+* Windows
+
+**Dependencies**
+
+* Jack development libraries
+* Qt development libraries
+
+**Usage**
+
+```
+faust2jaqt [OPTIONS] faustFile.dsp
+```
+
+Run:
+
+```
+faust2jaqt -h
+```
+
+for additional help and options.
+
+### `faust2jaqtchain`
+
+`faust2jaqtchain` is the same as [`faust2jaqt`](#faust2jaqt) but it will work
+with multiple files (that will be compiled as multiple independent applications).
+
+**Platforms**
+
+* Linux
+* MacOS
+* Windows
+
+**Dependencies**
+
+* Jack development libraries
+* Qt development libraries
+
+**Usage**
+
+```
+faust2jaqtchain [OPTIONS] faustFile0.dsp faustFile1.dsp etc.
+```
+
+Run:
+
+```
+faust2jaqtchain -h
+```
+
+for additional help and options.
+
+### `faust2javaswing`
+
+`faust2javaswing` will compile a Faust program as a JAVA standalone application
+with a Swing interface. 
+
+**Platforms**
+
+* Linux
+* MacOS
+* Windows
+
+**Dependencies**
+
+* JAVA
+
+**Usage**
+
+```
+faust2javaswing [OPTIONS] faustFile.dsp
+```
+
+### `faust2juce`
+
+<!-- TODO -->
+
+### `faust2ladspa`
+
+<!-- TODO -->
+
+### `faust2linuxunity`
+
+<!-- TODO -->
+
+### `faust2lv2`
+
+<!-- TODO -->
+
+### `faust2mathdoc`
+
+<!-- TODO -->
+
+### `faust2mathviewer`
+
+<!-- TODO -->
+
+### `faust2jmax6`
+
+<!-- TODO -->
+
+### `faust2md`
+
+<!-- TODO -->
+
+### `faust2msp`
+
+<!-- TODO -->
+
+### `faust2netjackconsole`
+
+<!-- TODO -->
+
+### `faust2netjackqt`
+
+<!-- TODO -->
+
+### `faust2nodejs`
+
+<!-- TODO -->
+
+### `faust2octave`
+
+<!-- TODO -->
+
+### `faust2osxiosunity`
+
+<!-- TODO -->
+
+### `faust2owl`
+
+<!-- TODO -->
+
+### `faust2paqt`
+
+<!-- TODO -->
+
+### `faust2pdf`
+
+<!-- TODO -->
+
+### `faust2plot`
+
+<!-- TODO -->
+
+### `faust2png`
+
+<!-- TODO -->
+
+### `faust2portaudiorust`
+
+<!-- TODO -->
+
+### `faust2pure`
+
+<!-- TODO -->
+
+### `faust2puredata`
+
+<!-- TODO -->
+
+### `faust2raqt`
+
+<!-- TODO -->
+
+### `faust2ros`
+
+<!-- TODO -->
+
+### `faust2rosgtk`
+
+<!-- TODO -->
+
+### `faust2rpialsaconsole`
+
+<!-- TODO -->
+
+### `faust2rpinetjackconsole`
+
+<!-- TODO -->
+
+### `faust2sam`
+
+<!-- TODO -->
+
+### `faust2sig`
+
+<!-- TODO -->
+
+### `faust2sigviewer`
+
+<!-- TODO -->
+
+### `faust2smartkeyb`
+
+<!-- TODO -->
+
+### `faust2sndfile`
+
+<!-- TODO -->
+
+### `faust2supercollider`
+
+<!-- TODO -->
+
+### `faust2svg`
+
+<!-- TODO -->
+
+### `faust2unity`
+
+<!-- TODO -->
+
+### `faust2unitywin`
+
+<!-- TODO -->
+
+### `faust2vst`
+
+<!-- TODO -->
+
+### `faust2vsti`
+
+<!-- TODO -->
+
+### `faust2w32max6`
+
+<!-- TODO -->
+
+### `faust2w32msp`
+
+<!-- TODO -->
+
+### `faust2w32puredata`
+
+<!-- TODO -->
+
+### `faust2w32vst`
+
+<!-- TODO -->
+
+### `faust2w64max6`
+
+<!-- TODO -->
+
+### `faust2wasm`
+
+<!-- TODO -->
+
+### `faust2webaudio`
+
+<!-- TODO -->
+
+### `faust2webaudioasm`
+
+<!-- TODO -->
+
+### `faust2webaudiowasm`
+
+<!-- TODO -->
+
+### `faust2webaudiowast`
+
+<!-- TODO -->
+
+### `faust2winunity`
+
+<!-- TODO -->

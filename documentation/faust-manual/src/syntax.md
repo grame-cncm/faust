@@ -2270,9 +2270,9 @@ process = @(N);
 
 TODO
 
-#### `rtable` Primitive
+#### `rdtable` Primitive
 
-The `rtable` primitive can be used to read through a read-only (pre-defined
+The `rdtable` primitive can be used to read through a read-only (pre-defined
 before compilation) table. The table can either be implemented using a 
 function controlled by a timer (such as [`ba.time`](TODO)) as demonstrated in 
 the first example, or by using the `waveform` primitive (as shown in the 
@@ -2285,7 +2285,7 @@ step and before audio computation begins.
 **Usage**
 
 ```
-rtable(n,s,r) : _
+rdtable(n,s,r) : _
 ```
 
 Where:
@@ -3317,3 +3317,7 @@ This feature is commonly used when making apps for Android and iOS using
 
 * iOS 
 * Android
+
+### Sensors Control Metadata
+
+<!-- TODO -->
