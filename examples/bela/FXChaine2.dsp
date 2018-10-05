@@ -8,7 +8,7 @@ import("stdfaust.lib");
 //		DELAY
 //		REVERB
 //
-// Designed to use the Analog Input for parameters contrôles.
+// Designed to use the Analog Input for parameters controls.
 //
 // CONTROLES ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -75,7 +75,6 @@ chorus_stereo(dmax,curdel,rate,sigma,do2,voices) =
          rates(i) = rate/float(i+1);
          dev(i) = sigma *
              os.oscp(rates(i),i*2*pi/voices);
-
     };
 
 // PHASER (from demo lib.) /////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,7 +83,6 @@ phaserSt = _,_ <: _, _, phaser2_stereo : dry_wetST(dwPhaz)
 
         invert = checkbox("InvertSum");
         vibr = checkbox("VibratoMode"); // In this mode you can hear any "Doppler"
-
 
         phaser2_stereo = pf.phaser2_stereo(Notches,width,frqmin,fratio,frqmax,speed,mdepth,fb,invert);
 

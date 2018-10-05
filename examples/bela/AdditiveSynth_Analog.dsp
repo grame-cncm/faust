@@ -14,7 +14,7 @@ import("stdfaust.lib");
 // ANALOG_7	: vol7
 //
 // OSC messages (see BELA console for precise adress)
-// For each harmonics ( %rang indicate harmonic number, starting at 0) :
+// For each harmonics (%rang indicate harmonic number, starting at 0) :
 // A%rang		: Attack
 // D%rang		: Decay
 // S%rang		: Sustain
@@ -23,7 +23,7 @@ import("stdfaust.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GENERAL
-midigate        = button ("gate");
+midigate        = button("gate");
 midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain        = nentry("gain", 0.5, 0, 10, 0.01);
 

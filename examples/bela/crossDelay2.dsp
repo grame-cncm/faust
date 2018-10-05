@@ -6,7 +6,7 @@ import("stdfaust.lib");
 // And pitch shifting on feedback.
 // A pre-delay without feedback is added for a wider stereo effect.
 //
-// Designed to use the Analog Input for parameters contrôles.
+// Designed to use the Analog Input for parameters controls.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //

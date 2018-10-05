@@ -37,13 +37,13 @@ midigain        = nentry("gain", 0.5, 0, 0.5, 0.01);// MIDI KEYBOARD
 pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
 
 // VCO
-wfFade	= hslider ("waveform[midi:ctrl 70]",0.5,0,1,0.001):si.smoo;
+wfFade	= hslider("waveform[midi:ctrl 70]",0.5,0,1,0.001):si.smoo;
 
 // VCF
-res		= hslider ("resonnance[midi:ctrl 71]",0.5,0,1,0.001):si.smoo; 
-fr		= hslider ("fc[midi:ctrl 74]", 10, 15, 12000, 0.001):si.smoo;
-track	= hslider ("tracking[midi:ctrl 79]", 1, 0, 2, 0.001);
-envMod	= hslider ("envMod[midi:ctrl 75]",50,0,100,0.01):si.smoo; 
+res     = hslider("resonnance[midi:ctrl 71]",0.5,0,1,0.001):si.smoo;
+fr      = hslider("fc[midi:ctrl 74]", 10, 15, 12000, 0.001):si.smoo;
+track   = hslider("tracking[midi:ctrl 79]", 1, 0, 2, 0.001);
+envMod  = hslider("envMod[midi:ctrl 75]",50,0,100,0.01):si.smoo; 
 
 // ENV
 att		= 0.01 * (hslider ("attack[midi:ctrl 73]",0.1,0.1,400,0.001));
@@ -113,7 +113,7 @@ drive	= hslider ("drive[midi:ctrl 92]",0.3,0,1,0.001);
 
 // Flanger
 curdel	= hslider ("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb		= hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fb      = hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
 fldw	= hslider ("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
 flanger = efx
 	with {

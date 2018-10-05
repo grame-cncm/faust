@@ -26,10 +26,9 @@ do
     
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-    	echo "help info: TO DO"
     	echo "./faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
-    	echo "Use '-midi' to activate MIDI control"
     	echo "Use '-osc' to activate OSC control"
+    	echo "Use '-midi' to activate MIDI control"
     	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
     	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
     	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"

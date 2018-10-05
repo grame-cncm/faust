@@ -42,16 +42,16 @@ pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
 wfFade	= hslider ("waveform[BELA: ANALOG_0]",0.5,0,1,0.001):si.smoo;
 
 // VCF
-res		= hslider ("resonnance[BELA: ANALOG_2]",0.5,0,1,0.001):si.smoo; 
-fr		= hslider ("fc[BELA: ANALOG_1]", 10, 15, 12000, 0.001):si.smoo;
-track	= hslider ("tracking[midi:ctrl 79]", 1, 0, 2, 0.001);
-envMod	= hslider ("envMod[BELA: ANALOG_3]",50,0,100,0.01):si.smoo; 
+res     = hslider ("resonnance[BELA: ANALOG_2]",0.5,0,1,0.001):si.smoo;
+fr      = hslider ("fc[BELA: ANALOG_1]", 10, 15, 12000, 0.001):si.smoo;
+track   = hslider ("tracking[midi:ctrl 79]", 1, 0, 2, 0.001);
+envMod  = hslider ("envMod[BELA: ANALOG_3]",50,0,100,0.01):si.smoo;
 
 // ENV
-att		= 0.01 * (hslider ("attack[midi:ctrl 73]",0.1,0.1,400,0.001));
-dec		= 0.01 * (hslider ("decay[midi:ctrl 76]",60,0.1,400,0.001));
-sust	= hslider ("sustain[midi:ctrl 77]",0.2,0,1,0.001);
-rel		= 0.01 * (hslider ("release[midi:ctrl 72]",100,0.1,400,0.001));
+att     = 0.01 * (hslider ("attack[midi:ctrl 73]",0.1,0.1,400,0.001));
+dec     = 0.01 * (hslider ("decay[midi:ctrl 76]",60,0.1,400,0.001));
+sust    = hslider ("sustain[midi:ctrl 77]",0.2,0,1,0.001);
+rel     = 0.01 * (hslider ("release[midi:ctrl 72]",100,0.1,400,0.001));
 
 // LFO
 lfoFreq	= hslider ("lfoFreq[midi:ctrl 78]",6,0.001,10,0.001):si.smoo;

@@ -27,7 +27,6 @@
 #include <string>
 #include <iostream>
 #include <sstream>
-#include <stdio.h>
 
 #include "faust/gui/DecoratorUI.h"
 #include "faust/gui/FUI.h"
@@ -82,9 +81,10 @@ class PresetUI : public DecoratorUI
         void checkOpenFirstBox(const char* label)
         {
             if (fGroupCount++ == 0) {
+                // Start of top-level group
                 fUI->openHorizontalBox("Preset manager");
                 fUI->addButton("Save", &fSave);
-                fUI->addNumEntry("Number", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
+                fUI->addNumEntry("Preset", &fPreset, FAUSTFLOAT(0),FAUSTFLOAT(0), FAUSTFLOAT(100), FAUSTFLOAT(1));
                 fUI->addButton("Load", &fLoad);
                 fUI->addButton("Reset", &fReset);
                 fUI->closeBox();
@@ -156,10 +156,9 @@ class PresetUI : public DecoratorUI
         }
         virtual void closeBox()
         {
-            fGroupCount--;
             fUI->closeBox();
-            fFileUI.closeBox();
-            if (fGroupCount == 0) {
+            if (fGroupCount-- == 0) {
+                // End of top-level group
                 saveDefault();
             }
         }

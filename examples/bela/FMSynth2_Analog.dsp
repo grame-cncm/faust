@@ -1,6 +1,5 @@
 import("all.lib");
 
-
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Simple FM synthesizer.
@@ -41,7 +40,7 @@ volS = hslider("S[BELA: ANALOG_3]",0.2,0,1,0.01);
 envelop = en.adsre(volA,volDR,volS,volDR,midigate);
 
 // modulator frequency
-modFreq = gFreq*modFreqRatio;
+modFreq = gFreq * modFreqRatio;
 
 // modulation index
 FMdepth = envelop * 1000 * midigain;
@@ -52,7 +51,7 @@ vol = envelop;
 //============================================ DSP =======================================
 //========================================================================================
 
-FMfeedback(frq) = ( +(_,frq):os.osci ) ~ (* (feedb));
+FMfeedback(frq) = (+(_,frq):os.osci) ~ (* (feedb));
 FMall(f) = os.osci(f+ (FMdepth*FMfeedback(f*modFreqRatio)));
 
 process = FMall(gFreq) * vol;

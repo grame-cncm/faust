@@ -31,8 +31,8 @@ pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
 gFreq = midifreq * pitchwheel;
 
 // LFO
-lfoDepth		= hslider ("lfoDepth[midi:ctrl 1]",0,0.,1,0.001):si.smoo;
-lfoFreq			= hslider ("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
+lfoDepth = hslider("lfoDepth[midi:ctrl 1]",0,0.,1,0.001):si.smoo;
+lfoFreq  = hslider("lfoFreq[midi:ctrl 14]",0.1,0.01,10,0.001):si.smoo;
 moov = ((os.lf_trianglepos(lfoFreq) * lfoDepth) + waveTravel) : min(1) : max(0);
 
 volA = hslider("A[midi:ctrl 73]",0.01,0.01,4,0.01);
@@ -95,15 +95,15 @@ wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tab
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-volFX	= hslider ("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+volFX	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
 drive	= hslider ("drive[midi:ctrl 92]",0.3,0,1,0.001);
 
 // Flanger
-curdel	= hslider ("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb		= hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider ("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
+curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+fb      = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw	= hslider("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);

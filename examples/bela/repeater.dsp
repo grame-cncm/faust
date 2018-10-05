@@ -1,5 +1,5 @@
 // REPEATER:
-// Freez and repeat a small part of input signal 'n' time'
+// Freeze and repeat a small part of input signal 'n' time'
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -20,11 +20,9 @@ process =  _, _ , (pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : rout
 MasterTaille =hslider("MasterTaille[BELA: ANALOG_0]", 500, 200, 2000,0.01);
 MasterClocSize = int(MasterTaille*ma.SR/ 1000);
 
-
 // Depth of repeat fragments
 taille =hslider("taille[BELA: ANALOG_1]", 50, 2, 200,0.01);
 clocSize = int(taille*ma.SR/ 1000);
-
 
 // Number of repeat fragments
 nbRepet = int (hslider("nbRepet[BELA: ANALOG_2]",4,1,16,1) );
