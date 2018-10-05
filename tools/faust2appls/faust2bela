@@ -1,14 +1,21 @@
 #!/bin/bash
 
+#FAUST DATA:
+BELAVERSION="bela.cpp"
 
-# Default Configuration
+#BELA DATA:
+BBB_ADDRESS="root@192.168.7.2"
+BBB_BELA_HOME="/root/Bela"
+BBB_PROJECT_HOME="${BBB_BELA_HOME}/projects/"
 
-ARCHBELA="bela.cpp"
+#variables:
 NVOICES=0
-EFFECT="none"
-CODEFILES=""
+POLY=""
+EFFECT=""
+MIDIDEFS=""
+OSCDEFS=""
+SEND2BELA=""
 OPTIONS=""
-
 
 #-------------------------------------------------------------------
 #PHASE 1 : dispatch command arguments
@@ -20,14 +27,14 @@ do
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
     	echo "help info: TO DO"
-    	echo "./faust2bela [-midi][-nvoices <num>] [-effect <auto or file.dsp>] <file.dsp>"
+    	echo "./faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
     	echo "Use '-midi' to activate MIDI control"
+    	echo "Use '-osc' to activate OSC control"
+    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
+    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
     	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
-    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument."
-    	echo "Use '-osc' to activate OSC control"
-    	echo "use no arguments for a simple effect."
+    	echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
     
@@ -45,64 +52,206 @@ do
     	MIDIDEFS="MIDI"
 	elif [ $p = "-osc" ]; then
 		OSCDEFS="OSC"
-	elif [[ -f "$p" ]]; then
-	    FILES="$FILES $p"
-	else
-	    OPTIONS="$OPTIONS $p"
+	elif [ $p = "-tobela" ]; then
+		SEND2BELA="OK"
+    else 
+	    OPTIONS="$OPTIONS $p"        
 	fi
 
-    shift
+shift
 
 done
-
-
 #-------------------------------------------------------------------
 #PHASE 2 : compile the *.dsp files
 #-------------------------------------------------------------------
 
 CUR=$(pwd)
+f=$(basename "$p")
+SRCDIR=$(dirname "$p")
 
-for f in $FILES; do
+# creates a temporary dir 
+TDR=$(mktemp -d faust.XXXXXX)
+TMP="$TDR/${f%.dsp}"
+mkdir "$TMP"
 
-    # creates a temporary dir 
+PROJECTDIR="$CUR/$TMP"
 
-    TMP=$(basename "$f")
-    TMP=${TMP%.dsp}
-    mkdir "$TMP"
+    # compile faust to c++
+    if [[ "$POLY" ==  *POLY2* ]]; then
+        if [ $EFFECT = "auto" ]; then
+        	# Creer un fichier .dsp simple
+            cat > $TMP/effect.dsp << EndOfCode
+            adapt(1,1) = _;
+            adapt(2,2) = _,_;
+            adapt(1,2) = _ <: _,_;
+            adapt(2,1) = _,_ :> _;
 
-    # Add the required compilation options to the generated C++ file
+            adaptor(F,G) = adapt(outputs(F),inputs(G));
 
-    echo '// Execution Options :' > "$TMP/render.cpp"
-    echo '' >> "$TMP/render.cpp"
-    
-    if [ $NVOICES -gt 0 ]; then
-	    echo '#define NVOICES '$NVOICES >> "$TMP/render.cpp"
+            process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
+EndOfCode
+            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
+            #rm "$TMP/effect.dsp"
+        else
+            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+        fi
+    else
+        faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
     fi
 
-    if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
-	    echo '#define MIDICTRL' >> "$TMP/render.cpp"
-    fi
 
-    if [[ "$OSCDEFS" ==  *OSC* ]]; then
-	    echo '#define OSCCTRL' >> "$TMP/render.cpp"
-    fi
+#-------------------------------------------------------------------
+#PHASE 3 : Data for BELA
+#-------------------------------------------------------------------
 
+echo '// Options :' > "$PROJECTDIR/tmp.txt"
+if [ $NVOICES -gt 0 ]; then
+	echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
+fi
 
-    # Compile the effect if any and add corresponding compilation option
+if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
+	echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
+fi
 
-    if [ $EFFECT = "auto" ]; then
-        faust -i -cn effect -pn effect -a minimal-effect.cpp "$f" -o "$TMP/effect.cpp" 2> /dev/null && CODEFILES="$CODEFILES $TMP/effect.cpp;" && echo '#define POLY2' >> "$TMP/render.cpp" || echo "Warning: no effect defined"
-        
-    elif [[ -f "$EFFECT" ]]; then
-        faust -i -cn effect -a minimal-effect.cpp "$EFFECT" -o "$TMP/effect.cpp" && CODEFILES="$CODEFILES $TMP/effect.cpp;" && echo '#define POLY2' >> "$TMP/render.cpp" || exit
-    fi
+if [[ "$POLY" ==  *POLY2* ]]; then
+	echo '#define POLY2' >> "$PROJECTDIR/tmp.txt"
+fi
 
+if [[ "$OSCDEFS" ==  *OSC* ]]; then
+	echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+fi
 
-    # Compile and append the Faust code
-    echo "" >> "$TMP/render.cpp"
-    faust -i -a $ARCHBELA $OPTIONS "$f" >> "$TMP/render.cpp" || exit   
+cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
+rm "$PROJECTDIR/render.cpp"
+mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
 
-    CODEFILES="$CODEFILES $TMP/render.cpp;"
+#-------------------------------------------------------------------
+#PHASE 4 : SEND data to BELA and RUN it.
+#-------------------------------------------------------------------
 
-    echo "$CODEFILES"
-done
+if [[ "$SEND2BELA" ==  *OK* ]]; then
+	echo "send 2 bela"
+	echo $PROJECTDIR
+	
+#-------------------------------------------------------------------
+From build_project.sh :
+#-------------------------------------------------------------------
+echo "START COMMUNICATION WITH BELA"
+
+BELA_EXPERT_MODE=0
+BELA_DONT_RUN_FIRST=0
+
+# FUNCTIONS:+++++++++++++++++++++++++++++++
+check_rsync(){
+	if [ -z "`which rsync 2> /dev/null`" ]
+	then
+		return 1
+	else
+		return 0
+	fi
+}
+
+check_board_alive_and_set_date(){
+	printf "Checking the board is up and running at $BBB_ADDRESS..."
+	# Clear the host if it is cached in ~/.ssh/known_hosts.
+	ssh-keygen -R $BBB_HOSTNAME &> /dev/null || true
+	ssh -o StrictHostKeyChecking=no -o ConnectTimeout=5 $BBB_ADDRESS "date -s \"`date '+%Y%m%d %T %z'`\" > /dev/null" && printf "done\n" || {
+		printf "\nERROR: the board does not respond at $BBB_ADDRESS, check that the address is correct and the board is connected.\n";
+		exit 1;
+	}
+}
+
+check_project_exists_prompt(){
+	check_project_exists $1 &&\
+	{
+		printf "Project \`$1' already exists on the board, do you want to overwrite it? "
+		interactive 1
+		[  $_RET1 -eq 0 ] && {
+			echo "Aborting..."
+			exit;
+		}
+	}
+}
+#+++++++++++++++++++++++++++++++++++++++++++
+
+# Test if project folder contain correct file(s):
+FIND_STRING="find $PROJECTDIR -maxdepth 1 -type f "
+EXTENSIONS_TO_FIND='\.cpp\|\.c\|\.S\|\.pd\|\.scd'
+FOUND_FILES=$($FIND_STRING 2>/dev/null | grep "$EXTENSIONS_TO_FIND")
+if [ -z "$FOUND_FILES" ]
+then
+	printf "ERROR: Please provide a directory containing .c, .cpp, .S, .pd or .scd files.\n\n"
+	exit 1
+fi
+
+[ -z $BBB_PROJECT_NAME ] && BBB_PROJECT_NAME="$(basename $(cd "$PROJECTDIR" && pwd))"
+
+echo $PROJECTDIR
+echo $BBB_PROJECT_NAME
+
+BBB_PROJECT_FOLDER=$BBB_PROJECT_HOME"/"$BBB_PROJECT_NAME #make sure there is no trailing slash here
+BBB_NETWORK_TARGET_FOLDER=$BBB_ADDRESS:$BBB_PROJECT_FOLDER
+
+# The expert will have to remember to run set_date after powering up the board if needed
+[ "$BELA_EXPERT_MODE" -eq 0 ] && check_board_alive_and_set_date
+
+# stop running process
+echo "Stop running process..."
+ssh $BBB_ADDRESS make QUIET=true --no-print-directory -C $BBB_BELA_HOME stop
+
+# check if project exists
+[ $FORCE -eq 1 ] ||	check_project_exists_prompt $BBB_PROJECT_NAME
+
+# This file is used to keep track of when the last upload was made,
+# so to check for modifications if WATCH is active
+#TMP_DIR="$SCRIPTDIR/../tmp"
+#reference_time_file="$TMP_DIR/.time$BBB_PROJECT_NAME"
+
+#Check if rsync is available
+check_rsync && RSYNC_AVAILABLE=1 || RSYNC_AVAILABLE=0
+
+uploadBuildRun(){
+	# Copy new source files to the board
+	echo "uploadBuildRun START"
+	printf "Copying new source files to BeagleBone..."
+	if [ "$RSYNC_AVAILABLE" -eq 0 ];
+	then
+		echo "using scp..."
+		
+		echo "Cleaning the destination folder..."
+		#if rsync is not available, brutally clean the destination folder
+		ssh $BBB_ADDRESS "rm -rf \"$BBB_PROJECT_FOLDER\"; mkdir -p \"$BBB_PROJECT_FOLDER\""
+		echo "Copying the project files"
+		scp -r $PROJECTDIR/* "$BBB_NETWORK_TARGET_FOLDER"
+	else
+		#rsync 
+		# --delete makes sure it removes files that are not in the origin folder
+		# -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews 
+		# --no-t makes sure file timestamps are not preserved, so that the Makefile will not think that targets are up to date when replacing files on the BBB
+		#  with older files from the host. This will solve 99% of the issues with Makefile thinking a target is up to date when it is not.
+		echo "using rsync..."
+		
+		rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
+	fi
+
+	if [ $? -ne 0 ]
+	then
+		printf "\nError while copying files\n"
+		exit
+	fi
+	
+	# Make new Bela executable and run
+	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' "
+	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' "
+	
+	Echo "ssh commande:"
+	ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
+}
+
+echo "RUN BELA NOW"
+uploadBuildRun
+	
+fi
+echo "END"
