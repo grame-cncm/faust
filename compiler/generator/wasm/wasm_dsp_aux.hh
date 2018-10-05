@@ -302,6 +302,8 @@ class EXPORT wasm_dsp : public dsp {
     virtual void computeJSTest(int count);
 };
 
+typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
+
 class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
    protected:
     dsp_factory_base* fFactory;
@@ -360,13 +362,13 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     static std::string gErrorMessage;
 
     static const std::string& getErrorMessage();
+    
+    static dsp_factory_table<SDsp_factory> gWasmFactoryTable;
 };
 
-typedef class faust_smartptr<wasm_dsp_factory> SDsp_factory;
-
-extern dsp_factory_table<SDsp_factory> gWasmFactoryTable;
-
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory);
+
+EXPORT void deleteAllWasmDSPFactories();
 
 EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code);
 

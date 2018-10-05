@@ -42,7 +42,7 @@
 using namespace emscripten;
 #endif
 
-dsp_factory_table<SDsp_factory> gWasmFactoryTable;
+dsp_factory_table<SDsp_factory> wasm_dsp_factory::gWasmFactoryTable;
 
 #ifdef EMCC
 
@@ -203,7 +203,7 @@ EM_JS(int, createJSDSPInstance, (int module), {
 wasm_dsp* wasm_dsp_factory::createDSPInstance()
 {
     wasm_dsp* dsp = new wasm_dsp(this, createJSDSPInstance(fModule));
-    gWasmFactoryTable.addDSP(this, dsp);
+    wasm_dsp_factory::gWasmFactoryTable.addDSP(this, dsp);
     return dsp;
 }
 
@@ -299,7 +299,12 @@ wasm_dsp_factory* wasm_dsp_factory::readWasmDSPFactoryFromMachine2(const std::st
 
 EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 {
-    return (factory) ? gWasmFactoryTable.deleteDSPFactory(factory) : false;
+    return (factory) ? wasm_dsp_factory::gWasmFactoryTable.deleteDSPFactory(factory) : false;
+}
+
+EXPORT void deleteAllWasmDSPFactories()
+{
+    wasm_dsp_factory::gWasmFactoryTable.deleteAllDSPFactories();
 }
 
 #ifdef EMCC
@@ -307,7 +312,7 @@ EXPORT bool deleteWasmDSPFactory(wasm_dsp_factory* factory)
 EXPORT wasm_dsp_factory* readWasmDSPFactoryFromMachine(const std::string& machine_code)
 {
     wasm_dsp_factory* factory = new wasm_dsp_factory(new text_dsp_factory_aux("MachineDSP", "", "", machine_code, ""));
-    gWasmFactoryTable.setFactory(factory);
+    wasm_dsp_factory::gWasmFactoryTable.setFactory(factory);
     factory->setSHAKey("");
     factory->setDSPCode("");
     return factory;
@@ -382,7 +387,7 @@ EXPORT void writeWasmDSPFactoryToMachineFile(wasm_dsp_factory* factory, const st
 
 #endif
 
-    // Instance API
+// Instance API
 
 #ifdef EMCC
 
