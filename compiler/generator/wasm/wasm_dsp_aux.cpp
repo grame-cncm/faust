@@ -52,28 +52,29 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
     FaustModule.faust               = FaustModule.faust || {};
     FaustModule.faust.wasm_module   = FaustModule.faust.wasm_module || [];
     FaustModule.faust.wasm_instance = FaustModule.faust.wasm_instance || [];
-    FaustModule.faust.importObject  = FaustModule.faust.importObject || {env : {memoryBase : 0,
-                                                                               tableBase : 0,
+    FaustModule.faust.importObject  = FaustModule.faust.importObject || {
+        env : {
+            memoryBase : 0,
+            tableBase : 0,
 
-                                                                               // Integer version
-                                                                               _abs : Math.abs,
-
-                                                                               // Float version
-                                                                               _acosf : Math.acos,
-                                                                               _asinf : Math.asin,
-                                                                               _atanf : Math.atan,
-                                                                               _atan2f : Math.atan2,
-                                                                               _ceilf : Math.ceil,
-                                                                               _cosf : Math.cos,
-                                                                               _expf : Math.exp,
-                                                                               _floorf : Math.floor,
-                                                                               _fmodf : function(x, y){return x % y; },
+            // Integer version
+            _abs : Math.abs,
+        
+            // Float version
+            _acosf : Math.acos,
+            _asinf : Math.asin,
+            _atanf : Math.atan,
+            _atan2f : Math.atan2,
+            _ceilf : Math.ceil,
+            _cosf : Math.cos,
+            _expf : Math.exp,
+            _floorf : Math.floor,
+            _fmodf : function(x, y){ return x % y; },
             _logf: Math.log,
             _log10f: Math.log10,
             _max_f: Math.max,
             _min_f: Math.min,
-            _remainderf: function(x, y) {
-    return x - Math.round(x / y) * y; },
+            _remainderf: function(x, y) { return x - Math.round(x / y) * y; },
             _powf: Math.pow,
             _roundf: Math.fround,
             _sinf: Math.sin,
@@ -89,14 +90,12 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             _cos: Math.cos,
             _exp: Math.exp,
             _floor: Math.floor,
-            _fmod: function(x, y) {
-    return x % y; },
+            _fmod: function(x, y) { return x % y; },
             _log: Math.log,
             _log10: Math.log10,
             _max_: Math.max,
             _min_: Math.min,
-            _remainder:function(x, y) {
-    return x - Math.round(x / y) * y; },
+            _remainder:function(x, y) { return x - Math.round(x / y) * y; },
             _pow: Math.pow,
             _round: Math.fround,
             _sin: Math.sin,
@@ -107,9 +106,8 @@ EM_JS(int, createJSModuleFromString, (uint8_t* code_ptr, size_t code_size), {
             memory: FaustModule['wasmMemory'],
                 
             table: new WebAssembly.Table({ initial: 0, element: 'anyfunc' })
-}
-}
-;
+    }
+};
 
 // Copy native 'binary' string in JavaScript Uint8Array
 var factory_code = new Uint8Array(code_size);

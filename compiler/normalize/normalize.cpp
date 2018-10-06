@@ -98,8 +98,8 @@ Tree normalizeDelay1Term(Tree s)
  *		(s/k)@d -> (s@d)/k
  * 		(s@n)@m -> s@(n+m)
  * Note that the same rules can't be applied to
- * + et - becaue the value of the first d samples
- * would be wrong. We could also add delays such that
+ * + and - because the value of the first d samples
+ * would be wrong. 
  * \param s the term to be delayed
  * \param d the value of the delay
  * \return the normalized term

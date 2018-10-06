@@ -1,4 +1,4 @@
-% man(1) Version 1.01 (20 February 2018) | Faust man page
+% man(1) Version 1.02 (7 October 2018) | Faust man page
 
 NAME
 ====
@@ -166,6 +166,9 @@ uses quad-precision floats for audio computations
 
 **-es 1|0**, **--enable-semantics 1|0**
 use enable semantics when 1, and simple multiplication otherwise
+
+**-lcc **, **--local-causality-check**
+check causality also at local level
 
 **-flist**, **--file-list**
 list all the files used to eval process
