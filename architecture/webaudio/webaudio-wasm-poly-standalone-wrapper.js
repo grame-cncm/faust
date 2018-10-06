@@ -193,7 +193,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
     sp.allocVoice = function(voice)
     {
         sp.dsp_voices_date[voice] = sp.fDate++;
-        sp.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
+        sp.dsp_voices_trigger[voice] = true;    // so that envelop is always re-initialized
         sp.dsp_voices_state[voice] = sp.kActiveVoice;
         return voice;
     }
@@ -288,7 +288,7 @@ faust.mydsp_poly = function (mixer_instance, dsp_instance, effect_instance, memo
                 // Mix it in result
                 sp.dsp_voices_level[i] = sp.mixer.mixVoice(buffer_size, sp.numOut, sp.mixing, sp.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
-                if ((sp.dsp_voices_level[i] < 0.001) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
+                if ((sp.dsp_voices_level[i] < 0.0005) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
                     sp.dsp_voices_state[i] = sp.kFreeVoice;
                 }
             }

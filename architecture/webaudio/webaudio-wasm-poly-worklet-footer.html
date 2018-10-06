@@ -194,10 +194,13 @@ function startDSPAux(aw_node)
 {
     node = aw_node;
     
+    // We may have a polyphonic DSP with an audio input, so connect it...
+    if (node.getNumInputs() > 0) {
+        activateAudioInput();
+    }
+   
     node.connect(context.destination);
-    
     console.log(node.getJSON());
-    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(node.getParams());
     
     // No polling from the server needed, so use an empty loop

@@ -173,14 +173,8 @@ function startDSPAux(aw_node)
         activateAudioInput();
     }
     
-    console.log("startDSPAux");
-    console.log(node.parameters);
-    
     node.connect(context.destination);
     console.log(node.getJSON());
-
-    // TODO: emcc
-    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(node.getParams());
 
     // No polling from the server needed, so use an empty loop

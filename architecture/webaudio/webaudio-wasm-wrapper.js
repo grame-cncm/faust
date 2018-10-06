@@ -2020,7 +2020,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
     sp.allocVoice = function(voice)
     {
         sp.dsp_voices_date[voice] = sp.fDate++;
-        sp.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
+        sp.dsp_voices_trigger[voice] = true;    // so that envelop is always re-initialized
         sp.dsp_voices_state[voice] = sp.kActiveVoice;
         return voice;
     }
@@ -2121,7 +2121,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
                 // Mix it in result
                 sp.dsp_voices_level[i] = sp.mixer.mixVoice(buffer_size, sp.numOut, sp.mixing, sp.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
-                if ((sp.dsp_voices_level[i] < 0.001) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
+                if ((sp.dsp_voices_level[i] < 0.0005) && (sp.dsp_voices_state[i] === sp.kReleaseVoice)) {
                     sp.dsp_voices_state[i] = sp.kFreeVoice;
                 }
             }
@@ -3088,7 +3088,7 @@ var mydspPolyProcessorString = `
             this.allocVoice = function(voice)
             {
                 this.dsp_voices_date[voice] = this.fDate++;
-                this.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
+                this.dsp_voices_trigger[voice] = true;    // "so that envelop is always re-initialized
                 this.dsp_voices_state[voice] = this.kActiveVoice;
                 return voice;
             }
@@ -3408,7 +3408,7 @@ var mydspPolyProcessorString = `
                     // Mix it in result
                     this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                     // Check the level to possibly set the voice in kFreeVoice again
-                    if ((this.dsp_voices_level[i] < 0.001) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
+                    if ((this.dsp_voices_level[i] < 0.0005) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
                         this.dsp_voices_state[i] = this.kFreeVoice;
                     }
                 }

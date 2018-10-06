@@ -324,9 +324,11 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         // wasm effect
         this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
         
-        //console.log(this.mixer);
-        //console.log(this.factory);
-        //console.log(this.effect);
+        if (this.debug) {
+            console.log(this.mixer);
+            console.log(this.factory);
+            console.log(this.effect);
+        }
         
         // Start of DSP memory ('polyphony' DSP voices)
         this.polyphony = mydspPolyProcessor.polyphony;
@@ -379,7 +381,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         this.allocVoice = function(voice)
         {
             this.dsp_voices_date[voice] = this.fDate++;
-            this.dsp_voices_trigger[voice] = true;    //so that envelop is always re-initialized
+            this.dsp_voices_trigger[voice] = true;    // so that envelop is always re-initialized
             this.dsp_voices_state[voice] = this.kActiveVoice;
             return voice;
         }
@@ -498,7 +500,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
             }
             
             // Init DSP voices
-            for (i = 0; i <  this.polyphony; i++) {
+            for (i = 0; i < this.polyphony; i++) {
                 this.factory.init(this.dsp_voices[i], sampleRate);  // 'sampleRate' is defined in AudioWorkletGlobalScope
             }
             
@@ -701,7 +703,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
                 // Mix it in result
                 this.dsp_voices_level[i] = this.mixer.mixVoice(mydspPolyProcessor.buffer_size, this.numOut, this.mixing, this.outs);
                 // Check the level to possibly set the voice in kFreeVoice again
-                if ((this.dsp_voices_level[i] < 0.001) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
+                if ((this.dsp_voices_level[i] < 0.0005) && (this.dsp_voices_state[i] === this.kReleaseVoice)) {
                     this.dsp_voices_state[i] = this.kFreeVoice;
                 }
             }
