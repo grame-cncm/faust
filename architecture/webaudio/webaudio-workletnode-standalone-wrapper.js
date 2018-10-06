@@ -437,8 +437,9 @@ window.mydsp = class mydsp {
      */
     load()
     {
-    	return new Promise((resolve, reject) => {               
-            this.context.audioWorklet.addModule(this.baseUrl + "/mydsp-processor.js").then(() => {
+    	return new Promise((resolve, reject) => {   
+            let real_url = (this.baseUrl === "") ? "mydsp-processor.js" : (this.baseUrl + "/mydsp-processor.js");
+            this.context.audioWorklet.addModule(real_url).then(() => {
             this.node = new mydspNode(this.context, this.baseUrl, {});
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
@@ -456,13 +457,12 @@ window.mydsp = class mydsp {
         return new Promise((resolve, reject) => {
             try {
                 // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
-                let url = this.baseUrl + "/main.html";
-
-                if (!this.linkExists(url)) {
+                let real_url = (this.baseUrl === "") ? "main.html" : (this.baseUrl + "/main.html");
+                if (!this.linkExists(real_url)) {
                     // LINK DOES NOT EXIST, let's add it to the document
                     var link = document.createElement('link');
                     link.rel = 'import';
-                    link.href = url;
+                    link.href = real_url;
                     document.head.appendChild(link);
                     link.onload = (e) => {
                         // the file has been loaded, instanciate GUI

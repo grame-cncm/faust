@@ -196,7 +196,7 @@ function startDSP()
 
 function startNewDSP()
 {
-     if (isWasm && workletAvailable()) {
+    if (isWasm && workletAvailable()) {
         factory = new window.DSP(context, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))
