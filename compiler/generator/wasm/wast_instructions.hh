@@ -352,13 +352,27 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
                 } else {
                     // Otherwise generate index computation code
                     if (fFastMemory) {
-                        *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                        indexed->fIndex->accept(this);
-                        *fOut << " (i32.const " << offStr << ")))";
+                        // Micro optimization if the field is actually the first one in the structure
+                        if (tmp.fOffset == 0) {
+                            *fOut << "(i32.shl ";
+                            indexed->fIndex->accept(this);
+                            *fOut << " (i32.const " << offStr << "))";
+                        } else {
+                            *fOut << "(i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                            indexed->fIndex->accept(this);
+                            *fOut << " (i32.const " << offStr << ")))";
+                        }
                     } else {
-                        *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
-                        indexed->fIndex->accept(this);
-                        *fOut << " (i32.const " << offStr << "))))";
+                        // Micro optimization if the field is actually the first one in the structure
+                        if (tmp.fOffset == 0) {
+                            *fOut << "(i32.add (get_local $dsp) (i32.shl ";
+                            indexed->fIndex->accept(this);
+                            *fOut << " (i32.const " << offStr << ")))";
+                        } else {
+                            *fOut << "(i32.add (get_local $dsp) (i32.add (i32.const " << tmp.fOffset << ") (i32.shl ";
+                            indexed->fIndex->accept(this);
+                            *fOut << " (i32.const " << offStr << "))))";
+                        }
                     }
                 }
             } else {

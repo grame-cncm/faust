@@ -1274,7 +1274,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
             gGlobal->gUseDefaultSound = false;
 
-            // This speedup (freewerb for instance) ==> to be done at signal level
+            // This speedup (freeverb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
 
             container = WASTCodeContainer::createContainer(
@@ -1314,7 +1314,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
             gGlobal->gUseDefaultSound = false;
 
-            // This speedup (freewerb for instance) ==> to be done at signal level
+            // This speedup (freeverb for instance) ==> to be done at signal level
             // gGlobal->gComputeIOTA = true;         // Ensure IOTA base fixed delays are computed once
 
             container = WASMCodeContainer::createContainer(
