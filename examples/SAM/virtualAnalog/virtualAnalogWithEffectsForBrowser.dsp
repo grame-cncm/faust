@@ -6,7 +6,6 @@ import("stdfaust.lib");
 // chorus = chg(component("chorus.dsp")); // ./chorus.dsp
 // reverb = rg(component("freeverb.dsp"));
 
-
 process = main <: _,_; // Now separate: : echo : flanger : chorus : reverb;
 main = (signal + attach(extInput,amp) : filters : *(ampScaling)) ~ _;
 signal = oscs + noise * noiseOff * namp;
@@ -21,7 +20,6 @@ detuneOctaves(1) = osc1(vslider("[2] DeTuning1 [units:Octaves] [midi:ctrl 24] [s
 waveSelect(1) = osc1(vslider("[3] Waveform1 [midi:ctrl 25] [style:knob]",5,0,5,1):int);
 amp1Enable = mr1(vslider("[1] On [midi:ctrl 12] [style:knob] [color:blue]",1,0,1,1));
 oscamp(1) = mr1(vslider("[0] Osc1 Amp [midi:ctrl 26] [style:knob]",0.5,0.0,1.0,0.001)) * amp1Enable;
-
 
 eei = mr2(vslider("[1] On [midi:ctrl 13] [style:knob] [color:blue]",0,0,1,1)); // External input = MAIN OUTPUT when "off"
 sei = mr2(vslider("[0] Ext Input [midi:ctrl 27] [style: knob]",0,0,1.0,0.001));
@@ -144,7 +142,6 @@ vcf = moog_vcf_2bn(res,fc) with {
     };
 };
 
-
 // Attack, Decay, and Sustain ranges are set according to the Minimoog manual:
 attT60VCF = 0.001 * vcf2(vslider("[0] AttackF [midi:ctrl 40] [tooltip: Attack Time] [unit:ms] [style: knob]",1400,10,10000,1));
 decT60VCF = 0.001 * vcf2(vslider("[0] DecayF [midi:ctrl 41] [tooltip: Decay-to-Sustain Time] [unit:ms] [style: knob]",10,10,10000,1));
@@ -220,9 +217,6 @@ oscNoiseModulation = (mmix * noise) + ((1.0-mmix) * osc(3)); // noise amplitude 
 oscModEnable = dsg(vslider("[0] Osc. Mod. [midi:ctrl 22] [color:red] [style:knob] [tooltip:Oscillator Modulation adds Modulation Mix output to osc1&2 frequencies",1,0,1,1)); // any offset?
 osc3Control = dsg(vslider("[1] Osc. 3 Ctl [midi:ctrl 9] [color:red] [style:knob] [tooltip:Oscillator 3 frequency tracks the keyboard if on, else not",0,0,1,1):int);
 
-
-
-
 effect = _,_ : +
 : component_echo
 : component_flanger
@@ -281,18 +275,13 @@ dTapSamples = dTapSamplesRaw : t60smoother(dEchoT60*(1-triggerScrubOff));
 
 echo_process = _ <: _, amp * echo_mono(dmax,dEchoSamples,dTapSamples,fb,fbspr(fbs),gi) : +;
 
-
 }.echo_process;
 
 component_flanger = environment {
 
 // Created from flange.dsp 2015/06/21
 
-flanger_mono(dmax,curdel,depth,fb,invert,lfoshape)
-= _ <: _, (-:de.fdelay(dmax,curdel)) ~ *(fb) : _,
-*(select2(invert,depth,0-depth))
-: + : *(1/(1+depth));           // ideal for dc and reinforced sinusoids (in-phase summed signals)
-
+flanger_mono(dmax,curdel,depth,fb,invert,lfoshape) = _ <: _, (-:de.fdelay(dmax,curdel)) ~ *(fb) : _,*(select2(invert,depth,0-depth)) : + : *(1/(1+depth));  // ideal for dc and reinforced sinusoids (in-phase summed signals)
 
 flanger_process = ba.bypass1(fbp,flanger_mono_gui);
 
@@ -329,82 +318,52 @@ fbp = 1-int(flsg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
 
 invert = flsg(vslider("[1] Invert [midi:ctrl 49][style:knob]",0,0,1,1):int);
 
-
-
 }.flanger_process;
 
 component_chorus = environment {
 
-
 voices = 8; // MUST BE EVEN
-chorus_process = bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
-
-// to become ba.bypass1to2 in Faust's basics.lib:
-bypass1to2(bpc,e) = _ <: ((inswitch:e),_,_) : ba.select2stereo(bpc) with {inswitch = select2(bpc,_,0);};
-
-ml = library("music.lib");      // /l/fdlo/music.lib
-fl = library("filter.lib");
-el = library("effect.lib");     // /l/fdlo/effect.lib
-ol = library("oscillator.lib"); // /l/fdlo/oscillator.lib
-
-//wo = library("waveoscs.dsp");
-//pi = 4.0*atan(1.0);
-
-oscs(freq) = rdtable(tablesize, sinwaveform, int(ml.phase(freq)) );
-oscc(freq) = rdtable(tablesize, coswaveform, int(ml.phase(freq)) );
-oscp(freq,p) = oscs(freq) * cos(p) + oscc(freq) * sin(p);
-// osc = oscs; // music.lib
-sinwaveform = float(ml.time)*(2.0*pi)/float(tablesize) : sin;
-coswaveform = float(ml.time)*(2.0*pi)/float(tablesize) : cos;
-tablesize = 1 << 16;
-pi = 4.0*atan(1.0);
-
+chorus_process = ba.bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
 
 dmax = 8192;
-curdel = dmax * ckg(vslider("[0] Delay [midi:ctrl 55] [style:knob]", 0.5, 0, 1, 1)) : fl.smooth(0.999);
+curdel = dmax * ckg(vslider("[0] Delay [midi:ctrl 4] [style:knob]", 0.5, 0, 1, 1)) : si.smooth(0.999);
 rateMax = 7.0; // Hz
 rateMin = 0.01;
 rateT60 = 0.15661;
-rate = ckg(vslider("[1] Rate [midi:ctrl 56] [unit:Hz] [style:knob]", 0.5, rateMin, rateMax, 0.0001))
-: fl.smooth(fl.tau2pole(rateT60/6.91));
+rate = ckg(vslider("[1] Rate [midi:ctrl 2] [unit:Hz] [style:knob]", 0.5, rateMin, rateMax, 0.0001))
+       : si.smooth(ba.tau2pole(rateT60/6.91));
 
-depth  = ckg(vslider("[4] Depth [midi:ctrl 57] [style:knob]", 0.5, 0, 1, 0.001)) : fl.smooth(fl.tau2pole(depthT60/6.91));
+depth = ckg(vslider("[4] Depth [midi:ctrl 3] [style:knob]", 0.5, 0, 1, 0.001)) : si.smooth(ba.tau2pole(depthT60/6.91));
 
 depthT60 = 0.15661;
 delayPerVoice = 0.5*curdel/voices;
-sigma  = delayPerVoice * ckg(vslider("[6] Deviation [midi:ctrl 58] [style:knob]",0.5,0,1,0.001)) : fl.smooth(0.999);
+sigma = delayPerVoice * ckg(vslider("[6] Deviation [midi:ctrl 58] [style:knob]",0.5,0,1,0.001)) : si.smooth(0.999);
 
-periodic  = 1;
+periodic = 1;
 
 do2 = depth;   // use when depth=1 means "multivibrato" effect (no original => all are modulated)
-cbp = 1-int(csg(vslider("[0] Enable [midi:ctrl 103][style:knob]",0,0,1,1)));
+cbp = 1-int(csg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
 
 chorus_mono(dmax,curdel,rate,sigma,do2,voices)
-= _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ml.interleave(2,2) : +,+
-with {
-
-angle(i) = 2*pi*(i/2)/voices + (i%2)*pi/2;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-del(i) = curdel*(i+1)/voices + dev(i);
-rates(i) = rate/float(i+1);
-dev(i) = sigma *
-oscp(rates(i),i*2*pi/voices);
-};
+     = _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ro.interleave(2,2) : +,+
+    with {
+        angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
+        voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
+        del(i) = curdel*(i+1)/voices + dev(i);
+        rates(i) = rate/float(i+1);
+        dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
+    };
 
 chorus_stereo(dmax,curdel,rate,sigma,do2,voices) =
-_,_ <: *(1-do2),*(1-do2),(*(do2),*(do2) <: par(i,voices,voice(i)):>_,_) : ml.interleave(2,2) : +,+;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i)))/(i+1)
-with {
-angle(i) = 2*pi*(i/2)/voices + (i%2)*pi/2;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-
-del(i) = curdel*(i+1)/voices + dev(i);
-rates(i) = rate/float(i+1);
-dev(i) = sigma *
-oscp(rates(i),i*2*pi/voices);
-
-};
-
+      _,_ <: *(1-do2),*(1-do2),(*(do2),*(do2) <: par(i,voices,voice(i)):>_,_) : ro.interleave(2,2) : +,+;
+      voice(i) = de.fdelay(dmax,min(dmax,del(i)))/(i+1)
+    with {
+        angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
+        voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
+        del(i) = curdel*(i+1)/voices + dev(i);
+        rates(i) = rate/float(i+1);
+        dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
+    };
 
 }.chorus_process;
 
@@ -445,7 +404,6 @@ freezemode  = 0.5;
 stereospread= 23;
 allpassfeed = 0.5; //feedback of the delays used in allpass filters
 
-
 // Filter Parameters
 //------------------
 
@@ -463,7 +421,6 @@ allpasstuningL2 = 441;
 allpasstuningL3 = 341;
 allpasstuningL4 = 225;
 
-
 // Control Sliders
 //--------------------
 // Damp : filters the high frequencies of the echoes (especially active for great values of RoomSize)
@@ -476,14 +433,12 @@ roomsizeSlider  = rkg(vslider("RoomSize [midi:ctrl 4] [style:knob]", 0.5, 0, 1, 
 wetSlider       = rkg(vslider("Wet [midi:ctrl 79] [style:knob]", 0.3333, 0, 1, 0.025));
 combfeed        = roomsizeSlider;
 
-
 // Comb and Allpass filters
 //-------------------------
 
 allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
-
 
 // Reverb components
 //------------------
@@ -525,7 +480,6 @@ rbp = 1-int(rsg(vslider("[0] Enable [midi:ctrl 104][style:knob]",0,0,1,1)));
 freeverb = fxctrl(fixedgain, wetSlider, monoReverbToStereo(combfeed, allpassfeed, dampSlider, stereospread));
 
 freeverb_process = ba.bypass2(rbp,freeverb);
-
 
 }.freeverb_process;
 

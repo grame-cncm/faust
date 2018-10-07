@@ -1,6 +1,5 @@
 import("stdfaust.lib");
 
-
 declare name        "freeverb";
 declare version     "1.0";
 declare author      "Grame";
@@ -34,7 +33,6 @@ freezemode  = 0.5;
 stereospread= 23;
 allpassfeed = 0.5; //feedback of the delays used in allpass filters
 
-
 // Filter Parameters
 //------------------
 
@@ -52,7 +50,6 @@ allpasstuningL2 = 441;
 allpasstuningL3 = 341;
 allpasstuningL4 = 225;
 
-
 // Control Sliders
 //--------------------
 // Damp : filters the high frequencies of the echoes (especially active for great values of RoomSize)
@@ -65,14 +62,12 @@ roomsizeSlider  = rkg(vslider("RoomSize [midi:ctrl 3] [style:knob]", 0.5, 0, 1, 
 wetSlider       = rkg(vslider("Wet [midi:ctrl 2] [style:knob]", 0.3333, 0, 1, 0.025));
 combfeed        = roomsizeSlider;
 
-
 // Comb and Allpass filters
 //-------------------------
 
 allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
-
 
 // Reverb components
 //------------------
