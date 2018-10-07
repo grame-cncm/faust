@@ -127,20 +127,7 @@ vcfKeyShiftOctaves = vcfKeyRange * keyShiftOctaves;
 modulatedFcLgHz = fcLgHz + vcfModulationOctaves + vcfKeyShiftOctaves;
 
 fc = min((0.5*ma.SR), pow(2.0,modulatedFcLgHz));
-vcf = moog_vcf_2bn(res,fc) with {
-    moog_vcf_2bn(res,fr) = fi.tf2snp(0,0,b0,a11,a01,w1) : fi.tf2snp(0,0,b0,a12,a02,w1)
-    with {
-     s = 1; // minus the open-loop location of all four poles
-     w1 = 2*ma.PI*max(fr,20); // frequency-scaling parameter for bilinear xform
-     k = sqrt(2)*0.99999*res; // fourth root of Moog VCF feedback gain
-     b0 = s^2;
-     s2k = sqrt(2) * k;
-     a11 = s * (2 + s2k);
-     a12 = s * (2 - s2k);
-     a01 = b0 * (1 + s2k + k^2);
-     a02 = b0 * (1 - s2k + k^2);
-    };
-};
+vcf = ve.moog_vcf_2bn(res,fc);
 
 // Attack, Decay, and Sustain ranges are set according to the Minimoog manual:
 attT60VCF = 0.001 * vcf2(vslider("[0] AttackF [midi:ctrl 40] [tooltip: Attack Time] [unit:ms] [style: knob]",1400,10,10000,1));
@@ -482,8 +469,6 @@ freeverb = fxctrl(fixedgain, wetSlider, monoReverbToStereo(combfeed, allpassfeed
 freeverb_process = ba.bypass2(rbp,freeverb);
 
 }.freeverb_process;
-
-
 
 
 // This layout loosely follows the MiniMoog-V

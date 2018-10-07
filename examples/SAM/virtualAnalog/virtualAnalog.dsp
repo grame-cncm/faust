@@ -6,7 +6,6 @@ import("stdfaust.lib");
 // chorus = chg(component("chorus.dsp")); // ./chorus.dsp
 // reverb = rg(component("freeverb.dsp"));
 
-
 process = main <: _,_; // Now separate: : echo : flanger : chorus : reverb;
 main = (signal + extInput : filters : *(ampScaling)) ~ _;
 signal = oscs + noise * noiseOff * namp;
@@ -21,7 +20,6 @@ detuneOctaves(1) = osc1(vslider("[2] DeTuning1 [units:Octaves] [midi:ctrl 24] [s
 waveSelect(1) = osc1(vslider("[3] Waveform1 [midi:ctrl 25] [style:knob]",5,0,5,1):int);
 amp1Enable = mr1(vslider("[1] On [midi:ctrl 12] [style:knob] [color:blue]",1,0,1,1));
 oscamp(1) = mr1(vslider("[0] Osc1 Amp [midi:ctrl 26] [style:knob]",0.5,0.0,1.0,0.001)) * amp1Enable;
-
 
 eei = mr2(vslider("[1] On [midi:ctrl 13] [style:knob] [color:blue]",0,0,1,1)); // External input = MAIN OUTPUT when "off"
 sei = mr2(vslider("[0] Ext Input [midi:ctrl 27] [style: knob]",0,0,1.0,0.001));
@@ -131,21 +129,7 @@ vcfKeyShiftOctaves = vcfKeyRange * keyShiftOctaves;
 modulatedFcLgHz = fcLgHz + vcfModulationOctaves + vcfKeyShiftOctaves;
 
 fc = min((0.5*ma.SR), pow(2.0,modulatedFcLgHz));
-vcf = moog_vcf_2bn(res,fc) with {
-    moog_vcf_2bn(res,fr) = fi.tf2snp(0,0,b0,a11,a01,w1) : fi.tf2snp(0,0,b0,a12,a02,w1)
-    with {
-     s = 1; // minus the open-loop location of all four poles
-     w1 = 2*ma.PI*max(fr,20); // frequency-scaling parameter for bilinear xform
-     k = sqrt(2)*0.99999*res; // fourth root of Moog VCF feedback gain
-     b0 = s^2;
-     s2k = sqrt(2) * k;
-     a11 = s * (2 + s2k);
-     a12 = s * (2 - s2k);
-     a01 = b0 * (1 + s2k + k^2);
-     a02 = b0 * (1 - s2k + k^2);
-    };
-};
-
+vcf = ve.moog_vcf_2bn(res,fc);
 
 // Attack, Decay, and Sustain ranges are set according to the Minimoog manual:
 attT60VCF = 0.001 * vcf2(vslider("[0] AttackF [midi:ctrl 40] [tooltip: Attack Time] [unit:ms] [style: knob]",1400,10,10000,1));
