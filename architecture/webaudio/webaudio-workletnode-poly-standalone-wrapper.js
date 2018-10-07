@@ -283,10 +283,10 @@ class mydspPoly {
     load()
     {
     	return new Promise((resolve, reject) => {
-        		this.context.audioWorklet.addModule(this.base_url + "mydsp-processor.js").then(() => {
-        		this.node = new mydspPolyNode(this.context, {});
-                this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
-        		return (this.node);
+            this.context.audioWorklet.addModule(this.base_url + "mydsp-processor.js").then(() => {
+            this.node = new mydspPolyNode(this.context, {});
+            this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
+            return (this.node);
         	}).then((node) => {
                 resolve(node);
             }).catch((e) => {

@@ -1674,7 +1674,7 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
 
     audio_node.getJSON = function() { return factory.getJSON(); }
     
-    // For WAP
+    // For WAP : TODO
     audio_node.getMetadata = function() { return factory.getJSON(); }
 
     // Needed for sample accurate control
@@ -1765,16 +1765,16 @@ faust.createDSPWorkletInstanceAux = function(factory, context, callback)
     audio_node.setState = async function(state)
     {
         return new Promise(resolve => {
-                           for (const param in state) {
-                                if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
-                           }
-                           try {
-                                this.gui.setAttribute('state', JSON.stringify(state));
-                           } catch (error) {
-                                console.warn("Plugin without gui or GUI not defined", error);
-                           }
-                           resolve(state);
-                           });
+           for (const param in state) {
+                if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+           }
+           try {
+                this.gui.setAttribute('state', JSON.stringify(state));
+           } catch (error) {
+                console.warn("Plugin without gui or GUI not defined", error);
+           }
+           resolve(state);
+        });
     }
     
     /**
