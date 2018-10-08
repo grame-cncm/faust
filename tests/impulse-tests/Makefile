@@ -25,7 +25,6 @@ FAUSTOPTIONS := -lang cpp -double -i -a $(arch)
 dspfiles := $(wildcard dsp/*.dsp)
 mutefiles = $(dspfiles:dsp/%.dsp=ir/mute/%.ir)
 
-
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
@@ -147,7 +146,7 @@ reference:
 tools: filesCompare impulsellvm impulseinterp
 
 clean: 
-	rm filesCompare impulsellvm impulseinterp
+	rm -f filesCompare impulsellvm impulseinterp
 
 #########################################################################
 # tools

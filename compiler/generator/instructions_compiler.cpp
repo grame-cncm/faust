@@ -362,7 +362,7 @@ void InstructionsCompiler::compileMultiSignal(Tree L)
         }
 
         // Cast to external float
-        ValueInst* res = generateCacheCode(sig, InstBuilder::genCastFloatMacroInst(CS(sig)));
+        ValueInst* res = InstBuilder::genCastFloatMacroInst(CS(sig));
         pushComputeDSPMethod(InstBuilder::genStoreArrayStackVar(name, getCurrentLoopIndex(), res));
 
         // 09/12/11 : HACK
