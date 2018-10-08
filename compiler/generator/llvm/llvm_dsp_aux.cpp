@@ -28,6 +28,7 @@
 
 #include "compatibility.hh"
 #include "faust/gui/CGlue.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
@@ -334,6 +335,10 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
         return (dsp) ? new llvm_dsp(tmp, dsp) : nullptr;
     }
 }
+
+std::string              llvm_dsp_factory_aux::getCompileOptions() { return fDecoder->fCompileOptions; }
+std::vector<std::string> llvm_dsp_factory_aux::getLibraryList() { return fDecoder->fLibraryList; }
+std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames() { return fDecoder->fIncludePathnames; }
 
 // Instance
 

@@ -47,28 +47,28 @@ typedef struct {
 }
 ringbuffer_t;
 
-ringbuffer_t *ringbuffer_create(size_t sz);
-void ringbuffer_free(ringbuffer_t *rb);
-void ringbuffer_get_read_vector(const ringbuffer_t *rb,
+static ringbuffer_t *ringbuffer_create(size_t sz);
+static void ringbuffer_free(ringbuffer_t *rb);
+static void ringbuffer_get_read_vector(const ringbuffer_t *rb,
                                          ringbuffer_data_t *vec);
-void ringbuffer_get_write_vector(const ringbuffer_t *rb,
+static void ringbuffer_get_write_vector(const ringbuffer_t *rb,
                                           ringbuffer_data_t *vec);
-size_t ringbuffer_read(ringbuffer_t *rb, char *dest, size_t cnt);
-size_t ringbuffer_peek(ringbuffer_t *rb, char *dest, size_t cnt);
-void ringbuffer_read_advance(ringbuffer_t *rb, size_t cnt);
-size_t ringbuffer_read_space(const ringbuffer_t *rb);
-int ringbuffer_mlock(ringbuffer_t *rb);
-void ringbuffer_reset(ringbuffer_t *rb);
-void ringbuffer_reset_size (ringbuffer_t * rb, size_t sz);
-size_t ringbuffer_write(ringbuffer_t *rb, const char *src,
+static size_t ringbuffer_read(ringbuffer_t *rb, char *dest, size_t cnt);
+static size_t ringbuffer_peek(ringbuffer_t *rb, char *dest, size_t cnt);
+static void ringbuffer_read_advance(ringbuffer_t *rb, size_t cnt);
+static size_t ringbuffer_read_space(const ringbuffer_t *rb);
+static int ringbuffer_mlock(ringbuffer_t *rb);
+static void ringbuffer_reset(ringbuffer_t *rb);
+static void ringbuffer_reset_size (ringbuffer_t * rb, size_t sz);
+static size_t ringbuffer_write(ringbuffer_t *rb, const char *src,
                                  size_t cnt);
-void ringbuffer_write_advance(ringbuffer_t *rb, size_t cnt);
-size_t ringbuffer_write_space(const ringbuffer_t *rb);
+static void ringbuffer_write_advance(ringbuffer_t *rb, size_t cnt);
+static size_t ringbuffer_write_space(const ringbuffer_t *rb);
 
 /* Create a new ringbuffer to hold at least `sz' bytes of data. The
    actual buffer size is rounded up to the next power of two. */
 
-inline ringbuffer_t *
+static ringbuffer_t *
 ringbuffer_create (size_t sz)
 {
 	size_t power_of_two;
@@ -96,7 +96,7 @@ ringbuffer_create (size_t sz)
 
 /* Free all data associated with the ringbuffer `rb'. */
 
-inline void
+static void
 ringbuffer_free (ringbuffer_t * rb)
 {
 #ifdef USE_MLOCK
@@ -110,7 +110,7 @@ ringbuffer_free (ringbuffer_t * rb)
 
 /* Lock the data block of `rb' using the system call 'mlock'.  */
 
-inline int
+static int
 ringbuffer_mlock (ringbuffer_t * rb)
 {
 #ifdef USE_MLOCK
@@ -125,7 +125,7 @@ ringbuffer_mlock (ringbuffer_t * rb)
 /* Reset the read and write pointers to zero. This is not thread
    safe. */
 
-inline void
+static void
 ringbuffer_reset (ringbuffer_t * rb)
 {
 	rb->read_ptr = 0;
@@ -136,7 +136,7 @@ ringbuffer_reset (ringbuffer_t * rb)
 /* Reset the read and write pointers to zero. This is not thread
    safe. */
 
-inline void
+static void
 ringbuffer_reset_size (ringbuffer_t * rb, size_t sz)
 {
     rb->size = sz;
@@ -150,7 +150,7 @@ ringbuffer_reset_size (ringbuffer_t * rb, size_t sz)
    number of bytes in front of the read pointer and behind the write
    pointer.  */
 
-inline size_t
+static size_t
 ringbuffer_read_space (const ringbuffer_t * rb)
 {
 	size_t w, r;
@@ -169,7 +169,7 @@ ringbuffer_read_space (const ringbuffer_t * rb)
    number of bytes in front of the write pointer and behind the read
    pointer.  */
 
-inline size_t
+static size_t
 ringbuffer_write_space (const ringbuffer_t * rb)
 {
 	size_t w, r;
@@ -189,7 +189,7 @@ ringbuffer_write_space (const ringbuffer_t * rb)
 /* The copying data reader. Copy at most `cnt' bytes from `rb' to
    `dest'.  Returns the actual number of bytes copied. */
 
-inline size_t
+static size_t
 ringbuffer_read (ringbuffer_t * rb, char *dest, size_t cnt)
 {
 	size_t free_cnt;
@@ -228,7 +228,7 @@ ringbuffer_read (ringbuffer_t * rb, char *dest, size_t cnt)
    `cnt' bytes from `rb' to `dest'.  Returns the actual number of bytes
    copied. */
 
-inline size_t
+static size_t
 ringbuffer_peek (ringbuffer_t * rb, char *dest, size_t cnt)
 {
 	size_t free_cnt;
@@ -268,7 +268,7 @@ ringbuffer_peek (ringbuffer_t * rb, char *dest, size_t cnt)
 /* The copying data writer. Copy at most `cnt' bytes to `rb' from
    `src'.  Returns the actual number of bytes copied. */
 
-inline size_t
+static size_t
 ringbuffer_write (ringbuffer_t * rb, const char *src, size_t cnt)
 {
 	size_t free_cnt;
@@ -305,7 +305,7 @@ ringbuffer_write (ringbuffer_t * rb, const char *src, size_t cnt)
 
 /* Advance the read pointer `cnt' places. */
 
-inline void
+static void
 ringbuffer_read_advance (ringbuffer_t * rb, size_t cnt)
 {
 	size_t tmp = (rb->read_ptr + cnt) & rb->size_mask;
@@ -314,7 +314,7 @@ ringbuffer_read_advance (ringbuffer_t * rb, size_t cnt)
 
 /* Advance the write pointer `cnt' places. */
 
-inline void
+static void
 ringbuffer_write_advance (ringbuffer_t * rb, size_t cnt)
 {
 	size_t tmp = (rb->write_ptr + cnt) & rb->size_mask;
@@ -326,7 +326,7 @@ ringbuffer_write_advance (ringbuffer_t * rb, size_t cnt)
    the readable data is in one segment the second segment has zero
    length. */
 
-inline void
+static void
 ringbuffer_get_read_vector (const ringbuffer_t * rb,
 				 ringbuffer_data_t * vec)
 {
@@ -370,7 +370,7 @@ ringbuffer_get_read_vector (const ringbuffer_t * rb,
    the writeable data is in one segment the second segment has zero
    length. */
 
-inline void
+static void
 ringbuffer_get_write_vector (const ringbuffer_t * rb,
 				  ringbuffer_data_t * vec)
 {

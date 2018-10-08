@@ -58,7 +58,7 @@
 #define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 template <typename VAL_TYPE>
-inline void FAUSTBENCH_LOG(VAL_TYPE val)
+void FAUSTBENCH_LOG(VAL_TYPE val)
 {
     const char* log = getenv("FAUSTBENCH_LOG");
     if (log && (strcasecmp(log, "on") == 0)) {
@@ -98,7 +98,7 @@ class time_bench {
         /**
          * Returns the number of clock cycles elapsed since the last reset of the processor
          */
-        inline uint64 rdtsc(void)
+        uint64 rdtsc(void)
         {
         #ifdef TARGET_OS_IPHONE
             return (uint64)(mach_absolute_time() * (double)fTimeInfo.numer / (double)fTimeInfo.denom);

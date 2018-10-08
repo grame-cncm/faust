@@ -71,7 +71,7 @@ struct interpreter_dsp_poly_factory : public dsp_poly_factory {
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::string& name_app,
+static dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::string& name_app,
                                                                    const std::string& dsp_content,
                                                                    int argc, const char* argv[],
                                                                    std::string& error_msg)
@@ -94,7 +94,7 @@ inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromString(const std::st
  *
  * @return a Polyphonic DSP factory on success, otherwise a null pointer.
  */
-inline dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(const std::string& filename,
+static dsp_poly_factory* createInterpreterPolyDSPFactoryFromFile(const std::string& filename,
                                                       int argc, const char* argv[],
                                                       std::string& error_msg)
 {

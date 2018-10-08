@@ -189,6 +189,10 @@ void wasm_dsp_factory::setDSPCode(std::string code)
     fFactory->setDSPCode(code);
 }
 
+std::string              wasm_dsp_factory::getCompileOptions() { return fDecoder->fCompileOptions; }
+std::vector<std::string> wasm_dsp_factory::getLibraryList() { return fDecoder->fLibraryList; }
+std::vector<std::string> wasm_dsp_factory::getIncludePathnames() { return fDecoder->fIncludePathnames; }
+
 #ifdef EMCC
 
 EM_JS(int, createJSDSPInstance, (int module), {

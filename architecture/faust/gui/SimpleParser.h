@@ -56,21 +56,21 @@ struct itemInfo {
 };
 
 // Menu {'low' : 440.0; 'mid' : 880.0; 'hi' : 1760.0}
-bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values);
-bool parseMenuItem(const char*& p, std::string& name, double& value);
+static bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values);
+static bool parseMenuItem(const char*& p, std::string& name, double& value);
 
 // Menu {'foo.wav'; 'bar.wav'}
-bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug = false);
-bool parseMenuItem2(const char*& p, std::string& name);
+static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug = false);
+static bool parseMenuItem2(const char*& p, std::string& name);
 
-void skipBlank(const char*& p);
-bool parseChar(const char*& p, char x);
-bool parseWord(const char*& p, const char* w);
-bool parseString(const char*& p, char quote, std::string& s);
-bool parseSQString(const char*& p, std::string& s);
-bool parseDQString(const char*& p, std::string& s);
-bool parseDouble(const char*& p, double& x);
-bool parseList(const char*& p, std::vector<std::string>& items);
+static void skipBlank(const char*& p);
+static bool parseChar(const char*& p, char x);
+static bool parseWord(const char*& p, const char* w);
+static bool parseString(const char*& p, char quote, std::string& s);
+static bool parseSQString(const char*& p, std::string& s);
+static bool parseDQString(const char*& p, std::string& s);
+static bool parseDouble(const char*& p, double& x);
+static bool parseList(const char*& p, std::vector<std::string>& items);
 
 // ---------------------------------------------------------------------
 //
@@ -85,7 +85,7 @@ bool parseList(const char*& p, std::vector<std::string>& items);
  * @param values the vector of values found
  * @return true if a menu list was found
  */
-inline bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values)
+static bool parseMenuList(const char*& p, std::vector<std::string>& names, std::vector<double>& values)
 {
     std::vector<std::string> tmpnames;
     std::vector<double> tmpvalues;
@@ -114,7 +114,7 @@ inline bool parseMenuList(const char*& p, std::vector<std::string>& names, std::
     return false;
 }
 
-inline bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug)
+static bool parseMenuList2(const char*& p, std::vector<std::string>& names, bool debug)
 {
     std::vector<std::string> tmpnames;
     const char* saved = p;  // to restore position if we fail
@@ -148,7 +148,7 @@ error:
  * @param value the value found
  * @return true if a nemu item was found
  */
-inline bool parseMenuItem(const char*& p, std::string& name, double& value)
+static bool parseMenuItem(const char*& p, std::string& name, double& value)
 {
     const char* saved = p;  // to restore position if we fail
     if (parseSQString(p, name) && parseChar(p, ':') && parseDouble(p, value)) {
@@ -159,7 +159,7 @@ inline bool parseMenuItem(const char*& p, std::string& name, double& value)
     }
 }
 
-inline bool parseMenuItem2(const char*& p, std::string& name)
+static bool parseMenuItem2(const char*& p, std::string& name)
 {
     const char* saved = p;  // to restore position if we fail
     if (parseSQString(p, name)) {
@@ -197,7 +197,7 @@ static bool tryChar(const char*& p, char x)
  * @brief skipBlank : advance pointer p to the first non blank character
  * @param p the string to parse, then the remaining string
  */
-inline void skipBlank(const char*& p)
+static void skipBlank(const char*& p)
 {
     while (isspace(*p)) { p++; }
 }
@@ -208,7 +208,7 @@ inline void skipBlank(const char*& p)
  * @param x the character to recognize
  * @return true if x was found at the begin of p
  */
-inline bool parseChar(const char*& p, char x)
+static bool parseChar(const char*& p, char x)
 {
     skipBlank(p);
     if (x == *p) {
@@ -225,7 +225,7 @@ inline bool parseChar(const char*& p, char x)
  * @param w the string to recognize
  * @return true if string w was found at the begin of p
  */
-inline bool parseWord(const char*& p, const char* w)
+static bool parseWord(const char*& p, const char* w)
 {
     skipBlank(p);
     const char* saved = p;  // to restore position if we fail
@@ -244,7 +244,7 @@ inline bool parseWord(const char*& p, const char* w)
  * @param x the float number found if any
  * @return true if a float number was found at the begin of p
  */
-inline bool parseDouble(const char*& p, double& x)
+static bool parseDouble(const char*& p, double& x)
 {
     double sign = +1.0;    // sign of the number
     double ipart = 0;      // integral part of the number
@@ -288,7 +288,7 @@ inline bool parseDouble(const char*& p, double& x)
  * @param s the (unquoted) string found if any
  * @return true if a string was found at the begin of p
  */
-inline bool parseString(const char*& p, char quote, std::string& s)
+static bool parseString(const char*& p, char quote, std::string& s)
 {
     std::string str;
     skipBlank(p);
@@ -313,7 +313,7 @@ inline bool parseString(const char*& p, char quote, std::string& s)
  * @param s the (unquoted) string found if any
  * @return true if a string was found at the begin of p
  */
-inline bool parseSQString(const char*& p, std::string& s)
+static bool parseSQString(const char*& p, std::string& s)
 {
     return parseString(p, '\'', s);
 }
@@ -324,15 +324,14 @@ inline bool parseSQString(const char*& p, std::string& s)
  * @param s the (unquoted) string found if any
  * @return true if a string was found at the begin of p
  */
-inline bool parseDQString(const char*& p, std::string& s)
+static bool parseDQString(const char*& p, std::string& s)
 {
     return parseString(p, '"', s);
 }
 
-
 // ---------------------------------------------------------------------
 // Parse list of strings
-inline bool parseList(const char*& p, std::vector<std::string>& items)
+static bool parseList(const char*& p, std::vector<std::string>& items)
 {
     const char* saved = p;  // to restore position if we fail
     if (parseChar(p, '[')) {
@@ -521,7 +520,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
 //
 
-inline bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas1, std::map<std::string, std::vector<std::string> >& metadatas2, std::vector<itemInfo*>& uiItems)
+static bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas1, std::map<std::string, std::vector<std::string> >& metadatas2, std::vector<itemInfo*>& uiItems)
 {
     parseChar(p, '{');
     

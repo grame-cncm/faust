@@ -31,9 +31,8 @@
 #include "export.hh"
 #include "wasm_binary.hh"
 
-#include "faust/gui/JSONUIDecoder.h"
-
 class wasm_dsp_factory;
+class JSONUIDecoder;
 
 /*
  Read the wasm binary module, extract the JSON, define a new end for the module (without the last 'data segment'
@@ -325,9 +324,9 @@ class EXPORT wasm_dsp_factory : public dsp_factory, public faust_smartable {
     std::string getDSPCode();
     void        setDSPCode(std::string code);
 
-    std::string              getCompileOptions() { return fDecoder->fCompileOptions; }
-    std::vector<std::string> getLibraryList() { return fDecoder->fLibraryList; }
-    std::vector<std::string> getIncludePathnames() { return fDecoder->fIncludePathnames; }
+    std::string              getCompileOptions();
+    std::vector<std::string> getLibraryList();
+    std::vector<std::string> getIncludePathnames();
 
     JSONUIDecoder* getDecoder() { return fDecoder; }
 
