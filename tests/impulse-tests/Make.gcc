@@ -41,7 +41,6 @@ SRCDIR := tools
 
 all: filesCompare ir/$(outdir) $(call listfiles,$(outdir))
 
-
 test:
 #	$(file > faustoptions.txt, "some text")
 	@echo $(call listwebfiles,$(asmjsdir))
