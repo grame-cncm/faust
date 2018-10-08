@@ -1643,7 +1643,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
         if (isSigInt(delay, &d)) {
             return InstBuilder::genLoadArrayStructVar(vname, CS(delay));
         } else {
-            return InstBuilder::genLoadArrayStructVar(vname, CS(delay));
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, CS(delay)));
         }
     } else {
         // Long delay : we use a ring buffer of size 2^x
@@ -1651,7 +1651,7 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
         
         FIRIndex value2 =
             (FIRIndex(InstBuilder::genLoadStructVar("IOTA")) - CS(delay)) & InstBuilder::genInt32NumInst(N - 1);
-        return InstBuilder::genLoadArrayStructVar(vname, value2);
+        return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, value2));
     }
 }
 

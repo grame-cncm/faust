@@ -360,10 +360,10 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
             if (d == 0) {
                 return subst("$0[i]", vecname);
             } else {
-                return subst("$0[i-$1]", vecname, T(d));
+                return generateCacheCode(sig, subst("$0[i-$1]", vecname, T(d)));
             }
         } else {
-            return subst("$0[i-$1]", vecname, CS(delay));
+            return generateCacheCode(sig, subst("$0[i-$1]", vecname, CS(delay)));
         }
 
     } else {
@@ -372,12 +372,12 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 
         if (isSigInt(delay, &d)) {
             if (d == 0) {
-                return subst("$0[($0_idx+i)&$1]", vecname, T(N - 1));
+                return generateCacheCode(sig, subst("$0[($0_idx+i)&$1]", vecname, T(N - 1)));
             } else {
-                return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d));
+                return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d)));
             }
         } else {
-            return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay));
+            return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay)));
         }
     }
 }

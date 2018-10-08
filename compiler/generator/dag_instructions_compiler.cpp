@@ -439,12 +439,12 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
             } else {
                 // return subst("$0[i-$1]", vname, T(d));
                 FIRIndex index = getCurrentLoopIndex() - InstBuilder::genInt32NumInst(d);
-                return InstBuilder::genLoadArrayStackVar(vname, index);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStackVar(vname, index));
             }
         } else {
             // return subst("$0[i-$1]", vname, CS(delay));
             FIRIndex index = getCurrentLoopIndex() - CS(delay);
-            return InstBuilder::genLoadArrayStackVar(vname, index);
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStackVar(vname, index));
         }
     } else {
         // long delay : we use a ring buffer of size 2^x
@@ -456,20 +456,20 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
                 // return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
                 FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) &
                                   InstBuilder::genInt32NumInst(N - 1);
-                return InstBuilder::genLoadArrayStructVar(vname, index1);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index1));
             } else {
                 // return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
                 FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
                 FIRIndex index2 = index1 - InstBuilder::genInt32NumInst(d);
                 FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N - 1);
-                return InstBuilder::genLoadArrayStructVar(vname, index3);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index3));
             }
         } else {
             // return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), CS(delay));
             FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
             FIRIndex index2 = index1 - CS(delay);
             FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N - 1);
-            return InstBuilder::genLoadArrayStructVar(vname, index3);
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index3));
         }
     }
 }
