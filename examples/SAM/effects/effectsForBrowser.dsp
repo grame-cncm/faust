@@ -140,17 +140,6 @@ chorus_mono(dmax,curdel,rate,sigma,do2,voices)
         dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
     };
 
-chorus_stereo(dmax,curdel,rate,sigma,do2,voices) =
-    _,_ <: *(1-do2),*(1-do2),(*(do2),*(do2) <: par(i,voices,voice(i)):>_,_) : ro.interleave(2,2) : +,+;
-      voice(i) = de.fdelay(dmax,min(dmax,del(i)))/(i+1)
-    with {
-        angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
-        voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-        del(i) = curdel*(i+1)/voices + dev(i);
-        rates(i) = rate/float(i+1);
-        dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
-    };
-
 }.chorus_process;
 
 component_freeverb = environment {

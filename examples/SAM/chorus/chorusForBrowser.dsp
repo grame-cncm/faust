@@ -23,18 +23,7 @@ do2 = depth;   // use when depth=1 means "multivibrato" effect (no original => a
 cbp = 1-int(csg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
 
 chorus_mono(dmax,curdel,rate,sigma,do2,voices)
-     = _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ro.interleave(2,2) : +,+
-    with {
-        angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
-        voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-        del(i) = curdel*(i+1)/voices + dev(i);
-        rates(i) = rate/float(i+1);
-        dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
-    };
-
-chorus_stereo(dmax,curdel,rate,sigma,do2,voices) =
-      _,_ <: *(1-do2),*(1-do2),(*(do2),*(do2) <: par(i,voices,voice(i)):>_,_) : ro.interleave(2,2) : +,+;
-      voice(i) = de.fdelay(dmax,min(dmax,del(i)))/(i+1)
+    = _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ro.interleave(2,2) : +,+
     with {
         angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
         voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
