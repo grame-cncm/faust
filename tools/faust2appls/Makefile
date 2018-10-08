@@ -29,6 +29,7 @@ install:
 	install faust2bela $(dest)
 	install faust2caqtios $(dest)
 	install faust2csound $(dest)
+	install faust2csvplot $(dest)
 	install faust2dssi $(dest)
 	install faust2dummy $(dest)
 	install faust2dummymem $(dest)
@@ -112,6 +113,7 @@ uninstall:
 	rm -f $(dest)/faust2caqt
 	rm -f $(dest)/faust2caqtios
 	rm -f $(dest)/faust2csound
+	rm -f $(dest)/faust2csvplot
 	rm -f $(dest)/faust2dssi
 	rm -f $(dest)/faust2dummy
 	rm -f $(dest)/faust2dummymem
