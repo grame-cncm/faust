@@ -1,8 +1,8 @@
-import("stdfaust.lib");
+import("music.lib");
 
 // 10 samples delay modulation
-modulator = @(os.osc(1000) : +(1) : *(5) : min(10) : max(0));
+modulator = @(osc(1000) : +(1) : *(5) : min(10) : max(0));
 fix = @(100);
-source = os.osc(440);
+source = osc(440);
 
 process = source : fix : modulator;
