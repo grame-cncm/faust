@@ -258,43 +258,6 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
     }
 }
 
-ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
-{
-    ::Type t = getCertifiedSigType(sig);
-
-    if (t->variability() == kSamp) {
-        string         vname;
-        Typed::VarType ctype;
-        getTypedNames(t, "Vector", ctype, vname);
-        Address::AccessType var_access;
-        generateVectorLoop(ctype, vname, exp, var_access);
-        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
-    } else {
-        return InstructionsCompiler::generateVariableStore(sig, exp);
-    }
-}
-
-ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
-{
-    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
-        // "input" use as a name convention
-        string     name = subst("input$0", T(idx));
-        ValueInst* res =
-            InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
-
-    } else {
-        // "fInput" use as a name convention
-        string     name = subst("fInput$0", T(idx));
-        ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
-    }
-}
-
 ValueInst* DAGInstructionsCompiler::generateCacheCode(Tree sig, ValueInst* exp)
 {
     string         vname;
@@ -407,6 +370,43 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
         b = false;
     }
     return b;
+}
+
+ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
+{
+    ::Type t = getCertifiedSigType(sig);
+    
+    if (t->variability() == kSamp) {
+        string         vname;
+        Typed::VarType ctype;
+        getTypedNames(t, "Vector", ctype, vname);
+        Address::AccessType var_access;
+        generateVectorLoop(ctype, vname, exp, var_access);
+        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+    } else {
+        return InstructionsCompiler::generateVariableStore(sig, exp);
+    }
+}
+
+ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
+{
+    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
+        // "input" use as a name convention
+        string     name = subst("input$0", T(idx));
+        ValueInst* res =
+        InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
+        // Cast to internal float
+        res = InstBuilder::genCastFloatInst(res);
+        return generateCacheCode(sig, res);
+        
+    } else {
+        // "fInput" use as a name convention
+        string     name = subst("fInput$0", T(idx));
+        ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
+        // Cast to internal float
+        res = InstBuilder::genCastFloatInst(res);
+        return generateCacheCode(sig, res);
+    }
 }
 
 ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)

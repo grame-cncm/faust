@@ -67,8 +67,8 @@ static Klass* signal2klass(Klass* parent, const string& name, Tree sig)
 }
 
 /*****************************************************************************
-                        getFreshID
-*****************************************************************************/
+ getFreshID
+ *****************************************************************************/
 
 map<string, int> ScalarCompiler::fIDCounters;
 
@@ -83,8 +83,8 @@ string ScalarCompiler::getFreshID(const string& prefix)
 }
 
 /*****************************************************************************
-                            prepare
-*****************************************************************************/
+ prepare
+ *****************************************************************************/
 
 Tree ScalarCompiler::prepare(Tree LS)
 {
@@ -155,6 +155,7 @@ Tree ScalarCompiler::prepare(Tree LS)
 Tree ScalarCompiler::prepare2(Tree L0)
 {
     startTiming("ScalarCompiler::prepare2");
+    
     recursivnessAnnotation(L0);  // Annotate L0 with recursivness information
     typeAnnotation(L0, true);    // Annotate L0 with type information
     sharingAnalysis(L0);         // annotate L0 with sharing count
@@ -166,13 +167,12 @@ Tree ScalarCompiler::prepare2(Tree L0)
     fOccMarkup->mark(L0);  // annotate L0 with occurences analysis
 
     endTiming("ScalarCompiler::prepare2");
-
     return L0;
 }
 
 /*****************************************************************************
-                            compileMultiSignal
-*****************************************************************************/
+ compileMultiSignal
+ *****************************************************************************/
 
 string ScalarCompiler::dnf2code(Tree cc)
 {
@@ -239,6 +239,96 @@ string ScalarCompiler::getConditionCode(Tree sig)
     }
 }
 
+/*****************************************************************************
+ CS : compile a signal
+ *****************************************************************************/
+
+/**
+ * Test if a signal is already compiled
+ * @param sig the signal expression to compile.
+ * @param name the string representing the compiled expression.
+ * @return true is already compiled
+ */
+bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
+{
+    return fCompileProperty.get(sig, cexp);
+}
+
+/**
+ * Set the string of a compiled expression is already compiled
+ * @param sig the signal expression to compile.
+ * @param cexp the string representing the compiled expression.
+ * @return the cexp (for commodity)
+ */
+string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
+{
+    // cerr << "ScalarCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
+    string old;
+    if (fCompileProperty.get(sig, old) && (old != cexp)) {
+        // cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
+        // exit(1);
+    }
+    fCompileProperty.set(sig, cexp);
+    return cexp;
+}
+
+/*****************************************************************************
+ vector name property
+ *****************************************************************************/
+
+/**
+ * Set the vector name property of a signal, the name of the vector used to
+ * store the previous values of the signal to implement a delay.
+ * @param sig the signal expression.
+ * @param vecname the string representing the vector name.
+ * @return true is already compiled
+ */
+void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
+{
+    faustassert(vecname.size() > 0);
+    fVectorProperty.set(sig, vecname);
+}
+
+/**
+ * Get the vector name property of a signal, the name of the vector used to
+ * store the previous values of the signal to implement a delay.
+ * @param sig the signal expression.
+ * @param vecname the string where to store the vector name.
+ * @return true if the signal has this property, false otherwise
+ */
+
+bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
+{
+    return fVectorProperty.get(sig, vecname);
+}
+
+/**
+ * Compile a signal
+ * @param sig the signal expression to compile.
+ * @return the C code translation of sig as a string
+ */
+string ScalarCompiler::CS(Tree sig)
+{
+    // contextor contextRecursivness;
+    string code;
+    
+    if (!getCompiledExpression(sig, code)) {
+        // not compiled yet
+        /*
+         if (getRecursivness(sig) != contextRecursivness.get()) {
+         contextRecursivness.set(getRecursivness(sig));
+         }
+         */
+        code = generateCode(sig);
+        setCompiledExpression(sig, code);
+    }
+    return code;
+}
+
+/*****************************************************************************
+ compileMultiSignal
+ *****************************************************************************/
+
 void ScalarCompiler::compileMultiSignal(Tree L)
 {
     // contextor recursivness(0);
@@ -274,8 +364,8 @@ void ScalarCompiler::compileMultiSignal(Tree L)
 }
 
 /*****************************************************************************
-                            compileSingleSignal
-*****************************************************************************/
+ compileSingleSignal
+ *****************************************************************************/
 
 void ScalarCompiler::compileSingleSignal(Tree sig)
 {
@@ -290,64 +380,8 @@ void ScalarCompiler::compileSingleSignal(Tree sig)
 }
 
 /*****************************************************************************
-                             CS : compile a signal
-*****************************************************************************/
-
-/**
- * Test if a signal is already compiled
- * @param sig the signal expression to compile.
- * @param name the string representing the compiled expression.
- * @return true is already compiled
- */
-bool ScalarCompiler::getCompiledExpression(Tree sig, string& cexp)
-{
-    return fCompileProperty.get(sig, cexp);
-}
-
-/**
- * Set the string of a compiled expression is already compiled
- * @param sig the signal expression to compile.
- * @param cexp the string representing the compiled expression.
- * @return the cexp (for commodity)
- */
-string ScalarCompiler::setCompiledExpression(Tree sig, const string& cexp)
-{
-    // cerr << "ScalarCompiler::setCompiledExpression : " << cexp << " ==> " << ppsig(sig) << endl;
-    string old;
-    if (fCompileProperty.get(sig, old) && (old != cexp)) {
-        // cerr << "ERROR already a compiled expression attached : " << old << " replaced by " << cexp << endl;
-        // exit(1);
-    }
-    fCompileProperty.set(sig, cexp);
-    return cexp;
-}
-
-/**
- * Compile a signal
- * @param sig the signal expression to compile.
- * @return the C code translation of sig as a string
- */
-string ScalarCompiler::CS(Tree sig)
-{
-    // contextor contextRecursivness;
-    string code;
-
-    if (!getCompiledExpression(sig, code)) {
-        // not compiled yet
-        /*
-        if (getRecursivness(sig) != contextRecursivness.get()) {
-            contextRecursivness.set(getRecursivness(sig));
-        }
-        */
-        code = generateCode(sig);
-        setCompiledExpression(sig, code);
-    }
-    return code;
-}
-
-/*****************************************************************************
-                        generateCode : dispatch according to signal
-*****************************************************************************/
+ generateCode : dispatch according to signal
+ *****************************************************************************/
 /**
  * Main code generator dispatch.
  * @param sig the signal expression to compile.
@@ -473,8 +507,8 @@ string ScalarCompiler::generateCode(Tree sig)
 }
 
 /*****************************************************************************
-                               NUMBERS
-*****************************************************************************/
+ NUMBERS
+ *****************************************************************************/
 
 string ScalarCompiler::generateNumber(Tree sig, const string& exp)
 {
@@ -490,8 +524,8 @@ string ScalarCompiler::generateNumber(Tree sig, const string& exp)
 }
 
 /*****************************************************************************
-                               FOREIGN CONSTANTS
-*****************************************************************************/
+ FOREIGN CONSTANTS
+ *****************************************************************************/
 
 string ScalarCompiler::generateFConst(Tree sig, const string& file, const string& exp)
 {
@@ -508,8 +542,8 @@ string ScalarCompiler::generateFConst(Tree sig, const string& file, const string
 }
 
 /*****************************************************************************
-                               FOREIGN VARIABLES
-*****************************************************************************/
+ FOREIGN VARIABLES
+ *****************************************************************************/
 
 string ScalarCompiler::generateFVar(Tree sig, const string& file, const string& exp)
 {
@@ -520,8 +554,8 @@ string ScalarCompiler::generateFVar(Tree sig, const string& file, const string& 
 }
 
 /*****************************************************************************
-                               INPUTS - OUTPUTS
-*****************************************************************************/
+ INPUTS - OUTPUTS
+ *****************************************************************************/
 
 string ScalarCompiler::generateInput(Tree sig, const string& idx)
 {
@@ -541,8 +575,8 @@ string ScalarCompiler::generateOutput(Tree sig, const string& idx, const string&
 }
 
 /*****************************************************************************
-                               BINARY OPERATION
-*****************************************************************************/
+ BINARY OPERATION
+ *****************************************************************************/
 
 string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 {
@@ -579,8 +613,8 @@ string ScalarCompiler::generateBinOp(Tree sig, int opcode, Tree arg1, Tree arg2)
 }
 
 /*****************************************************************************
-                               Primitive Operations
-*****************************************************************************/
+ Primitive Operations
+ *****************************************************************************/
 
 string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 {
@@ -600,8 +634,8 @@ string ScalarCompiler::generateFFun(Tree sig, Tree ff, Tree largs)
 }
 
 /*****************************************************************************
-                               CACHE CODE
-*****************************************************************************/
+ CACHE CODE
+ *****************************************************************************/
 
 void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, string& vname)
 {
@@ -616,14 +650,18 @@ void ScalarCompiler::getTypedNames(Type t, const string& prefix, string& ctype, 
 
 string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 {
-    string          vname, ctype, code;
-    int             sharing = getSharingCount(sig);
-    old_Occurences* o       = fOccMarkup->retrieve(sig);
-
+    string code;
+   
     // check reentrance
     if (getCompiledExpression(sig, code)) {
         return code;
     }
+    
+    string vname, ctype;
+    int             sharing = getSharingCount(sig);
+    old_Occurences* o       = fOccMarkup->retrieve(sig);
+    faustassert(o);
+   
 
     // check for expression occuring in delays
     if (o->getMaxDelay() > 0) {
@@ -652,16 +690,18 @@ string ScalarCompiler::generateCacheCode(Tree sig, const string& exp)
 // like generateCacheCode but we force caching like if sharing was always > 1
 string ScalarCompiler::forceCacheCode(Tree sig, const string& exp)
 {
-    string          vname, ctype, code;
-    old_Occurences* o = fOccMarkup->retrieve(sig);
-
+    string code;
+    
     // check reentrance
     if (getCompiledExpression(sig, code)) {
         return code;
     }
+    
+    string vname, ctype;
+    old_Occurences* o = fOccMarkup->retrieve(sig);
+    faustassert(o);
 
     // check for expression occuring in delays
-    faustassert(o);
     if (o->getMaxDelay() > 0) {
         getTypedNames(getCertifiedSigType(sig), "Vec", ctype, vname);
         return generateDelayVec(sig, generateVariableStore(sig, exp), ctype, vname, o->getMaxDelay());
@@ -675,6 +715,9 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string vname, ctype;
     Type   t = getCertifiedSigType(sig);
+    
+    std::cout << "generateVariableStore " << std::endl;
+    print(sig);
 
     switch (t->variability()) {
         case kKonst:
@@ -701,8 +744,8 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 }
 
 /*****************************************************************************
-                                    CASTING
-*****************************************************************************/
+ CASTING
+ *****************************************************************************/
 
 string ScalarCompiler::generateIntCast(Tree sig, Tree x)
 {
@@ -715,8 +758,8 @@ string ScalarCompiler::generateFloatCast(Tree sig, Tree x)
 }
 
 /*****************************************************************************
-                            user interface elements
-*****************************************************************************/
+ user interface elements
+ *****************************************************************************/
 
 string ScalarCompiler::generateButton(Tree sig, Tree path)
 {
@@ -850,8 +893,8 @@ string ScalarCompiler::generateSoundfile(Tree sig, Tree path)
 }
 
 /*****************************************************************************
-                                    TABLES
-*****************************************************************************/
+ TABLES
+ *****************************************************************************/
 
 /*----------------------------------------------------------------------------
                         sigGen : initial table content
@@ -1085,8 +1128,8 @@ void ScalarCompiler::generateRec(Tree sig, Tree var, Tree le)
 }
 
 /*****************************************************************************
-                               PREFIX, DELAY A PREFIX VALUE
-*****************************************************************************/
+ PREFIX, DELAY A PREFIX VALUE
+ *****************************************************************************/
 
 string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
 {
@@ -1094,10 +1137,6 @@ string ScalarCompiler::generateEnable(Tree sig, Tree x, Tree y)
     return generateCacheCode(x, CS(x));
     // return CS(x);
 }
-
-/*****************************************************************************
-                               PREFIX, DELAY A PREFIX VALUE
-*****************************************************************************/
 
 string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 {
@@ -1118,8 +1157,9 @@ string ScalarCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 }
 
 /*****************************************************************************
-                               IOTA(n)
-*****************************************************************************/
+ IOTA(n)
+ *****************************************************************************/
+
 static bool isPowerOf2(int n)
 {
     return !(n & (n - 1));
@@ -1145,11 +1185,9 @@ string ScalarCompiler::generateIota(Tree sig, Tree n)
     return vperm;
 }
 
-// a revoir en utilisant la lecture de table et en partageant la construction de la paire de valeurs
-
-/**
- * Generate a select2 code
- */
+/*****************************************************************************
+ SELECT
+ *****************************************************************************/
 
 string ScalarCompiler::generateSelect2(Tree sig, Tree sel, Tree s1, Tree s2)
 {
@@ -1237,10 +1275,10 @@ string ScalarCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tree s2, Tre
 }
 #endif
 
-/**
- * retrieve the type annotation of sig
- * @param sig the signal we want to know the type
- */
+/*****************************************************************************
+ EXTENDED
+ *****************************************************************************/
+
 string ScalarCompiler::generateXtended(Tree sig)
 {
     xtended*       p = (xtended*)getUserData(sig);
@@ -1259,35 +1297,6 @@ string ScalarCompiler::generateXtended(Tree sig)
     }
 }
 
-/*****************************************************************************
-                        vector name property
-*****************************************************************************/
-
-/**
- * Set the vector name property of a signal, the name of the vector used to
- * store the previous values of the signal to implement a delay.
- * @param sig the signal expression.
- * @param vecname the string representing the vector name.
- * @return true is already compiled
- */
-void ScalarCompiler::setVectorNameProperty(Tree sig, const string& vecname)
-{
-    fVectorProperty.set(sig, vecname);
-}
-
-/**
- * Get the vector name property of a signal, the name of the vector used to
- * store the previous values of the signal to implement a delay.
- * @param sig the signal expression.
- * @param vecname the string where to store the vector name.
- * @return true if the signal has this property, false otherwise
- */
-
-bool ScalarCompiler::getVectorNameProperty(Tree sig, string& vecname)
-{
-    return fVectorProperty.get(sig, vecname);
-}
-
 /**
  * Compute the minimal power of 2 greater than x
  */
@@ -1302,25 +1311,25 @@ int ScalarCompiler::pow2limit(int x)
 }
 
 /*****************************************************************************
-                               N-SAMPLE FIXED DELAY : sig = exp@delay
-
-    case 1-sample max delay :
-        Y(t-0)	Y(t-1)
-        Temp	Var						gLessTempSwitch = false
-        V[0]	V[1]					gLessTempSwitch = true
-
-    case max delay < gMaxCopyDelay :
-        Y(t-0)	Y(t-1)	Y(t-2)  ...
-        Temp	V[0]	V[1]	...		gLessTempSwitch = false
-        V[0]	V[1]	V[2]	...		gLessTempSwitch = true
-
-    case max delay >= gMaxCopyDelay :
-        Y(t-0)	Y(t-1)	Y(t-2)  ...
-        Temp	V[0]	V[1]	...
-        V[0]	V[1]	V[2]	...
-
-
-*****************************************************************************/
+ N-SAMPLE FIXED DELAY : sig = exp@delay
+ 
+ case 1-sample max delay :
+ Y(t-0)	Y(t-1)
+ Temp	Var                     gLessTempSwitch = false
+ V[0]	V[1]                    gLessTempSwitch = true
+ 
+ case max delay < gMaxCopyDelay :
+ Y(t-0)	Y(t-1)	Y(t-2)  ...
+ Temp	V[0]	V[1]	...     gLessTempSwitch = false
+ V[0]	V[1]	V[2]	...     gLessTempSwitch = true
+ 
+ case max delay >= gMaxCopyDelay :
+ Y(t-0)	Y(t-1)	Y(t-2)  ...
+ Temp	V[0]	V[1]	...
+ V[0]	V[1]	V[2]	...
+ 
+ 
+ *****************************************************************************/
 
 /**
  * Generate code for accessing a delayed signal. The generated code depend of
@@ -1329,16 +1338,13 @@ int ScalarCompiler::pow2limit(int x)
 
 string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    int    mxd, d;
-    string vecname;
-
     // cerr << "ScalarCompiler::generateFixDelay sig = " << *sig << endl;
     // cerr << "ScalarCompiler::generateFixDelay exp = " << *exp << endl;
     // cerr << "ScalarCompiler::generateFixDelay del = " << *delay << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
-
-    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    int mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
         if (mxd == 0) {
@@ -1355,6 +1361,7 @@ string ScalarCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
         return vecname;
 
     } else if (mxd < gGlobal->gMaxCopyDelay) {
+        int d;
         if (isSigInt(delay, &d)) {
             return subst("$0[$1]", vecname, CS(delay));
         } else {
@@ -1490,6 +1497,10 @@ void ScalarCompiler::ensureIotaCode()
         fClass->addPostCode(Statement("", "IOTA = IOTA+1;"));
     }
 }
+
+/*****************************************************************************
+ WAVEFORM
+ *****************************************************************************/
 
 /**
  * Generate code for a waveform. The waveform will be declared as a static field.
