@@ -45,18 +45,38 @@
  ******************************************************************************/
 
 class uiItem;
-struct uiItemBase;
+class GUI;
+struct clist;
 
 typedef void (*uiCallback)(FAUSTFLOAT val, void* data);
 
-class clist : public std::list<uiItemBase*>
+struct uiItemBase
 {
     
-    public:
+    uiItemBase(GUI* ui, FAUSTFLOAT* zone) {}
     
-        virtual ~clist();
+    virtual ~uiItemBase()
+    {}
+    
+    virtual void modifyZone(FAUSTFLOAT v) = 0;
+    virtual double cache() = 0;
+    virtual void reflectZone() = 0;
+};
+
+
+static void deleteClist(clist* cl);
+
+struct clist : public std::list<uiItemBase*>
+{
+    
+    virtual ~clist()
+    {
+        deleteClist(this);
+    }
         
 };
+
+static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data);
 
 typedef std::map<FAUSTFLOAT*, clist*> zmap;
 
@@ -96,11 +116,30 @@ class GUI : public UI
             if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
             fZoneMap[z]->push_back(c);
         }
-
-        void updateAllZones();
+ 
+        void updateAllZones()
+        {
+            for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
+                FAUSTFLOAT* z = m->first;
+                clist*	l = m->second;
+                if (z) {
+                    FAUSTFLOAT v = *z;
+                    for (clist::iterator c = l->begin(); c != l->end(); c++) {
+                        if ((*c)->cache() != v) (*c)->reflectZone();
+                    }
+                }
+            }
+        }
         
-        void updateZone(FAUSTFLOAT* z);
-        
+        void updateZone(FAUSTFLOAT* z)
+        {
+            FAUSTFLOAT v = *z;
+            clist* l = fZoneMap[z];
+            for (clist::iterator c = l->begin(); c != l->end(); c++) {
+                if ((*c)->cache() != v) (*c)->reflectZone();
+            }
+        }
+    
         static void updateAllGuis()
         {
             std::list<GUI*>::iterator g;
@@ -108,7 +147,12 @@ class GUI : public UI
                 (*g)->updateAllZones();
             }
         }
-        void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data);
+    
+        void addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data)
+        {
+            createUiCallbackItem(this, zone, foo, data);
+        }
+
         virtual void show() {};	
         virtual bool run() { return false; };
 
@@ -159,22 +203,6 @@ class GUI : public UI
  * User Interface Item: abstract definition
  */
 
-struct uiItemBase
-{
-    
-    uiItemBase(GUI* ui, FAUSTFLOAT* zone)
-    {
-        ui->registerZone(zone, this);
-    }
-    
-    virtual ~uiItemBase()
-    {}
-    
-    virtual void modifyZone(FAUSTFLOAT v) = 0;
-    virtual double cache() = 0;
-    virtual void reflectZone() = 0;
-};
-
 template <typename REAL>
 class uiTypedItem : public uiItemBase
 {
@@ -186,7 +214,9 @@ class uiTypedItem : public uiItemBase
         
         uiTypedItem(GUI* ui, REAL* zone):uiItemBase(ui, static_cast<FAUSTFLOAT*>(zone)),
         fGUI(ui), fZone(zone), fCache(REAL(-123456.654321))
-        {}
+        {
+            ui->registerZone(zone, this);
+        }
         
     public:
         
@@ -252,29 +282,29 @@ class uiOwnedItem : public uiItem {
  * Callback Item
  */
 
-struct uiCallbackItem : public uiItem {
+class uiCallbackItem : public uiItem {
     
-	uiCallback fCallback;
-	void* fData;
-	
-	uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data) 
-			: uiItem(ui, zone), fCallback(foo), fData(data) {}
-	
-	virtual void reflectZone() 
-    {		
-		FAUSTFLOAT v = *fZone;
-		fCache = v; 
-		fCallback(v, fData);	
-	}
+    protected:
+    
+        uiCallback fCallback;
+        void* fData;
+    
+    public:
+    
+        uiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data)
+        : uiItem(ui, zone), fCallback(foo), fData(data) {}
+        
+        virtual void reflectZone() 
+        {		
+            FAUSTFLOAT v = *fZone;
+            fCache = v; 
+            fCallback(v, fData);	
+        }
 };
 
 /**
- * Base class for timed items
+ *  For timestamped control
  */
-
-//-------------------------
-// For timestamped control
-//-------------------------
 
 struct DatedControl {
     
@@ -284,6 +314,10 @@ struct DatedControl {
     DatedControl(double d = 0., FAUSTFLOAT v = FAUSTFLOAT(0)):fDate(d), fValue(v) {}
     
 };
+
+/**
+ * Base class for timed items
+ */
 
 class uiTimedItem : public uiItem
 {
@@ -357,46 +391,17 @@ class uiGroupItem : public uiItem
 
 };
 
-/**
- * Update all user items reflecting zone z
- */
+// Can not be defined as method in the classes
 
-inline void GUI::updateZone(FAUSTFLOAT* z)
+static void createUiCallbackItem(GUI* ui, FAUSTFLOAT* zone, uiCallback foo, void* data)
 {
-	FAUSTFLOAT v = *z;
-	clist* l = fZoneMap[z];
-	for (clist::iterator c = l->begin(); c != l->end(); c++) {
-		if ((*c)->cache() != v) (*c)->reflectZone();
-	}
+    new uiCallbackItem(ui, zone, foo, data);
 }
 
-/**
- * Update all user items not up to date
- */
-
-inline void GUI::updateAllZones()
-{
-	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-		FAUSTFLOAT* z = m->first;
-		clist*	l = m->second;
-        if (z) {
-            FAUSTFLOAT v = *z;
-            for (clist::iterator c = l->begin(); c != l->end(); c++) {
-                if ((*c)->cache() != v) (*c)->reflectZone();
-            }
-        }
-	}
-}
-
-inline void GUI::addCallback(FAUSTFLOAT* zone, uiCallback foo, void* data) 
-{ 
-	new uiCallbackItem(this, zone, foo, data); 
-};
-
-inline clist::~clist() 
+static void deleteClist(clist* cl)
 {
     std::list<uiItemBase*>::iterator it;
-    for (it = begin(); it != end(); it++) {
+    for (it = cl->begin(); it != cl->end(); it++) {
         uiOwnedItem* owned = dynamic_cast<uiOwnedItem*>(*it);
         // owned items are deleted by external code
         if (!owned) {
