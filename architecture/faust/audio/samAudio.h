@@ -56,7 +56,10 @@ class samAudio : public audio {
     
         samAudio()
         {
-            // nothing for now.
+            iSampleRate = sampleRate;
+            iBufferSize = bufferSize;
+            iNumInputs = numInputs;
+            iNumOutputs = numOutputs;
         }
     
         virtual ~samAudio() 
@@ -64,14 +67,6 @@ class samAudio : public audio {
             // nothing for now
         }
     
-        virtual void setDSP_Parameters(int sampleRate, int bufferSize, int numInputs, int numOutputs)
-        {
-            iSampleRate = sampleRate;
-            iBufferSize = bufferSize;
-            iNumInputs = numInputs;
-            iNumOutputs = numOutputs;
-        }  
-
         // the sam hardware DSP supports up to 8 channels (4 stereo pairs).
         virtual void setDSP_ChannelBuffers(FAUSTFLOAT *AudioChannelA_0_Left,
                                        FAUSTFLOAT *AudioChannelA_0_Right,
