@@ -56,6 +56,7 @@ class dsp_optimizer {
     
         int fRun;
         int fCount;
+        bool fTrace;
     
         std::string fFilename;
         std::string fInput;
@@ -68,16 +69,16 @@ class dsp_optimizer {
         {
             // First call with fCount = -1 will be used to estimate fCount by giving the wanted measure duration
             if (fCount == -1) {
-                measure_dsp mes(fDSP, fBufferSize, 5.);
+                measure_dsp mes(fDSP, fBufferSize, 5., fTrace);
                 mes.measure();
                 // fCount is kept from the first duration measure
                 fCount = mes.getCount();
                 return mes.getStats();
             } else {
-                measure_dsp mes(fDSP, fBufferSize, fCount);
+                measure_dsp mes(fDSP, fBufferSize, fCount, fTrace);
                 for (int i = 0; i < run; i++) {
                     mes.measure();
-                    std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
+                    if (fTrace) std::cout << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << std::endl;
                     FAUSTBENCH_LOG<double>(mes.getStats());
                 }
                 return mes.getStats();
@@ -237,7 +238,7 @@ class dsp_optimizer {
         
         bool computeOne(const std::vector<std::string>& item, int run, double& res)
         {
-            printItem(item);
+            if (fTrace) printItem(item);
             
             int argc = 0;
             const char* argv[64];
@@ -295,7 +296,8 @@ class dsp_optimizer {
                   int argc, const char* argv[],
                   const std::string& target,
                   int buffer_size, int run,
-                  int opt_level_max)
+                  int opt_level_max,
+                  bool trace)
         {
             fFilename = filename;
             fInput = input;
@@ -306,10 +308,11 @@ class dsp_optimizer {
             fArgc = argc;
             fArgv = argv;
             fCount = -1;
+            fTrace = trace;
             
             init();
             
-            std::cout << "Estimate timing parameters" << std::endl;
+            if (fTrace) std::cout << "Estimate timing parameters" << std::endl;
             double res;
             computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res);
         }
@@ -334,9 +337,10 @@ class dsp_optimizer {
                       const std::string& target,
                       int buffer_size,
                       int run = 1,
-                      int opt_level = -1)
+                      int opt_level = -1,
+                      bool trace = true)
         {
-            init(filename, "", argc, argv, target, buffer_size, run, opt_level);
+            init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace);
         }
     
         /**
@@ -370,10 +374,10 @@ class dsp_optimizer {
          */
         std::pair<double, std::vector<std::string> > findOptimizedParameters()
         {
-            std::cout << "Discover best parameters option" << std::endl;
+            if (fTrace) std::cout << "Discover best parameters option" << std::endl;
             std::pair<double, std::vector<std::string> > best1 = findOptimizedParametersAux(fOptionsTable);
             
-            std::cout << "Refined with -mcd" << std::endl;
+            if (fTrace) std::cout << "Refined with -mcd" << std::endl;
             std::vector<std::vector <std::string> > options_table;
             for (int size = 2; size <= 256; size *= 2) {
                 std::vector<std::string> best2 = best1.second;

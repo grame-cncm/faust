@@ -24,6 +24,7 @@ EFFECT=""
 SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
+OPT=false
 
 # path to max SDK
 
@@ -81,7 +82,8 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2max6 [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] <file.dsp>"
+        echo "faust2max6 [-opt] [-nvoices <num>] [-effect <effect.dsp>] [-midi] [-osc] [-universal] [-nopatch] [-soundfile] <file.dsp>"
+        echo "Use '-opt' to have faustbench-llvm discover and activate the best compilation options"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-midi' to activate MIDI control"
@@ -92,7 +94,9 @@ do
         exit
     fi
 
-    if [ $p = "-nvoices" ]; then
+    if [ $p = "-opt" ]; then
+        OPT=true
+    elif [ $p = "-nvoices" ]; then
         POLY="POLY1"
         shift
         NVOICES=$1
@@ -157,6 +161,13 @@ for p in $FILES; do
     TDR=$(mktemp -d faust.XXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
+
+    # discover best compilation options
+    if $OPT; then
+        echo "Look for best compilation options..."
+        OPTIONS="$(faustbench-llvm -notrace $f)"
+        echo $OPTIONS
+    fi
 
     # compile faust to c++
     if [ "$EFFECT" = "" ]; then

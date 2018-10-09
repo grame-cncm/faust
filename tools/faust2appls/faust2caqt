@@ -32,13 +32,15 @@ SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 SOUNDFILEFLAGS=""
+OPT=false
 
 while [ $1 ] 
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "faust2caqt [-opt] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "Use '-opt' to have faustbench-llvm discover and activate the best compilation options"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -56,6 +58,8 @@ do
 
     if [ "$p" = -debug ]; then
         DEBUG=true
+    elif [ $p = "-opt" ]; then
+        OPT=true
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
     elif [ "$p" = -icc ]; then
@@ -133,6 +137,13 @@ for p in $FILES; do
     TDR=$(mktemp -d faust.XXXXXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
+
+    # discover best compilation options
+    if $OPT; then
+        echo "Look for best compilation options..."
+        OPTIONS="$(faustbench-llvm -notrace $f)"
+        echo $OPTIONS
+    fi
 
     # compile faust to c++
     if [ $POLY = "POLY2" ]; then

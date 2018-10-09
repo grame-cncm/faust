@@ -93,23 +93,23 @@ using namespace std;
 
 ofstream* gFaustbenchLog = nullptr;
 
-static double bench(dsp* dsp, const string& name, int run)
+static double bench(dsp* dsp, const string& name, int run, bool trace)
 {
-    measure_dsp mes(dsp, 1024, 5.);  // Buffer_size and duration in sec of  measure
+    measure_dsp mes(dsp, 512, 5., trace);  // Buffer_size and duration in sec of  measure
     for (int i = 0; i < run; i++) {
         mes.measure();
-        cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
+        if (trace) cout << name << " : " << mes.getStats() << " " << "(DSP CPU % : " << (mes.getCPULoad() * 100) << ")" << endl;
         FAUSTBENCH_LOG<double>(mes.getStats());
     }
     return mes.getStats();
 }
 
-extern "C" int bench_all(const char* name, int run)
+extern "C" int bench_all(const char* name, int run, bool trace)
 {
     vector<double> measures;
     vector<string> options;
     
-    cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
+    if (trace) cout << "DSP bench of " << name << " compiled in C++ running with FAUSTFLOAT = " << ((sizeof(FAUSTFLOAT) == 4) ? "float" : "double") << endl;
     
 #if defined(ALL_TESTS)
     
@@ -172,60 +172,60 @@ extern "C" int bench_all(const char* name, int run)
 #if defined(ALL_TESTS)
     
     // Scalar
-    measures.push_back(bench(new dsp_scal(), options[ind++], run));
-    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run));
+    measures.push_back(bench(new dsp_scal(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run, trace));
     
     // Vector -lv 0
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_8(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_16(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_64(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_128(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_256(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0_512(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_8(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_16(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_64(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_128(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_256(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0_512(), options[ind++], run, trace));
     
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_8(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_16(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_64(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_128(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_256(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_512(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_8(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_16(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_64(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_128(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_256(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_512(), options[ind++], run, trace));
     
     // Vector -lv 1
-    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_8(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_16(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_64(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_128(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_256(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_512(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1_4(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_8(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_16(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_64(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_128(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_256(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_512(), options[ind++], run, trace));
     
-    measures.push_back(bench(new dsp_vec1g_4(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_8(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_16(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_64(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_128(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_256(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_512(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec1g_4(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_8(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_16(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_64(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_128(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_256(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_512(), options[ind++], run, trace));
     
 #elif defined(FAST_TESTS)
     
-    measures.push_back(bench(new dsp_scal(), options[ind++], run));
-    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run));
+    measures.push_back(bench(new dsp_scal(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_scal_exp10(), options[ind++], run, trace));
     
-    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run));
-    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run));
+    measures.push_back(bench(new dsp_vec0_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec0g_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1_32(), options[ind++], run, trace));
+    measures.push_back(bench(new dsp_vec1g_32(), options[ind++], run, trace));
     
 #elif defined(SINGLE_TESTS)
     
-    measures.push_back(bench(new dsp_scal(), options[ind++], run));
+    measures.push_back(bench(new dsp_scal(), options[ind++], run, trace));
     
 #endif
     
@@ -235,7 +235,11 @@ extern "C" int bench_all(const char* name, int run)
     vector <double>::iterator it = find(measures.begin(), measures.end(), measures1[measures1.size()-1]);
     long int pos = distance(measures.begin(), it);
     
-    cout << "Best value is : " << measures1[measures1.size()-1] << " with " << options[pos] << endl;
+    if (trace) {
+        cout << "Best value is : " << measures1[measures1.size()-1] << " with " << options[pos] << endl;
+    } else {
+        cout << options[pos] << endl;
+    }
   	return 1;
 }
 
@@ -244,14 +248,15 @@ extern "C" int bench_all(const char* name, int run)
 int main(int argc, char* argv[])
 {
     if (isopt(argv, "-h") || isopt(argv, "-help")) {
-        cout << "faustbench [-run <num>] foo.dsp" << endl;
+        cout << "faustbench [-notrace] [-run <num>] foo.dsp" << endl;
         return 0;
     }
     
     //FAUSTBENCH_LOG<string>("faustbench C++");
     
     int run = lopt(argv, "-run", 1);
-    return bench_all(argv[0], run);
+    bool is_trace = !isopt(argv, "-notrace");
+    return bench_all(argv[0], run, is_trace);
 }
 
 #endif

@@ -569,18 +569,21 @@ void global::printCompilationOptions(ostream& dst, bool backend)
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
             << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else if (gOpenMPSwitch) {
         dst << "-omp"
             << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else {
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))

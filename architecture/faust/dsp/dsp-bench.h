@@ -352,7 +352,7 @@ class measure_dsp : public decorator_dsp {
          * @param count - the number of cycles using in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, int count)
+        measure_dsp(dsp* dsp, int buffer_size, int count, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
         {
             init();
@@ -367,7 +367,7 @@ class measure_dsp : public decorator_dsp {
          * @param duration_in_sec - the wanted durection used in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec)
+        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
             init();
@@ -376,7 +376,7 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(1000, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            std::cout << "duration " << (duration / 1e6) << std::endl;
+            if (trace) std::cout << "duration " << (duration / 1e6) << std::endl;
             fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             

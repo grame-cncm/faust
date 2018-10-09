@@ -37,10 +37,11 @@ Here are the available options:
 
 The **faustbench** tool uses the C++ backend to generate a set of C++ files produced with different Faust compiler options. All files are then compiled in a unique binary that will measure DSP CPU of all versions of the compiled DSP. The tool is supposed to be launched in a terminal, but it can be used to generate an iOS project, ready to be launched and tested in Xcode. 
 
-`faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench [-notrace] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
+ - `-notrace to only generate the best compilation parameters`
  - `-ios to generate an iOS project`
  - `-single to only scalar test`
  - `-fast to only execute some tests`
@@ -53,10 +54,11 @@ Use `export CXX=/path/to/compiler` before running faustbench to change the C++ c
 
 The **faustbench-llvm** tool uses the libfaust library and its LLVM backend to dynamically compile DSP objects produced with different Faust compiler options, and then measure their DSP CPU. Additional Faust compiler options can be given beside the ones that will be automatically explored by the tool.
 
-`faustbench-llvm [-single] [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
+`faustbench-llvm [-notrace] [-single] [-run <num] [additional Faust options (-vec -vs 8...)] foo.dsp` 
 
 Here are the available options:
 
+- `-notrace to only generate the best compilation parameters`
 - `-single to only scalar test`
 - `-run <num> to execute each test <num> times`
 
@@ -78,5 +80,4 @@ Here is the available options:
 - `-html to generate a ready to use HTML test page`
 - `-emcc to compile the generated C code with Emscripten (still experimental)`
 - `-jsmem to generate a wasm module and wrapper code using JavaScript side allocated wasm memory`
-
 
