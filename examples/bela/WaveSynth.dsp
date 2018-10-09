@@ -8,22 +8,22 @@ import("stdfaust.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // MIDI IMPLEMENTATION:
 //
-// CC 1		: LFO Depth (wave travel modulation)
-// CC 14	: LFO Frequency
-// CC 70	: Wave travelling
+// CC 1 : LFO Depth (wave travel modulation)
+// CC 14 : LFO Frequency
+// CC 70 : Wave travelling
 //
-// CC 73	: Attack
-// CC 76	: Decay
-// CC 77	: Sustain
-// CC 72	: Release
+// CC 73 : Attack
+// CC 76 : Decay
+// CC 77 : Sustain
+// CC 72 : Release
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // GENERAL
-midigate        = button ("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 0.5, 0, 1, 0.01);
+midigate = button ("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain = nentry("gain", 0.5, 0, 1, 0.01);
 
-waveTravel		= hslider("waveTravel [midi:ctrl ]",0,0,1,0.01);
+waveTravel = hslider("waveTravel [midi:ctrl ]",0,0,1,0.01);
 
 // pitchwheel
 pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);

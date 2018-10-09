@@ -22,10 +22,10 @@ import("stdfaust.lib");
 //
 // Available by OSC :  (see BELA console for precise adress)
 // Feedback filter:
-// crossLF	: Crossfeedback Lowpass
-// crossHF	: Crossfeedback Highpass
-// feedbLF	: Feedback Lowpass
-// feedbHF	: Feedback Highpass
+// crossLF : Crossfeedback Lowpass
+// crossHF : Crossfeedback Highpass
+// feedbLF : Feedback Lowpass
+// feedbHF : Feedback Highpass
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

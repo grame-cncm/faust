@@ -14,17 +14,17 @@ import("stdfaust.lib");
 // ANALOG_3	: Release
 //
 // MIDI:
-// CC 73	: Attack
-// CC 76	: Decay
-// CC 77	: Sustain
+// CC 73 : Attack
+// CC 76 : Decay
+// CC 77 : Sustain
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // GENERAL
-midigate        = button ("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 0.5, 0, 1, 0.01);
+midigate = button ("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain  = nentry("gain", 0.5, 0, 1, 0.01);
 
-waveTravel		= hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
+waveTravel = hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
 
 // pitchwheel
 pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
@@ -47,7 +47,7 @@ vol = envelop * midigain;
 
 WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0 ))-2) -1.;
 
-// 4 WF maxi avec cette version:
+// 4 WF maxi with this version:
 scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)
     with {
         coef = 3.14159 * ((nb-1)*0.5);
@@ -55,7 +55,7 @@ scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)
     };
 
 wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tablesize, wt2, faze)*(moov : scanner(4,1)))
-				+ (rdtable(tablesize, wt3, faze)*(moov : scanner(4,2)))+(rdtable(tablesize, wt4, faze)*(moov : scanner(4,3)))
+            + (rdtable(tablesize, wt3, faze)*(moov : scanner(4,2)))+(rdtable(tablesize, wt4, faze)*(moov : scanner(4,3)))
     with {
         tablesize = 1024;
         wt1 = WF(tablesize, 16);

@@ -54,8 +54,8 @@ rateMax = 7.0; // Hz
 rateMin = 0.01;
 rateT60 = 0.15661;
 
-rate	= vslider("Rate", 0.5, rateMin, rateMax, 0.0001): si.smooth(ba.tau2pole(rateT60/6.91));
-depth	= vslider("Depth [BELA: ANALOG_0]", 0.5, 0, 1, 0.001) : si.smooth(ba.tau2pole(depthT60/6.91));
+rate = vslider("Rate", 0.5, rateMin, rateMax, 0.0001): si.smooth(ba.tau2pole(rateT60/6.91));
+depth = vslider("Depth [BELA: ANALOG_0]", 0.5, 0, 1, 0.001) : si.smooth(ba.tau2pole(depthT60/6.91));
 // (dept = dry/wet)
 
 depthT60 = 0.15661;

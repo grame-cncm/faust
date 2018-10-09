@@ -8,20 +8,20 @@ import("all.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // MIDI IMPLEMENTATION:
 //
-// CC 1		: FM feedback on modulant oscillator.
-// CC 14	: Modulator frequency ratio.
+// CC 1 : FM feedback on modulant oscillator.
+// CC 14 : Modulator frequency ratio.
 //
-// CC 73	: Attack
-// CC 76	: Decay
-// CC 77	: Sustain
-// CC 72	: Release
+// CC 73 : Attack
+// CC 76 : Decay
+// CC 77 : Sustain
+// CC 72 : Release
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GENERAL, Keyboard
-midigate        = button ("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 1, 0, 1, 0.01);
+midigate = button ("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain = nentry("gain", 1, 0, 1, 0.01);
 
 // modwheel:
 feedb = (gFreq-1) * (hslider("feedb[midi:ctrl 1]", 0, 0, 1, 0.001) : si.smoo);

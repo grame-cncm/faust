@@ -8,7 +8,7 @@ import("stdfaust.lib");
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // MIDI IMPLEMENTATION:
 //
-// CC 1		: LFO Depth (wave travel modulation)
+// CC 1     : LFO Depth (wave travel modulation)
 // CC 14	: LFO Frequency
 // CC 70	: Wave travelling
 //
@@ -78,32 +78,32 @@ wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tab
 // MIDI IMPLEMENTATION:
 // (All are available by OSC)
 //
-// CC 7		: Volume
-// CC 10	: Pan
+// CC 7	: Volume
+// CC 10 : Pan
 //
-// CC 92	: Distortion Drive
+// CC 92 : Distortion Drive
 //
-// CC 13	: Flanger Delay
-// CC 93	: Flanger Dry/Wet
-// CC 94	: Flanger Feedback
+// CC 13 : Flanger Delay
+// CC 93 : Flanger Dry/Wet
+// CC 94 : Flanger Feedback
 //
-// CC 12	: Reverberation Room size
-// CC 91	: Reverberation Dry/Wet
-// CC 95	: Reverberation Damp
-// CC 90	: Reverberation Stereo Width
+// CC 12 : Reverberation Room size
+// CC 91 : Reverberation Dry/Wet
+// CC 95 : Reverberation Damp
+// CC 90 : Reverberation Stereo Width
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-volFX	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
 drive	= hslider ("drive[midi:ctrl 92]",0.3,0,1,0.001);
 
 // Flanger
 curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb      = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
+fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);
