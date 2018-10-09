@@ -63,7 +63,7 @@ static void osc_compute_callback(void* arg)
 #include "faust/gui/SoundUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile....
+// Always include this file, otherwise -nvoices only mode does not compile....
 #include "faust/gui/MidiUI.h"
 
 #ifdef MIDICTRL

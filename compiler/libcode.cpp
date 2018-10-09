@@ -1041,7 +1041,7 @@ static void includeFile(const string& file, ostream* dst)
 {
     istream* file_include = openArchStream(file.c_str());
     if (file_include) {
-        streamCopy(*file_include, *dst);
+        streamCopyUntilEnd(*file_include, *dst);
     }
     delete file_include;
 }
@@ -1061,7 +1061,7 @@ static void injectCode(ifstream* enrobage, ostream* dst)
         } else {
             streamCopyUntil(*enrobage, *dst, "<<includeIntrinsic>>");
             streamCopyUntil(*enrobage, *dst, "<<includeclass>>");
-            streamCopy(*injcode, *dst);
+            streamCopyUntilEnd(*injcode, *dst);
             streamCopyUntilEnd(*enrobage, *dst);
         }
         delete injcode;
@@ -1474,7 +1474,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             if (gGlobal->gSchedulerSwitch) {
                 istream* scheduler_include = openArchStream("old-scheduler.cpp");
                 if (scheduler_include) {
-                    streamCopy(*scheduler_include, *dst);
+                    streamCopyUntilEnd(*scheduler_include, *dst);
                 } else {
                     throw("ERROR : can't include \"old-scheduler.cpp\", file not found>\n");
                 }
