@@ -200,8 +200,8 @@ inject source file \<f> into architecture file instead of compiling a dsp file
 **-ftz**, **--flush-to-zero**
 Adds flush-to-zero code to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]
 
-**-fm \<file>**, **--fast-math \<file>**
-uses optimized versions of mathematical functions implemented in \<file>, takes the '/faust/dsp/fastmath.cpp' file if 'def' is used
+**-fm \<default|file>**, **--fast-math \<file>**
+uses optimized versions of mathematical functions implemented in \<file>, takes the '/faust/dsp/fastmath.cpp' file if 'default' is used
 
 SEE ALSO
 ========

@@ -333,6 +333,7 @@ error:
 
 /// ---------------------------------------------------------------------
 // Parse list of strings
+/// ---------------------------------------------------------------------
 static bool parseList(const char*& p, std::vector<std::string>& items)
 {
     const char* saved = p;  // to restore position if we fail
@@ -386,7 +387,7 @@ static bool parseItemMetaData(const char*& p, std::vector<std::pair<std::string,
 // Parse metadatas of the interface:
 // "name" : "...", "inputs" : "...", "outputs" : "...", ...
 // and store the result as key/value
-//
+/// ---------------------------------------------------------------------
 static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& value, std::map<std::string, std::string>& metadatas, std::vector<std::string>& items)
 {
     if (parseDQString(p, key)) {
@@ -404,7 +405,7 @@ static bool parseGlobalMetaData(const char*& p, std::string& key, std::string& v
 // Parse gui:
 // "type" : "...", "label" : "...", "address" : "...", ...
 // and store the result in uiItems Vector
-//
+/// ---------------------------------------------------------------------
 static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numItems)
 {
     if (parseChar(p, '{')) {
@@ -520,8 +521,7 @@ static bool parseUI(const char*& p, std::vector<itemInfo*>& uiItems, int& numIte
 // {"metadatas": "...", "ui": [{ "type": "...", "label": "...", "items": [...], "address": "...","init": "...", "min": "...", "max": "...","step": "..."}]}
 //
 // and store the result in map Metadatas and vector containing the items of the interface. Returns true if parsing was successfull.
-//
-
+/// ---------------------------------------------------------------------
 static bool parseJson(const char*& p, std::map<std::string, std::string>& metadatas1, std::map<std::string, std::vector<std::string> >& metadatas2, std::vector<itemInfo*>& uiItems)
 {
     parseChar(p, '{');

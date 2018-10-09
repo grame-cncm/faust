@@ -762,7 +762,7 @@ static void printHelp()
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based "
             "(fastest)]\n";
-    cout << "-fm <file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in <file>, "
+    cout << "-fm <default|file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in <file>, "
             "takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
