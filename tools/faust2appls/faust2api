@@ -15,7 +15,6 @@ CXX=g++
 
 # change if you want to get the log of what's happening
 LOG="/dev/null"
-#LOG="log"
 
 # exit if a command fails
 set -e
@@ -33,6 +32,7 @@ NOZIP="0"
 EFFECT=""
 BUILD="0"
 DYNAMIC_DSP="0"
+OPT=false
 
 COREAUDIO_DRIVER="0"
 ANDROID_DRIVER="0"
@@ -52,7 +52,7 @@ echoHelp ()
         echo "$p wrong argument"
         echo ""
     fi
-    echo "faust2api can be used to generate faust-based dsp objects for various platforms:"
+    echo "faust2api can be used to generate Faust based dsp objects for various platforms:"
     echo ""
     echo "To generate an iOS API, run: faust2api -ios yourFaustCode.dsp"
     echo "To generate an Android API, run: faust2api -android yourFaustCode.dsp"
@@ -66,6 +66,7 @@ echoHelp ()
     echo "To generate a dummy audio API, run: faust2api -dummy yourFaustCode.dsp"
     echo ""
     echo "Global options:"
+    echo "   -opt to have faustbench-llvm discover and activate the best compilation options."
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
     echo "   -effect auto: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified)."
@@ -116,7 +117,6 @@ echoHelp ()
 
 createAPI ()
 {
-
     cp -r $FAUSTLIB/api/DspFaust.h $APIFOLDER
     faust $OPTIONS -i -a api/DspFaust.cpp "$FILE" -o "$APIFOLDER/DspFaust.cpp" || exit 1
     if [ "$POLY2" = "1" ]; then
@@ -151,6 +151,8 @@ do
     if [ $p = "-help" ] || [ $p = "-h" ]; then
         echoHelp
         exit
+    elif [ $p = "-opt" ]; then
+        OPT=true
     elif [ "$PACKAGENAME" = "-1" ]; then
 		PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
@@ -208,13 +210,10 @@ do
     shift
 done
 
-
 if [ -z $FILE ]; then
     echo "Please, provide a Faust file to process"
     exit 1
 fi
-
-
 
 ###################################
 # GENERATING API
@@ -224,6 +223,14 @@ APIFOLDER="dsp-faust" # TODO could be selected by the user
 
 rm -r "$APIFOLDER" 2> /dev/null || true
 mkdir "$APIFOLDER"
+
+#---------------------------------------------------------
+# discover best compilation options
+if $OPT; then
+    echo "Look for best compilation options..."
+    OPTIONS="$(faustbench-llvm -notrace $FILE)"
+    echo $OPTIONS
+fi
 
 #---------------------------------------------------------
 # START CHECKING FOR AUTO EFFECT
