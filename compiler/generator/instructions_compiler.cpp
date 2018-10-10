@@ -1316,8 +1316,8 @@ ValueInst* InstructionsCompiler::generateSigGen(Tree sig, Tree content)
         args.push_back(InstBuilder::genLoadStaticStructVar("fManager"));
     }
     ValueInst* obj = InstBuilder::genFunCallInst("new" + cname, args);
-    pushInitMethod(InstBuilder::genDecStackVar(
-                                               signame, InstBuilder::genNamedTyped(cname, InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
+    pushInitMethod(InstBuilder::genDecStackVar(signame, InstBuilder::genNamedTyped(cname,
+                                                                                   InstBuilder::genBasicTyped(Typed::kObj_ptr)), obj));
     
     // HACK for Rust backend
     if (gGlobal->gOutputLang != "rust") {
@@ -1437,7 +1437,6 @@ ValueInst* InstructionsCompiler::generateRec(Tree sig, Tree var, Tree le, int in
     return res;
 }
 
-
 /*****************************************************************************
  PREFIX, DELAY A PREFIX VALUE
  *****************************************************************************/
@@ -1548,15 +1547,15 @@ ValueInst* InstructionsCompiler::generateSelect2WithIf(Tree sig, Typed::VarType 
      switch (type->variability()) {
      
      case kBlock:
-     pushComputeBlockMethod(var);
-     pushComputeBlockMethod(InstBuilder::genIfInst(cond, block2, block1));
-     break;
+        pushComputeBlockMethod(var);
+        pushComputeBlockMethod(InstBuilder::genIfInst(cond, block2, block1));
+        break;
      
      case kSamp:
-     case kKonst:
-     pushComputeDSPMethod(var);
-     pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
-     break;
+        case kKonst:
+        pushComputeDSPMethod(var);
+        pushComputeDSPMethod(InstBuilder::genIfInst(cond, block2, block1));
+        break;
      }
      */
     
@@ -1617,7 +1616,6 @@ ValueInst* InstructionsCompiler::generateXtended(Tree sig)
  * Generate code for accessing a delayed signal. The generated code depend of
  * the maximum delay attached to exp and the gLessTempSwitch.
  */
-
 ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
     ValueInst* code = CS(exp);  // Ensure exp is compiled to have a vector name
@@ -1659,7 +1657,6 @@ ValueInst* InstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay
  * Generate code for the delay mecchanism. The generated code depend of the
  * maximum delay attached to exp and the "less temporaries" switch
  */
-
 ValueInst* InstructionsCompiler::generateDelayVec(Tree sig, ValueInst* exp, Typed::VarType ctype, const string& vname,
                                                   int mxd)
 {

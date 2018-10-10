@@ -324,19 +324,22 @@ class measure_dsp : public decorator_dsp {
         bool setRealtimePriority()
         {
             struct passwd* pw;
-            int err;
-            uid_t uid;
-            int policy;
             struct sched_param param;
-            
-            uid = getuid();
+            int policy;
+            uid_t uid = getuid();
             pw = getpwnam("root");
             setuid(pw->pw_uid);
             
-            pthread_getschedparam(pthread_self(), &policy, &param);
+            int err = pthread_getschedparam(pthread_self(), &policy, &param);
+            if (err != 0) {
+                std::cerr << "setRealtimePriority : pthread_getschedparam res = %d" << err << std::endl;
+            }
             policy = SCHED_RR;
             param.sched_priority = 80;
             err = pthread_setschedparam(pthread_self(), policy, &param);
+            if (err != 0) {
+                std::cerr << "setRealtimePriority : pthread_setschedparam res = %d" << err << std::endl;
+            }
             
             setuid(uid);
             return (err != -1);

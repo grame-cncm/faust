@@ -10,20 +10,11 @@ LIBS=""
 TESTS="all"
 RUN=1
 NOTRACE=false
+GENERIC=false
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
     CXX=g++
-fi
-
-# Set default value for CXXFLAGS
-if [ "$CXXFLAGS" = "" ]; then
-    CXXFLAGS="-Ofast -march=native"
-fi
-
-if [[ $(uname) == Darwin ]]; then
-    LIBS=-lc++
-    CXXFLAGS+=" -fbracket-depth=512"
 fi
 
 while [ $1 ]
@@ -31,8 +22,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-notrace] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
         echo "Use '-notrace' to only generate the best compilation parameters"
+        echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-single' to execute only scalar test"
         echo "Use '-fast' to only execute some tests"
@@ -47,6 +39,8 @@ do
         IOS="1"
     elif [ "$p" = "-notrace" ]; then
         NOTRACE=true
+    elif [ "$p" = "-generic" ]; then
+        GENERIC=true
     elif [ "$p" = "-fast" ]; then
         TESTS="fast"
     elif [ "$p" = "-single" ]; then
@@ -68,6 +62,20 @@ do
 shift
 
 done
+
+# Set default value for CXXFLAGS
+if [ "$CXXFLAGS" = "" ]; then
+    if $GENERIC; then
+        CXXFLAGS="-Ofast"
+    else
+        CXXFLAGS="-Ofast -march=native"
+    fi
+fi
+
+if [[ $(uname) == Darwin ]]; then
+    LIBS=-lc++
+    CXXFLAGS+=" -fbracket-depth=512"
+fi
 
 if ! $NOTRACE ; then
 	echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"

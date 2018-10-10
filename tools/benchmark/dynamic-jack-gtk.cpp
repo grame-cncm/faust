@@ -151,6 +151,8 @@ int main(int argc, char* argv[])
         printList(factory->getLibraryList());
         printList(factory->getIncludePathnames());
         
+        //cout << "getDSPMachineTarget " << getDSPMachineTarget() << endl;
+        
         /*
         // Test Write/Read
         string path_name = factory->getName();
@@ -187,7 +189,7 @@ int main(int argc, char* argv[])
     }
     
     cout << "getName " << factory->getName() << endl;
-    //cout << "getSHAKey " << factory->getSHAKey() << endl;
+    cout << "getSHAKey " << factory->getSHAKey() << endl;
   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;

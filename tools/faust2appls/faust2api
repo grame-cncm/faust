@@ -32,7 +32,7 @@ NOZIP="0"
 EFFECT=""
 BUILD="0"
 DYNAMIC_DSP="0"
-OPT=false
+OPT=""
 
 COREAUDIO_DRIVER="0"
 ANDROID_DRIVER="0"
@@ -66,7 +66,7 @@ echoHelp ()
     echo "To generate a dummy audio API, run: faust2api -dummy yourFaustCode.dsp"
     echo ""
     echo "Global options:"
-    echo "   -opt to have faustbench-llvm discover and activate the best compilation options."
+    echo "   -opt native|generic: to activate the best compilation options for the native or generic CPU."
     echo "   -nvoices N : creates a polyphonic object with N voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
     echo "   -effect auto: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified)."
@@ -152,7 +152,8 @@ do
         echoHelp
         exit
     elif [ $p = "-opt" ]; then
-        OPT=true
+        shift
+        OPT=$1
     elif [ "$PACKAGENAME" = "-1" ]; then
 		PACKAGENAME="$p"
     elif [[ -f "$p" ]]; then
@@ -226,8 +227,11 @@ mkdir "$APIFOLDER"
 
 #---------------------------------------------------------
 # discover best compilation options
-if $OPT; then
-    echo "Look for best compilation options..."
+if [ "$OPT" = "generic" ]; then
+    echo "Look for best compilation options in generic mode..."
+    OPTIONS="$(faustbench-llvm -notrace -generic $FILE)"
+elif [ "$OPT" = "native" ]; then
+    echo "Look for best compilation options in native mode..."
     OPTIONS="$(faustbench-llvm -notrace $FILE)"
     echo $OPTIONS
 fi

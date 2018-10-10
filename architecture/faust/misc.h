@@ -26,8 +26,6 @@
 
 #include <algorithm>
 #include <map>
-#include <string.h>
-#include <stdlib.h>
 #include <cstdlib>
 
 #include "faust/gui/meta.h"
