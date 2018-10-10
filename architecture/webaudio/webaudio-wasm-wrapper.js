@@ -1873,12 +1873,15 @@ faust.deleteDSPWorkletInstance = function (dsp) {}
     .....
 */
 
-faust.createMemory = function (factory, buffer_size, polyphony) {
+faust.createMemory = function (factory, buffer_size, polyphony_aux) {
 
     // Memory allocator
     var ptr_size = 4;
     var sample_size = 4;
-
+    
+    // Hack : at least 4 voices (to avoid weird wasm memory bug?)
+    var polyphony = Math.max(4, polyphony_aux);
+   
     function pow2limit (x)
     {
         var n = 65536; // Minimum = 64 kB
@@ -2854,12 +2857,15 @@ var mydspPolyProcessorString = `
             return params;
         }
 
-        static createMemory(buffer_size, polyphony)
+        static createMemory(buffer_size, polyphony_aux)
         {
             // Memory allocator
             var ptr_size = 4;
             var sample_size = 4;
-
+            
+            // Hack : at least 4 voices (to avoid weird wasm memory bug?)
+            var polyphony = Math.max(4, polyphony_aux);
+           
             function pow2limit(x)
             {
                 var n = 65536; // Minimum = 64 kB
