@@ -54,7 +54,7 @@ class samAudio : public audio {
 
     public:
     
-        samAudio()
+        samAudio(int sampleRate, int bufferSize, int numInputs, int numOutputs)
         {
             iSampleRate = sampleRate;
             iBufferSize = bufferSize;
