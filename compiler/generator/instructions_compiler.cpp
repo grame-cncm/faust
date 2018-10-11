@@ -523,7 +523,6 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     else if (isSigAttach(sig, x, y)) {
         CS(y);
         return generateCacheCode(sig, CS(x));
-    }
     /*
     HACK : 09/12/11
     else if (isSigVectorize(sig, x, y)) {
@@ -543,7 +542,12 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
     exit(0);
     }
     */
-    else {
+    } else if (isSigEnable(sig, x, y)) {
+        stringstream error;
+        error << "ERROR when compiling, unrecognized signal : " << ppsig(sig);
+        error << " (enable/control can currently only be used with -lang ocpp backend in scalar mode)\n";
+        throw faustexception(error.str());
+    } else {
         stringstream error;
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());

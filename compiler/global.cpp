@@ -440,6 +440,7 @@ void global::init()
 
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
+    // True by default but only usable with -lang ocpp backend 
     gEnableFlag      = true;
 
     TINT  = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());

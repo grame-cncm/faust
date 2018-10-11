@@ -100,7 +100,6 @@ EndOfCode
         faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
     fi
 
-
 #-------------------------------------------------------------------
 #PHASE 3 : Data for BELA
 #-------------------------------------------------------------------
