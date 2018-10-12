@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
             
             dsp* DSP = factory->createDSPInstance();
             if (!DSP) {
-                cerr << "Cannot create instance "<< endl;
+                cerr << "Cannot create instance " << endl;
                 exit(EXIT_FAILURE);
             }
             

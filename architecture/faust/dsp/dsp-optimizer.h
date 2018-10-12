@@ -292,7 +292,7 @@ class dsp_optimizer {
 
         static bool compareFun(std::pair<int, double> i, std::pair<int, double> j) { return (i.second > j.second); }
     
-        void init(const std::string& filename, const std::string input,
+        bool init(const std::string& filename, const std::string input,
                   int argc, const char* argv[],
                   const std::string& target,
                   int buffer_size, int run,
@@ -314,7 +314,7 @@ class dsp_optimizer {
             
             if (fTrace) std::cout << "Estimate timing parameters" << std::endl;
             double res;
-            computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res);
+            return computeOne(addArgvItems(fOptionsTable[0], fArgc, fArgv), 1, res);
         }
     
     public:
@@ -340,7 +340,9 @@ class dsp_optimizer {
                       int opt_level = -1,
                       bool trace = true)
         {
-            init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace);
+            if (!init(filename, "", argc, argv, target, buffer_size, run, opt_level, trace)) {
+                throw std::bad_alloc();
+            }
         }
     
         /**
@@ -361,7 +363,9 @@ class dsp_optimizer {
                       int buffer_size,
                       int opt_level = -1)
         {
-            init("", input, argc, argv, target, buffer_size, opt_level);
+            if (!init("", input, argc, argv, target, buffer_size, opt_level)) {
+                throw std::bad_alloc();
+            }
         }
     
         virtual ~dsp_optimizer()

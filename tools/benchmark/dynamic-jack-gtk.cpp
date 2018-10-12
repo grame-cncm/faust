@@ -146,10 +146,6 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
-        
-        printList(factory->getLibraryList());
-        printList(factory->getIncludePathnames());
         
         //cout << "getDSPMachineTarget " << getDSPMachineTarget() << endl;
         
@@ -180,6 +176,10 @@ int main(int argc, char* argv[])
         cerr << "Cannot create factory : " << error_msg;
         exit(EXIT_FAILURE);
     }
+    
+    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+    printList(factory->getLibraryList());
+    printList(factory->getIncludePathnames());    
     
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();

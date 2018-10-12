@@ -177,7 +177,6 @@ static Tree simplification(Tree sig)
     // Enable(t1, 1) => t1
     // otherwise sig
     } else if (isSigEnable(sig, t1, t2)) {
-        Node n1 = t1->node();
         Node n2 = t2->node();
         
         if (isZero(n2))
