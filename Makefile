@@ -31,7 +31,6 @@ zname := faust-$(version)
 
 .PHONY: all world benchmark httpd remote win32 ios ios-llvm asmjs wasm sound2faust
 
-
 # The main targets
 
 compiler : updatesubmodules
@@ -53,7 +52,6 @@ all : updatesubmodules
 travis : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=backends.cmake TARGETS=regular.cmake
 	$(MAKE) -C $(BUILDLOCATION)
-
 
 # Universal and native: special developer modes
 
@@ -87,20 +85,13 @@ native :
 # which isn't regularly installed on most systems at present, so we skip this
 # target for now.
 
-world :
-	@echo "This target works in a deprecated mode. Please, test the 'newworld' target and report any issue."
-	$(MAKE) -C $(BUILDLOCATION) configall configoscdynamic confighttpdynamic BACKENDS=world.cmake
-	$(MAKE) -C $(BUILDLOCATION)
+world : all 
 	$(MAKE) -C tools/sound2faust
 
-newworld :
-	$(MAKE) -C $(BUILDLOCATION) BACKENDS=world.cmake TARGETS=world.cmake
-	$(MAKE) -C tools/sound2faust
-
-benchmark : all
+benchmark : developer
 	$(MAKE) -C tools/benchmark all
 
-remote :
+remote : developer
 	$(MAKE) -C embedded/faustremote/RemoteServer all
 	$(MAKE) -C embedded/faustremote all
 
@@ -115,27 +106,14 @@ debug :
 plugin :
 	$(MAKE) -C compiler plugin -f $(MAKEFILE) prefix=$(prefix)
 
-ios :
-	$(MAKE) -C $(BUILDLOCATION) ios
+ioslib :
+	$(MAKE) -C $(BUILDLOCATION) ioslib
 
 asmjs :
 	$(MAKE) -C $(BUILDLOCATION) asmjslib
 
 wasm :
 	$(MAKE) -C $(BUILDLOCATION) wasmlib
-
-light :
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=light.cmake
-	@echo
-	@echo "### Light version of backends is ON"
-	@echo "### You need to recompile"
-	@echo "### Use 'make backends' to revert"
-
-backends :
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=backends.cmake
-	@echo
-	@echo "### Default version of backends is ON"
-	@echo "### You need to recompile"
 
 sound2faust :
 	$(MAKE) -C tools/sound2faust
@@ -145,38 +123,36 @@ sound2faust :
 help :
 	@echo "===== Faust main makefile ====="
 	@echo "Main targets"
-	@echo " 'compiler' (def): builds the faust compiler (without the LLVM backend), and the faust osc and httpd libraries"
-	@echo " 'most'          : builds the faust compiler with  LLVM backend and every static libraries"
-	@echo " 'developer'     : builds the faust compiler with every possible backends and every static libraries"
-	@echo " 'all'           : builds the faust compiler with every possible backends and every static and dynamic libraries"
+	@echo " 'compiler' (def): builds the Faust compiler (without the LLVM backend), and the Faust osc and httpd libraries"
+	@echo " 'most'          : builds the Faust compiler with LLVM backend and every static libraries"
+	@echo " 'developer'     : builds the Faust compiler with every possible backends and every static libraries"
+	@echo " 'all'           : builds the Faust compiler with every possible backends and every static and dynamic libraries"
 	@echo
 	@echo " 'install'       : install the compiler, tools and the architecture files in $(prefix)/bin $(prefix)/share/faust $(prefix)/include/faust"
 	@echo " 'clean'         : remove all object files"
 	@echo 
 	@echo "Other targets"
 	@echo " 'debug'         : similar to 'all' target but with debug info. Output is in $(BUILDLOCATION)/$(DEBUGFOLDER)"
-	@echo " 'asmjs'         : builds the faust asm-js library"
-	@echo " 'wasm'          : builds the faust web assembly library"
-	@echo " 'world'         : builds (almost) everything (package maintainers)"
+	@echo " 'asmjs'         : builds the Faust asm-js library"
+	@echo " 'wasm'          : builds the Faust web assembly library"
 	@echo " 'benchmark'     : builds the benchmark tools (see tools/benchmark)"
-	@echo " 'remote'        : builds the libfaustremote.a library and the faust RemoteServer"
+	@echo " 'remote'        : builds the libfaustremote.a library and the Faust RemoteServer"
 	@echo " 'sound2faust'   : builds the sound2faust utilities (requires libsndfile)"
 	@echo " 'parser'        : generates the parser from the lex and yacc files"
 	@echo
-	@echo "Backends specific targets:"
-	@echo " 'light'         : switch to light version of the faust backends (c and cpp)"
-	@echo " 'backends'      : switch to regular version of the faust backends (see $(BUILDLOCATION)/backends.cmake)"
+	@echo "Distribution target"
+	@echo " 'world'         : the 'all' target and sound2faust
 	@echo
 	@echo "Platform specific targets:"
 	@echo " 'universal'     : [MacOSX] switch to universal binaries mode"
 	@echo " 'native'        : [MacOSX] switch to native mode"
 	@echo " 'win32'         : [linux]  used for win cross-compilation (requires mingw32-binutils package)"
-	@echo " 'ios'           : [iOS] build the faust static library for iOS"
+	@echo " 'ioslib'        : [iOS] build the Faust static library for iOS"
 	@echo
 	@echo "Utilities targets:"
-	@echo " 'man'              : generate the faust man page"
+	@echo " 'man'              : generate the Faust man page"
 	@echo " 'doc'              : generate the documentation using doxygen"
-	@echo " 'doclib'           : generate the documentation of the faust libraries"
+	@echo " 'doclib'           : generate the documentation of the Faust libraries"
 	@echo " 'updatesubmodules' : update the libraries submodule"
 	@echo " 'devinstall'       : install the benchmark tools"
 	@echo " 'uninstall'        : undo what install did"
@@ -184,9 +160,6 @@ help :
 	@echo " 'log'              : make a changelog file"
 	@echo " 'format'           : clang-format all src files"
 	@echo
-	@echo "Obsolete targets:"
-	@echo " 'plugin'           : builds the libfaustplugin.a library"
-
 
 # 	@echo "Usage : 'make; sudo make install'"
 # 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
@@ -373,7 +346,7 @@ uninstall :
 # 	([ -e faust.1 ]) && (install -d $(prefix)/share/man/man1/; install faust.1 $(prefix)/share/man/man1) || echo faust.1 not found
 
 
-	# install benchmark tools
+# install benchmark tools
 devinstall:
 	rm -rf $(prefix)/share/faust/iOS-bench
 	cp -r tools/benchmark/iOS-bench $(prefix)/share/faust/
