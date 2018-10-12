@@ -1,6 +1,6 @@
-# this file may be used to select different backends
-# it's always read by the default makefile target
-# values are among: 
+# all.cmake : this file selects all possible backends.
+#
+# Possible configuration values are among: 
 #    OFF       don't include the backend
 #    COMPILER  embed the backend in the faust compiler
 #    STATIC    embed the backend in the faust static library
