@@ -507,7 +507,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 #if 1
         if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl;
         if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl;
-        // en principe ici l'order zero est vide car il correspond au coef numerique
+        // en principe ici l'ordre zero est vide car il correspond au coef numerique
         faustassert(A[0] == 0);
         faustassert(B[0] == 0);
 #endif

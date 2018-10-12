@@ -171,7 +171,24 @@ static Tree simplification(Tree sig)
         if (t3 == t4) return simplification(sigSelect2(t1, t2, t3));
 
         return sig;
-
+    
+        
+    // Enable(t1, 0) => 0
+    // Enable(t1, 1) => t1
+    // otherwise sig
+    } else if (isSigEnable(sig, t1, t2)) {
+        Node n1 = t1->node();
+        Node n2 = t2->node();
+        
+        if (isZero(n2))
+            return sigMul(t1, sigInt(0)); // a 'zero' with the correct type
+        
+        else if (isOne(n2))
+            return t1;
+        
+        else
+            return sig;
+  
     } else {
         return sig;
     }

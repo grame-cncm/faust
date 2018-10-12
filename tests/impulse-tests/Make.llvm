@@ -59,6 +59,11 @@ impulsellvm: $(SRCDIR)/impulsellvm.cpp $(LIB)
 
 #########################################################################
 # rules for llvm
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+ir/$(outdir)/control.ir: dsp/control.dsp reference/control.ir
+	echo "Cannot be tested with the LLVM backend"
+
 ir/$(outdir)/%.ir: dsp/%.dsp reference/%.ir
 	cd $(dir $<); ../impulsellvm $(notdir $<) -I . -double $(FAUSTOPTIONS) > ../$@ || (rm -f ../$@; false)
 	$(COMPARE)  $@ reference/$(notdir $@) $(precision) || (rm -f $@; false)

@@ -78,11 +78,16 @@ ir/$(outdir)/%.js : dsp/%.dsp
 ir/$(wasmdir)/%.ir: ir/$(wasmdir)/%.js reference/%.ir
 	cd $(dir $<) && node --expose-wasm $(notdir $<) > $(notdir $@) || (rm -f $@; false)
 	$(COMPARE)  $@ reference/$(notdir $@) || (rm -f $@; false)
+	
 ir/$(wasmdir)/%.js : ir/$(wasmdir)/%.wasm
 	cat $(basename $<).js $(wasmarch) | sed -e 's/mydsp/$(basename $(notdir $<))/g' | sed -e 's/DSP/$(basename $(notdir $<))/g' > $@.tmp
 	mv $@.tmp $@
+	
 ir/$(wasmdir)/%.wasm : dsp/%.dsp
 	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  $<  -o $@
 
+# Specific rule to test 'control' primitive, using a 'fake' test...
+ir/$(wasmdir)/control.wasm : dsp/control.dsp
+	$(FAUST) -double -lang wasm -i $(FAUSTOPTIONS)  dsp/simulated_control.dsp  -o $@
 
 

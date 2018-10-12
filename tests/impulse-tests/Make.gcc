@@ -70,7 +70,13 @@ filesCompare:
 ir/$(outdir)/%.ir: ir/$(outdir)/% reference/%.ir
 	$< -n 60000 > $@
 	$(COMPARE)  $@ reference/$(notdir $@) $(precision)
+	
 ir/$(outdir)/% : ir/$(outdir)/%.$(ext)
 	$(CXX) $(GCCOPTIONS) $<  -o $@
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+ir/$(outdir)/control.cpp : dsp/control.dsp
+	$(FAUST) -lang ocpp -double -i -a ../archs/$(arch) $<  -o $@
+
 ir/$(outdir)/%.$(ext) : dsp/%.dsp
 	$(FAUST) -lang $(lang) $(FAUSTOPTIONS) -i -a ../archs/$(arch) $<  -o $@

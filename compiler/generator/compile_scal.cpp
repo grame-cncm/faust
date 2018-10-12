@@ -715,10 +715,7 @@ string ScalarCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     string vname, ctype;
     Type   t = getCertifiedSigType(sig);
-    
-    std::cout << "generateVariableStore " << std::endl;
-    print(sig);
-
+   
     switch (t->variability()) {
         case kKonst:
             getTypedNames(t, "Const", ctype, vname);

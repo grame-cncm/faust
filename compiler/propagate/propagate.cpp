@@ -348,19 +348,19 @@ siglist realPropagate(Tree slotenv, Tree path, Tree box, const siglist& lsig)
         if (p2 == &sigEnable) {
             if (gGlobal->gEnableFlag) {
                 // special case for sigEnable that requires a transformation
-                // enable(X,Y) -> sigEnable(X*Y, Y>0)
-                return makeList(sigEnable(sigMul(lsig[0], lsig[1]), sigGT(lsig[1], sigReal(0.0))));
+                // enable(X,Y) -> sigEnable(X*Y, Y!=0)
+                return makeList(sigEnable(sigMul(lsig[0], lsig[1]), sigNE(lsig[1], sigReal(0.0))));
             } else {
                 // We gEnableFlag is false we replace enable by a simple multiplication
                 return makeList(sigMul(lsig[0], lsig[1]));
             }
         } else if (p2 == &sigControl) {
             if (gGlobal->gEnableFlag) {
-                // special case for sigEnable that requires a transformation
-                // enable(X,Y) -> sigEnable(X*Y, Y>0)
-                return makeList(sigEnable(lsig[0], lsig[1]));
+                // special case for sigControl that requires a transformation
+                // control(X,Y) -> sigEnable(X, Y!=0)
+                return makeList(sigEnable(lsig[0], sigNE(lsig[1], sigReal(0.0))));
             } else {
-                // We gEnableFlag is false we replace control by identity function
+                // If gEnableFlag is false we replace control by identity function
                 return makeList(lsig[0]);
             }
         } else {

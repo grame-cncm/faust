@@ -87,12 +87,25 @@ $(refdir)/sched/%.ir: dsp/sched/% dsp/%.dsp dsp/sched/%.cpp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$< -n 60000 > $@
 
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend
+dsp/control.cpp : dsp/control.dsp
+	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
+
 dsp/%.cpp : dsp/%.dsp
 	$(FAUST) -double -i -a $(arch) $<  -o $@
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+dsp/vec/control.cpp : dsp/control.dsp
+	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
 
 dsp/vec/%.cpp : dsp/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)
 	$(FAUST) -double -vec -i -a $(arch) $<  -o $@
+
+# Specific rule to test 'control' primitive that currently uses the -lang ocpp backend (still compiling in scalar mode...)
+dsp/sched/control.cpp : dsp/control.dsp
+	@[ -d $(@D) ] || mkdir -p $(@D)
+	$(FAUST) -lang ocpp -double -i -a $(arch) $<  -o $@
 
 dsp/sched/%.cpp : dsp/%.dsp
 	@[ -d $(@D) ] || mkdir -p $(@D)

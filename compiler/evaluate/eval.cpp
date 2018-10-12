@@ -1085,7 +1085,7 @@ static Tree applyList(Tree fun, Tree larg)
 
         if (outs > ins) {
             stringstream error;
-            error << "too much arguments : " << outs << ", instead of : " << ins << endl;
+            error << "ERROR : too much arguments : " << outs << ", instead of : " << ins << endl;
             error << "when applying : " << boxpp(fun) << endl << "to : " << boxpp(larg) << endl;
             throw faustexception(error.str());
         }
@@ -1196,7 +1196,7 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
     if (isNil(lenv)) {
         if (hasDefProp(id)) {
             stringstream error;
-            error << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
+            error << "ERROR : " << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
             throw faustexception(error.str());
         } else {
             evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol", id);
@@ -1372,8 +1372,8 @@ Tree numericBoxSimplification(Tree box)
 
     if (!getBoxType(box, &ins, &outs)) {
         stringstream error;
-        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : " << *box
-              << endl;
+        error << "ERROR in file " << __FILE__ << ':' << __LINE__ << ", Can't compute the box type of : ";
+        error << *box << endl;
         throw faustexception(error.str());
     }
 
