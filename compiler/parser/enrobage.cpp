@@ -325,12 +325,16 @@ FILE* fopenSearch(const char* filename, string& fullpath)
 {
     FILE* f;
 
+    // tries to open file with its filename
     if ((f = fopen(filename, "r"))) {
         buildFullPathname(fullpath, filename);
+        // enrich the supplied directories paths with the directory containing the loaded file,
+        // so that local files relative to this added directory can then be loaded
+        gGlobal->gImportDirList.push_back(fileDirname(fullpath));
         return f;
     }
-
-    // search file in user supplied directory path
+ 
+    // otherwise search file in user supplied directories paths
     for (string dirname : gGlobal->gImportDirList) {
         if ((f = fopenAt(fullpath, dirname, filename))) {
             return f;
