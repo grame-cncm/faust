@@ -38,7 +38,7 @@ Interpreter backend description:
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
  - DSP struct and stack variables are actually allocated in the Int32 and Read heaps
  - multiple unneeded cast are eliminated in CastInst
- - 'faustpower' function directly inlined in the code (see CodeContainer::pushFunction)
+ - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code

@@ -159,6 +159,7 @@ struct global {
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions

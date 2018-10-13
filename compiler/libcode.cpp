@@ -1159,8 +1159,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gAllowForeignFunction = false;  // No foreign functions
         gGlobal->gGenerateSelectWithIf = false;  // No 'select with if',
         gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
-        gGlobal->gFAUSTFLOATToInternal =
-            true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+        gGlobal->gFAUSTFLOATToInternal = true;
+        gGlobal->gNeedManualPow = false;         // Standard pow function will be used in pow(x,y) when Y in an integer
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1253,24 +1254,25 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (gGlobal->gOutputLang == "ajs") {
 #ifdef ASMJS_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gFAUSTFLOATToInternal =
-                true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
             gGlobal->gWaveformInDSP = true;  // waveform are allocated in the DSP and not as global data
+            gGlobal->gNeedManualPow = false; // Standard pow function will be used in pow(x,y) when Y in an integer
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
 #endif
-
         } else if (startWith(gGlobal->gOutputLang, "wast")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gFAUSTFLOATToInternal =
-                true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gLoopVarInBytes =
-                true;  // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
+            // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gLoopVarInBytes = true;
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
-            // gGlobal->gHasTeeLocal = true;         // combined store/load
+            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            // gGlobal->gHasTeeLocal = true;  // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
@@ -1304,13 +1306,14 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         } else if (startWith(gGlobal->gOutputLang, "wasm")) {
 #ifdef WASM_BUILD
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
-            gGlobal->gFAUSTFLOATToInternal =
-                true;  // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
-            gGlobal->gLoopVarInBytes =
-                true;  // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
+            gGlobal->gFAUSTFLOATToInternal = true;
+            // the 'i' variable used in the scalar loop moves by bytes instead of frames
+            gGlobal->gLoopVarInBytes = true;
             gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
-            // gGlobal->gHasTeeLocal = true;         // combined store/load
+            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            // gGlobal->gHasTeeLocal = true;  // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 

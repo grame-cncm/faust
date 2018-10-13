@@ -167,6 +167,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gFastMath             = false;
+    gNeedManualPow        = true;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version

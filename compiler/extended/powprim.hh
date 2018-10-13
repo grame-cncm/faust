@@ -79,12 +79,11 @@ class PowPrim : public xtended {
         it++;
         Int32NumInst* arg1 = dynamic_cast<Int32NumInst*>(*it);
 
-        if ((types[1]->nature() == kInt) && (types[1]->variability() == kKonst) &&
-            (types[1]->computability() == kComp) && arg1 && (gGlobal->gOutputLang != "interp") &&
-            (gGlobal->gOutputLang != "ajs") && !(startWith(gGlobal->gOutputLang, "wast")) &&
-            !(startWith(gGlobal->gOutputLang, "wasm"))) {  // In 'interpreter' and 'wast/wasm' backends, do not generate
-                                                           // 'faustpower' function call, fallback to 'pow'
-
+        if (arg1 && (types[1]->nature() == kInt)
+                && (types[1]->variability() == kKonst)
+                && (types[1]->computability() == kComp)
+                && (gGlobal->gNeedManualPow)) {
+        
             arg_types[0] = (types[0]->nature() == kInt) ? Typed::kInt32 : itfloat();
             arg_types[1] = Typed::kInt32;
             return container->pushFunction(container->getFaustPowerName(), result_type, arg_types, args);
