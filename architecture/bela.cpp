@@ -168,10 +168,10 @@ class BelaWidget
 protected:
     
     EInOutPin fBelaPin;
-    FAUSTFLOAT* fZone;  // Faust widget zone
-    const char* fLabel; // Faust widget label
-    FAUSTFLOAT fMin;    // Faust widget minimal value
-    FAUSTFLOAT fRange;  // Faust widget value range (max-min)
+    FAUSTFLOAT* fZone;  // zone
+    const char* fLabel; // label
+    FAUSTFLOAT fMin;    // minimal value
+    FAUSTFLOAT fRange;  // value range (max-min)
     
 public:
     
@@ -210,7 +210,7 @@ public:
             case kANALOG_5:
             case kANALOG_6:
             case kANALOG_7:
-                *fZone = fMin + fRange * analogReadNI(context, 0, (int) fBelaPin);
+                *fZone = fMin + fRange * analogReadNI(context, 0, (int)fBelaPin);
                 break;
                 
             case kDIGITAL_0:
@@ -229,7 +229,7 @@ public:
             case kDIGITAL_13:
             case kDIGITAL_14:
             case kDIGITAL_15:
-                *fZone = digitalRead(context, 0, ((int) fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
+                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
                 break;
                 
             case kANALOG_OUT_0:
@@ -240,7 +240,7 @@ public:
             case kANALOG_OUT_5:
             case kANALOG_OUT_6:
             case kANALOG_OUT_7:
-                analogWriteNI(context, 0, ((int) fBelaPin)-kANALOG_OUT_0, (*fZone -fMin)/(fRange+fMin));
+                analogWriteNI(context, 0, ((int)fBelaPin) - kANALOG_OUT_0, (*fZone - fMin)/(fRange+fMin));
                 break;
                 
             default:
@@ -372,19 +372,15 @@ MidiUI* gMidiInterface = NULL;
 BelaOSCUI gOSCUI(OSC_IP_ADDRESS, OSC_IN_PORT, OSC_OUT_PORT);
 #endif
 
-FAUSTFLOAT** gFaustIns;  // array of pointers to context->audioIn data
-FAUSTFLOAT** gFaustOuts; // array of pointers to context->audioOut data
+FAUSTFLOAT** gInputs = NULL;   // array of pointers to context->audioIn data
+FAUSTFLOAT** gOutputs = NULL;  // array of pointers to context->audioOut data
 
-int nvoices = 0;
 BelaUI gControlUI;
-
-mydsp_poly* dsp_poly = NULL;
 dsp* gDSP = NULL;
 
-
-void Bela_userSettings(BelaInitSettings *settings)
+void Bela_userSettings(BelaInitSettings* settings)
 {
-    // FAUST code need non-interleaved data.
+    // Faust code needs non-interleaved data
     settings->uniformSampleRate = 1;
     settings->interleave = 0;
     settings->analogOutputsPersist = 0;
@@ -392,34 +388,35 @@ void Bela_userSettings(BelaInitSettings *settings)
 
 bool setup(BelaContext* context, void* userData)
 {
+    int nvoices;
+    mydsp_poly* dsp_poly = NULL;
     
-#ifdef 	NVOICES
-  nvoices = NVOICES;
+#ifdef NVOICES
+    nvoices = NVOICES;
 #endif
     
-    // Allocate deinterleaded inputs
-    gFaustIns = new FAUSTFLOAT*[context->audioInChannels];
+    // Access deinterleaded inputs
+    gInputs = new FAUSTFLOAT*[context->audioInChannels];
     for(unsigned int ch = 0; ch < context->audioInChannels; ch++) {
-        gFaustIns[ch] = (float*) &context->audioIn[ch * context->audioFrames];
+        gInputs[ch] = (float*)&context->audioIn[ch * context->audioFrames];
     }
     
-    // Allocate deinterleaded output
-    gFaustOuts = new FAUSTFLOAT*[context->audioOutChannels];
+    // Access deinterleaded outputs
+    gOutputs = new FAUSTFLOAT*[context->audioOutChannels];
     for(unsigned int ch = 0; ch < context->audioOutChannels; ch++) {
-        gFaustOuts[ch] = (float*) &context->audioOut[ch * context->audioFrames];
+        gOutputs[ch] = (float*)&context->audioOut[ch * context->audioFrames];
     }
     
-    // Polyphonique with effect
+    // Polyphonic with effect
 #ifdef POLY2
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
-    
     gDSP = new dsp_sequencer(dsp_poly, new effect());
-// Polyphonic without FX
+    // Polyphonic without effect
 #elif NVOICES
     if (nvoices > 0) {
         dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
         gDSP = dsp_poly;
-    // If there is no nvoice, or nvoice = 0, It's not a synthesizer
+    // If there is no nvoice, or nvoice = 0, it's not a synthesizer
     } else {
         gDSP = new mydsp();
     }
@@ -428,7 +425,7 @@ bool setup(BelaContext* context, void* userData)
 #endif
     
     gDSP->init(context->audioSampleRate);
-    gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and faust widgets
+    gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
 
 #ifdef MIDICTRL
 #ifdef NVOICES
@@ -439,33 +436,33 @@ bool setup(BelaContext* context, void* userData)
     gMidiInterface->run();
 #endif
     
-// OSC:
+// OSC
 #ifdef OSCCTRL
     gDSP->buildUserInterface(&gOSCUI);
     gOSCUI.run();
 #endif
     
-  return true;
+    return true;
 }
 
 void render(BelaContext* context, void* userData)
 {
-    // OSC:
+    // OSC event handling
 #ifdef OSCCTRL
     gOSCUI.scheduleOSC();
 #endif
-    // reads Bela pins and updates corresponding Faust Widgets zones
+    // Reads Bela pins and updates corresponding Faust Widgets zones
     gControlUI.update(context);
-    // synchronize all GUI controllers
+    // Synchronize all GUI controllers
     GUI::updateAllGuis();
-    // Process FAUST DSP
-    gDSP->compute(context->audioFrames, gFaustIns, gFaustOuts);
+    // Process Faust DSP
+    gDSP->compute(context->audioFrames, gInputs, gOutputs);
 }
 
 void cleanup(BelaContext* context, void* userData)
 {
-    delete [] gFaustIns;      // array of pointers to gInputBuffer data
-    delete [] gFaustOuts;
+    delete [] gInputs;
+    delete [] gOutputs;
     delete gDSP;
     
 #ifdef MIDICTRL
