@@ -2,7 +2,6 @@
 
 #FAUST DATA:
 BELAVERSION="bela.cpp"
-
 #BELA DATA:
 BBB_ADDRESS="root@192.168.7.2"
 BBB_BELA_HOME="/root/Bela"
@@ -26,14 +25,14 @@ do
     
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-    	echo "faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
-    	echo "Use '-osc' to activate OSC control"
-    	echo "Use '-midi' to activate MIDI control"
-    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
-    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect"
-    	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
+        echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-    	echo "Use '-tobela' to send C++ file into bela, and run it"
+        echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
     
@@ -68,9 +67,8 @@ CUR=$(pwd)
 f=$(basename "$p")
 SRCDIR=$(dirname "$p")
 
-# creates a temporary dir 
-TDR=$(mktemp -d faust.XXXXXX)
-TMP="$TDR/${f%.dsp}"
+# creates a dir 
+TMP="${f%.dsp}"
 mkdir "$TMP"
 
 PROJECTDIR="$CUR/$TMP"
@@ -99,6 +97,7 @@ EndOfCode
     else
         faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
     fi
+
 
 #-------------------------------------------------------------------
 #PHASE 3 : Data for BELA
@@ -142,8 +141,7 @@ BELA_EXPERT_MODE=0
 BELA_DONT_RUN_FIRST=0
 
 # FUNCTIONS:+++++++++++++++++++++++++++++++
-check_rsync()
-{
+check_rsync(){
 	if [ -z "`which rsync 2> /dev/null`" ]
 	then
 		return 1
@@ -152,8 +150,7 @@ check_rsync()
 	fi
 }
 
-check_board_alive_and_set_date()
-{
+check_board_alive_and_set_date(){
 	printf "Checking the board is up and running at $BBB_ADDRESS..."
 	# Clear the host if it is cached in ~/.ssh/known_hosts.
 	ssh-keygen -R $BBB_HOSTNAME &> /dev/null || true
@@ -163,18 +160,6 @@ check_board_alive_and_set_date()
 	}
 }
 
-check_project_exists_prompt()
-{
-	check_project_exists $1 &&\
-	{
-		printf "Project \`$1' already exists on the board, do you want to overwrite it? "
-		interactive 1
-		[  $_RET1 -eq 0 ] && {
-			echo "Aborting..."
-			exit;
-		}
-	}
-}
 #+++++++++++++++++++++++++++++++++++++++++++
 
 # Test if project folder contain correct file(s):
@@ -183,7 +168,7 @@ EXTENSIONS_TO_FIND='\.cpp\|\.c\|\.S\|\.pd\|\.scd'
 FOUND_FILES=$($FIND_STRING 2>/dev/null | grep "$EXTENSIONS_TO_FIND")
 if [ -z "$FOUND_FILES" ]
 then
-	printf "ERROR: please provide a directory containing .c, .cpp, .S, .pd or .scd files.\n\n"
+	printf "ERROR: Please provide a directory containing .c, .cpp, .S, .pd or .scd files.\n\n"
 	exit 1
 fi
 
@@ -202,19 +187,10 @@ BBB_NETWORK_TARGET_FOLDER=$BBB_ADDRESS:$BBB_PROJECT_FOLDER
 echo "Stop running process..."
 ssh $BBB_ADDRESS make QUIET=true --no-print-directory -C $BBB_BELA_HOME stop
 
-# check if project exists
-[ $FORCE -eq 1 ] ||	check_project_exists_prompt $BBB_PROJECT_NAME
-
-# This file is used to keep track of when the last upload was made,
-# so to check for modifications if WATCH is active
-#TMP_DIR="$SCRIPTDIR/../tmp"
-#reference_time_file="$TMP_DIR/.time$BBB_PROJECT_NAME"
-
-# Check if rsync is available
+#Check if rsync is available
 check_rsync && RSYNC_AVAILABLE=1 || RSYNC_AVAILABLE=0
 
-uploadBuildRun()
-{
+uploadBuildRun(){
 	# Copy new source files to the board
 	echo "uploadBuildRun START"
 	printf "Copying new source files to BeagleBone..."
