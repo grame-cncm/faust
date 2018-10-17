@@ -123,7 +123,7 @@ void typeAnnotation(Tree sig, bool causality)
         finished = true;
         for (int i = 0; i < n; i++) {
             // cerr << i << "-" << *vrec[i] << ":" << *getSigType(vrec[i]) << " => " << *vtype[i] << endl;
-            finished = finished & (getSigType(vrec[i]) == vtype[i]);
+            finished = finished && (getSigType(vrec[i]) == vtype[i]);
         }
     }
 

@@ -68,6 +68,7 @@ const char *prim2name(CTree *(*ptr)(CTree *, CTree *))
     if (ptr == sigPrefix) return "prefix";
     if (ptr == sigAttach) return "attach";
     if (ptr == sigEnable) return "enable";
+    if (ptr == sigControl) return "control";
 
     return "prim2???";
 }
