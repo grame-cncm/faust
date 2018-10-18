@@ -2998,15 +2998,14 @@ var mydspPolyProcessorString = `
                 }
             };
 
+            // wasm mixer
             this.mixer = new WebAssembly.Instance(mydspPolyProcessor.wasm_mixer_module, this.mixerObject).exports;
 
-            // Create the WASM instance
+            // wasm instance
             this.factory = new WebAssembly.Instance(mydspPolyProcessor.wasm_module, this.importObject).exports;
 
-            // Create the WASM effect instance
-            if (mydspPolyProcessor.wasm_effect_module) {
-                this.effect = new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports;
-            }
+            // wasm effect
+            this.effect = (mydspPolyProcessor.wasm_effect_module) ? new WebAssembly.Instance(mydspPolyProcessor.wasm_effect_module, this.importObject).exports : null;
 
             this.HEAP = wasm_memory.buffer;
             this.HEAP32 = new Int32Array(this.HEAP);
@@ -3024,9 +3023,8 @@ var mydspPolyProcessorString = `
             this.inputs_items = [];
 
             // Start of HEAP index
-            // this.audio_heap_ptr = 0; Fails when 0...
-            this.audio_heap_ptr = 65536;
-
+            this.audio_heap_ptr = 0; 
+          
             // Setup pointers offset
             this.audio_heap_ptr_inputs = this.audio_heap_ptr;
             this.audio_heap_ptr_outputs = this.audio_heap_ptr_inputs + (this.numIn * this.ptr_size);
@@ -3040,8 +3038,11 @@ var mydspPolyProcessorString = `
             // Setup DSP voices offset
             this.dsp_start = this.audio_heap_mixing + (this.numOut * mydspPolyProcessor.buffer_size * this.sample_size);
 
-            //console.log(this.mixer);
-            //console.log(this.factory);
+            if (this.debug) {
+                console.log(this.mixer);
+                console.log(this.factory);
+                console.log(this.effect);
+            }  
 
             // Start of DSP memory ('polyphony' DSP voices)
             this.polyphony = mydspPolyProcessor.polyphony;
@@ -3071,6 +3072,28 @@ var mydspPolyProcessorString = `
 
             // Effect memory starts after last voice
             this.effect_start = this.dsp_voices[this.polyphony - 1] + parseInt(this.json_object.size);
+            
+            this.printMemory = function ()
+            {
+                console.log("============== Memory layout ==============");
+                console.log("json_object.size: " + this.json_object.size);
+                
+                console.log("audio_heap_ptr: " + this.audio_heap_ptr);
+                
+                console.log("audio_heap_ptr_inputs: " + this.audio_heap_ptr_inputs);
+                console.log("audio_heap_ptr_outputs: " + this.audio_heap_ptr_outputs);
+                console.log("audio_heap_ptr_mixing: " + this.audio_heap_ptr_mixing);
+                
+                console.log("audio_heap_inputs: " + this.audio_heap_inputs);
+                console.log("audio_heap_outputs: " + this.audio_heap_outputs);
+                console.log("audio_heap_mixing: " + this.audio_heap_mixing);
+                
+                console.log("dsp_start: " + this.dsp_start);
+                for (var i = 0; i <  this.polyphony; i++) {
+                    console.log("dsp_voices[i]: " + i + " " + this.dsp_voices[i]);
+                }
+                console.log("effect_start: " + this.effect_start);
+            }
 
             this.getPlayingVoice = function(pitch)
             {
@@ -3221,6 +3244,9 @@ var mydspPolyProcessorString = `
                 if (this.effect) {
                     this.effect.init(this.effect_start, sampleRate);
                 }
+                
+                // Print memory layout
+                this.printMemory();
             }
 
             this.keyOn = function (channel, pitch, velocity)
