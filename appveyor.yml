@@ -1,0 +1,18 @@
+version: 1.0.{build}
+build_script:
+- cmd: >-
+    cd build
+
+    mkdir win32 win64
+
+    cd win32
+
+    cmake -C ../backends/regular.cmake -C ../targets/regular.cmake .. -G "Visual Studio 14 2015"
+
+    cmake --build . --config Release
+
+    cd win64
+
+    cmake -C ../backends/regular.cmake -C ../targets/regular.cmake .. -G "Visual Studio 14 2015 Win64"
+
+    cmake --build . --config Release
