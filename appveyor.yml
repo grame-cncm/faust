@@ -11,7 +11,7 @@ build_script:
 
     cmake --build . --config Release
 
-    cd win64
+    cd ../win64
 
     cmake -C ../backends/regular.cmake -C ../targets/regular.cmake .. -G "Visual Studio 14 2015 Win64"
 
