@@ -199,7 +199,7 @@ if (INCLUDE_DYNAMIC)
 	endif()
 	set_target_properties(dynamiclib PROPERTIES COMPILE_FLAGS -DFAUST_LIB)
 	scan_backends (dynamiclib DYNAMIC)
-	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
+#	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
 
@@ -239,6 +239,14 @@ install ( TARGETS ${INSTALL_TARGETS}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
+
+if (INCLUDE_DYNAMIC)
+install ( TARGETS dynamiclib
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+)
+endif()
 
 ####################################
 # install headers
