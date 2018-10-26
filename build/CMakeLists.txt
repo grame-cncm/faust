@@ -3,6 +3,10 @@ project (faust)
 
 #######################################
 # versions management
+set (VERSION 2.11.10)
+set (VERSION_MAJOR 2)
+set (VERSION_MINOR 11)
+set (VERSION_PATCH 10)
 set (VERSION 2.11.11)
 set (SOVERS 2)
 
@@ -233,6 +237,10 @@ message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
 # install the faust compiler and libraries
+if (PACK)
+	set (CMAKE_INSTALL_PREFIX .)
+endif()
+
 install ( TARGETS ${INSTALL_TARGETS}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
@@ -341,3 +349,60 @@ if (APPLE)
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
 endif()
+
+
+
+
+####################################
+# cpack section
+####################################
+set (CPACK_PACKAGE_NAME   "Faust")
+set (CPACK_PACKAGE_VENDOR "GRAME")
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
+set (CPACK_PACKAGE_VERSION   ${VERSION})
+set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+
+set (CPACK_MONOLITHIC_INSTALL true)
+set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING.txt)
+set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
+
+
+set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
+set (CPACK_NSIS_MODIFY_PATH on)
+
+set (CPACK_BUNDLE_NAME FaustInstaller)
+set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
+set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
+
+
+include (CPack)
+
+####################################
+# cpack section
+####################################
+# set (CPACK_PACKAGE_NAME   "Faust")
+# set (CPACK_PACKAGE_VENDOR "GRAME")
+# set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
+# set (CPACK_PACKAGE_VERSION   ${VERSION})
+# set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+# set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+# set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+# 
+# set (CPACK_SET_DESTDIR true)
+# set (CPACK_MONOLITHIC_INSTALL true)
+# set (CPACK_INSTALL_PREFIX /usr/local)
+# set (CPACK_PACKAGE_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING)
+# set (CPACK_PACKAGE_INSTALL_DIRECTORY  /usr/local)
+# set (CPACK_PACKAGE_INSTALL_DESTINATION  /usr/local)
+
+#set (CPACK_GENERATOR productbuild)
+#set (CPACK_BUNDLE_NAME FaustInstaller)
+#set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
+#set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
+
+#include (CPack)
+
+
+

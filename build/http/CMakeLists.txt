@@ -185,6 +185,10 @@ endif()
 ####################################
 # install section
 ####################################
+if (PACK)
+	set (CMAKE_INSTALL_PREFIX .)
+endif()
+
 install ( TARGETS ${TARGETS}
     RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib 
