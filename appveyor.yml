@@ -7,7 +7,7 @@ build_script:
   - cd build
   - mkdir win32 win64
   - cd win64
-  - PATH=$PATH:"C:\Libraries\llvm-5.0.0\bin"
+  - PATH=%PATH%;"C:\Libraries\llvm-5.0.0\bin"
   - llvm-config --version
   - ls -l "C:\Program Files\LLVM\bin"
   - ls -l "C:\Libraries\llvm-5.0.0\bin"
