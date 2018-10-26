@@ -3,11 +3,10 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.11.10)
+set (VERSION 2.11.11)
 set (VERSION_MAJOR 2)
 set (VERSION_MINOR 11)
-set (VERSION_PATCH 10)
-set (VERSION 2.11.11)
+set (VERSION_PATCH 11)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
