@@ -140,9 +140,11 @@ static void jack_shutdown_callback(const char* message, void* arg)
     int nvoices = 0;
     mydsp_poly* dsp_poly = NULL;
     
+#if MIDICTRL
     mydsp* tmp_dsp = new mydsp();
     MidiMeta::analyse(tmp_dsp, midi_sync, nvoices);
     delete tmp_dsp;
+ #endif
     
 #if POLY2
     bool group = true;

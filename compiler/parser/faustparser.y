@@ -45,11 +45,8 @@ Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
     
-    
-    
     //-----------copy unquoted filename-------------
-	char* buf = (char*)alloca(size);
-//    char buf[size];
+    char* buf = (char*)alloca(size);
     int j=0;
 
     if (str[0] == '"') {
