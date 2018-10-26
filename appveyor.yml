@@ -9,8 +9,7 @@ build_script:
   - cd win64
   - ls -l C:\Libraries\llvm-5.0.0\
   - ls -l C:\Libraries\llvm-5.0.0\bin\
-  - cmake -DLLVM_CONFIG=C:\Libraries\llvm-5.0.0\bin\llvm-config -C ../backends/most.cmake -C ../targets/all.cmake .. -G "Visual Studio 14 2015 Win64"
-  - cmake --build . --config Release
+  - ls -l C:\Libraries\llvm-5.0.0\lib\cmake\llvm
 
 notifications:
   - provider: Email
