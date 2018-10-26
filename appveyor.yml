@@ -7,11 +7,7 @@ build_script:
   - cd build
   - mkdir win32 win64
   - cd win64
-  - PATH=%PATH%;"C:\Libraries\llvm-5.0.0\bin"
-  - llvm-config --version
-  - ls -l "C:\Program Files\LLVM\bin"
-  - ls -l "C:\Libraries\llvm-5.0.0\bin"
-  - cmake -DUSE_LLVM_CONFIG=on -C ../backends/most.cmake -C ../targets/all.cmake .. -G "Visual Studio 14 2015 Win64"
+  - cmake -DLLVM_CONFIG=C:\Libraries\llvm-5.0.0\bin\llvm-config -C ../backends/most.cmake -C ../targets/all.cmake .. -G "Visual Studio 14 2015 Win64"
   - cmake --build . --config Release
 
 notifications:
