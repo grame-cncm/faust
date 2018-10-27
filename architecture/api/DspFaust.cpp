@@ -1,6 +1,6 @@
 /************************************************************************
  ************************************************************************
- FAUST API Architecture File 
+ FAUST API Architecture File
  Copyright (C) 2016 GRAME, Romain Michon, CCRMA - Stanford University
  Copyright (C) 2014-2017 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
@@ -18,6 +18,7 @@
  ************************************************************************/
 
 #include <cmath>
+#include <cstring>
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"
@@ -89,7 +90,7 @@
 // Interface
 //**************************************************************
 
-#if MIDICTRL 
+#if MIDICTRL
 #if JACK_DRIVER
     // Nothing to add since jack-dsp.h contains MIDI
 #elif JUCE_DRIVER
@@ -150,7 +151,7 @@ DspFaust::DspFaust(int sample_rate, int buffer_size)
 DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
 {
     string error_msg;
-    
+
     // Is dsp_content a filename ?
     fFactory = createDSPFactoryFromFile(dsp_content, 0, NULL, "", error_msg, -1);
     if (!fFactory) {
@@ -162,7 +163,7 @@ DspFaust::DspFaust(const string& dsp_content, int sample_rate, int buffer_size)
             throw bad_alloc();
         }
     }
-  
+
     dsp* dsp = fFactory->createDSPInstance();
     if (!dsp) {
         std::cerr << "Cannot allocate DSP instance\n";
@@ -225,7 +226,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #else
     fPolyEngine = new FaustPolyEngine(mono_dsp, driver);
 #endif
-    
+
 #if OSCCTRL
 #if JUCE_DRIVER
     fOSCInterface = new JuceOSCUI(OSC_IP_ADDRESS, atoi(OSC_IN_PORT), atoi(OSC_OUT_PORT));
@@ -247,7 +248,7 @@ void DspFaust::init(dsp* mono_dsp, audio* driver)
 #endif
     fPolyEngine->buildUserInterface(fOSCInterface);
 #endif
-    
+
 #if SOUNDFILE
 #if JUCE_DRIVER
     auto file = File::getSpecialLocation(File::currentExecutableFile)
@@ -432,37 +433,37 @@ float DspFaust::getParamMin(const char* address)
 {
     return fPolyEngine->getParamMin(address);
 }
-      
+
 float DspFaust::getParamMin(int id)
 {
     return fPolyEngine->getParamMin(id);
 }
-      
+
 float DspFaust::getParamMax(const char* address)
 {
     return fPolyEngine->getParamMax(address);
 }
-      
+
 float DspFaust::getParamMax(int id)
 {
     return fPolyEngine->getParamMax(id);
 }
-      
+
 float DspFaust::getParamInit(const char* address)
 {
     return fPolyEngine->getParamInit(address);
 }
-      
+
 float DspFaust::getParamInit(int id)
 {
     return fPolyEngine->getParamInit(id);
 }
-      
+
 const char* DspFaust::getMetadata(const char* address, const char* key)
 {
     return fPolyEngine->getMetadata(address, key);
 }
-      
+
 const char* DspFaust::getMetadata(int id, const char* key)
 {
     return fPolyEngine->getMetadata(id, key);
