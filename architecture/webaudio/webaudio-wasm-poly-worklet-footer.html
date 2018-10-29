@@ -4,11 +4,15 @@
 'use strict';
 
 // Faust part
+//var contextOptions = { latencyHint: 0.040 };
+//var contextOptions = { latencyHint: "interactive" };
+var contextOptions = { latencyHint: "playback" };
+//var contextOptions = { latencyHint: "balanced" };
 
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var max_polyphony = 16;
+var context = (isWebKitAudio) ? new webkitAudioContext(contextOptions) : new AudioContext(contextOptions);
+var max_polyphony = 128;  // Not used for now
 var factory = null;
 var node = null;
 

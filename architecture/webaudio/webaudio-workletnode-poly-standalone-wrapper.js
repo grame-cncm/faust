@@ -266,15 +266,18 @@ class mydspPoly {
      * Factory constructor.
      *
      * @param context - the audio context
-     * @param base_url - the base_url of the plugin folder
+     * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, base_url)
+    constructor(context, baseURL)
     {
         // Resume audio context each time...
         context.resume();
-
+        
+    	console.log("baseLatency " + context.baseLatency);
+    	console.log("outputLatency " + context.outputLatency);
+    
         this.context = context;
-        this.base_url = base_url;
+        this.baseURL = baseURL;
     }
 
     /**
@@ -283,7 +286,7 @@ class mydspPoly {
     load()
     {
     	return new Promise((resolve, reject) => {
-            this.context.audioWorklet.addModule(this.base_url + "mydsp-processor.js").then(() => {
+            this.context.audioWorklet.addModule(this.baseURL + "mydsp-processor.js").then(() => {
             this.node = new mydspPolyNode(this.context, {});
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
@@ -302,7 +305,7 @@ class mydspPoly {
             	var link = document.createElement('link');
             	link.rel = 'import';
             	link.id = 'urlPlugin';
-            	link.href = this.base_url + "main.html";
+            	link.href = this.baseURL + "main.html";
             	document.head.appendChild(link);
             	var element = document.createElement("faust-mydsp");
             	element._plug = this.node;

@@ -387,6 +387,9 @@ window.mydsp = class mydsp {
     	// Resume audio context each time...
     	context.resume();
     	
+    	console.log("baseLatency " + context.baseLatency);
+    	console.log("outputLatency " + context.outputLatency);
+    	
         this.context = context;
         this.baseURL = baseURL;
         
