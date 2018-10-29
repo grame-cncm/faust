@@ -39,8 +39,8 @@ for p in $@; do
 	    FILE="$p"
 	elif [ $p = "-install" ]; then
 		INSTALL=1
-  elif [ $p = "-soundfile" ]; then
-    SOUNDFILE="1"
+	elif [ $p = "-soundfile" ]; then
+    	SOUNDFILE="1"
 	elif [ $p = "-source" ]; then
 		SOURCE=1
 	elif [ $p = "-faust" ]; then
@@ -54,16 +54,16 @@ for p in $@; do
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
 	elif [ $p = "-h" ]; then
-		echo "Usage: faust2android faustFile.dsp"
-		echo "OPTIONS:"
-		echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
-		echo "-source: creates an eclipse project of the app in the current directory."
-		echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
-		echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
-		echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-		echo "-reuse: keep build directory and reuse it to speedup compilation."
-    echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-		echo "-debug: verbose output."
+        echo "Usage: faust2android faustFile.dsp"
+        echo "OPTIONS:"
+        echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
+        echo "-source: creates an eclipse project of the app in the current directory."
+        echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
+        echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
+        echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+        echo "-reuse: keep build directory and reuse it to speedup compilation."
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "-debug: verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"
@@ -160,7 +160,8 @@ if [ $SOUNDFILE -eq 1 ]; then
 											/"url"/ {
 											if (SOFI) {
 													match($2, /"[^"]*/);
-													print substr($2, RSTART+1, RLENGTH-1);
+                                                    split(substr($2, RSTART+2, RLENGTH-3), res, ";");
+                                                    for (x in res) print substr(res[x], 2, length(res[x])-2);
 													SOFI=0;
 											}
 									}
