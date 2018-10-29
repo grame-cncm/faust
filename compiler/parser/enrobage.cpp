@@ -61,14 +61,14 @@ static bool wordBoundaries(const string& str, string::size_type pos, string::siz
  * Replace every occurrence of oldstr by newstr inside str. str is modified
  * and returned as reference for convenience
  */
-static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr)
+static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr, bool force)
 {
     string::size_type l1 = oldstr.length();
     string::size_type l2 = newstr.length();
 
     string::size_type pos = str.find(oldstr);
     while (pos != string::npos) {
-        if (wordBoundaries(str, pos, l1)) {
+        if (force || wordBoundaries(str, pos, l1)) {
             // cerr << "'" << str << "'@" << pos << " replace '" << oldstr << "' by '" << newstr << "'" << endl;
             str.replace(pos, l1, newstr);
             pos = str.find(oldstr, pos + l2);
@@ -87,8 +87,10 @@ static string& replaceOccurrences(string& str, const string& oldstr, const strin
 static string& replaceClassName(string& str)
 {
     string res;
-    replaceOccurrences(str, "mydsp", gGlobal->gClassName);
-    replaceOccurrences(str, "dsp", gGlobal->gSuperClassName);
+    // "mydsp" can be replaced as the DSP class name, or appearing anywhere in the file
+    replaceOccurrences(str, "mydsp", gGlobal->gClassName, true);
+    // But "dsp" string has to be replaced in a strict manner
+    replaceOccurrences(str, "dsp", gGlobal->gSuperClassName, false);
     return str;
 }
 
