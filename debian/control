@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Albert Graef <aggraef@gmail.com>
 Build-Depends: debhelper (>= 7.0.50~), bison, cmake, flex, pkg-config,
  llvm-dev, libtool, libsndfile1-dev, libssl-dev, libmicrohttpd-dev,
- libncurses5-dev, libedit-dev, vim-common
+ libncurses5-dev, libedit-dev, vim-common, zlib1g-dev
 Standards-Version: 3.9.3
 
 Package: faust
