@@ -1806,7 +1806,11 @@ class LLVMInstVisitor : public InstVisitor, public LLVMTypeHelper {
 
             case Typed::kUint_ptr:
                 fCurValue =
+#ifndef LLVM_35
                     fBuilder->CreatePtrToInt(fCurValue, fModule->getDataLayout().getIntPtrType(fModule->getContext()));
+#else
+                    fBuilder->CreatePtrToInt(fCurValue, fModule->getDataLayout()->getIntPtrType(fModule->getContext()));
+#endif
                 break;
 
             case Typed::kQuad:
