@@ -229,7 +229,7 @@ public:
             case kDIGITAL_13:
             case kDIGITAL_14:
             case kDIGITAL_15:
-                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
+                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) == 0 ? fMin : fMin+fRange;
                 break;
                 
             case kANALOG_OUT_0:
