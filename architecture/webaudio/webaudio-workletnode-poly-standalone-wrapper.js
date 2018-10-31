@@ -10,7 +10,7 @@ if (typeof (AudioWorkletNode) === "undefined") {
 
 class mydspPolyNode extends AudioWorkletNode {
 
-    constructor(context, options)
+    constructor(context, baseURL, options)
     {
         var json_object = JSON.parse(getJSONmydsp());
 
@@ -23,6 +23,7 @@ class mydspPolyNode extends AudioWorkletNode {
         options.channelInterpretation = "speakers";
 
         super(context, 'mydspPoly', options);
+        this.baseURL = baseURL;
 
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
@@ -62,7 +63,16 @@ class mydspPolyNode extends AudioWorkletNode {
                        || item.type === "checkbox"
                        || item.type === "nentry") {
                 // Keep inputs adresses
-                obj.inputs_items.push(item.address);
+                obj.inputs_items.push(item.address);         
+                // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
+                var set_name = "set" + item.address;
+                var get_name = "get" + item.address;
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
+                obj[get_name] = () => { return obj.getParamValue(item.address); };
+                //console.log(set_name);
+                //console.log(get_name);
             }
         }
 
@@ -132,6 +142,19 @@ class mydspPolyNode extends AudioWorkletNode {
             return res;
         }
     }
+    
+    // For WAP
+    async getMetadata()
+    {
+        return new Promise(resolve => {
+            let real_url = (this.baseURL === "") ? "main.json" : (this.baseURL + "/main.json");
+            fetch(real_url).then(responseJSON => {
+                return responseJSON.json();
+            }).then(json => {
+                resolve(json);
+            })
+        });
+    }
 
     /**
      *  Set the control value at a given path.
@@ -144,6 +167,13 @@ class mydspPolyNode extends AudioWorkletNode {
         this.port.postMessage({ type:"param", key:path, value:val });
         this.parameters.get(path).setValueAtTime(val, 0);
     }
+    
+    // For WAP
+    setParam(path, val)
+    {
+        this.port.postMessage({ type:"param", key:path, value:val });
+        this.parameters.get(path).setValueAtTime(val, 0);
+    }
 
     /**
      *  Get the control value at a given path.
@@ -151,6 +181,12 @@ class mydspPolyNode extends AudioWorkletNode {
      * @return the current control value
      */
     getParamValue(path)
+    {
+        return this.parameters.get(path).value;
+    }
+    
+    // For WAP
+    getParam(path)
     {
         return this.parameters.get(path).value;
     }
@@ -184,6 +220,17 @@ class mydspPolyNode extends AudioWorkletNode {
     {
         return parseInt(this.json_object.outputs);
     }
+    
+    // For WAP
+    inputChannelCount()
+    {
+        return parseInt(this.json_object.inputs);
+    }
+    
+    outputChannelCount()
+    {
+        return parseInt(this.json_object.outputs);
+    }
 
     /**
      * Returns an array of all input paths (to be used with setParamValue/getParamValue)
@@ -191,6 +238,20 @@ class mydspPolyNode extends AudioWorkletNode {
     getParams()
     {
         return this.inputs_items;
+    }
+        
+    // For WAP
+    getDescriptor()
+    {
+        var desc = {};
+        for (const item in this.descriptor) {
+            if (this.descriptor.hasOwnProperty(item)) {
+                if (this.descriptor[item].label != "bypass") {
+                    desc = Object.assign({ [this.descriptor[item].label]: { minValue: this.descriptor[item].min, maxValue: this.descriptor[item].max, defaultValue: this.descriptor[item].init } }, desc);
+                }
+            }
+        }
+        return desc;
     }
 
     /**
@@ -255,11 +316,41 @@ class mydspPolyNode extends AudioWorkletNode {
     {
     	this.port.postMessage({ type:"midi", data:data });
     }
+    
+    /**
+     * @returns {Object} describes the path for each available param and its current value
+     */
+    async getState()
+    {
+        var params = new Object();
+        for (let i = 0; i < this.getParams().length; i++) {
+            Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
+        }
+        return new Promise(resolve => { resolve(params) });
+    }
+    
+    /**
+     * Sets each params with the value indicated in the state object
+     * @param {Object} state
+     */
+    async setState(state)
+    {
+        return new Promise(resolve => {
+            for (const param in state) {
+                if (state.hasOwnProperty(param)) this.setParam(param, state[param]);
+            }
+            try {
+                this.gui.setAttribute('state', JSON.stringify(state));
+            } catch (error) {
+                console.warn("Plugin without gui or GUI not defined", error);
+            }
+            resolve(state);
+        })
+    }
 
 }
 
 // Factory class
-
 class mydspPoly {
 
     /**
@@ -268,13 +359,14 @@ class mydspPoly {
      * @param context - the audio context
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseURL)
+    constructor(context, baseURL = "")
     {
         // Resume audio context each time...
         context.resume();
         
     	console.log("baseLatency " + context.baseLatency);
     	console.log("outputLatency " + context.outputLatency);
+    	console.log("sampleRate " + context.sampleRate);
     
         this.context = context;
         this.baseURL = baseURL;
@@ -285,12 +377,13 @@ class mydspPoly {
      */
     load()
     {
-    	return new Promise((resolve, reject) => {
-            this.context.audioWorklet.addModule(this.baseURL + "mydsp-processor.js").then(() => {
-            this.node = new mydspPolyNode(this.context, {});
+    	return new Promise((resolve, reject) => {   
+            let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
+            this.context.audioWorklet.addModule(real_url).then(() => {
+            this.node = new mydspNode(this.context, this.baseURL, {});
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
-        	}).then((node) => {
+            }).then((node) => {
                 resolve(node);
             }).catch((e) => {
                 reject(e);
@@ -298,22 +391,35 @@ class mydspPoly {
         });
     }
 
-    loadGui()
+    loadGui() 
     {
         return new Promise((resolve, reject) => {
             try {
-            	var link = document.createElement('link');
-            	link.rel = 'import';
-            	link.id = 'urlPlugin';
-            	link.href = this.baseURL + "main.html";
-            	document.head.appendChild(link);
-            	var element = document.createElement("faust-mydsp");
-            	element._plug = this.node;
-            	resolve(element);
-        	} catch (e) {
-            	console.log(e);
-            	reject(e);
-        	}
-    	});
+                // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
+                let real_url = (this.baseURL === "") ? "main.html" : (this.baseURL + "/main.html");
+                if (!this.linkExists(real_url)) {
+                    // LINK DOES NOT EXIST, let's add it to the document
+                    var link = document.createElement('link');
+                    link.rel = 'import';
+                    link.href = real_url;
+                    document.head.appendChild(link);
+                    link.onload = (e) => {
+                        // the file has been loaded, instanciate GUI
+                        // and get back the HTML elem
+                        // HERE WE COULD REMOVE THE HARD CODED NAME
+                        var element = createmydspGUI(this.node);
+                        resolve(element);
+                    }
+                } else {
+                    // LINK EXIST, WE AT LEAST CREATED ONE INSTANCE PREVIOUSLY
+                    // so we can create another instance
+                    var element = createmydspGUI(this.node);
+                    resolve(element);
+                }
+            } catch (e) {
+                console.log(e);
+                reject(e);
+            }
+        });
     };
 }

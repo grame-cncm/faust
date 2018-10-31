@@ -197,6 +197,7 @@ EndOfCode
         fi
     fi
 
+    # create additional files for WAP
 	if [ $WAP = true ]; then
 
    		# create the main.json file
@@ -213,18 +214,21 @@ EndOfCode
         cp  $FAUSTLIB/webaudio/testWAP.html test$name-tmp1.html
         sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
         sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
+    else
+        # compose the HTML test page
+        cp  $FAUSTLIB/webaudio/testAWN.html test$name-tmp1.html
+        sed -e "s/VENDOR/"Faust"/g" test$name-tmp1.html >> test$name-tmp2.html
+        sed -e "s/DSP/"$name"/g" test$name-tmp2.html > test$name.html
     fi
 
     # collect binary file name
     if [ $WORKLET = "true" ]; then
     	if [ $WAP = "true" ]; then
         	BINARIES="$BINARIES$name.js, $name-processor.js, main.json, test$name.html;"
-        	rm test$name-tmp1.html test$name-tmp2.html
         else
-        	BINARIES="$BINARIES$name.js, $name-processor.js;"
+        	BINARIES="$BINARIES$name.js, $name-processor.js, test$name.html;"
         fi
-        rm $name.wasm
-        rm -f $name"_effect".wasm
+        rm -f $name.wasm $name"_effect".wasm test$name-tmp1.html test$name-tmp2.html
     else
         BINARIES="$BINARIES$name.js, $name.wasm;"
     fi
@@ -314,10 +318,8 @@ if [ $EMCC = "true" ]; then
     emcc -O2 --memory-init-file 0 $COMB_SRC -s TOTAL_MEMORY=100663296 $COMB_WRAPPED -o comb.js \
         -s EXPORTED_FUNCTIONS="["$COMB_EXPORTED"]" || exit
 
-    rm $COMB_SRC
-    rm $COMB_WRAPPED_FILES
+    rm $COMB_SRC $COMB_WRAPPED_FILES
 fi
-
 
 # collect binary file name
 BINARIES="comb.js;"
