@@ -68,6 +68,11 @@ using namespace std;
 #include "faust/gui/BelaOSCUI.h"
 #endif
 
+#ifdef HTTPDGUI
+#include "faust/gui/httpdUI.h"
+httpdUI* gHttpdinterface;
+#endif /* HTTPDGUI */
+
 // for polyphonic synths
 #include "faust/dsp/poly-dsp.h"
 
@@ -426,6 +431,11 @@ bool setup(BelaContext* context, void* userData)
     
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
+#ifdef HTTPDGUI
+    gHttpdinterface = new httpdUI("Bela-UI", gDSP->getNumInputs(), gDSP->getNumOutputs(), 0, NULL);
+    gDSP->buildUserInterface(gHttpdinterface);
+    gHttpdinterface->run();
+#endif /* HTTPDGUI */
 
 #ifdef MIDICTRL
 #ifdef NVOICES
@@ -461,6 +471,9 @@ void render(BelaContext* context, void* userData)
 
 void cleanup(BelaContext* context, void* userData)
 {
+#ifdef HTTPDGUI
+    delete gHttpdinterface;
+#endif /* HTTPDGUI */
     delete [] gInputs;
     delete [] gOutputs;
     delete gDSP;
