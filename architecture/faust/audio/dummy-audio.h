@@ -138,7 +138,7 @@ class dummyaudio : public audio {
             fRender = fCount;
             fRunning = true;
             if (fCount == INT_MAX) {
-                if (pthread_create(&fAudioThread, 0, run, this)) {
+                if (pthread_create(&fAudioThread, 0, run, this) != 0) {
                     fRunning = false;
                 }
                 return fRunning;
