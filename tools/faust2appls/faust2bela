@@ -125,7 +125,7 @@ fi
 
 if [[ "$GUIDEFS" == *GUI* ]]; then
 	echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
-	BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust  -lmicrohttpd"
+	BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
 fi
 
 cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
