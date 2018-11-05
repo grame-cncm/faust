@@ -19,54 +19,16 @@
  ************************************************************************
  ************************************************************************/
 
-#include "prim2.hh"
-#include "global.hh"
+#ifndef interpreter_dynamic_dsp_aux_h
+#define interpreter_dynamic_dsp_aux_h
 
-#include <stdlib.h>
+#include "interpreter_dsp_aux.hh"
 
-Tree ffunction(Tree signature, Tree incfile, Tree libfile)
-{
-    return tree(gGlobal->FFUN, signature, incfile, libfile);
-}
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename, int argc,
+                                                                    const char* argv[], std::string& error_msg);
 
-bool isffunction(Tree t)
-{
-    return t->node() == Node(gGlobal->FFUN);
-}
+EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
+                                                                      const std::string& dsp_content, int argc,
+                                                                      const char* argv[], std::string& error_msg);
 
-Tree ffsignature(Tree ff)
-{
-    return ff->branch(0);
-}
-
-const char* ffincfile(Tree ff)
-{
-    return tree2str(ff->branch(1));
-}
-
-const char* fflibfile(Tree ff)
-{
-    return tree2str(ff->branch(2));
-}
-
-int ffrestype(Tree t)
-{
-    return tree2int(hd(ffsignature(t)));
-}
-
-const char* ffname(Tree t)
-{
-    Tree namelist = nth(ffsignature(t), 1);
-    // cerr << "ffname " << tree2str(nth(namelist,gFloatSize-1)) << endl;
-    return tree2str(nth(namelist, gGlobal->gFloatSize - 1));
-}
-
-int ffarity(Tree t)
-{
-    return len(ffsignature(t)) - 2;
-}
-
-int ffargtype(Tree t, int i)
-{
-    return tree2int(nth(ffsignature(t), i + 2));
-}
+#endif
