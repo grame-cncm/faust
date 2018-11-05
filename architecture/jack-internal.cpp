@@ -48,292 +48,23 @@
 #include <iostream> 
 #include <assert.h> 
 
+#include "faust/dsp/dsp.h"
+#include "faust/gui/GUI.h"
+#include "faust/gui/OSCUI.h"
+#include "faust/misc.h"
+
 #include <libgen.h>
 #include <jack/jack.h>
 #include <jack/jslist.h>
 
 using namespace std;
 
-// On Intel set FZ (Flush to Zero) and DAZ (Denormals Are Zero)
-// flags to avoid costly denormals
-#ifdef __SSE__
-    #include <xmmintrin.h>
-    #ifdef __SSE2__
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8040)
-    #else
-        #define AVOIDDENORMALS _mm_setcsr(_mm_getcsr() | 0x8000)
-    #endif
-#else
-    #define AVOIDDENORMALS 
-#endif
-
-struct Meta : map<const char*, const char*>
-{
-    void declare(const char* key, const char* value) { (*this)[key]=value; }
-};
-
-// abs is now predefined
-//template<typename T> T abs (T a)			{ return (a<T(0)) ? -a : a; }
-
-inline int		lsr (int x, int n)			{ return int(((unsigned int)x) >> n); }
-
-/******************************************************************************
-*******************************************************************************
-
-							       VECTOR INTRINSICS
-
-*******************************************************************************
-*******************************************************************************/
-
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((unsigned)(calloc((nmemb*size)+15,sizeof(char)))+15 & 0xfffffff0); }
-//inline void *aligned_calloc(size_t nmemb, size_t size) { return (void*)((size_t)(calloc((nmemb*size)+15,sizeof(char)))+15 & ~15); }
-
 <<includeIntrinsic>>
 
-/******************************************************************************
-*******************************************************************************
-
-								GRAPHIC USER INTERFACE (v2)
-								  abstract interfaces
-
-*******************************************************************************
-*******************************************************************************/
-
-using namespace std;
-
-struct uiItem;
-typedef void (*uiCallback)(float val, void* data);
-
-/**
- * Graphic User Interface : abstract definition
- */
-
-class UI 
-{
-	typedef list<uiItem*> clist;
-	typedef map<float*, clist*> zmap;
-	
- private:
- 	static list<UI*>	fGuiList;
-	zmap				fZoneMap;
-	bool				fStopped;
-	
- public:
-		
-	UI() : fStopped(false) {	
-		fGuiList.push_back(this);
-	}
-	
-	virtual ~UI() {
-		// suppression de this dans fGuiList
-	}
-
-	// -- zone management
-	
-	void registerZone(float* z, uiItem* c)
-	{
-		if (fZoneMap.find(z) == fZoneMap.end()) fZoneMap[z] = new clist();
-		fZoneMap[z]->push_back(c);
-	} 	
-	
-	void updateAllZones();
-	
-	void updateZone(float* z);
-	
-	static void updateAllGuis()
-	{
-		list<UI*>::iterator g;
-		for (g = fGuiList.begin(); g != fGuiList.end(); g++) {
-			(*g)->updateAllZones();
-		}
-	}
-	
-	// -- active widgets
-	
-	virtual void addButton(const char* label, float* zone) = 0;
-	virtual void addToggleButton(const char* label, float* zone) = 0;
-	virtual void addCheckButton(const char* label, float* zone) = 0;
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) = 0;
-	
-    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-    
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) = 0;
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) = 0;
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) = 0;
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) = 0;
-	
-	void addCallback(float* zone, uiCallback foo, void* data);
-	
-	// -- widget's layouts
-	
-	virtual void openFrameBox(const char* label) = 0;
-	virtual void openTabBox(const char* label) = 0;
-	virtual void openHorizontalBox(const char* label) = 0;
-	virtual void openVerticalBox(const char* label) = 0;
-	virtual void closeBox() = 0;
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
-class OSCUI : public UI 
-{
- public:
-		
-	OSCUI() : UI() 
-    {}
-	
-	virtual ~OSCUI() {
-		// suppression de this dans fGuiList
-	}
-
-	
-	// -- active widgets
-	
-	virtual void addButton(const char* label, float* zone) {}
-	virtual void addToggleButton(const char* label, float* zone) {}
-	virtual void addCheckButton(const char* label, float* zone) {}
-	virtual void addVerticalSlider(const char* label, float* zone, float init, float min, float max, float step) {}
-	virtual void addHorizontalSlider(const char* label, float* zone, float init, float min, float max, float step) {}
-	virtual void addNumEntry(const char* label, float* zone, float init, float min, float max, float step) {}
-	
-	// -- passive widgets
-	
-	virtual void addNumDisplay(const char* label, float* zone, int precision) {}
-	virtual void addTextDisplay(const char* label, float* zone, char* names[], float min, float max) {}
-	virtual void addHorizontalBargraph(const char* label, float* zone, float min, float max) {}
-	virtual void addVerticalBargraph(const char* label, float* zone, float min, float max) {}
-	
-	void addCallback(float* zone, uiCallback foo, void* data);
-	
-	// -- widget's layouts
-	
-	virtual void openFrameBox(const char* label) {}
-	virtual void openTabBox(const char* label) {}
-	virtual void openHorizontalBox(const char* label) {}
-	virtual void openVerticalBox(const char* label) {}
-	virtual void closeBox() {}
-
-    virtual void declare(float* zone, const char* key, const char* value) {}
-};
-
-list<UI*> UI::fGuiList;
-
-/**
- * User Interface Item: abstract definition
- */
-
-class uiItem
-{
-  protected :
-		  
-	UI*		fGUI;
-	float*	fZone;
-	float	fCache;
-	
-	uiItem (UI* ui, float* zone) : fGUI(ui), fZone(zone), fCache(-123456.654321) 
-	{ 
-		ui->registerZone(zone, this); 
-	}	
-	
-  public :
-
-	virtual ~uiItem() {}
-	
-	void modifyZone(float v) 	
-	{ 
-		fCache = v;
-		if (*fZone != v) {
-			*fZone = v;
-			fGUI->updateZone(fZone);
-		}
-	}
-		  	
-	float			cache()			{ return fCache; }
-	virtual void 	reflectZone() 	= 0;	
-};
-
-/**
- * Callback Item
- */
-
-struct uiCallbackItem : public uiItem
-{
-	uiCallback	fCallback;
-	void*		fData;
-	
-	uiCallbackItem(UI* ui, float* zone, uiCallback foo, void* data) 
-			: uiItem(ui, zone), fCallback(foo), fData(data) {}
-	
-	virtual void 	reflectZone() {		
-		float 	v = *fZone;
-		fCache = v; 
-		fCallback(v, fData);	
-	}
-};
-
-/**
- * Update all user items reflecting zone z
- */
-
-inline void UI::updateZone(float* z)
-{
-	float 	v = *z;
-	clist* 	l = fZoneMap[z];
-	for (clist::iterator c = l->begin(); c != l->end(); c++) {
-		if ((*c)->cache() != v) (*c)->reflectZone();
-	}
-}
-
-/**
- * Update all user items not up to date
- */
-
-inline void UI::updateAllZones()
-{
-	for (zmap::iterator m = fZoneMap.begin(); m != fZoneMap.end(); m++) {
-		float* 	z = m->first;
-		clist*	l = m->second;
-		float	v = *z;
-		for (clist::iterator c = l->begin(); c != l->end(); c++) {
-			if ((*c)->cache() != v) (*c)->reflectZone();
-		}
-	}
-}
-
-inline void UI::addCallback(float* zone, uiCallback foo, void* data) 
-{ 
-	new uiCallbackItem(this, zone, foo, data); 
-};		
-
-//----------------------------------------------------------------
-//  definition du processeur de signal
-//----------------------------------------------------------------
-			
-class dsp {
- protected:
-	int fSamplingFreq;
- public:
-	dsp() {}
-	virtual ~dsp() {}
-	
-	virtual int getNumInputs() 										= 0;
-	virtual int getNumOutputs() 									= 0;
-	virtual void buildUserInterface(UI* interface) 					= 0;
-	virtual void init(int samplingRate) 							= 0;
- 	virtual void compute(int len, float** inputs, float** outputs) 	= 0;
- 	virtual void conclude() 										{}
-};
-
-		
-/********************END ARCHITECTURE SECTION (part 1/2)****************/
-
-/**************************BEGIN USER SECTION **************************/
-		
 <<includeclass>>
+
+std::list<GUI*> GUI::fGuiList;
+ztimedmap GUI::gTimedZoneMap;
 
 /***************************END USER SECTION ***************************/
 
@@ -489,9 +220,11 @@ JackArgParser::JackArgParser (const char* arg)
     } while (start < arg_len);
 
     //finally count the options
-    for (i = 0; i < fArgv.size(); i++)
-        if (fArgv[i].at(0) == '-')
+    for (i = 0; i < fArgv.size(); i++) {
+        if (fArgv[i].at(0) == '-') {
             fArgc++;
+        }
+    }
 }
 
 JackArgParser::~JackArgParser()
@@ -550,8 +283,9 @@ void JackArgParser::ParseParams(jack_driver_desc_t* desc, JSList** param_list)
     JSList* params = NULL;
     jack_driver_param_t* intclient_param;
 
-    for (i = 0; i < desc->nparams; i++)
+    for (i = 0; i < desc->nparams; i++) {
         options_list += desc->params[i].character;
+    }
 
     for (param = 0; param < fArgv.size(); param++)
     {
@@ -656,7 +390,7 @@ struct JackFaustInternal {
         char**	physicalInPorts;
         char**	physicalOutPorts;
  
-        fInterface = new OSCUI();
+        fInterface = new OSCUI(NULL, 0, NULL);
         fDSP.buildUserInterface(fInterface);
          
         jack_set_process_callback(fClient, process, this);
