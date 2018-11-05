@@ -318,8 +318,8 @@ public:
     virtual void closeBox() {}
     
     // -- active widgets
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { skip(); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { skip(); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
