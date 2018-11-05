@@ -11,6 +11,7 @@
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+ARCHFILE="sndfile.cpp"
 
 #-------------------------------------------------------------------
 # Set Faust include path
@@ -45,7 +46,7 @@ done
 for f in $FILES; do
 
     # compile Faust DSP then create the binary
-    faust -i -a "$FAUSTLIB/sndfile.cpp" $OPTIONS "$f" -o "$f.cpp" || exit
+    faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
     (
         $CXX $CXXFLAGS "$f.cpp" `pkg-config --cflags --static --libs sndfile` -o "${f%.dsp}"
     ) > /dev/null || exit

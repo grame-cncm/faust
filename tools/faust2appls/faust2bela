@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #FAUST DATA:
-BELAVERSION="bela.cpp"
+ARCHFILE="bela.cpp"
 #BELA DATA:
 BBB_ADDRESS="root@192.168.7.2"
 BBB_BELA_HOME="/root/Bela"
@@ -90,15 +90,15 @@ PROJECTDIR="$CUR/$TMP"
 
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
             #rm "$TMP/effect.dsp"
         else
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
         fi
     else
-        faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
     fi
 
 

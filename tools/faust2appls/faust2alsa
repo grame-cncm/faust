@@ -13,6 +13,7 @@ OSCDEFS=""
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+ARCHFILE="alsa-gtk.cpp"
 
 #-------------------------------------------------------------------
 # Analyze command arguments :
@@ -81,7 +82,7 @@ done
 for f in $FILES; do
 	
 	# compile faust to c++
-	faust -i -a alsa-gtk.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(

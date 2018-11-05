@@ -11,6 +11,7 @@
 #------------------------
 VSTSDK="/usr/local/include/vstsdk2.4"
 EXT=".vst"
+ARCHFILE="vst.cpp"
 
 INCLUDES="-I$VSTSDK/ -I$VSTSDK/public.sdk/source/vst2.x/"
 
@@ -111,7 +112,7 @@ for p in $FILES; do
     TMP=$(mktemp -d faust.XXX)
 
     # compile faust to c++
-	faust -i -a vst.cpp $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
 
     # compile c++ to binary
     (

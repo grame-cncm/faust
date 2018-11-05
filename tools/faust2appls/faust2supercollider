@@ -17,6 +17,7 @@
 . faustoptflags
 
 PATH=$PATH:/usr/local/bin
+ARCHFILE="supercollider.cpp"
 
 #-------------------------------------------------------------------
 # Need SuperCollider 'plugin_interface' include path to compile UGens:
@@ -168,7 +169,7 @@ for p in $FILES; do
 
     # compile the .dsp file to c++ and xml
     
-    faust -i -a supercollider.cpp -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
+    faust -i -a $ARCHFILE -xml $OPTIONS "$SRCDIR/$f" -o "$TMP/${f%.dsp}.cpp" || exit
     mv "$SRCDIR/$f.xml" $TMP/
 
     # compile c++ to binary; --prefix should be same as in ../../examples/Makefile.sccompile

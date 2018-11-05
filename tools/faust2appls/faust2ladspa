@@ -6,6 +6,7 @@
 CXXFLAGS=$MYGCCFLAGS
 
 OSCDEFS=""
+ARCHFILE="ladspa.cpp"
 
 #####################################################################
 #                                                                   #
@@ -83,7 +84,7 @@ for f in $FILES; do
 	module=`basename $f .dsp`
 	
 	# compile faust to c++
-	faust -i -a ladspa.cpp $OPTIONS "$f" -o "$f.cpp" || exit
+	faust -i -a $ARCHFILE $OPTIONS "$f" -o "$f.cpp" || exit
 
 	# compile c++ to binary
 	(
