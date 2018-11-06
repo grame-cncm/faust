@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -41,6 +41,9 @@
 #include "interpreter_optimizer.hh"
 
 class interpreter_dsp_factory;
+
+typedef class faust_smartptr<interpreter_dsp_factory> SDsp_factory;
+extern dsp_factory_table<SDsp_factory>                gInterpreterFactoryTable;
 
 template <class T, int TRACE>
 class interpreter_dsp_aux;
@@ -1069,13 +1072,6 @@ dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* facto
 }
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const std::string& sha_key);
-
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromFile(const std::string& filename, int argc,
-                                                                    const char* argv[], std::string& error_msg);
-
-EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const std::string& name_app,
-                                                                      const std::string& dsp_content, int argc,
-                                                                      const char* argv[], std::string& error_msg);
 
 EXPORT bool deleteInterpreterDSPFactory(interpreter_dsp_factory* factory);
 

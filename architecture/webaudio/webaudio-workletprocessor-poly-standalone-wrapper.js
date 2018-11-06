@@ -134,7 +134,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         return (1.0 * (v - mn0) / (mx0 - mn0)) * (mx1 - mn1) + mn1;
     }
 
-    static get parameterDescriptors () 
+    static get parameterDescriptors() 
     {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
@@ -186,7 +186,7 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
         return new WebAssembly.Memory({ initial: memory_size, maximum: memory_size });
     }
     
-    constructor (options)
+    constructor(options)
     {
         super(options);
         
@@ -758,8 +758,6 @@ class mydspPolyProcessor extends AudioWorkletProcessor {
 }
 
 // Globals
-
-// Create memory block
 mydspPolyProcessor.buffer_size = 128;
 mydspPolyProcessor.polyphony = 16;
 

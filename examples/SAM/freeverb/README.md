@@ -8,12 +8,15 @@ Freeverb is always stereo. It is normally placed last in the effects chain.
 
 ## Parameters
 
-Parameter | MIDI CC # | Description
-----------|-----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-Damp      | `CC-4`    | Increasing the damping decreases the reverberation time.
-RoomSize  | `CC-3`    | Increasing the Room Size parameter lengthens the delay lines used in the reverberator, corresponding to longer path lengths between reflections in an acoustic space.
-Dry/Wet   | `CC-2`    | Level is the "dry/wet mix": 0 for "dry" (no reverb), and 1 for "wet" (pure reverberator output). Note that stereo imaging is normally reduced by reverberation, because the reverberated sound is supposed sound like it's coming from all directions. Reduce the Reverb Level to better preserve stereo imaging.
-Enable    | `CC-102`  | Turn the effect on or off
+Parameter     | MIDI CC # | Description | Physical Control |
+|---|---|---|---|
+Enable    | `CC-105`  | Turn the effect on or off | switch`SW-4` |
+Dry/Wet   | `CC-2`    | Level is the "dry/wet mix": 0 for "dry" (no reverb), and 1 for "wet" (pure reverberator output). Note that stereo imaging is normally reduced by reverberation, because the reverberated sound is supposed sound like it's coming from all directions. Reduce the Reverb Level to better preserve stereo imaging. |knob`HADC-0` |
+RoomSize  | `CC-3`    | Increasing the Room Size parameter lengthens the delay lines used in the reverberator, corresponding to longer path lengths between reflections in an acoustic space. |knob`HADC-1` |
+Damp      | `CC-4`    | Increasing the damping decreases the reverberation time. |knob`HADC-02 |
+
+
+
 
 ## Building the Example
 

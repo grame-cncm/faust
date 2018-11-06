@@ -112,7 +112,7 @@ class BelaOSCUI : public GUI {
                 // "hello" message
                 } else if (msg.match("/hello").isOkNoMoreArgs()) {
                     // show datat to console.
-                    rt_printf("adresses:%s, in:%i, out:%i\n", fIP, fInputPort, fOutputPort);
+                    rt_printf("adresses:%s, in:%i, out:%i\n", fIP.c_str(), fInputPort, fOutputPort);
                     // set data by OSC
                     std::string s = fAPIUI.getParamAddress(0);
                     s.erase(0, 1);
@@ -126,7 +126,7 @@ class BelaOSCUI : public GUI {
         bool run() override
         {
             fReceiver.setup(fInputPort);
-            fSender.setup(fOutputPort, fIP);
+            fSender.setup(fOutputPort, fIP.c_str());
             rt_printf("initconnect\n");
             if (fOSCItems.size() == 0) {
                 rt_printf("%i widgets, OSC Adresses:\n", fAPIUI.getParamsCount());

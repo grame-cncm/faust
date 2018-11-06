@@ -117,7 +117,7 @@ class mydspProcessor extends AudioWorkletProcessor {
         }
     }
    
-    static get parameterDescriptors () 
+    static get parameterDescriptors() 
     {
         // Analyse JSON to generate AudioParam parameters
         var params = [];
@@ -358,7 +358,13 @@ class mydspProcessor extends AudioWorkletProcessor {
             }
         }
         
-        // Update controls (possibly needed for sample accurate control)
+        /*
+        TODO: sample accurate control change is not yet handled
+        When no automation occurs, params[i][1] has a length of 1,
+        otherwise params[i][1] has a length of 128 with possible control change each sample
+    	*/
+        
+        // Update controls
         var params = Object.entries(parameters);
         for (var i = 0; i < params.length; i++) {
             this.HEAPF32[this.pathTable[params[i][0]] >> 2] = params[i][1][0];
@@ -383,7 +389,6 @@ class mydspProcessor extends AudioWorkletProcessor {
 }
 
 // Globals
-
 mydspProcessor.buffer_size = 128;
 
 mydspProcessor.importObject = {

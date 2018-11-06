@@ -22,15 +22,15 @@ tau2pole(tau) = ba.if(tau>0, exp(-1.0/(tau*ma.SR)), 0.0);
 t60smoother(dEchoT60) = si.smooth(tau2pole(dEchoT60/6.91));
 
 dEchoT60 = knobs_group(vslider("[1] DelayT60 [midi:ctrl 60] [style:knob]", 0.5, 0, 100, 0.001));
-dEchoSamplesRaw = knobs_group(vslider("[0] Delay [midi:ctrl 61] [style:knob]", 0.5, 0.001, (dmaxs-0.001), 0.001)) * ma.SR;
+dEchoSamplesRaw = knobs_group(vslider("[0] Delay [midi:ctrl 4] [style:knob]", 0.5, 0.001, (dmaxs-0.001), 0.001)) * ma.SR;
 dEchoSamples = dEchoSamplesRaw : t60smoother(dEchoT60);
 warpRaw = knobs_group(vslider("[0] Warp [midi:ctrl 62] [style:knob]", 0, -1.0, 1.0, 0.001));
 
 scrubAmpRaw = 0;
 
 scrubPhaseRaw = 0;
-fb = knobs_group(vslider("[2] Feedback [midi:ctrl 2] [style:knob]", .3, 0.0, 1.0, 0.0001));
-amp = knobs_group(vslider("[3] Amp [midi:ctrl 75] [style:knob]", .5, 0, 1, 0.001)) : si.smooth(ba.tau2pole(ampT60/6.91));
+fb = knobs_group(vslider("[2] Feedback [midi:ctrl 3] [style:knob]", .3, 0.0, 1.0, 0.0001));
+amp = knobs_group(vslider("[3] Amp [midi:ctrl 2] [style:knob]", .5, 0, 1, 0.001)) : si.smooth(ba.tau2pole(ampT60/6.91));
 
 ampT60 = 0.15661;
 fbs = knobs_group(vslider("[5] [midi:ctrl 76] FeedbackSm [style:knob]", 0, 0, 1, 0.00001));

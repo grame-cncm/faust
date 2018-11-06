@@ -3,7 +3,10 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.11.10)
+set (VERSION 2.11.13)
+set (VERSION_MAJOR 2)
+set (VERSION_MINOR 11)
+set (VERSION_PATCH 13)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -25,6 +28,7 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
+option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
@@ -157,17 +161,12 @@ if (INCLUDE_STATIC)
 		LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	if (WIN32 OR MSYS)
-		if (MSVC)
-			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
-		else()
-			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
-		endif()
-	endif()
-	if (IOS)
+	if (MSVC)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+	elseif (IOS)
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
-		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
 	endif()
 	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
@@ -204,12 +203,12 @@ if (INCLUDE_DYNAMIC)
 	endif()
 	set_target_properties(dynamiclib PROPERTIES COMPILE_FLAGS -DFAUST_LIB)
 	scan_backends (dynamiclib DYNAMIC)
-	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
+#	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
 
 ####################################
-# add sub projects (emcc, osclib)
+# add sub projects (emcc, osclib, interpreter)
 ####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
@@ -223,6 +222,10 @@ endif()
 if (INCLUDE_HTTP OR HTTPDYNAMIC)
 	add_subdirectory (http)
 	set (SUBTARGETS ${SUBTARGETS} http)
+endif()
+if (INCLUDE_ITP OR ITPDYNAMIC)
+	add_subdirectory (interp)
+	set (SUBTARGETS ${SUBTARGETS} faustmachine)
 endif()
 
 
@@ -238,12 +241,24 @@ message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
 # install the faust compiler and libraries
+if (PACK)
+	set (CMAKE_INSTALL_PREFIX .)
+endif()
+
 install ( TARGETS ${INSTALL_TARGETS}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
+
+if (INCLUDE_DYNAMIC)
+install ( TARGETS dynamiclib
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+)
+endif()
 
 ####################################
 # install headers
@@ -280,6 +295,15 @@ install (
 install (
     FILES     ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+)
+
+####################################
+# install sound2xxx tools
+file (GLOB SOUND2XXX ${ROOT}/tools/sound2faust/sound2faust ${ROOT}/tools/sound2faust/sound2file ${ROOT}/tools/sound2faust/sound2reader)
+install (
+    FILES     ${SOUND2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+    OPTIONAL
 )
 
 
@@ -338,3 +362,62 @@ if (APPLE)
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
 endif()
+
+
+
+
+####################################
+# cpack section
+####################################
+set (CPACK_PACKAGE_NAME   "Faust")
+set (CPACK_PACKAGE_VENDOR "GRAME")
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
+set (CPACK_PACKAGE_VERSION   ${VERSION})
+set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+
+set (CPACK_MONOLITHIC_INSTALL true)
+set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING.txt)
+set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
+
+
+set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
+set (CPACK_NSIS_MODIFY_PATH on)
+#set (CPACK_NSIS_MUI_ICON "${ROOT}/build/faust.ico")
+
+set (CPACK_BUNDLE_NAME FaustInstaller)
+set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
+set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
+
+#set (CPACK_GENERATOR productbuild)
+
+include (CPack)
+
+####################################
+# cpack section
+####################################
+# set (CPACK_PACKAGE_NAME   "Faust")
+# set (CPACK_PACKAGE_VENDOR "GRAME")
+# set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
+# set (CPACK_PACKAGE_VERSION   ${VERSION})
+# set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+# set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+# set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+# 
+# set (CPACK_SET_DESTDIR true)
+# set (CPACK_MONOLITHIC_INSTALL true)
+# set (CPACK_INSTALL_PREFIX /usr/local)
+# set (CPACK_PACKAGE_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING)
+# set (CPACK_PACKAGE_INSTALL_DIRECTORY  /usr/local)
+# set (CPACK_PACKAGE_INSTALL_DESTINATION  /usr/local)
+
+#set (CPACK_GENERATOR productbuild)
+#set (CPACK_BUNDLE_NAME FaustInstaller)
+#set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
+#set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
+
+#include (CPack)
+
+
+

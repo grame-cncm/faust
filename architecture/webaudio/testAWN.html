@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Host that loads a plugin with its GUI</title>
+</head>
+<script src="DSP.js"></script>
+
+<body>
+    <audio src="./CleanGuitarRiff.mp3" id="soundSample" controls loop></audio>
+    <button id="save">Save current state</button>
+    <button id="load">Load last saved state</button>
+</body>
+<script>
+
+    var ctx = new AudioContext();
+    var factory = new VENDORDSP(ctx);
+
+    factory.load().then((node) => {
+
+        console.log(node.getDescriptor());
+        console.log(node.getParams());
+        console.log(node.getJSON());
+
+        // If node has inputs, define a source connected to the code
+        if (node.getNumInputs() > 0) {
+            console.log("Connect to input");
+            var player = document.getElementById("soundSample");
+            player.onplay = () => {
+                ctx.resume().then(() => {
+                    console.log('Playback resumed successfully');
+                });
+            }
+            var mediaSource = ctx.createMediaElementSource(player);
+            mediaSource.connect(node);
+        }
+        // Connect the node to the destination
+        console.log("Connect to output");
+        node.connect(ctx.destination);
+                        
+    });
+    
+</script>
+
+</html>

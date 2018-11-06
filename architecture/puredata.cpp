@@ -27,7 +27,7 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include <string>
+#include <string.h>
 
 #include "faust/misc.h"
 #include "faust/gui/UI.h"

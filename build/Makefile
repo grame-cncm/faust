@@ -46,16 +46,15 @@ EMCC 	 ?= emcc
 #===============================================================
 ifeq ($(GENERATOR), Xcode)
 	PROJ = $(FAUSTDIR)/faust.xcodeproj
-	JOBS = -jobs 4
+	JOBS ?= -jobs 4
 endif
 ifneq (,$(findstring Makefile, $(GENERATOR)))
 	PROJ = $(FAUSTDIR)/Makefile
 endif
 ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
 	PROJ = $(FAUSTDIR)/faust.sln
-	JOBS = /maxcpucount:4
+	JOBS ?= /maxcpucount:4
 endif
-
 
 #===============================================================
 # main target

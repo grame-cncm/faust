@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 /************************************************************************
  ************************************************************************
     Signals Order Rules
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     A small typing system that computes the "order" of a signal :
         0 = numerical constant
@@ -162,10 +162,10 @@ static int infereSigOrder(Tree sig)
         return max(2, O(s1));  // at least a user interface
 
     else if (isSigEnable(sig, s1, s2))
-        return O(s1);
+        return max(O(s1), O(s2));  // O(s1);
 
     else if (isSigControl(sig, s1, s2))
-        return O(s1);
+        return max(O(s1), O(s2));  // O(s1);
 
     else if (isSigSoundfile(sig, l))
         throw faustexception("ERROR infering signal order : isSigSoundfile\n");  // not supposed to happen.;

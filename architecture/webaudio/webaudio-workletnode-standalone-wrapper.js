@@ -79,7 +79,16 @@ class mydspNode extends AudioWorkletNode {
                             }
                         }
                     }
-                }
+                }      
+                // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
+                var set_name = "set" + item.address;
+                var get_name = "get" + item.address;
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });     
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
+                obj[get_name] = () => { return obj.getParamValue(item.address); };
+                //console.log(set_name);
+                //console.log(get_name);
             }
         }
 
@@ -373,7 +382,6 @@ class mydspNode extends AudioWorkletNode {
 }
 
 // Factory class
-
 window.mydsp = class mydsp {
 
     /**
@@ -382,10 +390,14 @@ window.mydsp = class mydsp {
      * @param context - the audio context
      * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseURL)
+    constructor(context, baseURL = "")
     {
     	// Resume audio context each time...
     	context.resume();
+    	
+    	console.log("baseLatency " + context.baseLatency);
+    	console.log("outputLatency " + context.outputLatency);
+    	console.log("sampleRate " + context.sampleRate);
     	
         this.context = context;
         this.baseURL = baseURL;
@@ -443,7 +455,6 @@ window.mydsp = class mydsp {
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
             }).then((node) => {
-                console.log(this.node.getDescriptor());
                 resolve(node);
             }).catch((e) => {
                 reject(e);

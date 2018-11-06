@@ -68,6 +68,11 @@ using namespace std;
 #include "faust/gui/BelaOSCUI.h"
 #endif
 
+#ifdef HTTPDGUI
+#include "faust/gui/httpdUI.h"
+httpdUI* gHttpdinterface;
+#endif /* HTTPDGUI */
+
 // for polyphonic synths
 #include "faust/dsp/poly-dsp.h"
 
@@ -229,7 +234,7 @@ public:
             case kDIGITAL_13:
             case kDIGITAL_14:
             case kDIGITAL_15:
-                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
+                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) == 0 ? fMin : fMin+fRange;
                 break;
                 
             case kANALOG_OUT_0:
@@ -313,8 +318,8 @@ public:
     virtual void closeBox() {}
     
     // -- active widgets
-    virtual void addButton(const char* label, FAUSTFLOAT* zone) { skip(); }
-    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { skip(); }
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
     virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
     virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
     virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
@@ -426,6 +431,11 @@ bool setup(BelaContext* context, void* userData)
     
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
+#ifdef HTTPDGUI
+    gHttpdinterface = new httpdUI("Bela-UI", gDSP->getNumInputs(), gDSP->getNumOutputs(), 0, NULL);
+    gDSP->buildUserInterface(gHttpdinterface);
+    gHttpdinterface->run();
+#endif /* HTTPDGUI */
 
 #ifdef MIDICTRL
 #ifdef NVOICES
@@ -461,6 +471,9 @@ void render(BelaContext* context, void* userData)
 
 void cleanup(BelaContext* context, void* userData)
 {
+#ifdef HTTPDGUI
+    delete gHttpdinterface;
+#endif /* HTTPDGUI */
     delete [] gInputs;
     delete [] gOutputs;
     delete gDSP;

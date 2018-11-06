@@ -6,15 +6,15 @@ The flanger effect impresses uniformly spaced sweeping notches on the sound spec
 
 ## Parameters
 
-Parameter     | MIDI CC# | Description
---------------|----------|---------------------------------------------------------------------------------------------------------------------------------------------------------
-**Enable**    | `CC-102` | Turn the effect on/off
-**Rate**      | `CC-2`   | The Flanger Rate parameter sets the frequency of its LFO in Hz
-**Depth**     | `CC-3`   | Depth of spectral notches - performable - Depth = 0 means no effect, Depth = 1 means maximum effect (spectral-notch gains go all the way down to zero).
+Parameter     | MIDI CC # | Description | Physical Control |
+|---|---|---|---|
+**Enable**    | `CC-105` | Turn the effect on/off| switch`SW-4` |
+**Rate**      | `CC-2`   | The Flanger Rate parameter sets the frequency of its LFO in Hz | knob`HADC-0` |
+**Depth**     | `CC-3`   | Depth of spectral notches - performable - Depth = 0 means no effect, Depth = 1 means maximum effect (spectral-notch gains go all the way down to zero).  | knob`HADC-1` |
+**Feedback**  | `CC-4`   | Gain applied to the output signal and then summed with the input signal - performable  | knob`HADC-2` |
 **Delay**     | `CC-50`  | Maximum Delay (in ms) used by the flanger - the actual delay at any given time is between this value and zero.
-**Feedback**  | `CC-4`   | Gain applied to the output signal and then summed with the input signal - performable
-**Waveshape** | `CC-54`  |
-**Invert**    | `CC-49`  |
+**Waveshape** | `CC-54`  | Various waveshapes, triangle, square ...
+**Invert**    | `CC-49`  | Invert the phase
 
 ## Building the Example
 

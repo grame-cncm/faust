@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -171,23 +171,37 @@ static Tree simplification(Tree sig)
         if (t3 == t4) return simplification(sigSelect2(t1, t2, t3));
 
         return sig;
-    
-        
-    // Enable(t1, 0) => 0
-    // Enable(t1, 1) => t1
-    // otherwise sig
+
+        // Enable(t1, 0) => 0
+        // Enable(t1, 1) => t1
+        // otherwise sig
     } else if (isSigEnable(sig, t1, t2)) {
         Node n2 = t2->node();
-        
+
         if (isZero(n2))
-            return sigMul(t1, sigInt(0)); // a 'zero' with the correct type
-        
+            return sigInt(0);  // a 'zero' with the correct type
+
         else if (isOne(n2))
             return t1;
-        
+
         else
             return sig;
-  
+
+        // Control(t1, 0) => 0
+        // Control(t1, 1) => t1
+        // otherwise sig
+    } else if (isSigControl(sig, t1, t2)) {
+        Node n2 = t2->node();
+
+        if (isZero(n2))
+            return sigInt(0);  // a 'zero' with the correct type
+
+        else if (isOne(n2))
+            return t1;
+
+        else
+            return sig;
+
     } else {
         return sig;
     }

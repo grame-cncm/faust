@@ -137,7 +137,7 @@ for p in $FILES; do
         fi
         (
             # Build the binary
-            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P
+            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio PRODUCT_NAME=$P || exit
             # Build the archive
             if [ "$ARCHIVE" = "1" ]; then
                 cd "$T" && xcodebuild -scheme Template_CoreAudio archive -archivePath $P.xcarchive PRODUCT_NAME=$P
@@ -159,8 +159,14 @@ for p in $FILES; do
             exit
         fi
         (
-            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P
-            cd "$T" && xcodebuild -scheme Template_CoreAudio_32bits archive PRODUCT_NAME=$P
+        	# Build the binary
+            xcodebuild -project "$T/iOS.xcodeproj" -target Template_CoreAudio_32bits PRODUCT_NAME=$P || exit
+            # Build the archive
+            if [ "$ARCHIVE" = "1" ]; then
+                cd "$T" && xcodebuild -scheme Template_CoreAudio_32bits archive -archivePath $P.xcarchive PRODUCT_NAME=$P
+                # Correct archive generated Info.plist to properly use '$P' name
+                cd $P.xcarchive && cp Info.plist Info-tmp.plist && sed -e "s/Template_CoreAudio/"$P"/g" Info-tmp.plist > Info.plist && rm Info-tmp.plist
+            fi
         ) > /dev/null || exit
  	fi
 

@@ -15,6 +15,7 @@ OSCDEFS=""
 # base directory for tools
 
 BASE_DIR="/opt/rpicrosstool"
+ARCHFILE=netjack-console.cpp
 
 #-------------------------------------------------------------------
 # Default compilation flags for gcc and icc :
@@ -63,7 +64,7 @@ done
 # compile the *.dsp files
 #
 for f in $FILES; do
-    faust -i -a netjack-console.cpp $OPTIONS $f -o $f.cpp || exit
+    faust -i -a $ARCHFILE $OPTIONS $f -o $f.cpp || exit
     $CXX $CXXFLAGS $OMP "$f.cpp" $LD_LIBRARY_PATHS $INCLUDES_DIR $PROCARCH $OSCDEFS $HTTPDEFS -o "${f%.dsp}"  || exit
     rm $f.cpp
 
