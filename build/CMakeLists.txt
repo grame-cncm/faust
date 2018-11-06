@@ -28,6 +28,7 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
+option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
@@ -207,7 +208,7 @@ endif()
 
 
 ####################################
-# add sub projects (emcc, osclib)
+# add sub projects (emcc, osclib, interpreter)
 ####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
@@ -221,6 +222,10 @@ endif()
 if (INCLUDE_HTTP OR HTTPDYNAMIC)
 	add_subdirectory (http)
 	set (SUBTARGETS ${SUBTARGETS} http)
+endif()
+if (INCLUDE_ITP OR ITPDYNAMIC)
+	add_subdirectory (interp)
+	set (SUBTARGETS ${SUBTARGETS} faustmachine)
 endif()
 
 
@@ -290,6 +295,15 @@ install (
 install (
     FILES     ${ROOT}/tools/faust2appls/faustoptflags ${ROOT}/tools/faust2appls/faustpath DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+)
+
+####################################
+# install sound2xxx tools
+file (GLOB SOUND2XXX ${ROOT}/tools/sound2faust/sound2faust ${ROOT}/tools/sound2faust/sound2file ${ROOT}/tools/sound2faust/sound2reader)
+install (
+    FILES     ${SOUND2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+    OPTIONAL
 )
 
 
@@ -375,6 +389,7 @@ set (CPACK_BUNDLE_NAME FaustInstaller)
 set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
 set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
 
+#set (CPACK_GENERATOR productbuild)
 
 include (CPack)
 
