@@ -29,20 +29,23 @@ set (CMAKE_BUILD_TYPE Release)
 
 #######################################
 # collect source files
-FILE(GLOB SRC ${FAUSTITP}/interpreter_dsp_aux.cpp ${FAUSTGEN}/dsp_aux.cpp ${FAUSTGEN}/export.cpp)
+FILE(GLOB SRC ${FAUSTITP}/interpreter_dsp_aux.cpp ${FAUSTGEN}/export.cpp)
 FILE(GLOB SRCH  ${FAUSTITP}/*.h ${FAUSTGEN}/dsp_aux.h ${FAUSTGEN}/export.h)
 
 set( INCLUDE
-	${FAUSTGEN}/ 
-	${FAUSTITP}/..)
-
+	${FAUSTROOT}
+	${FAUSTROOT}/errors
+	${FAUSTROOT}/tlib
+	${FAUSTGEN}/  
+	${FAUSTITP}/)
 
 #######################################
 # add libraries
 if (INCLUDE_ITP)
 	add_library( faustmachinestatic STATIC ${SRC} ${SRCH})
 	target_include_directories (faustmachinestatic PRIVATE ${INCLUDE} )
-	set_target_properties(faustmachinestatic PROPERTIES OUTPUT_NAME FaustMachine)
+	set_target_properties(faustmachinestatic PROPERTIES OUTPUT_NAME faustmachine)
+	target_compile_definitions (faustmachinestatic PRIVATE -DMACHINE)
 	set (TARGETS ${TARGETS} faustmachinestatic)
 endif()
 
@@ -52,8 +55,9 @@ if (NOT IOS AND ITPDYNAMIC)
 	set_target_properties(faustmachinedynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS}
-		OUTPUT_NAME FaustMachine)
+		OUTPUT_NAME faustmachine)
 	set (TARGETS ${TARGETS} faustmachinedynamic)
+	target_compile_definitions (faustmachinedynamic PRIVATE -DMACHINE)
 endif()
 
 
@@ -73,7 +77,6 @@ endif()
 if (IOS)
 	set_target_properties(faustmachinestatic PROPERTIES OUTPUT_NAME FaustMachine.ios)
 endif()	
-
 
 ####################################
 # install section

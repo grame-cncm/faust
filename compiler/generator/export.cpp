@@ -20,8 +20,6 @@
  ************************************************************************/
 
 #include "export.hh"
-#include "exception.hh"
-#include "global.hh"
 
 // External libfaust API
 
@@ -46,6 +44,9 @@ extern "C" EXPORT const char* getCLibFaustVersion()
      */
 
 #ifdef EMCC
+
+#include "exception.hh"
+#include "global.hh"
 
 const char* faustexception::gJSExceptionMsg = NULL;
 

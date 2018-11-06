@@ -24,6 +24,21 @@
 
 using namespace std;
 
+#ifdef MACHINE
+void faustassertaux(bool cond, const string& file, int line)
+{
+    if (!cond) {
+        std::stringstream str;
+        str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
+        str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
+        str << "version: " << FAUSTVERSION;
+        str << ")\n";
+        stacktrace(str, 20);
+        throw faustexception(str.str());
+    }
+}
+#endif
+
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
 // External API
