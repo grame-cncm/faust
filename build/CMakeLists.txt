@@ -384,6 +384,7 @@ set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
 
 set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
 set (CPACK_NSIS_MODIFY_PATH on)
+#set (CPACK_NSIS_MUI_ICON "${ROOT}/build/faust.ico")
 
 set (CPACK_BUNDLE_NAME FaustInstaller)
 set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
