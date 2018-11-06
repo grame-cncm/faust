@@ -68,10 +68,11 @@ using namespace std;
 #include "faust/gui/BelaOSCUI.h"
 #endif
 
+// for HTTPDGUI
 #ifdef HTTPDGUI
 #include "faust/gui/httpdUI.h"
 httpdUI* gHttpdinterface;
-#endif /* HTTPDGUI */
+#endif
 
 // for polyphonic synths
 #include "faust/dsp/poly-dsp.h"
@@ -285,12 +286,6 @@ private:
             fTable[fIndex] = BelaWidget(fBelaPin, zone, label, lo, hi);
             fIndex++;
         }
-        fBelaPin = kNoPin;
-    }
-    
-    // we dont want to create a widget but we clear fBelaPin just in case
-    void skip()
-    {
         fBelaPin = kNoPin;
     }
     

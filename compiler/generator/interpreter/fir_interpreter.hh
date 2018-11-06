@@ -64,10 +64,6 @@ class FIRInterpreter {
     T*          fRealHeap;
     Soundfile** fSoundHeap;
 
-    int fRealStackSize;
-    int fIntStackSize;
-    int fSoundStackSize;
-
     T** fInputs;
     T** fOutputs;
 
@@ -455,10 +451,10 @@ class FIRInterpreter {
         int int_stack_index   = 0;
         int sound_stack_index = 0;
         int addr_stack_index  = 0;
-
-        T             real_stack[fRealStackSize];
-        int           int_stack[fIntStackSize];
-        Soundfile*    sound_stack[fSoundStackSize];
+    
+        T             real_stack[512];
+        int           int_stack[512];
+        Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
 
 #define dispatch_first()                      \
@@ -2291,11 +2287,6 @@ class FIRInterpreter {
         // Initialise HEAP with 0
         memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));
         memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
-
-        // Stack
-        fRealStackSize  = 512;
-        fIntStackSize   = 512;
-        fSoundStackSize = 512;
 
         fRealStats[INTEGER_OVERFLOW] = 0;
         fRealStats[DIV_BY_ZERO]      = 0;

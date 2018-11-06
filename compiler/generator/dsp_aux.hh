@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "exception.hh"
-#include "export.hh"
 #include "faust/dsp/dsp.h"
 
 /*!

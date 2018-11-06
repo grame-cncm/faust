@@ -30,13 +30,18 @@
 #include <sstream>
 #include <string>
 
-#include "faust/dsp/dsp.h"
-#include "faust/gui/CGlue.h"
-#include "faust/gui/meta.h"
+//#define LLVM_COMPILER
 
+#include "export.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
+
+#ifdef LLVM_COMPILER
+#include "fir_llvm_compiler.hh"
+#else
 #include "fir_interpreter.hh"
+#endif
+
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
@@ -606,7 +611,13 @@ struct interpreter_dsp_base : public dsp {
 };
 
 template <class T, int TRACE>
+
+#ifdef LLVM_COMPILER
+class interpreter_dsp_aux : public interpreter_dsp_base, public FIRLLVMCompiler<T, TRACE> {
+#else
 class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T, TRACE> {
+#endif
+
    protected:
     /*
     FIRBlockInstruction<T>* fStaticInitBlock;
@@ -622,7 +633,12 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     bool               fInitialized;
 
    public:
+#ifdef LLVM_COMPILER
+    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRLLVMCompiler<T, TRACE>(factory)
+#else
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
+#endif
+    
     {
         if (this->fFactory->getMemoryManager()) {
             this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
