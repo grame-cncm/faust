@@ -44,7 +44,6 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
-    
     string error_msg;
     
     cout << "Libfaust version : " << getCLibFaustVersion () << endl;
