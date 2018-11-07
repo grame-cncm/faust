@@ -184,7 +184,18 @@ var faust_module = FaustModule(); // Emscripten generated module
 
 faust_module.lengthBytesUTF8 = function(str)
 {
-	var len=0;for(var i=0;i<str.length;++i){var u=str.charCodeAt(i);if(u>=55296&&u<=57343)u=65536+((u&1023)<<10)|str.charCodeAt(++i)&1023;if(u<=127){++len}else if(u<=2047){len+=2}else if(u<=65535){len+=3}else if(u<=2097151){len+=4}else if(u<=67108863){len+=5}else{len+=6}}return len;
+	var len=0;
+	for(var i=0;i<str.length;++i){
+		var u=str.charCodeAt(i);
+		if(u>=55296&&u<=57343)u=65536+((u&1023)<<10)|str.charCodeAt(++i)&1023;
+		if(u<=127){++len}
+		else if(u<=2047){len+=2}
+		else if(u<=65535){len+=3}
+		else if(u<=2097151){len+=4}
+		else if(u<=67108863){len+=5}
+		else{len+=6}
+	}
+	return len;
 }
 
 var faust = faust || {};
@@ -245,13 +256,17 @@ faust.str2ab = function(str)
 
 faust.compileCode = function (factory_name, code, argv, internal_memory)
 {
-    var code_ptr = faust_module._malloc(code.length + 1);
+    var code_size = faust_module.lengthBytesUTF8(code) + 1;
+    var code_ptr = faust_module._malloc(code_size);
+    
     var name = "FaustDSP";
-    var name_ptr = faust_module._malloc(name.length + 1);
+    var name_size = faust_module.lengthBytesUTF8(name) + 1;
+    var name_ptr = faust_module._malloc(name_size);
+    
     var error_msg_ptr = faust_module._malloc(4096);
 
-    faust_module.stringToUTF8(name, name_ptr, faust_module.lengthBytesUTF8(name) + 1);
-    faust_module.stringToUTF8(code, code_ptr, faust_module.lengthBytesUTF8(code) + 1);
+    faust_module.stringToUTF8(name, name_ptr, name_size);
+    faust_module.stringToUTF8(code, code_ptr, code_size);
 
     // Add 'cn' option with the factory name
     var argv_aux = (argv === undefined) ? new Array() : argv;
@@ -262,8 +277,9 @@ faust.compileCode = function (factory_name, code, argv, internal_memory)
     var argv_ptr = faust_module._malloc(argv_aux.length * ptr_size);  // Get buffer from emscripten.
     var argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv_aux.length);  // Get a integer view on the newly allocated buffer.
     for (var i = 0; i < argv_aux.length; i++) {
-        var arg_ptr = faust_module._malloc(argv_aux[i].length + 1);
-        faust_module.stringToUTF8(argv_aux[i], arg_ptr, faust_module.lengthBytesUTF8(argv_aux[i]) + 1);
+        var arg_ptr_size = faust_module.lengthBytesUTF8(argv_aux[i]) + 1;
+        var arg_ptr = faust_module._malloc(arg_ptr_size);
+        faust_module.stringToUTF8(argv_aux[i], arg_ptr, arg_ptr_size);
         argv_ptr_buffer[i] = arg_ptr;
     }
 
@@ -494,14 +510,19 @@ faust.expandDSP = function (code, argv)
     argv.push("wasm");
 
     // Allocate strings on the HEAP
-    var code_ptr = faust_module._malloc(code.length + 1);
+    
+    var code_size = faust_module.lengthBytesUTF8(code) + 1;
+    var code_ptr = faust_module._malloc(code_size);
+    
     var name = "FaustDSP";
-    var name_ptr = faust_module._malloc(name.length + 1);
+    var name_size = faust_module.lengthBytesUTF8(name) + 1;
+    var name_ptr = faust_module._malloc(name_size);
+    
     var sha_key_ptr = faust_module._malloc(64);
     var error_msg_ptr = faust_module._malloc(4096);
 
-    faust_module.stringToUTF8(name, name_ptr, faust_module.lengthBytesUTF8(name) + 1);
-    faust_module.stringToUTF8(code, code_ptr, faust_module.lengthBytesUTF8(code) + 1);
+    faust_module.stringToUTF8(name, name_ptr, name_size);
+    faust_module.stringToUTF8(code, code_ptr, code_size);
 
     // Add 'cn' option with the factory name
     argv = (argv === undefined) ? new Array() : argv;
@@ -511,8 +532,9 @@ faust.expandDSP = function (code, argv)
     var argv_ptr = faust_module._malloc(argv.length * ptr_size);  // Get buffer from emscripten.
     var argv_ptr_buffer = new Int32Array(faust_module.HEAP32.buffer, argv_ptr, argv.length);  // Get a integer view on the newly allocated buffer.
     for (var i = 0; i < argv.length; i++) {
-        var arg_ptr = faust_module._malloc(argv[i].length + 1);
-        faust_module.stringToUTF8(argv[i], arg_ptr, faust_module.lengthBytesUTF8(argv[i]) + 1);
+        var arg_ptr_size = faust_module.lengthBytesUTF8(argv[i]) + 1;
+        var arg_ptr = faust_module._malloc(arg_ptr_size);
+        faust_module.stringToUTF8(argv[i], arg_ptr, arg_ptr_size);
         argv_ptr_buffer[i] = arg_ptr;
     }
     
