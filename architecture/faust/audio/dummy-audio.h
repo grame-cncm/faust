@@ -30,7 +30,12 @@
 #include <limits.h>
 #include <iostream>
 #include <iomanip>
+
+#ifdef USE_PTHREAD
 #include <pthread.h>
+#else
+#include <thread>
+#endif
 			
 #include "faust/dsp/dsp.h"
 #include "faust/audio/audio.h"
@@ -52,7 +57,6 @@ class dummyaudio : public audio {
         int fNumInputs;
         int fNumOutputs;
     
-        pthread_t fAudioThread;
         bool fRunning;
 
         int fRender;
@@ -60,12 +64,22 @@ class dummyaudio : public audio {
         int fSample;
         bool fManager;
     
+#ifdef USE_PTHREAD
+        pthread_t fAudioThread;
         static void* run(void* ptr)
         {
             dummyaudio* audio = (dummyaudio*)ptr;
             audio->process();
             return 0;
         }
+#else
+		static void run(dummyaudio* audio)
+		{
+			audio->process();
+		}
+//		std::thread fAudioThread ( dummyaudio::run, this );
+		std::thread* fAudioThread = 0;
+#endif
     
         void process()
         {
@@ -139,9 +153,13 @@ class dummyaudio : public audio {
             fRender = fCount;
             fRunning = true;
             if (fCount == INT_MAX) {
+#ifdef USE_PTHREAD
                 if (pthread_create(&fAudioThread, 0, run, this) != 0) {
                     fRunning = false;
                 }
+#else
+				fAudioThread = new std::thread (dummyaudio::run, this);
+#endif
                 return fRunning;
             } else {
                 process();
@@ -153,7 +171,13 @@ class dummyaudio : public audio {
         {
             if (fRunning) {
                 fRunning = false;
+#ifdef USE_PTHREAD
                 pthread_join(fAudioThread, 0);
+#else
+				fAudioThread->join();
+				delete fAudioThread;
+				fAudioThread = 0;
+#endif
             }
         }
 
@@ -179,5 +203,7 @@ class dummyaudio : public audio {
         virtual int getNumOutputs() { return fDSP->getNumOutputs(); }
     
 };
-					
+
+
+				
 #endif
