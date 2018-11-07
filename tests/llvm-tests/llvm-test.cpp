@@ -22,8 +22,6 @@
 
  ************************************************************************/
 
-#include <libgen.h>
-
 #include "faust/dsp/llvm-dsp.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/misc.h"
