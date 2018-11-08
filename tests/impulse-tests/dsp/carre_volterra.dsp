@@ -8,7 +8,9 @@
 
 // Version utilisant la syntaxe étendue
 
-import("stdfaust.lib"); // pour avoir PI et SR la frequence d'échantillonnage
+import("math.lib");	// pour avoir PI et SR la frequence d'échantillonnage
+import("oscillator.lib");
+import("effect.lib"); 
 
 // Chaine de traitement Volterra composée de trois modules M
 // et d'un module de sortie S. A noter  que la deuxième entrée du
@@ -16,7 +18,7 @@ import("stdfaust.lib"); // pour avoir PI et SR la frequence d'échantillonnage
 
 process = C, 0 : M : M : M : M : S;
 
-C = os.square(freq) + os.square(freq+delta) : *(level)
+C = square(freq) + square(freq+delta) : *(level)
 	with {
 		freq  = hslider("freq carre", 440, 20, 8000, 1);
 		delta = hslider("delta", 2, 0, 6, 0.1);
@@ -42,5 +44,5 @@ S(x,y) = x + T3*y with { T3 = -1.0/3.0 * checkbox("NL"); };
 
 F1 = *(v/(1.+v)) : + ~ /(1.+v)
 	with {
-		v = (2*ma.PI/ma.SR)*hslider("freq[unit:Hz]", 700, 1, 20000, 1);
+		v = (2*PI/SR)*hslider("freq[unit:Hz]", 700, 1, 20000, 1);
 	};
