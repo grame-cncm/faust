@@ -267,7 +267,7 @@ static void declareGlueDouble(void* cpp_interface, double* zone, const char* key
     ui_interface->declare(zone, key, value);
 }
 
-static  void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
+static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
 {
     glue->uiInterface = ui_interface;
     

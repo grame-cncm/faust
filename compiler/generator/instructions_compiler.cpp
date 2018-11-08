@@ -430,7 +430,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
 
     int    i;
     double r;
-    Tree   c, sel, x, y, z, part, label, id, ff, largs, type, name, file, sf;
+    Tree   c, sel, x, y, z, label, id, ff, largs, type, name, file, sf;
 
     // printf("compilation of %p : ", sig); print(sig); printf("\n");
 

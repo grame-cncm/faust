@@ -350,48 +350,42 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         for (int i = FIRInstruction::kAbs; i <= FIRInstruction::kTanhf; i++) {
             gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAbsHeap - FIRInstruction::kAbs));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
         }
 
         // Init binary extended math heap opcode
         for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
             gFIRExtendedMath2Heap[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fHeap - FIRInstruction::kAtan2f));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
         }
 
         // Init binary extended math stack opcode
         for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
             gFIRExtendedMath2Stack[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStack - FIRInstruction::kAtan2f));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
         }
 
         // Init binary extended math stack/value opcode
         for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
             gFIRExtendedMath2StackValue[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fStackValue - FIRInstruction::kAtan2f));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
         }
 
-        // Init unary math Value opcode
+        // Init binary math Value opcode
         for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kMinf; i++) {
             gFIRExtendedMath2Value[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValue - FIRInstruction::kAtan2f));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
         }
 
-        // Init unary math Value opcode : non commutative operations
+        // Init binary math Value opcode : non commutative operations
         for (int i = FIRInstruction::kAtan2f; i <= FIRInstruction::kPowf; i++) {
             gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)] =
                 FIRInstruction::Opcode(i + (FIRInstruction::kAtan2fValueInvert - FIRInstruction::kAtan2f));
-            // std::cout << gFIRInstructionTable[i + (FIRInstruction::kAddRealHeap - FIRInstruction::kAddReal)] <<
-            // std::endl;
+        }
+        
+        //  Init binary math Value opcode : complete with commutative operations
+        for (int i = FIRInstruction::kMax; i <= FIRInstruction::kMinf; i++) {
+            gFIRExtendedMath2ValueInvert[FIRInstruction::Opcode(i)] =
+            FIRInstruction::Opcode(i + (FIRInstruction::kMaxValue - FIRInstruction::kMax));
         }
     }
 
@@ -426,6 +420,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kLoadReal op kLoadReal ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2Heap.find(inst3->fOpcode) != gFIRMath2Heap.end());
             return new FIRBasicInstruction<T>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
 
             // kLoadInt OP kLoadInt ==> Heap version
@@ -433,6 +428,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kLoadRInt op kLoadInt ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2Heap.find(inst3->fOpcode) != gFIRMath2Heap.end());
             return new FIRBasicInstruction<T>(gFIRMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1, inst1->fOffset1);
 
             //===============
@@ -444,6 +440,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kLoadReal op kLoadReal ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2Heap.find(inst3->fOpcode) != gFIRExtendedMath2Heap.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
                                               inst1->fOffset1);
 
@@ -452,6 +449,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kLoadRInt op kLoadInt ==> Heap version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2Heap.find(inst3->fOpcode) != gFIRExtendedMath2Heap.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Heap[inst3->fOpcode], 0, 0, inst2->fOffset1,
                                               inst1->fOffset1);
 
@@ -468,6 +466,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kLoadReal op kRealValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2Value.find(inst3->fOpcode) != gFIRMath2Value.end());
             return new FIRBasicInstruction<T>(gFIRMath2Value[inst3->fOpcode], 0, inst2->fRealValue, inst1->fOffset1, 0);
 
             // kRealValue OP kLoadReal ==> Value version (special case for non-commutative operation)
@@ -475,6 +474,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kRealValue op kLoadReal ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2ValueInvert.find(inst3->fOpcode) != gFIRMath2ValueInvert.end());
             return new FIRBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
                                               inst2->fOffset1, 0);
 
@@ -483,6 +483,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kLoadInt op kInt32Value ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2Value.find(inst3->fOpcode) != gFIRMath2Value.end());
             return new FIRBasicInstruction<T>(gFIRMath2Value[inst3->fOpcode], inst2->fIntValue, 0, inst1->fOffset1, 0);
 
             // kInt32Value OP kLoadInt ==> Value version (special case for non-commutative operation)
@@ -490,6 +491,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isMath(inst3->fOpcode)) {
             // std::cout << "kInt32Value op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRMath2ValueInvert.find(inst3->fOpcode) != gFIRMath2ValueInvert.end());
             return new FIRBasicInstruction<T>(gFIRMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
                                               inst2->fOffset1, 0);
 
@@ -502,6 +504,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kLoadReal op kRealValue ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2Value.find(inst3->fOpcode) != gFIRExtendedMath2Value.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Value[inst3->fOpcode], 0, inst2->fRealValue,
                                               inst1->fOffset1, 0);
 
@@ -510,6 +513,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kRealValue op kLoadReal ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2ValueInvert.find(inst3->fOpcode) != gFIRExtendedMath2ValueInvert.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], 0, inst1->fRealValue,
                                               inst2->fOffset1, 0);
 
@@ -518,6 +522,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kLoadInt op kInt32Value ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2Value.find(inst3->fOpcode) != gFIRExtendedMath2Value.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Value[inst3->fOpcode], inst2->fIntValue, 0,
                                               inst1->fOffset1, 0);
 
@@ -526,6 +531,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
                    FIRInstruction::isExtendedBinaryMath(inst3->fOpcode)) {
             // std::cout << "kInt32Value op kLoadInt ==> Value version" << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 3;
+            faustassert(gFIRExtendedMath2ValueInvert.find(inst3->fOpcode) != gFIRExtendedMath2ValueInvert.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2ValueInvert[inst3->fOpcode], inst1->fIntValue, 0,
                                               inst2->fOffset1, 0);
 
@@ -543,6 +549,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRMath2Stack.find(inst2->fOpcode) != gFIRMath2Stack.end());
             return new FIRBasicInstruction<T>(gFIRMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
 
             // kRealValue binary OP ==> Stack/Value version
@@ -550,6 +557,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRMath2StackValue.find(inst2->fOpcode) != gFIRMath2StackValue.end());
             return new FIRBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
 
             // kInt32Value binary OP ==> Stack/Value version
@@ -559,6 +567,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRMath2StackValue.find(inst2->fOpcode) != gFIRMath2StackValue.end());
             return new FIRBasicInstruction<T>(gFIRMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
 
             //===============
@@ -571,6 +580,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kLoadReal/kLoadInt binary op ==> Stack version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRExtendedMath2Stack.find(inst2->fOpcode) != gFIRExtendedMath2Stack.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Stack[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
 
             // kRealValue EXTENDED-OP ==> Stack/Value version
@@ -579,6 +589,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRExtendedMath2StackValue.find(inst2->fOpcode) != gFIRExtendedMath2StackValue.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], 0, inst1->fRealValue);
 
             // kInt32Value binary EXTENDED-OP ==> Stack/Value version
@@ -587,6 +598,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
             // std::cout << "kRealValue binary op ==> Stack/Value version " << gFIRInstructionTable[inst2->fOpcode] <<
             // endl;
             end = cur + 2;
+            faustassert(gFIRExtendedMath2StackValue.find(inst2->fOpcode) != gFIRExtendedMath2StackValue.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2StackValue[inst2->fOpcode], inst1->fIntValue, 0);
 
             //=====================
@@ -597,6 +609,7 @@ struct FIRInstructionMathOptimizer : public FIRInstructionOptimizer<T> {
         } else if (inst1->fOpcode == FIRInstruction::kLoadReal && FIRInstruction::isExtendedUnaryMath(inst2->fOpcode)) {
             // std::cout << "kLoadReal unary ==> Heap version " << gFIRInstructionTable[inst2->fOpcode] << endl;
             end = cur + 2;
+            faustassert(gFIRExtendedMath2Heap.find(inst2->fOpcode) != gFIRExtendedMath2Heap.end());
             return new FIRBasicInstruction<T>(gFIRExtendedMath2Heap[inst2->fOpcode], 0, 0, inst1->fOffset1, 0);
 
         } else {

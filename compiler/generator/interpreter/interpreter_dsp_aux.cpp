@@ -92,11 +92,13 @@ EXPORT interpreter_dsp* interpreter_dsp_factory::createDSPInstance()
 // Use the memory manager if needed
 EXPORT void interpreter_dsp::operator delete(void* ptr)
 {
-    dsp_memory_manager* manager = static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
-    if (manager) {
-        manager->destroy(ptr);
-    } else {
-        ::operator delete(ptr);
+    if (ptr) {
+        dsp_memory_manager* manager = static_cast<interpreter_dsp*>(ptr)->fFactory->getMemoryManager();
+        if (manager) {
+            manager->destroy(ptr);
+        } else {
+            ::operator delete(ptr);
+        }
     }
 }
 

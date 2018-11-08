@@ -65,7 +65,6 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         argv1[argc1] = 0;  // NULL terminated argv
 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-
         interpreter_dsp_factory* factory = 0;
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
