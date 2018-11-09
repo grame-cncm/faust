@@ -130,7 +130,7 @@ endif()
 ####################################
 # compiler dependent settings
 if (MSVC)
-	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVC)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")

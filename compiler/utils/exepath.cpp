@@ -27,7 +27,7 @@
 #include <array>
 #include <regex>
 
-#ifdef MSVC
+#ifdef MSVisualStudio
 #include <windows.h>
 #else
 #include <libgen.h>
@@ -96,7 +96,7 @@ string exepath::resolvelink (const string& path)
 
 #endif
 
-#ifdef MSVC
+#ifdef MSVisualStudio
 //-----------------------------------------------------------------
 string exepath::get(const string& name) // throw(std::runtime_error)
 {
