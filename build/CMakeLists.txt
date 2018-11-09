@@ -118,7 +118,7 @@ if(APPLE)
 		endif()
 	endif()
 elseif(WIN32 OR MSYS)
-	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+	if (NOT MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
@@ -129,7 +129,8 @@ endif()
 
 ####################################
 # compiler dependent settings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if (MSVC)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVC)
 else()
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
