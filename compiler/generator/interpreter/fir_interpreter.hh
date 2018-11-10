@@ -2232,7 +2232,7 @@ class FIRInterpreter {
                     interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                 } else {
-                    // Just continue after 'loop block'
+                    // Just continue after 'loop block' (do the final 'return')
                     dispatch_next();
                 }
             }

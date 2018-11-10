@@ -30,7 +30,7 @@
 #include <sstream>
 #include <string>
 
-//#define LLVM_COMPILER
+#define LLVM_COMPILER
 
 #include "export.hh"
 #include "dsp_aux.hh"
@@ -638,7 +638,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 #else
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
 #endif
-    
     {
         if (this->fFactory->getMemoryManager()) {
             this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
@@ -649,7 +648,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         }
 
         // Comment to allow specialization...
+    #ifndef LLVM_COMPILER
         this->fFactory->optimize();
+    #endif
 
         /*
         fFactory->fStaticInitBlock->write(&std::cout, false);
@@ -832,9 +833,14 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
 
             // Executes the 'control' block
             this->ExecuteBlock(this->fFactory->fComputeBlock);
-
+            
+        #ifdef LLVM_COMPILER
+            // Executes the compiled 'DSP' block
+            this->fCompute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+        #else
             // Executes the 'DSP' block
             this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
+        #endif
         }
     }
 

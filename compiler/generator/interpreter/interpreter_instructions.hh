@@ -557,7 +557,6 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fCurrentBlock                      = then_block;
         inst->fThen->accept(this);
         bool real_t1 = fCurrentBlock->isRealInst();  // Type is the same on both branches, so takes the first one
-
         // Add kReturn in block
         then_block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
 

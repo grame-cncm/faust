@@ -132,8 +132,8 @@ endif()
 if (MSVC)
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
-	set(CMAKE_CXX_FLAGS_DEBUG "-g")
-	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+	set(CMAKE_CXX_FLAGS_DEBUG "-g -I/opt/local/libexec/llvm-5.0/include")
+	set(CMAKE_CXX_FLAGS_RELEASE "-O3 -I/opt/local/libexec/llvm-5.0/include")
 endif()
 
 

@@ -167,7 +167,7 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
@@ -205,7 +205,7 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
@@ -287,7 +287,7 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
 
     virtual ~FIRUserInterfaceInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
@@ -309,7 +309,7 @@ struct FIRMetaInstruction : public FIRInstruction {
 
     virtual ~FIRMetaInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "m"
@@ -339,7 +339,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
 
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
@@ -396,7 +396,7 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
 
     void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         MetaInstructionIT it;
@@ -430,7 +430,7 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;

@@ -36,13 +36,13 @@ Interpreter backend description:
 
  - a single global visitor for main and sub-containers
  - 'fSamplingFreq' and 'count' variable manually added in the IntHeap to be setup in 'instanceInit' and 'compute'
- - DSP struct and stack variables are actually allocated in the Int32 and Read heaps
+ - DSP struct and stack variables are actually allocated in the Int32 and Real heaps
  - multiple unneeded cast are eliminated in CastInst
  - 'faustpower' function fallbacks to regular 'pow' (see powprim.h)
  - sub-containers code is 'inlined' : fields declarations (using the global visitor) and code 'classInit', and
 'instanceInit' of the main container
  - 'clone' method is implemented in the 'interpreter_dsp' wrapping code
- - soundfile: Sounfile* pointers are put in speical Sound heap
+ - soundfile: Soundfile* pointers are put in special Sound heap
 
  TODO: in -mem mode, classInit and classDestroy will have to be called once at factory init and destroy time (after
 global memory allocation is implemented)
