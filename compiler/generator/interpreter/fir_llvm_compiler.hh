@@ -119,6 +119,8 @@ class FIRLLVMCompiler {
         llvm::Type* getDoubleTy() { return llvm::Type::getDoubleTy(fModule->getContext()); }
         llvm::Type* getRealTy() { return (sizeof(T) == sizeof(double)) ? getDoubleTy() : getFloatTy(); }
     
+        std::string getMathName(const std::string& name) { return (sizeof(T) == sizeof(float)) ? (name + "f") : name; }
+    
         void pushLLVM(LLVMValue val) { fLLVMStack[fLLVMStackIndex++] = val; }
         LLVMValue popLLVM() { return fLLVMStack[--fLLVMStackIndex]; }
     
@@ -128,6 +130,7 @@ class FIRLLVMCompiler {
 
         void pushLLVMUnaryCallAux(std::string name, llvm::Type* type)
         {
+            name = getMathName(name);
             llvm::Function* function = fModule->getFunction(name);
             if (!function) {
                 // Define it
@@ -150,6 +153,7 @@ class FIRLLVMCompiler {
     
         void pushLLVMBinaryCall(std::string name, llvm::Type* res_type)
         {
+            name = getMathName(name);
             llvm::Function* function = fModule->getFunction(name);
             if (!function) {
                 // Define it
