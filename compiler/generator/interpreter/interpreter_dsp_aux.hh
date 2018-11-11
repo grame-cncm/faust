@@ -30,20 +30,18 @@
 #include <sstream>
 #include <string>
 
-#define LLVM_COMPILER
-
 #include "export.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
+#include "fir_interpreter.hh"
+#include "interpreter_bytecode.hh"
+#include "interpreter_optimizer.hh"
+
+#define LLVM_COMPILER
 
 #ifdef LLVM_COMPILER
 #include "fir_llvm_compiler.hh"
-#else
-#include "fir_interpreter.hh"
 #endif
-
-#include "interpreter_bytecode.hh"
-#include "interpreter_optimizer.hh"
 
 class interpreter_dsp_factory;
 
@@ -77,7 +75,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FIRBlockInstruction<T>*              fClearBlock;
     FIRBlockInstruction<T>*              fComputeBlock;
     FIRBlockInstruction<T>*              fComputeDSPBlock;
-
+   
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
                                 int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
                                 int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
@@ -105,8 +103,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fClearBlock(clear),
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
-    {
-    }
+    {}
 
     virtual ~interpreter_dsp_factory_aux()
     {
@@ -136,7 +133,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             }
         }
     }
-
+ 
     void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << std::setprecision(std::numeric_limits<T>::max_digits10);
@@ -216,7 +213,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             fComputeDSPBlock->write(out, small);
         }
     }
-
+ 
     // Factory reader
     static interpreter_dsp_factory_aux<T, TRACE>* read(std::istream* in)
     {
@@ -612,12 +609,7 @@ struct interpreter_dsp_base : public dsp {
 
 template <class T, int TRACE>
 
-#ifdef LLVM_COMPILER
-class interpreter_dsp_aux : public interpreter_dsp_base, public FIRLLVMCompiler<T, TRACE> {
-#else
 class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T, TRACE> {
-#endif
-
    protected:
     /*
     FIRBlockInstruction<T>* fStaticInitBlock;
@@ -631,13 +623,13 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     std::map<int, int> fIntMap;
     std::map<int, T>   fRealMap;
     bool               fInitialized;
-
-   public:
+    
 #ifdef LLVM_COMPILER
-    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRLLVMCompiler<T, TRACE>(factory)
-#else
-    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
+    FIRLLVMCompiler<T>* fLLVMCompiler;
 #endif
+  
+   public:
+    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
     {
         if (this->fFactory->getMemoryManager()) {
             this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
@@ -647,11 +639,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             this->fOutputs = new T*[this->fFactory->fNumOutputs];
         }
 
-        // Comment to allow specialization...
     #ifndef LLVM_COMPILER
+        // Comment to allow specialization...
         this->fFactory->optimize();
     #endif
-
+  
         /*
         fFactory->fStaticInitBlock->write(&std::cout, false);
         fFactory->fInitBlock->write(&std::cout, false);
@@ -671,6 +663,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         this->fComputeDSPBlock = 0;
         */
         this->fInitialized = false;
+        
+    #ifdef LLVM_COMPILER
+        fLLVMCompiler = new FIRLLVMCompiler<T>(this->fFactory->fComputeDSPBlock);
+    #endif
     }
 
     virtual ~interpreter_dsp_aux()
@@ -691,6 +687,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         delete this->fComputeBlock;
         delete this->fComputeDSPBlock;
         */
+        
+        delete fLLVMCompiler;
     }
 
     virtual void metadata(Meta* meta) { this->fFactory->metadata(meta); }
@@ -836,9 +834,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
         #ifdef LLVM_COMPILER
             // Executes the compiled 'DSP' block
-            this->fCompute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            fLLVMCompiler->Compute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         #else
-            // Executes the 'DSP' block
+            // Executes the interpreted 'DSP' block
             this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
         #endif
         }

@@ -39,7 +39,7 @@
 #include <llvm/IR/PassManager.h>
 #include <llvm/Transforms/IPO/PassManagerBuilder.h>
 
-#include "fir_interpreter.hh"
+#include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
 using namespace llvm;
@@ -81,8 +81,8 @@ typedef llvm::Value* LLVMValue;
 #define saveReturn() { pushAddr(it + 1); }
 
 // FIR bytecode compiler
-template <class T, int TRACE>
-class FIRLLVMCompiler : public FIRInterpreter<T, TRACE> {
+template <class T>
+class FIRLLVMCompiler {
     
     typedef void (* llvmComputeFun) (int* int_heap, T* real_heap, T** inputs, T** outputs);
 
@@ -731,8 +731,7 @@ class FIRLLVMCompiler : public FIRInterpreter<T, TRACE> {
         }
    
     public:
-        FIRLLVMCompiler(interpreter_dsp_factory_aux<T, TRACE>* factory)
-        :FIRInterpreter<T, TRACE>(factory)
+        FIRLLVMCompiler(FIRBlockInstruction<T>* compute_block)
         {
             fLLVMStackIndex = 0;
             fAddrStackIndex = 0;
@@ -775,10 +774,10 @@ class FIRLLVMCompiler : public FIRInterpreter<T, TRACE> {
             this->fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock, 1, 1);
             */
             
-            this->fFactory->fComputeDSPBlock->write(&std::cout);
+            compute_block->write(&std::cout);
             
             // Compile compute body
-            CompileBlock(this->fFactory->fComputeDSPBlock, code_block);
+            CompileBlock(compute_block, code_block);
             
             // Get last block of post code section
             BasicBlock* last_block = fBuilder->GetInsertBlock();
@@ -808,7 +807,7 @@ class FIRLLVMCompiler : public FIRInterpreter<T, TRACE> {
             // Get 'compute' entry point
             fCompute = (llvmComputeFun)fJIT->getFunctionAddress("compute");
         }
-
+    
         virtual ~FIRLLVMCompiler()
         {
             // fModule is kept and deleted by fJIT
@@ -817,6 +816,11 @@ class FIRLLVMCompiler : public FIRInterpreter<T, TRACE> {
             delete fContext;
         }
     
+        void Compute(int* int_heap, T* real_heap, T** inputs, T** outputs)
+        {
+            fCompute(int_heap, real_heap, inputs, outputs);
+        }
+
 };
 
 #endif

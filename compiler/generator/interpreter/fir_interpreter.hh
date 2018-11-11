@@ -2283,6 +2283,10 @@ class FIRInterpreter {
             fIntHeap   = new int[fFactory->fIntHeapSize];
             fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
         }
+        
+        std::cout << "==== FIRInterpreter ==== " << std::endl;
+        std::cout << "fRealHeapSize = " << fFactory->fRealHeapSize << std::endl;
+        std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
 
         // Initialise HEAP with 0
         memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));
