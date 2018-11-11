@@ -66,6 +66,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     int fOptLevel;
 
     bool fOptimized;
+    
+#ifdef LLVM_COMPILER
+    FIRLLVMCompiler<T>* fLLVMCompiler;
+#endif
 
     FIRMetaBlockInstruction*             fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
@@ -103,7 +107,11 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fClearBlock(clear),
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
-    {}
+    {
+    #ifdef LLVM_COMPILER
+        fLLVMCompiler = new FIRLLVMCompiler<T>(compute_dsp);
+    #endif
+    }
 
     virtual ~interpreter_dsp_factory_aux()
     {
@@ -116,6 +124,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fClearBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
+    #ifdef LLVM_COMPILER
+        delete fLLVMCompiler;
+    #endif
     }
 
     void optimize()
@@ -623,10 +634,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     std::map<int, int> fIntMap;
     std::map<int, T>   fRealMap;
     bool               fInitialized;
-    
-#ifdef LLVM_COMPILER
-    FIRLLVMCompiler<T>* fLLVMCompiler;
-#endif
   
    public:
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
@@ -663,10 +670,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         this->fComputeDSPBlock = 0;
         */
         this->fInitialized = false;
-        
-    #ifdef LLVM_COMPILER
-        fLLVMCompiler = new FIRLLVMCompiler<T>(this->fFactory->fComputeDSPBlock);
-    #endif
     }
 
     virtual ~interpreter_dsp_aux()
@@ -687,8 +690,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         delete this->fComputeBlock;
         delete this->fComputeDSPBlock;
         */
-        
-        delete fLLVMCompiler;
     }
 
     virtual void metadata(Meta* meta) { this->fFactory->metadata(meta); }
@@ -834,7 +835,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
             
         #ifdef LLVM_COMPILER
             // Executes the compiled 'DSP' block
-            fLLVMCompiler->Compute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            this->fFactory->fLLVMCompiler->Compute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         #else
             // Executes the interpreted 'DSP' block
             this->ExecuteBlock(this->fFactory->fComputeDSPBlock);

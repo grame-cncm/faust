@@ -126,9 +126,9 @@ class FIRLLVMCompiler {
     
         void pushAddr(InstructionIT addr) { fAddressStack[fAddrStackIndex++] = addr; }
         InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
-        bool emptyReturn() { return fAddrStackIndex == 0; }
+        bool emptyReturn() { return (fAddrStackIndex == 0); }
 
-        void pushLLVMUnaryCallAux(std::string name, llvm::Type* type)
+        void pushLLVMUnaryCall(std::string name, llvm::Type* type)
         {
             name = getMathName(name);
             llvm::Function* function = fModule->getFunction(name);
@@ -148,8 +148,8 @@ class FIRLLVMCompiler {
             pushLLVM(call_inst);
         }
     
-        void pushLLVMUnaryIntCall(std::string name) { return pushLLVMUnaryCallAux(name, getInt32Ty()); }
-        void pushLLVMUnaryRealCall(std::string name) { return pushLLVMUnaryCallAux(name, getRealTy()); }
+        void pushLLVMUnaryIntCall(std::string name) { return pushLLVMUnaryCall(name, getInt32Ty()); }
+        void pushLLVMUnaryRealCall(std::string name) { return pushLLVMUnaryCall(name, getRealTy()); }
     
         void pushLLVMBinaryCall(std::string name, llvm::Type* res_type)
         {
@@ -223,7 +223,6 @@ class FIRLLVMCompiler {
     
         void CompileBlock(FIRBlockInstruction<T>* block, BasicBlock* code_block)
         {
-            std::cout << "========= CompileBlock =========\n";
             InstructionIT it = block->fInstructions.begin();
             bool end = false;
             
@@ -232,9 +231,7 @@ class FIRLLVMCompiler {
             
             while ((it != block->fInstructions.end()) && !end) {
                 
-                std::cout << "CompileInst \n";
-                (*it)->write(&std::cout);
-                //dumpLLVM1(code_block);
+                //(*it)->write(&std::cout);
                 
                 switch ((*it)->fOpcode) {
                         
@@ -270,7 +267,7 @@ class FIRLLVMCompiler {
                         it++;
                         break;
                         
-                        // Indexed memory load/store
+                        // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
                     case FIRInstruction::kLoadIndexedReal: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushLoadArray(fLLVMRealHeap, offset);
@@ -668,7 +665,7 @@ class FIRLLVMCompiler {
                     case FIRInstruction::kSelectInt: {
                         
                         // Prepare condition
-                        LLVMValue cond_value = fBuilder->CreateICmpNE(popLLVM(), genInt32(0), "ifcond");
+                        LLVMValue cond_value = fBuilder->CreateICmpNE(popLLVM(), genInt32(0), "select_cond");
                     
                         // Compile then branch (= branch1)
                         CompileBlock((*it)->fBranch1, code_block);
@@ -679,7 +676,8 @@ class FIRLLVMCompiler {
                         // Create the result (= branch2)
                         LLVMValue then_value = popLLVM();
                         LLVMValue else_value = popLLVM();
-                        pushLLVM(fBuilder->CreateSelect(cond_value, then_value, else_value));
+                        // Inverted here
+                        pushLLVM(fBuilder->CreateSelect(cond_value, else_value, then_value));
                         
                         it++;
                         break;
