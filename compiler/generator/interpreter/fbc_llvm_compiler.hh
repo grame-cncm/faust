@@ -24,6 +24,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/IRBuilder.h>
@@ -41,6 +42,7 @@
 
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
+#include "fbc_interpreter.hh"
 
 using namespace llvm;
 
@@ -84,14 +86,14 @@ typedef llvm::Value* LLVMValue;
 template <class T>
 class FBCLLVMCompiler {
     
-    typedef void (* llvmComputeFun) (int* int_heap, T* real_heap, T** inputs, T** outputs);
+    typedef void (* llvmFun) (int* int_heap, T* real_heap, T** inputs, T** outputs);
 
     protected:
         llvm::ExecutionEngine* fJIT;
         llvm::Module* fModule;
         llvm::IRBuilder<>* fBuilder;
         LLVMContext* fContext;
-        llvmComputeFun fCompute;
+        llvmFun fCompiledFun;
     
         LLVMValue fLLVMStack[1024];
         InstructionIT fAddressStack[64];
@@ -103,7 +105,7 @@ class FBCLLVMCompiler {
         LLVMValue fLLVMRealHeap;
         LLVMValue fLLVMInputs;
         LLVMValue fLLVMOutputs;
-
+   
         LLVMContext& getContext() { return *fContext; }
     
         LLVMValue genFloat(float num) { return ConstantFP::get(fModule->getContext(), APFloat(num)); }
@@ -733,7 +735,7 @@ class FBCLLVMCompiler {
         }
    
     public:
-        FBCLLVMCompiler(FBCBlockInstruction<T>* compute_block)
+        FBCLLVMCompiler(FBCBlockInstruction<T>* fbc_block)
         {
             fLLVMStackIndex = 0;
             fAddrStackIndex = 0;
@@ -744,27 +746,27 @@ class FBCLLVMCompiler {
             fModule->setTargetTriple(llvm::sys::getDefaultTargetTriple());
         
             // Compile compute function
-            std::vector<llvm::Type*> llvm_compute_args;
-            llvm_compute_args.push_back(PointerType::get(getInt32Ty(), 0));
-            llvm_compute_args.push_back(PointerType::get(getRealTy(), 0));
-            llvm_compute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
-            llvm_compute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
+            std::vector<llvm::Type*> llvm_execute_args;
+            llvm_execute_args.push_back(PointerType::get(getInt32Ty(), 0));
+            llvm_execute_args.push_back(PointerType::get(getRealTy(), 0));
+            llvm_execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
+            llvm_execute_args.push_back(PointerType::get(PointerType::get(getRealTy(), 0), 0));
             
-            FunctionType* llvm_compute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_compute_args, false);
-            Function* llvm_compute = Function::Create(llvm_compute_type, GlobalValue::ExternalLinkage, "compute", fModule);
-            llvm_compute->setCallingConv(CallingConv::C);
+            FunctionType* llvm_execute_type = FunctionType::get(fBuilder->getVoidTy(), llvm_execute_args, false);
+            Function* llvm_execute = Function::Create(llvm_execute_type, GlobalValue::ExternalLinkage, "execute", fModule);
+            llvm_execute->setCallingConv(CallingConv::C);
             
-            BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "entry_block", llvm_compute);
+            BasicBlock* code_block = BasicBlock::Create(fModule->getContext(), "entry_block", llvm_execute);
             
-            Function::arg_iterator llvm_compute_args_it = llvm_compute->arg_begin();
-            llvm_compute_args_it->setName("int_heap");
-            fLLVMIntHeap = llvm_compute_args_it++;
-            llvm_compute_args_it->setName("real_heap");
-            fLLVMRealHeap = llvm_compute_args_it++;
-            llvm_compute_args_it->setName("inputs");
-            fLLVMInputs = llvm_compute_args_it++;
-            llvm_compute_args_it->setName("outputs");
-            fLLVMOutputs = llvm_compute_args_it++;
+            Function::arg_iterator llvm_execute_args_it = llvm_execute->arg_begin();
+            llvm_execute_args_it->setName("int_heap");
+            fLLVMIntHeap = llvm_execute_args_it++;
+            llvm_execute_args_it->setName("real_heap");
+            fLLVMRealHeap = llvm_execute_args_it++;
+            llvm_execute_args_it->setName("inputs");
+            fLLVMInputs = llvm_execute_args_it++;
+            llvm_execute_args_it->setName("outputs");
+            fLLVMOutputs = llvm_execute_args_it++;
             
             // Optimize indexed load/store
             /*
@@ -776,10 +778,10 @@ class FBCLLVMCompiler {
             this->fFactory->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock, 1, 1);
             */
             
-            compute_block->write(&std::cout);
+            fbc_block->write(&std::cout);
             
             // Compile compute body
-            CompileBlock(compute_block, code_block);
+            CompileBlock(fbc_block, code_block);
             
             // Get last block of post code section
             BasicBlock* last_block = fBuilder->GetInsertBlock();
@@ -787,7 +789,7 @@ class FBCLLVMCompiler {
             ReturnInst::Create(fModule->getContext(), last_block);
             
             // Check function
-            verifyFunction(*llvm_compute);
+            verifyFunction(*llvm_execute);
             
             dumpLLVM1(fModule);
             
@@ -807,7 +809,7 @@ class FBCLLVMCompiler {
             pm.run(*fModule);
             
             // Get 'compute' entry point
-            fCompute = (llvmComputeFun)fJIT->getFunctionAddress("compute");
+            fCompiledFun = (llvmFun)fJIT->getFunctionAddress("execute");
         }
     
         virtual ~FBCLLVMCompiler()
@@ -818,11 +820,50 @@ class FBCLLVMCompiler {
             delete fContext;
         }
     
-        void Compute(int* int_heap, T* real_heap, T** inputs, T** outputs)
+        void Execute(int* int_heap, T* real_heap, T** inputs, T** outputs)
         {
-            fCompute(int_heap, real_heap, inputs, outputs);
+            fCompiledFun(int_heap, real_heap, inputs, outputs);
         }
+    
+};
 
+// FBC bytecode compiler
+template <class T, int TRACE>
+class FBCCompiler : public FBCInterpreter<T, TRACE> {
+    
+    protected:
+        // stared map of compiled blocks
+        static std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
+    
+        void CompileBlock(FBCBlockInstruction<T>* fbc_block)
+        {
+            if (!gCompiledBlocks) {
+                gCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >();
+            }
+            if (gCompiledBlocks->find(fbc_block) == gCompiledBlocks->end()) {
+                (*gCompiledBlocks)[fbc_block] = new FBCLLVMCompiler<T>(fbc_block);
+            } else {
+                std::cout << "FBCCompiler : reuse compiled block" << std::endl;
+            }
+        }
+    
+    public:
+        FBCCompiler(interpreter_dsp_factory_aux<T, TRACE>* factory):FBCInterpreter<T, TRACE>(factory)
+        {
+            //CompileBlock(factory->fComputeBlock);
+            CompileBlock(factory->fComputeDSPBlock);
+        }
+        
+        void ExecuteBlock(FBCBlockInstruction<T>* block)
+        {
+            // The 'DSP' compute block only is compiled..
+            if (gCompiledBlocks->find(block) != gCompiledBlocks->end()) {
+                ((*gCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            } else {
+                FBCInterpreter<T, TRACE>::ExecuteBlock(block);
+            }
+        }
+    
 };
 
 #endif

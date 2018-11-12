@@ -66,11 +66,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     int fOptLevel;
 
     bool fOptimized;
-    
-#ifdef LLVM_COMPILER
-    FBCLLVMCompiler<T>* fLLVMCompiler;
-#endif
-
+ 
     FIRMetaBlockInstruction*             fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
     FBCBlockInstruction<T>*              fStaticInitBlock;
@@ -107,11 +103,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fClearBlock(clear),
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
-    {
-    #ifdef LLVM_COMPILER
-        fLLVMCompiler = new FBCLLVMCompiler<T>(compute_dsp);
-    #endif
-    }
+    {}
 
     virtual ~interpreter_dsp_factory_aux()
     {
@@ -124,9 +116,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fClearBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
-    #ifdef LLVM_COMPILER
-        delete fLLVMCompiler;
-    #endif
     }
 
     void optimize()
@@ -619,8 +608,7 @@ struct interpreter_dsp_base : public dsp {
 };
 
 template <class T, int TRACE>
-
-class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T, TRACE> {
+class interpreter_dsp_aux : public interpreter_dsp_base {
    protected:
     /*
     FBCBlockInstruction<T>* fStaticInitBlock;
@@ -631,13 +619,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
     FBCBlockInstruction<T>* fComputeDSPBlock;
     */
 
-    std::map<int, int> fIntMap;
-    std::map<int, T>   fRealMap;
-    bool               fInitialized;
+    //std::map<int, int> fIntMap;
+    //std::map<int, T>   fRealMap;
+    bool fInitialized;
+    
+    FBCExecutor<T>* fFBCExecutor;
+    interpreter_dsp_factory_aux<T, TRACE>* fFactory;
   
    public:
-    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FBCInterpreter<T, TRACE>(factory)
+    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
+        /*
         if (this->fFactory->getMemoryManager()) {
             this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
             this->fOutputs = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumOutputs));
@@ -645,12 +637,17 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
             this->fInputs  = new T*[this->fFactory->fNumInputs];
             this->fOutputs = new T*[this->fFactory->fNumOutputs];
         }
-
-    #ifndef LLVM_COMPILER
+        */
+        this->fFactory = factory;
+        
+    #ifdef LLVM_COMPILER
+        this->fFBCExecutor = new FBCCompiler<T, TRACE>(this->fFactory);
+    #else
         // Comment to allow specialization...
-        this->fFactory->optimize();
+        this->fFactory->optimize()
+        this->fFBCExecutor = new FBCInterpreter<T, TRACE>(this->fFactory);
     #endif
-  
+
         /*
         fFactory->fStaticInitBlock->write(&std::cout, false);
         fFactory->fInitBlock->write(&std::cout, false);
@@ -674,6 +671,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
 
     virtual ~interpreter_dsp_aux()
     {
+        /*
         if (this->fFactory->getMemoryManager()) {
             this->fFactory->destroy(this->fInputs);
             this->fFactory->destroy(this->fOutputs);
@@ -681,6 +679,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
             delete[] this->fInputs;
             delete[] this->fOutputs;
         }
+        */
+        
+        delete fFBCExecutor;
 
         /*
         delete this->fStaticInitBlock;
@@ -692,9 +693,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
         */
     }
 
-    virtual void metadata(Meta* meta) { this->fFactory->metadata(meta); }
+    virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
 
-    virtual int getSampleRate() { return this->fIntMap[this->fFactory->fSROffset]; }
+    virtual int getSampleRate() { return fFBCExecutor->getIntValue(fFactory->fSROffset); }
 
     // to be implemented by subclass
     virtual dsp* clone()
@@ -703,9 +704,9 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
         return nullptr;
     }
 
-    virtual int getNumInputs() { return this->fFactory->fNumInputs; }
+    virtual int getNumInputs() { return fFactory->fNumInputs; }
 
-    virtual int getNumOutputs() { return this->fFactory->fNumOutputs; }
+    virtual int getNumOutputs() { return fFactory->fNumOutputs; }
 
     virtual int getInputRate(int channel) { return -1; }
 
@@ -714,31 +715,31 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
     virtual void classInit(int samplingRate)
     {
         // Execute static init instructions
-        this->ExecuteBlock(this->fFactory->fStaticInitBlock);
+        fFBCExecutor->ExecuteBlock(fFactory->fStaticInitBlock);
     }
 
     virtual void instanceConstants(int samplingRate)
     {
         // Store samplingRate in specialization fIntMap
-        this->fIntMap[this->fFactory->fSROffset] = samplingRate;
+        //this->fIntMap[fFactory->fSROffset] = samplingRate;
 
         // Store samplingRate in 'fSamplingFreq' variable at correct offset in fIntHeap
-        this->fIntHeap[this->fFactory->fSROffset] = samplingRate;
+        fFBCExecutor->setIntValue(fFactory->fSROffset, samplingRate);
 
         // Execute state init instructions
-        this->ExecuteBlock(this->fFactory->fInitBlock);
+        fFBCExecutor->ExecuteBlock(fFactory->fInitBlock);
     }
 
     virtual void instanceResetUserInterface()
     {
         // Execute reset UI instructions
-        this->ExecuteBlock(this->fFactory->fResetUIBlock);
+        fFBCExecutor->ExecuteBlock(fFactory->fResetUIBlock);
     }
 
     virtual void instanceClear()
     {
         // Execute clear instructions
-        this->ExecuteBlock(this->fFactory->fClearBlock);
+        fFBCExecutor->ExecuteBlock(fFactory->fClearBlock);
     }
 
     virtual void instanceInit(int samplingRate)
@@ -807,39 +808,34 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
     virtual void buildUserInterface(UITemplate* glue)
     {
         // std::cout << "buildUserInterface" << std::endl;
-        this->ExecuteBuildUserInterface(this->fFactory->fUserInterfaceBlock, glue);
+        fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
     }
 
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
         if (TRACE > 0 && !fInitialized) {
             std::cout << "-------- DSP is not initialized ! --------" << std::endl;
         } else {
             // std::cout << "compute " << count << std::endl;
-            T** inputs  = reinterpret_cast<T**>(input);
-            T** outputs = reinterpret_cast<T**>(output);
+            T** inputs  = reinterpret_cast<T**>(inputs_aux);
+            T** outputs = reinterpret_cast<T**>(outputs_aux);
 
             // Prepare in/out buffers
-            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
-                this->fInputs[i] = inputs[i];
+            for (int i = 0; i < fFactory->fNumInputs; i++) {
+                fFBCExecutor->setInput(i, inputs[i]);
             }
-            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
-                this->fOutputs[i] = outputs[i];
+            for (int i = 0; i < fFactory->fNumOutputs; i++) {
+                fFBCExecutor->setOutput(i, outputs[i]);
             }
 
             // Set count in 'count' variable at the correct offset in fIntHeap
-            this->fIntHeap[this->fFactory->fCountOffset] = count;
+            fFBCExecutor->setIntValue(fFactory->fCountOffset, count);
 
             // Executes the 'control' block
-            this->ExecuteBlock(this->fFactory->fComputeBlock);
+            fFBCExecutor->ExecuteBlock(fFactory->fComputeBlock);
             
-        #ifdef LLVM_COMPILER
-            // Executes the compiled 'DSP' block
-            this->fFactory->fLLVMCompiler->Compute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
-        #else
-            // Executes the interpreted 'DSP' block
-            this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
-        #endif
+            // Executes the 'DSP' block
+            fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
         }
     }
 
@@ -859,10 +855,10 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T
             T** outputs = reinterpret_cast<T**>(output);
 
             // Prepare in/out buffers
-            for (int i = 0; i < this->fFactory->fNumInputs; i++) {
+            for (int i = 0; i < fFactory->fNumInputs; i++) {
                 this->fInputs[i] = inputs[i];
             }
-            for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
+            for (int i = 0; i < fFactory->fNumOutputs; i++) {
                 this->fOutputs[i] = outputs[i];
             }
 
@@ -898,6 +894,8 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
     interpreter_dsp_aux_down(interpreter_dsp_factory_aux<T, TRACE>* factory, int down_sampling_factor)
         : interpreter_dsp_aux<T, TRACE>(factory), fDownSamplingFactor(down_sampling_factor)
     {
+        // TODO
+        /*
         // Allocate and set downsampled inputs/outputs
         for (int i = 0; i < this->fFactory->fNumInputs; i++) {
             this->fInputs[i] = (this->fFactory->getMemoryManager())
@@ -909,10 +907,13 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
                                     ? static_cast<T*>(this->fFactory->allocate(sizeof(T) * 2048))
                                     : new T[2048];
         }
+        */
     }
 
     virtual ~interpreter_dsp_aux_down()
     {
+        // TODO
+        /*
         // Delete downsampled inputs/outputs
         for (int i = 0; i < this->fFactory->fNumInputs; i++) {
             (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fInputs[i])
@@ -922,6 +923,7 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
             (this->fFactory->getMemoryManager()) ? this->fFactory->destroy(this->fOutputs[i])
                                                  : delete[] this->fOutputs[i];
         }
+        */
     }
 
     virtual void init(int samplingRate)
@@ -930,10 +932,10 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
         this->instanceInit(samplingRate / fDownSamplingFactor);
     }
 
-    virtual void compute(int count, FAUSTFLOAT** input, FAUSTFLOAT** output)
+    virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
-        T** inputs  = reinterpret_cast<T**>(input);
-        T** outputs = reinterpret_cast<T**>(output);
+        T** inputs  = reinterpret_cast<T**>(inputs_aux);
+        T** outputs = reinterpret_cast<T**>(outputs_aux);
 
         // Downsample inputs
         for (int i = 0; i < this->fFactory->fNumInputs; i++) {
@@ -943,13 +945,13 @@ class interpreter_dsp_aux_down : public interpreter_dsp_aux<T, TRACE> {
         }
 
         // Executes the 'control' block
-        this->ExecuteBlock(this->fFactory->fComputeBlock);
+        this->fFBCExecutor->ExecuteBlock(this->fFactory->fComputeBlock);
 
         // Set count in 'count' variable at the correct offset in fIntHeap
-        this->fIntHeap[this->fCountOffset] = count / fDownSamplingFactor;
+        this->fFBCExecutor->setIntValue(this->fFactory->fCountOffset, count / fDownSamplingFactor);
 
         // Executes the 'DSP' block
-        this->ExecuteBlock(this->fFactory->fComputeDSPBlock);
+        this->fFBCExecutor->ExecuteBlock(this->fFactory->fComputeDSPBlock);
 
         // Upsample ouputs
         for (int i = 0; i < this->fFactory->fNumOutputs; i++) {
@@ -1082,7 +1084,7 @@ dsp* interpreter_dsp_factory_aux<T, TRACE>::createDSPInstance(dsp_factory* facto
 {
     interpreter_dsp_factory* tmp = static_cast<interpreter_dsp_factory*>(factory);
     faustassert(tmp);
-
+  
     if (tmp->getMemoryManager()) {
         return new (tmp->getFactory()->allocate(sizeof(interpreter_dsp)))
             interpreter_dsp(tmp, new (tmp->getFactory()->allocate(sizeof(interpreter_dsp_aux<T, TRACE>)))

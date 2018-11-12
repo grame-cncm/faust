@@ -54,9 +54,23 @@
 template <class T, int TRACE>
 struct interpreter_dsp_factory_aux;
 
-// FIR bytecode interpreter
+template <class T>
+struct FBCExecutor {
+    
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block) {};
+    
+    virtual void setIntValue(int offset, int value) {}
+    virtual int getIntValue(int offset) { return -1; }
+    
+    virtual void setInput(int offset, T* buffer) {}
+    virtual void setOutput(int offset, T* buffer) {}
+    
+};
+
+// FBC bytecode interpreter
 template <class T, int TRACE>
-class FBCInterpreter {
+class FBCInterpreter : public FBCExecutor<T> {
    protected:
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
 
@@ -270,7 +284,7 @@ class FBCInterpreter {
 #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
 #define pop_addr() (address_stack[--addr_stack_index])
 
-    void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
     {
         UIInstructionIT it;
 
@@ -346,7 +360,7 @@ class FBCInterpreter {
         }
     }
 
-    inline void ExecuteBlock(FBCBlockInstruction<T>* block)
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block)
     {
         static void* fDispatchTable[] = {
 
@@ -2278,10 +2292,14 @@ class FBCInterpreter {
             fRealHeap  = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
             fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
             fSoundHeap = static_cast<Soundfile**>(fFactory->allocate(sizeof(Soundfile*) * fFactory->fSoundHeapSize));
-        } else {
+            fInputs  = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumInputs));
+            fOutputs = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumOutputs));
+         } else {
             fRealHeap  = new T[fFactory->fRealHeapSize];
             fIntHeap   = new int[fFactory->fIntHeapSize];
             fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
+            fInputs  = new T*[fFactory->fNumInputs];
+            fOutputs = new T*[fFactory->fNumOutputs];
         }
         
         std::cout << "==== FBCInterpreter ==== " << std::endl;
@@ -2304,9 +2322,13 @@ class FBCInterpreter {
         if (fFactory->getMemoryManager()) {
             fFactory->destroy(fRealHeap);
             fFactory->destroy(fIntHeap);
+            fFactory->destroy(fInputs);
+            fFactory->destroy(fOutputs);
         } else {
             delete[] fRealHeap;
             delete[] fIntHeap;
+            delete[] fInputs;
+            delete[] fOutputs;
         }
         if (TRACE) {
             printStats();
@@ -2330,6 +2352,12 @@ class FBCInterpreter {
             fRealHeap[(*it2).first] = (*it2).second;
         }
     }
+    
+    void setIntValue(int offset, int value) { fIntHeap[offset] = value; }
+    int getIntValue(int offset) { return fIntHeap[offset]; }
+    
+    virtual void setInput(int offset, T* buffer) { fInputs[offset] = buffer; }
+    virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
 };
 
 #endif
