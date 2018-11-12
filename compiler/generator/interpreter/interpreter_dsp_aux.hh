@@ -75,6 +75,11 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCBlockInstruction<T>*              fClearBlock;
     FBCBlockInstruction<T>*              fComputeBlock;
     FBCBlockInstruction<T>*              fComputeDSPBlock;
+    
+#ifdef LLVM_COMPILER
+    // shared between all DSP instances
+    typename FBCCompiler<T, TRACE>::CompiledBlocksType* fCompiledBlocks;
+#endif
    
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
                                 int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
@@ -103,7 +108,21 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fClearBlock(clear),
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
-    {}
+    {
+    #ifdef LLVM_COMPILER
+        fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >();
+    #endif
+    }
+    
+    FBCExecutor<T>* createFBCExecutor()
+    {
+    #ifdef LLVM_COMPILER
+        return new FBCCompiler<T, TRACE>(this, fCompiledBlocks);
+    #else
+        optimize();
+        return new FBCInterpreter<T, TRACE>(this);
+    #endif
+    }
 
     virtual ~interpreter_dsp_factory_aux()
     {
@@ -116,8 +135,15 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fClearBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
+    #ifdef LLVM_COMPILER
+        typename FBCCompiler<T, TRACE>::CompiledBlocksTypeIT it;
+        for (it = fCompiledBlocks->begin(); it != fCompiledBlocks->end(); ++it) {
+            delete (*it).second;
+        }
+        delete fCompiledBlocks;
+    #endif
     }
-
+  
     void optimize()
     {
         if (!fOptimized) {
@@ -623,8 +649,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     //std::map<int, T>   fRealMap;
     bool fInitialized;
     
-    FBCExecutor<T>* fFBCExecutor;
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
+    FBCExecutor<T>* fFBCExecutor;
   
    public:
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
@@ -639,15 +665,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
         */
         this->fFactory = factory;
-        
-    #ifdef LLVM_COMPILER
-        this->fFBCExecutor = new FBCCompiler<T, TRACE>(this->fFactory);
-    #else
-        // Comment to allow specialization...
-        this->fFactory->optimize()
-        this->fFBCExecutor = new FBCInterpreter<T, TRACE>(this->fFactory);
-    #endif
-
+        this->fFBCExecutor = factory->createFBCExecutor();
+    
         /*
         fFactory->fStaticInitBlock->write(&std::cout, false);
         fFactory->fInitBlock->write(&std::cout, false);
@@ -681,8 +700,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         }
         */
         
-        delete fFBCExecutor;
-
         /*
         delete this->fStaticInitBlock;
         delete this->fInitBlock;
@@ -691,6 +708,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         delete this->fComputeBlock;
         delete this->fComputeDSPBlock;
         */
+        
+        delete this->fFBCExecutor;
     }
 
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }

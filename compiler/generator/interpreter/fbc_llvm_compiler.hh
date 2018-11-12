@@ -785,7 +785,7 @@ class FBCLLVMCompiler {
             fLLVMInputs = llvm_execute_args_it++;
             llvm_execute_args_it->setName("outputs");
             fLLVMOutputs = llvm_execute_args_it++;
-             
+            
             //fbc_block->write(&std::cout);
             
             // Compile compute body
@@ -839,27 +839,15 @@ class FBCLLVMCompiler {
 template <class T, int TRACE>
 class FBCCompiler : public FBCInterpreter<T, TRACE> {
     
-    protected:
-        // shared map of compiled blocks
-        //static std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
-    
-        std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
-    
-        void CompileBlock(FBCBlockInstruction<T>* fbc_block)
-        {
-            if (!gCompiledBlocks) {
-                gCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >();
-            }
-            if (gCompiledBlocks->find(fbc_block) == gCompiledBlocks->end()) {
-                (*gCompiledBlocks)[fbc_block] = new FBCLLVMCompiler<T>(fbc_block);
-            } else {
-                std::cout << "FBCCompiler : reuse compiled block" << std::endl;
-            }
-        }
-    
     public:
-        FBCCompiler(interpreter_dsp_factory_aux<T, TRACE>* factory):FBCInterpreter<T, TRACE>(factory)
+        typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* > CompiledBlocksType;
+    typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >::iterator CompiledBlocksTypeIT;
+    
+        FBCCompiler(interpreter_dsp_factory_aux<T, TRACE>* factory, CompiledBlocksType* map = nullptr):FBCInterpreter<T, TRACE>(factory)
         {
+            fCompiledBlocks = (map) ? map : new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >();
+            
+            // FBC blocks compilation
             //CompileBlock(factory->fComputeBlock);
             CompileBlock(factory->fComputeDSPBlock);
         }
@@ -867,10 +855,23 @@ class FBCCompiler : public FBCInterpreter<T, TRACE> {
         void ExecuteBlock(FBCBlockInstruction<T>* block)
         {
             // The 'DSP' compute block only is compiled..
-            if (gCompiledBlocks->find(block) != gCompiledBlocks->end()) {
-                ((*gCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
+            if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
+                ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
             } else {
                 FBCInterpreter<T, TRACE>::ExecuteBlock(block);
+            }
+        }
+    
+    protected:
+    
+        CompiledBlocksType* fCompiledBlocks;
+        
+        void CompileBlock(FBCBlockInstruction<T>* fbc_block)
+        {
+            if (fCompiledBlocks->find(fbc_block) == fCompiledBlocks->end()) {
+                (*fCompiledBlocks)[fbc_block] = new FBCLLVMCompiler<T>(fbc_block);
+            } else {
+                std::cout << "FBCCompiler : reuse compiled block" << std::endl;
             }
         }
     

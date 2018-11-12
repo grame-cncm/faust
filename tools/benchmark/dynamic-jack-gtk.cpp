@@ -183,6 +183,10 @@ int main(int argc, char* argv[])
     
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
+    
+    // To test compiled block reuse
+    //DSP = factory->createDSPInstance();
+    
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);

@@ -41,34 +41,6 @@ void faustassertaux(bool cond, const string& file, int line)
 
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
-/*
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 0>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 1>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 2>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 3>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 4>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 5>::gCompiledBlocks = nullptr;
-
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 0>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 1>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 2>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 3>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 4>::gCompiledBlocks = nullptr;
-template <>
-std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 5>::gCompiledBlocks = nullptr;
-*/
-
 // External API
 
 EXPORT interpreter_dsp_factory* getInterpreterDSPFactoryFromSHAKey(const string& sha_key)
