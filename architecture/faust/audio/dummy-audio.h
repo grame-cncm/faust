@@ -77,7 +77,6 @@ class dummyaudio : public audio {
 		{
 			audio->process();
 		}
-//		std::thread fAudioThread ( dummyaudio::run, this );
 		std::thread* fAudioThread = 0;
 #endif
     
@@ -204,6 +203,4 @@ class dummyaudio : public audio {
     
 };
 
-
-				
 #endif

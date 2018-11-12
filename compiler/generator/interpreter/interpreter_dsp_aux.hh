@@ -142,7 +142,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         *out << std::setprecision(std::numeric_limits<T>::max_digits10);
 
         if (small) {
-            *out << "i " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
+            *out << "i " << ((sizeof(T) == sizeof(double)) ? "double" : "float") << std::endl;
             *out << "v " << FAUSTVERSION << std::endl;
             *out << "f " << INTERP_FILE_VERSION << std::endl;
             *out << "n " << fName << std::endl;
@@ -178,7 +178,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *out << "d" << std::endl;
             fComputeDSPBlock->write(out, small);
         } else {
-            *out << "interpreter_dsp_factory " << ((sizeof(T) == 8) ? "double" : "float") << std::endl;
+            *out << "interpreter_dsp_factory " << ((sizeof(T) == sizeof(double)) ? "double" : "float") << std::endl;
             *out << "version " << FAUSTVERSION << std::endl;
             *out << "file " << INTERP_FILE_VERSION << std::endl;
             *out << "name " << fName << std::endl;
