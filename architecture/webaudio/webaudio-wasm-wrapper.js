@@ -2585,7 +2585,7 @@ faust.createPolyDSPInstanceAux = function (factory, time1, mixer_instance, dsp_i
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Polyphonic\",\"items\":[");
             res = res.concat("{\"type\": \"vgroup\",\"label\":\"Voices\",\"items\":");
             res = res.concat(JSON.stringify(factory.json_object.ui));
-            res = res.concat("},");
+            res = res.concat("}");
             res = res.concat("]}]}");
             return res;
         }
@@ -3621,7 +3621,7 @@ faust.createPolyDSPWorkletInstanceAux = function (factory, context, polyphony, c
             res = res.concat("\"ui\":[{\"type\":\"tgroup\",\"label\":\"Polyphonic\",\"items\":[");
             res = res.concat("{\"type\": \"vgroup\",\"label\":\"Voices\",\"items\":");
             res = res.concat(JSON.stringify(factory.json_object.ui));
-            res = res.concat("},");
+            res = res.concat("}");
             res = res.concat("]}]}");
             return res;
         }
