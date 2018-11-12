@@ -33,14 +33,14 @@
 #include "export.hh"
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
-#include "fir_interpreter.hh"
+#include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
 #define LLVM_COMPILER
 
 #ifdef LLVM_COMPILER
-#include "fir_llvm_compiler.hh"
+#include "fbc_llvm_compiler.hh"
 #endif
 
 class interpreter_dsp_factory;
@@ -68,25 +68,25 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     bool fOptimized;
     
 #ifdef LLVM_COMPILER
-    FIRLLVMCompiler<T>* fLLVMCompiler;
+    FBCLLVMCompiler<T>* fLLVMCompiler;
 #endif
 
     FIRMetaBlockInstruction*             fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
-    FIRBlockInstruction<T>*              fStaticInitBlock;
-    FIRBlockInstruction<T>*              fInitBlock;
-    FIRBlockInstruction<T>*              fResetUIBlock;
-    FIRBlockInstruction<T>*              fClearBlock;
-    FIRBlockInstruction<T>*              fComputeBlock;
-    FIRBlockInstruction<T>*              fComputeDSPBlock;
+    FBCBlockInstruction<T>*              fStaticInitBlock;
+    FBCBlockInstruction<T>*              fInitBlock;
+    FBCBlockInstruction<T>*              fResetUIBlock;
+    FBCBlockInstruction<T>*              fClearBlock;
+    FBCBlockInstruction<T>*              fComputeBlock;
+    FBCBlockInstruction<T>*              fComputeDSPBlock;
    
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
                                 int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
                                 int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
-                                FIRUserInterfaceBlockInstruction<T>* firinterface, FIRBlockInstruction<T>* static_init,
-                                FIRBlockInstruction<T>* init, FIRBlockInstruction<T>* resetui,
-                                FIRBlockInstruction<T>* clear, FIRBlockInstruction<T>* compute_control,
-                                FIRBlockInstruction<T>* compute_dsp)
+                                FIRUserInterfaceBlockInstruction<T>* firinterface, FBCBlockInstruction<T>* static_init,
+                                FBCBlockInstruction<T>* init, FBCBlockInstruction<T>* resetui,
+                                FBCBlockInstruction<T>* clear, FBCBlockInstruction<T>* compute_control,
+                                FBCBlockInstruction<T>* compute_dsp)
         : dsp_factory_imp(name, sha_key, ""),
           fVersion(version_num),
           fNumInputs(inputs),
@@ -109,7 +109,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fComputeDSPBlock(compute_dsp)
     {
     #ifdef LLVM_COMPILER
-        fLLVMCompiler = new FIRLLVMCompiler<T>(compute_dsp);
+        fLLVMCompiler = new FBCLLVMCompiler<T>(compute_dsp);
     #endif
     }
 
@@ -135,12 +135,12 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             fOptimized = true;
             // Bytecode optimization
             if (TRACE == 0) {
-                fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
-                fInitBlock       = FIRInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
-                fResetUIBlock    = FIRInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
-                fClearBlock      = FIRInstructionOptimizer<T>::optimizeBlock(fClearBlock, 1, fOptLevel);
-                fComputeBlock    = FIRInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
-                fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
+                fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(fStaticInitBlock, 1, fOptLevel);
+                fInitBlock       = FBCInstructionOptimizer<T>::optimizeBlock(fInitBlock, 1, fOptLevel);
+                fResetUIBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fResetUIBlock, 1, fOptLevel);
+                fClearBlock      = FBCInstructionOptimizer<T>::optimizeBlock(fClearBlock, 1, fOptLevel);
+                fComputeBlock    = FBCInstructionOptimizer<T>::optimizeBlock(fComputeBlock, 1, fOptLevel);
+                fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fComputeDSPBlock, 1, fOptLevel);
             }
         }
     }
@@ -322,27 +322,27 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         // Read static init block
         getline(*in, dummy);  // Read "static_init_block" line
-        FIRBlockInstruction<T>* static_init_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* static_init_block = readCodeBlock(in);
 
         // Read constants block
         getline(*in, dummy);  // Read "constants_block" line
-        FIRBlockInstruction<T>* init_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* init_block = readCodeBlock(in);
 
         // Read default ui block
         getline(*in, dummy);  // Read "clear_block" line
-        FIRBlockInstruction<T>* resetui_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* resetui_block = readCodeBlock(in);
 
         // Read clear block
         getline(*in, dummy);  // Read "clear_block" line
-        FIRBlockInstruction<T>* clear_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* clear_block = readCodeBlock(in);
 
         // Read control block
         getline(*in, dummy);  // Read "control_block" line
-        FIRBlockInstruction<T>* compute_control_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* compute_control_block = readCodeBlock(in);
 
         // Read DSP block
         getline(*in, dummy);  // Read "dsp_block" line
-        FIRBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
+        FBCBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
 
         return new interpreter_dsp_factory_aux(factory_name, sha_key, file_num, inputs, outputs, int_heap_size,
                                                real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset,
@@ -457,11 +457,11 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         *inst >> dummy;  // Read "step" token
         *inst >> step;
 
-        return new FIRUserInterfaceInstruction<T>(FIRInstruction::Opcode(opcode), offset, unquote1(label),
+        return new FIRUserInterfaceInstruction<T>(FBCInstruction::Opcode(opcode), offset, unquote1(label),
                                                   unquote1(key), unquote1(val), init, min, max, step);
     }
 
-    static FIRBlockInstruction<T>* readCodeBlock(std::istream* in)
+    static FBCBlockInstruction<T>* readCodeBlock(std::istream* in)
     {
         std::string dummy, line;
         int         size;
@@ -473,14 +473,14 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         line_reader >> dummy;  // Read "block_size" token
         line_reader >> size;
 
-        FIRBlockInstruction<T>* code_block = new FIRBlockInstruction<T>();
+        FBCBlockInstruction<T>* code_block = new FBCBlockInstruction<T>();
 
         for (int i = 0; i < size; i++) {
             getline(*in, line);
             std::stringstream       inst_line_reader(line);
-            FIRBasicInstruction<T>* inst = readCodeInstruction(&inst_line_reader, in);
+            FBCBasicInstruction<T>* inst = readCodeInstruction(&inst_line_reader, in);
             // Special case for loops
-            if (inst->fOpcode == FIRInstruction::kCondBranch) {
+            if (inst->fOpcode == FBCInstruction::kCondBranch) {
                 inst->fBranch1 = code_block;
             }
             code_block->push(inst);
@@ -489,7 +489,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         return code_block;
     }
 
-    static FIRBasicInstruction<T>* readCodeInstruction(std::istream* inst, std::istream* in)
+    static FBCBasicInstruction<T>* readCodeInstruction(std::istream* inst, std::istream* in)
     {
         int opcode, offset1, offset2;
         int val_int;
@@ -501,7 +501,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         *inst >> dummy;  // Read opcode string representation (that is not used)
 
-        if (opcode == FIRInstruction::kBlockStoreReal) {
+        if (opcode == FBCInstruction::kBlockStoreReal) {
             int            block_size;
             std::vector<T> block_values;
 
@@ -524,9 +524,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                 block_values.push_back(val_real);
             }
 
-            return new FIRBlockStoreRealInstruction<T>(FIRInstruction::Opcode(opcode), offset1, offset2, block_values);
+            return new FIRBlockStoreRealInstruction<T>(FBCInstruction::Opcode(opcode), offset1, offset2, block_values);
 
-        } else if (opcode == FIRInstruction::kBlockStoreInt) {
+        } else if (opcode == FBCInstruction::kBlockStoreInt) {
             int              block_size;
             std::vector<int> block_values;
 
@@ -550,7 +550,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                 block_values.push_back(val_int);
             }
 
-            return new FIRBlockStoreIntInstruction<T>(FIRInstruction::Opcode(opcode), offset1, offset2, block_values);
+            return new FIRBlockStoreIntInstruction<T>(FBCInstruction::Opcode(opcode), offset1, offset2, block_values);
 
         } else {
             *inst >> dummy;  // Read "int" token
@@ -565,19 +565,19 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             *inst >> dummy;  // Read "offset2" token
             *inst >> offset2;
 
-            FIRBlockInstruction<T>* branch1 = 0;
-            FIRBlockInstruction<T>* branch2 = 0;
+            FBCBlockInstruction<T>* branch1 = 0;
+            FBCBlockInstruction<T>* branch2 = 0;
 
             // Possibly read sub-blocks
-            if (FIRInstruction::isChoice(FIRInstruction::Opcode(opcode))) {
+            if (FBCInstruction::isChoice(FBCInstruction::Opcode(opcode))) {
                 branch1 = readCodeBlock(in);  // consume 'in'
                 branch2 = readCodeBlock(in);  // consume 'in'
-            } else if (opcode == FIRInstruction::kLoop) {
+            } else if (opcode == FBCInstruction::kLoop) {
                 branch1 = readCodeBlock(in);  // consume 'in'
                 branch2 = readCodeBlock(in);  // consume 'in'
             }
 
-            return new FIRBasicInstruction<T>(FIRInstruction::Opcode(opcode), val_int, val_real, offset1, offset2,
+            return new FBCBasicInstruction<T>(FBCInstruction::Opcode(opcode), val_int, val_real, offset1, offset2,
                                               branch1, branch2);
         }
     }
@@ -620,15 +620,15 @@ struct interpreter_dsp_base : public dsp {
 
 template <class T, int TRACE>
 
-class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T, TRACE> {
+class interpreter_dsp_aux : public interpreter_dsp_base, public FBCInterpreter<T, TRACE> {
    protected:
     /*
-    FIRBlockInstruction<T>* fStaticInitBlock;
-    FIRBlockInstruction<T>* fInitBlock;
-    FIRBlockInstruction<T>* fResetUIBlock;
-    FIRBlockInstruction<T>* fClearBlock;
-    FIRBlockInstruction<T>* fComputeBlock;
-    FIRBlockInstruction<T>* fComputeDSPBlock;
+    FBCBlockInstruction<T>* fStaticInitBlock;
+    FBCBlockInstruction<T>* fInitBlock;
+    FBCBlockInstruction<T>* fResetUIBlock;
+    FBCBlockInstruction<T>* fClearBlock;
+    FBCBlockInstruction<T>* fComputeBlock;
+    FBCBlockInstruction<T>* fComputeDSPBlock;
     */
 
     std::map<int, int> fIntMap;
@@ -636,7 +636,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
     bool               fInitialized;
   
    public:
-    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FIRInterpreter<T, TRACE>(factory)
+    interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory) : FBCInterpreter<T, TRACE>(factory)
     {
         if (this->fFactory->getMemoryManager()) {
             this->fInputs  = static_cast<T**>(this->fFactory->allocate(sizeof(T*) * this->fFactory->fNumInputs));
@@ -767,11 +767,11 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         this->classInit(samplingRate);
         this->instanceInit(samplingRate);
 
-        this->fStaticInitBlock = FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(),
-    fIntMap, fRealMap); this->fInitBlock = FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(),
+        this->fStaticInitBlock = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fStaticInitBlock->copy(),
+    fIntMap, fRealMap); this->fInitBlock = FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fInitBlock->copy(),
     fIntMap, fRealMap); this->fResetUIBlock =
-    FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fResetUIBlock->copy(), fIntMap, fRealMap); this->fClearBlock =
-    FIRInstructionOptimizer<T>::specialize2Heap(fFactory->fClearBlock->copy(), fIntMap, fRealMap);
+    FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fResetUIBlock->copy(), fIntMap, fRealMap); this->fClearBlock =
+    FBCInstructionOptimizer<T>::specialize2Heap(fFactory->fClearBlock->copy(), fIntMap, fRealMap);
 
         // Suppress IOTA from fRealMap since we don't want specialization to use it
         if (this->fIntMap.find(fFactory->fIOTAOffset) != this->fIntMap.end()) {
@@ -779,19 +779,19 @@ class interpreter_dsp_aux : public interpreter_dsp_base, public FIRInterpreter<T
         }
 
         // Keep control ON
-        fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FIRInstruction::kAddButton);
+        fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap, FBCInstruction::kAddButton);
         //fFactory->fUserInterfaceBlock->unFreezeDefaultValues(fRealMap);
 
         // Specialization
-        //this->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
+        //this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeBlock->copy(), 4);
 
-        this->fComputeBlock = FIRInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap,
-    fRealMap); this->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1,
-    4); this->fComputeDSPBlock = FIRInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
+        this->fComputeBlock = FBCInstructionOptimizer<T>::specialize(fFactory->fComputeBlock->copy(), fIntMap,
+    fRealMap); this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(fFactory->fComputeDSPBlock->copy(), 1,
+    4); this->fComputeDSPBlock = FBCInstructionOptimizer<T>::specialize(this->fComputeDSPBlock, fIntMap, fRealMap);
 
         // Optimization
-        this->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
-        this->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
+        this->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeBlock, 5, 6);
+        this->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fComputeDSPBlock, 5, 6);
 
         std::cout << "INIT" << std::endl;
 

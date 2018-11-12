@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_LLVM_COMPILER_H
-#define _FIR_LLVM_COMPILER_H
+#ifndef _FBC_LLVM_COMPILER_H
+#define _FBC_LLVM_COMPILER_H
 
 #include <string>
 #include <vector>
@@ -82,7 +82,7 @@ typedef llvm::Value* LLVMValue;
 
 // FIR bytecode compiler
 template <class T>
-class FIRLLVMCompiler {
+class FBCLLVMCompiler {
     
     typedef void (* llvmComputeFun) (int* int_heap, T* real_heap, T** inputs, T** outputs);
 
@@ -221,7 +221,7 @@ class FIRLLVMCompiler {
             fBuilder->CreateStore(popLLVM(), output);
         }
     
-        void CompileBlock(FIRBlockInstruction<T>* block, BasicBlock* code_block)
+        void CompileBlock(FBCBlockInstruction<T>* block, BasicBlock* code_block)
         {
             InstructionIT it = block->fInstructions.begin();
             bool end = false;
@@ -236,60 +236,60 @@ class FIRLLVMCompiler {
                 switch ((*it)->fOpcode) {
                         
                         // Numbers
-                    case FIRInstruction::kRealValue:
+                    case FBCInstruction::kRealValue:
                         pushLLVM(genReal((*it)->fRealValue));
                         it++;
                         break;
                         
-                    case FIRInstruction::kInt32Value:
+                    case FBCInstruction::kInt32Value:
                         pushLLVM(genInt32((*it)->fIntValue));
                         it++;
                         break;
                         
                         // Memory load/store
-                    case FIRInstruction::kLoadReal:
+                    case FBCInstruction::kLoadReal:
                         pushLoadArray(fLLVMRealHeap,(*it)->fOffset1);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLoadInt:
+                    case FBCInstruction::kLoadInt:
                         pushLoadArray(fLLVMIntHeap,(*it)->fOffset1);
                         it++;
                         break;
          
-                    case FIRInstruction::kStoreReal:
+                    case FBCInstruction::kStoreReal:
                         pushStoreArray(fLLVMRealHeap, (*it)->fOffset1);
                         it++;
                         break;
                         
-                    case FIRInstruction::kStoreInt:
+                    case FBCInstruction::kStoreInt:
                         pushStoreArray(fLLVMIntHeap, (*it)->fOffset1);
                         it++;
                         break;
                         
                         // Indexed memory load/store: constant values are added at generation time by CreateBinOp...
-                    case FIRInstruction::kLoadIndexedReal: {
+                    case FBCInstruction::kLoadIndexedReal: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushLoadArray(fLLVMRealHeap, offset);
                         it++;
                         break;
                     }
                          
-                    case FIRInstruction::kLoadIndexedInt: {
+                    case FBCInstruction::kLoadIndexedInt: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushLoadArray(fLLVMIntHeap, offset);
                         it++;
                         break;
                     }
                          
-                    case FIRInstruction::kStoreIndexedReal: {
+                    case FBCInstruction::kStoreIndexedReal: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushStoreArray(fLLVMRealHeap, offset);
                         it++;
                         break;
                     }
                          
-                    case FIRInstruction::kStoreIndexedInt: {
+                    case FBCInstruction::kStoreIndexedInt: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushStoreArray(fLLVMIntHeap, offset);
                         it++;
@@ -297,39 +297,39 @@ class FIRLLVMCompiler {
                     }
                         
                         // Input/output
-                    case FIRInstruction::kLoadInput:
+                    case FBCInstruction::kLoadInput:
                         pushLoadInput((*it)->fOffset1);
                         it++;
                         break;
                         
-                    case FIRInstruction::kStoreOutput:
+                    case FBCInstruction::kStoreOutput:
                         pushStoreOutput((*it)->fOffset1);
                         it++;
                         break;
                         
                         // Cast
-                    case FIRInstruction::kCastReal: {
+                    case FBCInstruction::kCastReal: {
                         LLVMValue val = popLLVM();
                         pushLLVM(fBuilder->CreateSIToFP(val, getRealTy()));
                         it++;
                         break;
                     }
                         
-                    case FIRInstruction::kCastInt: {
+                    case FBCInstruction::kCastInt: {
                         LLVMValue val = popLLVM();
                         pushLLVM(fBuilder->CreateFPToSI(val, getInt32Ty()));
                         it++;
                         break;
                     }
                         
-                    case FIRInstruction::kBitcastInt: {
+                    case FBCInstruction::kBitcastInt: {
                         LLVMValue val = popLLVM();
                         pushLLVM(fBuilder->CreateBitCast(val, getInt32Ty()));
                         it++;
                         break;
                     }
                         
-                    case FIRInstruction::kBitcastReal: {
+                    case FBCInstruction::kBitcastReal: {
                         LLVMValue val = popLLVM();
                         pushLLVM(fBuilder->CreateBitCast(val, getRealTy()));
                         it++;
@@ -337,249 +337,249 @@ class FIRLLVMCompiler {
                     }
                         
                         // Binary math
-                    case FIRInstruction::kAddReal:
+                    case FBCInstruction::kAddReal:
                         pushLLVMBinop(Instruction::FAdd);
                         it++;
                         break;
                         
-                    case FIRInstruction::kAddInt:
+                    case FBCInstruction::kAddInt:
                         pushLLVMBinop(Instruction::Add);
                         it++;
                         break;
                         
-                    case FIRInstruction::kSubReal:
+                    case FBCInstruction::kSubReal:
                         pushLLVMBinop(Instruction::FSub);
                         it++;
                         break;
                         
-                    case FIRInstruction::kSubInt:
+                    case FBCInstruction::kSubInt:
                         pushLLVMBinop(Instruction::Sub);
                         it++;
                         break;
                         
-                    case FIRInstruction::kMultReal:
+                    case FBCInstruction::kMultReal:
                         pushLLVMBinop(Instruction::FMul);
                         it++;
                         break;
                         
-                    case FIRInstruction::kMultInt:
+                    case FBCInstruction::kMultInt:
                         pushLLVMBinop(Instruction::Mul);
                         it++;
                         break;
                         
-                    case FIRInstruction::kDivReal:
+                    case FBCInstruction::kDivReal:
                         pushLLVMBinop(Instruction::FDiv);
                         it++;
                         break;
                         
-                    case FIRInstruction::kDivInt:
+                    case FBCInstruction::kDivInt:
                         pushLLVMBinop(Instruction::SDiv);
                         it++;
                         break;
                         
-                    case FIRInstruction::kRemReal:
+                    case FBCInstruction::kRemReal:
                         pushLLVMBinop(Instruction::FRem);
                         it++;
                         break;
                         
-                    case FIRInstruction::kRemInt:
+                    case FBCInstruction::kRemInt:
                         pushLLVMBinop(Instruction::SRem);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLshInt:
+                    case FBCInstruction::kLshInt:
                         pushLLVMBinop(Instruction::Shl);
                         it++;
                         break;
                         
-                    case FIRInstruction::kRshInt:
+                    case FBCInstruction::kRshInt:
                         pushLLVMBinop(Instruction::LShr);
                         it++;
                         break;
                         
-                    case FIRInstruction::kGTInt:
+                    case FBCInstruction::kGTInt:
                         pushLLVMIntComp(ICmpInst::ICMP_SGT);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLTInt:
+                    case FBCInstruction::kLTInt:
                         pushLLVMIntComp(ICmpInst::ICMP_SLT);
                         it++;
                         break;
                         
-                    case FIRInstruction::kGEInt:
+                    case FBCInstruction::kGEInt:
                         pushLLVMIntComp(ICmpInst::ICMP_SGE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLEInt:
+                    case FBCInstruction::kLEInt:
                         pushLLVMIntComp(ICmpInst::ICMP_SLE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kEQInt:
+                    case FBCInstruction::kEQInt:
                         pushLLVMIntComp(ICmpInst::ICMP_EQ);
                         it++;
                         break;
                         
-                    case FIRInstruction::kNEInt:
+                    case FBCInstruction::kNEInt:
                         pushLLVMIntComp(ICmpInst::ICMP_NE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kGTReal:
+                    case FBCInstruction::kGTReal:
                         pushLLVMRealComp(FCmpInst::FCMP_OGT);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLTReal:
+                    case FBCInstruction::kLTReal:
                         pushLLVMRealComp(FCmpInst::FCMP_OLT);
                         it++;
                         break;
                         
-                    case FIRInstruction::kGEReal:
+                    case FBCInstruction::kGEReal:
                         pushLLVMRealComp(FCmpInst::FCMP_OGE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kLEReal:
+                    case FBCInstruction::kLEReal:
                         pushLLVMRealComp(FCmpInst::FCMP_OLE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kEQReal:
+                    case FBCInstruction::kEQReal:
                         pushLLVMRealComp(FCmpInst::FCMP_OEQ);
                         it++;
                         break;
                         
-                    case FIRInstruction::kNEReal:
+                    case FBCInstruction::kNEReal:
                         pushLLVMRealComp(FCmpInst::FCMP_ONE);
                         it++;
                         break;
                         
-                    case FIRInstruction::kANDInt:
+                    case FBCInstruction::kANDInt:
                         pushLLVMBinop(Instruction::And);
                         it++;
                         break;
                         
-                    case FIRInstruction::kORInt:
+                    case FBCInstruction::kORInt:
                         pushLLVMBinop(Instruction::Or);
                         it++;
                         break;
                         
-                    case FIRInstruction::kXORInt:
+                    case FBCInstruction::kXORInt:
                         pushLLVMBinop(Instruction::Xor);
                         it++;
                         break;
                         
                          // Extended unary math
-                    case FIRInstruction::kAbs:
+                    case FBCInstruction::kAbs:
                         pushLLVMUnaryIntCall("abs");
                         it++;
                         break;
                         
-                    case FIRInstruction::kAbsf:
+                    case FBCInstruction::kAbsf:
                         pushLLVMUnaryRealCall("fabs");
                         it++;
                         break;
   
-                    case FIRInstruction::kAcosf:
+                    case FBCInstruction::kAcosf:
                         pushLLVMUnaryRealCall("acos");
                         it++;
                         break;
 
-                    case FIRInstruction::kAsinf:
+                    case FBCInstruction::kAsinf:
                         pushLLVMUnaryRealCall("asin");
                         it++;
                         break;
 
-                    case FIRInstruction::kAtanf:
+                    case FBCInstruction::kAtanf:
                         pushLLVMUnaryRealCall("atan");
                         it++;
                         break;
 
-                    case FIRInstruction::kCeilf:
+                    case FBCInstruction::kCeilf:
                         pushLLVMUnaryRealCall("ceil");
                         it++;
                         break;
 
-                    case FIRInstruction::kCosf:
+                    case FBCInstruction::kCosf:
                         pushLLVMUnaryRealCall("cos");
                         it++;
                         break;
 
-                    case FIRInstruction::kCoshf:
+                    case FBCInstruction::kCoshf:
                         pushLLVMUnaryRealCall("cosh");
                         it++;
                         break;
 
-                    case FIRInstruction::kExpf:
+                    case FBCInstruction::kExpf:
                         pushLLVMUnaryRealCall("exp");
                         it++;
                         break;
 
-                    case FIRInstruction::kFloorf:
+                    case FBCInstruction::kFloorf:
                         pushLLVMUnaryRealCall("floor");
                         it++;
                         break;
 
-                    case FIRInstruction::kLogf:
+                    case FBCInstruction::kLogf:
                         pushLLVMUnaryRealCall("log");
                         it++;
                         break;
 
-                    case FIRInstruction::kLog10f:
+                    case FBCInstruction::kLog10f:
                         pushLLVMUnaryRealCall("log10");
                         it++;
                         break;
 
-                    case FIRInstruction::kRoundf:
+                    case FBCInstruction::kRoundf:
                         pushLLVMUnaryRealCall("round");
                         it++;
                         break;
 
-                    case FIRInstruction::kSinf:
+                    case FBCInstruction::kSinf:
                         pushLLVMUnaryRealCall("sin");
                         it++;
                         break;
 
-                    case FIRInstruction::kSinhf:
+                    case FBCInstruction::kSinhf:
                         pushLLVMUnaryRealCall("sinh");
                         it++;
                         break;
 
-                    case FIRInstruction::kSqrtf:
+                    case FBCInstruction::kSqrtf:
                         pushLLVMUnaryRealCall("sqrt");
                         it++;
                         break;
 
-                    case FIRInstruction::kTanf:
+                    case FBCInstruction::kTanf:
                         pushLLVMUnaryRealCall("tan");
                         it++;
                         break;
 
-                    case FIRInstruction::kTanhf:
+                    case FBCInstruction::kTanhf:
                         pushLLVMUnaryRealCall("tanh");
                         it++;
                         break;
 
                         // Extended binary math
-                    case FIRInstruction::kAtan2f:
+                    case FBCInstruction::kAtan2f:
                         pushLLVMBinaryRealCall("atan2");
                         it++;
                         break;
 
-                    case FIRInstruction::kFmodf:
+                    case FBCInstruction::kFmodf:
                         pushLLVMBinaryRealCall("fmod");
                         it++;
                         break;
 
-                    case FIRInstruction::kPowf:
+                    case FBCInstruction::kPowf:
                         pushLLVMBinaryRealCall("pow");
                         it++;
                         break;
 
-                    case FIRInstruction::kMax: {
+                    case FBCInstruction::kMax: {
                         LLVMValue v1 = popLLVM();
                         LLVMValue v2 = popLLVM();
                         LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
@@ -588,7 +588,7 @@ class FIRLLVMCompiler {
                         break;
                     }
                         
-                    case FIRInstruction::kMaxf: {
+                    case FBCInstruction::kMaxf: {
                         LLVMValue v1 = popLLVM();
                         LLVMValue v2 = popLLVM();
                         LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
@@ -597,7 +597,7 @@ class FIRLLVMCompiler {
                         break;
                     }
 
-                    case FIRInstruction::kMin: {
+                    case FBCInstruction::kMin: {
                         LLVMValue v1 = popLLVM();
                         LLVMValue v2 = popLLVM();
                         LLVMValue cond_value = fBuilder->CreateICmp(ICmpInst::ICMP_SLT, v1, v2);
@@ -606,7 +606,7 @@ class FIRLLVMCompiler {
                         break;
                     }
                         
-                    case FIRInstruction::kMinf: {
+                    case FBCInstruction::kMinf: {
                         LLVMValue v1 = popLLVM();
                         LLVMValue v2 = popLLVM();
                         LLVMValue cond_value = fBuilder->CreateFCmp(FCmpInst::FCMP_OLT, v1, v2);
@@ -616,7 +616,7 @@ class FIRLLVMCompiler {
                     }
                         
                         // Control
-                    case FIRInstruction::kReturn:
+                    case FBCInstruction::kReturn:
                         // Empty addr stack = end of computation
                         if (emptyReturn()) {
                             end = true;
@@ -626,7 +626,7 @@ class FIRLLVMCompiler {
                         }
                         break;
                         
-                    case FIRInstruction::kIf: {
+                    case FBCInstruction::kIf: {
                         saveReturn();
                         LLVMValue cond_value = fBuilder->CreateICmpEQ(popLLVM(), genInt32(1), "ifcond");
                         Function* function = fBuilder->GetInsertBlock()->getParent();
@@ -661,8 +661,8 @@ class FIRLLVMCompiler {
                         break;
                     }
                         
-                    case FIRInstruction::kSelectReal:
-                    case FIRInstruction::kSelectInt: {
+                    case FBCInstruction::kSelectReal:
+                    case FBCInstruction::kSelectInt: {
                         
                         // Prepare condition
                         LLVMValue cond_value = fBuilder->CreateICmpNE(popLLVM(), genInt32(0), "select_cond");
@@ -683,7 +683,7 @@ class FIRLLVMCompiler {
                         break;
                     }
                         
-                    case FIRInstruction::kCondBranch: {
+                    case FBCInstruction::kCondBranch: {
                         
                         // Prepare condition
                         LLVMValue cond_value = fBuilder->CreateTrunc(popLLVM(), fBuilder->getInt1Ty());
@@ -701,7 +701,7 @@ class FIRLLVMCompiler {
                         break;
                     }
                         
-                    case FIRInstruction::kLoop: {
+                    case FBCInstruction::kLoop: {
                         
                         Function* function = fBuilder->GetInsertBlock()->getParent();
                         BasicBlock* init_block = BasicBlock::Create(fModule->getContext(), "init_block", function);
@@ -733,7 +733,7 @@ class FIRLLVMCompiler {
         }
    
     public:
-        FIRLLVMCompiler(FIRBlockInstruction<T>* compute_block)
+        FBCLLVMCompiler(FBCBlockInstruction<T>* compute_block)
         {
             fLLVMStackIndex = 0;
             fAddrStackIndex = 0;
@@ -768,12 +768,12 @@ class FIRLLVMCompiler {
             
             // Optimize indexed load/store
             /*
-            this->fFactory->fStaticInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fStaticInitBlock, 1, 1);
-            this->fFactory->fInitBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fInitBlock, 1, 1);
-            this->fFactory->fResetUIBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fResetUIBlock, 1, 1);
-            this->fFactory->fClearBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fClearBlock, 1, 1);
-            this->fFactory->fComputeBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeBlock, 1, 1);
-            this->fFactory->fComputeDSPBlock = FIRInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock, 1, 1);
+            this->fFactory->fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fStaticInitBlock, 1, 1);
+            this->fFactory->fInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fInitBlock, 1, 1);
+            this->fFactory->fResetUIBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fResetUIBlock, 1, 1);
+            this->fFactory->fClearBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fClearBlock, 1, 1);
+            this->fFactory->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeBlock, 1, 1);
+            this->fFactory->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock, 1, 1);
             */
             
             compute_block->write(&std::cout);
@@ -810,7 +810,7 @@ class FIRLLVMCompiler {
             fCompute = (llvmComputeFun)fJIT->getFunctionAddress("compute");
         }
     
-        virtual ~FIRLLVMCompiler()
+        virtual ~FBCLLVMCompiler()
         {
             // fModule is kept and deleted by fJIT
             delete fJIT;

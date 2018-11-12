@@ -49,15 +49,15 @@ global memory allocation is implemented)
 */
 
 template <class T>
-map<string, FIRInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
+map<string, FBCInstruction::Opcode> InterpreterInstVisitor<T>::gMathLibTable;
 
 template <class T>
-static FIRBlockInstruction<T>* getCurrentBlock()
+static FBCBlockInstruction<T>* getCurrentBlock()
 {
-    FIRBlockInstruction<T>* block =
+    FBCBlockInstruction<T>* block =
         static_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock;
     // Add kReturn in generated block
-    block->push(new FIRBasicInstruction<T>(FIRInstruction::kReturn));
+    block->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
     return block;
 }
 
@@ -68,7 +68,7 @@ static InterpreterInstVisitor<T>* getInterpreterVisitor()
 }
 
 template <class T>
-static void setCurrentBlock(FIRBlockInstruction<T>* block)
+static void setCurrentBlock(FBCBlockInstruction<T>* block)
 {
     static_cast<InterpreterInstVisitor<T>*>(gGlobal->gInterpreterVisitor)->fCurrentBlock = block;
 }
@@ -164,24 +164,24 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     // Keep "init_static_block"
-    FIRBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
-    setCurrentBlock<T>(new FIRBlockInstruction<T>());
+    FBCBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FBCBlockInstruction<T>());
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
     // Keep "init_block"
-    FIRBlockInstruction<T>* init_block = getCurrentBlock<T>();
-    setCurrentBlock<T>(new FIRBlockInstruction<T>);
+    FBCBlockInstruction<T>* init_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
     // Keep "resetui_block"
     generateResetUserInterface(gGlobal->gInterpreterVisitor);
-    FIRBlockInstruction<T>* resetui_block = getCurrentBlock<T>();
-    setCurrentBlock<T>(new FIRBlockInstruction<T>);
+    FBCBlockInstruction<T>* resetui_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
     // Keep "clear_block"
     generateClear(gGlobal->gInterpreterVisitor);
-    FIRBlockInstruction<T>* clear_block = getCurrentBlock<T>();
-    setCurrentBlock<T>(new FIRBlockInstruction<T>);
+    FBCBlockInstruction<T>* clear_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
     // Generate UI
     generateUserInterface(gGlobal->gInterpreterVisitor);
@@ -190,14 +190,14 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     generateComputeBlock(gGlobal->gInterpreterVisitor);
 
     // Keep "compute_control_block"
-    FIRBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
-    setCurrentBlock<T>(new FIRBlockInstruction<T>);
+    FBCBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
+    setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
     // Generate one single scalar loop
     ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
 
     loop->accept(gGlobal->gInterpreterVisitor);
-    FIRBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
+    FBCBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
 
     // Generate metadata block and name
     string                   name;

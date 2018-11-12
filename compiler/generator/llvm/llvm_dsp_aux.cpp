@@ -33,7 +33,7 @@
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
 
-#include "fir_llvm_compiler.hh"
+#include "fbc_llvm_compiler.hh"
 
 #include <llvm-c/Core.h>
 #include <llvm/ExecutionEngine/MCJIT.h>

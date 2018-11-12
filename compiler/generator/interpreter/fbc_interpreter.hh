@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_INTERPRETER_H
-#define _FIR_INTERPRETER_H
+#ifndef _FBC_INTERPRETER_H
+#define _FBC_INTERPRETER_H
 
 #include <string.h>
 #include <cmath>
@@ -56,7 +56,7 @@ struct interpreter_dsp_factory_aux;
 
 // FIR bytecode interpreter
 template <class T, int TRACE>
-class FIRInterpreter {
+class FBCInterpreter {
    protected:
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
 
@@ -278,60 +278,60 @@ class FIRInterpreter {
             //(*it)->write(&std::cout);
 
             switch ((*it)->fOpcode) {
-                case FIRInstruction::kOpenVerticalBox:
+                case FBCInstruction::kOpenVerticalBox:
                     glue->openVerticalBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kOpenHorizontalBox:
+                case FBCInstruction::kOpenHorizontalBox:
                     glue->openHorizontalBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kOpenTabBox:
+                case FBCInstruction::kOpenTabBox:
                     glue->openTabBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kCloseBox:
+                case FBCInstruction::kCloseBox:
                     glue->closeBox();
                     break;
 
-                case FIRInstruction::kAddButton:
+                case FBCInstruction::kAddButton:
                     glue->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddCheckButton:
+                case FBCInstruction::kAddCheckButton:
                     glue->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddHorizontalSlider:
+                case FBCInstruction::kAddHorizontalSlider:
                     glue->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
                                               (*it)->fMin, (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddVerticalSlider:
+                case FBCInstruction::kAddVerticalSlider:
                     glue->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
                                             (*it)->fMin, (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddNumEntry:
+                case FBCInstruction::kAddNumEntry:
                     glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin,
                                       (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddSoundFile:
+                case FBCInstruction::kAddSoundFile:
                     glue->addSoundFile((*it)->fLabel.c_str(), (*it)->fKey.c_str(), &fSoundHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddHorizontalBargraph:
+                case FBCInstruction::kAddHorizontalBargraph:
                     glue->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
                                                 (*it)->fMax);
                     break;
 
-                case FIRInstruction::kAddVerticalBargraph:
+                case FBCInstruction::kAddVerticalBargraph:
                     glue->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
                                               (*it)->fMax);
                     break;
 
-                case FIRInstruction::kDeclare:
+                case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if ((*it)->fOffset == -1) {
                         glue->declare(static_cast<T*>(NULL), (*it)->fKey.c_str(), (*it)->fValue.c_str());
@@ -346,7 +346,7 @@ class FIRInterpreter {
         }
     }
 
-    inline void ExecuteBlock(FIRBlockInstruction<T>* block)
+    inline void ExecuteBlock(FBCBlockInstruction<T>* block)
     {
         static void* fDispatchTable[] = {
 
@@ -502,7 +502,7 @@ class FIRInterpreter {
         // Check block coherency
         InstructionIT it1 = block->fInstructions.end();
         it1--;
-        interp_assert((*it1)->fOpcode == FIRInstruction::kReturn);
+        interp_assert((*it1)->fOpcode == FBCInstruction::kReturn);
 
         try {
             InstructionIT it = block->fInstructions.begin();
@@ -2262,10 +2262,10 @@ class FIRInterpreter {
     }
 
    public:
-    FIRInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
+    FBCInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
         /*
-        std::cout << "FIRInterpreter :"
+        std::cout << "FBCInterpreter :"
                 << " int_heap_size " << int_heap_size
                 << " real_heap_size " << real_heap_size
                 << " sr_offset " << sr_offset
@@ -2284,7 +2284,7 @@ class FIRInterpreter {
             fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
         }
         
-        std::cout << "==== FIRInterpreter ==== " << std::endl;
+        std::cout << "==== FBCInterpreter ==== " << std::endl;
         std::cout << "fRealHeapSize = " << fFactory->fRealHeapSize << std::endl;
         std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
 
@@ -2299,7 +2299,7 @@ class FIRInterpreter {
         fRealStats[FP_SUBNORMAL]     = 0;
     }
 
-    virtual ~FIRInterpreter()
+    virtual ~FBCInterpreter()
     {
         if (fFactory->getMemoryManager()) {
             fFactory->destroy(fRealHeap);

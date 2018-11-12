@@ -19,15 +19,15 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_OPCODE_H
-#define _FIR_OPCODE_H
+#ifndef _FBC_OPCODE_H
+#define _FBC_OPCODE_H
 
 #include <map>
 #include <string>
 
 // Interpreter
 
-struct FIRInstruction {
+struct FBCInstruction {
     enum Opcode {
 
         // Numbers
@@ -350,7 +350,7 @@ struct FIRInstruction {
         kNop,
     };
 
-    virtual ~FIRInstruction() {}
+    virtual ~FBCInstruction() {}
 
     virtual int size() { return 1; }
 
@@ -381,7 +381,7 @@ struct FIRInstruction {
     static bool isChoice(Opcode opt) { return (opt == kIf) || (opt == kSelectReal) || (opt == kSelectInt); }
 };
 
-static std::string gFIRInstructionTable[] = {
+static std::string gFBCInstructionTable[] = {
 
     // Numbers
     "kRealValue", "kInt32Value",

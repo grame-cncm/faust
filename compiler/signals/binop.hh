@@ -22,7 +22,7 @@
 #ifndef _BINOP_
 #define _BINOP_
 
-#include "fir_opcode.hh"
+#include "fbc_opcode.hh"
 #include "node.hh"
 
 typedef const Node (*comp)(const Node& a, const Node& b);
@@ -160,8 +160,8 @@ struct BinOp {
     WasmOp fWasmFloat;
     WasmOp fWasmDouble;
 
-    FIRInstruction::Opcode fInterpIntInst32;
-    FIRInstruction::Opcode fInterpFloatInst;
+    FBCInstruction::Opcode fInterpIntInst32;
+    FBCInstruction::Opcode fInterpFloatInst;
 
     comp fCompute;
     pred fLeftNeutral;
@@ -173,8 +173,8 @@ struct BinOp {
     BinOp(const char* name, const char* name_vec, const char* name_scal, const char* name_llvm_int,
           const char* name_llvm_float, unsigned int llvm_int, unsigned int llvm_float, const char* name_wasm_int32,
           const char* name_wasm_int64, const char* name_wasm_float, const char* name_wasm_double, WasmOp wasm_int32,
-          WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FIRInstruction::Opcode interp_int32,
-          FIRInstruction::Opcode interp_float, comp f, pred ln, pred rn, int priority, pred la = falsePredicate,
+          WasmOp wasm_int64, WasmOp wasm_float, WasmOp wasm_double, FBCInstruction::Opcode interp_int32,
+          FBCInstruction::Opcode interp_float, comp f, pred ln, pred rn, int priority, pred la = falsePredicate,
           pred ra = falsePredicate)
         : fName(name),
           fNameVec(name_vec),
