@@ -82,7 +82,7 @@ typedef llvm::Value* LLVMValue;
 #define dispatchReturn() { it = popAddr(); }
 #define saveReturn() { pushAddr(it + 1); }
 
-// FIR bytecode compiler
+// FBC bytecode LLVM compiler
 template <class T>
 class FBCLLVMCompiler {
     
@@ -130,9 +130,9 @@ class FBCLLVMCompiler {
         InstructionIT popAddr() { return fAddressStack[--fAddrStackIndex]; }
         bool emptyReturn() { return (fAddrStackIndex == 0); }
 
-        void pushLLVMUnaryCall(std::string name, llvm::Type* type)
+        void pushLLVMUnaryCall(std::string name, llvm::Type* type, bool rename)
         {
-            name = getMathName(name);
+            if (rename) name = getMathName(name);
             llvm::Function* function = fModule->getFunction(name);
             if (!function) {
                 // Define it
@@ -150,8 +150,8 @@ class FBCLLVMCompiler {
             pushLLVM(call_inst);
         }
     
-        void pushLLVMUnaryIntCall(std::string name) { return pushLLVMUnaryCall(name, getInt32Ty()); }
-        void pushLLVMUnaryRealCall(std::string name) { return pushLLVMUnaryCall(name, getRealTy()); }
+        void pushLLVMUnaryIntCall(std::string name, bool rename = true) { return pushLLVMUnaryCall(name, getInt32Ty(), rename); }
+        void pushLLVMUnaryRealCall(std::string name, bool rename = true) { return pushLLVMUnaryCall(name, getRealTy(), rename); }
     
         void pushLLVMBinaryCall(std::string name, llvm::Type* res_type)
         {
@@ -294,6 +294,25 @@ class FBCLLVMCompiler {
                     case FBCInstruction::kStoreIndexedInt: {
                         LLVMValue offset = fBuilder->CreateBinOp(Instruction::Add, genInt32((*it)->fOffset1), popLLVM());
                         pushStoreArray(fLLVMIntHeap, offset);
+                        it++;
+                        break;
+                    }
+                        
+                        // Memory shift (TODO : use memmove ?)
+                    case FBCInstruction::kBlockShiftReal: {
+                        for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
+                            pushLoadArray(fLLVMRealHeap, i-1);
+                            pushStoreArray(fLLVMRealHeap, i);
+                        }
+                        it++;
+                        break;
+                    }
+                    
+                    case FBCInstruction::kBlockShiftInt: {
+                        for (int i = (*it)->fOffset1; i > (*it)->fOffset2; i -= 1) {
+                            pushLoadArray(fLLVMIntHeap, i-1);
+                            pushStoreArray(fLLVMIntHeap, i);
+                        }
                         it++;
                         break;
                     }
@@ -476,7 +495,7 @@ class FBCLLVMCompiler {
                         
                          // Extended unary math
                     case FBCInstruction::kAbs:
-                        pushLLVMUnaryIntCall("abs");
+                        pushLLVMUnaryIntCall("abs", false);
                         it++;
                         break;
                         
@@ -622,7 +641,6 @@ class FBCLLVMCompiler {
                         // Empty addr stack = end of computation
                         if (emptyReturn()) {
                             end = true;
-                            std::cout << "End of block\n";
                         } else {
                             dispatchReturn();
                         }
@@ -767,18 +785,8 @@ class FBCLLVMCompiler {
             fLLVMInputs = llvm_execute_args_it++;
             llvm_execute_args_it->setName("outputs");
             fLLVMOutputs = llvm_execute_args_it++;
-            
-            // Optimize indexed load/store
-            /*
-            this->fFactory->fStaticInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fStaticInitBlock, 1, 1);
-            this->fFactory->fInitBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fInitBlock, 1, 1);
-            this->fFactory->fResetUIBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fResetUIBlock, 1, 1);
-            this->fFactory->fClearBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fClearBlock, 1, 1);
-            this->fFactory->fComputeBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeBlock, 1, 1);
-            this->fFactory->fComputeDSPBlock = FBCInstructionOptimizer<T>::optimizeBlock(this->fFactory->fComputeDSPBlock, 1, 1);
-            */
-            
-            fbc_block->write(&std::cout);
+             
+            //fbc_block->write(&std::cout);
             
             // Compile compute body
             CompileBlock(fbc_block, code_block);
@@ -791,7 +799,7 @@ class FBCLLVMCompiler {
             // Check function
             verifyFunction(*llvm_execute);
             
-            dumpLLVM1(fModule);
+            //dumpLLVM1(fModule);
             
             // For host target support
             InitializeNativeTarget();
@@ -832,8 +840,10 @@ template <class T, int TRACE>
 class FBCCompiler : public FBCInterpreter<T, TRACE> {
     
     protected:
-        // stared map of compiled blocks
-        static std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
+        // shared map of compiled blocks
+        //static std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
+    
+        std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >* gCompiledBlocks;
     
         void CompileBlock(FBCBlockInstruction<T>* fbc_block)
         {

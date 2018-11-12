@@ -41,6 +41,7 @@ void faustassertaux(bool cond, const string& file, int line)
 
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
 
+/*
 template <>
 std::map<FBCBlockInstruction<float>*, FBCLLVMCompiler<float>* >* FBCCompiler<float, 0>::gCompiledBlocks = nullptr;
 template <>
@@ -66,6 +67,7 @@ template <>
 std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 4>::gCompiledBlocks = nullptr;
 template <>
 std::map<FBCBlockInstruction<double>*, FBCLLVMCompiler<double>* >* FBCCompiler<double, 5>::gCompiledBlocks = nullptr;
+*/
 
 // External API
 

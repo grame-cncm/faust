@@ -1697,7 +1697,7 @@ StatementInst* InstructionsCompiler::generateShiftArray(const string& vname, int
     // Generates init table loop
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(index, InstBuilder::genBasicTyped(Typed::kInt32),
                                                            InstBuilder::genInt32NumInst(delay));
-    ValueInst*      loop_end  = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genInt32NumInst(0));
+    ValueInst*   loop_end  = InstBuilder::genGreaterThan(loop_decl->load(), InstBuilder::genInt32NumInst(0));
     StoreVarInst* loop_inc = loop_decl->store(InstBuilder::genSub(loop_decl->load(), InstBuilder::genInt32NumInst(1)));
 
     ForLoopInst* loop        = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_inc);
