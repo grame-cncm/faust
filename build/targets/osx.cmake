@@ -12,6 +12,9 @@ set ( INCLUDE_HTTP        ON  CACHE STRING  "Include Faust HTTPD library" FORCE 
 set ( OSCDYNAMIC          OFF CACHE STRING  "Include Faust OSC dynamic library" FORCE )
 set ( HTTPDYNAMIC         OFF CACHE STRING  "Include Faust HTTP dynamic library" FORCE )
 
+set ( INCLUDE_ITP         OFF  CACHE STRING  "Include Faust Machine library" FORCE )
+set ( ITPDYNAMIC          OFF  CACHE STRING  "Include Faust Machine library" FORCE )
+
 set ( UNIVERSAL 	      OFF CACHE STRING  "Compiles and combines i386 and x86_64 architectures" FORCE )
 set ( DEPLOYMENT_TARGET   ON  CACHE STRING  "Control MacOS deployment target settings" FORCE )
 set ( DEPLOYMENT_TARGET_VERSION 10.11 CACHE STRING "Sets deployment target version (unused when DEPLOYMENT_TARGET is off)" FORCE )
