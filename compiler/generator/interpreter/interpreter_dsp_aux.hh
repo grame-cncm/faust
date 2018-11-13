@@ -37,9 +37,7 @@
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
-#define LLVM_COMPILER
-
-#ifdef LLVM_COMPILER
+#ifdef MACHINE
 #include "fbc_llvm_compiler.hh"
 #endif
 
@@ -76,7 +74,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCBlockInstruction<T>*              fComputeBlock;
     FBCBlockInstruction<T>*              fComputeDSPBlock;
     
-#ifdef LLVM_COMPILER
+#ifdef MACHINE
     // Shared between all DSP instances
     typename FBCCompiler<T, TRACE>::CompiledBlocksType* fCompiledBlocks;
 #endif
@@ -109,14 +107,14 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
           fComputeBlock(compute_control),
           fComputeDSPBlock(compute_dsp)
     {
-    #ifdef LLVM_COMPILER
+    #ifdef MACHINE
         fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>* >();
     #endif
     }
     
     FBCExecutor<T>* createFBCExecutor()
     {
-    #ifdef LLVM_COMPILER
+    #ifdef MACHINE
         return new FBCCompiler<T, TRACE>(this, fCompiledBlocks);
     #else
         optimize();
@@ -135,7 +133,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fClearBlock;
         delete fComputeBlock;
         delete fComputeDSPBlock;
-    #ifdef LLVM_COMPILER
+    #ifdef MACHINE
         for (auto& it : *fCompiledBlocks) {
             delete it.second;
         }
