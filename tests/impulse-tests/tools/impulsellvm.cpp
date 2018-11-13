@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromBitcodeFile("/var/tmp/llvm-factory.bc", "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromBitcodeFile " << endl;
+            cerr << " Error in readDSPFactoryFromBitcodeFile " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromBitcode(factory_str, "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromBitcode " << endl;
+            cerr << " Error in readDSPFactoryFromBitcode " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromIRFile("/var/tmp/llvm-factory.ll", "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromIRFile " << endl;
+            cerr << " Error in readDSPFactoryFromIRFile " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);
@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromIR(factory_str, "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromIRFile " << endl;
+            cerr << " Error in readDSPFactoryFromIRFile " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromMachineFile("/var/tmp/" + string(argv[1]) + "-llvm-factory-machine", "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromMachineFile " << endl;
+            cerr << " Error in readDSPFactoryFromMachineFile " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);
@@ -109,7 +109,7 @@ int main(int argc, char* argv[])
         factory = readDSPFactoryFromMachine(factory_str, "");
         
         if (!factory) {
-            cerr << " ERROR in readDSPFactoryFromMachine " << endl;
+            cerr << " Error in readDSPFactoryFromMachine " << endl;
             exit(-1);
         }
         runFactory(factory, argv[1]);

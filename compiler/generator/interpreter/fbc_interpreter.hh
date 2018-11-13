@@ -2302,9 +2302,9 @@ class FBCInterpreter : public FBCExecutor<T> {
             fOutputs = new T*[fFactory->fNumOutputs];
         }
         
-        std::cout << "==== FBCInterpreter ==== " << std::endl;
-        std::cout << "fRealHeapSize = " << fFactory->fRealHeapSize << std::endl;
-        std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
+        //std::cout << "==== FBCInterpreter ==== " << std::endl;
+        //std::cout << "fRealHeapSize = " << fFactory->fRealHeapSize << std::endl;
+        //std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
 
         // Initialise HEAP with 0
         memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));

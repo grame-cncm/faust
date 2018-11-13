@@ -37,7 +37,7 @@
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
-#define LLVM_COMPILER
+//#define LLVM_COMPILER
 
 #ifdef LLVM_COMPILER
 #include "fbc_llvm_compiler.hh"
@@ -77,7 +77,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCBlockInstruction<T>*              fComputeDSPBlock;
     
 #ifdef LLVM_COMPILER
-    // shared between all DSP instances
+    // Shared between all DSP instances
     typename FBCCompiler<T, TRACE>::CompiledBlocksType* fCompiledBlocks;
 #endif
    
