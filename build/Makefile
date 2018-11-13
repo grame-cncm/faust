@@ -68,11 +68,18 @@ clean: $(FAUSTDIR)
 help:
 	@echo "-------- FAUST compiler makefile --------"
 	@echo "Available targets are:"
-	@echo " 'all' (default) : builds the current targets (defined by configxxx - default to faust, osc and http)."
+	@echo " 'all' (default) : builds the current targets (as defined by your targets setup)."
+	@echo
+	@echo "Targets that require specific setup (see TARGETS option):"
 	@echo " 'faust' 	 : builds the Faust compiler."
-	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'osc'        : builds the static Faust OSC libraries"
 	@echo " 'http'       : builds the static Faust HTTPD libraries"
+	@echo " 'staticlib'  : builds the libfaust library in static mode."
+	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode."
+	@echo " 'oscdynamic' : builds the OSC library in dynamic mode."
+	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
+	@echo
+	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
 	@echo " 'clean'      : removes the output of the 'all' targets"
 	@echo
 	@echo "Targets excluded from all:"
@@ -80,10 +87,6 @@ help:
 	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
 	@echo
 	@echo "Targets that require specific configs:"
-	@echo " 'staticlib'  : builds the libfaust library in static mode (requires configstatic)."
-	@echo " 'dynamiclib' : builds the libfaust library in dynamic mode (requires configdynamic)."
-	@echo " 'oscdynamic' : builds the OSC library in dynamic mode (requires configoscdynamic)."
-	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode (requires confighttpdynamic)."
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
