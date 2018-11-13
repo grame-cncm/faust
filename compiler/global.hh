@@ -91,6 +91,7 @@ struct global {
     string         gFaustSuperSuperDirectory;
     string         gFaustSuperDirectory;
     string         gFaustDirectory;
+    string         gFaustExeDir;
     string         gMasterDocument;
     string         gMasterDirectory;
     string         gMasterName;

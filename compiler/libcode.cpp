@@ -41,6 +41,7 @@
 #include "errormsg.hh"
 #include "eval.hh"
 #include "exception.hh"
+#include "exepath.hh"
 #include "floats.hh"
 #include "garbageable.hh"
 #include "global.hh"
@@ -762,7 +763,8 @@ static void printHelp()
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based "
             "(fastest)]\n";
-    cout << "-fm <default|file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in <file>, "
+    cout << "-fm <default|file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in "
+            "<file>, "
             "takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
@@ -907,11 +909,12 @@ static void initFaustFloat()
     }
 }
 
-static void initFaustDirectories()
+static void initFaustDirectories(int argc, const char* argv[])
 {
     char s[1024];
     getFaustPathname(s, 1024);
 
+    gGlobal->gFaustExeDir              = exepath::get(argv[0]);
     gGlobal->gFaustDirectory           = fileDirname(s);
     gGlobal->gFaustSuperDirectory      = fileDirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
@@ -938,6 +941,8 @@ static void initFaustDirectories()
 #ifdef INSTALL_PREFIX
     gGlobal->gImportDirList.push_back(INSTALL_PREFIX "/share/faust");
 #endif
+
+    gGlobal->gImportDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
     gGlobal->gImportDirList.push_back("/usr/local/share/faust");
     gGlobal->gImportDirList.push_back("/usr/share/faust");
 
@@ -956,10 +961,20 @@ static void initFaustDirectories()
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
 #endif
+    cerr << "gGlobal->gFaustExeDir: " << gGlobal->gFaustExeDir << endl;
+    cerr << "exepath::dirup(gGlobal->gFaustExeDir): " << exepath::dirup(gGlobal->gFaustExeDir) << endl;
+    gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/local/include");
     gGlobal->gArchitectureDirList.push_back("/usr/include");
+
+    // for debugging purposes
+    cerr << "gArchitectureDirList:\n";
+    for (auto d : gGlobal->gArchitectureDirList) {
+        cerr << "\t" << d << "\n";
+    }
+    cerr << endl;
 }
 
 static void parseSourceFiles()
@@ -1161,7 +1176,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         gGlobal->gComputeIOTA          = true;   // Ensure IOTA base fixed delays are computed once
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
-        gGlobal->gNeedManualPow = false;         // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1256,8 +1271,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
-            gGlobal->gWaveformInDSP = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false; // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
+            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1269,9 +1284,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             // gGlobal->gHasTeeLocal = true;  // combined store/load
 
             gGlobal->gUseDefaultSound = false;
@@ -1310,9 +1325,9 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
             gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;     // WASM is currently 32 bits
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             // gGlobal->gHasTeeLocal = true;  // combined store/load
 
             gGlobal->gUseDefaultSound = false;
@@ -1609,7 +1624,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
         gGlobal->gInputFiles.push_back(name);
     }
 
-    initFaustDirectories();
+    initFaustDirectories(argc, argv);
     initFaustFloat();
 
     parseSourceFiles();
@@ -1684,7 +1699,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
         gGlobal->gInputFiles.push_back(name);
     }
 
-    initFaustDirectories();
+    initFaustDirectories(argc, argv);
     initFaustFloat();
 
     parseSourceFiles();
