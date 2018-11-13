@@ -97,6 +97,7 @@ macro (llvm_cmake)
 		list(REMOVE_ITEM LLVM_LIBS LTO)
 	else()
 		llvm_config()
+	endif()
 endmacro()
 
 
