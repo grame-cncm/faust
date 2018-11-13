@@ -36,6 +36,7 @@
 #endif
 
 #include "exepath.hh"
+#include "exception.hh"
 
 using namespace std;
 
@@ -100,7 +101,7 @@ string exepath::get(const string& name)  // throw(std::runtime_error)
 {
     char  buff[1024];
     DWORD n = GetModuleFileNameA(0, buff, 1024);
-    if (!n) throw std::runtime_error("GetModuleFileName failed!");
+    if (!n) throw faustexception("GetModuleFileName failed!\n");
     return dirup(buff);
 }
 
@@ -112,7 +113,7 @@ static std::string exec(const string& cmd)
     std::array<char, FILENAME_MAX> buffer;
     std::string                    result;
     std::shared_ptr<FILE>          pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) throw std::runtime_error("popen failed!");
+    if (!pipe) throw faustexception("popen failed!\n");
     while (!feof(pipe.get())) {
         if (fgets(buffer.data(), FILENAME_MAX, pipe.get()) != nullptr) result += buffer.data();
     }
