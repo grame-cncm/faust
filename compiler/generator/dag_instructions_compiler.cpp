@@ -248,7 +248,7 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
                 return c;
             }
         } else {
-            fContainer->openLoop(sig, "i");
+            fContainer->openLoop("i");
             ValueInst* c = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return c;

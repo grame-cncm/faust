@@ -215,7 +215,7 @@ void Loop::println(int n, ostream& fout)
         }*/
 
         tab(n, fout);
-        fout << "// LOOP " << this;
+        fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
         if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "// pre processing";

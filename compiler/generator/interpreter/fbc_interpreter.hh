@@ -68,7 +68,7 @@ struct FBCExecutor {
     
 };
 
-// FBC bytecode interpreter
+// FBC interpreter
 template <class T, int TRACE>
 class FBCInterpreter : public FBCExecutor<T> {
    protected:

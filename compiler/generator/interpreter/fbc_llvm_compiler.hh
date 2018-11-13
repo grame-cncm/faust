@@ -82,7 +82,7 @@ typedef llvm::Value* LLVMValue;
 #define dispatchReturn() { it = popAddr(); }
 #define saveReturn() { pushAddr(it + 1); }
 
-// FBC bytecode LLVM compiler
+// FBC LLVM compiler
 template <class T>
 class FBCLLVMCompiler {
     
@@ -836,7 +836,7 @@ class FBCLLVMCompiler {
     
 };
 
-// FBC bytecode compiler
+// FBC compiler
 template <class T, int TRACE>
 class FBCCompiler : public FBCInterpreter<T, TRACE> {
     
