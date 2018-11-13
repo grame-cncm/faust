@@ -86,32 +86,21 @@ macro (llvm_config)
 endmacro()
 
 ####################################
-# Manual LLVM scan
-macro (llvm_config)
-	if ( NOT DEFINED LLVM_CONFIG)
-		set (LLVM_CONFIG llvm-config)
-	endif()
-	find_program (LC ${LLVM_CONFIG})
-	if (${LC} STREQUAL LC-NOTFOUND)
-		message (FATAL_ERROR "Cannot find program ${LLVM_CONFIG} (llvm-config or derived expected)")
-	endif()
-	execute_process (COMMAND ${LC} --version OUTPUT_VARIABLE LLVM_VERSION)
-	string ( STRIP ${LLVM_VERSION} LLVM_PACKAGE_VERSION )
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-
-	execute_process (COMMAND ${LC} --includedir OUTPUT_VARIABLE LLVM_INCLUDE)
-	string ( STRIP ${LLVM_INCLUDE} LLVM_INCLUDE_DIRS )
-	execute_process (COMMAND ${LC} --ldflags OUTPUT_VARIABLE LLVM_LDFLAGS_TMP)
-	string ( STRIP ${LLVM_LDFLAGS_TMP} LLVM_LD_FLAGS )
-	execute_process (COMMAND ${LC}  --libs OUTPUT_VARIABLE LLVM_LIBS_TMP)
-	string ( STRIP ${LLVM_LIBS_TMP} LLVM_LIBS )
-	execute_process (COMMAND ${LC}  --system-libs OUTPUT_VARIABLE LLVM_SYS_LIBS_TMP)
-	string ( STRIP ${LLVM_SYS_LIBS_TMP} LLVM_SYS_LIBS)
-	set (LLVM_LIBS ${LLVM_LIBS} ${LLVM_SYS_LIBS})
+# cmake LLVM scan
+macro (llvm_cmake)
+	find_package(LLVM REQUIRED CONFIG)
+	if (COMMAND llvm_map_components_to_libnames)
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+		message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+		# Find the libraries that correspond to the LLVM components that we wish to use
+		llvm_map_components_to_libnames(LLVM_LIBS all)
+		list(REMOVE_ITEM LLVM_LIBS LTO)
+	else()
+		llvm_config()
 endmacro()
 
+
 ####################################
-# Manual LLVM scan
 macro (include_llvm)
 	set (INCLUDE_LLVM off)
 	if (LLVM_BACKEND)

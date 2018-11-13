@@ -69,16 +69,7 @@ if (INCLUDE_LLVM )
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
-		find_package(LLVM REQUIRED CONFIG)
-		if (COMMAND llvm_map_components_to_libnames)
-			message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-			message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-			# Find the libraries that correspond to the LLVM components that we wish to use
-			llvm_map_components_to_libnames(LLVM_LIBS all)
-			list(REMOVE_ITEM LLVM_LIBS LTO)
-		else()
-			llvm_config()
-		endif()
+		llvm_cmake()
 	endif()
 
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
@@ -88,6 +79,8 @@ if (INCLUDE_LLVM )
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION=${LLVM_PACKAGE_VERSION})
 endif()
 
 ####################################

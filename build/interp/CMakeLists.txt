@@ -11,7 +11,6 @@ set (SOVERS 0)
 # options
 option ( ITPDYNAMIC         "Include Faust Interpreter dynamic library" off )
 option ( USE_LLVM_CONFIG    "Force use off llvm-config" on )
-option ( LLVM_CONFIG        "llvm-config name" llvm-config )
 
 #######################################
 # check for variables that are normally set at upper level
@@ -39,29 +38,21 @@ set( INCLUDE
 	${FAUSTROOT}/errors
 	${FAUSTROOT}/tlib
 	${FAUSTGEN}/  
-	${FAUSTITP}/)
+	${FAUSTITP}/
+	/usr/local/include)
 
 set( MACHINEDEFS -DMACHINE)
 
 ####################################
 # LLVM
 include (../misc/llvm.cmake)
-if (INCLUDE_LLVM )
+# if LLVM_PACKAGE_VERSION is defined, LLVM has already been set at upper level
+if (INCLUDE_LLVM AND NOT DEFINED LLVM_PACKAGE_VERSION)
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
-		find_package(LLVM REQUIRED CONFIG)
-		if (COMMAND llvm_map_components_to_libnames)
-			message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-			message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-			# Find the libraries that correspond to the LLVM components that we wish to use
-			llvm_map_components_to_libnames(LLVM_LIBS all)
-			list(REMOVE_ITEM LLVM_LIBS LTO)
-		else()
-			llvm_config()
-		endif()
+		llvm_cmake()
 	endif()
-
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 endif()
@@ -71,24 +62,23 @@ endif()
 #message ("target_link_libraries (faustmachinestatic PRIVATE ${LLVM_LD_FLAGS} ${LLVM_LIBS}")
 if (INCLUDE_ITP)
 	add_library( faustmachinestatic STATIC ${SRC} ${SRCH})
-	target_include_directories (faustmachinestatic PRIVATE ${INCLUDE} ${LLVM_INCLUDE_DIRS} )
 	set_target_properties(faustmachinestatic PROPERTIES OUTPUT_NAME faustmachine)
+	target_include_directories (faustmachinestatic PRIVATE ${INCLUDE} ${LLVM_INCLUDE_DIRS} )
 	target_link_libraries (faustmachinestatic PRIVATE ${LLVM_LD_FLAGS} ${LLVM_LIBS})
 	target_compile_definitions (faustmachinestatic PRIVATE ${MACHINEDEFS})
 	set (TARGETS ${TARGETS} faustmachinestatic)
 endif()
 
 if (NOT IOS AND ITPDYNAMIC)
-#message ("target_include_directories (faustmachinedynamic PRIVATE ${INCLUDE} ${LLVM_INCLUDE_DIRS})")
 	add_library( faustmachinedynamic SHARED ${SRC} ${SRCH} )
 	target_include_directories (faustmachinedynamic PRIVATE ${INCLUDE} ${LLVM_INCLUDE_DIRS})
 	target_link_libraries (faustmachinedynamic PRIVATE ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	target_compile_definitions (faustmachinedynamic PRIVATE ${MACHINEDEFS})
 	set_target_properties(faustmachinedynamic PROPERTIES 
 		VERSION ${VERSION}
 		SOVERSION ${SOVERS}
 		OUTPUT_NAME faustmachine)
 	set (TARGETS ${TARGETS} faustmachinedynamic)
-	target_compile_definitions (faustmachinedynamic PRIVATE ${MACHINEDEFS})
 endif()
 
 
@@ -99,7 +89,7 @@ set_target_properties(${TARGETS} PROPERTIES
 	ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
 
 # public headers are similar for both static and dynamic libs but only attached to the static one
-if (INCLUDE_OSC)
+if (INCLUDE_ITP)
 	set_target_properties(faustmachinestatic PROPERTIES PUBLIC_HEADER "${HEADERS}")
 else()
 	set_target_properties(faustmachinedynamic PROPERTIES PUBLIC_HEADER "${HEADERS}")
