@@ -399,7 +399,7 @@ class FBCLLVMCompiler {
                         break;
                         
                     case FBCInstruction::kRemReal:
-                        pushBinop(Instruction::FRem);
+                        pushBinaryRealCall("remainder");
                         it++;
                         break;
                         
@@ -872,7 +872,7 @@ class FBCCompiler : public FBCInterpreter<T, TRACE> {
             if (fCompiledBlocks->find(fbc_block) == fCompiledBlocks->end()) {
                 (*fCompiledBlocks)[fbc_block] = new FBCLLVMCompiler<T>(fbc_block);
             } else {
-                std::cout << "FBCCompiler : reuse compiled block" << std::endl;
+                //std::cout << "FBCCompiler : reuse compiled block" << std::endl;
             }
         }
     

@@ -37,7 +37,7 @@
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
-//#define LLVM_COMPILER
+#define LLVM_COMPILER
 
 #ifdef LLVM_COMPILER
 #include "fbc_llvm_compiler.hh"
@@ -136,9 +136,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         delete fComputeBlock;
         delete fComputeDSPBlock;
     #ifdef LLVM_COMPILER
-        typename FBCCompiler<T, TRACE>::CompiledBlocksTypeIT it;
-        for (it = fCompiledBlocks->begin(); it != fCompiledBlocks->end(); ++it) {
-            delete (*it).second;
+        for (auto& it : *fCompiledBlocks) {
+            delete it.second;
         }
         delete fCompiledBlocks;
     #endif
