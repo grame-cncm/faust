@@ -571,11 +571,13 @@ void global::init()
 void global::printCompilationOptions(ostream& dst, bool backend)
 {
     if (backend) {
+#ifdef LLVM_BUILD
         if (gOutputLang == "llvm") {
             dst << gOutputLang << " " << LLVM_VERSION << ", ";
-        } else {
-            dst << gOutputLang << ", ";
         }
+#else
+        dst << gOutputLang << ", ";
+#endif
     }
     if (gSchedulerSwitch) {
         dst << "-sch"
