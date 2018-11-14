@@ -57,12 +57,16 @@ ifneq (,$(findstring "Visual Studio",$(GENERATOR)))
 endif
 
 #===============================================================
-# main target
+# main targets
 all: $(PROJ)
 	cmake --build $(FAUSTDIR) $(BUILDOPT) -- $(JOBS)
 
-clean: $(FAUSTDIR)
+clean:
 	cmake --build $(FAUSTDIR) --target clean
+
+distclean:
+	rm -rf $(FAUSTDIR)
+
 
 #===============================================================
 help:
@@ -80,13 +84,14 @@ help:
 	@echo " 'httpdynamic': builds the HTTPD library in dynamic mode."
 	@echo
 	@echo " 'ioslib'     : builds the libfaust static lib for iOS (makes use of the ios.cmake backend)"
+	@echo
+	@echo "Cleaning:"
 	@echo " 'clean'      : removes the output of the 'all' targets"
+	@echo " 'distclean'  : removes the 'FAUSTDIR' folder ($(FAUSTDIR)) but preserves the bin and lib folders"
 	@echo
 	@echo "Targets excluded from all:"
 	@echo " 'wasmlib'    : builds the libfaust as a WebAssembly library"
 	@echo " 'asmjslib'   : builds the libfaust as an ASMJS library"
-	@echo
-	@echo "Targets that require specific configs:"
 	@echo
 	@echo "Available options:"
 	@echo "  FAUSTDIR=<dir>              : the compilation directory. Default to '$(FAUSTDIR)'"
