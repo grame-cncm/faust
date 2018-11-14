@@ -357,6 +357,26 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVersionSwitch = true;
             i += 1;
 
+        } else if (isCmd(argv[i], "-libdir", "--libdir")) {
+            gGlobal->gLibDirSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-includedir", "--includedir")) {
+            gGlobal->gIncludeDirSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-archdir", "--archdir")) {
+            gGlobal->gArchDirSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-dspdir", "--dspdir")) {
+            gGlobal->gDspDirSwitch = true;
+            i += 1;
+
+        } else if (isCmd(argv[i], "-pathslist", "--pathslist")) {
+            gGlobal->gPathListSwitch = true;
+            i += 1;
+
         } else if (isCmd(argv[i], "-d", "--details")) {
             gGlobal->gDetailsSwitch = true;
             i += 1;
@@ -726,6 +746,36 @@ static bool processCmdline(int argc, const char* argv[])
 }
 
 /****************************************************************
+                     Faust directories information
+*****************************************************************/
+#ifdef WIN32
+#define kPSEP '\\'
+#else
+#define kPSEP '/'
+#endif
+
+static void printLibDir() {
+	cout << gGlobal->gFaustRootDir << kPSEP << "lib";
+}
+static void printIncludeDir() {
+	cout << gGlobal->gFaustRootDir << kPSEP << "include";
+}
+static void printArchDir() {
+	cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+}
+static void printDspDir() {
+	cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+}
+static void printPaths() {
+	cout << "FAUST dsp library paths:" << endl;
+	for (auto path: gGlobal->gImportDirList)
+		cout << path << endl;
+	cout << "\nFAUST architectures paths:" << endl;
+	for (auto path: gGlobal->gArchitectureDirList)
+		cout << path << endl;
+}
+
+/****************************************************************
                      Help and Version information
 *****************************************************************/
 
@@ -827,15 +877,16 @@ static void printHelp()
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
-    cout << tab << "-norm       --normalized-form           print signals in normalized form and exits." << endl;
+    cout << tab << "-norm       --normalized-form           print signals in normalized form and exit." << endl;
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
     cout << tab << "-v          --version                   print version information and embedded backends list." << endl;
-    cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
-    cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures." << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries." << endl;
+    cout << tab << "-libdir     --libdir                    print directory containing the faust libraries." << endl;
+    cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures." << endl;
+    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries." << endl;
+    cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths" << endl;
 
     cout << endl << "Example:" << line;
     cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
@@ -1072,6 +1123,7 @@ static void initFaustDirectories(int argc, const char* argv[])
     getFaustPathname(s, 1024);
 
     gGlobal->gFaustExeDir              = exepath::get(argv[0]);
+    gGlobal->gFaustRootDir             = exepath::dirup (gGlobal->gFaustExeDir);
     gGlobal->gFaustDirectory           = fileDirname(s);
     gGlobal->gFaustSuperDirectory      = fileDirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
@@ -1118,8 +1170,6 @@ static void initFaustDirectories(int argc, const char* argv[])
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/share/faust");
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
 #endif
-    cerr << "gGlobal->gFaustExeDir: " << gGlobal->gFaustExeDir << endl;
-    cerr << "exepath::dirup(gGlobal->gFaustExeDir): " << exepath::dirup(gGlobal->gFaustExeDir) << endl;
     gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
@@ -1127,11 +1177,11 @@ static void initFaustDirectories(int argc, const char* argv[])
     gGlobal->gArchitectureDirList.push_back("/usr/include");
 
     // for debugging purposes
-    cerr << "gArchitectureDirList:\n";
-    for (auto d : gGlobal->gArchitectureDirList) {
-        cerr << "\t" << d << "\n";
-    }
-    cerr << endl;
+//    cerr << "gArchitectureDirList:\n";
+//    for (auto d : gGlobal->gArchitectureDirList) {
+//        cerr << "\t" << d << "\n";
+//    }
+//    cerr << endl;
 }
 
 static void parseSourceFiles()
@@ -1768,6 +1818,8 @@ static void generateOutputFiles()
 
 static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
+    initFaustDirectories(argc, argv);
+
     /****************************************************************
      1 - process command line
     *****************************************************************/
@@ -1780,8 +1832,6 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
-
-    initFaustDirectories(argc, argv);
     initFaustFloat();
 
     parseSourceFiles();
@@ -1814,6 +1864,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
                                    bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
+    initFaustDirectories(argc, argv);
 
     /****************************************************************
      1 - process command line
@@ -1826,6 +1877,26 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     }
     if (gGlobal->gVersionSwitch) {
         printVersion();
+        throw faustexception("");
+    }
+    if (gGlobal->gLibDirSwitch) {
+        printLibDir();
+        throw faustexception("");
+    }
+    if (gGlobal->gIncludeDirSwitch) {
+        printIncludeDir();
+        throw faustexception("");
+    }
+    if (gGlobal->gArchDirSwitch) {
+        printArchDir();
+        throw faustexception("");
+    }
+    if (gGlobal->gDspDirSwitch) {
+        printDspDir();
+        throw faustexception("");
+    }
+    if (gGlobal->gPathListSwitch) {
+        printPaths();
         throw faustexception("");
     }
 
@@ -1856,7 +1927,6 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
         gGlobal->gInputFiles.push_back(name);
     }
 
-    initFaustDirectories(argc, argv);
     initFaustFloat();
 
     parseSourceFiles();

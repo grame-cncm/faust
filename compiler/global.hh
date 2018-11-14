@@ -92,6 +92,7 @@ struct global {
     string         gFaustSuperDirectory;
     string         gFaustDirectory;
     string         gFaustExeDir;
+    string         gFaustRootDir;		  // abs path to faust root directory
     string         gMasterDocument;
     string         gMasterDirectory;
     string         gMasterName;
@@ -490,6 +491,12 @@ struct global {
 
     bool   gHelpSwitch;
     bool   gVersionSwitch;
+    bool   gLibDirSwitch;
+    bool   gIncludeDirSwitch;
+    bool   gArchDirSwitch;
+    bool   gDspDirSwitch;
+    bool   gPathListSwitch;
+
     bool   gGraphSwitch;
     bool   gDrawPSSwitch;
     bool   gDrawSVGSwitch;

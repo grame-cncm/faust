@@ -405,6 +405,11 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gHelpSwitch      = false;
     gVersionSwitch   = false;
+	gLibDirSwitch    = false;
+	gIncludeDirSwitch= false;
+	gArchDirSwitch   = false;
+	gDspDirSwitch    = false;
+    gPathListSwitch	 = false;
     gGraphSwitch     = false;
     gDrawPSSwitch    = false;
     gDrawSVGSwitch   = false;
