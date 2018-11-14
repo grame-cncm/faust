@@ -10,7 +10,7 @@
 . faustpath
 . faustoptflags
 
-CXXFLAGS=$MYGCCFLAGS
+CXXFLAGS="$MYGCCFLAGS -std=c++11"
 CXX=g++
 
 # change if you want to get the log of what's happening
