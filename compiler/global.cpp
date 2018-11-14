@@ -565,7 +565,13 @@ void global::init()
 
 void global::printCompilationOptions(ostream& dst, bool backend)
 {
-    if (backend) dst << gOutputLang << ", ";
+    if (backend) {
+        if (gOutputLang == "llvm") {
+            dst << gOutputLang << " " << LLVM_VERSION << ", ";
+        } else {
+            dst << gOutputLang << ", ";
+        }
+    }
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")

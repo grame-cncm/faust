@@ -793,23 +793,21 @@ static void printHelp()
     cout << tab << "-mem        --memory                    allocate static in global state using a custom memory manager." << endl;
     cout << tab << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]." << endl;
     cout << tab << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile a dsp file." << endl;
-
-    cout << endl << "Optimisation options:" << line;
     cout << tab << "-scal      --scalar                     generate non-vectorized code." << endl;
     cout << tab << "-inpl      --in-place                   generates code working when input and output buffers are the same (scalar mode only)." << endl;
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
-    cout << tab << "-omp       --openMP                     generate OpenMP pragmas, activates --vectorize option." << endl;
+    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option." << endl;
     cout << tab << "-pl        --par-loop                   generate parallel loops in --openMP mode." << endl;
     cout << tab << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates --vectorize option." << endl;
-    cout << tab << "-ocl       --openCL                     generate tasks with OpenCL (experimental)." << endl;
+    cout << tab << "-ocl       --opencl                     generate tasks with OpenCL (experimental)." << endl;
     cout << tab << "-cuda      --cuda                       generate tasks with CUDA (experimental)." << endl;
-    cout << tab << "-dfs       --deepFirstScheduling        schedule vector loops in deep first order." << endl;
-    cout << tab << "-g         --groupTasks                 group single-threaded sequential tasks together when -omp or -sch is used." << endl;
-    cout << tab << "-fun       --funTasks                   separate tasks code as separated functions (in -vec, -sch, or -omp mode)." << endl;
-    cout << tab << "-fm <file> --fast-math <file>           uses optimized versions of mathematical functions implemented in <file>." << endl;
-    cout << tab << "                                        uses 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
+    cout << tab << "-dfs       --deep-first-scheduling      schedule vector loops in deep first order." << endl;
+    cout << tab << "-g         --group-tasks                group single-threaded sequential tasks together when -omp or -sch is used." << endl;
+    cout << tab << "-fun       --fun-tasks                  separate tasks code as separated functions (in -vec, -sch, or -omp mode)." << endl;
+    cout << tab << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in <file>." << endl;
+    cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
 
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
@@ -829,15 +827,15 @@ static void printHelp()
     cout << tab << "-d          --details                   print compilation details." << endl;
     cout << tab << "-tg         --task-graph                print the internal task graph in dot format." << endl;
     cout << tab << "-sg         --signal-graph              print the internal signal graph in dot format." << endl;
-    cout << tab << "-norm       --normalized-form           prints signals in normalized form and exits." << endl;
+    cout << tab << "-norm       --normalized-form           print signals in normalized form and exits." << endl;
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
     cout << tab << "-v          --version                   print version information and embedded backends list." << endl;
-    cout << tab << "-libdir     --libdir                    print directory containing the faust libraries." << endl;
-    cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures." << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries." << endl;
+    cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
+    cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures." << endl;
+    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries." << endl;
 
     cout << endl << "Example:" << line;
     cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
@@ -893,10 +891,10 @@ static void oldprintHelp()
     cout << "-vec    \t--vectorize generate easier to vectorize code\n";
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
-    cout << "-omp    \t--openMP generate OpenMP pragmas, activates --vectorize option\n";
+    cout << "-omp    \t--openmp generate OpenMP pragmas, activates --vectorize option\n";
     cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
-    cout << "-ocl    \t--openCL generate tasks with OpenCL (experimental) \n";
+    cout << "-ocl    \t--opencl generate tasks with OpenCL (experimental) \n";
     cout << "-cuda   \t--cuda generate tasks with CUDA (experimental) \n";
     cout << "-dfs    \t--deepFirstScheduling schedule vector loops in deep first order\n";
     cout << "-g    \t\t--groupTasks group single-threaded sequential tasks together when -omp or -sch is used\n";
@@ -910,7 +908,7 @@ static void oldprintHelp()
     cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise (default 1)\n";
     cout << "-lcc \t\t--local-causality-check, check causality also at local level \n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
-    cout << "-norm \t\t--normalized-form prints signals in normalized form and exits\n";
+    cout << "-norm \t\t--normalized-form print signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
     cout << "-I <dir> \t--import-dir <dir> add the directory <dir> to the import search path\n";
     cout << "-L <file> \t--library <file> link with the LLVM module <file>\n";
@@ -922,9 +920,9 @@ static void oldprintHelp()
     cout << "-inj <f> \t--inject source file <f> into architecture file instead of compile a dsp file\n";
     cout << "-ftz     \t--flush-to-zero code added to recursive signals [0:no (default), 1:fabs based, 2:mask based "
             "(fastest)]\n";
-    cout << "-fm <default|file> \t--fast-math <file> uses optimized versions of mathematical functions implemented in "
+    cout << "-fm <default|file> \t--fast-math <file> use optimized versions of mathematical functions implemented in "
             "<file>, "
-            "takes the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
+            "take the '/faust/dsp/fastmath.cpp' file if 'def' is used\n";
     cout << "\nexample :\n";
     cout << "---------\n";
 
