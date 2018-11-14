@@ -38,11 +38,11 @@ compiler : updatesubmodules
 	$(MAKE) -C $(BUILDLOCATION)
 
 most : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=most.cmake TARGETS=static.cmake
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=most.cmake TARGETS=most.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 
 developer : updatesubmodules
-	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=all.cmake TARGETS=static.cmake
+	$(MAKE) -C $(BUILDLOCATION) cmake BACKENDS=all.cmake TARGETS=developer.cmake
 	$(MAKE) -C $(BUILDLOCATION)
 
 all : updatesubmodules
