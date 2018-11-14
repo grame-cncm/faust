@@ -123,8 +123,7 @@ static std::string exec(const string& cmd)
 static string GetCurrentWorkingDir()
 {
     char buff[FILENAME_MAX];
-    GetCurrentDir(buff, FILENAME_MAX);
-    return buff;
+    return GetCurrentDir(buff, FILENAME_MAX) ?  buff : "";
 }
 
 //-----------------------------------------------------------------
