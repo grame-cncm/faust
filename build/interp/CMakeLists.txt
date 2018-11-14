@@ -37,6 +37,7 @@ set( INCLUDE
 	${FAUSTROOT}
 	${FAUSTROOT}/errors
 	${FAUSTROOT}/tlib
+	${ROOT}/architecture
 	${FAUSTGEN}/  
 	${FAUSTITP}/
 	/usr/local/include)
