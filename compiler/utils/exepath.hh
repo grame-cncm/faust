@@ -24,12 +24,21 @@
 
 #include <string>
 
+#ifdef EMCC
+class exepath {
+	public:
+	static std::string get(const std::string& name) 	{ return ""; }
+	static std::string dirup(const std::string& path);
+};
+
+#else
+
 class exepath {
 
 	// recursively removes expressions like /a_name/.. from a path
 	static std::string stripPath(const std::string& path);
 
-	// resolves symbolic links (not implemented on Windows/MSVC	
+	// resolves symbolic links (not implemented on Windows/MSVC
 	static std::string resolvelink (const std::string& path);
 
 #ifndef MSVisualStudio
@@ -41,11 +50,12 @@ class exepath {
 	// name is the executable name as given by argv[0]
 	// on output: the path to the current app, terminated with a path separator
 	// note that symbolic links are resolved on unix like systems
-	static std::string get(const std::string& name); // throw(std::runtime_error);
+	static std::string get(const std::string& name); 
 
 	// removes the last /xxxx part
 	static std::string dirup(const std::string& path);
 };
+#endif
 
 #endif
 

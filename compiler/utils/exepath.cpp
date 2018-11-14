@@ -24,7 +24,6 @@
 #include <memory>
 #include <regex>
 #include <sstream>
-#include <stdexcept>
 #include <string>
 
 #ifdef MSVisualStudio
@@ -47,6 +46,19 @@ using namespace std;
 #endif
 
 //-----------------------------------------------------------------
+// removes the exe name from a path (similar to dirname)
+string exepath::dirup(const string& path)
+{
+	if (path.empty()) return path;
+    size_t len = path.length();
+    size_t pos = path.rfind(kPSEP, len - 2);
+    if (pos == string::npos) return "";
+    string out = path.substr(0, pos);
+    return out == "." ? "" : out;
+}
+
+#ifndef EMCC
+//-----------------------------------------------------------------
 // recursively removes expressions like /a_name/.. from a path
 string exepath::stripPath(const string& path)
 {
@@ -54,17 +66,6 @@ string exepath::stripPath(const string& path)
     string stripped = regex_replace(path, e, "");
     if (stripped == path) return path;
     return stripPath(stripped);
-}
-
-//-----------------------------------------------------------------
-// removes the exe name from a path (similar to dirname)
-string exepath::dirup(const string& path)
-{
-    size_t len = path.length();
-    size_t pos = path.rfind(kPSEP, len - 2);
-    if (pos == string::npos) return "";
-    string out = path.substr(0, pos);
-    return out == "." ? "" : out;
 }
 
 #ifdef WIN32
@@ -97,12 +98,11 @@ string exepath::resolvelink(const string& path)
 
 #ifdef MSVisualStudio
 //-----------------------------------------------------------------
-string exepath::get(const string& name)  // throw(std::runtime_error)
+string exepath::get(const string& name)
 {
     char  buff[1024];
     DWORD n = GetModuleFileNameA(0, buff, 1024);
-    if (!n) throw faustexception("GetModuleFileName failed!\n");
-    return dirup(buff);
+    return n ? dirup(buff) : "";
 }
 
 #else
@@ -113,7 +113,7 @@ static std::string exec(const string& cmd)
     std::array<char, FILENAME_MAX> buffer;
     std::string                    result;
     std::shared_ptr<FILE>          pipe(popen(cmd.c_str(), "r"), pclose);
-    if (!pipe) throw faustexception("popen failed!\n");
+    if (!pipe) return "";
     while (!feof(pipe.get())) {
         if (fgets(buffer.data(), FILENAME_MAX, pipe.get()) != nullptr) result += buffer.data();
     }
@@ -155,6 +155,7 @@ string exepath::get(const string& argv0)
         stringstream cmd;
         cmd << "which " << argv0;
         which = exec(cmd.str());
+        if (which.empty()) return "";
         if (which.back() == '\n') which.pop_back();
     }
     string target = resolvelink(which);
@@ -165,4 +166,6 @@ string exepath::get(const string& argv0)
     string path = dirup(which);
     return (path.back() != kPSEP) ? path + kPSEP : path;
 }
+#endif
+
 #endif
