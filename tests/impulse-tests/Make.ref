@@ -29,14 +29,6 @@ listintermediate = $(dspfiles:dsp/%.dsp=$1/%) $(dspfiles:dsp/%.dsp=$1/%.cpp) $(d
 
 .INTERMEDIATE: $(call listintermediate, $(refdir))
 
-#cppfiles := $(patsubst dsp/%.dsp, dsp/$(lang)/%.ir, $(dspfiles)) 
-#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/mem/%.ir, $(dspfiles)) 
-#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/fm/%.ir, $(dspfiles))
-#cppfiles += $(patsubst dsp/%.dsp, dsp/$(lang)/inpl/%.ir, $(dspfiles))
-
-
-#.DELETE_ON_ERROR: $(cppfiles)
-
 TOOLSOPTIONS := -std=c++11 -O3 -I../../architecture
 LIB    ?= ../../build/lib/libfaust.a
 SRCDIR := tools
