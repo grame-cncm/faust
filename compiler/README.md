@@ -1,4 +1,4 @@
-% man(1) Version 1.02 (7 October 2018) | Faust man page
+% man(1) Version 2.12 (7 October 2018) | Faust man page
 
 NAME
 ====
@@ -17,191 +17,176 @@ DESCRIPTION
 Faust (Functional Audio Stream) is a functional programming language specifically designed for real-time signal processing and synthesis. Faust targets high-performance signal processing applications and audio plug-ins for a variety of platforms and standards.
 
 OPTIONS
-=======
+===========
 
-**-h**, **--help**
-print help message
+Input options:
+---------------------------------------
 
-**-v**, **--version**
-print the compiler version
+  **-a** \<file>                               wrapper architecture file.
 
-**-d**, **--details**
-print compilation details
+  **-i**        **--inline-architecture-files**   inline architecture files.
 
-**-tg**, **--task-graph**
-generate the internal task graph in dot format file
+  **-A** \<dir>  **--architecture-dir** \<dir>      add the directory \<dir> to the architecture search path.
 
-**-sg**, **--signal-graph**
-generate the internal signal graph in dot format file
+  **-I** \<dir>  **--import-dir** \<dir>            add the directory \<dir> to the import search path.
 
-**-ps**, **--postscript**
-generate a block-diagram representation of the program as a postscript file
+  **-L** \<file> **--library** \<file>              link with the LLVM module \<file>.
 
-**-svg**, **--svg**
-generate a block-diagram representation of the program as an SVG file
+  **-t** \<sec>  **--timeout** \<sec>               abort compilation after \<sec> seconds (default 120).
 
-**-mdoc**, **--mathdoc**
-generate the mathematical documentation of a program in LaTeX format
+  **-time**     **--compilation-time**            display compilation phases timing information.
 
-**-mdlang \<l>**, **--mathdoc-lang \<l>**
-load mathdoc language \<l> if translation file exists (\<l> = en, fr, ...)
 
-**-stripmdoc**, **--strip-mdoc-tags**
-strip mdoc tags when printing Faust -mdoc listings
+Output options:
+---------------------------------------
 
-**-sd**, **--simplify-diagrams**
-try to further simplify block-diagrams before drawing them
+  **-o** \<file>                               the output file.
 
-**-f \<n>**, **--fold \<n>**
-set fold threshold used during block-diagram generation (default 25 elements)
+  **-e**        **--export-dsp**                  export expanded DSP (all included libraries).
 
-**-mns \<n>**, **--max-name-size \<n>**
-set max name size threshold during block-diagram generation (default 40 char)
+  **-uim**      **--user-interface-macros**       add user interface macro definitions to the output code.
 
-**-sn**, **--simple-names**
-use simpler names (without arguments) during block-diagram generation
+  **-xml**                                    generate an XML description file.
 
-**-xml** generate an XML description file of the user interface
+  **-json**                                   generate a JSON description file.
 
-**-exp10**, **--generate-exp10** function call instead of pow(10) function
+  **-O** \<dir>  **--output-dir** \<dir>            specify the relative directory of the generated output code and of additional generated files (SVG, XML...).
 
-**-json** generate a JSON description file of the user interface
 
-**-blur**, **--shadow-blur**
-add a shadow blur to SVG boxes
+Code generation options:
+---------------------------------------
 
-**-lb**, **--left-balanced**
-generate left-balanced expressions
+  **-lang** \<lang> **--language**                 select output language,
+                                          'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp.
 
-**-mb**, **--mid-balanced**
-generate mid-balanced expressions (default)
+  **-single**     **--single-precision-floats**   use single precision floats for internal computations (default).
 
-**-rb**, **--right-balanced**
-generate right-balanced expressions
+  **-double**     **--double-precision-floats**   use double precision floats for internal computations.
 
-**-lt**, **--less-temporaries**
-generate less-temporaries when compiling delay lines
+  **-quad**       **--quad-precision-floats**     use quad precision floats for internal computations.
 
-**-mcd \<n>**, **--max-copy-delay \<n>**
-threshold used to switch from copy based to ring buffer based delay lines (default 16 samples)
+  **-es** 1|0     **--enable-semantics** 1|0      use enable semantics when 1 (default), and simple multiplication otherwise.
 
-**-mem**, **--memory**
-allocate static memory in global state using a custom memory manager
+  **-lcc**        **--local-causality-check**     check causality also at local level.
 
-**-a \<file>**
-indicate the architecture file to use
+  **-flist**      **--file-list**                 use file list used to eval process.
 
-**-i**, **--inline-architecture-files**
-inline all architecture files in the generated code
+  **-exp10**      **--generate-exp10**            function call instead of pow(10) function.
 
-**-cn \<name>**, **--class-name \<name>**
-specify the name of the dsp class to be used instead of mydsp
+  **-cn** \<name>  **--class-name** \<name>         specify the name of the dsp class to be used instead of mydsp.
 
-**-pn \<name>**, **--process-name  \<name>**
-specify the name of the dsp entry-point instead of process
+  **-scn** \<name> **--super-class-name** \<name>   specify the name of the super class to be used instead of dsp.
 
-**-t \<sec>**, **--timeout \<sec>**
-abort compilation after <sec> seconds (default 120)
+  **-pn** \<name>  **--process-name** \<name>       specify the name of the dsp entry-point instead of process.
 
-**-time**, **--compilation-time**
-display timing information of the various compilation phases
+  **-lb**         **--left-balanced**             generate left balanced expressions.
 
-**-o \<file>**
-output file to use for the generated code
+  **-mb**         **--mid-balanced**              generate mid balanced expressions (default).
 
-**-scal**, **--scalar**
-generate code as a single loop
+  **-rb**         **--right-balanced**            generate right balanced expressions.
 
-**-vec**, **--vectorize**
-generate code as a DAG of multiple loops easier to auto vectorize
+  **-lt**         **--less-temporaries**          generate less temporaries in compiling delays.
 
-**-vls \<n>**, **--vec-loop-size \<n>**
-size of the vector DSP loop for auto-vectorization (experimental)
+  **-mcd** \<n>    **--max-copy-delay** \<n>        threshold between copy and ring buffer implementation (default 16 samples).
 
-**-vs \<n>**, **--vec-size \<n>**
-size of the vector (default 32 samples)
+  **-mem**        **--memory**                    allocate static in global state using a custom memory manager.
 
-**-lv \<n>**, **--loop-variant \<n>**
-Control how loops are generated [<n> = 0:fastest (default), 1:simple]
+  **-ftz** \<n>    **--flush-to-zero** \<n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
 
-**-omp**, **--openMP**
-generate OpenMP pragmas, activates --vectorize option
+  **-inj** \<f>    **--inject** \<f>                inject source file \<f> into architecture file instead of compile a dsp file.
 
-**-pl**, **--par-loop**
-generate parallel loops in --openMP mode
+  **-scal**      **--scalar**                     generate non-vectorized code.
 
-**-sch**, **--scheduler**
-generate tasks and use a Work Stealing scheduler, activates --vectorize option
+  **-inpl**      **--in-place**                   generates code working when input and output buffers are the same (scalar mode only).
 
-**-ocl**, **--openCL**
-generate tasks with OpenCL (experimental)
+  **-vec**       **--vectorize**                  generate easier to vectorize code.
 
-**-cuda**, **--cuda**
-generate tasks with CUDA (experimental)
+  **-vs** \<n>    **--vec-size** \<n>               size of the vector (default 32 samples).
 
-**-dfs**, **--deepFirstScheduling**
-schedule vector loops in deep first order
+  **-lv** \<n>    **--loop-variant** \<n>           [0:fastest (default), 1:simple].
 
-**-g**, **--groupTasks**
-group single-threaded sequential tasks together when -omp or -sch is used
+  **-omp**       **--openmp**                     generate OpenMP pragmas, activates --vectorize option.
 
-**-fun**, **--funTasks**
-separate tasks code as separated functions (in -vec, -sch, or -omp mode)
+  **-pl**        **--par-loop**                   generate parallel loops in --openMP mode.
 
-**-lang \<lang>**, **--language \<lang>**
-generate various output formats  : c, ocpp, cpp, rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp
-(default cpp)
+  **-sch**       **--scheduler**                  generate tasks and use a Work Stealing scheduler, activates --vectorize option.
 
-**-uim**, **--user-interface-macros**
-add user interface macro definitions in the output code
+  **-ocl**       **--opencl**                     generate tasks with OpenCL (experimental).
 
-**-single**, **--single-precision-floats**
-uses single-precisions floats for audio computations (default)
+  **-cuda**      **--cuda**                       generate tasks with CUDA (experimental).
 
-**-double**, **--double-precision-floats**
-uses double-precision floats for audio computations
+  **-dfs**       **--deep-first-scheduling**      schedule vector loops in deep first order.
 
-**-quad**, **--quad-precision-floats**
-uses quad-precision floats for audio computations
+  **-g**         **--group-tasks**                group single-threaded sequential tasks together when -omp or -sch is used.
 
-**-es 1|0**, **--enable-semantics 1|0**
-use enable semantics when 1, and simple multiplication otherwise
+  **-fun**       **--fun-tasks**                  separate tasks code as separated functions (in -vec, -sch, or -omp mode).
 
-**-lcc **, **--local-causality-check**
-check causality also at local level
+  **-fm** \<file> **--fast-math** \<file>           use optimized versions of mathematical functions implemented in \<file>,
+                                          use 'faust/dsp/fastmath.cpp' when file is 'def'.
 
-**-flist**, **--file-list**
-list all the files used to eval process
 
-**-norm**, **--normalized-form** 
-prints signals in normalized form and exits
+Block diagram options:
+---------------------------------------
 
-**-A \<dir>**, **--architecture-dir \<dir>** 
-add the directory \<dir> to the architecture search path
+  **-ps**        **--postscript**                 print block-diagram to a postscript file.
 
-**-I \<dir>**, **--import-dir \<dir>** 
-add the directory \<dir> to the import search path
+  **-svg**       **--svg**                        print block-diagram to a svg file.
 
-**-L \<file>**, **--library \<file>** 
-link with the LLVM module \<file>
+  **-sd**        **--simplify-diagrams**          try to further simplify diagrams before drawing.
 
-**-O \<dir>**, **--output-dir \<dir>** 
-specify the relative directory of the generated output code, and the output directory of additional generated files (SVG, XML...)
+  **-f** \<n>     **--fold** \<n>                   threshold during block-diagram generation (default 25 elements).
 
-**-e**, **--export-dsp**
-export expanded DSP code (all included libraries)
+  **-mns** \<n>   **--max-name-size** \<n>          threshold during block-diagram generation (default 40 char).
 
-**-inpl**, **--in-place**
-generate inplace code when input and output buffers are the same (in scalar mode only)
+  **-sn**        **--simple-names**               use simple names (without arguments) during block-diagram generation.
 
-**-inj \<f>**, **--inject \<f>**
-inject source file \<f> into architecture file instead of compiling a dsp file
+  **-blur**      **--shadow-blur**                add a shadow blur to SVG boxes.
 
-**-ftz**, **--flush-to-zero**
-Adds flush-to-zero code to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]
 
-**-fm \<default|file>**, **--fast-math \<file>**
-uses optimized versions of mathematical functions implemented in \<file>, takes the '/faust/dsp/fastmath.cpp' file if 'default' is used
+Math doc options:
+---------------------------------------
+
+  **-mdoc**       **--mathdoc**                   print math documentation of the Faust program in LaTeX format in a -mdoc folder.
+
+  **-mdlang** \<l> **--mathdoc-lang** \<l>          if translation file exists (\<l> = en, fr, ...).
+
+  **-stripmdoc**  **--strip-mdoc-tags**           strip mdoc tags when printing Faust -mdoc listings.
+
+
+Debug options:
+---------------------------------------
+
+  **-d**          **--details**                   print compilation details.
+
+  **-tg**         **--task-graph**                print the internal task graph in dot format.
+
+  **-sg**         **--signal-graph**              print the internal signal graph in dot format.
+
+  **-norm**       **--normalized-form**           print signals in normalized form and exit.
+
+
+Information options:
+---------------------------------------
+
+  **-h**          **--help**                      print this help message.
+
+  **-v**          **--version**                   print version information and embedded backends list.
+
+  **-libdir**     **--libdir**                    print directory containing the faust libraries.
+
+  **-includedir** **--includedir**                print directory containing the faust headers.
+
+  **-archdir**    **--archdir**                   print directory containing the faust architectures.
+
+  **-dspdir**     **--dspdir**                    print directory containing the faust dsp libraries.
+
+  **-pathslist**  **--pathslist**                 print the architectures and dsp library paths.
+
+
+Example:
+---------------------------------------
+
+faust **-a** jack-gtk.cpp -o myfx.cpp myfx.dsp
 
 SEE ALSO
 ========

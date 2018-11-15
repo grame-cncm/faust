@@ -785,7 +785,7 @@ static void printVersion()
     cout << "FAUST : " << makeBackendsString() << ", Version " << FAUSTVERSION << "\n";
     cout << "Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale. All rights reserved. \n";
 #else
-    cout << "FAUST version " << FAUSTVERSION << "\n";
+    cout << "FAUST Version " << FAUSTVERSION << "\n";
     cout << "Embedded backends: \n";
     enumBackends (cout);
 #ifdef LLVM_BUILD
@@ -806,7 +806,7 @@ static void printHelp()
 
     cout << endl << "Input options:" << line;
     cout << tab << "-a <file>                               wrapper architecture file." << endl;
-    cout << tab << "-i        --inline-architecture-files   inline architecture files" << endl;
+    cout << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
     cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path." << endl;
     cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the import search path." << endl;
     cout << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
@@ -823,18 +823,18 @@ static void printHelp()
     cout << tab << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and of additional generated files (SVG, XML...)." << endl;
 
     cout << endl << "Code generation options:" << line;
-    cout << tab << "-lang <lang> --language                 select output language." << endl;
-    cout << tab << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp" << endl;
-    cout << tab << "-single     --single-precision-floats   use single precision floats for internal computations (default)" << endl;
-    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations" << endl;
-    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations" << endl;
-    cout << tab << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication otherwise" << endl;
+    cout << tab << "-lang <lang> --language                 select output language," << endl;
+    cout << tab << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp." << endl;
+    cout << tab << "-single     --single-precision-floats   use single precision floats for internal computations (default)." << endl;
+    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations." << endl;
+    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations." << endl;
+    cout << tab << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication otherwise." << endl;
     cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
-    cout << tab << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp ." << endl;
-    cout << tab << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp ." << endl;
-    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process ." << endl;
+    cout << tab << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp." << endl;
+    cout << tab << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp." << endl;
+    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process." << endl;
     cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
@@ -856,7 +856,7 @@ static void printHelp()
     cout << tab << "-dfs       --deep-first-scheduling      schedule vector loops in deep first order." << endl;
     cout << tab << "-g         --group-tasks                group single-threaded sequential tasks together when -omp or -sch is used." << endl;
     cout << tab << "-fun       --fun-tasks                  separate tasks code as separated functions (in -vec, -sch, or -omp mode)." << endl;
-    cout << tab << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in <file>." << endl;
+    cout << tab << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in <file>," << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
 
     cout << endl << "Block diagram options:" << line;
@@ -886,7 +886,7 @@ static void printHelp()
     cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
     cout << tab << "-archdir    --archdir                   print directory containing the faust architectures." << endl;
     cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries." << endl;
-    cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths" << endl;
+    cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
 
     cout << endl << "Example:" << line;
     cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;

@@ -161,6 +161,17 @@ help :
 	@echo " 'format'           : clang-format all src files"
 	@echo
 
+readme:
+	@cat resources/man-header.txt
+	@build/bin/faust -h | sed -e 's/\(-[a-zA-Z][a-zA-Z]*\)/**\1**/' \
+			 | sed -e 's/\(--[a-zA-Z][a-zA-Z-]*\)/**\1**/' \
+			 | sed -e 's/</\\</g' \
+			 | sed '/-----*/ G' \
+			 | sed '/\.$$/ G' 
+	@cat resources/man-footer.txt
+		 
+	
+
 # 	@echo "Usage : 'make; sudo make install'"
 # 	@echo "For http support : 'make httpd; make; sudo make install' (requires GNU libmicrohttpd)"
 # 	@echo "make or make all : compile the Faust compiler and osc support library"
@@ -211,8 +222,11 @@ updatesubmodules :
 doclib : updatesubmodules
 	./libraries/generateDoc
 
+#man :
+#	pandoc --standalone --to man compiler/README.md -o faust.1
+
 man :
-	pandoc --standalone --to man compiler/README.md -o faust.1
+	make -C documentation/man man
 
 install :
 	make -C $(BUILDLOCATION) install DESTDIR=$(DESTDIR) PREFIX=$(PREFIX)
