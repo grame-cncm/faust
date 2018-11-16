@@ -168,8 +168,10 @@ package:
 	make $(NATIVEPACK)
 
 winpack:
+	cd $(FAUSTDIR) && cmake -DUSE_LLVM_CONFIG=off -DPACK=on -C ../bakckends/most.cmake -C ../targets/most.cmake ..
 	make
-	make cmake -DPACK=ON
+	cd $(FAUSTDIR) && cpack -G NSIS64
+	mv  $(FAUSTDIR)/Faust-*.exe .
 
 macpack:
 	make -C package/Tools
@@ -179,6 +181,9 @@ macpack:
 	cp package/install $(PACK)/Faust-$(VERSION)
 	cp package/README.rtf $(PACK)
 	hdiutil create Faust-$(VERSION).dmg -srcfolder $(PACK) -ov
+
+linuxpack:
+	@echo Linux packaging not implemented. 
 
 #===============================================================
 # building universal binaries on macos
