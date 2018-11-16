@@ -35,7 +35,6 @@
 #endif
 
 #include "exepath.hh"
-#include "exception.hh"
 
 using namespace std;
 
