@@ -65,10 +65,9 @@ class FaustPolyEngine {
         {
             bool midi_sync = false;
             int nvoices = 0;
+            fRunning = false;
             
             MidiMeta::analyse(mono_dsp, midi_sync, nvoices);
-            
-            fRunning = false;
             
             // Getting the UI JSON
             JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
