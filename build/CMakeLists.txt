@@ -375,13 +375,10 @@ set (CPACK_MONOLITHIC_INSTALL true)
 set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING.txt)
 set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
 
-
+####################################
+# NSIS specific section
 set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
 set (CPACK_NSIS_MODIFY_PATH on)
 set (CPACK_NSIS_MUI_ICON "${ROOT}/build/package/faust.ico")
-
-set (CPACK_BUNDLE_NAME FaustInstaller)
-set (CPACK_BUNDLE_PLIST ${ROOT}/build/FaustBundle.plist)
-set (CPACK_BUNDLE_ICON ${ROOT}/build/FaustBundle.ico)
 
 include (CPack)
