@@ -128,10 +128,9 @@ static string makeBackendsString()
     return backends.str();
 }
 
-
-static void enumBackends( ostream& out)
+static void enumBackends(ostream& out)
 {
-    const char * dspto = "   DSP to ";
+    const char* dspto = "   DSP to ";
 #ifdef C_BUILD
     out << dspto << "C" << endl;
 #endif
@@ -754,25 +753,28 @@ static bool processCmdline(int argc, const char* argv[])
 #define kPSEP '/'
 #endif
 
-static void printLibDir() {
-	cout << gGlobal->gFaustRootDir << kPSEP << "lib";
+static void printLibDir()
+{
+    cout << gGlobal->gFaustRootDir << kPSEP << "lib";
 }
-static void printIncludeDir() {
-	cout << gGlobal->gFaustRootDir << kPSEP << "include";
+static void printIncludeDir()
+{
+    cout << gGlobal->gFaustRootDir << kPSEP << "include";
 }
-static void printArchDir() {
-	cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+static void printArchDir()
+{
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
 }
-static void printDspDir() {
-	cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+static void printDspDir()
+{
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
 }
-static void printPaths() {
-	cout << "FAUST dsp library paths:" << endl;
-	for (auto path: gGlobal->gImportDirList)
-		cout << path << endl;
-	cout << "\nFAUST architectures paths:" << endl;
-	for (auto path: gGlobal->gArchitectureDirList)
-		cout << path << endl;
+static void printPaths()
+{
+    cout << "FAUST dsp library paths:" << endl;
+    for (auto path : gGlobal->gImportDirList) cout << path << endl;
+    cout << "\nFAUST architectures paths:" << endl;
+    for (auto path : gGlobal->gArchitectureDirList) cout << path << endl;
 }
 
 /****************************************************************
@@ -787,7 +789,7 @@ static void printVersion()
 #else
     cout << "FAUST Version " << FAUSTVERSION << "\n";
     cout << "Embedded backends: \n";
-    enumBackends (cout);
+    enumBackends(cout);
 #ifdef LLVM_BUILD
     cout << "Build with LLVM version " << LLVM_VERSION << "\n";
 #endif
@@ -797,81 +799,142 @@ static void printVersion()
 
 static void printHelp()
 {
-	const char * tab = "  ";
-	const char * line = "\n---------------------------------------\n";
+    const char* tab  = "  ";
+    const char* line = "\n---------------------------------------\n";
 
     cout << "FAUST compiler version " << FAUSTVERSION << "\n";
     cout << "usage : faust [options] file1 [file2 ...]." << endl;
-    cout << "        where options represent zero or more compiler options \n\tand fileN represents a Faust source file (.dsp extension)." << endl;
+    cout << "        where options represent zero or more compiler options \n\tand fileN represents a Faust source "
+            "file (.dsp extension)."
+         << endl;
 
     cout << endl << "Input options:" << line;
     cout << tab << "-a <file>                               wrapper architecture file." << endl;
     cout << tab << "-i        --inline-architecture-files   inline architecture files." << endl;
-    cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path." << endl;
+    cout << tab << "-A <dir>  --architecture-dir <dir>      add the directory <dir> to the architecture search path."
+         << endl;
     cout << tab << "-I <dir>  --import-dir <dir>            add the directory <dir> to the import search path." << endl;
     cout << tab << "-L <file> --library <file>              link with the LLVM module <file>." << endl;
 
-    cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)." << endl;
+    cout << tab << "-t <sec>  --timeout <sec>               abort compilation after <sec> seconds (default 120)."
+         << endl;
     cout << tab << "-time     --compilation-time            display compilation phases timing information." << endl;
 
     cout << endl << "Output options:" << line;
     cout << tab << "-o <file>                               the output file." << endl;
     cout << tab << "-e        --export-dsp                  export expanded DSP (all included libraries)." << endl;
-    cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code." << endl;
+    cout << tab << "-uim      --user-interface-macros       add user interface macro definitions to the output code."
+         << endl;
     cout << tab << "-xml                                    generate an XML description file." << endl;
     cout << tab << "-json                                   generate a JSON description file." << endl;
-    cout << tab << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and of additional generated files (SVG, XML...)." << endl;
+    cout << tab
+         << "-O <dir>  --output-dir <dir>            specify the relative directory of the generated output code and "
+            "of additional generated files (SVG, XML...)."
+         << endl;
 
     cout << endl << "Code generation options:" << line;
     cout << tab << "-lang <lang> --language                 select output language," << endl;
-    cout << tab << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, llvm, cllvm, fir, wast/wasm, interp." << endl;
-    cout << tab << "-single     --single-precision-floats   use single precision floats for internal computations (default)." << endl;
-    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations." << endl;
-    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations." << endl;
-    cout << tab << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication otherwise." << endl;
+    cout << tab
+         << "                                        'lang' should be in c, ocpp, cpp (default), rust, java, js, ajs, "
+            "llvm, cllvm, fir, wast/wasm, interp."
+         << endl;
+    cout << tab
+         << "-single     --single-precision-floats   use single precision floats for internal computations (default)."
+         << endl;
+    cout << tab << "-double     --double-precision-floats   use double precision floats for internal computations."
+         << endl;
+    cout << tab << "-quad       --quad-precision-floats     use quad precision floats for internal computations."
+         << endl;
+    cout << tab
+         << "-es 1|0     --enable-semantics 1|0      use enable semantics when 1 (default), and simple multiplication "
+            "otherwise."
+         << endl;
     cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
-    cout << tab << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp." << endl;
-    cout << tab << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp." << endl;
-    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process." << endl;
+    cout << tab
+         << "-cn <name>  --class-name <name>         specify the name of the dsp class to be used instead of mydsp."
+         << endl;
+    cout << tab
+         << "-scn <name> --super-class-name <name>   specify the name of the super class to be used instead of dsp."
+         << endl;
+    cout << tab << "-pn <name>  --process-name <name>       specify the name of the dsp entry-point instead of process."
+         << endl;
     cout << tab << "-lb         --left-balanced             generate left balanced expressions." << endl;
     cout << tab << "-mb         --mid-balanced              generate mid balanced expressions (default)." << endl;
     cout << tab << "-rb         --right-balanced            generate right balanced expressions." << endl;
     cout << tab << "-lt         --less-temporaries          generate less temporaries in compiling delays." << endl;
-    cout << tab << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 samples)." << endl;
-    cout << tab << "-mem        --memory                    allocate static in global state using a custom memory manager." << endl;
-    cout << tab << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, 2:mask based (fastest)]." << endl;
-    cout << tab << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile a dsp file." << endl;
+    cout << tab
+         << "-mcd <n>    --max-copy-delay <n>        threshold between copy and ring buffer implementation (default 16 "
+            "samples)."
+         << endl;
+    cout << tab
+         << "-mem        --memory                    allocate static in global state using a custom memory manager."
+         << endl;
+    cout << tab
+         << "-ftz <n>    --flush-to-zero <n>         code added to recursive signals [0:no (default), 1:fabs based, "
+            "2:mask based (fastest)]."
+         << endl;
+    cout << tab
+         << "-inj <f>    --inject <f>                inject source file <f> into architecture file instead of compile "
+            "a dsp file."
+         << endl;
     cout << tab << "-scal      --scalar                     generate non-vectorized code." << endl;
-    cout << tab << "-inpl      --in-place                   generates code working when input and output buffers are the same (scalar mode only)." << endl;
+    cout << tab
+         << "-inpl      --in-place                   generates code working when input and output buffers are the same "
+            "(scalar mode only)."
+         << endl;
     cout << tab << "-vec       --vectorize                  generate easier to vectorize code." << endl;
     cout << tab << "-vs <n>    --vec-size <n>               size of the vector (default 32 samples)." << endl;
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
-    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option." << endl;
+    cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option."
+         << endl;
     cout << tab << "-pl        --par-loop                   generate parallel loops in --openMP mode." << endl;
-    cout << tab << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates --vectorize option." << endl;
+    cout << tab
+         << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates "
+            "--vectorize option."
+         << endl;
     cout << tab << "-ocl       --opencl                     generate tasks with OpenCL (experimental)." << endl;
     cout << tab << "-cuda      --cuda                       generate tasks with CUDA (experimental)." << endl;
     cout << tab << "-dfs       --deep-first-scheduling      schedule vector loops in deep first order." << endl;
-    cout << tab << "-g         --group-tasks                group single-threaded sequential tasks together when -omp or -sch is used." << endl;
-    cout << tab << "-fun       --fun-tasks                  separate tasks code as separated functions (in -vec, -sch, or -omp mode)." << endl;
-    cout << tab << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in <file>," << endl;
+    cout << tab
+         << "-g         --group-tasks                group single-threaded sequential tasks together when -omp or -sch "
+            "is used."
+         << endl;
+    cout << tab
+         << "-fun       --fun-tasks                  separate tasks code as separated functions (in -vec, -sch, or "
+            "-omp mode)."
+         << endl;
+    cout << tab
+         << "-fm <file> --fast-math <file>           use optimized versions of mathematical functions implemented in "
+            "<file>,"
+         << endl;
     cout << tab << "                                        use 'faust/dsp/fastmath.cpp' when file is 'def'." << endl;
 
     cout << endl << "Block diagram options:" << line;
     cout << tab << "-ps        --postscript                 print block-diagram to a postscript file." << endl;
     cout << tab << "-svg       --svg                        print block-diagram to a svg file." << endl;
     cout << tab << "-sd        --simplify-diagrams          try to further simplify diagrams before drawing." << endl;
-    cout << tab << "-f <n>     --fold <n>                   threshold during block-diagram generation (default 25 elements)." << endl;
-    cout << tab << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)." << endl;
-    cout << tab << "-sn        --simple-names               use simple names (without arguments) during block-diagram generation." << endl;
+    cout << tab
+         << "-f <n>     --fold <n>                   threshold during block-diagram generation (default 25 elements)."
+         << endl;
+    cout << tab
+         << "-mns <n>   --max-name-size <n>          threshold during block-diagram generation (default 40 char)."
+         << endl;
+    cout << tab
+         << "-sn        --simple-names               use simple names (without arguments) during block-diagram "
+            "generation."
+         << endl;
     cout << tab << "-blur      --shadow-blur                add a shadow blur to SVG boxes." << endl;
 
     cout << endl << "Math doc options:" << line;
-    cout << tab << "-mdoc       --mathdoc                   print math documentation of the Faust program in LaTeX format in a -mdoc folder." << endl;
+    cout << tab
+         << "-mdoc       --mathdoc                   print math documentation of the Faust program in LaTeX format in "
+            "a -mdoc folder."
+         << endl;
     cout << tab << "-mdlang <l> --mathdoc-lang <l>          if translation file exists (<l> = en, fr, ...)." << endl;
-    cout << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings." << endl;
+    cout << tab << "-stripmdoc  --strip-mdoc-tags           strip mdoc tags when printing Faust -mdoc listings."
+         << endl;
 
     cout << endl << "Debug options:" << line;
     cout << tab << "-d          --details                   print compilation details." << endl;
@@ -881,22 +944,24 @@ static void printHelp()
 
     cout << endl << "Information options:" << line;
     cout << tab << "-h          --help                      print this help message." << endl;
-    cout << tab << "-v          --version                   print version information and embedded backends list." << endl;
+    cout << tab << "-v          --version                   print version information and embedded backends list."
+         << endl;
     cout << tab << "-libdir     --libdir                    print directory containing the faust libraries." << endl;
     cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures." << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures."
+         << endl;
+    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries."
+         << endl;
     cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
 
     cout << endl << "Example:" << line;
     cout << "faust -a jack-gtk.cpp -o myfx.cpp myfx.dsp" << endl;
 }
 
-
 static void oldprintHelp()
 {
     cout << "FAUST version " << FAUSTVERSION << "\n";
-//    printVersion();
+    //    printVersion();
     cout << "usage : faust [options] file1 [file2 ...]\n";
     cout << "\twhere options represent zero or more compiler options \n\tand fileN represents a Faust source file "
             "(.dsp extension).\n";
@@ -1002,9 +1067,9 @@ static void printDeclareHeader(ostream& dst)
     }
 }
 
-    /****************************************************************
-                                    MAIN
-    *****************************************************************/
+/****************************************************************
+                                MAIN
+*****************************************************************/
 
 #ifdef OCPP_BUILD
 
@@ -1123,7 +1188,7 @@ static void initFaustDirectories(int argc, const char* argv[])
     getFaustPathname(s, 1024);
 
     gGlobal->gFaustExeDir              = exepath::get(argv[0]);
-    gGlobal->gFaustRootDir             = exepath::dirup (gGlobal->gFaustExeDir);
+    gGlobal->gFaustRootDir             = exepath::dirup(gGlobal->gFaustExeDir);
     gGlobal->gFaustDirectory           = fileDirname(s);
     gGlobal->gFaustSuperDirectory      = fileDirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
@@ -1171,17 +1236,18 @@ static void initFaustDirectories(int argc, const char* argv[])
     gGlobal->gArchitectureDirList.push_back(INSTALL_PREFIX "/include");
 #endif
     gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/share/faust");
+    gGlobal->gArchitectureDirList.push_back(exepath::dirup(gGlobal->gFaustExeDir) + "/include");
     gGlobal->gArchitectureDirList.push_back("/usr/local/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/share/faust");
     gGlobal->gArchitectureDirList.push_back("/usr/local/include");
     gGlobal->gArchitectureDirList.push_back("/usr/include");
 
     // for debugging purposes
-//    cerr << "gArchitectureDirList:\n";
-//    for (auto d : gGlobal->gArchitectureDirList) {
-//        cerr << "\t" << d << "\n";
-//    }
-//    cerr << endl;
+    //    cerr << "gArchitectureDirList:\n";
+    //    for (auto d : gGlobal->gArchitectureDirList) {
+    //        cerr << "\t" << d << "\n";
+    //    }
+    //    cerr << endl;
 }
 
 static void parseSourceFiles()
