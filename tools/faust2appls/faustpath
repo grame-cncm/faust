@@ -17,7 +17,7 @@
 # add line << . faustpath >> to your script
 # and use -L$FAUSTLIB and -I$FAUSTINC where needed
 
-FAUSTLIB=$(faust -libdir); FAUSTINC=$(faust -includedir); 
+FAUSTLIB=$(faust -archdir); FAUSTINC=$(faust -includedir); 
 
 FPATH="$FAUST_INSTALL /usr/local /usr /opt /opt/local"; # <- where to search
 if [ -z "$FAUSTLIB" -o -z "$FAUSTINC" ]; then 
