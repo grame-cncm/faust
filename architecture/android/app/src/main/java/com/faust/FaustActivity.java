@@ -72,11 +72,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public class FaustActivity extends Activity {
+// For audio input request permission
+import android.support.v4.app.ActivityCompat;
+import android.Manifest;
+import android.widget.Toast;
+import android.support.annotation.NonNull;
+import android.content.pm.PackageManager;
+
+public class FaustActivity extends Activity
+implements ActivityCompat.OnRequestPermissionsResultCallback {
     
     private int sampleRate = 44100;
     private int bufferSize = 512;
     private int sensorIntervalMs = 0;
+    
+    // For audio input request permission
+    private static final int AUDIO_ECHO_REQUEST = 0;
     
 	private SensorManager mSensorManager;
 	private int numberOfParameters;
@@ -88,7 +99,6 @@ public class FaustActivity extends Activity {
     private boolean fBuildUI;
     private MonochromeView fMonoView;
     public static DspFaust dspFaust;
-    
 
     /**
      * Detects and toggles immersive mode (also known as "hidey bar" mode).
@@ -205,9 +215,16 @@ public class FaustActivity extends Activity {
             Log.d("FaustJava", "Size :" + size + " Rate: " + rate);
             dsp_faust.init(Integer.parseInt(rate), Integer.parseInt(size));
             */
-
-            // TODO: sr and buffer length should change in function of the device for best latency perfs
-            dspFaust = new DspFaust(sampleRate, bufferSize);
+            
+            // For audio input request permission
+            
+            if (!isRecordPermissionGranted()){
+                requestRecordPermission();
+                return;
+            } else {
+                // TODO: sr and buffer length should change in function of the device for best latency perfs
+                dspFaust = new DspFaust(sampleRate, bufferSize);
+            }
 
             Osc.startListening();
         }
@@ -421,10 +438,48 @@ public class FaustActivity extends Activity {
             Osc.stopListening();
             dspFaust.stop(); // TODO: not sure if needed
     		dspFaust.delete();
-        dspFaust = null;
+            dspFaust = null;
         }
         SharedPreferences settings = getSharedPreferences("savedParameters", 0);
         parametersInfo.saveParameters(settings);
         super.onDestroy();
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+        @NonNull int[] grantResults) {
+
+        if (AUDIO_ECHO_REQUEST != requestCode) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+            return;
+        }
+
+        if (grantResults.length != 1 ||
+            grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+
+            // User denied the permission, without this we cannot record audio
+            // Show a toast and update the status accordingly
+            //statusText.setText(R.string.status_record_audio_denied);
+            //statusText.setText("status_record_audio_denied");
+            Toast.makeText(getApplicationContext(),
+                            //getString(R.string.need_record_audio_permission),
+                            "need_record_audio_permission",
+                            Toast.LENGTH_SHORT)
+            .show();
+        } else {
+            // Permission was granted, start echoing
+            //toggleEcho();
+        }
+    }
+
+
+    // For audio input request permission
+    private boolean isRecordPermissionGranted() {
+        return (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED);
+    }
+
+    private void requestRecordPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, AUDIO_ECHO_REQUEST);
+    }
+
 }
