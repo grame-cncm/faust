@@ -11,3 +11,5 @@ set ( INCLUDE_HTTP        ON  CACHE STRING  "Include Faust HTTPD library" FORCE 
 set ( OSCDYNAMIC          OFF CACHE STRING  "Include Faust OSC dynamic library" FORCE )
 set ( HTTPDYNAMIC         OFF CACHE STRING  "Include Faust HTTP dynamic library" FORCE )
 
+set ( INCLUDE_ITP         OFF  CACHE STRING  "Include Faust Machine library" FORCE )
+set ( ITPDYNAMIC          OFF  CACHE STRING  "Include Faust Machine library" FORCE )

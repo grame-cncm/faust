@@ -15,7 +15,7 @@ faust.mydsp = function (instance, buffer_size, sample_rate) {
     // Keep JSON parsed object
     var json_object = JSON.parse(getJSONmydsp());
     
-    console.log("Compiled with wasm backend, libfaust version : %s, options : %s", json_object.version, json_object.options);
+    console.log("Compiled with wasm backend, libfaust version : %s, options : %s", json_object.version, json_object.compile_options);
       
     var numIn = parseInt(json_object.inputs);
     var numOut = parseInt(json_object.outputs);

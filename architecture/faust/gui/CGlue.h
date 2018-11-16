@@ -267,7 +267,7 @@ static void declareGlueDouble(void* cpp_interface, double* zone, const char* key
     ui_interface->declare(zone, key, value);
 }
 
-inline void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
+static void buildUIGlue(UIGlue* glue, UI* ui_interface, bool is_double)
 {
     glue->uiInterface = ui_interface;
     
@@ -447,7 +447,7 @@ static void declareMetaGlue(void* cpp_interface, const char* key, const char* va
     meta_interface->declare(key, value);
 }
 
-inline void buildMetaGlue(MetaGlue* glue, Meta* meta)
+static void buildMetaGlue(MetaGlue* glue, Meta* meta)
 {
     glue->metaInterface = meta;
     glue->declare = declareMetaGlue;
@@ -469,7 +469,7 @@ static void destroyManagerGlue(void* cpp_interface, void* ptr)
     manager_interface->destroy(ptr);
 }
 
-inline void buildManagerGlue(ManagerGlue* glue, dsp_memory_manager* manager)
+static void buildManagerGlue(ManagerGlue* glue, dsp_memory_manager* manager)
 {
     glue->managerInterface = manager;
     glue->allocate = allocateManagerGlue;

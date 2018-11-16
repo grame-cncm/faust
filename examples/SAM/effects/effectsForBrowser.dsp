@@ -60,7 +60,6 @@ dTapSamples = dTapSamplesRaw : t60smoother(dEchoT60*(1-triggerScrubOff));
 
 echo_process = _ <: _, amp * echo_mono(dmax,dEchoSamples,dTapSamples,fb,fbspr(fbs),gi) : +;
 
-
 }.echo_process;
 
 component_flanger = environment {
@@ -68,18 +67,15 @@ component_flanger = environment {
 // Created from flange.dsp 2015/06/21
 
 flanger_mono(dmax,curdel,depth,fb,invert,lfoshape)
-= _ <: _, (-:de.fdelay(dmax,curdel)) ~ *(fb) : _,
-*(select2(invert,depth,0-depth))
-: + : *(1/(1+depth));           // ideal for dc and reinforced sinusoids (in-phase summed signals)
-
+	= _ <: _, (-:de.fdelay(dmax,curdel)) ~ *(fb) : _, *(select2(invert,depth,0-depth)) : + : *(1/(1+depth)); // ideal for dc and reinforced sinusoids (in-phase summed signals)
 
 flanger_process = ba.bypass1(fbp,flanger_mono_gui);
 
 // Kill the groups to save vertical space:
 meter_group(x) = flsg(x);
-ctl_group(x)  = flkg(x);
-del_group(x)  = flkg(x);
-lvl_group(x)  = flkf(x);
+ctl_group(x) = flkg(x);
+del_group(x) = flkg(x);
+lvl_group(x) = flkf(x);
 
 flangeview = lfo(freq);
 
@@ -108,82 +104,41 @@ fbp = 1-int(flsg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
 
 invert = flsg(vslider("[1] Invert [midi:ctrl 49][style:knob]",0,0,1,1):int);
 
-
-
 }.flanger_process;
 
 component_chorus = environment {
 
-
 voices = 8; // MUST BE EVEN
-chorus_process = bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
-
-// to become ba.bypass1to2 in Faust's basics.lib:
-bypass1to2(bpc,e) = _ <: ((inswitch:e),_,_) : ba.select2stereo(bpc) with {inswitch = select2(bpc,_,0);};
-
-ml = library("music.lib");      // /l/fdlo/music.lib
-fl = library("filter.lib");
-el = library("effect.lib");     // /l/fdlo/effect.lib
-ol = library("oscillator.lib"); // /l/fdlo/oscillator.lib
-
-//wo = library("waveoscs.dsp");
-//pi = 4.0*atan(1.0);
-
-oscs(freq) = rdtable(tablesize, sinwaveform, int(ml.phase(freq)) );
-oscc(freq) = rdtable(tablesize, coswaveform, int(ml.phase(freq)) );
-oscp(freq,p) = oscs(freq) * cos(p) + oscc(freq) * sin(p);
-// osc = oscs; // music.lib
-sinwaveform = float(ml.time)*(2.0*pi)/float(tablesize) : sin;
-coswaveform = float(ml.time)*(2.0*pi)/float(tablesize) : cos;
-tablesize = 1 << 16;
-pi = 4.0*atan(1.0);
-
+chorus_process = ba.bypass1to2(cbp,chorus_mono(dmax,curdel,rate,sigma,do2,voices));
 
 dmax = 8192;
-curdel = dmax * ckg(vslider("[0] Delay [midi:ctrl 55] [style:knob]", 0.5, 0, 1, 1)) : fl.smooth(0.999);
+curdel = dmax * ckg(vslider("[0] Delay [midi:ctrl 55] [style:knob]", 0.5, 0, 1, 1)) : si.smooth(0.999);
 rateMax = 7.0; // Hz
 rateMin = 0.01;
 rateT60 = 0.15661;
 rate = ckg(vslider("[1] Rate [midi:ctrl 56] [unit:Hz] [style:knob]", 0.5, rateMin, rateMax, 0.0001))
-: fl.smooth(fl.tau2pole(rateT60/6.91));
+       : si.smooth(ba.tau2pole(rateT60/6.91));
 
-depth  = ckg(vslider("[4] Depth [midi:ctrl 57] [style:knob]", 0.5, 0, 1, 0.001)) : fl.smooth(fl.tau2pole(depthT60/6.91));
+depth = ckg(vslider("[4] Depth [midi:ctrl 57] [style:knob]", 0.5, 0, 1, 0.001)) : si.smooth(ba.tau2pole(depthT60/6.91));
 
 depthT60 = 0.15661;
 delayPerVoice = 0.5*curdel/voices;
-sigma  = delayPerVoice * ckg(vslider("[6] Deviation [midi:ctrl 58] [style:knob]",0.5,0,1,0.001)) : fl.smooth(0.999);
+sigma = delayPerVoice * ckg(vslider("[6] Deviation [midi:ctrl 58] [style:knob]",0.5,0,1,0.001)) : si.smooth(0.999);
 
-periodic  = 1;
+periodic = 1;
 
 do2 = depth;   // use when depth=1 means "multivibrato" effect (no original => all are modulated)
 cbp = 1-int(csg(vslider("[0] Enable [midi:ctrl 103][style:knob]",0,0,1,1)));
 
 chorus_mono(dmax,curdel,rate,sigma,do2,voices)
-= _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ml.interleave(2,2) : +,+
-with {
-
-angle(i) = 2*pi*(i/2)/voices + (i%2)*pi/2;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-del(i) = curdel*(i+1)/voices + dev(i);
-rates(i) = rate/float(i+1);
-dev(i) = sigma *
-oscp(rates(i),i*2*pi/voices);
-};
-
-chorus_stereo(dmax,curdel,rate,sigma,do2,voices) =
-_,_ <: *(1-do2),*(1-do2),(*(do2),*(do2) <: par(i,voices,voice(i)):>_,_) : ml.interleave(2,2) : +,+;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i)))/(i+1)
-with {
-angle(i) = 2*pi*(i/2)/voices + (i%2)*pi/2;
-voice(i) = ml.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
-
-del(i) = curdel*(i+1)/voices + dev(i);
-rates(i) = rate/float(i+1);
-dev(i) = sigma *
-oscp(rates(i),i*2*pi/voices);
-
-};
-
+    = _ <: (*(1-do2)<:_,_),(*(do2) <: par(i,voices,voice(i)) :> _,_) : ro.interleave(2,2) : +,+
+    with {
+        angle(i) = 2*ma.PI*(i/2)/voices + (i%2)*ma.PI/2;
+        voice(i) = de.fdelay(dmax,min(dmax,del(i))) * cos(angle(i));
+        del(i) = curdel*(i+1)/voices + dev(i);
+        rates(i) = rate/float(i+1);
+        dev(i) = sigma * os.oscp(rates(i),i*2*ma.PI/voices);
+    };
 
 }.chorus_process;
 
@@ -224,7 +179,6 @@ freezemode  = 0.5;
 stereospread= 23;
 allpassfeed = 0.5; //feedback of the delays used in allpass filters
 
-
 // Filter Parameters
 //------------------
 
@@ -242,7 +196,6 @@ allpasstuningL2 = 441;
 allpasstuningL3 = 341;
 allpasstuningL4 = 225;
 
-
 // Control Sliders
 //--------------------
 // Damp : filters the high frequencies of the echoes (especially active for great values of RoomSize)
@@ -255,14 +208,12 @@ roomsizeSlider  = rkg(vslider("RoomSize [midi:ctrl 4] [style:knob]", 0.5, 0, 1, 
 wetSlider       = rkg(vslider("Wet [midi:ctrl 79] [style:knob]", 0.3333, 0, 1, 0.025));
 combfeed        = roomsizeSlider;
 
-
 // Comb and Allpass filters
 //-------------------------
 
 allpass(dt,fb) = (_,_ <: (*(fb),_:+:@(dt)), -) ~ _ : (!,_);
 
 comb(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
-
 
 // Reverb components
 //------------------
@@ -305,9 +256,7 @@ freeverb = fxctrl(fixedgain, wetSlider, monoReverbToStereo(combfeed, allpassfeed
 
 freeverb_process = ba.bypass2(rbp,freeverb);
 
-
 }.freeverb_process;
-
 
 // This layout loosely follows the MiniMoog-V
 // Arturia-only features are labeled

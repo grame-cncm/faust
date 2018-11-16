@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1022,20 +1022,37 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                 } else {
                     // Otherwise generate index computation code
                     if (fFastMemory) {
-                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                        indexed->fIndex->accept(this);
-                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
-                        *fOut << int8_t(WasmOp::I32Shl);
-                        *fOut << int8_t(WasmOp::I32Add);
+                        // Micro optimization if the field is actually the first one in the structure
+                        if (tmp.fOffset == 0) {
+                            indexed->fIndex->accept(this);
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                            *fOut << int8_t(WasmOp::I32Shl);
+                        } else {
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                            indexed->fIndex->accept(this);
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                            *fOut << int8_t(WasmOp::I32Shl);
+                            *fOut << int8_t(WasmOp::I32Add);
+                        }
                     } else {
-                        *fOut << int8_t(BinaryConsts::GetLocal)
-                              << U32LEB(0);  // Assuming $dsp is at 0 local variable index
-                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
-                        indexed->fIndex->accept(this);
-                        *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
-                        *fOut << int8_t(WasmOp::I32Shl);
-                        *fOut << int8_t(WasmOp::I32Add);
-                        *fOut << int8_t(WasmOp::I32Add);
+                        // Micro optimization if the field is actually the first one in the structure
+                        if (tmp.fOffset == 0) {
+                            *fOut << int8_t(BinaryConsts::GetLocal)
+                            << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                            indexed->fIndex->accept(this);
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                            *fOut << int8_t(WasmOp::I32Shl);
+                            *fOut << int8_t(WasmOp::I32Add);
+                        } else {
+                            *fOut << int8_t(BinaryConsts::GetLocal)
+                                  << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(tmp.fOffset);
+                            indexed->fIndex->accept(this);
+                            *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
+                            *fOut << int8_t(WasmOp::I32Shl);
+                            *fOut << int8_t(WasmOp::I32Add);
+                            *fOut << int8_t(WasmOp::I32Add);
+                        }
                     }
                 }
             } else {

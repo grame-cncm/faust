@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,9 +73,10 @@ struct LEB {
 
     void writeAt(std::vector<uint8_t>* out, size_t at, size_t minimum = 0)
     {
-        T      temp   = value;
+        T temp = value;
         size_t offset = 0;
-        bool   more;
+        bool more;
+        
         do {
             uint8_t byte = temp & 127;
             temp >>= 7;
@@ -90,13 +91,14 @@ struct LEB {
 
     void read(std::function<MiniT()> get)
     {
-        value       = 0;
-        T     shift = 0;
+        value   = 0;
+        T shift = 0;
         MiniT byte;
         while (1) {
-            byte                                                 = get();
-            bool                                         last    = !(byte & 128);
-            T                                            payload = byte & 127;
+            byte      = get();
+            bool last = !(byte & 128);
+            T payload = byte & 127;
+            
             typedef typename std::make_unsigned<T>::type mask_type;
             auto shift_mask          = 0 == shift ? ~mask_type(0) : ((mask_type(1) << (sizeof(T) * 8 - shift)) - 1u);
             T    significant_payload = payload & shift_mask;

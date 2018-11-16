@@ -13,19 +13,19 @@ import("stdfaust.lib");
 // MIDI IMPLEMENTATION:
 // (All are available by OSC)
 //
-// CC 7		: Volume
-// CC 10	: Pan
+// CC 7  : Volume
+// CC 10 : Pan
 //
-// CC 92	: Distortion Drive
+// CC 92 : Distortion Drive
 //
-// CC 13	: Flanger Delay
-// CC 93	: Flanger Dry/Wet
-// CC 94	: Flanger Feedback
+// CC 13 : Flanger Delay
+// CC 93 : Flanger Dry/Wet
+// CC 94 : Flanger Feedback
 //
-// CC 12	: Reverberation Room size
-// CC 91	: Reverberation Dry/Wet
-// CC 95	: Reverberation Damp
-// CC 90	: Reverberation Stereo Width
+// CC 12 : Reverberation Room size
+// CC 91 : Reverberation Dry/Wet
+// CC 95 : Reverberation Damp
+// CC 90 : Reverberation Stereo Width
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,12 +33,12 @@ import("stdfaust.lib");
 vol	= hslider ("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
-drive	= hslider ("drive[midi:ctrl 92]",0.3,0,1,0.001);
+drive = hslider ("drive[midi:ctrl 92]",0.3,0,1,0.001);
 
 // Flanger
-curdel	= hslider ("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb      = hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider ("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
+curdel = hslider ("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
+fb = hslider ("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider ("dryWetFlang[midi:ctrl 93]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);

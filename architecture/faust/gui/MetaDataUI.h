@@ -35,7 +35,7 @@
 
 #include "faust/gui/SimpleParser.h"
 
-static inline bool startWith(const std::string& str, const std::string& prefix)
+static bool startWith(const std::string& str, const std::string& prefix)
 {
     return (str.substr(0, prefix.size()) == prefix);
 }
@@ -43,7 +43,7 @@ static inline bool startWith(const std::string& str, const std::string& prefix)
 /**
  * Convert a dB value into a scale between 0 and 1 (following IEC standard ?)
  */
-static inline FAUSTFLOAT dB2Scale(FAUSTFLOAT dB)
+static FAUSTFLOAT dB2Scale(FAUSTFLOAT dB)
 {
     FAUSTFLOAT scale = FAUSTFLOAT(1.0);
     

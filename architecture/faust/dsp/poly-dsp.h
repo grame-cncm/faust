@@ -50,14 +50,14 @@
 
 // endsWith(<str>,<end>) : returns true if <str> ends with <end>
 
-static inline bool endsWith(std::string const& str, std::string const& end)
+static bool endsWith(std::string const& str, std::string const& end)
 {
     size_t l1 = str.length();
     size_t l2 = end.length();
     return (l1 >= l2) && (0 == str.compare(l1 - l2, l2, end));
 }
 
-static inline double midiToFreq(double note)
+static double midiToFreq(double note)
 {
     return 440.0 * std::pow(2.0, (note-69.0)/12.0);
 }
@@ -393,7 +393,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         FAUSTFLOAT** fMixBuffer;
         int fDate;
 
-        inline FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
+        FAUSTFLOAT mixVoice(int count, FAUSTFLOAT** outputBuffer, FAUSTFLOAT** mixBuffer)
         {
             FAUSTFLOAT level = 0;
             for (int i = 0; i < getNumOutputs(); i++) {
@@ -407,14 +407,14 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             return level;
         }
 
-        inline void clearOutput(int count, FAUSTFLOAT** mixBuffer)
+        void clearOutput(int count, FAUSTFLOAT** mixBuffer)
         {
             for (int i = 0; i < getNumOutputs(); i++) {
                 memset(mixBuffer[i], 0, count * sizeof(FAUSTFLOAT));
             }
         }
     
-        inline int getPlayingVoice(int pitch)
+        int getPlayingVoice(int pitch)
         {
             int voice_playing = kNoVoice;
             int oldest_date_playing = INT_MAX;
@@ -424,7 +424,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                     // Keeps oldest playing voice
                     if (fVoiceTable[i]->fDate < oldest_date_playing) {
                         oldest_date_playing = fVoiceTable[i]->fDate;
-                        voice_playing = i;
+                        voice_playing = int(i);
                     }
                 }
             }
@@ -433,14 +433,14 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
         }
     
         // Always returns a voice
-        inline int getFreeVoice()
+        int getFreeVoice()
         {
             int voice = kNoVoice;
             
             // Looks for the first available voice
             for (size_t i = 0; i < fVoiceTable.size(); i++) {
                 if (fVoiceTable[i]->fNote == kFreeVoice) {
-                    voice = i;
+                    voice = int(i);
                     goto result;
                 }
             }
@@ -459,13 +459,13 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
                         // Keeps oldest release voice
                         if (fVoiceTable[i]->fDate < oldest_date_release) {
                             oldest_date_release = fVoiceTable[i]->fDate;
-                            voice_release = i;
+                            voice_release = int(i);
                         }
                     } else {
                         // Otherwise keeps oldest playing voice
                         if (fVoiceTable[i]->fDate < oldest_date_playing) {
                             oldest_date_playing = fVoiceTable[i]->fDate;
-                            voice_playing = i;
+                            voice_playing = int(i);
                         }
                     }
                 }
@@ -499,7 +499,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             }
         }
 
-        inline bool checkPolyphony()
+        bool checkPolyphony()
         {
             if (fVoiceTable.size() > 0) {
                 return true;
@@ -727,7 +727,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
 
 };
 
-inline std::string pathToContent(const std::string& path)
+static std::string pathToContent(const std::string& path)
 {
     std::ifstream file(path.c_str(), std::ifstream::binary);
     

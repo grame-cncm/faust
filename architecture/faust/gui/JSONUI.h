@@ -90,7 +90,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
         }
     
         // Add escape (that is  '\') for internal strings
-        inline std::string flatten(const std::string& src)
+        std::string flatten(const std::string& src)
         {
             bool in_string = false;
             std::stringstream dst;
@@ -117,7 +117,7 @@ class JSONUIAux : public PathBuilder, public Meta, public UI
             return dst.str();
         }
     
-        inline std::string getAddressIndex(const std::string& path)
+        std::string getAddressIndex(const std::string& path)
         {
             if (fPathTable.find(path) != fPathTable.end()) {
                 std::stringstream num; num << fPathTable[path];

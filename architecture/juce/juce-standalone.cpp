@@ -32,10 +32,8 @@
 #include "JuceLibraryCode/JuceHeader.h"
 
 #include "faust/gui/MapUI.h"
-#include "faust/misc.h"
 #include "faust/dsp/dsp-adapter.h"
 #include "faust/gui/MidiUI.h"
-#include "faust/dsp/timed-dsp.h"
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/JuceGUI.h"
 
@@ -45,6 +43,7 @@
 
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
+#include "faust/dsp/timed-dsp.h"
 #endif
 
 #if defined(SOUNDFILE)

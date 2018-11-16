@@ -4,11 +4,15 @@
 'use strict';
 
 // Faust part
+//var contextOptions = { latencyHint: 0.040 };
+//var contextOptions = { latencyHint: "interactive" };
+var contextOptions = { latencyHint: "playback" };
+//var contextOptions = { latencyHint: "balanced" };
 
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
-var max_polyphony = 16;
+var context = (isWebKitAudio) ? new webkitAudioContext(contextOptions) : new AudioContext(contextOptions);
+var max_polyphony = 128;  // Not used for now
 var factory = null;
 var node = null;
 
@@ -194,10 +198,13 @@ function startDSPAux(aw_node)
 {
     node = aw_node;
     
+    // We may have a polyphonic DSP with an audio input, so connect it...
+    if (node.getNumInputs() > 0) {
+        activateAudioInput();
+    }
+   
     node.connect(context.destination);
-    
     console.log(node.getJSON());
-    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(node.getParams());
     
     // No polling from the server needed, so use an empty loop

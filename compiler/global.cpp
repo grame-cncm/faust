@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -167,6 +167,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gUseDefaultSound      = true;
     gHasTeeLocal          = false;
     gFastMath             = false;
+    gNeedManualPow        = true;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version
@@ -404,6 +405,11 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gHelpSwitch      = false;
     gVersionSwitch   = false;
+	gLibDirSwitch    = false;
+	gIncludeDirSwitch= false;
+	gArchDirSwitch   = false;
+	gDspDirSwitch    = false;
+    gPathListSwitch	 = false;
     gGraphSwitch     = false;
     gDrawPSSwitch    = false;
     gDrawSVGSwitch   = false;
@@ -440,6 +446,7 @@ void global::init()
 
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
+    // True by default but only usable with -lang ocpp backend 
     gEnableFlag      = true;
 
     TINT  = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
@@ -563,24 +570,35 @@ void global::init()
 
 void global::printCompilationOptions(ostream& dst, bool backend)
 {
-    if (backend) dst << gOutputLang << ", ";
+    if (backend) {
+#ifdef LLVM_BUILD
+        if (gOutputLang == "llvm") {
+            dst << gOutputLang << " " << LLVM_VERSION << ", ";
+        }
+#else
+        dst << gOutputLang << ", ";
+#endif
+    }
     if (gSchedulerSwitch) {
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
             << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else if (gOpenMPSwitch) {
         dst << "-omp"
             << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
             << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
+            << " -mcd " << gGlobal->gMaxCopyDelay
             << ((gMemoryManager) ? " -mem" : "");
     } else {
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))

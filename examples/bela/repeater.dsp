@@ -12,7 +12,7 @@
 
 import("all.lib");
 
-process =  _, _ , (pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
+process = _, _ , (pathClock : compteurUpReset2(nbRepet): rampePlayer, _) : routageIO : rec_play_table , rec_play_table;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

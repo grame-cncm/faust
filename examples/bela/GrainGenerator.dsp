@@ -20,18 +20,17 @@ import("all.lib");
 // FOR 4 grains - MONO
 
 // UI //////////////////////////////////////////
-popul 	= 1 - hslider("population[BELA: ANALOG_0]", 1, 0, 1, 0.001);	// Coef 1= le max; 0 = presque pas de grains(0.95)
-taille	= 	  hslider("taille[BELA: ANALOG_1]", 100, 4, 200, 0.001 );		// Taille en millisecondes
-decal 	= 1 - hslider("decal[BELA: ANALOG_2]",0,0,1,0.001);				// position lecture par rapport ecriture table
+popul = 1 - hslider("population[BELA: ANALOG_0]", 1, 0, 1, 0.001);	// Coef 1= maximum; 0 = almost nothing (0.95)
+taille = hslider("taille[BELA: ANALOG_1]", 100, 4, 200, 0.001 );		// Size in millisecondes
+decal = 1 - hslider("decal[BELA: ANALOG_2]",0,0,1,0.001);				// read position compared to table srite position
 
-speed	= hslider("speed[BELA: ANALOG_3]", 1, 0.125, 4, 0.001);
+speed = hslider("speed[BELA: ANALOG_3]", 1, 0.125, 4, 0.001);
 
-feedback= hslider("feedback[BELA: ANALOG_4]",0,0,2,0.001);	
+feedback = hslider("feedback[BELA: ANALOG_4]",0,0,2,0.001);	
 
 freq = 1000/taille;
 tmpTaille = taille*ma.SR/ 1000;
-clocSize = int(tmpTaille + (tmpTaille*popul*10)); // duree entre 2 clicks
-
+clocSize = int(tmpTaille + (tmpTaille*popul*10)); // duration between 2 clicks
 
 // CLK GENERAL /////////////////////////////////
 // 4 clicks vers 4 generateurs de grains.
@@ -41,7 +40,6 @@ detect2(x) = select2 (x > clocSize*1/3, 0, 1) : select2 (x < (clocSize*1/3)+10, 
 detect3(x) = select2 (x > clocSize*2/3, 0, 1) : select2 (x < (clocSize*2/3)+10, 0, _);
 detect4(x) = select2 (x > clocSize-10, 0, 1);
 cloc = (%(_,clocSize))~(+(1)) <: (detect1: trig),(detect2: trig),(detect3: trig),(detect4: trig);
-
 
 // SIGNAUX Ctrls Player ////////////////////////
 trig = _<:_,mem: >;
@@ -68,12 +66,11 @@ unGrain(input, clk) = (linrwtable( wf , rindex) : *(0.2 * EnvGrain))
         size = int(SR * buffer_sec);
         init = 0.;
 
-
         EnvGrain = clk : (rampe(freq) : envelop);	
 
-        windex = ( %(_,size) ) ~ ( +(1) );
+        windex = (%(_,size) ) ~ ( +(1) );
         posTabl = int(ba.sAndH(clk, windex));
-        rindex = %( int(rampe2(speed, clk)) + posTabl + int(size * decal), size );
+        rindex = %(int(rampe2(speed, clk)) + posTabl + int(size * decal), size);
 
         wf = size, init, int(windex), input;
     };

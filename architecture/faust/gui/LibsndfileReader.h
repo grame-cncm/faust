@@ -34,11 +34,11 @@
 #include "faust/gui/Soundfile.h"
 
 struct LibsndfileReader : public SoundfileReader {
-    
+	
     LibsndfileReader() {}
-    
+	
     typedef sf_count_t (* sample_read)(SNDFILE* sndfile, FAUSTFLOAT* ptr, sf_count_t frames);
-    
+	
     bool checkFile(const std::string& path_name)
     {
         SF_INFO snd_info;
@@ -52,7 +52,7 @@ struct LibsndfileReader : public SoundfileReader {
             return false;
         }
     }
-    
+	
     // Open the file and returns its length and channels
     void getParamsFile(const std::string& path_name, int& channels, int& length)
     {
@@ -64,7 +64,7 @@ struct LibsndfileReader : public SoundfileReader {
         length = int(snd_info.frames);
         sf_close(snd_file);
     }
-    
+	
     // Will be called to fill all parts from 0 to MAX_SOUNDFILE_PARTS-1
     void readFile(Soundfile* soundfile, const std::string& path_name, int part, int& offset, int max_chan)
     {
@@ -73,18 +73,19 @@ struct LibsndfileReader : public SoundfileReader {
         snd_info.format = 0;
         SNDFILE* snd_file = sf_open(path_name.c_str(), SFM_READ, &snd_info);
         assert(snd_file);
-        
+		
         int channels = std::min<int>(max_chan, snd_info.channels);
-        
+		
         soundfile->fLength[part] = int(snd_info.frames);
         soundfile->fSampleRate[part] = snd_info.samplerate;
         soundfile->fOffset[part] = offset;
-        
+		
         // Read and fill snd_info.channels number of channels
         sf_count_t nbf;
-        FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
-        sample_read reader;
-        
+//		FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
+		FAUSTFLOAT* buffer = (FAUSTFLOAT*)alloca (BUFFER_SIZE * snd_info.channels);
+		sample_read reader;
+		
         if (sizeof(FAUSTFLOAT) == 4) {
             reader = reinterpret_cast<sample_read>(sf_readf_float);
         } else {
@@ -100,7 +101,7 @@ struct LibsndfileReader : public SoundfileReader {
             // Update offset
             offset += nbf;
         } while (nbf == BUFFER_SIZE);
-        
+		
         sf_close(snd_file);
     }
 

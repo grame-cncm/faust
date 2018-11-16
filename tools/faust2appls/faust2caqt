@@ -32,13 +32,16 @@ SOUNDFILE="0"
 SOUNDFILEDEFS=""
 SOUNDFILELIBS=""
 SOUNDFILEFLAGS=""
+OPT=""
 
 while [ $1 ] 
 do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "Use '-opt native' to activate the best compilation options for the native CPU"
+        echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
@@ -56,6 +59,9 @@ do
 
     if [ "$p" = -debug ]; then
         DEBUG=true
+    elif [ $p = "-opt" ]; then
+        shift
+        OPT=$1
     elif [ $p = "-deploy" ]; then
         DEPLOY="yes"
     elif [ "$p" = -icc ]; then
@@ -133,6 +139,16 @@ for p in $FILES; do
     TDR=$(mktemp -d faust.XXXXXX)
 	TMP="$TDR/${f%.dsp}"
     mkdir "$TMP"
+
+    # discover best compilation options
+    if [ "$OPT" = "generic" ]; then
+        echo "Look for best compilation options in generic mode..."
+        OPTIONS="$(faustbench-llvm -notrace -generic $f)"
+    elif [ "$OPT" = "native" ]; then
+        echo "Look for best compilation options in native mode..."
+        OPTIONS="$(faustbench-llvm -notrace $f)"
+        echo $OPTIONS
+    fi
 
     # compile faust to c++
     if [ $POLY = "POLY2" ]; then

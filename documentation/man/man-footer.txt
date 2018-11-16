@@ -1,0 +1,17 @@
+
+SEE ALSO
+========
+
+Grame Faust site at: **<http://faust.grame.fr>**
+
+BUGS
+====
+
+Please report bugs to: **<https://github.com/grame-cncm/faust/issues>**
+
+AUTHOR
+======
+
+Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale.
+All rights reserved.
+

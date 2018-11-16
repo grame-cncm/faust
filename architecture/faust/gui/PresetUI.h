@@ -157,7 +157,7 @@ class PresetUI : public DecoratorUI
         virtual void closeBox()
         {
             fUI->closeBox();
-            if (fGroupCount-- == 0) {
+            if (--fGroupCount == 0) {
                 // End of top-level group
                 saveDefault();
             }

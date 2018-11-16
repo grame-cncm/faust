@@ -63,8 +63,7 @@ ztimedmap GUI::gTimedZoneMap;
 samFaustDSP::samFaustDSP(int sampleRate, int bufferSize, int numInputs, int numOutputs)
 {
     // create a new instance of the audio driver.
-    fAudioDriver = new samAudio;
-    fAudioDriver->setDSP_Parameters(sampleRate, bufferSize, numInputs, numOutputs);
+    fAudioDriver = new samAudio(sampleRate, bufferSize, numInputs, numOutputs);
     
     // create a new instance of the FaustPolyEngine, the constructor calls DSP init
     fPolyEngine = new FaustPolyEngine(new mydsp(), fAudioDriver);
@@ -80,21 +79,21 @@ samFaustDSP::~samFaustDSP()
 // setup the sampleRate and bufferSize
 // void setDSP_Parameters(int sampleRate, int bufferSize);
 void samFaustDSP::setDSP_ChannelBuffers(FAUSTFLOAT *AudioChannelA_0_Left,
-                       FAUSTFLOAT *AudioChannelA_0_Right,
-                       FAUSTFLOAT *AudioChannelA_1_Left,
-                       FAUSTFLOAT *AudioChannelA_1_Right,
-                       FAUSTFLOAT *AudioChannelA_2_Left,
-                       FAUSTFLOAT *AudioChannelA_2_Right,
-                       FAUSTFLOAT *AudioChannelA_3_Left,
-                       FAUSTFLOAT *AudioChannelA_3_Right,
-                       FAUSTFLOAT *AudioChannelB_0_Left,
-                       FAUSTFLOAT *AudioChannelB_0_Right,
-                       FAUSTFLOAT *AudioChannelB_1_Left,
-                       FAUSTFLOAT *AudioChannelB_1_Right,
-                       FAUSTFLOAT *AudioChannelB_2_Left,
-                       FAUSTFLOAT *AudioChannelB_2_Right,
-                       FAUSTFLOAT *AudioChannelB_3_Left,
-                       FAUSTFLOAT *AudioChannelB_3_Right)
+                                       FAUSTFLOAT *AudioChannelA_0_Right,
+                                       FAUSTFLOAT *AudioChannelA_1_Left,
+                                       FAUSTFLOAT *AudioChannelA_1_Right,
+                                       FAUSTFLOAT *AudioChannelA_2_Left,
+                                       FAUSTFLOAT *AudioChannelA_2_Right,
+                                       FAUSTFLOAT *AudioChannelA_3_Left,
+                                       FAUSTFLOAT *AudioChannelA_3_Right,
+                                       FAUSTFLOAT *AudioChannelB_0_Left,
+                                       FAUSTFLOAT *AudioChannelB_0_Right,
+                                       FAUSTFLOAT *AudioChannelB_1_Left,
+                                       FAUSTFLOAT *AudioChannelB_1_Right,
+                                       FAUSTFLOAT *AudioChannelB_2_Left,
+                                       FAUSTFLOAT *AudioChannelB_2_Right,
+                                       FAUSTFLOAT *AudioChannelB_3_Left,
+                                       FAUSTFLOAT *AudioChannelB_3_Right)
 {
     fAudioDriver->setDSP_ChannelBuffers(AudioChannelA_0_Left,
                                         AudioChannelA_0_Right,

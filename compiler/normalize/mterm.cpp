@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -507,7 +507,7 @@ Tree mterm::normalizedTree(bool signatureMode, bool negativeMode) const
 #if 1
         if (A[0] != 0) cerr << "A[0] == " << *A[0] << endl;
         if (B[0] != 0) cerr << "B[0] == " << *B[0] << endl;
-        // en principe ici l'order zero est vide car il correspond au coef numerique
+        // en principe ici l'ordre zero est vide car il correspond au coef numerique
         faustassert(A[0] == 0);
         faustassert(B[0] == 0);
 #endif

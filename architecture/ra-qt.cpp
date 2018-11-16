@@ -45,7 +45,7 @@
 #include "faust/gui/httpdUI.h"
 #endif
 
-// Always include this file, otherwise -poly only mode does not compile...
+// Always include this file, otherwise -nvoices only mode does not compile...
 #include "faust/midi/rt-midi.h"
 #include "faust/gui/MidiUI.h"
 

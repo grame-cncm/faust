@@ -146,10 +146,8 @@ int main(int argc, char* argv[])
         cout << "Using LLVM backend" << endl;
         // argc : without the filename (last element);
         factory = createDSPFactoryFromFile(argv[argc-1], argc1, argv1, "", error_msg, -1);
-        cout << "getCompileOptions " << factory->getCompileOptions() << endl;
         
-        printList(factory->getLibraryList());
-        printList(factory->getIncludePathnames());
+        //cout << "getDSPMachineTarget " << getDSPMachineTarget() << endl;
         
         /*
         // Test Write/Read
@@ -179,15 +177,25 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
     
+    cout << "getCompileOptions " << factory->getCompileOptions() << endl;
+    printList(factory->getLibraryList());
+    printList(factory->getIncludePathnames());    
+    
     //factory->setMemoryManager(&manager);  causes crash in -fm mode
     DSP = factory->createDSPInstance();
+    
+    // To test compiled block reuse
+    //DSP = factory->createDSPInstance();
+    
     if (!DSP) {
         cerr << "Cannot create instance "<< endl;
         exit(EXIT_FAILURE);
     }
     
     cout << "getName " << factory->getName() << endl;
-    //cout << "getSHAKey " << factory->getSHAKey() << endl;
+    cout << "getSHAKey " << factory->getSHAKey() << endl;
+    
+    //exit(1);
   
     if (nvoices > 0) {
         cout << "Starting polyphonic mode nvoices : " << nvoices << endl;

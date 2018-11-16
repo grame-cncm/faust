@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -28,9 +28,12 @@
 
 #include "compatibility.hh"
 #include "faust/gui/CGlue.h"
+#include "faust/gui/JSONUIDecoder.h"
 #include "libfaust.h"
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
+
+#include "fbc_llvm_compiler.hh"
 
 #include <llvm-c/Core.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
@@ -334,6 +337,10 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
         return (dsp) ? new llvm_dsp(tmp, dsp) : nullptr;
     }
 }
+
+std::string              llvm_dsp_factory_aux::getCompileOptions() { return fDecoder->fCompileOptions; }
+std::vector<std::string> llvm_dsp_factory_aux::getLibraryList() { return fDecoder->fLibraryList; }
+std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames() { return fDecoder->fIncludePathnames; }
 
 // Instance
 

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -215,7 +215,7 @@ void Loop::println(int n, ostream& fout)
         }*/
 
         tab(n, fout);
-        fout << "// LOOP " << this;
+        fout << "// " << ((fIsRecursive) ? "Recursive" : "Vectorizable") << " loop " << this;
         if (fPreCode.size() > 0) {
             tab(n, fout);
             fout << "// pre processing";

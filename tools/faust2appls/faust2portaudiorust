@@ -10,6 +10,8 @@
 . faustpath
 . faustoptflags
 
+ARCHFILE="minimal-portaudio.rs"
+
 #PHASE 2 : dispatch command arguments
 while [ $1 ]
 do
@@ -49,7 +51,7 @@ for p in $FILES; do
     cargo new $dspName --bin
 
     # compile Faust DSP and put in the cargo folder
-    faust -a "$FAUSTLIB/minimal-portaudio.rs" -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
+    faust -a $ARCHFILE -lang rust "$SRCDIR/$f" -o "$SRCDIR/$dspName/src/main.rs"
 
     # add JACK dependency
     echo "portaudio = \"*\"" >> "$SRCDIR/$dspName/Cargo.toml"

@@ -112,7 +112,7 @@ for p in $FILES; do
     SUB_TYPE=$(shasum $p)
     SUB_TYPE=${SUB_TYPE:0:4}
     rm -rf "$SRCDIR/$dspName"
-
+ 
     if [ $STANDALONE = "0" ]; then
         cp -r "$FAUSTLIB/juce/plugin" "$SRCDIR/$dspName/"
         # setting plugin name to match the dsp
@@ -140,7 +140,7 @@ for p in $FILES; do
     if [ $NVOICES -ge 0 ]; then
         sed -e "s/NUM_VOICES/$NVOICES/g" "$SRCDIR/$dspName/$dspName-temp4.jucer" >> "$SRCDIR/$dspName/$dspName.jucer"
     else
-        cp  "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName.jucer"
+        cp "$SRCDIR/$dspName/$dspName-temp4.jucer" "$SRCDIR/$dspName/$dspName.jucer"
     fi
 
     # standalone or plugin mode

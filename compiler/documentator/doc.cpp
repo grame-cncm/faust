@@ -78,7 +78,7 @@
 #include "simplify.hh"
 #include "sourcereader.hh"
 
-#define MAXIDCHARS 5  ///< max numbers (characters) to represent ids (e.g. for directories).
+#define MAXIDCHARS 10  ///< max numbers (characters) to represent ids (e.g. for directories).
 
 using namespace std;
 

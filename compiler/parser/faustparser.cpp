@@ -1,8 +1,8 @@
-/* A Bison parser, made by GNU Bison 3.0.4.  */
+/* A Bison parser, made by GNU Bison 3.1.  */
 
 /* Bison implementation for Yacc-like parsers in C
 
-   Copyright (C) 1984, 1989-1990, 2000-2015 Free Software Foundation, Inc.
+   Copyright (C) 1984, 1989-1990, 2000-2015, 2018 Free Software Foundation, Inc.
 
    This program is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@
 #define YYBISON 1
 
 /* Bison version.  */
-#define YYBISON_VERSION "3.0.4"
+#define YYBISON_VERSION "3.1"
 
 /* Skeleton name.  */
 #define YYSKELETON_NAME "yacc.c"
@@ -105,8 +105,9 @@ inline char replaceCR(char c)
 Tree unquote(char* str)
 {
     size_t size = strlen(str) + 1;
+    
     //-----------copy unquoted filename-------------
-    char buf[size];
+    char* buf = (char*)alloca(size);
     int j=0;
 
     if (str[0] == '"') {
@@ -127,7 +128,8 @@ Tree unquote(char* str)
     //----------------------------------------------
 }
 
-#line 131 "faustparser.cpp" /* yacc.c:339  */
+
+#line 136 "faustparser.cpp" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -295,14 +297,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 71 "faustparser.y" /* yacc.c:355  */
+#line 76 "faustparser.y" /* yacc.c:355  */
 
 	CTree* 	exp;
 	char* str;
 	string* cppstr;
 	bool b;
 
-#line 306 "faustparser.cpp" /* yacc.c:355  */
+#line 311 "faustparser.cpp" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -319,7 +321,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 323 "faustparser.cpp" /* yacc.c:358  */
+#line 328 "faustparser.cpp" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -340,13 +342,13 @@ typedef signed char yytype_int8;
 #ifdef YYTYPE_UINT16
 typedef YYTYPE_UINT16 yytype_uint16;
 #else
-typedef unsigned short int yytype_uint16;
+typedef unsigned short yytype_uint16;
 #endif
 
 #ifdef YYTYPE_INT16
 typedef YYTYPE_INT16 yytype_int16;
 #else
-typedef short int yytype_int16;
+typedef short yytype_int16;
 #endif
 
 #ifndef YYSIZE_T
@@ -358,7 +360,7 @@ typedef short int yytype_int16;
 #  include <stddef.h> /* INFRINGES ON USER NAME SPACE */
 #  define YYSIZE_T size_t
 # else
-#  define YYSIZE_T unsigned int
+#  define YYSIZE_T unsigned
 # endif
 #endif
 
@@ -410,7 +412,7 @@ typedef short int yytype_int16;
 # define YYUSE(E) /* empty */
 #endif
 
-#if defined __GNUC__ && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
+#if defined __GNUC__ && ! defined __ICC && 407 <= __GNUC__ * 100 + __GNUC_MINOR__
 /* Suppress an incorrect diagnostic about yylval being uninitialized.  */
 # define YY_IGNORE_MAYBE_UNINITIALIZED_BEGIN \
     _Pragma ("GCC diagnostic push") \
@@ -578,7 +580,7 @@ union yyalloc
 #define YYMAXUTOK   382
 
 #define YYTRANSLATE(YYX)                                                \
-  ((unsigned int) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
+  ((unsigned) (YYX) <= YYMAXUTOK ? yytranslate[YYX] : YYUNDEFTOK)
 
 /* YYTRANSLATE[TOKEN-NUM] -- Symbol number corresponding to TOKEN-NUM
    as returned by yylex, without out-of-bounds checking.  */
@@ -629,28 +631,28 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   314,   314,   317,   318,   320,   321,   325,   326,   333,
-     334,   337,   338,   339,   340,   341,   342,   346,   347,   348,
-     349,   350,   353,   354,   357,   358,   359,   360,   361,   362,
-     365,   366,   369,   372,   375,   378,   381,   382,   385,   386,
-     387,   390,   391,   394,   397,   398,   399,   402,   403,   406,
-     409,   412,   413,   416,   417,   418,   419,   420,   421,   422,
-     423,   426,   427,   428,   429,   430,   431,   432,   433,   434,
-     436,   437,   438,   440,   441,   443,   444,   445,   446,   447,
-     448,   450,   451,   453,   456,   457,   459,   460,   462,   463,
-     465,   466,   468,   469,   471,   472,   474,   475,   476,   477,
-     478,   479,   481,   482,   483,   485,   486,   488,   489,   490,
-     491,   492,   493,   495,   496,   497,   500,   501,   502,   503,
-     504,   505,   506,   508,   509,   510,   511,   512,   513,   515,
-     516,   517,   519,   520,   522,   523,   524,   527,   528,   530,
-     531,   533,   534,   536,   537,   540,   542,   543,   544,   545,
-     546,   547,   548,   549,   550,   551,   552,   553,   554,   555,
-     556,   557,   558,   559,   561,   562,   563,   564,   566,   567,
-     572,   575,   580,   581,   584,   585,   586,   587,   588,   591,
-     594,   597,   598,   603,   607,   611,   615,   620,   623,   630,
-     634,   637,   642,   645,   648,   651,   654,   657,   660,   663,
-     667,   670,   673,   680,   681,   682,   684,   685,   686,   689,
-     692,   693,   696,   697,   700,   704,   705
+       0,   319,   319,   322,   323,   325,   326,   330,   331,   338,
+     339,   342,   343,   344,   345,   346,   347,   351,   352,   353,
+     354,   355,   358,   359,   362,   363,   364,   365,   366,   367,
+     370,   371,   374,   377,   380,   383,   386,   387,   390,   391,
+     392,   395,   396,   399,   402,   403,   404,   407,   408,   411,
+     414,   417,   418,   421,   422,   423,   424,   425,   426,   427,
+     428,   431,   432,   433,   434,   435,   436,   437,   438,   439,
+     441,   442,   443,   445,   446,   448,   449,   450,   451,   452,
+     453,   455,   456,   458,   461,   462,   464,   465,   467,   468,
+     470,   471,   473,   474,   476,   477,   479,   480,   481,   482,
+     483,   484,   486,   487,   488,   490,   491,   493,   494,   495,
+     496,   497,   498,   500,   501,   502,   505,   506,   507,   508,
+     509,   510,   511,   513,   514,   515,   516,   517,   518,   520,
+     521,   522,   524,   525,   527,   528,   529,   532,   533,   535,
+     536,   538,   539,   541,   542,   545,   547,   548,   549,   550,
+     551,   552,   553,   554,   555,   556,   557,   558,   559,   560,
+     561,   562,   563,   564,   566,   567,   568,   569,   571,   572,
+     577,   580,   585,   586,   589,   590,   591,   592,   593,   596,
+     599,   602,   603,   608,   612,   616,   620,   625,   628,   635,
+     639,   642,   647,   650,   653,   656,   659,   662,   665,   668,
+     672,   675,   678,   685,   686,   687,   689,   690,   691,   694,
+     697,   698,   701,   702,   705,   709,   710
 };
 #endif
 
@@ -1243,7 +1245,7 @@ do {                                                            \
 static void
 yy_reduce_print (yytype_int16 *yyssp, YYSTYPE *yyvsp, int yyrule)
 {
-  unsigned long int yylno = yyrline[yyrule];
+  unsigned long yylno = yyrline[yyrule];
   int yynrhs = yyr2[yyrule];
   int yyi;
   YYFPRINTF (stderr, "Reducing stack by rule %d (line %lu):\n",
@@ -1469,6 +1471,7 @@ yysyntax_error (YYSIZE_T *yymsg_alloc, char **yymsg,
       case N:                               \
         yyformat = S;                       \
       break
+    default: /* Avoid compiler warnings. */
       YYCASE_(0, YY_("syntax error"));
       YYCASE_(1, YY_("syntax error, unexpected %s"));
       YYCASE_(2, YY_("syntax error, unexpected %s, expecting %s"));
@@ -1674,7 +1677,7 @@ yyparse (void)
       yyvsp = yyvs + yysize - 1;
 
       YYDPRINTF ((stderr, "Stack size increased to %lu\n",
-                  (unsigned long int) yystacksize));
+                  (unsigned long) yystacksize));
 
       if (yyss + yystacksize - 1 <= yyssp)
         YYABORT;
@@ -1785,1297 +1788,1297 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 314 "faustparser.y" /* yacc.c:1646  */
+#line 319 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); gGlobal->gResult = formatDefinitions((yyval.exp)); }
-#line 1791 "faustparser.cpp" /* yacc.c:1646  */
+#line 1797 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 3:
-#line 317 "faustparser.y" /* yacc.c:1646  */
+#line 322 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; }
-#line 1797 "faustparser.cpp" /* yacc.c:1646  */
+#line 1803 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 4:
-#line 318 "faustparser.y" /* yacc.c:1646  */
+#line 323 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons ((yyvsp[0].exp),(yyvsp[-1].exp)); }
-#line 1803 "faustparser.cpp" /* yacc.c:1646  */
+#line 1809 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 5:
-#line 320 "faustparser.y" /* yacc.c:1646  */
+#line 325 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; }
-#line 1809 "faustparser.cpp" /* yacc.c:1646  */
+#line 1815 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 6:
-#line 321 "faustparser.y" /* yacc.c:1646  */
+#line 326 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons ((yyvsp[0].exp),(yyvsp[-1].exp)); }
-#line 1815 "faustparser.cpp" /* yacc.c:1646  */
+#line 1821 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 7:
-#line 325 "faustparser.y" /* yacc.c:1646  */
+#line 330 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; }
-#line 1821 "faustparser.cpp" /* yacc.c:1646  */
+#line 1827 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 8:
-#line 326 "faustparser.y" /* yacc.c:1646  */
+#line 331 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons ((yyvsp[0].exp),(yyvsp[-1].exp)); }
-#line 1827 "faustparser.cpp" /* yacc.c:1646  */
+#line 1833 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 9:
-#line 333 "faustparser.y" /* yacc.c:1646  */
+#line 338 "faustparser.y" /* yacc.c:1666  */
     { gGlobal->gWaveForm.push_back((yyvsp[0].exp)); }
-#line 1833 "faustparser.cpp" /* yacc.c:1646  */
+#line 1839 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 10:
-#line 334 "faustparser.y" /* yacc.c:1646  */
+#line 339 "faustparser.y" /* yacc.c:1666  */
     { gGlobal->gWaveForm.push_back((yyvsp[0].exp)); }
-#line 1839 "faustparser.cpp" /* yacc.c:1646  */
+#line 1845 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 11:
-#line 337 "faustparser.y" /* yacc.c:1646  */
+#line 342 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt(atoi(yytext)); }
-#line 1845 "faustparser.cpp" /* yacc.c:1646  */
+#line 1851 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 12:
-#line 338 "faustparser.y" /* yacc.c:1646  */
+#line 343 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal(atof(yytext)); }
-#line 1851 "faustparser.cpp" /* yacc.c:1646  */
+#line 1857 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 13:
-#line 339 "faustparser.y" /* yacc.c:1646  */
+#line 344 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt (atoi(yytext)); }
-#line 1857 "faustparser.cpp" /* yacc.c:1646  */
+#line 1863 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 14:
-#line 340 "faustparser.y" /* yacc.c:1646  */
+#line 345 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal(atof(yytext)); }
-#line 1863 "faustparser.cpp" /* yacc.c:1646  */
+#line 1869 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 15:
-#line 341 "faustparser.y" /* yacc.c:1646  */
+#line 346 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt ( -atoi(yytext) ); }
-#line 1869 "faustparser.cpp" /* yacc.c:1646  */
+#line 1875 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 16:
-#line 342 "faustparser.y" /* yacc.c:1646  */
+#line 347 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal( -atof(yytext) ); }
-#line 1875 "faustparser.cpp" /* yacc.c:1646  */
+#line 1881 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 17:
-#line 346 "faustparser.y" /* yacc.c:1646  */
+#line 351 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = importFile((yyvsp[-2].exp)); }
-#line 1881 "faustparser.cpp" /* yacc.c:1646  */
+#line 1887 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 18:
-#line 347 "faustparser.y" /* yacc.c:1646  */
+#line 352 "faustparser.y" /* yacc.c:1666  */
     { declareMetadata((yyvsp[-2].exp),(yyvsp[-1].exp)); (yyval.exp) = gGlobal->nil; }
-#line 1887 "faustparser.cpp" /* yacc.c:1646  */
+#line 1893 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 19:
-#line 348 "faustparser.y" /* yacc.c:1646  */
+#line 353 "faustparser.y" /* yacc.c:1666  */
     { declareDefinitionMetadata((yyvsp[-3].exp),(yyvsp[-2].exp),(yyvsp[-1].exp)); (yyval.exp) = gGlobal->nil; }
-#line 1893 "faustparser.cpp" /* yacc.c:1646  */
+#line 1899 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 20:
-#line 349 "faustparser.y" /* yacc.c:1646  */
+#line 354 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 1899 "faustparser.cpp" /* yacc.c:1646  */
+#line 1905 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 21:
-#line 350 "faustparser.y" /* yacc.c:1646  */
+#line 355 "faustparser.y" /* yacc.c:1666  */
     { declareDoc((yyvsp[-1].exp)); (yyval.exp) = gGlobal->nil; /* cerr << "Yacc : doc : " << *$2 << endl; */ }
-#line 1905 "faustparser.cpp" /* yacc.c:1646  */
+#line 1911 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 22:
-#line 353 "faustparser.y" /* yacc.c:1646  */
+#line 358 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; }
-#line 1911 "faustparser.cpp" /* yacc.c:1646  */
+#line 1917 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 23:
-#line 354 "faustparser.y" /* yacc.c:1646  */
+#line 359 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons ((yyvsp[0].exp),(yyvsp[-1].exp)); }
-#line 1917 "faustparser.cpp" /* yacc.c:1646  */
+#line 1923 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 24:
-#line 357 "faustparser.y" /* yacc.c:1646  */
+#line 362 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docTxt((yyvsp[0].cppstr)->c_str()); delete (yyvsp[0].cppstr); }
-#line 1923 "faustparser.cpp" /* yacc.c:1646  */
+#line 1929 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 25:
-#line 358 "faustparser.y" /* yacc.c:1646  */
+#line 363 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docEqn((yyvsp[0].exp)); }
-#line 1929 "faustparser.cpp" /* yacc.c:1646  */
+#line 1935 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 26:
-#line 359 "faustparser.y" /* yacc.c:1646  */
+#line 364 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docDgm((yyvsp[0].exp)); }
-#line 1935 "faustparser.cpp" /* yacc.c:1646  */
+#line 1941 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 27:
-#line 360 "faustparser.y" /* yacc.c:1646  */
+#line 365 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docNtc(); }
-#line 1941 "faustparser.cpp" /* yacc.c:1646  */
+#line 1947 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 28:
-#line 361 "faustparser.y" /* yacc.c:1646  */
+#line 366 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docLst(); }
-#line 1947 "faustparser.cpp" /* yacc.c:1646  */
+#line 1953 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 29:
-#line 362 "faustparser.y" /* yacc.c:1646  */
+#line 367 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = docMtd((yyvsp[0].exp)); }
-#line 1953 "faustparser.cpp" /* yacc.c:1646  */
+#line 1959 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 30:
-#line 365 "faustparser.y" /* yacc.c:1646  */
+#line 370 "faustparser.y" /* yacc.c:1666  */
     { (yyval.cppstr) = new string(); }
-#line 1959 "faustparser.cpp" /* yacc.c:1646  */
+#line 1965 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 31:
-#line 366 "faustparser.y" /* yacc.c:1646  */
+#line 371 "faustparser.y" /* yacc.c:1666  */
     { (yyval.cppstr) = &((yyvsp[-1].cppstr)->append(yytext)); }
-#line 1965 "faustparser.cpp" /* yacc.c:1646  */
+#line 1971 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 32:
-#line 369 "faustparser.y" /* yacc.c:1646  */
+#line 374 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[-1].exp); }
-#line 1971 "faustparser.cpp" /* yacc.c:1646  */
+#line 1977 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 33:
-#line 372 "faustparser.y" /* yacc.c:1646  */
+#line 377 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[-1].exp); }
-#line 1977 "faustparser.cpp" /* yacc.c:1646  */
+#line 1983 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 34:
-#line 375 "faustparser.y" /* yacc.c:1646  */
+#line 380 "faustparser.y" /* yacc.c:1666  */
     { }
-#line 1983 "faustparser.cpp" /* yacc.c:1646  */
+#line 1989 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 35:
-#line 378 "faustparser.y" /* yacc.c:1646  */
+#line 383 "faustparser.y" /* yacc.c:1666  */
     { }
-#line 1989 "faustparser.cpp" /* yacc.c:1646  */
+#line 1995 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 36:
-#line 381 "faustparser.y" /* yacc.c:1646  */
+#line 386 "faustparser.y" /* yacc.c:1666  */
     { }
-#line 1995 "faustparser.cpp" /* yacc.c:1646  */
+#line 2001 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 37:
-#line 382 "faustparser.y" /* yacc.c:1646  */
+#line 387 "faustparser.y" /* yacc.c:1666  */
     { }
-#line 2001 "faustparser.cpp" /* yacc.c:1646  */
+#line 2007 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 38:
-#line 385 "faustparser.y" /* yacc.c:1646  */
+#line 390 "faustparser.y" /* yacc.c:1666  */
     { gGlobal->gLstDependenciesSwitch = (yyvsp[-1].b); }
-#line 2007 "faustparser.cpp" /* yacc.c:1646  */
+#line 2013 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 39:
-#line 386 "faustparser.y" /* yacc.c:1646  */
+#line 391 "faustparser.y" /* yacc.c:1666  */
     { gGlobal->gStripDocSwitch = (yyvsp[-1].b); gGlobal->gStripDocSwitch==true ? gGlobal->gStripDocSwitch=false : gGlobal->gStripDocSwitch=true; }
-#line 2013 "faustparser.cpp" /* yacc.c:1646  */
+#line 2019 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 40:
-#line 387 "faustparser.y" /* yacc.c:1646  */
+#line 392 "faustparser.y" /* yacc.c:1666  */
     { gGlobal->gLstDistributedSwitch = (yyvsp[-1].b); }
-#line 2019 "faustparser.cpp" /* yacc.c:1646  */
+#line 2025 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 41:
-#line 390 "faustparser.y" /* yacc.c:1646  */
+#line 395 "faustparser.y" /* yacc.c:1666  */
     { (yyval.b) = true; }
-#line 2025 "faustparser.cpp" /* yacc.c:1646  */
+#line 2031 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 42:
-#line 391 "faustparser.y" /* yacc.c:1646  */
+#line 396 "faustparser.y" /* yacc.c:1666  */
     { (yyval.b) = false; }
-#line 2031 "faustparser.cpp" /* yacc.c:1646  */
+#line 2037 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 43:
-#line 394 "faustparser.y" /* yacc.c:1646  */
+#line 399 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[-1].exp); }
-#line 2037 "faustparser.cpp" /* yacc.c:1646  */
+#line 2043 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 44:
-#line 397 "faustparser.y" /* yacc.c:1646  */
+#line 402 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-6].exp),cons((yyvsp[-4].exp),(yyvsp[-1].exp))); setDefProp((yyvsp[-6].exp), yyfilename, yylineno); }
-#line 2043 "faustparser.cpp" /* yacc.c:1646  */
+#line 2049 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 45:
-#line 398 "faustparser.y" /* yacc.c:1646  */
+#line 403 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-3].exp),cons(gGlobal->nil,(yyvsp[-1].exp)));  setDefProp((yyvsp[-3].exp), yyfilename, yylineno); }
-#line 2049 "faustparser.cpp" /* yacc.c:1646  */
+#line 2055 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 46:
-#line 399 "faustparser.y" /* yacc.c:1646  */
+#line 404 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; yyerr++; }
-#line 2055 "faustparser.cpp" /* yacc.c:1646  */
+#line 2061 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 47:
-#line 402 "faustparser.y" /* yacc.c:1646  */
+#line 407 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-3].exp),cons(gGlobal->nil,(yyvsp[-1].exp))); setDefProp((yyvsp[-3].exp), yyfilename, yylineno); }
-#line 2061 "faustparser.cpp" /* yacc.c:1646  */
+#line 2067 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 48:
-#line 403 "faustparser.y" /* yacc.c:1646  */
+#line 408 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->nil; yyerr++; }
-#line 2067 "faustparser.cpp" /* yacc.c:1646  */
+#line 2073 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 49:
-#line 406 "faustparser.y" /* yacc.c:1646  */
+#line 411 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp)=(yyvsp[0].exp); }
-#line 2073 "faustparser.cpp" /* yacc.c:1646  */
+#line 2079 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 50:
-#line 409 "faustparser.y" /* yacc.c:1646  */
+#line 414 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp)=(yyvsp[0].exp); }
-#line 2079 "faustparser.cpp" /* yacc.c:1646  */
+#line 2085 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 51:
-#line 412 "faustparser.y" /* yacc.c:1646  */
+#line 417 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),gGlobal->nil); }
-#line 2085 "faustparser.cpp" /* yacc.c:1646  */
+#line 2091 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 52:
-#line 413 "faustparser.y" /* yacc.c:1646  */
+#line 418 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); }
-#line 2091 "faustparser.cpp" /* yacc.c:1646  */
+#line 2097 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 53:
-#line 416 "faustparser.y" /* yacc.c:1646  */
+#line 421 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxWithLocalDef((yyvsp[-4].exp),formatDefinitions((yyvsp[-1].exp))); }
-#line 2097 "faustparser.cpp" /* yacc.c:1646  */
+#line 2103 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 54:
-#line 417 "faustparser.y" /* yacc.c:1646  */
+#line 422 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxWithRecDef  ((yyvsp[-4].exp),formatDefinitions((yyvsp[-1].exp))); }
-#line 2103 "faustparser.cpp" /* yacc.c:1646  */
+#line 2109 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 55:
-#line 418 "faustparser.y" /* yacc.c:1646  */
+#line 423 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPar((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2109 "faustparser.cpp" /* yacc.c:1646  */
+#line 2115 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 56:
-#line 419 "faustparser.y" /* yacc.c:1646  */
+#line 424 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2115 "faustparser.cpp" /* yacc.c:1646  */
+#line 2121 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 57:
-#line 420 "faustparser.y" /* yacc.c:1646  */
+#line 425 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSplit((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2121 "faustparser.cpp" /* yacc.c:1646  */
+#line 2127 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 58:
-#line 421 "faustparser.y" /* yacc.c:1646  */
+#line 426 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxMerge((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2127 "faustparser.cpp" /* yacc.c:1646  */
+#line 2133 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 59:
-#line 422 "faustparser.y" /* yacc.c:1646  */
+#line 427 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxRec((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2133 "faustparser.cpp" /* yacc.c:1646  */
+#line 2139 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 60:
-#line 423 "faustparser.y" /* yacc.c:1646  */
+#line 428 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2139 "faustparser.cpp" /* yacc.c:1646  */
+#line 2145 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 61:
-#line 426 "faustparser.y" /* yacc.c:1646  */
+#line 431 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigAdd)); }
-#line 2145 "faustparser.cpp" /* yacc.c:1646  */
+#line 2151 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 62:
-#line 427 "faustparser.y" /* yacc.c:1646  */
+#line 432 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigSub)); }
-#line 2151 "faustparser.cpp" /* yacc.c:1646  */
+#line 2157 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 63:
-#line 428 "faustparser.y" /* yacc.c:1646  */
+#line 433 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigMul)); }
-#line 2157 "faustparser.cpp" /* yacc.c:1646  */
+#line 2163 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 64:
-#line 429 "faustparser.y" /* yacc.c:1646  */
+#line 434 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigDiv)); }
-#line 2163 "faustparser.cpp" /* yacc.c:1646  */
+#line 2169 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 65:
-#line 430 "faustparser.y" /* yacc.c:1646  */
+#line 435 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigRem)); }
-#line 2169 "faustparser.cpp" /* yacc.c:1646  */
+#line 2175 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 66:
-#line 431 "faustparser.y" /* yacc.c:1646  */
+#line 436 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),gGlobal->gPowPrim->box()); }
-#line 2175 "faustparser.cpp" /* yacc.c:1646  */
+#line 2181 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 67:
-#line 432 "faustparser.y" /* yacc.c:1646  */
+#line 437 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigFixDelay)); }
-#line 2181 "faustparser.cpp" /* yacc.c:1646  */
+#line 2187 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 68:
-#line 433 "faustparser.y" /* yacc.c:1646  */
+#line 438 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq((yyvsp[-1].exp),boxPrim1(sigDelay1)); }
-#line 2187 "faustparser.cpp" /* yacc.c:1646  */
+#line 2193 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 69:
-#line 434 "faustparser.y" /* yacc.c:1646  */
+#line 439 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxAccess((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2193 "faustparser.cpp" /* yacc.c:1646  */
+#line 2199 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 70:
-#line 436 "faustparser.y" /* yacc.c:1646  */
+#line 441 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigAND)); }
-#line 2199 "faustparser.cpp" /* yacc.c:1646  */
+#line 2205 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 71:
-#line 437 "faustparser.y" /* yacc.c:1646  */
+#line 442 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigOR)); }
-#line 2205 "faustparser.cpp" /* yacc.c:1646  */
+#line 2211 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 72:
-#line 438 "faustparser.y" /* yacc.c:1646  */
+#line 443 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigXOR)); }
-#line 2211 "faustparser.cpp" /* yacc.c:1646  */
+#line 2217 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 73:
-#line 440 "faustparser.y" /* yacc.c:1646  */
+#line 445 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLeftShift)); }
-#line 2217 "faustparser.cpp" /* yacc.c:1646  */
+#line 2223 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 74:
-#line 441 "faustparser.y" /* yacc.c:1646  */
+#line 446 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigRightShift)); }
-#line 2223 "faustparser.cpp" /* yacc.c:1646  */
+#line 2229 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 75:
-#line 443 "faustparser.y" /* yacc.c:1646  */
+#line 448 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLT)); }
-#line 2229 "faustparser.cpp" /* yacc.c:1646  */
+#line 2235 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 76:
-#line 444 "faustparser.y" /* yacc.c:1646  */
+#line 449 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigLE)); }
-#line 2235 "faustparser.cpp" /* yacc.c:1646  */
+#line 2241 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 77:
-#line 445 "faustparser.y" /* yacc.c:1646  */
+#line 450 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigGT)); }
-#line 2241 "faustparser.cpp" /* yacc.c:1646  */
+#line 2247 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 78:
-#line 446 "faustparser.y" /* yacc.c:1646  */
+#line 451 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigGE)); }
-#line 2247 "faustparser.cpp" /* yacc.c:1646  */
+#line 2253 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 79:
-#line 447 "faustparser.y" /* yacc.c:1646  */
+#line 452 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigEQ)); }
-#line 2253 "faustparser.cpp" /* yacc.c:1646  */
+#line 2259 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 80:
-#line 448 "faustparser.y" /* yacc.c:1646  */
+#line 453 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar((yyvsp[-2].exp),(yyvsp[0].exp)),boxPrim2(sigNE)); }
-#line 2259 "faustparser.cpp" /* yacc.c:1646  */
+#line 2265 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 81:
-#line 450 "faustparser.y" /* yacc.c:1646  */
+#line 455 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = buildBoxAppl((yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2265 "faustparser.cpp" /* yacc.c:1646  */
+#line 2271 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 82:
-#line 451 "faustparser.y" /* yacc.c:1646  */
+#line 456 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxModifLocalDef((yyvsp[-3].exp),formatDefinitions((yyvsp[-1].exp))); }
-#line 2271 "faustparser.cpp" /* yacc.c:1646  */
+#line 2277 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 83:
-#line 453 "faustparser.y" /* yacc.c:1646  */
+#line 458 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2277 "faustparser.cpp" /* yacc.c:1646  */
+#line 2283 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 84:
-#line 456 "faustparser.y" /* yacc.c:1646  */
+#line 461 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt(atoi(yytext)); }
-#line 2283 "faustparser.cpp" /* yacc.c:1646  */
+#line 2289 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 85:
-#line 457 "faustparser.y" /* yacc.c:1646  */
+#line 462 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal(atof(yytext)); }
-#line 2289 "faustparser.cpp" /* yacc.c:1646  */
+#line 2295 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 86:
-#line 459 "faustparser.y" /* yacc.c:1646  */
+#line 464 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt (atoi(yytext)); }
-#line 2295 "faustparser.cpp" /* yacc.c:1646  */
+#line 2301 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 87:
-#line 460 "faustparser.y" /* yacc.c:1646  */
+#line 465 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal(atof(yytext)); }
-#line 2301 "faustparser.cpp" /* yacc.c:1646  */
+#line 2307 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 88:
-#line 462 "faustparser.y" /* yacc.c:1646  */
+#line 467 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInt ( -atoi(yytext) ); }
-#line 2307 "faustparser.cpp" /* yacc.c:1646  */
+#line 2313 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 89:
-#line 463 "faustparser.y" /* yacc.c:1646  */
+#line 468 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxReal( -atof(yytext) ); }
-#line 2313 "faustparser.cpp" /* yacc.c:1646  */
+#line 2319 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 90:
-#line 465 "faustparser.y" /* yacc.c:1646  */
+#line 470 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxWire(); }
-#line 2319 "faustparser.cpp" /* yacc.c:1646  */
+#line 2325 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 91:
-#line 466 "faustparser.y" /* yacc.c:1646  */
+#line 471 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxCut(); }
-#line 2325 "faustparser.cpp" /* yacc.c:1646  */
+#line 2331 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 92:
-#line 468 "faustparser.y" /* yacc.c:1646  */
+#line 473 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim1(sigDelay1); }
-#line 2331 "faustparser.cpp" /* yacc.c:1646  */
+#line 2337 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 93:
-#line 469 "faustparser.y" /* yacc.c:1646  */
+#line 474 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigPrefix); }
-#line 2337 "faustparser.cpp" /* yacc.c:1646  */
+#line 2343 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 94:
-#line 471 "faustparser.y" /* yacc.c:1646  */
+#line 476 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim1(sigIntCast); }
-#line 2343 "faustparser.cpp" /* yacc.c:1646  */
+#line 2349 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 95:
-#line 472 "faustparser.y" /* yacc.c:1646  */
+#line 477 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim1(sigFloatCast); }
-#line 2349 "faustparser.cpp" /* yacc.c:1646  */
+#line 2355 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 96:
-#line 474 "faustparser.y" /* yacc.c:1646  */
+#line 479 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigAdd); }
-#line 2355 "faustparser.cpp" /* yacc.c:1646  */
+#line 2361 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 97:
-#line 475 "faustparser.y" /* yacc.c:1646  */
+#line 480 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigSub); }
-#line 2361 "faustparser.cpp" /* yacc.c:1646  */
+#line 2367 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 98:
-#line 476 "faustparser.y" /* yacc.c:1646  */
+#line 481 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigMul); }
-#line 2367 "faustparser.cpp" /* yacc.c:1646  */
+#line 2373 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 99:
-#line 477 "faustparser.y" /* yacc.c:1646  */
+#line 482 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigDiv); }
-#line 2373 "faustparser.cpp" /* yacc.c:1646  */
+#line 2379 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 100:
-#line 478 "faustparser.y" /* yacc.c:1646  */
+#line 483 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigRem); }
-#line 2379 "faustparser.cpp" /* yacc.c:1646  */
+#line 2385 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 101:
-#line 479 "faustparser.y" /* yacc.c:1646  */
+#line 484 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigFixDelay); }
-#line 2385 "faustparser.cpp" /* yacc.c:1646  */
+#line 2391 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 102:
-#line 481 "faustparser.y" /* yacc.c:1646  */
+#line 486 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigAND); }
-#line 2391 "faustparser.cpp" /* yacc.c:1646  */
+#line 2397 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 103:
-#line 482 "faustparser.y" /* yacc.c:1646  */
+#line 487 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigOR); }
-#line 2397 "faustparser.cpp" /* yacc.c:1646  */
+#line 2403 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 104:
-#line 483 "faustparser.y" /* yacc.c:1646  */
+#line 488 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigXOR); }
-#line 2403 "faustparser.cpp" /* yacc.c:1646  */
+#line 2409 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 105:
-#line 485 "faustparser.y" /* yacc.c:1646  */
+#line 490 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigLeftShift); }
-#line 2409 "faustparser.cpp" /* yacc.c:1646  */
+#line 2415 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 106:
-#line 486 "faustparser.y" /* yacc.c:1646  */
+#line 491 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigRightShift); }
-#line 2415 "faustparser.cpp" /* yacc.c:1646  */
+#line 2421 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 107:
-#line 488 "faustparser.y" /* yacc.c:1646  */
+#line 493 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigLT); }
-#line 2421 "faustparser.cpp" /* yacc.c:1646  */
+#line 2427 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 108:
-#line 489 "faustparser.y" /* yacc.c:1646  */
+#line 494 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigLE); }
-#line 2427 "faustparser.cpp" /* yacc.c:1646  */
+#line 2433 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 109:
-#line 490 "faustparser.y" /* yacc.c:1646  */
+#line 495 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigGT); }
-#line 2433 "faustparser.cpp" /* yacc.c:1646  */
+#line 2439 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 110:
-#line 491 "faustparser.y" /* yacc.c:1646  */
+#line 496 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigGE); }
-#line 2439 "faustparser.cpp" /* yacc.c:1646  */
+#line 2445 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 111:
-#line 492 "faustparser.y" /* yacc.c:1646  */
+#line 497 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigEQ); }
-#line 2445 "faustparser.cpp" /* yacc.c:1646  */
+#line 2451 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 112:
-#line 493 "faustparser.y" /* yacc.c:1646  */
+#line 498 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigNE); }
-#line 2451 "faustparser.cpp" /* yacc.c:1646  */
+#line 2457 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 113:
-#line 495 "faustparser.y" /* yacc.c:1646  */
+#line 500 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigAttach); }
-#line 2457 "faustparser.cpp" /* yacc.c:1646  */
+#line 2463 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 114:
-#line 496 "faustparser.y" /* yacc.c:1646  */
+#line 501 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigEnable); }
-#line 2463 "faustparser.cpp" /* yacc.c:1646  */
+#line 2469 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 115:
-#line 497 "faustparser.y" /* yacc.c:1646  */
+#line 502 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim2(sigControl); }
-#line 2469 "faustparser.cpp" /* yacc.c:1646  */
+#line 2475 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 116:
-#line 500 "faustparser.y" /* yacc.c:1646  */
+#line 505 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gAcosPrim->box(); }
-#line 2475 "faustparser.cpp" /* yacc.c:1646  */
+#line 2481 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 117:
-#line 501 "faustparser.y" /* yacc.c:1646  */
+#line 506 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gAsinPrim->box(); }
-#line 2481 "faustparser.cpp" /* yacc.c:1646  */
+#line 2487 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 118:
-#line 502 "faustparser.y" /* yacc.c:1646  */
+#line 507 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gAtanPrim->box(); }
-#line 2487 "faustparser.cpp" /* yacc.c:1646  */
+#line 2493 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 119:
-#line 503 "faustparser.y" /* yacc.c:1646  */
+#line 508 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gAtan2Prim->box(); }
-#line 2493 "faustparser.cpp" /* yacc.c:1646  */
+#line 2499 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 120:
-#line 504 "faustparser.y" /* yacc.c:1646  */
+#line 509 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gCosPrim->box(); }
-#line 2499 "faustparser.cpp" /* yacc.c:1646  */
+#line 2505 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 121:
-#line 505 "faustparser.y" /* yacc.c:1646  */
+#line 510 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gSinPrim->box(); }
-#line 2505 "faustparser.cpp" /* yacc.c:1646  */
+#line 2511 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 122:
-#line 506 "faustparser.y" /* yacc.c:1646  */
+#line 511 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gTanPrim->box(); }
-#line 2511 "faustparser.cpp" /* yacc.c:1646  */
+#line 2517 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 123:
-#line 508 "faustparser.y" /* yacc.c:1646  */
+#line 513 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gExpPrim->box(); }
-#line 2517 "faustparser.cpp" /* yacc.c:1646  */
+#line 2523 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 124:
-#line 509 "faustparser.y" /* yacc.c:1646  */
+#line 514 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gLogPrim->box(); }
-#line 2523 "faustparser.cpp" /* yacc.c:1646  */
+#line 2529 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 125:
-#line 510 "faustparser.y" /* yacc.c:1646  */
+#line 515 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gLog10Prim->box(); }
-#line 2529 "faustparser.cpp" /* yacc.c:1646  */
+#line 2535 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 126:
-#line 511 "faustparser.y" /* yacc.c:1646  */
+#line 516 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gPowPrim->box(); }
-#line 2535 "faustparser.cpp" /* yacc.c:1646  */
+#line 2541 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 127:
-#line 512 "faustparser.y" /* yacc.c:1646  */
+#line 517 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gPowPrim->box(); }
-#line 2541 "faustparser.cpp" /* yacc.c:1646  */
+#line 2547 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 128:
-#line 513 "faustparser.y" /* yacc.c:1646  */
+#line 518 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gSqrtPrim->box(); }
-#line 2547 "faustparser.cpp" /* yacc.c:1646  */
+#line 2553 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 129:
-#line 515 "faustparser.y" /* yacc.c:1646  */
+#line 520 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gAbsPrim->box(); }
-#line 2553 "faustparser.cpp" /* yacc.c:1646  */
+#line 2559 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 130:
-#line 516 "faustparser.y" /* yacc.c:1646  */
+#line 521 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gMinPrim->box(); }
-#line 2559 "faustparser.cpp" /* yacc.c:1646  */
+#line 2565 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 131:
-#line 517 "faustparser.y" /* yacc.c:1646  */
+#line 522 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gMaxPrim->box(); }
-#line 2565 "faustparser.cpp" /* yacc.c:1646  */
+#line 2571 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 132:
-#line 519 "faustparser.y" /* yacc.c:1646  */
+#line 524 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gFmodPrim->box(); }
-#line 2571 "faustparser.cpp" /* yacc.c:1646  */
+#line 2577 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 133:
-#line 520 "faustparser.y" /* yacc.c:1646  */
+#line 525 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gRemainderPrim->box(); }
-#line 2577 "faustparser.cpp" /* yacc.c:1646  */
+#line 2583 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 134:
-#line 522 "faustparser.y" /* yacc.c:1646  */
+#line 527 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gFloorPrim->box(); }
-#line 2583 "faustparser.cpp" /* yacc.c:1646  */
+#line 2589 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 135:
-#line 523 "faustparser.y" /* yacc.c:1646  */
+#line 528 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gCeilPrim->box(); }
-#line 2589 "faustparser.cpp" /* yacc.c:1646  */
+#line 2595 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 136:
-#line 524 "faustparser.y" /* yacc.c:1646  */
+#line 529 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = gGlobal->gRintPrim->box(); }
-#line 2595 "faustparser.cpp" /* yacc.c:1646  */
+#line 2601 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 137:
-#line 527 "faustparser.y" /* yacc.c:1646  */
+#line 532 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim3(sigReadOnlyTable); }
-#line 2601 "faustparser.cpp" /* yacc.c:1646  */
+#line 2607 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 138:
-#line 528 "faustparser.y" /* yacc.c:1646  */
+#line 533 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim5(sigWriteReadTable); }
-#line 2607 "faustparser.cpp" /* yacc.c:1646  */
+#line 2613 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 139:
-#line 530 "faustparser.y" /* yacc.c:1646  */
+#line 535 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim3(sigSelect2); }
-#line 2613 "faustparser.cpp" /* yacc.c:1646  */
+#line 2619 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 140:
-#line 531 "faustparser.y" /* yacc.c:1646  */
+#line 536 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxPrim4(sigSelect3); }
-#line 2619 "faustparser.cpp" /* yacc.c:1646  */
+#line 2625 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 141:
-#line 533 "faustparser.y" /* yacc.c:1646  */
+#line 538 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp);  setUseProp((yyvsp[0].exp), yyfilename, yylineno);}
-#line 2625 "faustparser.cpp" /* yacc.c:1646  */
+#line 2631 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 142:
-#line 534 "faustparser.y" /* yacc.c:1646  */
+#line 539 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq(boxPar(boxInt(0),(yyvsp[0].exp)),boxPrim2(sigSub)); }
-#line 2631 "faustparser.cpp" /* yacc.c:1646  */
+#line 2637 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 143:
-#line 536 "faustparser.y" /* yacc.c:1646  */
+#line 541 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[-1].exp); }
-#line 2637 "faustparser.cpp" /* yacc.c:1646  */
+#line 2643 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 144:
-#line 538 "faustparser.y" /* yacc.c:1646  */
+#line 543 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = buildBoxAbstr((yyvsp[-5].exp),(yyvsp[-1].exp)); }
-#line 2643 "faustparser.cpp" /* yacc.c:1646  */
+#line 2649 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 145:
-#line 540 "faustparser.y" /* yacc.c:1646  */
+#line 545 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxCase(checkRulelist((yyvsp[-1].exp))); }
-#line 2649 "faustparser.cpp" /* yacc.c:1646  */
+#line 2655 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 146:
-#line 542 "faustparser.y" /* yacc.c:1646  */
+#line 547 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxFFun((yyvsp[0].exp)); }
-#line 2655 "faustparser.cpp" /* yacc.c:1646  */
+#line 2661 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 147:
-#line 543 "faustparser.y" /* yacc.c:1646  */
+#line 548 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2661 "faustparser.cpp" /* yacc.c:1646  */
+#line 2667 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 148:
-#line 544 "faustparser.y" /* yacc.c:1646  */
+#line 549 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2667 "faustparser.cpp" /* yacc.c:1646  */
+#line 2673 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 149:
-#line 545 "faustparser.y" /* yacc.c:1646  */
+#line 550 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxComponent((yyvsp[-1].exp)); }
-#line 2673 "faustparser.cpp" /* yacc.c:1646  */
+#line 2679 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 150:
-#line 546 "faustparser.y" /* yacc.c:1646  */
+#line 551 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxLibrary((yyvsp[-1].exp)); }
-#line 2679 "faustparser.cpp" /* yacc.c:1646  */
+#line 2685 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 151:
-#line 547 "faustparser.y" /* yacc.c:1646  */
+#line 552 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxWithLocalDef(boxEnvironment(),formatDefinitions((yyvsp[-1].exp))); }
-#line 2685 "faustparser.cpp" /* yacc.c:1646  */
+#line 2691 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 152:
-#line 548 "faustparser.y" /* yacc.c:1646  */
+#line 553 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxWaveform(gGlobal->gWaveForm); gGlobal->gWaveForm.clear(); }
-#line 2691 "faustparser.cpp" /* yacc.c:1646  */
+#line 2697 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 153:
-#line 549 "faustparser.y" /* yacc.c:1646  */
+#line 554 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2697 "faustparser.cpp" /* yacc.c:1646  */
+#line 2703 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 154:
-#line 550 "faustparser.y" /* yacc.c:1646  */
+#line 555 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2703 "faustparser.cpp" /* yacc.c:1646  */
+#line 2709 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 155:
-#line 551 "faustparser.y" /* yacc.c:1646  */
+#line 556 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2709 "faustparser.cpp" /* yacc.c:1646  */
+#line 2715 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 156:
-#line 552 "faustparser.y" /* yacc.c:1646  */
+#line 557 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2715 "faustparser.cpp" /* yacc.c:1646  */
+#line 2721 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 157:
-#line 553 "faustparser.y" /* yacc.c:1646  */
+#line 558 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2721 "faustparser.cpp" /* yacc.c:1646  */
+#line 2727 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 158:
-#line 554 "faustparser.y" /* yacc.c:1646  */
+#line 559 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2727 "faustparser.cpp" /* yacc.c:1646  */
+#line 2733 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 159:
-#line 555 "faustparser.y" /* yacc.c:1646  */
+#line 560 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2733 "faustparser.cpp" /* yacc.c:1646  */
+#line 2739 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 160:
-#line 556 "faustparser.y" /* yacc.c:1646  */
+#line 561 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2739 "faustparser.cpp" /* yacc.c:1646  */
+#line 2745 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 161:
-#line 557 "faustparser.y" /* yacc.c:1646  */
+#line 562 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2745 "faustparser.cpp" /* yacc.c:1646  */
+#line 2751 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 162:
-#line 558 "faustparser.y" /* yacc.c:1646  */
+#line 563 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2751 "faustparser.cpp" /* yacc.c:1646  */
+#line 2757 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 163:
-#line 559 "faustparser.y" /* yacc.c:1646  */
+#line 564 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2757 "faustparser.cpp" /* yacc.c:1646  */
+#line 2763 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 164:
-#line 561 "faustparser.y" /* yacc.c:1646  */
+#line 566 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2763 "faustparser.cpp" /* yacc.c:1646  */
+#line 2769 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 165:
-#line 562 "faustparser.y" /* yacc.c:1646  */
+#line 567 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2769 "faustparser.cpp" /* yacc.c:1646  */
+#line 2775 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 166:
-#line 563 "faustparser.y" /* yacc.c:1646  */
+#line 568 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2775 "faustparser.cpp" /* yacc.c:1646  */
+#line 2781 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 167:
-#line 564 "faustparser.y" /* yacc.c:1646  */
+#line 569 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2781 "faustparser.cpp" /* yacc.c:1646  */
+#line 2787 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 168:
-#line 566 "faustparser.y" /* yacc.c:1646  */
+#line 571 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2787 "faustparser.cpp" /* yacc.c:1646  */
+#line 2793 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 169:
-#line 567 "faustparser.y" /* yacc.c:1646  */
+#line 572 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2793 "faustparser.cpp" /* yacc.c:1646  */
+#line 2799 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 170:
-#line 572 "faustparser.y" /* yacc.c:1646  */
+#line 577 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxIdent(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  }
-#line 2799 "faustparser.cpp" /* yacc.c:1646  */
+#line 2805 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 171:
-#line 575 "faustparser.y" /* yacc.c:1646  */
+#line 580 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(yytext); setUseProp((yyval.exp), yyfilename, yylineno);  }
-#line 2805 "faustparser.cpp" /* yacc.c:1646  */
+#line 2811 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 172:
-#line 580 "faustparser.y" /* yacc.c:1646  */
+#line 585 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),gGlobal->nil); }
-#line 2811 "faustparser.cpp" /* yacc.c:1646  */
+#line 2817 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 173:
-#line 581 "faustparser.y" /* yacc.c:1646  */
+#line 586 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); }
-#line 2817 "faustparser.cpp" /* yacc.c:1646  */
+#line 2823 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 174:
-#line 584 "faustparser.y" /* yacc.c:1646  */
+#line 589 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSeq((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2823 "faustparser.cpp" /* yacc.c:1646  */
+#line 2829 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 175:
-#line 585 "faustparser.y" /* yacc.c:1646  */
+#line 590 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSplit((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2829 "faustparser.cpp" /* yacc.c:1646  */
+#line 2835 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 176:
-#line 586 "faustparser.y" /* yacc.c:1646  */
+#line 591 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxMerge((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2835 "faustparser.cpp" /* yacc.c:1646  */
+#line 2841 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 177:
-#line 587 "faustparser.y" /* yacc.c:1646  */
+#line 592 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxRec((yyvsp[-2].exp),(yyvsp[0].exp)); }
-#line 2841 "faustparser.cpp" /* yacc.c:1646  */
+#line 2847 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 178:
-#line 588 "faustparser.y" /* yacc.c:1646  */
+#line 593 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = (yyvsp[0].exp); }
-#line 2847 "faustparser.cpp" /* yacc.c:1646  */
+#line 2853 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 179:
-#line 591 "faustparser.y" /* yacc.c:1646  */
+#line 596 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(yytext); }
-#line 2853 "faustparser.cpp" /* yacc.c:1646  */
+#line 2859 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 180:
-#line 594 "faustparser.y" /* yacc.c:1646  */
+#line 599 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = unquote(yytext); }
-#line 2859 "faustparser.cpp" /* yacc.c:1646  */
+#line 2865 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 181:
-#line 597 "faustparser.y" /* yacc.c:1646  */
+#line 602 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(yytext); }
-#line 2865 "faustparser.cpp" /* yacc.c:1646  */
+#line 2871 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 182:
-#line 598 "faustparser.y" /* yacc.c:1646  */
+#line 603 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(yytext); }
-#line 2871 "faustparser.cpp" /* yacc.c:1646  */
+#line 2877 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 183:
-#line 604 "faustparser.y" /* yacc.c:1646  */
+#line 609 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxIPar((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2877 "faustparser.cpp" /* yacc.c:1646  */
+#line 2883 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 184:
-#line 608 "faustparser.y" /* yacc.c:1646  */
+#line 613 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxISeq((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2883 "faustparser.cpp" /* yacc.c:1646  */
+#line 2889 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 185:
-#line 612 "faustparser.y" /* yacc.c:1646  */
+#line 617 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxISum((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2889 "faustparser.cpp" /* yacc.c:1646  */
+#line 2895 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 186:
-#line 616 "faustparser.y" /* yacc.c:1646  */
+#line 621 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxIProd((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2895 "faustparser.cpp" /* yacc.c:1646  */
+#line 2901 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 187:
-#line 620 "faustparser.y" /* yacc.c:1646  */
+#line 625 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxInputs((yyvsp[-1].exp)); }
-#line 2901 "faustparser.cpp" /* yacc.c:1646  */
+#line 2907 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 188:
-#line 623 "faustparser.y" /* yacc.c:1646  */
+#line 628 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxOutputs((yyvsp[-1].exp)); }
-#line 2907 "faustparser.cpp" /* yacc.c:1646  */
+#line 2913 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 189:
-#line 631 "faustparser.y" /* yacc.c:1646  */
+#line 636 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = ffunction((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2913 "faustparser.cpp" /* yacc.c:1646  */
+#line 2919 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 190:
-#line 635 "faustparser.y" /* yacc.c:1646  */
+#line 640 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxFConst((yyvsp[-4].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2919 "faustparser.cpp" /* yacc.c:1646  */
+#line 2925 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 191:
-#line 638 "faustparser.y" /* yacc.c:1646  */
+#line 643 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxFVar((yyvsp[-4].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2925 "faustparser.cpp" /* yacc.c:1646  */
+#line 2931 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 192:
-#line 642 "faustparser.y" /* yacc.c:1646  */
+#line 647 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxButton((yyvsp[-1].exp)); }
-#line 2931 "faustparser.cpp" /* yacc.c:1646  */
+#line 2937 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 193:
-#line 645 "faustparser.y" /* yacc.c:1646  */
+#line 650 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxCheckbox((yyvsp[-1].exp)); }
-#line 2937 "faustparser.cpp" /* yacc.c:1646  */
+#line 2943 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 194:
-#line 649 "faustparser.y" /* yacc.c:1646  */
+#line 654 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxVSlider((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2943 "faustparser.cpp" /* yacc.c:1646  */
+#line 2949 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 195:
-#line 652 "faustparser.y" /* yacc.c:1646  */
+#line 657 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxHSlider((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2949 "faustparser.cpp" /* yacc.c:1646  */
+#line 2955 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 196:
-#line 655 "faustparser.y" /* yacc.c:1646  */
+#line 660 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxNumEntry((yyvsp[-9].exp),(yyvsp[-7].exp),(yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2955 "faustparser.cpp" /* yacc.c:1646  */
+#line 2961 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 197:
-#line 658 "faustparser.y" /* yacc.c:1646  */
+#line 663 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxVGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); }
-#line 2961 "faustparser.cpp" /* yacc.c:1646  */
+#line 2967 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 198:
-#line 661 "faustparser.y" /* yacc.c:1646  */
+#line 666 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxHGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); }
-#line 2967 "faustparser.cpp" /* yacc.c:1646  */
+#line 2973 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 199:
-#line 664 "faustparser.y" /* yacc.c:1646  */
+#line 669 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxTGroup((yyvsp[-3].exp), (yyvsp[-1].exp)); }
-#line 2973 "faustparser.cpp" /* yacc.c:1646  */
+#line 2979 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 200:
-#line 668 "faustparser.y" /* yacc.c:1646  */
+#line 673 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxVBargraph((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2979 "faustparser.cpp" /* yacc.c:1646  */
+#line 2985 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 201:
-#line 671 "faustparser.y" /* yacc.c:1646  */
+#line 676 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxHBargraph((yyvsp[-5].exp),(yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2985 "faustparser.cpp" /* yacc.c:1646  */
+#line 2991 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 202:
-#line 674 "faustparser.y" /* yacc.c:1646  */
+#line 679 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = boxSoundfile((yyvsp[-3].exp),(yyvsp[-1].exp)); }
-#line 2991 "faustparser.cpp" /* yacc.c:1646  */
+#line 2997 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 203:
-#line 680 "faustparser.y" /* yacc.c:1646  */
+#line 685 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-4].exp), cons(cons((yyvsp[-3].exp),cons((yyvsp[-3].exp),cons((yyvsp[-3].exp),gGlobal->nil))), (yyvsp[-1].exp))); }
-#line 2997 "faustparser.cpp" /* yacc.c:1646  */
+#line 3003 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 204:
-#line 681 "faustparser.y" /* yacc.c:1646  */
+#line 686 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-6].exp), cons(cons((yyvsp[-5].exp),cons((yyvsp[-3].exp),cons((yyvsp[-3].exp),gGlobal->nil))), (yyvsp[-1].exp))); }
-#line 3003 "faustparser.cpp" /* yacc.c:1646  */
+#line 3009 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 205:
-#line 682 "faustparser.y" /* yacc.c:1646  */
+#line 687 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-8].exp), cons(cons((yyvsp[-7].exp),cons((yyvsp[-5].exp),cons((yyvsp[-3].exp),gGlobal->nil))), (yyvsp[-1].exp))); }
-#line 3009 "faustparser.cpp" /* yacc.c:1646  */
+#line 3015 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 206:
-#line 684 "faustparser.y" /* yacc.c:1646  */
+#line 689 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-3].exp), cons(cons((yyvsp[-2].exp),cons((yyvsp[-2].exp),cons((yyvsp[-2].exp),gGlobal->nil))), gGlobal->nil)); }
-#line 3015 "faustparser.cpp" /* yacc.c:1646  */
+#line 3021 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 207:
-#line 685 "faustparser.y" /* yacc.c:1646  */
+#line 690 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-5].exp), cons(cons((yyvsp[-4].exp),cons((yyvsp[-2].exp),cons((yyvsp[-2].exp),gGlobal->nil))), gGlobal->nil)); }
-#line 3021 "faustparser.cpp" /* yacc.c:1646  */
+#line 3027 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 208:
-#line 686 "faustparser.y" /* yacc.c:1646  */
+#line 691 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-7].exp), cons(cons((yyvsp[-6].exp),cons((yyvsp[-4].exp),cons((yyvsp[-2].exp),gGlobal->nil))), gGlobal->nil)); }
-#line 3027 "faustparser.cpp" /* yacc.c:1646  */
+#line 3033 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 209:
-#line 689 "faustparser.y" /* yacc.c:1646  */
+#line 694 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(yytext); }
-#line 3033 "faustparser.cpp" /* yacc.c:1646  */
+#line 3039 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 210:
-#line 692 "faustparser.y" /* yacc.c:1646  */
+#line 697 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),gGlobal->nil); }
-#line 3039 "faustparser.cpp" /* yacc.c:1646  */
+#line 3045 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 211:
-#line 693 "faustparser.y" /* yacc.c:1646  */
+#line 698 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-2].exp)); }
-#line 3045 "faustparser.cpp" /* yacc.c:1646  */
+#line 3051 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 212:
-#line 696 "faustparser.y" /* yacc.c:1646  */
+#line 701 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),gGlobal->nil); }
-#line 3051 "faustparser.cpp" /* yacc.c:1646  */
+#line 3057 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 213:
-#line 697 "faustparser.y" /* yacc.c:1646  */
+#line 702 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[0].exp),(yyvsp[-1].exp)); }
-#line 3057 "faustparser.cpp" /* yacc.c:1646  */
+#line 3063 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 214:
-#line 701 "faustparser.y" /* yacc.c:1646  */
+#line 706 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = cons((yyvsp[-4].exp),(yyvsp[-1].exp)); }
-#line 3063 "faustparser.cpp" /* yacc.c:1646  */
+#line 3069 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 215:
-#line 704 "faustparser.y" /* yacc.c:1646  */
+#line 709 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(0); }
-#line 3069 "faustparser.cpp" /* yacc.c:1646  */
+#line 3075 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
   case 216:
-#line 705 "faustparser.y" /* yacc.c:1646  */
+#line 710 "faustparser.y" /* yacc.c:1666  */
     { (yyval.exp) = tree(1); }
-#line 3075 "faustparser.cpp" /* yacc.c:1646  */
+#line 3081 "faustparser.cpp" /* yacc.c:1666  */
     break;
 
 
-#line 3079 "faustparser.cpp" /* yacc.c:1646  */
+#line 3085 "faustparser.cpp" /* yacc.c:1666  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3303,6 +3306,6 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 708 "faustparser.y" /* yacc.c:1906  */
+#line 713 "faustparser.y" /* yacc.c:1910  */
 
 

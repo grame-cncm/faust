@@ -60,8 +60,8 @@ allpasstuningL4 = 225;
 // Dry : original signal
 // Wet : reverberated signal
 
-dampSlider      = rkg(vslider("Damp [midi:ctrl 4] [style:knob]",0.5, 0, 1, 0.025))*scaledamp;
-roomsizeSlider  = rkg(vslider("RoomSize [midi:ctrl 3] [style:knob]", 0.5, 0, 1, 0.025))*scaleroom + offsetroom;
+dampSlider      = rkg(vslider("Damp [midi:ctrl 3] [style:knob]",0.5, 0, 1, 0.025))*scaledamp;
+roomsizeSlider  = rkg(vslider("RoomSize [midi:ctrl 4] [style:knob]", 0.5, 0, 1, 0.025))*scaleroom + offsetroom;
 wetSlider       = rkg(vslider("Wet [midi:ctrl 2] [style:knob]", 0.3333, 0, 1, 0.025));
 combfeed        = roomsizeSlider;
 
@@ -105,7 +105,7 @@ monoToStereoReverb(fb1, fb2, damp, spread)
 
 fxctrl(g,w,Fx) =  _,_ <: (*(g),*(g) : Fx : *(w),*(w)), *(1-w), *(1-w) +> _,_;
 
-rbp = 1-int(rsg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
+rbp = 1-int(rsg(vslider("[0] Enable [midi:ctrl 105][style:knob]",0,0,1,1)));
 
 // Freeverb
 //---------

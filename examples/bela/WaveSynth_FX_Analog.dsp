@@ -24,7 +24,7 @@ midigate        = button ("gate");
 midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
 midigain        = nentry("gain", 0.5, 0, 1, 0.01);
 
-waveTravel		= hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
+waveTravel      = hslider("waveTravel[BELA: ANALOG_0]",0,0,1,0.01);
 
 // pitchwheel
 pitchwheel = hslider("bend [midi:pitchwheel]",1,0.001,10,0.01);
@@ -49,21 +49,21 @@ WF(tablesize, rang) = abs((fmod ((1+(float(ba.time)*rang)/float(tablesize)), 4.0
 
 // 4 WF maxi with this version:
 scanner(nb, position) = -(_,soustraction) : *(_,coef) : cos : max(0)
-with{
-	coef = 3.14159 * ((nb-1)*0.5);
-	soustraction = select2( position>0, 0, (position/(nb-1)) );
-};
+    with {
+        coef = 3.14159 * ((nb-1)*0.5);
+        soustraction = select2( position>0, 0, (position/(nb-1)) );
+    };
 
 wfosc(freq) = (rdtable(tablesize, wt1, faze)*(moov : scanner(4,0)))+(rdtable(tablesize, wt2, faze)*(moov : scanner(4,1)))
 				+ (rdtable(tablesize, wt3, faze)*(moov : scanner(4,2)))+(rdtable(tablesize, wt4, faze)*(moov : scanner(4,3)))
-with{
-	tablesize = 1024;
-	wt1 = WF(tablesize, 16);
-	wt2 = WF(tablesize, 8);
-	wt3 = WF(tablesize, 6);
-	wt4 = WF(tablesize, 4);
-	faze = int(os.phasor(tablesize,freq));
-};
+    with {
+        tablesize = 1024;
+        wt1 = WF(tablesize, 16);
+        wt2 = WF(tablesize, 8);
+        wt3 = WF(tablesize, 6);
+        wt4 = WF(tablesize, 4);
+        faze = int(os.phasor(tablesize,freq));
+    };
 
 //#################################################################################################//
 //##################################### EFFECT SECTION ############################################//
@@ -88,28 +88,28 @@ with{
 // ANALOG_7	: Reverberation Room size
 //
 // MIDI:
-// CC 7		: Volume
-// CC 10	: Pan
+// CC 7	: Volume
+// CC 10 : Pan
 //
-// CC 13	: Flanger Delay
-// CC 13	: Flanger Delay
-// CC 94	: Flanger Feedback
+// CC 13 : Flanger Delay
+// CC 13 : Flanger Delay
+// CC 94 : Flanger Feedback
 //
-// CC 95	: Reverberation Damp
-// CC 90	: Reverberation Stereo Width
+// CC 95 : Reverberation Damp
+// CC 90 : Reverberation Stereo Width
 // 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // VOLUME:
-volFX	= hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
+volFX = hslider("volume[midi:ctrl 7]",1,0,1,0.001);// Should be 7 according to MIDI CC norm.
 
 // EFFECTS /////////////////////////////////////////////
-drive	= hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
+drive = hslider ("drive[BELA: ANALOG_4]",0.3,0,1,0.001);
 
 // Flanger
 curdel	= hslider("flangDel[midi:ctrl 13]",4,0.001,10,0.001);
-fb      = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
-fldw	= hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
+fb = hslider("flangFeedback[midi:ctrl 94]",0.7,0,1,0.001);
+fldw = hslider("dryWetFlang[BELA: ANALOG_5]",0.5,0,1,0.001);
 flanger = efx
 	with {
 		fldel = (curdel + (os.lf_triangle(1) * 2) ) : min(10);

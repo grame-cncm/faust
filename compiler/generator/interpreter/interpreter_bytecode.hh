@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include <vector>
 
 #include "exception.hh"
-#include "fir_opcode.hh"
+#include "fbc_opcode.hh"
 
 static inline std::string quote1(std::string str)
 {
@@ -43,21 +43,21 @@ static inline std::string unquote1(const std::string& str)
 // Bytecode definition
 
 template <class T>
-struct FIRBlockInstruction;
+struct FBCBlockInstruction;
 
 template <class T>
-struct FIRBasicInstruction : public FIRInstruction {
+struct FBCBasicInstruction : public FBCInstruction {
     Opcode fOpcode;
     int    fIntValue;
     T      fRealValue;
     int    fOffset1;
     int    fOffset2;
 
-    FIRBlockInstruction<T>* fBranch1;
-    FIRBlockInstruction<T>* fBranch2;
+    FBCBlockInstruction<T>* fBranch1;
+    FBCBlockInstruction<T>* fBranch2;
 
-    FIRBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2, FIRBlockInstruction<T>* branch1,
-                        FIRBlockInstruction<T>* branch2)
+    FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2, FBCBlockInstruction<T>* branch1,
+                        FBCBlockInstruction<T>* branch2)
         : fOpcode(opcode),
           fIntValue(val_int),
           fRealValue(val_real),
@@ -68,7 +68,7 @@ struct FIRBasicInstruction : public FIRInstruction {
     {
     }
 
-    FIRBasicInstruction(Opcode opcode, int val_int, T val_real)
+    FBCBasicInstruction(Opcode opcode, int val_int, T val_real)
         : fOpcode(opcode),
           fIntValue(val_int),
           fRealValue(val_real),
@@ -79,7 +79,7 @@ struct FIRBasicInstruction : public FIRInstruction {
     {
     }
 
-    FIRBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2)
+    FBCBasicInstruction(Opcode opcode, int val_int, T val_real, int off1, int off2)
         : fOpcode(opcode),
           fIntValue(val_int),
           fRealValue(val_real),
@@ -90,13 +90,13 @@ struct FIRBasicInstruction : public FIRInstruction {
     {
     }
 
-    FIRBasicInstruction(Opcode opcode)
+    FBCBasicInstruction(Opcode opcode)
         : fOpcode(opcode), fIntValue(0), fRealValue(0), fOffset1(-1), fOffset2(-1), fBranch1(0), fBranch2(0)
     {
     }
 
-    FIRBasicInstruction()
-        : fOpcode(FIRInstruction::kNop),
+    FBCBasicInstruction()
+        : fOpcode(FBCInstruction::kNop),
           fIntValue(0),
           fRealValue(0),
           fOffset1(-1),
@@ -106,9 +106,9 @@ struct FIRBasicInstruction : public FIRInstruction {
     {
     }
 
-    FIRBlockInstruction<T>* getBranch1() { return (fOpcode == kCondBranch) ? 0 : fBranch1; }
+    FBCBlockInstruction<T>* getBranch1() { return (fOpcode == kCondBranch) ? 0 : fBranch1; }
 
-    virtual ~FIRBasicInstruction()
+    virtual ~FBCBasicInstruction()
     {
         delete getBranch1();
         delete fBranch2;
@@ -126,7 +126,7 @@ struct FIRBasicInstruction : public FIRInstruction {
             *out << "o " << fOpcode << " k "
                  << " i " << fIntValue << " r " << fRealValue << " o " << fOffset1 << " o " << fOffset2 << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode] << " int " << fIntValue << " real "
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " int " << fIntValue << " real "
                  << fRealValue << " offset1 " << fOffset1 << " offset2 " << fOffset2 << std::endl;
         }
         // If select/if/loop : write branches
@@ -138,18 +138,18 @@ struct FIRBasicInstruction : public FIRInstruction {
         }
     }
 
-    virtual FIRBasicInstruction<T>* copy()
+    virtual FBCBasicInstruction<T>* copy()
     {
-        return new FIRBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
+        return new FBCBasicInstruction<T>(fOpcode, fIntValue, fRealValue, fOffset1, fOffset2,
                                           ((getBranch1()) ? fBranch1->copy() : 0), ((fBranch2) ? fBranch2->copy() : 0));
     }
 };
 
 template <class T>
-struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
+struct FIRBlockStoreRealInstruction : public FBCBasicInstruction<T> {
     std::vector<T> fNumTable;
 
-    FIRBlockStoreRealInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2,
+    FIRBlockStoreRealInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2,
                                  const std::vector<T>& numtable)
     {
         this->fOpcode    = opcode;
@@ -167,13 +167,13 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreRealInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFIRInstructionTable[this->fOpcode] << " offset1 "
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
                  << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size() << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
@@ -184,10 +184,10 @@ struct FIRBlockStoreRealInstruction : public FIRBasicInstruction<T> {
 };
 
 template <class T>
-struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
+struct FIRBlockStoreIntInstruction : public FBCBasicInstruction<T> {
     std::vector<int> fNumTable;
 
-    FIRBlockStoreIntInstruction(FIRInstruction::Opcode opcode, int offset1, int offset2,
+    FIRBlockStoreIntInstruction(FBCInstruction::Opcode opcode, int offset1, int offset2,
                                 const std::vector<int>& numtable)
     {
         this->fOpcode    = opcode;
@@ -205,13 +205,13 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
         return new FIRBlockStoreIntInstruction<T>(this->fOpcode, this->fOffset1, this->fOffset2, this->fNumTable);
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << this->fOpcode << " k "
                  << " o " << this->fOffset1 << " o " << this->fOffset2 << " s " << this->fNumTable.size() << std::endl;
         } else {
-            *out << "opcode " << this->fOpcode << " " << gFIRInstructionTable[this->fOpcode] << " offset1 "
+            *out << "opcode " << this->fOpcode << " " << gFBCInstructionTable[this->fOpcode] << " offset1 "
                  << this->fOffset1 << " offset2 " << this->fOffset2 << " size " << this->fNumTable.size() << std::endl;
         }
         for (unsigned int i = 0; i < fNumTable.size(); i++) {
@@ -222,7 +222,7 @@ struct FIRBlockStoreIntInstruction : public FIRBasicInstruction<T> {
 };
 
 template <class T>
-struct FIRUserInterfaceInstruction : public FIRInstruction {
+struct FIRUserInterfaceInstruction : public FBCInstruction {
     Opcode      fOpcode;
     int         fOffset;
     std::string fLabel;
@@ -287,21 +287,21 @@ struct FIRUserInterfaceInstruction : public FIRInstruction {
 
     virtual ~FIRUserInterfaceInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "o " << fOpcode << " k "
                  << " o " << fOffset << " l " << quote1(fLabel) << " k " << quote1(fKey) << " v " << quote1(fValue)
                  << " i " << fInit << " m " << fMin << " m " << fMax << " s " << fStep << std::endl;
         } else {
-            *out << "opcode " << fOpcode << " " << gFIRInstructionTable[fOpcode] << " offset " << fOffset << " label "
+            *out << "opcode " << fOpcode << " " << gFBCInstructionTable[fOpcode] << " offset " << fOffset << " label "
                  << quote1(fLabel) << " key " << quote1(fKey) << " value " << quote1(fValue) << " init " << fInit
                  << " min " << fMin << " max " << fMax << " step " << fStep << std::endl;
         }
     }
 };
 
-struct FIRMetaInstruction : public FIRInstruction {
+struct FIRMetaInstruction : public FBCInstruction {
     std::string fKey;
     std::string fValue;
 
@@ -309,7 +309,7 @@ struct FIRMetaInstruction : public FIRInstruction {
 
     virtual ~FIRMetaInstruction() {}
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         if (small) {
             *out << "m"
@@ -321,12 +321,12 @@ struct FIRMetaInstruction : public FIRInstruction {
     }
 };
 
-#define InstructionIT typename std::vector<FIRBasicInstruction<T>*>::iterator
+#define InstructionIT typename std::vector<FBCBasicInstruction<T>*>::iterator
 #define UIInstructionIT typename std::vector<FIRUserInterfaceInstruction<T>*>::iterator
 #define MetaInstructionIT std::vector<FIRMetaInstruction*>::iterator
 
 template <class T>
-struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
+struct FIRUserInterfaceBlockInstruction : public FBCInstruction {
     std::vector<FIRUserInterfaceInstruction<T>*> fInstructions;
 
     virtual ~FIRUserInterfaceBlockInstruction()
@@ -339,7 +339,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
 
     void push(FIRUserInterfaceInstruction<T>* inst) { fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         UIInstructionIT it;
@@ -352,17 +352,17 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
     {
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            if ((*it)->fOpcode == FIRInstruction::kAddButton || (*it)->fOpcode == FIRInstruction::kAddCheckButton ||
-                (*it)->fOpcode == FIRInstruction::kAddHorizontalSlider ||
-                (*it)->fOpcode == FIRInstruction::kAddVerticalSlider ||
-                (*it)->fOpcode == FIRInstruction::kAddNumEntry) {
+            if ((*it)->fOpcode == FBCInstruction::kAddButton || (*it)->fOpcode == FBCInstruction::kAddCheckButton ||
+                (*it)->fOpcode == FBCInstruction::kAddHorizontalSlider ||
+                (*it)->fOpcode == FBCInstruction::kAddVerticalSlider ||
+                (*it)->fOpcode == FBCInstruction::kAddNumEntry) {
                 real_map[(*it)->fOffset] = (*it)->fInit;
                 std::cout << "getDefaultValues offset " << (*it)->fOffset << " value " << (*it)->fInit << std::endl;
             }
         }
     }
 
-    void unFreezeDefaultValues(std::map<int, T>& real_map, FIRInstruction::Opcode opcode)
+    void unFreezeDefaultValues(std::map<int, T>& real_map, FBCInstruction::Opcode opcode)
     {
         UIInstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
@@ -383,7 +383,7 @@ struct FIRUserInterfaceBlockInstruction : public FIRInstruction {
     }
 };
 
-struct FIRMetaBlockInstruction : public FIRInstruction {
+struct FIRMetaBlockInstruction : public FBCInstruction {
     std::vector<FIRMetaInstruction*> fInstructions;
 
     virtual ~FIRMetaBlockInstruction()
@@ -396,7 +396,7 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
 
     void push(FIRMetaInstruction* inst) { fInstructions.push_back(inst); }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         MetaInstructionIT it;
@@ -407,10 +407,10 @@ struct FIRMetaBlockInstruction : public FIRInstruction {
 };
 
 template <class T>
-struct FIRBlockInstruction : public FIRInstruction {
-    std::vector<FIRBasicInstruction<T>*> fInstructions;
+struct FBCBlockInstruction : public FBCInstruction {
+    std::vector<FBCBasicInstruction<T>*> fInstructions;
 
-    virtual ~FIRBlockInstruction()
+    virtual ~FBCBlockInstruction()
     {
         InstructionIT it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
@@ -418,19 +418,19 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
 
-    void push(FIRBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
+    void push(FBCBasicInstruction<T>* inst) { fInstructions.push_back(inst); }
 
-    void merge(FIRBlockInstruction<T>* block)
+    void merge(FBCBlockInstruction<T>* block)
     {
         InstructionIT it;
         for (it = block->fInstructions.begin(); it != block->fInstructions.end(); it++) {
-            if ((*it)->fOpcode != FIRInstruction::kReturn) {  // kReturn must be removed...
+            if ((*it)->fOpcode != FBCInstruction::kReturn) {  // kReturn must be removed...
                 fInstructions.push_back(*it);
             }
         }
     }
 
-    virtual void write(std::ostream* out, bool binary, bool small = false)
+    virtual void write(std::ostream* out, bool binary = false, bool small = false)
     {
         *out << "block_size " << fInstructions.size() << std::endl;
         InstructionIT it;
@@ -441,7 +441,7 @@ struct FIRBlockInstruction : public FIRInstruction {
 
     void stackMove(int& int_index, int& real_index)
     {
-        std::cout << "FIRBlockInstruction::stackMove" << std::endl;
+        std::cout << "FBCBlockInstruction::stackMove" << std::endl;
         InstructionIT it;
         int           tmp_int_index  = 0;
         int           tmp_real_index = 0;
@@ -455,12 +455,12 @@ struct FIRBlockInstruction : public FIRInstruction {
         }
     }
 
-    virtual FIRBlockInstruction<T>* copy()
+    virtual FBCBlockInstruction<T>* copy()
     {
-        FIRBlockInstruction<T>* block = new FIRBlockInstruction<T>();
+        FBCBlockInstruction<T>* block = new FBCBlockInstruction<T>();
         InstructionIT           it;
         for (it = fInstructions.begin(); it != fInstructions.end(); it++) {
-            FIRBasicInstruction<T>* inst_copy = (*it)->copy();
+            FBCBasicInstruction<T>* inst_copy = (*it)->copy();
             if ((*it)->fOpcode == kCondBranch) {  // Special case for loops
                 inst_copy->fBranch1 = block;
             }

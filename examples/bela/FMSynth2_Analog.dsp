@@ -13,14 +13,14 @@ import("all.lib");
 // ANALOG_3	: Sustain
 //
 // MIDI:
-// CC 1		: FM feedback on modulant oscillator.
+// CC 1 : FM feedback on modulant oscillator.
 //
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // GENERAL, Keyboard
-midigate        = button ("gate");
-midifreq        = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
-midigain        = nentry("gain", 1, 0, 1, 0.01);
+midigate = button ("gate");
+midifreq = nentry("freq[unit:Hz]", 440, 20, 20000, 1);
+midigain = nentry("gain", 1, 0, 1, 0.01);
 
 // modwheel:
 feedb = (gFreq-1) * (hslider("feedb[midi:ctrl 1]", 0, 0, 1, 0.001) : si.smoo);

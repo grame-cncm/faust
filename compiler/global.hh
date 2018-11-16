@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -91,6 +91,8 @@ struct global {
     string         gFaustSuperSuperDirectory;
     string         gFaustSuperDirectory;
     string         gFaustDirectory;
+    string         gFaustExeDir;
+    string         gFaustRootDir;		  // abs path to faust root directory
     string         gMasterDocument;
     string         gMasterDirectory;
     string         gMasterName;
@@ -159,6 +161,7 @@ struct global {
     bool   gUseDefaultSound;       // If default global variable is used in 'soundfile' primitive generation
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
+    bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions
@@ -488,6 +491,12 @@ struct global {
 
     bool   gHelpSwitch;
     bool   gVersionSwitch;
+    bool   gLibDirSwitch;
+    bool   gIncludeDirSwitch;
+    bool   gArchDirSwitch;
+    bool   gDspDirSwitch;
+    bool   gPathListSwitch;
+
     bool   gGraphSwitch;
     bool   gDrawPSSwitch;
     bool   gDrawSVGSwitch;

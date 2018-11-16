@@ -1,6 +1,6 @@
-# this file may be used to select different backends
-# it's always read by the default makefile target
-# values are among: 
+# regular.cmake : this file selects only some backends. But it has the advantage of not
+# requiring LLVM, a large dependency.
+# Possible configuration values are among: 
 #    OFF       don't include the backend
 #    COMPILER  embed the backend in the faust compiler
 #    STATIC    embed the backend in the faust static library

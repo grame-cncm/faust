@@ -1,8 +1,7 @@
 #!/bin/bash
 
 #FAUST DATA:
-BELAVERSION="bela.cpp"
-
+ARCHFILE="bela.cpp"
 #BELA DATA:
 BBB_ADDRESS="root@192.168.7.2"
 BBB_BELA_HOME="/root/Bela"
@@ -26,14 +25,15 @@ do
     
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-    	echo "./faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
-    	echo "Use '-osc' to activate OSC control"
-    	echo "Use '-midi' to activate MIDI control"
-    	echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
-    	echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
-    	echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
+        echo "faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
+        echo "Use '-midi' to activate MIDI control"
+        echo "Use '-osc' to activate OSC control"
+        echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
+        echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
+        echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
+        echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-    	echo "Use '-tobela' to send C++ file into bela, and run it."
+        echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
     
@@ -51,6 +51,8 @@ do
     	MIDIDEFS="MIDI"
 	elif [ $p = "-osc" ]; then
 		OSCDEFS="OSC"
+	elif [ $p = "-gui" ]; then
+		GUIDEFS="GUI"
 	elif [ $p = "-tobela" ]; then
 		SEND2BELA="OK"
     else 
@@ -68,15 +70,14 @@ CUR=$(pwd)
 f=$(basename "$p")
 SRCDIR=$(dirname "$p")
 
-# creates a temporary dir 
-TDR=$(mktemp -d faust.XXXXXX)
-TMP="$TDR/${f%.dsp}"
+# creates a dir 
+TMP="${f%.dsp}"
 mkdir "$TMP"
 
 PROJECTDIR="$CUR/$TMP"
 
     # compile faust to c++
-    if [[ "$POLY" ==  *POLY2* ]]; then
+    if [[ "$POLY" == *POLY2* ]]; then
         if [ $EFFECT = "auto" ]; then
         	# Creer un fichier .dsp simple
             cat > $TMP/effect.dsp << EndOfCode
@@ -89,15 +90,15 @@ PROJECTDIR="$CUR/$TMP"
 
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
             #rm "$TMP/effect.dsp"
         else
-            faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+            faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
             faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
         fi
     else
-        faust -i -a $BELAVERSION $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
+        faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
     fi
 
 
@@ -110,16 +111,21 @@ if [ $NVOICES -gt 0 ]; then
 	echo '#define NVOICES '$NVOICES >> "$PROJECTDIR/tmp.txt"
 fi
 
-if [[ "$MIDIDEFS" ==  *MIDI* ]]; then
+if [[ "$MIDIDEFS" == *MIDI* ]]; then
 	echo '#define MIDICTRL' >> "$PROJECTDIR/tmp.txt"
 fi
 
-if [[ "$POLY" ==  *POLY2* ]]; then
+if [[ "$POLY" == *POLY2* ]]; then
 	echo '#define POLY2' >> "$PROJECTDIR/tmp.txt"
 fi
 
-if [[ "$OSCDEFS" ==  *OSC* ]]; then
+if [[ "$OSCDEFS" == *OSC* ]]; then
 	echo '#define OSCCTRL' >> "$PROJECTDIR/tmp.txt"
+fi
+
+if [[ "$GUIDEFS" == *GUI* ]]; then
+	echo '#define HTTPDGUI' >> "$PROJECTDIR/tmp.txt"
+	BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
 fi
 
 cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
@@ -130,14 +136,14 @@ mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
 #PHASE 4 : SEND data to BELA and RUN it.
 #-------------------------------------------------------------------
 
-if [[ "$SEND2BELA" ==  *OK* ]]; then
-	echo "send 2 bela"
+if [[ "$SEND2BELA" == *OK* ]]; then
+	echo "Send to bela"
 	echo $PROJECTDIR
 	
 #-------------------------------------------------------------------
 From build_project.sh :
 #-------------------------------------------------------------------
-echo "START COMMUNICATION WITH BELA"
+echo "Start communication with bela"
 
 BELA_EXPERT_MODE=0
 BELA_DONT_RUN_FIRST=0
@@ -162,17 +168,6 @@ check_board_alive_and_set_date(){
 	}
 }
 
-check_project_exists_prompt(){
-	check_project_exists $1 &&\
-	{
-		printf "Project \`$1' already exists on the board, do you want to overwrite it? "
-		interactive 1
-		[  $_RET1 -eq 0 ] && {
-			echo "Aborting..."
-			exit;
-		}
-	}
-}
 #+++++++++++++++++++++++++++++++++++++++++++
 
 # Test if project folder contain correct file(s):
@@ -200,14 +195,6 @@ BBB_NETWORK_TARGET_FOLDER=$BBB_ADDRESS:$BBB_PROJECT_FOLDER
 echo "Stop running process..."
 ssh $BBB_ADDRESS make QUIET=true --no-print-directory -C $BBB_BELA_HOME stop
 
-# check if project exists
-[ $FORCE -eq 1 ] ||	check_project_exists_prompt $BBB_PROJECT_NAME
-
-# This file is used to keep track of when the last upload was made,
-# so to check for modifications if WATCH is active
-#TMP_DIR="$SCRIPTDIR/../tmp"
-#reference_time_file="$TMP_DIR/.time$BBB_PROJECT_NAME"
-
 #Check if rsync is available
 check_rsync && RSYNC_AVAILABLE=1 || RSYNC_AVAILABLE=0
 
@@ -217,7 +204,7 @@ uploadBuildRun(){
 	printf "Copying new source files to BeagleBone..."
 	if [ "$RSYNC_AVAILABLE" -eq 0 ];
 	then
-		echo "using scp..."
+		echo "Using scp..."
 		
 		echo "Cleaning the destination folder..."
 		#if rsync is not available, brutally clean the destination folder
@@ -230,9 +217,9 @@ uploadBuildRun(){
 		# -c evaluates changes using md5 checksum instead of file date, so we don't care about time skews 
 		# --no-t makes sure file timestamps are not preserved, so that the Makefile will not think that targets are up to date when replacing files on the BBB
 		#  with older files from the host. This will solve 99% of the issues with Makefile thinking a target is up to date when it is not.
-		echo "using rsync..."
+		echo "Using rsync..."
 		
-		rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
+		rsync -ac --out-format="   %n" --no-t --delete-after --exclude=$BBB_PROJECT_NAME --exclude=build --exclude=settings.json $PROJECTDIR"/" "$BBB_NETWORK_TARGET_FOLDER/" #trailing slashes used here make sure rsync does not create another folder inside the target folder
 	fi
 
 	if [ $? -ne 0 ]
@@ -242,15 +229,13 @@ uploadBuildRun(){
 	fi
 	
 	# Make new Bela executable and run
-	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' "
-	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' "
+	MAKE_COMMAND="make --no-print-directory QUIET=true -C $BBB_BELA_HOME PROJECT='$BBB_PROJECT_NAME' CL='$COMMAND_ARGS' LDLIBS='$BELA_LDLIBS'"
 	
-	Echo "ssh commande:"
 	ssh -t $BBB_ADDRESS "$MAKE_COMMAND run"
 }
 
-echo "RUN BELA NOW"
+echo "Run bela now"
 uploadBuildRun
 	
 fi
-echo "END"
+echo "$PROJECTDIR/render.cpp;"

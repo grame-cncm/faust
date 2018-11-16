@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _FIR_INTERPRETER_H
-#define _FIR_INTERPRETER_H
+#ifndef _FBC_INTERPRETER_H
+#define _FBC_INTERPRETER_H
 
 #include <string.h>
 #include <cmath>
@@ -54,19 +54,29 @@
 template <class T, int TRACE>
 struct interpreter_dsp_factory_aux;
 
-// FIR bytecode interpreter
+template <class T>
+struct FBCExecutor {
+    
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block) {};
+    
+    virtual void setIntValue(int offset, int value) {}
+    virtual int getIntValue(int offset) { return -1; }
+    
+    virtual void setInput(int offset, T* buffer) {}
+    virtual void setOutput(int offset, T* buffer) {}
+    
+};
+
+// FBC interpreter
 template <class T, int TRACE>
-class FIRInterpreter {
+class FBCInterpreter : public FBCExecutor<T> {
    protected:
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
 
     int*        fIntHeap;
     T*          fRealHeap;
     Soundfile** fSoundHeap;
-
-    int fRealStackSize;
-    int fIntStackSize;
-    int fSoundStackSize;
 
     T** fInputs;
     T** fOutputs;
@@ -274,7 +284,7 @@ class FIRInterpreter {
 #define push_addr(addr) (address_stack[addr_stack_index++] = addr)
 #define pop_addr() (address_stack[--addr_stack_index])
 
-    void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue)
     {
         UIInstructionIT it;
 
@@ -282,60 +292,60 @@ class FIRInterpreter {
             //(*it)->write(&std::cout);
 
             switch ((*it)->fOpcode) {
-                case FIRInstruction::kOpenVerticalBox:
+                case FBCInstruction::kOpenVerticalBox:
                     glue->openVerticalBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kOpenHorizontalBox:
+                case FBCInstruction::kOpenHorizontalBox:
                     glue->openHorizontalBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kOpenTabBox:
+                case FBCInstruction::kOpenTabBox:
                     glue->openTabBox((*it)->fLabel.c_str());
                     break;
 
-                case FIRInstruction::kCloseBox:
+                case FBCInstruction::kCloseBox:
                     glue->closeBox();
                     break;
 
-                case FIRInstruction::kAddButton:
+                case FBCInstruction::kAddButton:
                     glue->addButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddCheckButton:
+                case FBCInstruction::kAddCheckButton:
                     glue->addCheckButton((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddHorizontalSlider:
+                case FBCInstruction::kAddHorizontalSlider:
                     glue->addHorizontalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
                                               (*it)->fMin, (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddVerticalSlider:
+                case FBCInstruction::kAddVerticalSlider:
                     glue->addVerticalSlider((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit,
                                             (*it)->fMin, (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddNumEntry:
+                case FBCInstruction::kAddNumEntry:
                     glue->addNumEntry((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fInit, (*it)->fMin,
                                       (*it)->fMax, (*it)->fStep);
                     break;
 
-                case FIRInstruction::kAddSoundFile:
+                case FBCInstruction::kAddSoundFile:
                     glue->addSoundFile((*it)->fLabel.c_str(), (*it)->fKey.c_str(), &fSoundHeap[(*it)->fOffset]);
                     break;
 
-                case FIRInstruction::kAddHorizontalBargraph:
+                case FBCInstruction::kAddHorizontalBargraph:
                     glue->addHorizontalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
                                                 (*it)->fMax);
                     break;
 
-                case FIRInstruction::kAddVerticalBargraph:
+                case FBCInstruction::kAddVerticalBargraph:
                     glue->addVerticalBargraph((*it)->fLabel.c_str(), &fRealHeap[(*it)->fOffset], (*it)->fMin,
                                               (*it)->fMax);
                     break;
 
-                case FIRInstruction::kDeclare:
+                case FBCInstruction::kDeclare:
                     // Special case for "0" zone
                     if ((*it)->fOffset == -1) {
                         glue->declare(static_cast<T*>(NULL), (*it)->fKey.c_str(), (*it)->fValue.c_str());
@@ -350,7 +360,7 @@ class FIRInterpreter {
         }
     }
 
-    inline void ExecuteBlock(FIRBlockInstruction<T>* block)
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block)
     {
         static void* fDispatchTable[] = {
 
@@ -455,10 +465,10 @@ class FIRInterpreter {
         int int_stack_index   = 0;
         int sound_stack_index = 0;
         int addr_stack_index  = 0;
-
-        T             real_stack[fRealStackSize];
-        int           int_stack[fIntStackSize];
-        Soundfile*    sound_stack[fSoundStackSize];
+    
+        T             real_stack[512];
+        int           int_stack[512];
+        Soundfile*    sound_stack[512];
         InstructionIT address_stack[64];
 
 #define dispatch_first()                      \
@@ -506,7 +516,7 @@ class FIRInterpreter {
         // Check block coherency
         InstructionIT it1 = block->fInstructions.end();
         it1--;
-        interp_assert((*it1)->fOpcode == FIRInstruction::kReturn);
+        interp_assert((*it1)->fOpcode == FBCInstruction::kReturn);
 
         try {
             InstructionIT it = block->fInstructions.begin();
@@ -616,7 +626,6 @@ class FIRInterpreter {
                 } else {
                     push_real(it, fRealHeap[(*it)->fOffset1 + pop_int()]);
                 }
-
                 dispatch_next();
             }
 
@@ -2237,7 +2246,7 @@ class FIRInterpreter {
                     interp_assert((*it)->fBranch1);
                     dispatch_branch1();
                 } else {
-                    // Just continue after 'loop block'
+                    // Just continue after 'loop block' (do the final 'return')
                     dispatch_next();
                 }
             }
@@ -2267,10 +2276,10 @@ class FIRInterpreter {
     }
 
    public:
-    FIRInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
+    FBCInterpreter(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
         /*
-        std::cout << "FIRInterpreter :"
+        std::cout << "FBCInterpreter :"
                 << " int_heap_size " << int_heap_size
                 << " real_heap_size " << real_heap_size
                 << " sr_offset " << sr_offset
@@ -2283,20 +2292,23 @@ class FIRInterpreter {
             fRealHeap  = static_cast<T*>(fFactory->allocate(sizeof(T) * fFactory->fRealHeapSize));
             fIntHeap   = static_cast<int*>(fFactory->allocate(sizeof(T) * fFactory->fIntHeapSize));
             fSoundHeap = static_cast<Soundfile**>(fFactory->allocate(sizeof(Soundfile*) * fFactory->fSoundHeapSize));
-        } else {
+            fInputs  = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumInputs));
+            fOutputs = static_cast<T**>(fFactory->allocate(sizeof(T*) * fFactory->fNumOutputs));
+         } else {
             fRealHeap  = new T[fFactory->fRealHeapSize];
             fIntHeap   = new int[fFactory->fIntHeapSize];
             fSoundHeap = new Soundfile*[fFactory->fSoundHeapSize];
+            fInputs  = new T*[fFactory->fNumInputs];
+            fOutputs = new T*[fFactory->fNumOutputs];
         }
+        
+        //std::cout << "==== FBCInterpreter ==== " << std::endl;
+        //std::cout << "fRealHeapSize = " << fFactory->fRealHeapSize << std::endl;
+        //std::cout << "fIntHeapSize = " << fFactory->fIntHeapSize << std::endl;
 
         // Initialise HEAP with 0
         memset(fRealHeap, 0, fFactory->fRealHeapSize * sizeof(T));
         memset(fIntHeap, 0, fFactory->fIntHeapSize * sizeof(int));
-
-        // Stack
-        fRealStackSize  = 512;
-        fIntStackSize   = 512;
-        fSoundStackSize = 512;
 
         fRealStats[INTEGER_OVERFLOW] = 0;
         fRealStats[DIV_BY_ZERO]      = 0;
@@ -2305,14 +2317,18 @@ class FIRInterpreter {
         fRealStats[FP_SUBNORMAL]     = 0;
     }
 
-    virtual ~FIRInterpreter()
+    virtual ~FBCInterpreter()
     {
         if (fFactory->getMemoryManager()) {
             fFactory->destroy(fRealHeap);
             fFactory->destroy(fIntHeap);
+            fFactory->destroy(fInputs);
+            fFactory->destroy(fOutputs);
         } else {
             delete[] fRealHeap;
             delete[] fIntHeap;
+            delete[] fInputs;
+            delete[] fOutputs;
         }
         if (TRACE) {
             printStats();
@@ -2336,6 +2352,12 @@ class FIRInterpreter {
             fRealHeap[(*it2).first] = (*it2).second;
         }
     }
+    
+    void setIntValue(int offset, int value) { fIntHeap[offset] = value; }
+    int getIntValue(int offset) { return fIntHeap[offset]; }
+    
+    virtual void setInput(int offset, T* buffer) { fInputs[offset] = buffer; }
+    virtual void setOutput(int offset, T* buffer) { fOutputs[offset] = buffer; }
 };
 
 #endif

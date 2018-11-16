@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -329,7 +329,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
     string target_suffix = "-elf";
 #else
-    string        target_suffix = "";
+    string target_suffix = "";
 #endif
 
     string triple, cpu;

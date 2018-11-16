@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -314,16 +314,6 @@ bool VectorCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
-void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
-                                       const string& ccs)
-{
-    if (mxd == 0) {
-        vectorLoop(ctype, vname, exp, ccs);
-    } else {
-        dlineLoop(ctype, vname, mxd, exp, ccs);
-    }
-}
-
 string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
 {
     Type t = getCertifiedSigType(sig);
@@ -331,7 +321,7 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
     if (getCertifiedSigType(sig)->variability() == kSamp) {
         string vname, ctype;
         getTypedNames(t, "Vector", ctype, vname);
-        vectorLoop(ctype, vname, exp, getConditionCode(sig));
+        generateVectorLoop(ctype, vname, exp, getConditionCode(sig));
         return subst("$0[i]", vname);
     } else {
         return ScalarCompiler::generateVariableStore(sig, exp);
@@ -345,14 +335,11 @@ string VectorCompiler::generateVariableStore(Tree sig, const string& exp)
 
 string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
-    int    mxd, d;
-    string vecname;
-
     // cerr << "VectorCompiler::generateFixDelay " << ppsig(sig) << endl;
 
     string code = CS(exp);  // ensure exp is compiled to have a vector name
-
-    mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    int d, mxd = fOccMarkup->retrieve(exp)->getMaxDelay();
+    string vecname;
 
     if (!getVectorNameProperty(exp, vecname)) {
         if (mxd == 0) {
@@ -373,10 +360,10 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
             if (d == 0) {
                 return subst("$0[i]", vecname);
             } else {
-                return subst("$0[i-$1]", vecname, T(d));
+                return generateCacheCode(sig, subst("$0[i-$1]", vecname, T(d)));
             }
         } else {
-            return subst("$0[i-$1]", vecname, CS(delay));
+            return generateCacheCode(sig, subst("$0[i-$1]", vecname, CS(delay)));
         }
 
     } else {
@@ -385,12 +372,12 @@ string VectorCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 
         if (isSigInt(delay, &d)) {
             if (d == 0) {
-                return subst("$0[($0_idx+i)&$1]", vecname, T(N - 1));
+                return generateCacheCode(sig, subst("$0[($0_idx+i)&$1]", vecname, T(N - 1)));
             } else {
-                return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d));
+                return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), T(d)));
             }
         } else {
-            return subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay));
+            return generateCacheCode(sig, subst("$0[($0_idx+i-$2)&$1]", vecname, T(N - 1), CS(delay)));
         }
     }
 }
@@ -413,6 +400,16 @@ string VectorCompiler::generateDelayVec(Tree sig, const string& exp, const strin
     }
 }
 
+void VectorCompiler::generateDelayLine(const string& ctype, const string& vname, int mxd, const string& exp,
+                                       const string& ccs)
+{
+    if (mxd == 0) {
+        generateVectorLoop(ctype, vname, exp, ccs);
+    } else {
+        generateDlineLoop(ctype, vname, mxd, exp, ccs);
+    }
+}
+
 #if 0
 static int pow2limit(int x)
 {
@@ -431,7 +428,7 @@ static int pow2limit(int x)
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::vectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
+void VectorCompiler::generateVectorLoop(const string& tname, const string& vecname, const string& cexp, const string& ccs)
 {
     // -- declare the vector
     fClass->addSharedDecl(vecname);
@@ -452,8 +449,8 @@ void VectorCompiler::vectorLoop(const string& tname, const string& vecname, cons
  * @param delay the maximum delay
  * @param cexp the content of the signal as a C++ expression
  */
-void VectorCompiler::dlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
-                               const string& ccs)
+void VectorCompiler::generateDlineLoop(const string& tname, const string& dlname, int delay, const string& cexp,
+                                       const string& ccs)
 {
     if (delay < gGlobal->gMaxCopyDelay) {
         // Implementation of a copy based delayline

@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,7 +64,11 @@ LLVMCodeContainer::LLVMCodeContainer(const string& name, int numInputs, int numO
     fBuilder = new IRBuilder<>(getContext());
 
     // Check pointer size
+#ifndef LLVM_35
     faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout().getPointerSize()));
+#else
+    faustassert((gGlobal->gMachinePtrSize == fModule->getDataLayout()->getPointerSize()));
+#endif
 
     // Set "-fast-math"
     FastMathFlags FMF;

@@ -4,10 +4,13 @@
 'use strict';
 
 // Faust part
+//var contextOptions = { latencyHint: 0.001 };
+var contextOptions = { latencyHint: "interactive" };
+//var contextOptions = { latencyHint: "playback" };
 
 var isWasm = (typeof(WebAssembly) !== "undefined");
 var isWebKitAudio = (typeof (webkitAudioContext) !== "undefined");
-var context = (isWebKitAudio) ? new webkitAudioContext() : new AudioContext();
+var context = (isWebKitAudio) ? new webkitAudioContext(contextOptions) : new AudioContext(contextOptions);
 var factory = null;
 var node = null;
 
@@ -173,14 +176,8 @@ function startDSPAux(aw_node)
         activateAudioInput();
     }
     
-    console.log("startDSPAux");
-    console.log(node.parameters);
-    
     node.connect(context.destination);
     console.log(node.getJSON());
-
-    // TODO: emcc
-    //node.metadata({ declare: function(key, value) { console.log("key = " + key + " value = " + value); }});
     console.log(node.getParams());
 
     // No polling from the server needed, so use an empty loop
@@ -202,7 +199,7 @@ function startDSP()
 
 function startNewDSP()
 {
-     if (isWasm && workletAvailable()) {
+    if (isWasm && workletAvailable()) {
         factory = new window.DSP(context, "");
         factory.load()
         .then((aw_node) => startDSPAux(aw_node))

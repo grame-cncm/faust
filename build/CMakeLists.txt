@@ -3,7 +3,10 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.11.5)
+set (VERSION 2.12.1)
+set (VERSION_MAJOR 2)
+set (VERSION_MINOR 12)
+set (VERSION_PATCH 1)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -25,6 +28,7 @@ option ( INCLUDE_STATIC    	"Include static library"	off )
 option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
+option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
@@ -65,16 +69,7 @@ if (INCLUDE_LLVM )
 	if(USE_LLVM_CONFIG)
 		llvm_config()
 	else()
-		find_package(LLVM REQUIRED CONFIG)
-		if (COMMAND llvm_map_components_to_libnames)
-			message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-			message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
-			# Find the libraries that correspond to the LLVM components that we wish to use
-			llvm_map_components_to_libnames(LLVM_LIBS all)
-			list(REMOVE_ITEM LLVM_LIBS LTO)
-		else()
-			llvm_config()
-		endif()
+		llvm_cmake()
 	endif()
 
 	string (REGEX REPLACE "([0-9])\\.([0-9]).*" "LLVM_\\1\\2" LLVM_VERSION ${LLVM_PACKAGE_VERSION})
@@ -84,6 +79,8 @@ if (INCLUDE_LLVM )
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY COMPILE_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set_property(SOURCE ${TMP}/llvm_dsp_aux.cpp ${TMP}/llvm_dynamic_dsp_aux.cpp APPEND_STRING PROPERTY CMAKE_CXX_FLAGS "-fno-rtti ${LLVM_DEFINITIONS}")
 	set (FAUST_LIBS ${FAUST_LIBS} ${LLVM_LD_FLAGS} ${LLVM_LIBS})
+	
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DLLVM_VERSION="${LLVM_PACKAGE_VERSION}")
 endif()
 
 ####################################
@@ -114,7 +111,7 @@ if(APPLE)
 		endif()
 	endif()
 elseif(WIN32 OR MSYS)
-	if (NOT ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC)
+	if (NOT MSVC)
 		set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DWIN32 -D__MINGW32__)
 	endif()
 	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -D_CRT_SECURE_NO_WARNINGS -D_USE_MATH_DEFINES)
@@ -125,7 +122,8 @@ endif()
 
 ####################################
 # compiler dependent settings
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+if (MSVC)
+	set (FAUST_DEFINITIONS ${FAUST_DEFINITIONS} -DMSVisualStudio)
 else()
 	set(CMAKE_CXX_FLAGS_DEBUG "-g")
 	set(CMAKE_CXX_FLAGS_RELEASE "-O3")
@@ -157,17 +155,12 @@ if (INCLUDE_STATIC)
 		LIBRARY_OUTPUT_DIRECTORY ${LIBDIR}
 		ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${LIBDIR}
 		LIBRARY_OUTPUT_DIRECTORY_RELEASE ${LIBDIR})
-	if (WIN32 OR MSYS)
-		if (MSVC)
-			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
-		else()
-			set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
-		endif()
-	endif()
-	if (IOS)
+	if (MSVC)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME libfaust)
+	elseif (IOS)
 		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust.ios)
 	else()
-		set_target_properties(staticlib PROPERTIES OUTPUT_NAME faust)
+		set_target_properties(staticlib  PROPERTIES OUTPUT_NAME faust)
 	endif()
 	set_target_properties(staticlib PROPERTIES COMPILE_FLAGS  -DFAUST_LIB
 		POSITION_INDEPENDENT_CODE ON)
@@ -204,12 +197,12 @@ if (INCLUDE_DYNAMIC)
 	endif()
 	set_target_properties(dynamiclib PROPERTIES COMPILE_FLAGS -DFAUST_LIB)
 	scan_backends (dynamiclib DYNAMIC)
-	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
+#	set (INSTALL_TARGETS ${INSTALL_TARGETS} dynamiclib)
 endif()
 
 
 ####################################
-# add sub projects (emcc, osclib)
+# add sub projects (emcc, osclib, interpreter)
 ####################################
 if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
 	add_subdirectory (emcc)
@@ -223,6 +216,10 @@ endif()
 if (INCLUDE_HTTP OR HTTPDYNAMIC)
 	add_subdirectory (http)
 	set (SUBTARGETS ${SUBTARGETS} http)
+endif()
+if (INCLUDE_ITP OR ITPDYNAMIC)
+	add_subdirectory (interp)
+	set (SUBTARGETS ${SUBTARGETS} faustmachine)
 endif()
 
 
@@ -238,12 +235,24 @@ message (STATUS "Include targets: ${INSTALL_TARGETS} ${SUBTARGETS}")
 
 ####################################
 # install the faust compiler and libraries
+if (PACK)
+	set (CMAKE_INSTALL_PREFIX .)
+endif()
+
 install ( TARGETS ${INSTALL_TARGETS}
 	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
     LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_PREFIX}/include/faust
 )
+
+if (INCLUDE_DYNAMIC)
+install ( TARGETS dynamiclib
+	RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_PREFIX}/lib
+)
+endif()
 
 ####################################
 # install headers
@@ -282,11 +291,20 @@ install (
     PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
 )
 
+####################################
+# install sound2xxx tools
+file (GLOB SOUND2XXX ${ROOT}/tools/sound2faust/sound2faust ${ROOT}/tools/sound2faust/sound2file ${ROOT}/tools/sound2faust/sound2reader)
+install (
+    FILES     ${SOUND2XXX} DESTINATION ${CMAKE_INSTALL_PREFIX}/bin
+    PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE GROUP_READ GROUP_EXECUTE WORLD_EXECUTE WORLD_READ
+    OPTIONAL
+)
+
 
 ####################################
 # install shared resources
 install (
-    FILES     ${ROOT}/faust.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man
+    FILES     ${ROOT}/documentation/man/man1/faust.1 DESTINATION ${CMAKE_INSTALL_PREFIX}/share/man/man1
     PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 )
 
@@ -338,3 +356,29 @@ if (APPLE)
 		PERMISSIONS OWNER_READ OWNER_WRITE GROUP_READ WORLD_READ
 	)
 endif()
+
+
+
+
+####################################
+# cpack section
+####################################
+set (CPACK_PACKAGE_NAME   "Faust")
+set (CPACK_PACKAGE_VENDOR "GRAME")
+set (CPACK_PACKAGE_DESCRIPTION_SUMMARY "FAUST - a functional programming language designed for real-time signal processing and synthesis.")
+set (CPACK_PACKAGE_VERSION   ${VERSION})
+set (CPACK_PACKAGE_VERSION_MAJOR   ${VERSION_MAJOR})
+set (CPACK_PACKAGE_VERSION_MINOR   ${VERSION_MINOR})
+set (CPACK_PACKAGE_VERSION_PATCH   ${VERSION_PATCH})
+
+set (CPACK_MONOLITHIC_INSTALL true)
+set (CPACK_RESOURCE_FILE_LICENSE  ${ROOT}/COPYING.txt)
+set (CPACK_PACKAGE_INSTALL_DIRECTORY  Faust)
+
+####################################
+# NSIS specific section
+set (CPACK_NSIS_INSTALL_ROOT "C:\\\\Program Files")
+set (CPACK_NSIS_MODIFY_PATH on)
+set (CPACK_NSIS_MUI_ICON "${ROOT}/build/package/faust.ico")
+
+include (CPack)

@@ -41,7 +41,7 @@ RSLatch(S, R) = latch(S,R)
 counterUpReset(nb, in, reset) = (in:trig), reset : (routage : memo2,_)~_
     with {
         trig = _<:_,mem: >;
-        memo2(a, b)		= (ba.if(b>0.5, 0, _))~(+(a));
-        compare(value)	= ba.if(value>nb, 1, 0); // :trig;
-        routage(d,e,f)	= e, (f, compare(d) : RSLatch : +(f) <: _,_);
+        memo2(a, b)	= (ba.if(b>0.5, 0, _))~(+(a));
+        compare(value) = ba.if(value>nb, 1, 0); // :trig;
+        routage(d,e,f) = e, (f, compare(d) : RSLatch : +(f) <: _,_);
     };

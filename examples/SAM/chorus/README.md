@@ -8,13 +8,14 @@ The Chorus output is always stereo, while its input may be either mono or stereo
 
 ## Parameters
 
-Parameter     | MIDI CC # | Description
---------------|-----------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Delay**     | `CC-4`    | The variable delays range between zero and this value
-**Rate**      | `CC-2`    | The Chorus Rate (performable) sets the highest frequency used in its LFOs for modulating the delay-line lengths
-**Depth**     | `CC-3`    | The Depth parameter (performable) controls the mixture of the input sound with the delayed-and-scaled copies of itself: 0 means input only (no chorus effect), 1/2 means equal balance (maximum incidental "flanging" effects), and 1 means modulated delay-line outputs only (pure chorus effect containing only scaling, onset spreading, and decorrelated Doppler shift).
-**Deviation** | `CC-58`   | The Chorus Deviation sets the amplitude of its LFOs and therefore the range of delay-line length variation. The Deviation and Rate together determine the maximum Doppler shift applied to the sound.
-**Enable**    | `CC-102`  | Turn on/off the effect
+Parameter     | MIDI CC # | Description | Physical Control |
+|---|---|---|---|
+**Enable**    | `CC-105`  | Turn on/off the effect | switch`SW-4` |
+**Rate**      | `CC-2`    | The Chorus Rate (performable) sets the highest frequency used in its LFOs for modulating the delay-line lengths |knob`HADC-0` |
+**Depth**     | `CC-3`    | The Depth parameter (performable) controls the mixture of the input sound with the delayed-and-scaled copies of itself: 0 means input only (no chorus effect), 1/2 means equal balance (maximum incidental "flanging" effects), and 1 means modulated delay-line outputs only (pure chorus effect containing only scaling, onset spreading, and decorrelated Doppler shift). | knob`HADC-1` |
+**Delay**     | `CC-4`    | The variable delays range between zero and this value |knob`HADC-2` |
+**Deviation** | `CC-58`   | The Chorus Deviation sets the amplitude of its LFOs and therefore the range of delay-line length variation. The Deviation and Rate together determine the maximum Doppler shift applied to the sound. | |
+
 ## Building the Example
 
 The faust code (.dsp) in this directory has been compiled using faust2sam into chorus-sam

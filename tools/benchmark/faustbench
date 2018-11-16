@@ -9,20 +9,12 @@ OPTIONS=""
 LIBS=""
 TESTS="all"
 RUN=1
+NOTRACE=false
+GENERIC=false
 
 # Set default value for CXX
 if [ "$CXX" = "" ]; then
     CXX=g++
-fi
-
-# Set default value for CXXFLAGS
-if [ "$CXXFLAGS" = "" ]; then
-    CXXFLAGS="-Ofast -march=native"
-fi
-
-if [[ $(uname) == Darwin ]]; then
-    LIBS=-lc++
-    CXXFLAGS+=" -fbracket-depth=512"
 fi
 
 while [ $1 ]
@@ -30,7 +22,9 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faustbench [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "faustbench [-notrace] [-generic] [-ios] [-single] [-fast] [-run <num>] [-double] [additional Faust options (-vec -vs 8...)] foo.dsp"
+        echo "Use '-notrace' to only generate the best compilation parameters"
+        echo "Use '-generic' to compile for a generic processor, otherwise -march=native will be used"
         echo "Use '-ios' to generate an iOS project"
         echo "Use '-single' to execute only scalar test"
         echo "Use '-fast' to only execute some tests"
@@ -43,6 +37,10 @@ do
 
     if [ "$p" = "-ios" ]; then
         IOS="1"
+    elif [ "$p" = "-notrace" ]; then
+        NOTRACE=true
+    elif [ "$p" = "-generic" ]; then
+        GENERIC=true
     elif [ "$p" = "-fast" ]; then
         TESTS="fast"
     elif [ "$p" = "-single" ]; then
@@ -65,7 +63,23 @@ shift
 
 done
 
-echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"
+# Set default value for CXXFLAGS
+if [ "$CXXFLAGS" = "" ]; then
+    if $GENERIC; then
+        CXXFLAGS="-Ofast"
+    else
+        CXXFLAGS="-Ofast -march=native"
+    fi
+fi
+
+if [[ $(uname) == Darwin ]]; then
+    LIBS=-lc++
+    CXXFLAGS+=" -fbracket-depth=512"
+fi
+
+if ! $NOTRACE ; then
+	echo "Selected compiler is $CXX with CXXFLAGS = $CXXFLAGS"
+fi
 
 for p in $FILES; do
 
@@ -81,7 +95,9 @@ for p in $FILES; do
 
     # creates and compile multiple DSP bench tool
     if [ "$OPTIONS" != "" ] ; then
-        echo "Compiled with additional options :$OPTIONS"
+    	if ! $NOTRACE ; then
+        	echo "Compiled with additional options :$OPTIONS"
+        fi
     fi
 
     if [ $TESTS == "all" ] ; then
@@ -167,7 +183,11 @@ for p in $FILES; do
 
     # run bench
     cd ../../
-    ./$TDR/$dspName/$dspName -run $RUN
+    if $NOTRACE; then
+    	./$TDR/$dspName/$dspName -run $RUN -notrace
+    else
+    	./$TDR/$dspName/$dspName -run $RUN
+    fi
 
     # cleanup
     rm -rf "$TDR"

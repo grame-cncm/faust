@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,10 +96,10 @@ Tree normalizeDelay1Term(Tree s)
  *     	0@d -> 0
  *     	(k*s)@d -> k*(s@d)
  *		(s/k)@d -> (s@d)/k
- * 		(s@n)@m -> s@(n+m)
+ * 		(s@n)@m -> s@(n+m) and n is constant
  * Note that the same rules can't be applied to
- * + et - becaue the value of the first d samples
- * would be wrong. We could also add delays such that
+ * + and - because the value of the first d samples
+ * would be wrong.
  * \param s the term to be delayed
  * \param d the value of the delay
  * \return the normalized term
@@ -137,9 +137,12 @@ Tree normalizeFixedDelayTerm(Tree s, Tree d)
         }
 
     } else if (isSigFixDelay(s, x, y)) {
-        // (x@n)@m = x@(n+m)
-        //		return sigFixDelay(x,tree(tree2int(d)+tree2int(y)));
-        return normalizeFixedDelayTerm(x, simplify(sigAdd(d, y)));
+        if (getSigOrder(y) < 2) {
+            // (x@n)@m = x@(n+m) when n is constant
+            return normalizeFixedDelayTerm(x, simplify(sigAdd(d, y)));
+        } else {
+            return sigFixDelay(s, d);
+        }
 
     } else {
         return sigFixDelay(s, d);

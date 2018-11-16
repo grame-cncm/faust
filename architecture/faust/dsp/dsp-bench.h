@@ -58,7 +58,7 @@
 #define NV 4096     // number of vectors in BIG buffer (should exceed cache)
 
 template <typename VAL_TYPE>
-inline void FAUSTBENCH_LOG(VAL_TYPE val)
+void FAUSTBENCH_LOG(VAL_TYPE val)
 {
     const char* log = getenv("FAUSTBENCH_LOG");
     if (log && (strcasecmp(log, "on") == 0)) {
@@ -98,7 +98,7 @@ class time_bench {
         /**
          * Returns the number of clock cycles elapsed since the last reset of the processor
          */
-        inline uint64 rdtsc(void)
+        uint64 rdtsc(void)
         {
         #ifdef TARGET_OS_IPHONE
             return (uint64)(mach_absolute_time() * (double)fTimeInfo.numer / (double)fTimeInfo.denom);
@@ -324,19 +324,22 @@ class measure_dsp : public decorator_dsp {
         bool setRealtimePriority()
         {
             struct passwd* pw;
-            int err;
-            uid_t uid;
-            int policy;
             struct sched_param param;
-            
-            uid = getuid();
+            int policy;
+            uid_t uid = getuid();
             pw = getpwnam("root");
             setuid(pw->pw_uid);
             
-            pthread_getschedparam(pthread_self(), &policy, &param);
+            int err = pthread_getschedparam(pthread_self(), &policy, &param);
+            if (err != 0) {
+                std::cerr << "setRealtimePriority : pthread_getschedparam res = %d" << err << std::endl;
+            }
             policy = SCHED_RR;
             param.sched_priority = 80;
             err = pthread_setschedparam(pthread_self(), policy, &param);
+            if (err != 0) {
+                std::cerr << "setRealtimePriority : pthread_setschedparam res = %d" << err << std::endl;
+            }
             
             setuid(uid);
             return (err != -1);
@@ -352,7 +355,7 @@ class measure_dsp : public decorator_dsp {
          * @param count - the number of cycles using in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, int count)
+        measure_dsp(dsp* dsp, int buffer_size, int count, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size), fCount(count)
         {
             init();
@@ -367,7 +370,7 @@ class measure_dsp : public decorator_dsp {
          * @param duration_in_sec - the wanted durection used in 'computeAll'
          *
          */
-        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec)
+        measure_dsp(dsp* dsp, int buffer_size, double duration_in_sec, bool trace = true)
             :decorator_dsp(dsp), fBufferSize(buffer_size)
         {
             init();
@@ -376,7 +379,7 @@ class measure_dsp : public decorator_dsp {
             fBench = new time_bench(1000, 10);
             measure();
             double duration = fBench->measureDurationUsec();
-            std::cout << "duration " << (duration / 1e6) << std::endl;
+            if (trace) std::cout << "duration " << (duration / 1e6) << std::endl;
             fCount = int(1000 * (duration_in_sec * 1e6 / duration));
             delete fBench;
             

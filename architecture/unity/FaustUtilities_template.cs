@@ -371,8 +371,14 @@ namespace FaustUtilities_MODEL {
 						case "meta":
 							success = parseGlobalMetaData(ref fJSON);
 							break;
+						case "library_list":
+							success = parseGlobalMetaData(ref fJSON);
+							break;
+						case "include_pathnames":
+							success = parseGlobalMetaData(ref fJSON);
+							break;
 						case "ui":
-                     		faustUI.ui = new List < Group > ();
+							faustUI.ui = new List < Group > ();
 							int numitems = 0;
 							success = parseUI(ref fJSON, ref faustUI.ui, ref numitems);
 							break;

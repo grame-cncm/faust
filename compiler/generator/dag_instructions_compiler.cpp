@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -248,50 +248,13 @@ ValueInst* DAGInstructionsCompiler::generateLoopCode(Tree sig)
                 return c;
             }
         } else {
-            fContainer->openLoop(sig, "i");
+            fContainer->openLoop("i");
             ValueInst* c = InstructionsCompiler::generateCode(sig);
             fContainer->closeLoop(sig);
             return c;
         }
     } else {
         return InstructionsCompiler::generateCode(sig);
-    }
-}
-
-ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
-{
-    ::Type t = getCertifiedSigType(sig);
-
-    if (t->variability() == kSamp) {
-        string         vname;
-        Typed::VarType ctype;
-        getTypedNames(t, "Vector", ctype, vname);
-        Address::AccessType var_access;
-        generateVectorLoop(ctype, vname, exp, var_access);
-        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
-    } else {
-        return InstructionsCompiler::generateVariableStore(sig, exp);
-    }
-}
-
-ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
-{
-    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
-        // "input" use as a name convention
-        string     name = subst("input$0", T(idx));
-        ValueInst* res =
-            InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
-
-    } else {
-        // "fInput" use as a name convention
-        string     name = subst("fInput$0", T(idx));
-        ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
-        // Cast to internal float
-        res = InstBuilder::genCastFloatInst(res);
-        return generateCacheCode(sig, res);
     }
 }
 
@@ -409,6 +372,43 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
     return b;
 }
 
+ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
+{
+    ::Type t = getCertifiedSigType(sig);
+    
+    if (t->variability() == kSamp) {
+        string         vname;
+        Typed::VarType ctype;
+        getTypedNames(t, "Vector", ctype, vname);
+        Address::AccessType var_access;
+        generateVectorLoop(ctype, vname, exp, var_access);
+        return InstBuilder::genLoadArrayVar(vname, var_access, getCurrentLoopIndex());
+    } else {
+        return InstructionsCompiler::generateVariableStore(sig, exp);
+    }
+}
+
+ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
+{
+    if (gGlobal->gOpenCLSwitch || gGlobal->gCUDASwitch) {  // HACK
+        // "input" use as a name convention
+        string     name = subst("input$0", T(idx));
+        ValueInst* res =
+        InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
+        // Cast to internal float
+        res = InstBuilder::genCastFloatInst(res);
+        return generateCacheCode(sig, res);
+        
+    } else {
+        // "fInput" use as a name convention
+        string     name = subst("fInput$0", T(idx));
+        ValueInst* res  = InstBuilder::genLoadArrayStackVar(name, getCurrentLoopIndex());
+        // Cast to internal float
+        res = InstBuilder::genCastFloatInst(res);
+        return generateCacheCode(sig, res);
+    }
+}
+
 ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree delay)
 {
     string     vname;
@@ -439,12 +439,12 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
             } else {
                 // return subst("$0[i-$1]", vname, T(d));
                 FIRIndex index = getCurrentLoopIndex() - InstBuilder::genInt32NumInst(d);
-                return InstBuilder::genLoadArrayStackVar(vname, index);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStackVar(vname, index));
             }
         } else {
             // return subst("$0[i-$1]", vname, CS(delay));
             FIRIndex index = getCurrentLoopIndex() - CS(delay);
-            return InstBuilder::genLoadArrayStackVar(vname, index);
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStackVar(vname, index));
         }
     } else {
         // long delay : we use a ring buffer of size 2^x
@@ -456,20 +456,20 @@ ValueInst* DAGInstructionsCompiler::generateFixDelay(Tree sig, Tree exp, Tree de
                 // return subst("$0[($0_idx+i)&$1]", vname, T(N-1));
                 FIRIndex index1 = (getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx)) &
                                   InstBuilder::genInt32NumInst(N - 1);
-                return InstBuilder::genLoadArrayStructVar(vname, index1);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index1));
             } else {
                 // return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), T(d));
                 FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
                 FIRIndex index2 = index1 - InstBuilder::genInt32NumInst(d);
                 FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N - 1);
-                return InstBuilder::genLoadArrayStructVar(vname, index3);
+                return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index3));
             }
         } else {
             // return subst("$0[($0_idx+i-$2)&$1]", vname, T(N-1), CS(delay));
             FIRIndex index1 = getCurrentLoopIndex() + InstBuilder::genLoadStructVar(vname_idx);
             FIRIndex index2 = index1 - CS(delay);
             FIRIndex index3 = index2 & InstBuilder::genInt32NumInst(N - 1);
-            return InstBuilder::genLoadArrayStructVar(vname, index3);
+            return generateCacheCode(sig, InstBuilder::genLoadArrayStructVar(vname, index3));
         }
     }
 }

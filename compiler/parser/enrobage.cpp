@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -19,26 +19,21 @@
  ************************************************************************
  ************************************************************************/
 
-#include "enrobage.hh"
 #include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <cctype>
 #include <climits>
-#include <iostream>
-#include <list>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
+
+#include "enrobage.hh"
 #include "compatibility.hh"
 #include "exception.hh"
 #include "garbageable.hh"
 #include "global.hh"
 #include "sourcefetcher.hh"
 
-//----------------------------------------------------------------
+using namespace std;
 
 /**
  * Returns true is a line is blank (contains only white caracters)
@@ -66,14 +61,14 @@ static bool wordBoundaries(const string& str, string::size_type pos, string::siz
  * Replace every occurrence of oldstr by newstr inside str. str is modified
  * and returned as reference for convenience
  */
-static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr)
+static string& replaceOccurrences(string& str, const string& oldstr, const string& newstr, bool force)
 {
     string::size_type l1 = oldstr.length();
     string::size_type l2 = newstr.length();
 
     string::size_type pos = str.find(oldstr);
     while (pos != string::npos) {
-        if (wordBoundaries(str, pos, l1)) {
+        if (force || wordBoundaries(str, pos, l1)) {
             // cerr << "'" << str << "'@" << pos << " replace '" << oldstr << "' by '" << newstr << "'" << endl;
             str.replace(pos, l1, newstr);
             pos = str.find(oldstr, pos + l2);
@@ -92,61 +87,27 @@ static string& replaceOccurrences(string& str, const string& oldstr, const strin
 static string& replaceClassName(string& str)
 {
     string res;
-    replaceOccurrences(str, "mydsp", gGlobal->gClassName);
-    replaceOccurrences(str, "dsp", gGlobal->gSuperClassName);
+    // "mydsp" can be replaced as the DSP class name, or appearing anywhere in the file
+    replaceOccurrences(str, "mydsp", gGlobal->gClassName, true);
+    // But "dsp" string has to be replaced in a strict manner
+    replaceOccurrences(str, "dsp", gGlobal->gSuperClassName, false);
     return str;
-}
-
-/**
- * Copy or remove license header. Architecture files can contain a header specifying
- * the license. If this header contains an exception tag (for example "FAUST COMPILER EXCEPTION")
- * it is an indication for the compiler to remove the license header from the resulting code.
- * A header is the first non blank line that begins a comment.
- */
-void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
-{
-    string         s;
-    vector<string> H;
-
-    // skip blank lines
-    while (getline(src, s) && isBlank(s)) dst << s << endl;
-
-    // first non blank should start a comment
-    if (s.find("/*") == string::npos) {
-        dst << s << endl;
-        return;
-    }
-
-    // copy the header into H
-    bool remove = false;
-    H.push_back(s);
-
-    while (getline(src, s) && s.find("*/") == string::npos) {
-        H.push_back(s);
-        if (s.find(exceptiontag) != string::npos) remove = true;
-    }
-
-    // copy the header unless explicitely granted to remove it
-    if (!remove) {
-        // copy the header
-        for (unsigned int i = 0; i < H.size(); i++) {
-            dst << H[i] << endl;
-        }
-        dst << s << endl;
-    }
 }
 
 /**
  * A minimalistic parser used to recognize '#include <faust/...>' patterns when copying
  * architecture files
  */
-class myparser : public virtual Garbageable {
+class myparser {
+    
    private:
+    
     string str;
     size_t N;
     size_t p;
 
    public:
+    
     myparser(const string& s) : str(s), N(s.length()), p(0) {}
     bool skip()
     {
@@ -179,9 +140,9 @@ class myparser : public virtual Garbageable {
 /**
  * True if string s match '#include <faust/fname>'
  */
-static bool isFaustInclude(const string& s, string& fname)
+static bool isFaustInclude(const string& line, string& fname)
 {
-    myparser P(s);
+    myparser P(line);
     if (P.skip() && P.parse("#include") && P.skip() && P.filename(fname)) {
         myparser Q(fname);
         return Q.parse("faust/");
@@ -199,7 +160,7 @@ static void inject(ostream& dst, const string& fname)
         gGlobal->gAlreadyIncluded.insert(fname);
         istream* src = openArchStream(fname.c_str());
         if (src) {
-            streamCopy(*src, dst);
+            streamCopyUntilEnd(*src, dst);
             delete src;
         } else {
             stringstream error;
@@ -209,45 +170,13 @@ static void inject(ostream& dst, const string& fname)
     }
 }
 
-static string removeSpaces(const string& s)
+static string removeSpaces(const string& line)
 {
-    string r;
-    for (char c : s) {
-        if (c != ' ') r.push_back(c);
+    string res;
+    for (char c : line) {
+        if (c != ' ') res.push_back(c);
     }
-    return r;
-}
-
-/**
- * Copy src to dst until specific line.
- */
-void streamCopyUntil(istream& src, ostream& dst, const string& until)
-{
-    string s;
-    string fname;
-    while (getline(src, s) && (removeSpaces(s) != until)) {
-        if (gGlobal->gInlineArchSwitch && isFaustInclude(s, fname)) {
-            inject(dst, fname);
-        } else {
-            dst << replaceClassName(s) << endl;
-        }
-    }
-}
-
-/**
- * Copy src to dst.
- */
-void streamCopy(istream& src, ostream& dst)
-{
-    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
-}
-
-/**
- * Copy src to dst until end
- */
-void streamCopyUntilEnd(istream& src, ostream& dst)
-{
-    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
+    return res;
 }
 
 #define TRY_OPEN(filename)           \
@@ -260,44 +189,9 @@ void streamCopyUntilEnd(istream& src, ostream& dst)
         delete f;
 
 /**
- * Try to open an architecture file searching in various directories
- */
-ifstream* openArchStream(const char* filename)
-{
-    char  buffer[FAUST_PATH_MAX];
-    char* old = getcwd(buffer, FAUST_PATH_MAX);
-    int   err;
-
-    TRY_OPEN(filename);
-    for (string dirname : gGlobal->gArchitectureDirList) {
-        if ((err = chdir(dirname.c_str())) == 0) {
-            TRY_OPEN(filename);
-        }
-    }
-
-    return 0;
-}
-
-const char* stripStart(const char* filename)
-{
-    const char* start;
-#ifdef _WIN32
-    start = "file:///";
-#else
-    start = "file://";
-#endif
-    if (strstr(filename, start)) {
-        return &filename[strlen(start)];
-    } else {
-        return filename;
-    }
-}
-
-/**
  * Check if an URL exists.
  * @return true if the URL exist, throw on exception otherwise
  */
-
 static bool checkFile(const char* filename)
 {
     // Otherwise tries to open as a regular file
@@ -309,30 +203,6 @@ static bool checkFile(const char* filename)
         stringstream error;
         error << "ERROR : cannot open file '" << ((filename) ? filename : "null") << "' : " << strerror(errno) << endl;
         throw faustexception(error.str());
-    }
-}
-
-bool checkURL(const char* filename)
-{
-    char* fileBuf = 0;
-
-    // Tries to open as an URL for a local file
-    if (strstr(filename, "file://") != 0) {
-        // Tries to open as a regular file after removing 'file://'
-        return checkFile(&filename[7]);
-        // Tries to open as a http URL
-    } else if ((strstr(filename, "http://") != 0) || (strstr(filename, "https://") != 0)) {
-        if (http_fetch(filename, &fileBuf) != -1) {
-            return true;
-        } else {
-            stringstream error;
-            error << "ERROR : unable to access URL '" << ((filename) ? filename : "null") << "' : " << http_strerror()
-                  << endl;
-            throw faustexception(error.str());
-        }
-    } else {
-        // Otherwise tries to open as a regular file
-        return checkFile(filename);
     }
 }
 
@@ -426,6 +296,29 @@ static void buildFullPathname(string& fullpath, const char* filename)
     }
 }
 
+//---------------------------
+// Exported public functions
+//---------------------------
+
+/**
+ * Try to open an architecture file searching in various directories
+ */
+ifstream* openArchStream(const char* filename)
+{
+    char  buffer[FAUST_PATH_MAX];
+    char* old = getcwd(buffer, FAUST_PATH_MAX);
+    int   err;
+    
+    TRY_OPEN(filename);
+    for (string dirname : gGlobal->gArchitectureDirList) {
+        if ((err = chdir(dirname.c_str())) == 0) {
+            TRY_OPEN(filename);
+        }
+    }
+    
+    return 0;
+}
+
 /**
  * Try to open the file <filename> searching in various directories. If succesful
  *  place its full pathname in the string <fullpath>
@@ -434,12 +327,16 @@ FILE* fopenSearch(const char* filename, string& fullpath)
 {
     FILE* f;
 
+    // tries to open file with its filename
     if ((f = fopen(filename, "r"))) {
         buildFullPathname(fullpath, filename);
+        // enrich the supplied directories paths with the directory containing the loaded file,
+        // so that local files relative to this added directory can then be loaded
+        gGlobal->gImportDirList.push_back(fileDirname(fullpath));
         return f;
     }
-
-    // search file in user supplied directory path
+ 
+    // otherwise search file in user supplied directories paths
     for (string dirname : gGlobal->gImportDirList) {
         if ((f = fopenAt(fullpath, dirname, filename))) {
             return f;
@@ -520,4 +417,90 @@ string stripEnd(const string& name, const string& ext)
     } else {
         return name;
     }
+}
+
+bool checkURL(const char* filename)
+{
+    char* fileBuf = 0;
+    
+    // Tries to open as an URL for a local file
+    if (strstr(filename, "file://") != 0) {
+        // Tries to open as a regular file after removing 'file://'
+        return checkFile(&filename[7]);
+        // Tries to open as a http URL
+    } else if ((strstr(filename, "http://") != 0) || (strstr(filename, "https://") != 0)) {
+        if (http_fetch(filename, &fileBuf) != -1) {
+            return true;
+        } else {
+            stringstream error;
+            error << "ERROR : unable to access URL '" << ((filename) ? filename : "null") << "' : ";
+            error << http_strerror() << endl;
+            throw faustexception(error.str());
+        }
+    } else {
+        // Otherwise tries to open as a regular file
+        return checkFile(filename);
+    }
+}
+
+/**
+ * Copy or remove license header. Architecture files can contain a header specifying
+ * the license. If this header contains an exception tag (for example "FAUST COMPILER EXCEPTION")
+ * it is an indication for the compiler to remove the license header from the resulting code.
+ * A header is the first non blank line that begins a comment.
+ */
+void streamCopyLicense(istream& src, ostream& dst, const string& exceptiontag)
+{
+    string         line;
+    vector<string> H;
+    
+    // skip blank lines
+    while (getline(src, line) && isBlank(line)) dst << line << endl;
+    
+    // first non blank should start a comment
+    if (line.find("/*") == string::npos) {
+        dst << line << endl;
+        return;
+    }
+    
+    // copy the header into H
+    bool remove = false;
+    H.push_back(line);
+    
+    while (getline(src, line) && line.find("*/") == string::npos) {
+        H.push_back(line);
+        if (line.find(exceptiontag) != string::npos) remove = true;
+    }
+    
+    // copy the header unless explicitely granted to remove it
+    if (!remove) {
+        // copy the header
+        for (size_t i = 0; i < H.size(); i++) {
+            dst << H[i] << endl;
+        }
+        dst << line << endl;
+    }
+}
+
+/**
+ * Copy src to dst until specific line.
+ */
+void streamCopyUntil(istream& src, ostream& dst, const string& until)
+{
+    string fname, line;
+    while (getline(src, line) && (removeSpaces(line) != until)) {
+        if (gGlobal->gInlineArchSwitch && isFaustInclude(line, fname)) {
+            inject(dst, fname);
+        } else {
+            dst << replaceClassName(line) << endl;
+        }
+    }
+}
+
+/**
+ * Copy src to dst until end
+ */
+void streamCopyUntilEnd(istream& src, ostream& dst)
+{
+    streamCopyUntil(src, dst, "<<<FORBIDDEN LINE IN A FAUST ARCHITECTURE FILE>>>");
 }

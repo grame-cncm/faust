@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
     FAUST compiler
-    Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -478,7 +478,7 @@ void Klass::printLoopGraphVector(int n, ostream& fout)
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         if (gGlobal->gVectorSwitch) {
             tab(n, fout);
-            fout << "// SECTION : " << G.size() - l;
+            fout << "// Section : " << G.size() - l;
         }
         for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->println(n, fout);
@@ -503,7 +503,7 @@ void Klass::printLoopGraphOpenMP(int n, ostream& fout)
     // OpenMP mode : add OpenMP directives
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         tab(n, fout);
-        fout << "// SECTION : " << G.size() - l;
+        fout << "// Section : " << G.size() - l;
         printLoopLevelOpenMP(n, (int)G.size() - l, G[l], fout);
     }
 }
@@ -525,7 +525,7 @@ void Klass::printLoopGraphScheduler(int n, ostream& fout)
     // OpenMP mode : add OpenMP directives
     for (int l = (int)G.size() - 1; l > 0; l--) {
         tab(n, fout);
-        fout << "// SECTION : " << G.size() - l;
+        fout << "// Section : " << G.size() - l;
         printLoopLevelScheduler(n, (int)G.size() - l, G[l], fout);
     }
 
@@ -575,7 +575,7 @@ void Klass::printLoopGraphInternal(int n, ostream& fout)
     for (int l = (int)G.size() - 1; l >= 0; l--) {
         if (gGlobal->gVectorSwitch) {
             tab(n, fout);
-            fout << "// SECTION : " << G.size() - l;
+            fout << "// Section : " << G.size() - l;
         }
         for (lset::const_iterator p = G[l].begin(); p != G[l].end(); p++) {
             (*p)->printoneln(n, fout);

@@ -40,7 +40,7 @@ process = ba.bypass1(fbp,flanger_mono_gui);
    lfoshape = ctl_group(vslider("[7] Waveshape [midi:ctrl 54] [style:knob]", 0, 0, 1, 0.001));
    curdel   = odflange+dflange*lfo(freq);
 
-   fbp = 1-int(flsg(vslider("[0] Enable [midi:ctrl 102][style:knob]",0,0,1,1)));
+   fbp = 1-int(flsg(vslider("[0] Enable [midi:ctrl 105][style:knob]",0,0,1,1)));
 
    invert = flsg(vslider("[1] Invert [midi:ctrl 49][style:knob]",0,0,1,1):int);
 

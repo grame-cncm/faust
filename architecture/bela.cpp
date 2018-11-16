@@ -55,23 +55,29 @@ using namespace std;
 
 #include "faust/dsp/dsp.h"
 #include "faust/gui/UI.h"
-
-// For MIDI
-#ifdef MIDICTRL
 #include "faust/gui/MidiUI.h"
+
+// for MIDI
+#ifdef MIDICTRL
 #include "faust/midi/bela-midi.h"
 #endif
 
-// For OSC
+// for OSC
 #ifdef OSCCTRL
 #include "faust/gui/OSCUI.h"
 #include "faust/gui/BelaOSCUI.h"
 #endif
 
-// For POLY
+// for HTTPDGUI
+#ifdef HTTPDGUI
+#include "faust/gui/httpdUI.h"
+httpdUI* gHttpdinterface;
+#endif
+
+// for polyphonic synths
 #include "faust/dsp/poly-dsp.h"
 
-// POLY2 = POLY with effect
+// for polyphonic synths with FX
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
 #include "effect.cpp"
@@ -113,7 +119,7 @@ const char* const pinNamesStrings[] =
     "ANALOG_OUT_6",
     "ANALOG_OUT_7",
     "ANALOG_OUT_8"
- };
+};
 
 enum EInOutPin
 {
@@ -153,110 +159,112 @@ enum EInOutPin
     kANALOG_OUT_7,
     kANALOG_OUT_8,
     kNumInputPins
- };
-
-/**************************************************************************************
-
-  BelaWidget : object used by BelaUI to ensures the connection between a Bela parameter
-  and a Faust widget
-
-***************************************************************************************/
-
-class BelaWidget
-{
-    protected:
-
-        EInOutPin fBelaPin;
-        FAUSTFLOAT* fZone;  // Faust widget zone
-        const char* fLabel; // Faust widget label
-        FAUSTFLOAT fMin;    // Faust widget minimal value
-        FAUSTFLOAT fRange;  // Faust widget value range (max-min)
-
-        public:
-        BelaWidget()
-        :fBelaPin(kNoPin)
-        ,fZone(0)
-        ,fLabel("")
-        ,fMin(0)
-        ,fRange(1)
-        {}
-
-        BelaWidget(const BelaWidget& w)
-        :fBelaPin(w.fBelaPin)
-        ,fZone(w.fZone)
-        ,fLabel(w.fLabel)
-        ,fMin(w.fMin)
-        ,fRange(w.fRange)
-        {}
-
-        BelaWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
-        :fBelaPin(pin)
-        ,fZone(z)
-        ,fLabel(l)
-        ,fMin(lo)
-        ,fRange(hi-lo)
-        {}
-
-        void update(BelaContext* context)
-        {
-            switch(fBelaPin) {
-                case kANALOG_0:
-                case kANALOG_1:
-                case kANALOG_2:
-                case kANALOG_3:
-                case kANALOG_4:
-                case kANALOG_5:
-                case kANALOG_6:
-                case kANALOG_7:
-                    *fZone = fMin + fRange * analogReadNI(context, 0, (int) fBelaPin);
-                    break;
-                
-                case kDIGITAL_0:
-                case kDIGITAL_1:
-                case kDIGITAL_2:
-                case kDIGITAL_3:
-                case kDIGITAL_4:
-                case kDIGITAL_5:
-                case kDIGITAL_6:
-                case kDIGITAL_7:
-                case kDIGITAL_8:
-                case kDIGITAL_9:
-                case kDIGITAL_10:
-                case kDIGITAL_11:
-                case kDIGITAL_12:
-                case kDIGITAL_13:
-                case kDIGITAL_14:
-                case kDIGITAL_15:
-                    *fZone = digitalRead(context, 0, ((int) fBelaPin - kDIGITAL_0)) > 0 ? fMin : fMin+fRange;
-                    break;
-                    
-                case kANALOG_OUT_0:
-                case kANALOG_OUT_1:
-                case kANALOG_OUT_2:
-                case kANALOG_OUT_3:
-                case kANALOG_OUT_4:
-                case kANALOG_OUT_5:
-                case kANALOG_OUT_6:
-                case kANALOG_OUT_7:
-                    analogWriteNI(context, 0, ((int) fBelaPin)-kANALOG_OUT_0, (*fZone -fMin)/(fRange+fMin));
-                    break;
-                    
-                default:
-                    break;
-            };
-        }
-
 };
 
 /**************************************************************************************
+ 
+ BelaWidget : object used by BelaUI to ensures the connection between a Bela parameter
+ and a Faust widget
+ 
+ ***************************************************************************************/
 
-  BelaUI : Faust User Interface builder. Passed to buildUserInterface BelaUI allows
-  the mapping between BELA pins and Faust widgets. It relies on specific
-  metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any
-  Faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0
-  (the second knob).
+class BelaWidget
+{
+    
+protected:
+    
+    EInOutPin fBelaPin;
+    FAUSTFLOAT* fZone;  // zone
+    const char* fLabel; // label
+    FAUSTFLOAT fMin;    // minimal value
+    FAUSTFLOAT fRange;  // value range (max-min)
+    
+public:
+    
+    BelaWidget()
+    :fBelaPin(kNoPin)
+    ,fZone(0)
+    ,fLabel("")
+    ,fMin(0)
+    ,fRange(1)
+    {}
+    
+    BelaWidget(const BelaWidget& w)
+    :fBelaPin(w.fBelaPin)
+    ,fZone(w.fZone)
+    ,fLabel(w.fLabel)
+    ,fMin(w.fMin)
+    ,fRange(w.fRange)
+    {}
+    
+    BelaWidget(EInOutPin pin, FAUSTFLOAT* z, const char* l, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    :fBelaPin(pin)
+    ,fZone(z)
+    ,fLabel(l)
+    ,fMin(lo)
+    ,fRange(hi-lo)
+    {}
+    
+    void update(BelaContext* context)
+    {
+        switch(fBelaPin) {
+            case kANALOG_0:
+            case kANALOG_1:
+            case kANALOG_2:
+            case kANALOG_3:
+            case kANALOG_4:
+            case kANALOG_5:
+            case kANALOG_6:
+            case kANALOG_7:
+                *fZone = fMin + fRange * analogReadNI(context, 0, (int)fBelaPin);
+                break;
+                
+            case kDIGITAL_0:
+            case kDIGITAL_1:
+            case kDIGITAL_2:
+            case kDIGITAL_3:
+            case kDIGITAL_4:
+            case kDIGITAL_5:
+            case kDIGITAL_6:
+            case kDIGITAL_7:
+            case kDIGITAL_8:
+            case kDIGITAL_9:
+            case kDIGITAL_10:
+            case kDIGITAL_11:
+            case kDIGITAL_12:
+            case kDIGITAL_13:
+            case kDIGITAL_14:
+            case kDIGITAL_15:
+                *fZone = digitalRead(context, 0, ((int)fBelaPin - kDIGITAL_0)) == 0 ? fMin : fMin+fRange;
+                break;
+                
+            case kANALOG_OUT_0:
+            case kANALOG_OUT_1:
+            case kANALOG_OUT_2:
+            case kANALOG_OUT_3:
+            case kANALOG_OUT_4:
+            case kANALOG_OUT_5:
+            case kANALOG_OUT_6:
+            case kANALOG_OUT_7:
+                analogWriteNI(context, 0, ((int)fBelaPin) - kANALOG_OUT_0, (*fZone - fMin)/(fRange+fMin));
+                break;
+                
+            default:
+                break;
+        };
+    }
+    
+};
 
-***************************************************************************************/
+/**************************************************************************************
+ 
+ BelaUI : Faust User Interface builder. Passed to buildUserInterface BelaUI allows
+ the mapping between BELA pins and Faust widgets. It relies on specific
+ metadata "...[BELA:DIGITAL_0]..." in the widget's label for that. For example any
+ Faust widget with metadata [BELA:DIGITAL_0] will be controlled by DIGITAL_0
+ (the second knob).
+ 
+ ***************************************************************************************/
 
 // The maximum number of mappings between Bela parameters and Faust widgets
 // To be modified: We can have 8 inputs, 8 outputs, and 16 digital In or Out.
@@ -264,76 +272,71 @@ class BelaWidget
 
 class BelaUI : public UI
 {
-    private:
-
-        int fIndex;                           // number of BelaWidgets collected so far
-        EInOutPin fBelaPin;                   // current pin id
-        BelaWidget fTable[MAXBELAWIDGETS];    // kind of static list of BelaWidgets
-
-        // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
-        void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
-        {
-            if (fBelaPin != kNoPin && (fIndex < MAXBELAWIDGETS)) {
-                fTable[fIndex] = BelaWidget(fBelaPin, zone, label, lo, hi);
-                fIndex++;
-            }
-            fBelaPin = kNoPin;
+    
+private:
+    
+    int fIndex;                           // number of BelaWidgets collected so far
+    EInOutPin fBelaPin;                   // current pin id
+    BelaWidget fTable[MAXBELAWIDGETS];    // kind of static list of BelaWidgets
+    
+    // check if the widget is linked to a Bela parameter and, if so, add the corresponding BelaWidget
+    void addBelaWidget(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi)
+    {
+        if (fBelaPin != kNoPin && (fIndex < MAXBELAWIDGETS)) {
+            fTable[fIndex] = BelaWidget(fBelaPin, zone, label, lo, hi);
+            fIndex++;
         }
-
-        // we dont want to create a widget but we clear fBelaPin just in case
-        void skip()
-        {
-            fBelaPin = kNoPin;
+        fBelaPin = kNoPin;
+    }
+    
+public:
+    
+    BelaUI()
+    : fIndex(0)
+    , fBelaPin(kNoPin)
+    {}
+    
+    virtual ~BelaUI() {}
+    
+    // should be called before compute() to update widget's zones registered as Bela parameters
+    void update(BelaContext* context)
+    {
+        for (int i = 0; i < fIndex; i++) {
+            fTable[i].update(context);
         }
-
-    public:
-
-        BelaUI()
-        : fIndex(0)
-        , fBelaPin(kNoPin)
-        {}
-
-        virtual ~BelaUI() {}
-
-        // should be called before compute() to update widget's zones registered as Bela parameters
-        void update(BelaContext* context)
-        {
-            for (int i = 0; i < fIndex; i++) {
-                fTable[i].update(context);
-            }
-        }
-
-        // -- widget's layouts
-        virtual void openTabBox(const char* label) {}
-        virtual void openHorizontalBox(const char* label) {}
-        virtual void openVerticalBox(const char* label) {}
-        virtual void closeBox() {}
-
-        // -- active widgets
-        virtual void addButton(const char* label, FAUSTFLOAT* zone) { skip(); }
-        virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { skip(); }
-        virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
-        virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
-        virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
-
-        // -- passive widgets
-        virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
-        virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
-
-        // -- soundfiles
-        virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
-
-        // -- metadata declarations
-        virtual void declare(FAUSTFLOAT* z, const char* k, const char* id)
-        {
-            if (strcasecmp(k,"BELA") == 0) {
-                for (int i = 0; i < kNumInputPins; i++) {
-                    if (strcasecmp(id, pinNamesStrings[i]) == 0) {
-                        fBelaPin = (EInOutPin)i;
-                    }
+    }
+    
+    // -- widget's layouts
+    virtual void openTabBox(const char* label) {}
+    virtual void openHorizontalBox(const char* label) {}
+    virtual void openVerticalBox(const char* label) {}
+    virtual void closeBox() {}
+    
+    // -- active widgets
+    virtual void addButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
+    virtual void addCheckButton(const char* label, FAUSTFLOAT* zone) { addBelaWidget(label, zone, FAUSTFLOAT(0), FAUSTFLOAT(1)); }
+    virtual void addVerticalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
+    virtual void addHorizontalSlider(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
+    virtual void addNumEntry(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT init, FAUSTFLOAT lo, FAUSTFLOAT hi, FAUSTFLOAT step) { addBelaWidget(label, zone, lo, hi); }
+    
+    // -- passive widgets
+    virtual void addHorizontalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
+    virtual void addVerticalBargraph(const char* label, FAUSTFLOAT* zone, FAUSTFLOAT lo, FAUSTFLOAT hi) { addBelaWidget(label, zone, lo, hi); }
+    
+    // -- soundfiles
+    virtual void addSoundfile(const char* label, const char* filename, Soundfile** sf_zone) {}
+    
+    // -- metadata declarations
+    virtual void declare(FAUSTFLOAT* z, const char* k, const char* id)
+    {
+        if (strcasecmp(k,"BELA") == 0) {
+            for (int i = 0; i < kNumInputPins; i++) {
+                if (strcasecmp(id, pinNamesStrings[i]) == 0) {
+                    fBelaPin = (EInOutPin)i;
                 }
             }
         }
+    }
     
 };
 
@@ -369,16 +372,15 @@ MidiUI* gMidiInterface = NULL;
 BelaOSCUI gOSCUI(OSC_IP_ADDRESS, OSC_IN_PORT, OSC_OUT_PORT);
 #endif
 
-FAUSTFLOAT** gFaustIns;  // array of pointers to context->audioIn data
-FAUSTFLOAT** gFaustOuts; // array of pointers to context->audioOut data
+FAUSTFLOAT** gInputs = NULL;   // array of pointers to context->audioIn data
+FAUSTFLOAT** gOutputs = NULL;  // array of pointers to context->audioOut data
 
-int nvoices = 0;
 BelaUI gControlUI;
 dsp* gDSP = NULL;
 
 void Bela_userSettings(BelaInitSettings* settings)
 {
-    // Faust code uses non-interleaved buffers
+    // Faust code needs non-interleaved data
     settings->uniformSampleRate = 1;
     settings->interleave = 0;
     settings->analogOutputsPersist = 0;
@@ -386,34 +388,35 @@ void Bela_userSettings(BelaInitSettings* settings)
 
 bool setup(BelaContext* context, void* userData)
 {
+    int nvoices;
+    mydsp_poly* dsp_poly = NULL;
     
 #ifdef NVOICES
     nvoices = NVOICES;
 #endif
     
-    // Allocate deinterleaded inputs
-    gFaustIns = new FAUSTFLOAT*[context->audioInChannels];
-    for (unsigned int ch = 0; ch < context->audioInChannels; ch++) {
-        gFaustIns[ch] = (float*)&context->audioIn[ch * context->audioFrames];
+    // Access deinterleaded inputs
+    gInputs = new FAUSTFLOAT*[context->audioInChannels];
+    for(unsigned int ch = 0; ch < context->audioInChannels; ch++) {
+        gInputs[ch] = (float*)&context->audioIn[ch * context->audioFrames];
     }
     
-    // Allocate deinterleaded output
-    gFaustOuts = new FAUSTFLOAT*[context->audioOutChannels];
-    for (unsigned int ch = 0; ch < context->audioOutChannels; ch++) {
-        gFaustOuts[ch] = (float*)&context->audioOut[ch * context->audioFrames];
+    // Access deinterleaded outputs
+    gOutputs = new FAUSTFLOAT*[context->audioOutChannels];
+    for(unsigned int ch = 0; ch < context->audioOutChannels; ch++) {
+        gOutputs[ch] = (float*)&context->audioOut[ch * context->audioFrames];
     }
     
-// Polyphonique with effect
+    // Polyphonic with effect
 #ifdef POLY2
-    mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+    dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
     gDSP = new dsp_sequencer(dsp_poly, new effect());
-// Polyphonique without effect
+    // Polyphonic without effect
 #elif NVOICES
-    // is several voices, then its a simple Poly
     if (nvoices > 0) {
-        mydsp_poly* dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
+        dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, true);
         gDSP = dsp_poly;
-    // If no voices, this is not an instrument (like an FX for example)
+    // If there is no nvoice, or nvoice = 0, it's not a synthesizer
     } else {
         gDSP = new mydsp();
     }
@@ -423,11 +426,15 @@ bool setup(BelaContext* context, void* userData)
     
     gDSP->init(context->audioSampleRate);
     gDSP->buildUserInterface(&gControlUI); // Maps Bela Analog/Digital IO and Faust widgets
-   
-// If MIDI, different behaviour in Poly and non Poly
+#ifdef HTTPDGUI
+    gHttpdinterface = new httpdUI("Bela-UI", gDSP->getNumInputs(), gDSP->getNumOutputs(), 0, NULL);
+    gDSP->buildUserInterface(gHttpdinterface);
+    gHttpdinterface->run();
+#endif /* HTTPDGUI */
+
 #ifdef MIDICTRL
 #ifdef NVOICES
-    gMIDI.addMidiIn(gDSPPoly);
+    gMIDI.addMidiIn(dsp_poly);
 #endif
     gMidiInterface = new MidiUI(&gMIDI);
     gDSP->buildUserInterface(gMidiInterface);
@@ -436,7 +443,7 @@ bool setup(BelaContext* context, void* userData)
     
 // OSC
 #ifdef OSCCTRL
-    DSP->buildUserInterface(&gOSCUI);
+    gDSP->buildUserInterface(&gOSCUI);
     gOSCUI.run();
 #endif
     
@@ -445,25 +452,30 @@ bool setup(BelaContext* context, void* userData)
 
 void render(BelaContext* context, void* userData)
 {
-    // OSC
+    // OSC event handling
 #ifdef OSCCTRL
     gOSCUI.scheduleOSC();
 #endif
-    // reads Bela pins and updates corresponding Faust Widgets zones
+    // Reads Bela pins and updates corresponding Faust Widgets zones
     gControlUI.update(context);
-    // synchronize all GUI controllers
+    // Synchronize all GUI controllers
     GUI::updateAllGuis();
-    // process Faust DSP
-    gDSP->compute(context->audioFrames, gFaustIns, gFaustOuts);
+    // Process Faust DSP
+    gDSP->compute(context->audioFrames, gInputs, gOutputs);
 }
 
 void cleanup(BelaContext* context, void* userData)
 {
-    delete [] gFaustIns;      
-    delete [] gFaustOuts;
+#ifdef HTTPDGUI
+    delete gHttpdinterface;
+#endif /* HTTPDGUI */
+    delete [] gInputs;
+    delete [] gOutputs;
     delete gDSP;
     
 #ifdef MIDICTRL
     delete gMidiInterface;
 #endif
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

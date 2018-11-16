@@ -1,7 +1,7 @@
 /************************************************************************
  ************************************************************************
  FAUST compiler
- Copyright (C) 2003-2004 GRAME, Centre National de Creation Musicale
+ Copyright (C) 2003-2018 GRAME, Centre National de Creation Musicale
  ---------------------------------------------------------------------
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 // The environement is made of layers. Each layer contains a set of definitions
 // stored as properties of the layer. Each definition can refers to other
 // definitions of the same layer or of subsequent layers. Recursive
-// definitions are not allowed. Multiple defintions of the same symbol
+// definitions are not allowed. Multiple definitions of the same symbol
 // in a layer is allowed but generate a warning when the definition is
 // different
 //-----------------------------------------------------------------------------

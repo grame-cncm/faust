@@ -34,7 +34,7 @@ amp = knobs_group(vslider("[3] Amp [midi:ctrl 2] [style:knob]", .5, 0, 1, 0.001)
 
 ampT60 = 0.15661;
 fbs = knobs_group(vslider("[5] [midi:ctrl 76] FeedbackSm [style:knob]", 0, 0, 1, 0.00001));
-gi = switches_group(1-vslider("[7] [midi:ctrl 102] EnableEcho[style:knob]",0,0,1,1)); // "ground input" switches input to zeros
+gi = switches_group(1-vslider("[7] [midi:ctrl 105] EnableEcho[style:knob]",0,0,1,1)); // "ground input" switches input to zeros
 
 // Warp and Scrubber stuff:
 enableEcho = (scrubAmpRaw > 0.00001);

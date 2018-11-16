@@ -1,0 +1,230 @@
+.TH man 1 "" "Version 2.12 (7 October 2018)" "Faust man page"
+.SH NAME
+.PP
+Faust - DSP to C/C++, Rust, LLVM IR, JAVA, JavaScript, asm.js,
+WebAssembly (wast/wasm), Interpreter compiler
+.SH SYNOPSIS
+.PP
+\f[B]faust\f[] [options] file1 [file2 ...]
+.SH DESCRIPTION
+.PP
+Faust (Functional Audio Stream) is a functional programming language
+specifically designed for real-time signal processing and synthesis.
+Faust targets high-performance signal processing applications and audio
+plug-ins for a variety of platforms and standards.
+.SH OPTIONS
+.SS Input options:
+.PP
+\f[B]-a\f[] <file> wrapper architecture file.
+.PP
+\f[B]-i\f[] \f[B]--inline-architecture-files\f[] inline architecture
+files.
+.PP
+\f[B]-A\f[] <dir> \f[B]--architecture-dir\f[] <dir> add the directory
+<dir> to the architecture search path.
+.PP
+\f[B]-I\f[] <dir> \f[B]--import-dir\f[] <dir> add the directory <dir> to
+the import search path.
+.PP
+\f[B]-L\f[] <file> \f[B]--library\f[] <file> link with the LLVM module
+<file>.
+.PP
+\f[B]-t\f[] <sec> \f[B]--timeout\f[] <sec> abort compilation after <sec>
+seconds (default 120).
+.PP
+\f[B]-time\f[] \f[B]--compilation-time\f[] display compilation phases
+timing information.
+.SS Output options:
+.PP
+\f[B]-o\f[] <file> the output file.
+.PP
+\f[B]-e\f[] \f[B]--export-dsp\f[] export expanded DSP (all included
+libraries).
+.PP
+\f[B]-uim\f[] \f[B]--user-interface-macros\f[] add user interface macro
+definitions to the output code.
+.PP
+\f[B]-xml\f[] generate an XML description file.
+.PP
+\f[B]-json\f[] generate a JSON description file.
+.PP
+\f[B]-O\f[] <dir> \f[B]--output-dir\f[] <dir> specify the relative
+directory of the generated output code and of additional generated files
+(SVG, XML...)
+\&.
+.SS Code generation options:
+.PP
+\f[B]-lang\f[] <lang> \f[B]--language\f[] select output language,
+\[aq]lang\[aq] should be in c, ocpp, cpp (default), rust, java, js, ajs,
+llvm, cllvm, fir, wast/wasm, interp.
+.PP
+\f[B]-single\f[] \f[B]--single-precision-floats\f[] use single precision
+floats for internal computations (default).
+.PP
+\f[B]-double\f[] \f[B]--double-precision-floats\f[] use double precision
+floats for internal computations.
+.PP
+\f[B]-quad\f[] \f[B]--quad-precision-floats\f[] use quad precision
+floats for internal computations.
+.PP
+\f[B]-es\f[] 1|0 \f[B]--enable-semantics\f[] 1|0 use enable semantics
+when 1 (default), and simple multiplication otherwise.
+.PP
+\f[B]-lcc\f[] \f[B]--local-causality-check\f[] check causality also at
+local level.
+.PP
+\f[B]-flist\f[] \f[B]--file-list\f[] use file list used to eval process.
+.PP
+\f[B]-exp10\f[] \f[B]--generate-exp10\f[] function call instead of
+pow(10) function.
+.PP
+\f[B]-cn\f[] <name> \f[B]--class-name\f[] <name> specify the name of the
+dsp class to be used instead of mydsp.
+.PP
+\f[B]-scn\f[] <name> \f[B]--super-class-name\f[] <name> specify the name
+of the super class to be used instead of dsp.
+.PP
+\f[B]-pn\f[] <name> \f[B]--process-name\f[] <name> specify the name of
+the dsp entry-point instead of process.
+.PP
+\f[B]-lb\f[] \f[B]--left-balanced\f[] generate left balanced
+expressions.
+.PP
+\f[B]-mb\f[] \f[B]--mid-balanced\f[] generate mid balanced expressions
+(default).
+.PP
+\f[B]-rb\f[] \f[B]--right-balanced\f[] generate right balanced
+expressions.
+.PP
+\f[B]-lt\f[] \f[B]--less-temporaries\f[] generate less temporaries in
+compiling delays.
+.PP
+\f[B]-mcd\f[] <n> \f[B]--max-copy-delay\f[] <n> threshold between copy
+and ring buffer implementation (default 16 samples).
+.PP
+\f[B]-mem\f[] \f[B]--memory\f[] allocate static in global state using a
+custom memory manager.
+.PP
+\f[B]-ftz\f[] <n> \f[B]--flush-to-zero\f[] <n> code added to recursive
+signals [0:no (default), 1:fabs based, 2:mask based (fastest)].
+.PP
+\f[B]-inj\f[] <f> \f[B]--inject\f[] <f> inject source file <f> into
+architecture file instead of compile a dsp file.
+.PP
+\f[B]-scal\f[] \f[B]--scalar\f[] generate non-vectorized code.
+.PP
+\f[B]-inpl\f[] \f[B]--in-place\f[] generates code working when input and
+output buffers are the same (scalar mode only).
+.PP
+\f[B]-vec\f[] \f[B]--vectorize\f[] generate easier to vectorize code.
+.PP
+\f[B]-vs\f[] <n> \f[B]--vec-size\f[] <n> size of the vector (default 32
+samples).
+.PP
+\f[B]-lv\f[] <n> \f[B]--loop-variant\f[] <n> [0:fastest (default),
+1:simple].
+.PP
+\f[B]-omp\f[] \f[B]--openmp\f[] generate OpenMP pragmas, activates
+--vectorize option.
+.PP
+\f[B]-pl\f[] \f[B]--par-loop\f[] generate parallel loops in --openMP
+mode.
+.PP
+\f[B]-sch\f[] \f[B]--scheduler\f[] generate tasks and use a Work
+Stealing scheduler, activates --vectorize option.
+.PP
+\f[B]-ocl\f[] \f[B]--opencl\f[] generate tasks with OpenCL
+(experimental).
+.PP
+\f[B]-cuda\f[] \f[B]--cuda\f[] generate tasks with CUDA (experimental).
+.PP
+\f[B]-dfs\f[] \f[B]--deep-first-scheduling\f[] schedule vector loops in
+deep first order.
+.PP
+\f[B]-g\f[] \f[B]--group-tasks\f[] group single-threaded sequential
+tasks together when -omp or -sch is used.
+.PP
+\f[B]-fun\f[] \f[B]--fun-tasks\f[] separate tasks code as separated
+functions (in -vec, -sch, or -omp mode).
+.PP
+\f[B]-fm\f[] <file> \f[B]--fast-math\f[] <file> use optimized versions
+of mathematical functions implemented in <file>, use
+\[aq]faust/dsp/fastmath.cpp\[aq] when file is \[aq]def\[aq].
+.SS Block diagram options:
+.PP
+\f[B]-ps\f[] \f[B]--postscript\f[] print block-diagram to a postscript
+file.
+.PP
+\f[B]-svg\f[] \f[B]--svg\f[] print block-diagram to a svg file.
+.PP
+\f[B]-sd\f[] \f[B]--simplify-diagrams\f[] try to further simplify
+diagrams before drawing.
+.PP
+\f[B]-f\f[] <n> \f[B]--fold\f[] <n> threshold during block-diagram
+generation (default 25 elements).
+.PP
+\f[B]-mns\f[] <n> \f[B]--max-name-size\f[] <n> threshold during
+block-diagram generation (default 40 char).
+.PP
+\f[B]-sn\f[] \f[B]--simple-names\f[] use simple names (without
+arguments) during block-diagram generation.
+.PP
+\f[B]-blur\f[] \f[B]--shadow-blur\f[] add a shadow blur to SVG boxes.
+.SS Math doc options:
+.PP
+\f[B]-mdoc\f[] \f[B]--mathdoc\f[] print math documentation of the Faust
+program in LaTeX format in a -mdoc folder.
+.PP
+\f[B]-mdlang\f[] <l> \f[B]--mathdoc-lang\f[] <l> if translation file
+exists (<l> = en, fr, ...)
+\&.
+.PP
+\f[B]-stripmdoc\f[] \f[B]--strip-mdoc-tags\f[] strip mdoc tags when
+printing Faust -mdoc listings.
+.SS Debug options:
+.PP
+\f[B]-d\f[] \f[B]--details\f[] print compilation details.
+.PP
+\f[B]-tg\f[] \f[B]--task-graph\f[] print the internal task graph in dot
+format.
+.PP
+\f[B]-sg\f[] \f[B]--signal-graph\f[] print the internal signal graph in
+dot format.
+.PP
+\f[B]-norm\f[] \f[B]--normalized-form\f[] print signals in normalized
+form and exit.
+.SS Information options:
+.PP
+\f[B]-h\f[] \f[B]--help\f[] print this help message.
+.PP
+\f[B]-v\f[] \f[B]--version\f[] print version information and embedded
+backends list.
+.PP
+\f[B]-libdir\f[] \f[B]--libdir\f[] print directory containing the faust
+libraries.
+.PP
+\f[B]-includedir\f[] \f[B]--includedir\f[] print directory containing
+the faust headers.
+.PP
+\f[B]-archdir\f[] \f[B]--archdir\f[] print directory containing the
+faust architectures.
+.PP
+\f[B]-dspdir\f[] \f[B]--dspdir\f[] print directory containing the faust
+dsp libraries.
+.PP
+\f[B]-pathslist\f[] \f[B]--pathslist\f[] print the architectures and dsp
+library paths.
+.SS Example:
+.PP
+faust \f[B]-a\f[] jack-gtk.cpp -o myfx.cpp myfx.dsp
+.SH SEE ALSO
+.PP
+Grame Faust site at: \f[B]<http://faust.grame.fr>\f[]
+.SH BUGS
+.PP
+Please report bugs to:
+\f[B]<https://github.com/grame-cncm/faust/issues>\f[]
+.SH AUTHOR
+.PP
+Copyright (C) 2002-2018, GRAME - Centre National de Creation Musicale.
+All rights reserved.

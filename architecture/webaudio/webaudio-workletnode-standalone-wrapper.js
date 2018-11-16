@@ -10,7 +10,7 @@ if (typeof (AudioWorkletNode) === "undefined") {
 
 class mydspNode extends AudioWorkletNode {
 
-    constructor(context, URL, options) {
+    constructor(context, baseURL, options) {
 
         var json_object = JSON.parse(getJSONmydsp());
 
@@ -23,7 +23,7 @@ class mydspNode extends AudioWorkletNode {
         options.channelInterpretation = "speakers";
 
         super(context, 'mydsp', options);
-        this.URL = URL;
+        this.baseURL = baseURL;
       
         // JSON parsing functions
         this.parse_ui = function(ui, obj)
@@ -79,7 +79,16 @@ class mydspNode extends AudioWorkletNode {
                             }
                         }
                     }
-                }
+                }      
+                // Define setXXX/getXXX, replacing '/c' with 'C' everywhere in the string
+                var set_name = "set" + item.address;
+                var get_name = "get" + item.address;
+                set_name = set_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });     
+                get_name = get_name.replace(/\/./g, (x) => { return x.substr(1,1).toUpperCase(); });
+                obj[set_name] = (val) => { obj.setParamValue(item.address, val); };
+                obj[get_name] = () => { return obj.getParamValue(item.address); };
+                //console.log(set_name);
+                //console.log(get_name);
             }
         }
 
@@ -127,7 +136,8 @@ class mydspNode extends AudioWorkletNode {
     async getMetadata() 
     {
         return new Promise(resolve => {
-        	fetch(this.URL + "/main.json").then(responseJSON => {
+            let real_url = (this.baseURL === "") ? "main.json" : (this.baseURL + "/main.json");
+            fetch(real_url).then(responseJSON => {
             	return responseJSON.json();
         	}).then(json => {
         		resolve(json);
@@ -304,9 +314,7 @@ class mydspNode extends AudioWorkletNode {
         for (let i = 0; i < this.getParams().length; i++) {
             Object.assign(params, { [this.getParams()[i]]: `${this.getParam(this.getParams()[i])}` });
         }
-        return new Promise(resolve => {
-            resolve(params)
-        });
+        return new Promise(resolve => { resolve(params) });
     }
 
     /**
@@ -374,22 +382,25 @@ class mydspNode extends AudioWorkletNode {
 }
 
 // Factory class
-
 window.mydsp = class mydsp {
 
     /**
      * Factory constructor.
      *
      * @param context - the audio context
-     * @param baseUrl - the baseUrl of the plugin folder
+     * @param baseURL - the baseURL of the plugin folder
      */
-    constructor(context, baseUrl)
+    constructor(context, baseURL = "")
     {
     	// Resume audio context each time...
     	context.resume();
     	
+    	console.log("baseLatency " + context.baseLatency);
+    	console.log("outputLatency " + context.outputLatency);
+    	console.log("sampleRate " + context.sampleRate);
+    	
         this.context = context;
-        this.baseUrl = baseUrl;
+        this.baseURL = baseURL;
         
         this.pathTable = [];
         
@@ -437,13 +448,13 @@ window.mydsp = class mydsp {
      */
     load()
     {
-    	return new Promise((resolve, reject) => {               
-            this.context.audioWorklet.addModule(this.baseUrl + "/mydsp-processor.js").then(() => {
-            this.node = new mydspNode(this.context, this.baseUrl, {});
+    	return new Promise((resolve, reject) => {   
+            let real_url = (this.baseURL === "") ? "mydsp-processor.js" : (this.baseURL + "/mydsp-processor.js");
+            this.context.audioWorklet.addModule(real_url).then(() => {
+            this.node = new mydspNode(this.context, this.baseURL, {});
             this.node.onprocessorerror = () => { console.log('An error from mydsp-processor was detected.');}
             return (this.node);
             }).then((node) => {
-                console.log(this.node.getDescriptor());
                 resolve(node);
             }).catch((e) => {
                 reject(e);
@@ -456,13 +467,12 @@ window.mydsp = class mydsp {
         return new Promise((resolve, reject) => {
             try {
                 // DO THIS ONLY ONCE. If another instance has already been added, do not add the html file again
-                let url = this.baseUrl + "/main.html";
-
-                if (!this.linkExists(url)) {
+                let real_url = (this.baseURL === "") ? "main.html" : (this.baseURL + "/main.html");
+                if (!this.linkExists(real_url)) {
                     // LINK DOES NOT EXIST, let's add it to the document
                     var link = document.createElement('link');
                     link.rel = 'import';
-                    link.href = url;
+                    link.href = real_url;
                     document.head.appendChild(link);
                     link.onload = (e) => {
                         // the file has been loaded, instanciate GUI

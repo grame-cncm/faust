@@ -41,6 +41,7 @@ int main(int argc, char* argv[])
         {
             // Test writeInterpreterDSPFactoryToMachineFile/readInterpreterDSPFactoryFromMachineFile
             writeInterpreterDSPFactoryToMachineFile(factory, "/var/tmp/interp-factory.fbc");
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
             factory = readInterpreterDSPFactoryFromMachineFile("/var/tmp/interp-factory.fbc");
             if (!factory) {
                 cerr << "Error in readInterpreterDSPFactoryFromMachineFile" << endl;
@@ -53,6 +54,7 @@ int main(int argc, char* argv[])
         {
             // Test writeInterpreterDSPFactoryToMachine/readInterpreterDSPFactoryFromMachine
             factory_str = writeInterpreterDSPFactoryToMachine(factory);
+            deleteInterpreterDSPFactory(static_cast<interpreter_dsp_factory*>(factory));
             factory = readInterpreterDSPFactoryFromMachine(factory_str);
             if (!factory) {
                 cerr << "Error in readInterpreterDSPFactoryFromMachine" << endl;

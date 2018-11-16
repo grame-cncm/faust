@@ -75,7 +75,7 @@ createAPI ()
     
     # fix things that won't compile on the sharc
     cat "$APIFOLDER/samFaustDSP.cpp"  | \
-    sed -e 's/std::cerr/\/\/std::cerr/' \
+    sed     -e 's/\(std::cerr.*;\)/\/* \1 *\/ /' \
 	    -e 's/std::cout/\/\/std::cout/' \
 	    -e 's/getCPULoad(void/faustGetCPULoad(void/' \
 	    -e 's/std::stringstream/std::ostringstream/' \
