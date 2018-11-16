@@ -238,4 +238,4 @@ echo "Run bela now"
 uploadBuildRun
 	
 fi
-echo "End"
+echo "$PROJECTDIR/render.cpp;"
