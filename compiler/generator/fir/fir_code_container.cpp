@@ -29,8 +29,7 @@ using namespace std;
 dsp_factory_base* FirCodeContainer::produceFactory()
 {
     return new text_dsp_factory_aux(
-        fKlassName, "", "",
-        ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
+        fKlassName, "", "", ((dynamic_cast<stringstream*>(fOut)) ? dynamic_cast<stringstream*>(fOut)->str() : ""), "");
 }
 
 CodeContainer* FirCodeContainer::createScalarContainer(const string& name, int sub_container_type)

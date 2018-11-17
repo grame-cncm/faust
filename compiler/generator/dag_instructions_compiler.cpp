@@ -375,7 +375,7 @@ bool DAGInstructionsCompiler::needSeparateLoop(Tree sig)
 ValueInst* DAGInstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
 {
     ::Type t = getCertifiedSigType(sig);
-    
+
     if (t->variability() == kSamp) {
         string         vname;
         Typed::VarType ctype;
@@ -394,11 +394,11 @@ ValueInst* DAGInstructionsCompiler::generateInput(Tree sig, int idx)
         // "input" use as a name convention
         string     name = subst("input$0", T(idx));
         ValueInst* res =
-        InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
+            InstBuilder::genLoadArrayFunArgsVar(name, getCurrentLoopIndex() + InstBuilder::genLoadLoopVar("index"));
         // Cast to internal float
         res = InstBuilder::genCastFloatInst(res);
         return generateCacheCode(sig, res);
-        
+
     } else {
         // "fInput" use as a name convention
         string     name = subst("fInput$0", T(idx));

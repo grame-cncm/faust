@@ -403,22 +403,22 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gInterpreterVisitor = 0;  // Will be (possibly) allocated in Interp backend
 #endif
 
-    gHelpSwitch      = false;
-    gVersionSwitch   = false;
-	gLibDirSwitch    = false;
-	gIncludeDirSwitch= false;
-	gArchDirSwitch   = false;
-	gDspDirSwitch    = false;
-    gPathListSwitch	 = false;
-    gGraphSwitch     = false;
-    gDrawPSSwitch    = false;
-    gDrawSVGSwitch   = false;
-    gPrintXMLSwitch  = false;
-    gPrintJSONSwitch = false;
-    gPrintDocSwitch  = false;
-    gBalancedSwitch  = 0;
-    gArchFile        = "";
-    gExportDSP       = false;
+    gHelpSwitch       = false;
+    gVersionSwitch    = false;
+    gLibDirSwitch     = false;
+    gIncludeDirSwitch = false;
+    gArchDirSwitch    = false;
+    gDspDirSwitch     = false;
+    gPathListSwitch   = false;
+    gGraphSwitch      = false;
+    gDrawPSSwitch     = false;
+    gDrawSVGSwitch    = false;
+    gPrintXMLSwitch   = false;
+    gPrintJSONSwitch  = false;
+    gPrintDocSwitch   = false;
+    gBalancedSwitch   = 0;
+    gArchFile         = "";
+    gExportDSP        = false;
 
     gTimeout = 120;  // time out to abort compiler (in seconds)
 
@@ -446,8 +446,8 @@ void global::init()
 
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
-    // True by default but only usable with -lang ocpp backend 
-    gEnableFlag      = true;
+    // True by default but only usable with -lang ocpp backend
+    gEnableFlag = true;
 
     TINT  = makeSimpleType(kInt, kKonst, kComp, kVect, kNum, interval());
     TREAL = makeSimpleType(kReal, kKonst, kComp, kVect, kNum, interval());
@@ -583,23 +583,20 @@ void global::printCompilationOptions(ostream& dst, bool backend)
         dst << "-sch"
             << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "") << ((gGroupTaskSwitch) ? " -g" : "")
             << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
-            << " -mcd " << gGlobal->gMaxCopyDelay
-            << ((gMemoryManager) ? " -mem" : "");
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
     } else if (gVectorSwitch) {
         dst << "-vec"
             << " -lv " << gVectorLoopVariant << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
-            << " -mcd " << gGlobal->gMaxCopyDelay
-            << ((gMemoryManager) ? " -mem" : "");
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
     } else if (gOpenMPSwitch) {
         dst << "-omp"
             << " -vs " << gVecSize << " -vs " << gVecSize << ((gFunTaskSwitch) ? " -fun" : "")
             << ((gGroupTaskSwitch) ? " -g" : "") << ((gDeepFirstSwitch) ? " -dfs" : "")
-            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode
-            << " -mcd " << gGlobal->gMaxCopyDelay
-            << ((gMemoryManager) ? " -mem" : "");
+            << ((gFloatSize == 2) ? " -double" : (gFloatSize == 3) ? " -quad" : "") << " -ftz " << gFTZMode << " -mcd "
+            << gGlobal->gMaxCopyDelay << ((gMemoryManager) ? " -mem" : "");
     } else {
         dst << ((gFloatSize == 1) ? "-scal" : ((gFloatSize == 2) ? "-double" : (gFloatSize == 3) ? "-quad" : ""))
             << " -ftz " << gFTZMode << ((gMemoryManager) ? " -mem" : "");
