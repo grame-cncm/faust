@@ -1196,7 +1196,8 @@ static Tree evalIdDef(Tree id, Tree visited, Tree lenv)
     if (isNil(lenv)) {
         if (hasDefProp(id)) {
             stringstream error;
-            error << "ERROR : " << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id) << endl;
+            error << "ERROR : " << *id << " is defined here : " << getDefFileProp(id) << ":" << getDefLineProp(id)
+                  << endl;
             throw faustexception(error.str());
         } else {
             evalerror(getUseFileProp(id), getUseLineProp(id), "undefined symbol", id);

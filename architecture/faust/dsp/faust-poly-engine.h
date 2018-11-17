@@ -65,11 +65,9 @@ class FaustPolyEngine {
         {
             bool midi_sync = false;
             int nvoices = 0;
+            fRunning = false;
             
             MidiMeta::analyse(mono_dsp, midi_sync, nvoices);
-            
-            fDriver = driver;
-            fRunning = false;
             
             // Getting the UI JSON
             JSONUI jsonui1(mono_dsp->getNumInputs(), mono_dsp->getNumOutputs());
@@ -124,8 +122,15 @@ class FaustPolyEngine {
       
             MyMeta meta;
             fFinalDSP->metadata(&meta);
-            fDriver->init(meta.fName.c_str(), fFinalDSP);
             if (midi) midi->setName(meta.fName);
+            
+            // If driver cannot be initialized, start will fail later on...
+            if (!driver->init(meta.fName.c_str(), fFinalDSP)) {
+                delete driver;
+                fDriver = NULL;
+            } else {
+                fDriver = driver;
+            }
         }
     
     public:
@@ -149,11 +154,11 @@ class FaustPolyEngine {
         bool start()
         {
             if (!fRunning) {
-                fRunning = fDriver->start();
+                fRunning = (fDriver) ? fDriver->start() : false;
             }
             return fRunning;
         }
-        
+    
         /*
          * isRunning()
          * Returns true if the DSP frames are being computed and
@@ -537,7 +542,7 @@ class FaustPolyEngine {
          * getCPULoad()
          * Return DSP CPU load.
          */
-        float getCPULoad() { return fDriver->getCPULoad(); }
+        float getCPULoad() { return (fDriver) ? fDriver->getCPULoad() : 0.f; }
 
         /*
          * getScreenColor() -> c:int

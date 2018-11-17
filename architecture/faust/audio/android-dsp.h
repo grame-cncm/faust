@@ -119,7 +119,7 @@ class androidaudio : public audio {
     
     protected:
     
-        dsp* fDsp;
+        dsp* fDSP;
         
         int	fNumInChans;
         int	fNumOutChans;
@@ -168,7 +168,7 @@ class androidaudio : public audio {
             }
             
             // Compute DSP
-            fDsp->compute(fBufferSize, fInputs, fOutputs);
+            fDSP->compute(fBufferSize, fInputs, fOutputs);
             
             if (fControlCb) {
                 fControlCb(fControlCbArg);
@@ -225,7 +225,7 @@ class androidaudio : public audio {
     public:
     
         androidaudio(long srate, long bsize)
-        : fDsp(0), fSampleRate(srate),
+        : fDSP(0), fSampleRate(srate),
         fBufferSize(bsize), fCPUTableIndex(0), fNumInChans(0), fNumOutChans(0),
         fOpenSLEngine(0), fOutputMix(0), fInputBufferQueue(0), fOutputBufferQueue(0),
         fOpenSLInputs(bsize * 4, NUM_INPUTS), fOpenSLOutputs(bsize * 4, NUM_OUTPUTS),
@@ -297,10 +297,10 @@ class androidaudio : public audio {
         {
             __android_log_print(ANDROID_LOG_ERROR, "Faust", "init");
             
-            fDsp = DSP;
-            fNumInChans = fDsp->getNumInputs();
-            fNumOutChans = fDsp->getNumOutputs();
-            //fDsp->init(fSampleRate);
+            fDSP = DSP;
+            fNumInChans = fDSP->getNumInputs();
+            fNumOutChans = fDSP->getNumOutputs();
+            fDSP->init(fSampleRate);
             
             static const SLboolean requireds[2] = { SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE };
             SLresult result;
@@ -511,7 +511,6 @@ class androidaudio : public audio {
                 }
             }
             
-            fDsp->init(fSampleRate);
             return true;
         }
     

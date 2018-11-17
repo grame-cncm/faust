@@ -82,8 +82,7 @@ struct LibsndfileReader : public SoundfileReader {
 		
         // Read and fill snd_info.channels number of channels
         sf_count_t nbf;
-//		FAUSTFLOAT buffer[BUFFER_SIZE * snd_info.channels];
-		FAUSTFLOAT* buffer = (FAUSTFLOAT*)alloca (BUFFER_SIZE * snd_info.channels);
+		FAUSTFLOAT* buffer = (FAUSTFLOAT*)alloca(BUFFER_SIZE * snd_info.channels);
 		sample_read reader;
 		
         if (sizeof(FAUSTFLOAT) == 4) {

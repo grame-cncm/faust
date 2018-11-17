@@ -33,8 +33,6 @@
 #include "llvm_dsp_aux.hh"
 #include "rn_base64.h"
 
-#include "fbc_llvm_compiler.hh"
-
 #include <llvm-c/Core.h>
 #include <llvm/ExecutionEngine/MCJIT.h>
 #include <llvm/Support/FileSystem.h>
@@ -338,9 +336,18 @@ llvm_dsp* llvm_dsp_factory_aux::createDSPInstance(dsp_factory* factory)
     }
 }
 
-std::string              llvm_dsp_factory_aux::getCompileOptions() { return fDecoder->fCompileOptions; }
-std::vector<std::string> llvm_dsp_factory_aux::getLibraryList() { return fDecoder->fLibraryList; }
-std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames() { return fDecoder->fIncludePathnames; }
+std::string llvm_dsp_factory_aux::getCompileOptions()
+{
+    return fDecoder->fCompileOptions;
+}
+std::vector<std::string> llvm_dsp_factory_aux::getLibraryList()
+{
+    return fDecoder->fLibraryList;
+}
+std::vector<std::string> llvm_dsp_factory_aux::getIncludePathnames()
+{
+    return fDecoder->fIncludePathnames;
+}
 
 // Instance
 

@@ -22,42 +22,45 @@ OPTIONS=""
 while [ $1 ] 
 do
     p=$1
-    
+
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bela [-osc][-midi][-nvoices <num>][-effect <auto or file.dsp>] [-tobela] <file.dsp>"
+        echo "faust2bela [-osc] [-midi] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-tobela] <file.dsp>"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-osc' to activate OSC control"
         echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
         echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
         echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
-    
-	# -NVOICES:
+
+    # -NVOICES:
     if [ $p = "-nvoices" ]; then
         shift
         NVOICES=$1
-	# -EFFECT:
+    # -EFFECT:
     elif [ $p = "-effect" ]; then
         POLY="POLY2"
         shift
         EFFECT=$1
     # -MIDI
     elif [ $p = "-midi" ]; then
-    	MIDIDEFS="MIDI"
-	elif [ $p = "-osc" ]; then
-		OSCDEFS="OSC"
-	elif [ $p = "-gui" ]; then
-		GUIDEFS="GUI"
-	elif [ $p = "-tobela" ]; then
-		SEND2BELA="OK"
-    else 
-	    OPTIONS="$OPTIONS $p"        
-	fi
+        MIDIDEFS="MIDI"
+    elif [ $p = "-osc" ]; then
+        OSCDEFS="OSC"
+    elif [ $p = "-gui" ]; then
+        GUIDEFS="GUI"
+    elif [ $p = "-soundfile" ]; then
+        SOUNDFILEDEFS="SOUNDFILE"
+    elif [ $p = "-tobela" ]; then
+        SEND2BELA="OK"
+    else
+        OPTIONS="$OPTIONS $p"        
+    fi
 
 shift
 
@@ -128,6 +131,11 @@ if [[ "$GUIDEFS" == *GUI* ]]; then
 	BELA_LDLIBS="$BELA_LDLIBS -lHTTPDFaust"
 fi
 
+if [[ "$SOUNDFILEDEFS" == *SOUNDFILE* ]]; then
+    echo '#define SOUNDFILE' >> "$PROJECTDIR/tmp.txt"
+    BELA_LDLIBS="$BELA_LDLIBS -lsndfile"
+fi
+
 cat "$PROJECTDIR/render.cpp" >> "$PROJECTDIR/tmp.txt"
 rm "$PROJECTDIR/render.cpp"
 mv "$PROJECTDIR/tmp.txt" "$PROJECTDIR/render.cpp"
@@ -191,11 +199,11 @@ BBB_NETWORK_TARGET_FOLDER=$BBB_ADDRESS:$BBB_PROJECT_FOLDER
 # The expert will have to remember to run set_date after powering up the board if needed
 [ "$BELA_EXPERT_MODE" -eq 0 ] && check_board_alive_and_set_date
 
-# stop running process
+# Stop running process
 echo "Stop running process..."
 ssh $BBB_ADDRESS make QUIET=true --no-print-directory -C $BBB_BELA_HOME stop
 
-#Check if rsync is available
+# Check if rsync is available
 check_rsync && RSYNC_AVAILABLE=1 || RSYNC_AVAILABLE=0
 
 uploadBuildRun(){

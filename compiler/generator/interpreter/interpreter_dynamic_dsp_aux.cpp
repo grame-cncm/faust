@@ -21,8 +21,8 @@
 
 #include <libgen.h>
 
-#include "interpreter_dynamic_dsp_aux.hh"
 #include "Text.hh"
+#include "interpreter_dynamic_dsp_aux.hh"
 #include "libfaust.h"
 
 using namespace std;
@@ -65,7 +65,7 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         argv1[argc1] = 0;  // NULL terminated argv
 
         dsp_factory_table<SDsp_factory>::factory_iterator it;
-        interpreter_dsp_factory* factory = 0;
+        interpreter_dsp_factory*                          factory = 0;
 
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
@@ -87,4 +87,3 @@ EXPORT interpreter_dsp_factory* createInterpreterDSPFactoryFromString(const stri
         }
     }
 }
-

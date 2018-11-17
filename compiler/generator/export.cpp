@@ -20,12 +20,18 @@
  ************************************************************************/
 
 #include "export.hh"
+#include <string>
 
 // External libfaust API
 
 extern "C" EXPORT const char* getCLibFaustVersion()
 {
+#ifdef LLVM_BUILD
+    static std::string version = std::string(FAUSTVERSION) + " (LLVM " + std::string(LLVM_VERSION) + ")";
+    return version.c_str();
+#else
     return FAUSTVERSION;
+#endif
 }
 
     /*

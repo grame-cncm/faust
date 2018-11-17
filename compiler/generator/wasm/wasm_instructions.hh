@@ -1038,7 +1038,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
                         // Micro optimization if the field is actually the first one in the structure
                         if (tmp.fOffset == 0) {
                             *fOut << int8_t(BinaryConsts::GetLocal)
-                            << U32LEB(0);  // Assuming $dsp is at 0 local variable index
+                                  << U32LEB(0);  // Assuming $dsp is at 0 local variable index
                             indexed->fIndex->accept(this);
                             *fOut << int8_t(BinaryConsts::I32Const) << S32LEB(offStrNum);
                             *fOut << int8_t(WasmOp::I32Shl);

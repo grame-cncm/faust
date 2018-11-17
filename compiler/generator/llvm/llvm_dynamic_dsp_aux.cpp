@@ -329,7 +329,7 @@ bool llvm_dynamic_dsp_factory_aux::initJIT(string& error_msg)
     // (cf. http://lists.cs.uiuc.edu/pipermail/llvmdev/2013-December/068407.html).
     string target_suffix = "-elf";
 #else
-    string target_suffix = "";
+    string        target_suffix = "";
 #endif
 
     string triple, cpu;
