@@ -824,14 +824,14 @@ class FBCLLVMCompiler {
 };
 
 // FBC compiler
-template <class T, int TRACE>
-class FBCCompiler : public FBCInterpreter<T, TRACE> {
+template <class T>
+class FBCCompiler : public FBCInterpreter<T, 0> {
    public:
     typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>           CompiledBlocksType;
     typedef typename std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>::iterator CompiledBlocksTypeIT;
 
-    FBCCompiler(interpreter_dsp_factory_aux<T, TRACE>* factory, CompiledBlocksType* map)
-        : FBCInterpreter<T, TRACE>(factory)
+    FBCCompiler(interpreter_dsp_factory_aux<T, 0>* factory, CompiledBlocksType* map)
+        : FBCInterpreter<T, 0>(factory)
     {
         fCompiledBlocks = map;
 
@@ -846,7 +846,7 @@ class FBCCompiler : public FBCInterpreter<T, TRACE> {
         if (fCompiledBlocks->find(block) != fCompiledBlocks->end()) {
             ((*fCompiledBlocks)[block])->Execute(this->fIntHeap, this->fRealHeap, this->fInputs, this->fOutputs);
         } else {
-            FBCInterpreter<T, TRACE>::ExecuteBlock(block);
+            FBCInterpreter<T, 0>::ExecuteBlock(block);
         }
     }
 

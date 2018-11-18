@@ -102,7 +102,7 @@ for p in $FILES; do
 		else
 			$CXX $CXXFLAGS $LIB -Dmydsp=$NAME -DPOLY -o $LIBNAME $NAME.cpp
 		fi
-	) > /dev/null || (echo "$f : C++ to linux library compilation failed in Faust2linuxunity"; exit 1)
+	) > /dev/null || (echo "$f : C++ to linux library compilation failed in faust2linuxunity"; exit 1)
 
     # moves binary to final dir
     rm -rf "$SRCDIR/$LIBNAME"

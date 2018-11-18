@@ -38,7 +38,6 @@
 #define NUM_OUTPUTS 2
 #define CPU_TABLE_SIZE 16
 
-
 static const char *res_str(SLresult result)
 {
     switch(result)
@@ -72,7 +71,6 @@ static const char *res_str(SLresult result)
     }
     return "Unknown error code";
 }
-
 
 struct CircularBuffer {
     

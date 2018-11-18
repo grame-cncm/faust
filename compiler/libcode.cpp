@@ -755,19 +755,19 @@ static bool processCmdline(int argc, const char* argv[])
 
 static void printLibDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "lib";
+    cout << gGlobal->gFaustRootDir << kPSEP << "lib" << endl;
 }
 static void printIncludeDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "include";
+    cout << gGlobal->gFaustRootDir << kPSEP << "include" << endl;
 }
 static void printArchDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
 }
 static void printDspDir()
 {
-    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust";
+    cout << gGlobal->gFaustRootDir << kPSEP << "share" << kPSEP << "faust" << endl;
 }
 static void printPaths()
 {
@@ -775,6 +775,7 @@ static void printPaths()
     for (auto path : gGlobal->gImportDirList) cout << path << endl;
     cout << "\nFAUST architectures paths:" << endl;
     for (auto path : gGlobal->gArchitectureDirList) cout << path << endl;
+    cout << endl;
 }
 
 /****************************************************************
@@ -946,11 +947,11 @@ static void printHelp()
     cout << tab << "-h          --help                      print this help message." << endl;
     cout << tab << "-v          --version                   print version information and embedded backends list."
          << endl;
-    cout << tab << "-libdir     --libdir                    print directory containing the faust libraries." << endl;
-    cout << tab << "-includedir --includedir                print directory containing the faust headers." << endl;
-    cout << tab << "-archdir    --archdir                   print directory containing the faust architectures."
+    cout << tab << "-libdir     --libdir                    print directory containing the Faust libraries." << endl;
+    cout << tab << "-includedir --includedir                print directory containing the Faust headers." << endl;
+    cout << tab << "-archdir    --archdir                   print directory containing the Faust architectures."
          << endl;
-    cout << tab << "-dspdir     --dspdir                    print directory containing the faust dsp libraries."
+    cout << tab << "-dspdir     --dspdir                    print directory containing the Faust dsp libraries."
          << endl;
     cout << tab << "-pathslist  --pathslist                 print the architectures and dsp library paths." << endl;
 

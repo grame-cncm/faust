@@ -76,7 +76,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
 #ifdef MACHINE
     // Shared between all DSP instances
-    typename FBCCompiler<T, TRACE>::CompiledBlocksType* fCompiledBlocks;
+    typename FBCCompiler<T>::CompiledBlocksType* fCompiledBlocks;
 #endif
 
     interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
@@ -115,7 +115,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCExecutor<T>* createFBCExecutor()
     {
 #ifdef MACHINE
-        return new FBCCompiler<T, TRACE>(this, fCompiledBlocks);
+        return new FBCCompiler<T>(this, fCompiledBlocks);
 #else
         optimize();
         return new FBCInterpreter<T, TRACE>(this);
