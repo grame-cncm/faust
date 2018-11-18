@@ -206,11 +206,15 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     // Then create factory depending of the trace mode
     const char* trace = getenv("FAUST_INTERP_TRACE");
     int         mode  = (trace) ? std::atoi(trace) : 0;
+    
+    // Prepare compilation options
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options);
 
     switch (mode) {
         case 1:
             return new interpreter_dsp_factory_aux<T, 1>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -219,7 +223,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 2:
             return new interpreter_dsp_factory_aux<T, 2>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -228,7 +232,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 3:
             return new interpreter_dsp_factory_aux<T, 3>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -237,7 +241,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 4:
             return new interpreter_dsp_factory_aux<T, 4>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -246,7 +250,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 5:
             return new interpreter_dsp_factory_aux<T, 5>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -256,7 +260,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
         default:
             // Default case, no trace...
             return new interpreter_dsp_factory_aux<T, 0>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),

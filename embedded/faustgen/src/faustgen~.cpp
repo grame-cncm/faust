@@ -275,7 +275,8 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
     //return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
     
     // Alternate model using machine code
-    return readDSPFactoryFromMachine(*fBitCode, getTarget());
+    string error_msg;
+    return readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
     
     /*
     // Alternate model using LLVM IR
@@ -295,7 +296,7 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     print_compile_options();
     
     // Prepare compile options
-    string error;
+    string error_msg;
  	const char* argv[64];
     
     assert(fCompileOptions.size() < 64);
@@ -306,18 +307,18 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
     }
     
     // Generate SVG file
-    if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error)) {
-        post("Generate SVG error : %s", error.c_str());
+    if (!generateAuxFilesFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, error_msg)) {
+        post("Generate SVG error : %s", error_msg.c_str());
     }
 
 #ifdef WIN32
     argv[fCompileOptions.size()] = "-L";
     argv[fCompileOptions.size() + 1] = "llvm_math.ll";
     argv[fCompileOptions.size() + 2] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error, fOptLevel);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size() + 2, argv, getTarget(), error_msg, fOptLevel);
 #else
     argv[fCompileOptions.size()] = 0;  // NULL terminated argv
-    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error, fOptLevel);
+    llvm_dsp_factory* factory = createDSPFactoryFromString(name_app, *fSourceCode, fCompileOptions.size(), argv, getTarget(), error_msg, fOptLevel);
 #endif
    
     if (factory) {
@@ -332,9 +333,9 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
             (*it)->hilight_on();
         }
         if (fInstances.begin() != fInstances.end()) {
-            (*fInstances.begin())->hilight_error(error);
+            (*fInstances.begin())->hilight_error(error_msg);
         }
-        post("Invalid Faust code or compile options : %s", error.c_str());
+        post("Invalid Faust code or compile options : %s", error_msg.c_str());
         return 0;
     }
 }

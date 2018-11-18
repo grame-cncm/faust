@@ -21,6 +21,7 @@
 
 #include "interpreter_dsp_aux.hh"
 #include "compatibility.hh"
+#include "libfaust.h"
 
 using namespace std;
 
@@ -28,7 +29,7 @@ using namespace std;
 void faustassertaux(bool cond, const string& file, int line)
 {
     if (!cond) {
-        std::stringstream str;
+        stringstream str;
         str << "ASSERT : please report this message, the stack trace, and the failing DSP file to Faust developers (";
         str << "file: " << file.substr(file.find_last_of('/') + 1) << ", line: " << line << ", ";
         str << "version: " << FAUSTVERSION;
@@ -104,45 +105,57 @@ EXPORT void interpreter_dsp::operator delete(void* ptr)
 
 // Read/write
 
-static std::string read_real_type(std::istream* in)
+static string read_real_type(istream* in)
 {
-    std::string type_line;
+    string type_line;
     getline(*in, type_line);
 
-    std::stringstream type_reader(type_line);
-    std::string       dummy, type;
+    stringstream type_reader(type_line);
+    string       dummy, type;
     type_reader >> dummy;  // Read "interpreter_dsp_factory" token
     type_reader >> type;
 
     return type;
 }
 
-static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(std::istream* in)
+static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(const string& fbc_code, string& error_msg)
 {
     try {
-        std::string              type    = read_real_type(in);
+        dsp_factory_table<SDsp_factory>::factory_iterator it;
         interpreter_dsp_factory* factory = 0;
-
-        if (type == "float") {
-            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, 0>::read(in));
-        } else if (type == "double") {
-            factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, 0>::read(in));
+        string sha_key = generateSHA1(fbc_code);
+        
+        if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
+            SDsp_factory sfactory = (*it).first;
+            sfactory->addReference();
+            return sfactory;
         } else {
-            faustassert(false);
-        }
+            interpreter_dsp_factory* factory = nullptr;
+            stringstream reader(fbc_code);
+            string type = read_real_type(&reader);
+      
+            if (type == "float") {
+                factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<float, 0>::read(&reader));
+            } else if (type == "double") {
+                factory = new interpreter_dsp_factory(interpreter_dsp_factory_aux<double, 0>::read(&reader));
+            } else {
+                faustassert(false);
+            }
 
-        gInterpreterFactoryTable.setFactory(factory);
-        return factory;
+            gInterpreterFactoryTable.setFactory(factory);
+            factory->setSHAKey(sha_key);
+            factory->setDSPCode(fbc_code);
+            return factory;
+        }
     } catch (faustexception& e) {
-        std::cerr << "ERROR in readInterpreterDSPFactoryFromMachineAux: " << e.Message();
+        error_msg = e.Message();
         return nullptr;
     }
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& machine_code)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& fbc_code, string& error_msg)
 {
-    stringstream reader(machine_code);
-    return readInterpreterDSPFactoryFromMachineAux(&reader);
+    return readInterpreterDSPFactoryFromMachineAux(fbc_code, error_msg);
 }
 
 EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
@@ -152,29 +165,29 @@ EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* facto
     return writer.str();
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& machine_code_path)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& fbc_code_path, string& error_msg)
 {
-    string base = basename((char*)machine_code_path.c_str());
-    size_t pos  = machine_code_path.find(".fbc");
+    string base = basename((char*)fbc_code_path.c_str());
+    size_t pos  = fbc_code_path.find(".fbc");
 
     if (pos != string::npos) {
-        // ifstream reader(machine_code_path);
-        ifstream reader(machine_code_path.c_str());
+        ifstream reader(fbc_code_path.c_str());
         if (reader.is_open()) {
-            return readInterpreterDSPFactoryFromMachineAux(&reader);
+            string fbc_code(istreambuf_iterator<char>(reader), {});
+            return readInterpreterDSPFactoryFromMachineAux(fbc_code, error_msg);
         } else {
-            std::cerr << "Error opening file '" << machine_code_path << "'" << std::endl;
+            error_msg = "ERROR opening file '" + fbc_code_path + "'\n";
             return nullptr;
         }
     } else {
-        std::cerr << "File Extension is not the one expected (.fbc expected)" << std::endl;
+        error_msg = "ERROR : file Extension is not the one expected (.fbc expected)\n";
         return nullptr;
     }
 }
 
-EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& machine_code_path)
+EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& fbc_code_path)
 {
-    ofstream writer(machine_code_path.c_str());
+    ofstream writer(fbc_code_path.c_str());
     factory->write(&writer, true);
 }
 

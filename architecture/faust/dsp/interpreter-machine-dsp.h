@@ -177,10 +177,11 @@ std::vector<std::string> getAllInterpreterDSPFactories();
  * decrement reference counter when the factory is no more needed.
  *
  * @param machine_code - the machine code string
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code string.
@@ -198,10 +199,11 @@ std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory
  * decrement reference counter when the factory is no more needed.
  *
  * @param machine_code_path - the machine code file pathname
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code file.

@@ -473,6 +473,6 @@ static std::string gFBCInstructionTable[] = {
 
     "kNop"};
 
-#define INTERP_FILE_VERSION 5
+#define INTERP_FILE_VERSION 6
 
 #endif
