@@ -90,7 +90,7 @@ struct Soundfile {
 
 class SoundfileReader {
     
-   private:
+   protected:
     
     void emptyFile(Soundfile* soundfile, int part, int& offset, int max_chan)
     {
