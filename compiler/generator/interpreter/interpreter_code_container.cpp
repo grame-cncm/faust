@@ -111,8 +111,8 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler mode not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
-        //throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
-        container = new InterpreterVectorCodeContainer<T>(name, numInputs, numOutputs);
+        throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
+        //container = new InterpreterVectorCodeContainer<T>(name, numInputs, numOutputs);
     } else {
         container = new InterpreterScalarCodeContainer<T>(name, numInputs, numOutputs, kInt);
     }

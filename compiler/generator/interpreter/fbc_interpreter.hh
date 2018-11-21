@@ -576,11 +576,13 @@ class FBCInterpreter : public FBCExecutor<T> {
             }
 
             do_kStoreSound : {
+                /*
                 if (TRACE) {
                     fSoundHeap[assertSoundHeap(it, (*it)->fOffset1)] = popSound();
                 } else {
                     fSoundHeap[(*it)->fOffset1] = popSound();
                 }
+                */
                 dispatchNextScal();
             }
 

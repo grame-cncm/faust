@@ -40,6 +40,30 @@ void VectorCodeContainer::moveStack2Struct()
     fComputeBlockInstructions = static_cast<BlockInst*>(fComputeBlockInstructions->clone(&remover));
 }
 
+void VectorCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
+{
+    // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
+    for (int i = 0; i < inputs(); i++) {
+        string name1 = subst("fInput$0", T(i));
+        string name2 = subst("fInput$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+            name1,
+            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+    }
+}
+
+void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
+{
+    // Generates line like: FAUSTFLOAT* ouput0 = &ouput0_ptr[index];
+    for (int i = 0; i < outputs(); i++) {
+        string name1 = subst("fOutput$0", T(i));
+        string name2 = subst("fOutput$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+            name1,
+            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+    }
+}
+
 BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
     string index = "index";
