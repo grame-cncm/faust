@@ -209,7 +209,7 @@ if (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC 
 	set (INCLUDE_EMCC off)
 endif()
 if (INCLUDE_EMCC)
-	add_subdirectory (${ROOT}/emcc)
+	add_subdirectory (emcc)
 endif()
 if (INCLUDE_OSC OR OSCDYNAMIC)
 	add_subdirectory (osc)
