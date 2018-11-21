@@ -33,13 +33,15 @@
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
 #ifdef MACHINE
 #include "fbc_llvm_compiler.hh"
 #endif
+
+#include "fbc_interpreter.hh"
+//#include "fbc_vec_interpreter.hh"
 
 class interpreter_dsp_factory;
 
@@ -125,9 +127,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 #else
         optimize();
         return new FBCInterpreter<T, TRACE>(this);
-#endif
+        //return new FBCVecInterpreter<T, 1>(this);
+    #endif
     }
-
+ 
     virtual ~interpreter_dsp_factory_aux()
     {
         // No more DSP instances, so delete
@@ -568,7 +571,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             std::stringstream sample_line_reader(line);
 
             // Read each sample
-
             for (int i = 0; i < block_size; i++) {
                 sample_line_reader >> val_int;
                 block_values.push_back(val_int);
@@ -660,7 +662,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
-
    public:
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
@@ -719,6 +720,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         */
 
         delete this->fFBCExecutor;
+        //delete this->fFBCVecExecutor;
     }
 
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
@@ -838,11 +840,37 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         // std::cout << "buildUserInterface" << std::endl;
         fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
     }
+    
+    void ExecuteVecBlock(FBCBlockInstruction<T>* block, int vec_size)
+    {
+        /*
+            Execute the VEC size specialized version of the interpreter
+            vec_size == 1 correspond to the scalar interpreter
+         */
+        
+        /*
+        if (vec_size == 1) {
+            fFBCExecutor->ExecuteBlock<T, 1, TRACE>(block);
+        } else if (vec_size == 4) {
+            fFBCExecutor->ExecuteBlock<T, 4, TRACE>(block);
+        } else if (vec_size == 8) {
+            fFBCExecutor->ExecuteBlock<T, 8, TRACE>(block);
+        } else if (vec_size == 16) {
+            fFBCExecutor->ExecuteBlock<T, 16, TRACE>(block);
+        } else if (vec_size == 32) {
+            fFBCExecutor->ExecuteBlock<T, 32, TRACE>(block);
+        } else if (vec_size == 64) {
+            fFBCExecutor->ExecuteBlock<T, 64, TRACE>(block);
+        } else {
+            fFBCExecutor->ExecuteBlock<T, 128, TRACE>(block);
+        }
+        */
+    }
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
         if (TRACE > 0 && !fInitialized) {
-            std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
             // std::cout << "compute " << count << std::endl;
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
@@ -864,6 +892,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
             // Executes the 'DSP' block
             fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+            
+            //fFBCVecExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
         }
     }
 
@@ -873,7 +903,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     {
     #ifdef INTERPRETER_TRACE
         if (!fInitialized) {
-            std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else
     #endif
         {

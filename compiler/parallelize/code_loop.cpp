@@ -40,21 +40,6 @@
 
 using namespace std;
 
-CodeLoop::CodeLoop(CodeLoop* encl, string index_name, int size)
-    : fIsRecursive(false),
-      fRecSymbolSet(gGlobal->nil),
-      fEnclosingLoop(encl),
-      fSize(size),
-      fOrder(-1),
-      fIndex(-1),
-      fPreInst(new BlockInst()),
-      fComputeInst(new BlockInst()),
-      fPostInst(new BlockInst()),
-      fLoopIndex(index_name),
-      fUseCount(0)
-{
-}
-
 ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_in_bytes)
 {
     DeclareVarInst* loop_decl = InstBuilder::genDecLoopVar(fLoopIndex, InstBuilder::genBasicTyped(Typed::kInt32),
@@ -77,7 +62,7 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     pushBlock(fComputeInst, block);
     pushBlock(fPostInst, block);
 
-    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block);
+    ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block, fIsRecursive);
 
     BasicCloneVisitor cloner;
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
@@ -130,7 +115,7 @@ void CodeLoop::generateDAGScalarLoop(BlockInst* block, DeclareVarInst* count, bo
         BlockInst* block1 = InstBuilder::genBlockInst();
         pushBlock(fComputeInst, block1);
 
-        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1);
+        ForLoopInst* loop = InstBuilder::genForLoopInst(loop_decl, loop_end, loop_increment, block1, fIsRecursive);
         block->pushBackInst(loop);
     }
 

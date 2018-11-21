@@ -127,7 +127,20 @@ class CodeLoop : public virtual Garbageable {
     }
 
     ///< create a non recursive loop
-    CodeLoop(CodeLoop* encl, string index_name, int size = 0);
+    CodeLoop(CodeLoop* encl, string index_name, int size = 0)
+        : fIsRecursive(false),
+        fRecSymbolSet(gGlobal->nil),
+        fEnclosingLoop(encl),
+        fSize(size),
+        fOrder(-1),
+        fIndex(-1),
+        fPreInst(new BlockInst()),
+        fComputeInst(new BlockInst()),
+        fPostInst(new BlockInst()),
+        fLoopIndex(index_name),
+        fUseCount(0)
+    {
+    }
 
     StatementInst* pushComputePreDSPMethod(StatementInst* inst)
     {

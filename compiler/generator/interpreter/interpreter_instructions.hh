@@ -30,8 +30,6 @@
 #include "struct_manager.hh"
 #include "typing_instructions.hh"
 
-using namespace std;
-
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
     using DispatchVisitor::visit;
@@ -40,15 +38,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
     */
-    static map<string, FBCInstruction::Opcode> gMathLibTable;
+    static std::map<std::string, FBCInstruction::Opcode> gMathLibTable;
 
     int  fRealHeapOffset;   // Offset in Real HEAP
     int  fIntHeapOffset;    // Offset in Integer HEAP
     int  fSoundHeapOffset;  // Offset in Sound HEAP
     bool fCommute;          // Whether to try commutative operation reverse order generation
-
-    map<string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
-
+  
+    std::map<std::string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
+ 
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
     FBCBlockInstruction<T>*              fCurrentBlock;
 
@@ -65,7 +63,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual ~InterpreterInstVisitor() {}
 
-    int getFieldOffset(const string& name)
+    int getFieldOffset(const std::string& name)
     {
         return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
     }
@@ -301,7 +299,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         } else {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string          num;
+            std::string num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
                 fCurrentBlock->push(
@@ -394,7 +392,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 // Compile address
                 indexed->accept(this);
                 // Indexed
-                string num;
+                std::string num;
                 // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
                     fCurrentBlock->push(
@@ -535,7 +533,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
-            stringstream error;
+            std::stringstream error;
             error << "ERROR : missing function : " << inst->fName << std::endl;
             throw faustexception(error.str());
         } else {
@@ -641,8 +639,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, 0, 0, 0, 0, init_block, loop_block));
-
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_block));
+      
         // Restore current block
         fCurrentBlock = previous;
     }

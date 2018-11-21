@@ -471,7 +471,8 @@ static std::string gFBCInstructionTable[] = {
     "kAddHorizontalSlider", "kAddVerticalSlider", "kAddNumEntry", "kAddSoundFile", "kAddHorizontalBargraph",
     "kAddVerticalBargraph", "kDeclare",
 
-    "kNop"};
+    "kNop"
+};
 
 #define INTERP_FILE_VERSION 6
 

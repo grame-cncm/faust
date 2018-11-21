@@ -1176,9 +1176,10 @@ struct ForLoopInst : public StatementInst {
     StatementInst* fIncrement;
     ValueInst*     fEnd;
     BlockInst*     fCode;
+    bool           fIsRecursive;
 
-    ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code)
-        : fInit(init), fIncrement(increment), fEnd(end), fCode(code)
+    ForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment, BlockInst* code, bool is_recursive)
+        : fInit(init), fIncrement(increment), fEnd(end), fCode(code), fIsRecursive(is_recursive)
     {
     }
 
@@ -1360,7 +1361,7 @@ class BasicCloneVisitor : public CloneVisitor {
     virtual StatementInst* visit(ForLoopInst* inst)
     {
         return new ForLoopInst(inst->fInit->clone(this), inst->fEnd->clone(this), inst->fIncrement->clone(this),
-                               static_cast<BlockInst*>(inst->fCode->clone(this)));
+                               static_cast<BlockInst*>(inst->fCode->clone(this)), inst->fIsRecursive);
     }
 
     virtual StatementInst* visit(SimpleForLoopInst* inst)
@@ -1918,10 +1919,10 @@ struct InstBuilder {
 
     // Loop
     static ForLoopInst* genForLoopInst(StatementInst* init, ValueInst* end, StatementInst* increment,
-                                       BlockInst* code = new BlockInst())
+                                       BlockInst* code = new BlockInst(), bool is_recursive = false)
     {
         faustassert(dynamic_cast<DeclareVarInst*>(init) || dynamic_cast<StoreVarInst*>(init));
-        return new ForLoopInst(init, end, increment, code);
+        return new ForLoopInst(init, end, increment, code, is_recursive);
     }
 
     static SimpleForLoopInst* genSimpleForLoopInst(const string& index, ValueInst* upperBound,

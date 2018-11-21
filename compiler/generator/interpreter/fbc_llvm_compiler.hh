@@ -79,9 +79,9 @@ typedef llvm::Value* LLVMValue;
         pushValue(fBuilder->CreateSelect(cond_value, genInt32(1), genInt32(0))); \
     }
 
-#define dispatchReturn() \
-    {                    \
-        it = popAddr();  \
+#define dispatchReturn_() \
+    {                     \
+        it = popAddr();   \
     }
 #define saveReturn()      \
     {                     \
@@ -633,7 +633,7 @@ class FBCLLVMCompiler {
                     if (emptyReturn()) {
                         end = true;
                     } else {
-                        dispatchReturn();
+                        dispatchReturn_();
                     }
                     break;
 
@@ -839,6 +839,9 @@ class FBCCompiler : public FBCInterpreter<T, 0> {
         // CompileBlock(factory->fComputeBlock);
         CompileBlock(factory->fComputeDSPBlock);
     }
+    
+    virtual ~FBCCompiler()
+    {}
 
     void ExecuteBlock(FBCBlockInstruction<T>* block)
     {

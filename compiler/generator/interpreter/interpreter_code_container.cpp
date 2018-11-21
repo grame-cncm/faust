@@ -111,7 +111,8 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler mode not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
+        //throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
+        container = new InterpreterVectorCodeContainer<T>(name, numInputs, numOutputs);
     } else {
         container = new InterpreterScalarCodeContainer<T>(name, numInputs, numOutputs, kInt);
     }
@@ -300,4 +301,17 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata(string& na
     }
 
     return block;
+}
+
+// Vector
+
+template <class T>
+InterpreterVectorCodeContainer<T>::InterpreterVectorCodeContainer(const string& name, int numInputs, int numOutputs)
+    : VectorCodeContainer(numInputs, numOutputs), InterpreterCodeContainer<T>(name, numInputs, numOutputs)
+{
+}
+
+template <class T>
+InterpreterVectorCodeContainer<T>::~InterpreterVectorCodeContainer()
+{
 }
