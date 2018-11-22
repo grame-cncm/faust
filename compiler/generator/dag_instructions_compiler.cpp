@@ -48,7 +48,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
 
         for (int index = 0; index < fContainer->inputs(); index++) {
             string name1 = subst("fInput$0_ptr", T(index));
-            string name2 = subst("fInput$0", T(index));
             // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP struct
             if (gGlobal->gSchedulerSwitch) {
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));
@@ -57,14 +56,11 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 pushComputeBlockMethod(InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayFunArgsVar("inputs", InstBuilder::genInt32NumInst(index))));
             }
-            pushComputeBlockMethod(
-                InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kFloatMacro_ptr)));
         }
 
         // "output" and "outputs" used as a name convention
         for (int index = 0; index < fContainer->outputs(); index++) {
             string name1 = subst("fOutput$0_ptr", T(index));
-            string name2 = subst("fOutput$0", T(index));
             // 'name1' variable must be shared between 'compute' and computeThread' methods, so it is moved in the DSP struct
             if (gGlobal->gSchedulerSwitch) {
                 pushDeclare(InstBuilder::genDecStructVar(name1, type));
@@ -73,8 +69,6 @@ void DAGInstructionsCompiler::compileMultiSignal(Tree L)
             } else {
                 pushComputeBlockMethod(InstBuilder::genDecStackVar(name1, type, InstBuilder::genLoadArrayFunArgsVar("outputs", InstBuilder::genInt32NumInst(index))));
             }
-            pushComputeBlockMethod(
-                InstBuilder::genDecStackVar(name2, type, InstBuilder::genTypedZero(Typed::kFloatMacro_ptr)));
         }
     }
 
@@ -201,7 +195,7 @@ void DAGInstructionsCompiler::generateCodeRecursions(Tree sig)
         return;
     } else if (isRec(sig, id, body)) {
         // cerr << "we have a recursive expression non compiled yet : " << ppsig(sig) << endl;
-        setCompiledExpression(sig, InstBuilder::genNullInst());
+        setCompiledExpression(sig, InstBuilder::genNullValueInst());
         fContainer->openLoop(sig, "i");
         generateRec(sig, id, body);
         fContainer->closeLoop(sig);

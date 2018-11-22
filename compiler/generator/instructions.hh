@@ -50,7 +50,8 @@
 // ============================
 
 struct Printable;
-struct NullInst;
+struct NullValueInst;
+struct NullStatementInst;
 struct DeclareVarInst;
 struct DeclareFunInst;
 struct DeclareStructTypeInst;
@@ -182,7 +183,8 @@ struct InstVisitor : public virtual Garbageable {
     virtual void visit(LabelInst* inst) {}
 
     virtual void visit(Printable* inst) {}
-    virtual void visit(NullInst* inst) {}
+    virtual void visit(NullValueInst* inst) {}
+    virtual void visit(NullStatementInst* inst) {}
 
     // Declarations
     virtual void visit(DeclareVarInst* inst) {}
@@ -240,7 +242,8 @@ struct CloneVisitor : public virtual Garbageable {
     CloneVisitor() {}
     virtual ~CloneVisitor() {}
 
-    virtual ValueInst* visit(NullInst* inst) = 0;
+    virtual ValueInst* visit(NullValueInst* inst) = 0;
+    virtual StatementInst* visit(NullStatementInst* inst) = 0;
 
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst)        = 0;
@@ -340,17 +343,30 @@ struct ValueInst : public Printable {
     virtual bool isSimpleValue() { return false; }
 };
 
-// ==================
-// Null instruction
-// ==================
+// =======================
+// Null value instruction
+// =======================
 
-struct NullInst : public ValueInst {
-    NullInst() {}
+struct NullValueInst : public ValueInst {
+    NullValueInst() {}
 
     virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
 
     ValueInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
+
+// ===========================
+// Null statement instruction
+// ===========================
+
+struct NullStatementInst : public StatementInst {
+    NullStatementInst() {}
+    
+    virtual void accept(InstVisitor* visitor) { visitor->visit(this); }
+    
+    StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
+};
+
 
 // ==========================
 //  Instruction with a type
@@ -604,6 +620,8 @@ struct IndexedAddress : public Address {
 
     void   setName(const string& name) { fAddress->setName(name); }
     string getName() { return fAddress->getName(); }
+    
+    ValueInst* getIndex() { return fIndex; }
 
     Address* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 
@@ -1245,7 +1263,8 @@ class BasicCloneVisitor : public CloneVisitor {
    public:
     BasicCloneVisitor() {}
 
-    virtual NullInst* visit(NullInst* inst) { return new NullInst(); }
+    virtual NullValueInst* visit(NullValueInst* inst) { return new NullValueInst(); }
+    virtual NullStatementInst* visit(NullStatementInst* inst) { return new NullStatementInst(); }
 
     // Declarations
     virtual StatementInst* visit(DeclareVarInst* inst)
@@ -1734,7 +1753,8 @@ struct InstBuilder {
     static LabelInst* genLabelInst(const string& label) { return new LabelInst(label); }
 
     // Null instruction
-    static NullInst* genNullInst() { return new NullInst(); }
+    static NullValueInst* genNullValueInst() { return new NullValueInst(); }
+    static NullStatementInst* genNullStatementInst() { return new NullStatementInst(); }
 
     // Declarations
     static DeclareVarInst* genDeclareVarInst(Address* address, Typed* typed, ValueInst* value = NULL)

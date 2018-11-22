@@ -626,4 +626,55 @@ struct CastRemover : public BasicTypingCloneVisitor {
     BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
 };
 
+/*
+  Remove usage of var address:
+  int* v1 = &foo[n]; ==> v1 definition is removed, usage of v1[m] are replaced with foo[n+m]
+  v1 = &foo[n];      ==> usage of v1[m] are replaced with foo[n+m]
+ */
+struct VarAddressRemover : public BasicCloneVisitor {
+    
+    std::map <string, LoadVarAddressInst*> fVariableMap;
+    
+    virtual StatementInst* visit(DeclareVarInst* inst)
+    {
+        LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
+        if (var_address) {
+            fVariableMap[inst->fAddress->getName()] = var_address;
+            return InstBuilder::genNullStatementInst();
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+    virtual StatementInst* visit(StoreVarInst* inst)
+    {
+        LoadVarAddressInst* var_address = dynamic_cast<LoadVarAddressInst*>(inst->fValue);
+        if (var_address) {
+            fVariableMap[inst->fAddress->getName()] = var_address;
+            return InstBuilder::genNullStatementInst();
+        } else {
+            return BasicCloneVisitor::visit(inst);
+        }
+    }
+    
+    virtual Address* visit(IndexedAddress* address)
+    {
+       if (fVariableMap.find(address->getName()) != fVariableMap.end()) {
+            IndexedAddress* id_add1 = dynamic_cast<IndexedAddress*>(fVariableMap[address->getName()]->fAddress);
+            IndexedAddress* id_add2 = dynamic_cast<IndexedAddress*>(address);
+            faustassert(id_add2);
+            faustassert(id_add1);
+            ValueInst* id1 = id_add1->getIndex();
+            ValueInst* id2 = id_add2->getIndex();
+            return InstBuilder::genIndexedAddress(id_add1->fAddress->clone(this),
+                                                  InstBuilder::genAdd(id1->clone(this),
+                                                                      id2->clone(this)));
+        } else {
+            return BasicCloneVisitor::visit(address);
+        }
+    }
+    
+    BlockInst* getCode(BlockInst* src) { return dynamic_cast<BlockInst*>(src->clone(this)); }
+};
+
 #endif

@@ -104,7 +104,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                         fAddedVarTable.end()) {  // First encounter
 
                         // Be sure variable is defined
-                        // cerr << "createParameter kStack " << name << endl;
+                        //cerr << "createParameter kStack " << name << endl;
                         faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                         // Local in the enclosing context, becomes a fun parameter
@@ -131,7 +131,7 @@ struct Loop2FunctionBuider : public DispatchVisitor {
                     fAddedVarTable.end()) {  // First encounter
 
                     // Be sure variable is defined
-                    cout << "createParameter kFunArgs " << name << endl;
+                    //cerr << "createParameter kFunArgs " << name << endl;
                     faustassert(gGlobal->gVarTypeTable.find(name) != gGlobal->gVarTypeTable.end());
 
                     // Parameter in the enclosing function, becomes a fun parameter

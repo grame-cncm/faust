@@ -45,23 +45,29 @@ struct StackVarAnalyser : public DispatchVisitor {
 void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
 {
     // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
     for (int i = 0; i < inputs(); i++) {
         string name1 = subst("fInput$0", T(i));
         string name2 = subst("fInput$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
+            type,
             InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
 
 void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
 {
-    // Generates line like: FAUSTFLOAT* ouput0 = &ouput0_ptr[index];
+    // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
     for (int i = 0; i < outputs(); i++) {
         string name1 = subst("fOutput$0", T(i));
         string name2 = subst("fOutput$0_ptr", T(i));
-        loop_code->pushBackInst(InstBuilder::genStoreStackVar(
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
+            type,
             InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
     }
 }
