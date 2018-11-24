@@ -428,6 +428,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(FloatArrayNumInst* inst)
     {
+        *fOut << "FloatArrayNumInst";
         char sep = '{';
         for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkFloat(inst->fNumTable[i]);
@@ -442,6 +443,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(Int32ArrayNumInst* inst)
     {
+        *fOut << "Int32ArrayNumInst";
         char sep = '{';
         for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << inst->fNumTable[i];
@@ -456,6 +458,7 @@ class FIRInstVisitor : public InstVisitor, public CStringTypeManager {
 
     virtual void visit(DoubleArrayNumInst* inst)
     {
+        *fOut << "DoubleArrayNumInst";
         char sep = '{';
         for (unsigned int i = 0; i < inst->fNumTable.size(); i++) {
             *fOut << sep << checkDouble(inst->fNumTable[i]);

@@ -236,7 +236,7 @@ void WSSCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& i
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
     
     for (int index = 0; index < inputs(); index++) {
-        string name1 = subst("fInput$0", T(index));
+        string name1 = subst("input$0", T(index));
         string name2 = subst("fInput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
@@ -251,7 +251,7 @@ void WSSCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& 
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
     
     for (int index = 0; index < outputs(); index++) {
-        string name1 = subst("fOutput$0", T(index));
+        string name1 = subst("output$0", T(index));
         string name2 = subst("fOutput$0_ptr", T(index));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,

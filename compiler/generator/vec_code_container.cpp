@@ -46,8 +46,8 @@ void VectorCodeContainer::generateLocalInputs(BlockInst* loop_code, const string
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
     
     for (int i = 0; i < inputs(); i++) {
-        string name1 = subst("fInput$0", T(i));
-        string name2 = subst("fInput$0_ptr", T(i));
+        string name1 = subst("input$0", T(i));
+        string name2 = subst("input$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
             type,
@@ -61,8 +61,8 @@ void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
     Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
     
     for (int i = 0; i < outputs(); i++) {
-        string name1 = subst("fOutput$0", T(i));
-        string name2 = subst("fOutput$0_ptr", T(i));
+        string name1 = subst("output$0", T(i));
+        string name2 = subst("output$0_ptr", T(i));
         loop_code->pushBackInst(InstBuilder::genDecStackVar(
             name1,
             type,

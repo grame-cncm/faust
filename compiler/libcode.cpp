@@ -1451,6 +1451,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
         gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1542,11 +1543,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ajs") {
 #ifdef ASMJS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gNeedManualPow = false;        // Standard pow function will be used in pow(x,y) when Y in an integer
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1561,7 +1562,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
@@ -1602,7 +1604,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
