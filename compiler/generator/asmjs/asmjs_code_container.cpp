@@ -575,7 +575,7 @@ void ASMJAVAScriptVectorCodeContainer::generateCompute(int n)
     // Generates local variables declaration and setup
     generateComputeBlock(gGlobal->gASMJSVisitor);
 
-    // Generates DSP loop
+    // Generates the DSP loop
     fDAGBlock->accept(gGlobal->gASMJSVisitor);
 
     tab(n + 1, *fOut);

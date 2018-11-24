@@ -128,7 +128,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         optimize();
         return new FBCInterpreter<T, TRACE>(this);
         //return new FBCVecInterpreter<T, 1>(this);
-    #endif
+#endif
     }
  
     virtual ~interpreter_dsp_factory_aux()

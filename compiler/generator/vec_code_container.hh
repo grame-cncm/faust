@@ -45,6 +45,7 @@ class VectorCodeContainer : public virtual CodeContainer {
     {
         initializeCodeContainer(numInputs, numOutputs);
         fFullCount = "count";
+        fDAGBlock = InstBuilder::genBlockInst();
     }
 };
 

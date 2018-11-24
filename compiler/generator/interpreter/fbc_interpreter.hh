@@ -716,6 +716,11 @@ class FBCInterpreter : public FBCExecutor<T> {
                 if (TRACE) {
                     pushReal(it, fInputs[(*it)->fOffset1][assertAudioBuffer(it, popInt())]);
                 } else {
+                    /*
+                    int index = popInt();
+                    pushReal(it, fInputs[(*it)->fOffset1][index]);
+                    std::cout << "do_kLoadInput " << index << std::endl;
+                    */
                     pushReal(it, fInputs[(*it)->fOffset1][popInt()]);
                 }
                 dispatchNextScal();
@@ -725,6 +730,11 @@ class FBCInterpreter : public FBCExecutor<T> {
                 if (TRACE) {
                     fOutputs[(*it)->fOffset1][assertAudioBuffer(it, popInt())] = popReal(it);
                 } else {
+                    /*
+                    int index = popInt();
+                    std::cout << "do_kStoreOutput " << index << std::endl;
+                    fOutputs[(*it)->fOffset1][index] = popReal(it);
+                    */
                     fOutputs[(*it)->fOffset1][popInt()] = popReal(it);
                 }
                 dispatchNextScal();

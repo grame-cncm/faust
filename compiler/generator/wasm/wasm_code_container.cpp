@@ -110,6 +110,7 @@ CodeContainer* WASMCodeContainer::createContainer(const string& name, int numInp
         throw faustexception("ERROR : Scheduler mode not supported for WebAssembly\n");
     } else if (gGlobal->gVectorSwitch) {
         throw faustexception("ERROR : Vector mode not supported for WebAssembly\n");
+        //container = new WASMVectorCodeContainer(name, numInputs, numOutputs, dst, internal_memory);
     } else {
         container = new WASMScalarCodeContainer(name, numInputs, numOutputs, dst, kInt, internal_memory);
     }
@@ -188,10 +189,6 @@ WASMScalarCodeContainer::WASMScalarCodeContainer(const string& name, int numInpu
     : WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
     fSubContainerType = sub_container_type;
-}
-
-WASMScalarCodeContainer::~WASMScalarCodeContainer()
-{
 }
 
 // Special version that uses MoveVariablesInFront3 to inline waveforms...
@@ -431,27 +428,27 @@ void WASMCodeContainer::produceClass()
     }
 }
 
-void WASMScalarCodeContainer::generateCompute()
+// Auxiliary function for shared code in generateCompute
+void WASMCodeContainer::generateComputeAux(BlockInst* compute_block)
 {
-    // Loop 'i' variable is moved by bytes
-    BlockInst* compute_block = InstBuilder::genBlockInst();
-    compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
-
+    DeclareFunInst* int_max_fun = WASInst::generateIntMax();
+    DeclareFunInst* int_min_fun = WASInst::generateIntMin();
+    
     // Remove unecessary cast
     compute_block = CastRemover().getCode(compute_block);
-
+    
     // Inline "max_i" call
-    compute_block = FunctionCallInliner(WASInst::generateIntMax()).getCode(compute_block);
-
+    compute_block = FunctionCallInliner(int_max_fun).getCode(compute_block);
+    
     // Inline "min_i" call
-    compute_block = FunctionCallInliner(WASInst::generateIntMin()).getCode(compute_block);
-
+    compute_block = FunctionCallInliner(int_min_fun).getCode(compute_block);
+    
     // Push the loop in compute block
     fComputeBlockInstructions->pushBackInst(compute_block);
-
+    
     // Put local variables at the begining
     BlockInst* block = MoveVariablesInFront2().getCode(fComputeBlockInstructions, true);
-
+    
     // Creates function and visit it
     list<NamedTyped*> args;
     args.push_back(InstBuilder::genNamedTyped("dsp", Typed::kObj_ptr));
@@ -462,19 +459,28 @@ void WASMScalarCodeContainer::generateCompute()
     InstBuilder::genDeclareFunInst("compute", fun_type, block)->accept(gGlobal->gWASMVisitor);
 }
 
+void WASMScalarCodeContainer::generateCompute()
+{
+    // Loop 'i' variable is moved by bytes
+    BlockInst* compute_block = InstBuilder::genBlockInst();
+    compute_block->pushBackInst(fCurLoop->generateScalarLoop(fFullCount, gGlobal->gLoopVarInBytes));
+    
+    generateComputeAux(compute_block);
+}
+
 // Vector
 WASMVectorCodeContainer::WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                                                  bool internal_memory)
-    : WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
+    : VectorCodeContainer(numInputs, numOutputs), WASMCodeContainer(name, numInputs, numOutputs, out, internal_memory)
 {
     // No array on stack, move all of them in struct
     gGlobal->gMachineMaxStackSize = -1;
 }
 
-WASMVectorCodeContainer::~WASMVectorCodeContainer()
-{
-}
-
 void WASMVectorCodeContainer::generateCompute()
 {
+    BlockInst* compute_block = InstBuilder::genBlockInst();
+    compute_block->pushBackInst(fDAGBlock);
+    
+    generateComputeAux(compute_block);
 }

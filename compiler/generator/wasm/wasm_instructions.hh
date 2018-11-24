@@ -459,7 +459,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-
+      
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
@@ -814,6 +814,9 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        
+        //std::cout << "WASMInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
+        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -1286,8 +1289,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
         *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
         inst->fThen->accept(this);
-        *fOut << int8_t(BinaryConsts::Else);
-        inst->fElse->accept(this);
+        if (inst->fElse->fCode.size() > 0) {
+            *fOut << int8_t(BinaryConsts::Else);
+            inst->fElse->accept(this);
+        }
         // End of if
         *fOut << int8_t(BinaryConsts::End);
 

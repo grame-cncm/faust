@@ -97,6 +97,9 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        
+        //std::cout << "WASTInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
+        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
@@ -614,10 +617,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         } else {
             inst->fCond->accept(this);
         }
-        *fOut << " ";
+        fTab++;
+        tab(fTab, *fOut);
         inst->fThen->accept(this);
-        *fOut << " ";
-        inst->fElse->accept(this);
+        if (inst->fElse->fCode.size() > 0) {
+            tab(fTab, *fOut);
+            inst->fElse->accept(this);
+        }
+        fTab--;
+        tab(fTab, *fOut);
         *fOut << ")";
 
         fTypingVisitor.visit(inst);

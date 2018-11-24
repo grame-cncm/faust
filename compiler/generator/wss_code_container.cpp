@@ -268,10 +268,8 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     loop_code->pushBackInst(InstBuilder::genDecStackVar("tasknum", InstBuilder::genBasicTyped(Typed::kInt32),
                                                         InstBuilder::genInt32NumInst(WORK_STEALING_INDEX)));
 
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32),
-                                                            InstBuilder::genLoadStructVar(fullcount));
-    loop_code->pushFrontInst(count_dec);
-
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32));
+  
     ValueInst*    switch_cond  = InstBuilder::genLoadStackVar("tasknum");
     ::SwitchInst* switch_block = InstBuilder::genSwitchInst(switch_cond);
 
@@ -324,9 +322,9 @@ BlockInst* WSSCodeContainer::generateDAGLoopWSS(lclgraph dag)
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst* init3 = InstBuilder::genFunCallInst("min", min_fun_args);
+    ValueInst* init3 = InstBuilder::genFunCallInst("min_i", min_fun_args);
 
-    StoreVarInst* count_store = InstBuilder::genStoreStackVar("count", init3);
+    DeclareVarInst* count_store = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32), init3);
 
     // Generate input/output access
     generateLocalInputs(switch_block_code, index);

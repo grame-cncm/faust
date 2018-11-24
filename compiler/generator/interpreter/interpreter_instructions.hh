@@ -234,7 +234,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        // dump2FIR(inst);
+        //dump2FIR(inst);
 
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
@@ -242,7 +242,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-
+        
+        std::cout << "InterpreterInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
+        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
+       
         if (array_typed && array_typed->fSize > 1) {
             if (array_typed->fType->getType() == Typed::kInt32) {
                 fFieldTable[inst->fAddress->getName()] =
@@ -322,12 +325,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
 
-    virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
+    virtual void visitStore(Address* address, ValueInst* value, Typed* type = nullptr)
     {
         ArrayTyped* array_typed;
 
-        // dump2FIR(value);
-        // if (type) dump2FIR(type);
+        //dump2FIR(value);
+        //if (type) dump2FIR(type);
 
         // Waveform array store...
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {

@@ -1214,10 +1214,11 @@ struct ForLoopInst : public StatementInst {
     StatementInst* clone(CloneVisitor* cloner) { return cloner->visit(this); }
 };
 
+// To be used for the 'rust' backend
 struct SimpleForLoopInst : public StatementInst {
     ValueInst* fUpperBound;
-    string     fName;
     ValueInst* fLowerBound;
+    string     fName;
     bool       fReverse;
     BlockInst* fCode;
 

@@ -68,6 +68,7 @@ ForLoopInst* CodeLoop::generateScalarLoop(const string& counter, bool loop_var_i
     return static_cast<ForLoopInst*>(loop->clone(&cloner));
 }
 
+// To be used for the 'rust' backend
 SimpleForLoopInst* CodeLoop::generateSimpleScalarLoop(const string& counter)
 {
     ValueInst* upper_bound = InstBuilder::genLoadFunArgsVar(counter);
@@ -282,8 +283,10 @@ void CodeLoop::groupSeqLoops(CodeLoop* l, set<CodeLoop*>& visited)
             }
             return;
         } else if (n > 1) {
-            for (lclset::iterator p = l->fBackwardLoopDependencies.begin(); p != l->fBackwardLoopDependencies.end();
-                 p++) {
+            for (lclset::iterator p = l->fBackwardLoopDependencies.begin();
+                 p != l->fBackwardLoopDependencies.end();
+                 p++)
+            {
                 groupSeqLoops(*p, visited);
             }
         }

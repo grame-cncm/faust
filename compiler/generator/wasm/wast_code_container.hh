@@ -23,6 +23,7 @@
 #define _WAST_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
 #include "wast_instructions.hh"
@@ -46,6 +47,9 @@ class WASTCodeContainer : public virtual CodeContainer {
 
     DeclareFunInst* generateInstanceInitFun(const string& name, const string& obj, bool ismethod, bool isvirtual,
                                             bool addreturn);
+    
+    void generateComputeAux1(int n);
+    void generateComputeAux2(BlockInst* compute_block, int n);
 
    public:
     WASTCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
@@ -69,16 +73,16 @@ class WASTScalarCodeContainer : public WASTCodeContainer {
    public:
     WASTScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
-    virtual ~WASTScalarCodeContainer();
+    virtual ~WASTScalarCodeContainer() {}
 
     void generateCompute(int tab);
 };
 
-class WASTVectorCodeContainer : public WASTCodeContainer {
+class WASTVectorCodeContainer : public VectorCodeContainer, public WASTCodeContainer {
    protected:
    public:
     WASTVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-    virtual ~WASTVectorCodeContainer();
+    virtual ~WASTVectorCodeContainer() {}
 
     void generateCompute(int tab);
 };

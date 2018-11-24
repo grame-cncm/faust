@@ -72,8 +72,8 @@ void VectorCodeContainer::generateLocalOutputs(BlockInst* loop_code, const strin
 
 BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 {
-    string index = "index";
-    string count = "count";
+    string index = "vindex";
+    string count = "vsize";
 
     // Define result block
     BlockInst* block_res = InstBuilder::genBlockInst();
@@ -140,8 +140,8 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 
 BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
 {
-    string index = "index";
-    string count = "count";
+    string index = "vindex";
+    string count = "vsize";
 
     BlockInst* loop_code = InstBuilder::genBlockInst();
 
@@ -155,7 +155,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     list<ValueInst*> min_fun_args;
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
-    ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
+    ValueInst*      init3     = InstBuilder::genFunCallInst("min_i", min_fun_args);
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar(count, InstBuilder::genBasicTyped(Typed::kInt32), init3);
     loop_code->pushBackInst(count_dec);
 
@@ -179,10 +179,16 @@ void VectorCodeContainer::processFIR(void)
 {
     // Default FIR to FIR transformations
     CodeContainer::processFIR();
-
+    
     // If stack variables take to much room, move them in struct
     VariableSizeCounter counter(Address::kStack);
     generateComputeBlock(&counter);
+    
+    // Possibly remove LoadVarAddress
+    VarAddressRemover remover;
+    if (gGlobal->gRemoveVarAddress) {
+        fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
+    }
 
     if (counter.fSizeBytes > gGlobal->gMachineMaxStackSize) {
         // Transform stack array variables in struct variables
@@ -196,7 +202,7 @@ void VectorCodeContainer::processFIR(void)
     DeclareVarInst* fullcount_dec = InstBuilder::genDecStackVar(fullcount, InstBuilder::genBasicTyped(Typed::kInt32),
                                                                 InstBuilder::genLoadFunArgsVar(fFullCount));
     pushComputeBlockMethod(fullcount_dec);
-
+  
     if (gGlobal->gVectorLoopVariant == 0) {
         fDAGBlock = generateDAGLoopVariant0(fullcount);
     } else if (gGlobal->gVectorLoopVariant == 1) {
@@ -206,8 +212,6 @@ void VectorCodeContainer::processFIR(void)
     }
     
     if (gGlobal->gRemoveVarAddress) {
-        VarAddressRemover remover;
-        fComputeBlockInstructions = remover.getCode(fComputeBlockInstructions);
         fDAGBlock = remover.getCode(fDAGBlock);
     }
  

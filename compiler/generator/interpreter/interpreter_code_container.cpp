@@ -164,12 +164,14 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
     // Keep "init_static_block"
     FBCBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>());
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
     // Keep "init_block"
     FBCBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>);
@@ -194,11 +196,8 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     FBCBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
-    // Generate one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-
-    loop->accept(gGlobal->gInterpreterVisitor);
-    FBCBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
+    // Keep "compute_dsp_block"
+    FBCBlockInstruction<T>* compute_dsp_block = generateCompute();
 
     // Generate metadata block and name
     string                   name;
@@ -271,6 +270,24 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 }
 
 template <class T>
+FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
+{
+    // Generate one single scalar loop
+    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
+    
+    loop->accept(gGlobal->gInterpreterVisitor);
+    return getCurrentBlock<T>();
+}
+
+template <class T>
+FBCBlockInstruction<T>* InterpreterVectorCodeContainer<T>::generateCompute()
+{
+    // Generates the DSP loop
+    this->fDAGBlock->accept(gGlobal->gInterpreterVisitor);
+    return getCurrentBlock<T>();
+}
+
+template <class T>
 FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata(string& name)
 {
     FIRMetaBlockInstruction* block = new FIRMetaBlockInstruction();
@@ -301,17 +318,4 @@ FIRMetaBlockInstruction* InterpreterCodeContainer<T>::produceMetadata(string& na
     }
 
     return block;
-}
-
-// Vector
-
-template <class T>
-InterpreterVectorCodeContainer<T>::InterpreterVectorCodeContainer(const string& name, int numInputs, int numOutputs)
-    : VectorCodeContainer(numInputs, numOutputs), InterpreterCodeContainer<T>(name, numInputs, numOutputs)
-{
-}
-
-template <class T>
-InterpreterVectorCodeContainer<T>::~InterpreterVectorCodeContainer()
-{
 }

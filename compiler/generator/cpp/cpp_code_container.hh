@@ -55,7 +55,7 @@ class CPPCodeContainer : public virtual CodeContainer {
         // For mathematical functions
         if (gGlobal->gFastMath) {
             addIncludeFile((gGlobal->gFastMathLib == "def") ? "\"faust/dsp/fastmath.cpp\""
-                                                                : ("\"" + gGlobal->gFastMathLib + "\""));
+                                                            : ("\"" + gGlobal->gFastMathLib + "\""));
         } else {
             addIncludeFile("<cmath>");
             addIncludeFile("<algorithm>");
