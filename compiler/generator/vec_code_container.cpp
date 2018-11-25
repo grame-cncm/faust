@@ -107,7 +107,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 
     StoreVarInst* loop_increment = index_dec->store(InstBuilder::genAdd(index_dec->load(), gGlobal->gVecSize));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code);
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_init, loop_end, loop_increment, loop_code, true);
 
     // Put loop in block_res
     block_res->pushBackInst(loop);
@@ -168,7 +168,7 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     ValueInst*    loop_end       = InstBuilder::genLessThan(loop_dec->load(), InstBuilder::genLoadStackVar(counter));
     StoreVarInst* loop_increment = loop_dec->store(InstBuilder::genAdd(loop_dec->load(), gGlobal->gVecSize));
 
-    StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code);
+    StatementInst* loop = InstBuilder::genForLoopInst(loop_dec, loop_end, loop_increment, loop_code, true);
 
     BlockInst* res_block = InstBuilder::genBlockInst();
     res_block->pushBackInst(loop);

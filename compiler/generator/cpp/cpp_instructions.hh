@@ -353,7 +353,19 @@ class CPPInstVisitor : public TextInstVisitor {
             generateFunCall(inst, name);
         }
     }
-
+    
+    virtual void visit(ForLoopInst* inst)
+    {
+        // Don't generate empty loops...
+        if (inst->fCode->size() == 0) return;
+        
+        if (gGlobal->gClang && !inst->fIsRecursive) {
+            *fOut << "#pragma clang loop vectorize(enable) interleave(enable)";
+            tab(fTab, *fOut);
+        }
+        TextInstVisitor::visit(inst);
+    }
+  
     static void cleanup() { gFunctionSymbolTable.clear(); }
 };
 

@@ -146,6 +146,7 @@ global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gDSPStruct = false;
     gLightMode = false;
+    gClang     = false;
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
