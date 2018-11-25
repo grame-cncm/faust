@@ -340,9 +340,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case Typed::kInt32: {
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
                     faustassert(int_array);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FBCInstruction::kBlockStoreInt, tmp.fOffset,
-                                                                           int(int_array->fNumTable.size()),
-                                                                           int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(
+                        FBCInstruction::kBlockStoreInt, tmp.fOffset,
+                        int(int_array->fNumTable.size()),
+                        int_array->fNumTable));
                     break;
                 }
                 case Typed::kFloat: {

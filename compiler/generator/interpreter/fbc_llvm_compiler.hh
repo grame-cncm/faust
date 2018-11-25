@@ -99,7 +99,7 @@ class FBCLLVMCompiler {
     LLVMContext*           fContext;
     compiledFun            fCompiledFun;
 
-    LLVMValue     fLLVMStack[1024];
+    LLVMValue     fLLVMStack[512];
     InstructionIT fAddressStack[64];
 
     int fLLVMStackIndex;
