@@ -27,11 +27,12 @@
 
 #include "instructions.hh"
 
-// Describe a field memory location the the DSP structure
+// Describe a field memory location in the DSP structure
 struct MemoryDesc {
     MemoryDesc() : fOffset(-1), fSize(-1), fType(Typed::kNoType) {}
 
-    MemoryDesc(int offset, int size, Typed::VarType type) : fOffset(offset), fSize(size), fType(type) {}
+    MemoryDesc(int offset, int size, Typed::VarType type)
+        :fOffset(offset), fSize(size), fType(type) {}
 
     int            fOffset;
     int            fSize;
@@ -70,9 +71,8 @@ struct StructMemoryInstVisitor : public DispatchVisitor {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
-                fStructOffset +=
-                    (array_typed->fSize *
-                     audioSampleSize());  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += (array_typed->fSize *  audioSampleSize());
             } else {
                 // Should never happen...
                 faustassert(false);
@@ -80,8 +80,8 @@ struct StructMemoryInstVisitor : public DispatchVisitor {
         } else {
             if (is_struct) {
                 fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
-                fStructOffset +=
-                    audioSampleSize();  // Always use biggest size so that int/real access are correctly aligned
+                // Always use biggest size so that int/real access are correctly aligned
+                fStructOffset += audioSampleSize();
             } else {
                 // Local variables declared by [var_num, type] pairs
                 faustassert(inst->fValue == nullptr);

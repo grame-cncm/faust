@@ -408,9 +408,10 @@ DeclareFunInst* WASInst::generateIntMin()
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
     
     BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-                                                                            InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2)),
-                                                                            InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2))));
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
+                                                                                                     InstBuilder::genLoadFunArgsVar(v2)),
+                                                                            InstBuilder::genLoadFunArgsVar(v1),
+                                                                            InstBuilder::genLoadFunArgsVar(v2))));
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("min_i", fun_type, block);
@@ -426,9 +427,10 @@ DeclareFunInst* WASInst::generateIntMax()
     args.push_back(InstBuilder::genNamedTyped(v2, Typed::kInt32));
     
     BlockInst* block = InstBuilder::genBlockInst();
-    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(
-                                                                            InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1), InstBuilder::genLoadFunArgsVar(v2)),
-                                                                            InstBuilder::genLoadFunArgsVar(v2), InstBuilder::genLoadFunArgsVar(v1))));
+    block->pushBackInst(InstBuilder::genRetInst(InstBuilder::genSelect2Inst(InstBuilder::genLessThan(InstBuilder::genLoadFunArgsVar(v1),
+                                                                                                     InstBuilder::genLoadFunArgsVar(v2)),
+                                                                            InstBuilder::genLoadFunArgsVar(v2),
+                                                                            InstBuilder::genLoadFunArgsVar(v1))));
     // Creates function
     FunTyped* fun_type = InstBuilder::genFunTyped(args, InstBuilder::genBasicTyped(Typed::kInt32), FunTyped::kDefault);
     return InstBuilder::genDeclareFunInst("max_i", fun_type, block);

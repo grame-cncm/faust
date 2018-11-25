@@ -42,7 +42,6 @@
 
 #include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
-#include "interpreter_optimizer.hh"
 
 using namespace llvm;
 
@@ -91,14 +90,14 @@ typedef llvm::Value* LLVMValue;
 // FBC LLVM compiler
 template <class T>
 class FBCLLVMCompiler {
-    typedef void (*llvmFun)(int* int_heap, T* real_heap, T** inputs, T** outputs);
+    typedef void (*compiledFun)(int* int_heap, T* real_heap, T** inputs, T** outputs);
 
    protected:
     llvm::ExecutionEngine* fJIT;
     llvm::Module*          fModule;
     llvm::IRBuilder<>*     fBuilder;
     LLVMContext*           fContext;
-    llvmFun                fCompiledFun;
+    compiledFun            fCompiledFun;
 
     LLVMValue     fLLVMStack[1024];
     InstructionIT fAddressStack[64];
@@ -155,12 +154,12 @@ class FBCLLVMCompiler {
         pushValue(call_inst);
     }
 
-    void pushUnaryIntCall(std::string name, bool rename = true) { return pushUnaryCall(name, getInt32Ty(), rename); }
-    void pushUnaryRealCall(std::string name, bool rename = true) { return pushUnaryCall(name, getRealTy(), rename); }
+    void pushUnaryIntCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getInt32Ty(), rename); }
+    void pushUnaryRealCall(const std::string& name, bool rename = true) { return pushUnaryCall(name, getRealTy(), rename); }
 
-    void pushBinaryCall(std::string name, llvm::Type* res_type)
+    void pushBinaryCall(const std::string& name_aux, llvm::Type* res_type)
     {
-        name                     = getMathName(name);
+        std::string name = getMathName(name_aux);
         llvm::Function* function = fModule->getFunction(name);
         if (!function) {
             // Define it
@@ -180,9 +179,9 @@ class FBCLLVMCompiler {
         pushValue(call_inst);
     }
 
-    void pushBinaryIntCall(std::string name) { pushBinaryCall(name, getInt32Ty()); }
+    void pushBinaryIntCall(const std::string& name) { pushBinaryCall(name, getInt32Ty()); }
 
-    void pushBinaryRealCall(std::string name) { pushBinaryCall(name, getRealTy()); }
+    void pushBinaryRealCall(const std::string& name) { pushBinaryCall(name, getRealTy()); }
 
     void pushLoadArray(LLVMValue array, int index) { pushLoadArray(array, genInt32(index)); }
 
@@ -806,7 +805,7 @@ class FBCLLVMCompiler {
         pm.run(*fModule);
 
         // Get 'execute' entry point
-        fCompiledFun = (llvmFun)fJIT->getFunctionAddress("execute");
+        fCompiledFun = (compiledFun)fJIT->getFunctionAddress("execute");
     }
 
     virtual ~FBCLLVMCompiler()

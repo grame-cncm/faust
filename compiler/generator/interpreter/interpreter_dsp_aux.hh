@@ -38,6 +38,7 @@
 
 #ifdef MACHINE
 #include "fbc_llvm_compiler.hh"
+//#include "fbc_cpp_compiler.hh"
 #endif
 
 #include "fbc_interpreter.hh"
@@ -117,6 +118,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     {
 #ifdef MACHINE
         fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>();
+        //fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCCPPCompiler<T>*>();
 #endif
     }
 

@@ -97,27 +97,28 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string name = inst->fAddress->getName();
         
-        //std::cout << "WASTInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
-        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
+        //std::cout << "WASTInstVisitor::DeclareVarInst " << name << std::endl;
+        faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] =
+                fFieldTable[name] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
             } else {
-                *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
+                *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 EndLine();
             }
         } else {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
             } else {
-                *fOut << "(local $" << inst->fAddress->getName() << " " << type2String(inst->fType->getType()) << ")";
+                *fOut << "(local $" << name << " " << type2String(inst->fType->getType()) << ")";
                 // Local variable declaration has been previously separated as 'pure declaration' first,
                 // followed by 'store' later on (done in MoveVariablesInFront3)
                 faustassert(inst->fValue == nullptr);
@@ -247,13 +248,15 @@ class WASTInstVisitor : public TextInstVisitor, public WASInst {
     {
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a get_local
-        if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
-            *fOut << "(tee_local $" << inst->fAddress->getName() << " ";
+        string name = inst->fAddress->getName();
+        
+        if (fTeeMap.find(name) == fTeeMap.end()) {
+            *fOut << "(tee_local $" << name << " ";
             inst->fValue->accept(this);
             *fOut << ")";
-            fTeeMap[inst->fAddress->getName()] = true;
+            fTeeMap[name] = true;
         } else {
-            *fOut << "(get_local $" << inst->fAddress->getName() << ")";
+            *fOut << "(get_local $" << name << ")";
         }
     }
 

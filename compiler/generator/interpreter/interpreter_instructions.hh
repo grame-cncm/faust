@@ -243,7 +243,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
         
-        std::cout << "InterpreterInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
+        //std::cout << "InterpreterInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
         faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
        
         if (array_typed && array_typed->fSize > 1) {

@@ -153,7 +153,7 @@ struct RemoverCloneVisitor : public BasicCloneVisitor {
 
 /*
  For subcontainers table generation : rename 'sig' in 'dsp' and remove 'dsp' allocation
- (using in ASMJavaScript and Interpreter backend)
+ (using in ASMJavaScript and wast/wasm backends)
 */
 
 struct DspRenamer : public BasicCloneVisitor {
