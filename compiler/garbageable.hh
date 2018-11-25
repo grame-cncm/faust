@@ -22,7 +22,10 @@
 #ifndef __FAUST_GARBAGE__
 #define __FAUST_GARBAGE__
 
+#include <stdio.h>
 #include <new>
+
+#include "exception.hh"
 
 // To be inherited by all garbageable classes
 
