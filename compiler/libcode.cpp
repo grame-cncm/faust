@@ -677,7 +677,7 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
             gGlobal->gLightMode = true;
             i += 1;
-            
+
         } else if (isCmd(argv[i], "-clang", "--clang")) {
             gGlobal->gClang = true;
             i += 1;
@@ -856,7 +856,10 @@ static void printHelp()
          << endl;
     cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
     cout << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
-    cout << tab << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization." << endl;
+    cout << tab
+         << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for "
+            "auto-vectorization."
+         << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
     cout << tab
@@ -1201,17 +1204,6 @@ static void initFaustDirectories(int argc, const char* argv[])
     gGlobal->gFaustDirectory           = fileDirname(s);
     gGlobal->gFaustSuperDirectory      = fileDirname(gGlobal->gFaustDirectory);
     gGlobal->gFaustSuperSuperDirectory = fileDirname(gGlobal->gFaustSuperDirectory);
-    if (gGlobal->gInputFiles.empty()) {
-        gGlobal->gMasterDocument  = "Unknown";
-        gGlobal->gMasterDirectory = ".";
-        gGlobal->gMasterName      = "faustfx";
-        gGlobal->gDocName         = "faustdoc";
-    } else {
-        gGlobal->gMasterDocument  = *gGlobal->gInputFiles.begin();
-        gGlobal->gMasterDirectory = fileDirname(gGlobal->gMasterDocument);
-        gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
-        gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
-    }
 
     //-------------------------------------------------------------------------------------
     // init gImportDirList : a list of path where to search .lib files
@@ -1257,6 +1249,21 @@ static void initFaustDirectories(int argc, const char* argv[])
     //        cerr << "\t" << d << "\n";
     //    }
     //    cerr << endl;
+}
+
+static void initDocumentNames()
+{
+    if (gGlobal->gInputFiles.empty()) {
+        gGlobal->gMasterDocument  = "Unknown";
+        gGlobal->gMasterDirectory = ".";
+        gGlobal->gMasterName      = "faustfx";
+        gGlobal->gDocName         = "faustdoc";
+    } else {
+        gGlobal->gMasterDocument  = *gGlobal->gInputFiles.begin();
+        gGlobal->gMasterDirectory = fileDirname(gGlobal->gMasterDocument);
+        gGlobal->gMasterName      = fxName(gGlobal->gMasterDocument);
+        gGlobal->gDocName         = fxName(gGlobal->gMasterDocument);
+    }
 }
 
 static void parseSourceFiles()
@@ -1551,11 +1558,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ajs") {
 #ifdef ASMJS_BUILD
-            gGlobal->gAllowForeignFunction = false; // No foreign functions
+            gGlobal->gAllowForeignFunction = false;  // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false;        // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1566,11 +1573,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            gGlobal->gLoopVarInBytes   = true;
+            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
             // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
@@ -1608,11 +1615,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             // the 'i' variable used in the scalar loop moves by bytes instead of frames
-            gGlobal->gLoopVarInBytes = true;
-            gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
-            gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
-            gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            gGlobal->gLoopVarInBytes   = true;
+            gGlobal->gWaveformInDSP    = true;   // waveform are allocated in the DSP and not as global data
+            gGlobal->gMachinePtrSize   = 4;      // WASM is currently 32 bits
+            gGlobal->gNeedManualPow    = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gRemoveVarAddress = true;   // To be used in -vec mode
             // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
@@ -1896,12 +1903,12 @@ static void generateOutputFiles()
 
 static string expandDSPInternal(int argc, const char* argv[], const char* name, const char* dsp_content)
 {
-    initFaustDirectories(argc, argv);
-
     /****************************************************************
      1 - process command line
     *****************************************************************/
+    initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
+    initDocumentNames();
 
     /****************************************************************
      2 - parse source files
@@ -1942,12 +1949,13 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
                                    bool generate)
 {
     gGlobal->gPrintFileListSwitch = false;
-    initFaustDirectories(argc, argv);
 
     /****************************************************************
      1 - process command line
     *****************************************************************/
+    initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
+    initDocumentNames();
 
     if (gGlobal->gHelpSwitch) {
         printHelp();
