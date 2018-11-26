@@ -165,7 +165,7 @@ class uiMidiStart : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(0)) {
-                fMidiOut->start_sync(0);
+                fMidiOut->startSync(0);
             }
         }
         void modifyZone(double date, FAUSTFLOAT v)
@@ -193,7 +193,7 @@ class uiMidiStop : public uiMidiTimedItem
             FAUSTFLOAT v = *fZone;
             fCache = v;
             if (v != FAUSTFLOAT(1)) {
-                fMidiOut->stop_sync(0);
+                fMidiOut->stopSync(0);
             }
         }
     void modifyZone(double date, FAUSTFLOAT v)
@@ -553,8 +553,8 @@ class MidiUI : public GUI, public midi
             if (fDelete) delete fMidiHandler;
         }
         
-        bool run() { return fMidiHandler->start_midi(); }
-        void stop() { fMidiHandler->stop_midi(); }
+        bool run() { return fMidiHandler->startMidi(); }
+        void stop() { fMidiHandler->stopMidi(); }
         
         void addMidiIn(midi* midi_dsp) { fMidiHandler->addMidiIn(midi_dsp); }
         void removeMidiIn(midi* midi_dsp) { fMidiHandler->removeMidiIn(midi_dsp); }
@@ -681,14 +681,14 @@ class MidiUI : public GUI, public midi
         
         // MIDI sync
         
-        void start_sync(double date)
+        void startSync(double date)
         {
             for (unsigned int i = 0; i < fStartTable.size(); i++) {
                 fStartTable[i]->modifyZone(date, FAUSTFLOAT(1));
             }
         }
         
-        void stop_sync(double date)
+        void stopSync(double date)
         {
             for (unsigned int i = 0; i < fStopTable.size(); i++) {
                 fStopTable[i]->modifyZone(date, FAUSTFLOAT(0));

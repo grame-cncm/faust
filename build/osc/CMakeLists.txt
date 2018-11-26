@@ -69,7 +69,9 @@ if (INCLUDE_OSC)
 	target_link_libraries(oscstatic  ws2_32 winmm)
 	set (TARGETS oscstatic)
 	if (MSVC)
-		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME libOSCFaust)
+		set_target_properties(oscstatic  PROPERTIES 
+			OUTPUT_NAME libOSCFaust
+			COMPILE_DEFINITIONS _CRT_SECURE_NO_WARNINGS)
 	else()
 		set_target_properties(oscstatic  PROPERTIES OUTPUT_NAME OSCFaust)
 	endif()
