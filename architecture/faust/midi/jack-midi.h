@@ -73,6 +73,9 @@ class jack_midi_handler : public midi_handler {
                         handleData1(time, type, channel, (int)event.buffer[1]);
                     } else if (nBytes == 3) {
                         handleData2(time, type, channel, (int)event.buffer[1], (int)event.buffer[2]);
+                    } else {
+                        std::vector<unsigned char> message(event.buffer, event.buffer + event.size);
+                        handleMessage(time, type, &message);
                     }
                 }
             }
@@ -177,13 +180,13 @@ class jack_midi_handler : public midi_handler {
 
         void ctrlChange14bits(int channel, int ctrl, int value) {}
 
-        void start_sync(double date)
+        void startSync(double date)
         {
             unsigned char buffer[1] = { MIDI_START };
             writeMessage(date, buffer, 1);
         }
   
-        void stop_sync(double date)
+        void stopSync(double date)
         {
             unsigned char buffer[1] = { MIDI_STOP };
             writeMessage(date, buffer, 1);
@@ -193,6 +196,11 @@ class jack_midi_handler : public midi_handler {
         {
             unsigned char buffer[1] = { MIDI_CLOCK };
             writeMessage(date, buffer, 1);
+        }
+    
+        void sysEx(double date, std::vector<unsigned char>* message)
+        {
+            writeMessage(date, message->data(), (int)message->size());
         }
 
 };
