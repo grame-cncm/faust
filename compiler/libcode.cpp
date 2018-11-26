@@ -1477,7 +1477,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef FIR_BUILD
         gGlobal->gGenerateSelectWithIf = false;
 
-        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
+        container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
