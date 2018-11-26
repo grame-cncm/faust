@@ -159,6 +159,7 @@ llvm_dsp_factory_aux::llvm_dsp_factory_aux(const string& sha_key, const string& 
     // Creates module and context
     fContext = new LLVMContext();
     fModule  = new Module(string(LLVM_BACKEND_NAME) + ", v" + string(FAUSTVERSION), *fContext);
+    fDecoder = nullptr;
 #else
 #warning "machine code is not supported..."
 #endif
@@ -236,20 +237,28 @@ void llvm_dsp_factory_aux::init(const string& type_name, const string& dsp_name)
 bool llvm_dsp_factory_aux::initJIT(string& error_msg)
 {
     startTiming("initJIT");
-
+ 
     // Restoring from machine code
 #if defined(LLVM_35)
     EngineBuilder builder(fModule);
 #else
     EngineBuilder builder((unique_ptr<Module>(fModule)));
 #endif
+    
+    string buider_error;
+    builder.setErrorStr(&buider_error);
     TargetMachine* tm = builder.selectTarget();
     fJIT              = builder.create(tm);
+    if (!fJIT) {
+        error_msg = "ERROR : cannot create LLVM JIT : " + buider_error;
+        return false;
+    }
+ 
 #ifndef LLVM_35
     fJIT->setObjectCache(fObjectCache);
 #endif
+    
     fJIT->finalizeObject();
-
     return initJITAux(error_msg);
 }
 
@@ -275,11 +284,12 @@ bool llvm_dsp_factory_aux::initJITAux(string& error_msg)
         fMetadata           = (metadataFun)loadOptimize("metadata" + fClassName);
         fGetJSON            = (getJSONFun)loadOptimize("getJSON" + fClassName);
         fSetDefaultSound    = (setDefaultSoundFun)loadOptimize("setDefaultSound" + fClassName);
-
+        
         fDecoder = new JSONUIDecoder(fGetJSON());
-
+    
         // Set the default sound
         fSetDefaultSound(dynamic_defaultsound);
+        
         endTiming("initJIT");
         return true;
     } catch (

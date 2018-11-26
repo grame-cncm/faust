@@ -172,7 +172,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fPolyphonic = false;
     fSoundUI = NULL;
     
-    fMidiHandler.start_midi();
+    fMidiHandler.startMidi();
     
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
@@ -229,7 +229,7 @@ faustgen_factory::~faustgen_factory()
     free_sourcecode();
     free_bitcode();
     
-    fMidiHandler.stop_midi();
+    fMidiHandler.stopMidi();
    
     remove_svg();
     systhread_mutex_free(fDSPMutex);
