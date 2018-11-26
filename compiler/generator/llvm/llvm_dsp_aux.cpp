@@ -544,9 +544,9 @@ void llvm_dsp_factory_aux::writeDSPFactoryToMachineFile(const string& machine_co
 }
 
 #ifndef LLVM_35
-static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target)
+static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, const string& target, std::string& error_msg)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -564,7 +564,7 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
             factory->setSHAKey(sha_key);
             return factory;
         } else {
-            std::cerr << "readDSPFactoryFromMachine failed : " << error_msg << std::endl;
+            error_msg = "ERROR : readDSPFactoryFromMachine failed : " + error_msg;
             delete factory_aux;
             return nullptr;
         }
@@ -573,11 +573,11 @@ static llvm_dsp_factory* readDSPFactoryFromMachineAux(MEMORY_BUFFER buffer, cons
 #endif
 
 // machine <==> string
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, const string& target, std::string& error_msg)
 {
 #ifndef LLVM_35
     TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
-    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target);
+    return readDSPFactoryFromMachineAux(MEMORY_BUFFER_CREATE(StringRef(base64_decode(machine_code))), target, error_msg);
 #else
 #warning "machine code is not supported..."
     return nullptr;
@@ -585,16 +585,16 @@ EXPORT llvm_dsp_factory* readDSPFactoryFromMachine(const string& machine_code, c
 }
 
 // machine <==> file
-EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target)
+EXPORT llvm_dsp_factory* readDSPFactoryFromMachineFile(const string& machine_code_path, const string& target, std::string& error_msg)
 {
 #ifndef LLVM_35
     TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(machine_code_path);
     if (error_code ec = buffer.getError()) {
-        std::cerr << "readDSPFactoryFromMachineFile failed : " << ec.message() << std::endl;
+        error_msg = "ERROR : readDSPFactoryFromMachineFile failed : " + ec.message() + "\n";
         return nullptr;
     } else {
-        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target);
+        return readDSPFactoryFromMachineAux(MEMORY_BUFFER_GET_REF(buffer), target, error_msg);
     }
 #else
 #warning "machine code is not supported..."
@@ -776,9 +776,12 @@ EXPORT void deleteAllCDSPFactories()
     deleteAllDSPFactories();
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachine(const char* machine_code, const char* target, char* error_msg)
 {
-    return readDSPFactoryFromMachine(machine_code, target);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = readDSPFactoryFromMachine(machine_code, target, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
 }
 
 EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* target)
@@ -786,9 +789,12 @@ EXPORT char* writeCDSPFactoryToMachine(llvm_dsp_factory* factory, const char* ta
     return (factory) ? strdup(writeDSPFactoryToMachine(factory, target).c_str()) : nullptr;
 }
 
-EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target)
+EXPORT llvm_dsp_factory* readCDSPFactoryFromMachineFile(const char* machine_code_path, const char* target, char* error_msg)
 {
-    return readDSPFactoryFromMachineFile(machine_code_path, target);
+    string error_msg_aux;
+    llvm_dsp_factory* factory = readDSPFactoryFromMachineFile(machine_code_path, target, error_msg_aux);
+    strncpy(error_msg, error_msg_aux.c_str(), 4096);
+    return factory;
 }
 
 EXPORT void writeCDSPFactoryToMachineFile(llvm_dsp_factory* factory, const char* machine_code_path, const char* target)

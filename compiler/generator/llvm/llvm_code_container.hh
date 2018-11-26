@@ -105,6 +105,9 @@ class LLVMCodeContainer : public virtual CodeContainer {
     // To be used for mathematical function mapping (-fm and exp10 on OSX)
     void generateFunMap(const string& fun1_aux, const string& fun2_aux, int num_args, bool body = false);
     void generateFunMaps();
+    
+    // To be implemented in each LLVMScalarCodeContainer, LLVMVectorCodeContainer and LLVMWorkStealingCodeContainer classes
+    virtual void generateCompute() = 0;
 
    public:
     LLVMCodeContainer(const string& name, int numInputs, int numOutputs);
@@ -112,8 +115,6 @@ class LLVMCodeContainer : public virtual CodeContainer {
     virtual ~LLVMCodeContainer();
 
     virtual dsp_factory_base* produceFactory();
-
-    virtual void generateCompute() = 0;
     void         produceInternal();
 
     CodeContainer* createScalarContainer(const string& name, int sub_container_type);

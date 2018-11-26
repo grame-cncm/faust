@@ -450,6 +450,7 @@ class RustInstVisitor : public TextInstVisitor {
 
     virtual void visit(SimpleForLoopInst* inst)
     {
+        // Don't generate empty loops...
         if (inst->fCode->size() == 0) return;
 
         *fOut << "for " << inst->getName() << " in ";

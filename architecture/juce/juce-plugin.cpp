@@ -39,6 +39,13 @@
 #include "faust/gui/JuceParameterUI.h"
 #include "faust/gui/JuceStateUI.h"
 
+// Always included otherwise -i mode sometimes fails...
+#include "faust/gui/DecoratorUI.h"
+
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
 #endif
@@ -46,10 +53,6 @@
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
 #include "faust/dsp/timed-dsp.h"
-#endif
-
-#if defined(SOUNDFILE)
-#include "faust/gui/SoundUI.h"
 #endif
 
 #if defined(POLY2)
@@ -119,12 +122,16 @@ class FaustVoice : public SynthesiserVoice, public dsp_voice {
                               int startSample,
                               int numSamples) override
         {
-            // Play the voice
-            play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfReadPointers());
-            
-            // Mix it in outputs
-            for (int i = 0; i < fDSP->getNumOutputs(); i++) {
-                outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
+            // Only plays when the voice is active
+            if (isVoiceActive()) {
+                
+                // Play the voice
+                play(numSamples, nullptr, (FAUSTFLOAT**)fBuffer->getArrayOfWritePointers());
+                
+                // Mix it in outputs
+                for (int i = 0; i < fDSP->getNumOutputs(); i++) {
+                    outputBuffer.addFrom(i, startSample, *fBuffer, i, 0, numSamples);
+                }
             }
         }
     
@@ -146,7 +153,9 @@ class FaustSynthesiser : public Synthesiser, public dsp_voice_group {
     public:
         
         FaustSynthesiser():dsp_voice_group(panic, this, true, true)
-        {}
+        {
+            setNoteStealingEnabled(true);
+        }
         
         virtual ~FaustSynthesiser()
         {

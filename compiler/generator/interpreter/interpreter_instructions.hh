@@ -30,8 +30,6 @@
 #include "struct_manager.hh"
 #include "typing_instructions.hh"
 
-using namespace std;
-
 template <class T>
 struct InterpreterInstVisitor : public DispatchVisitor {
     using DispatchVisitor::visit;
@@ -40,15 +38,15 @@ struct InterpreterInstVisitor : public DispatchVisitor {
      Global functions names table as a static variable in the visitor
      so that each function prototype is generated as most once in the module.
     */
-    static map<string, FBCInstruction::Opcode> gMathLibTable;
+    static std::map<std::string, FBCInstruction::Opcode> gMathLibTable;
 
     int  fRealHeapOffset;   // Offset in Real HEAP
     int  fIntHeapOffset;    // Offset in Integer HEAP
     int  fSoundHeapOffset;  // Offset in Sound HEAP
     bool fCommute;          // Whether to try commutative operation reverse order generation
-
-    map<string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
-
+  
+    std::map<std::string, MemoryDesc> fFieldTable;  // Table : field_name, { offset, size, type }
+ 
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
     FBCBlockInstruction<T>*              fCurrentBlock;
 
@@ -65,7 +63,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual ~InterpreterInstVisitor() {}
 
-    int getFieldOffset(const string& name)
+    int getFieldOffset(const std::string& name)
     {
         return (fFieldTable.find(name) != fFieldTable.end()) ? fFieldTable[name].fOffset : -1;
     }
@@ -236,7 +234,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
     // Declarations
     virtual void visit(DeclareVarInst* inst)
     {
-        // dump2FIR(inst);
+        //dump2FIR(inst);
 
         // HACK : completely adhoc code for input/output using kLoadInput and kStoreOutput instructions
         if ((startWith(inst->fAddress->getName(), "input") || startWith(inst->fAddress->getName(), "output"))) {
@@ -244,7 +242,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-
+        
+        //std::cout << "InterpreterInstVisitor::DeclareVarInst " << inst->fAddress->getName() << std::endl;
+        faustassert(fFieldTable.find(inst->fAddress->getName()) == fFieldTable.end());
+       
         if (array_typed && array_typed->fSize > 1) {
             if (array_typed->fType->getType() == Typed::kInt32) {
                 fFieldTable[inst->fAddress->getName()] =
@@ -301,7 +302,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         } else {
             // Indexed
             IndexedAddress* indexed = dynamic_cast<IndexedAddress*>(inst->fAddress);
-            string          num;
+            std::string num;
             // Special treatment for inputs
             if (startWithRes(indexed->getName(), "input", num)) {
                 fCurrentBlock->push(
@@ -324,12 +325,12 @@ struct InterpreterInstVisitor : public DispatchVisitor {
 
     virtual void visit(LoadVarAddressInst* inst) { faustassert(false); }
 
-    virtual void visitStore(Address* address, ValueInst* value, Typed* type = NULL)
+    virtual void visitStore(Address* address, ValueInst* value, Typed* type = nullptr)
     {
         ArrayTyped* array_typed;
 
-        // dump2FIR(value);
-        // if (type) dump2FIR(type);
+        //dump2FIR(value);
+        //if (type) dump2FIR(type);
 
         // Waveform array store...
         if (type && (array_typed = dynamic_cast<ArrayTyped*>(type))) {
@@ -339,9 +340,10 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 case Typed::kInt32: {
                     Int32ArrayNumInst* int_array = dynamic_cast<Int32ArrayNumInst*>(value);
                     faustassert(int_array);
-                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(FBCInstruction::kBlockStoreInt, tmp.fOffset,
-                                                                           int(int_array->fNumTable.size()),
-                                                                           int_array->fNumTable));
+                    fCurrentBlock->push(new FIRBlockStoreIntInstruction<T>(
+                        FBCInstruction::kBlockStoreInt, tmp.fOffset,
+                        int(int_array->fNumTable.size()),
+                        int_array->fNumTable));
                     break;
                 }
                 case Typed::kFloat: {
@@ -394,7 +396,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
                 // Compile address
                 indexed->accept(this);
                 // Indexed
-                string num;
+                std::string num;
                 // Special treatment for outputs
                 if (startWithRes(indexed->getName(), "output", num)) {
                     fCurrentBlock->push(
@@ -535,7 +537,7 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         }
 
         if (gMathLibTable.find(inst->fName) == gMathLibTable.end()) {
-            stringstream error;
+            std::stringstream error;
             error << "ERROR : missing function : " << inst->fName << std::endl;
             throw faustexception(error.str());
         } else {
@@ -641,8 +643,8 @@ struct InterpreterInstVisitor : public DispatchVisitor {
         fCurrentBlock->push(new FBCBasicInstruction<T>(FBCInstruction::kReturn));
 
         // Add the loop block in previous
-        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, 0, 0, 0, 0, init_block, loop_block));
-
+        previous->push(new FBCBasicInstruction<T>(FBCInstruction::kLoop, ((inst->fIsRecursive) ? 1 : gGlobal->gVecSize), 0, 0, 0, init_block, loop_block));
+      
         // Restore current block
         fCurrentBlock = previous;
     }

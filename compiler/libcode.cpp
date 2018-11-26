@@ -485,7 +485,7 @@ static bool processCmdline(int argc, const char* argv[])
             gGlobal->gVectorLoopVariant = std::atoi(argv[i + 1]);
             i += 2;
 
-        } else if (isCmd(argv[i], "-omp", "--openMP")) {
+        } else if (isCmd(argv[i], "-omp", "--openmp")) {
             gGlobal->gOpenMPSwitch = true;
             i += 1;
 
@@ -677,6 +677,10 @@ static bool processCmdline(int argc, const char* argv[])
         } else if (isCmd(argv[i], "-light", "--light-mode")) {
             gGlobal->gLightMode = true;
             i += 1;
+            
+        } else if (isCmd(argv[i], "-clang", "--clang")) {
+            gGlobal->gClang = true;
+            i += 1;
 
         } else if (isCmd(argv[i], "-lm", "--local-machine") || isCmd(argv[i], "-rm", "--remote-machine") ||
                    isCmd(argv[i], "-poly", "--polyphonic-mode") || isCmd(argv[i], "-voices", "--polyphonic-voices") ||
@@ -851,6 +855,8 @@ static void printHelp()
             "otherwise."
          << endl;
     cout << tab << "-lcc        --local-causality-check     check causality also at local level." << endl;
+    cout << tab << "-light      --light-mode                do not generate the entire DSP API." << endl;
+    cout << tab << "-clang      --clang                     when compiled with clang/clang++, adds specific #pragma for auto-vectorization." << endl;
     cout << tab << "-flist      --file-list                 use file list used to eval process." << endl;
     cout << tab << "-exp10      --generate-exp10            function call instead of pow(10) function." << endl;
     cout << tab
@@ -890,7 +896,7 @@ static void printHelp()
     cout << tab << "-lv <n>    --loop-variant <n>           [0:fastest (default), 1:simple]." << endl;
     cout << tab << "-omp       --openmp                     generate OpenMP pragmas, activates --vectorize option."
          << endl;
-    cout << tab << "-pl        --par-loop                   generate parallel loops in --openMP mode." << endl;
+    cout << tab << "-pl        --par-loop                   generate parallel loops in --openmp mode." << endl;
     cout << tab
          << "-sch       --scheduler                  generate tasks and use a Work Stealing scheduler, activates "
             "--vectorize option."
@@ -1009,7 +1015,7 @@ static void oldprintHelp()
     cout << "-vs <n> \t--vec-size <n> size of the vector (default 32 samples)\n";
     cout << "-lv <n> \t--loop-variant [0:fastest (default), 1:simple] \n";
     cout << "-omp    \t--openmp generate OpenMP pragmas, activates --vectorize option\n";
-    cout << "-pl     \t--par-loop generate parallel loops in --openMP mode\n";
+    cout << "-pl     \t--par-loop generate parallel loops in --openmp mode\n";
     cout << "-sch    \t--scheduler generate tasks and use a Work Stealing scheduler, activates --vectorize option\n";
     cout << "-ocl    \t--opencl generate tasks with OpenCL (experimental) \n";
     cout << "-cuda   \t--cuda generate tasks with CUDA (experimental) \n";
@@ -1024,6 +1030,8 @@ static void oldprintHelp()
     cout << "-quad \t\tuse --quad-precision-floats for internal computations\n";
     cout << "-es 1|0 \tuse --enable-semantics 1|0 when 1, and simple multiplication otherwise (default 1)\n";
     cout << "-lcc \t\t--local-causality-check, check causality also at local level \n";
+    cout << "-light \t\t--light-mode, do not generate the entire DSP API \n";
+    cout << "-clang \t\t--clang, when compiled with clang/clang++, adds specific #pragma for auto-vectorization\n";
     cout << "-flist \t\tuse --file-list used to eval process\n";
     cout << "-norm \t\t--normalized-form print signals in normalized form and exits\n";
     cout << "-A <dir> \t--architecture-dir <dir> add the directory <dir> to the architecture search path\n";
@@ -1451,6 +1459,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
         // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
         gGlobal->gFAUSTFLOATToInternal = true;
         gGlobal->gNeedManualPow        = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+        gGlobal->gRemoveVarAddress     = true;   // To be used in -vec mode
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1468,7 +1477,7 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 #ifdef FIR_BUILD
         gGlobal->gGenerateSelectWithIf = false;
 
-        container = FirCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
+        container = FIRCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst, true);
 
         if (gGlobal->gVectorSwitch) {
             new_comp = new DAGInstructionsCompiler(container);
@@ -1542,11 +1551,11 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
 
         } else if (gGlobal->gOutputLang == "ajs") {
 #ifdef ASMJS_BUILD
-            gGlobal->gAllowForeignFunction = false;  // No foreign functions
+            gGlobal->gAllowForeignFunction = false; // No foreign functions
             // FIR is generated with internal real instead of FAUSTFLOAT (see InstBuilder::genBasicTyped)
             gGlobal->gFAUSTFLOATToInternal = true;
             gGlobal->gWaveformInDSP        = true;  // waveform are allocated in the DSP and not as global data
-            gGlobal->gNeedManualPow = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
+            gGlobal->gNeedManualPow = false;        // Standard pow function will be used in pow(x,y) when Y in an integer
             container = ASMJAVAScriptCodeContainer::createContainer(gGlobal->gClassName, numInputs, numOutputs, dst);
 #else
             throw faustexception("ERROR : -lang ajs not supported since ASMJS backend is not built\n");
@@ -1561,7 +1570,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 
@@ -1602,7 +1612,8 @@ static void generateCode(Tree signals, int numInputs, int numOutputs, bool gener
             gGlobal->gWaveformInDSP  = true;   // waveform are allocated in the DSP and not as global data
             gGlobal->gMachinePtrSize = 4;      // WASM is currently 32 bits
             gGlobal->gNeedManualPow  = false;  // Standard pow function will be used in pow(x,y) when Y in an integer
-            // gGlobal->gHasTeeLocal = true;  // combined store/load
+            gGlobal->gRemoveVarAddress = true; // To be used in -vec mode
+            // gGlobal->gHasTeeLocal = true;   // combined store/load
 
             gGlobal->gUseDefaultSound = false;
 

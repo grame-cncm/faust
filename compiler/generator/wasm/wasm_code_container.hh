@@ -23,6 +23,7 @@
 #define _WASM_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
 #include "dsp_factory.hh"
 #include "fir_to_fir.hh"
 #include "wasm_instructions.hh"
@@ -43,6 +44,8 @@ class WASMCodeContainer : public virtual CodeContainer {
     DeclareFunInst* generateInstanceConstants(const string& name, const string& obj, bool ismethod, bool isvirtual);
     DeclareFunInst* generateInstanceResetUserInterface(const string& name, const string& obj, bool ismethod,
                                                        bool isvirtual);
+    
+    void generateComputeAux(BlockInst* compute_block);
 
    public:
     WASMCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
@@ -67,16 +70,16 @@ class WASMScalarCodeContainer : public WASMCodeContainer {
    public:
     WASMScalarCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out,
                             int sub_container_type, bool internal_memory);
-    virtual ~WASMScalarCodeContainer();
+    virtual ~WASMScalarCodeContainer() {}
 
     void generateCompute();
 };
 
-class WASMVectorCodeContainer : public WASMCodeContainer {
+class WASMVectorCodeContainer : public VectorCodeContainer, public WASMCodeContainer {
    protected:
    public:
     WASMVectorCodeContainer(const string& name, int numInputs, int numOutputs, std::ostream* out, bool internal_memory);
-    virtual ~WASMVectorCodeContainer();
+    virtual ~WASMVectorCodeContainer() {}
 
     void generateCompute();
 };

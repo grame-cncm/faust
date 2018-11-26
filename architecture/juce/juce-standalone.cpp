@@ -37,6 +37,13 @@
 #include "faust/dsp/poly-dsp.h"
 #include "faust/gui/JuceGUI.h"
 
+// Always included otherwise -i mode sometimes fails...
+#include "faust/gui/DecoratorUI.h"
+
+#if defined(SOUNDFILE)
+#include "faust/gui/SoundUI.h"
+#endif
+
 #if defined(OSCCTRL)
 #include "faust/gui/JuceOSCUI.h"
 #endif
@@ -44,10 +51,6 @@
 #if defined(MIDICTRL)
 #include "faust/midi/juce-midi.h"
 #include "faust/dsp/timed-dsp.h"
-#endif
-
-#if defined(SOUNDFILE)
-#include "faust/gui/SoundUI.h"
 #endif
 
 #if defined(POLY2)
@@ -305,7 +308,12 @@ class FaustAudioApplication : public JUCEApplication
             
             public:
             
-                myViewport(String name, int w, int h, int rW, int rH): Viewport(name), minWidth(w), minHeight(h), recommendedWidth(rW), recommendedHeight(rH)
+                myViewport(String name, int w, int h, int rW, int rH):
+                Viewport(name),
+                minWidth(w),
+                minHeight(h),
+                recommendedWidth(rW),
+                recommendedHeight(rH)
                 {
                     addAndMakeVisible(tooltipWindow);
                 }

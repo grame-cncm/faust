@@ -33,13 +33,16 @@
 #include "dsp_aux.hh"
 #include "dsp_factory.hh"
 #include "export.hh"
-#include "fbc_interpreter.hh"
 #include "interpreter_bytecode.hh"
 #include "interpreter_optimizer.hh"
 
 #ifdef MACHINE
 #include "fbc_llvm_compiler.hh"
+//#include "fbc_cpp_compiler.hh"
 #endif
+
+#include "fbc_interpreter.hh"
+//#include "fbc_vec_interpreter.hh"
 
 class interpreter_dsp_factory;
 
@@ -64,6 +67,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     int fOptLevel;
 
     bool fOptimized;
+    std::string fCompileOptions;
 
     FIRMetaBlockInstruction*             fMetaBlock;
     FIRUserInterfaceBlockInstruction<T>* fUserInterfaceBlock;
@@ -79,7 +83,11 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     typename FBCCompiler<T>::CompiledBlocksType* fCompiledBlocks;
 #endif
 
-    interpreter_dsp_factory_aux(const std::string& name, const std::string& sha_key, int version_num, int inputs,
+    interpreter_dsp_factory_aux(const std::string& name,
+                                const std::string& compile_options,
+                                const std::string& sha_key,
+                                int version_num,
+                                int inputs,
                                 int outputs, int int_heap_size, int real_heap_size, int sound_heap_size, int sr_offset,
                                 int count_offset, int iota_offset, int opt_level, FIRMetaBlockInstruction* meta,
                                 FIRUserInterfaceBlockInstruction<T>* firinterface, FBCBlockInstruction<T>* static_init,
@@ -87,6 +95,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
                                 FBCBlockInstruction<T>* clear, FBCBlockInstruction<T>* compute_control,
                                 FBCBlockInstruction<T>* compute_dsp)
         : dsp_factory_imp(name, sha_key, ""),
+          fCompileOptions(compile_options),
           fVersion(version_num),
           fNumInputs(inputs),
           fNumOutputs(outputs),
@@ -109,6 +118,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     {
 #ifdef MACHINE
         fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCLLVMCompiler<T>*>();
+        //fCompiledBlocks = new std::map<FBCBlockInstruction<T>*, FBCCPPCompiler<T>*>();
 #endif
     }
 
@@ -119,9 +129,10 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 #else
         optimize();
         return new FBCInterpreter<T, TRACE>(this);
+        //return new FBCVecInterpreter<T, 1>(this);
 #endif
     }
-
+ 
     virtual ~interpreter_dsp_factory_aux()
     {
         // No more DSP instances, so delete
@@ -163,12 +174,12 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 
         if (small) {
             *out << "i " << ((sizeof(T) == sizeof(double)) ? "double" : "float") << std::endl;
-            *out << "v " << FAUSTVERSION << std::endl;
             *out << "f " << INTERP_FILE_VERSION << std::endl;
+            *out << "v " << FAUSTVERSION << std::endl;
+            *out << "c " << fCompileOptions << std::endl;
             *out << "n " << fName << std::endl;
             *out << "s " << fSHAKey << std::endl;
             *out << "o " << fOptLevel << std::endl;
-
             *out << "i " << fNumInputs << " o " << fNumOutputs << std::endl;
 
             *out << "i " << fIntHeapSize << " r " << fRealHeapSize << " s " << fSoundHeapSize << " s " << fSROffset
@@ -199,8 +210,9 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             fComputeDSPBlock->write(out, small);
         } else {
             *out << "interpreter_dsp_factory " << ((sizeof(T) == sizeof(double)) ? "double" : "float") << std::endl;
-            *out << "version " << FAUSTVERSION << std::endl;
-            *out << "file " << INTERP_FILE_VERSION << std::endl;
+            *out << "file_version " << INTERP_FILE_VERSION << std::endl;
+            *out << "Faust version " << FAUSTVERSION << std::endl;
+            *out << "compile_options " << fCompileOptions << std::endl;
             *out << "name " << fName << std::endl;
             *out << "sha_key " << fSHAKey << std::endl;
             *out << "opt_level " << fOptLevel << std::endl;
@@ -242,24 +254,29 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     {
         std::string dummy;
 
+        // Read "file" line
+        std::string file_version;
+        int         file_num;
+        getline(*in, file_version);
+        
+        std::stringstream version_reader(file_version);
+        version_reader >> dummy;  // Read "file_version" token
+        version_reader >> file_num;
+        
+        if (INTERP_FILE_VERSION != file_num) {
+            std::stringstream error;
+            error << "Interpreter file format version '" << file_num << "' different from compiled one '"
+            << INTERP_FILE_VERSION << "'" << std::endl;
+            throw faustexception(error.str());
+        }
+
         // Read "version" line
         std::string version;
         getline(*in, version);
-
-        // Read "file" line
-        std::string file;
-        int         file_num;
-        getline(*in, file);
-
-        std::stringstream version_reader(file);
-        version_reader >> dummy;  // Read "version" token
-        version_reader >> file_num;
-
-        if (INTERP_FILE_VERSION != file_num) {
-            std::cerr << "Interpreter file format version '" << file_num << "' different from compiled one '"
-                      << INTERP_FILE_VERSION << "'" << std::endl;
-            return 0;
-        }
+        
+        // Read "compile_options" line
+        std::string compile_options;
+        getline(*in, compile_options);
 
         // Read name
         std::string name, factory_name;
@@ -356,7 +373,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
         getline(*in, dummy);  // Read "dsp_block" line
         FBCBlockInstruction<T>* compute_dsp_block = readCodeBlock(in);
 
-        return new interpreter_dsp_factory_aux(factory_name, sha_key, file_num, inputs, outputs, int_heap_size,
+        return new interpreter_dsp_factory_aux(factory_name, compile_options, sha_key, file_num, inputs, outputs, int_heap_size,
                                                real_heap_size, sound_heap_size, sr_offset, count_offset, iota_offset,
                                                opt_level, meta_block, ui_block, static_init_block, init_block,
                                                resetui_block, clear_block, compute_control_block, compute_dsp_block);
@@ -556,7 +573,6 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
             std::stringstream sample_line_reader(line);
 
             // Read each sample
-
             for (int i = 0; i < block_size; i++) {
                 sample_line_reader >> val_int;
                 block_values.push_back(val_int);
@@ -648,7 +664,6 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
     interpreter_dsp_factory_aux<T, TRACE>* fFactory;
     FBCExecutor<T>*                        fFBCExecutor;
-
    public:
     interpreter_dsp_aux(interpreter_dsp_factory_aux<T, TRACE>* factory)
     {
@@ -707,6 +722,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         */
 
         delete this->fFBCExecutor;
+        //delete this->fFBCVecExecutor;
     }
 
     virtual void metadata(Meta* meta) { fFactory->metadata(meta); }
@@ -826,11 +842,37 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
         // std::cout << "buildUserInterface" << std::endl;
         fFBCExecutor->ExecuteBuildUserInterface(fFactory->fUserInterfaceBlock, glue);
     }
+    
+    void ExecuteVecBlock(FBCBlockInstruction<T>* block, int vec_size)
+    {
+        /*
+            Execute the VEC size specialized version of the interpreter
+            vec_size == 1 correspond to the scalar interpreter
+         */
+        
+        /*
+        if (vec_size == 1) {
+            fFBCExecutor->ExecuteBlock<T, 1, TRACE>(block);
+        } else if (vec_size == 4) {
+            fFBCExecutor->ExecuteBlock<T, 4, TRACE>(block);
+        } else if (vec_size == 8) {
+            fFBCExecutor->ExecuteBlock<T, 8, TRACE>(block);
+        } else if (vec_size == 16) {
+            fFBCExecutor->ExecuteBlock<T, 16, TRACE>(block);
+        } else if (vec_size == 32) {
+            fFBCExecutor->ExecuteBlock<T, 32, TRACE>(block);
+        } else if (vec_size == 64) {
+            fFBCExecutor->ExecuteBlock<T, 64, TRACE>(block);
+        } else {
+            fFBCExecutor->ExecuteBlock<T, 128, TRACE>(block);
+        }
+        */
+    }
 
     virtual void compute(int count, FAUSTFLOAT** inputs_aux, FAUSTFLOAT** outputs_aux)
     {
         if (TRACE > 0 && !fInitialized) {
-            std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else {
             // std::cout << "compute " << count << std::endl;
             T** inputs  = reinterpret_cast<T**>(inputs_aux);
@@ -852,6 +894,8 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
 
             // Executes the 'DSP' block
             fFBCExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
+            
+            //fFBCVecExecutor->ExecuteBlock(fFactory->fComputeDSPBlock);
         }
     }
 
@@ -861,7 +905,7 @@ class interpreter_dsp_aux : public interpreter_dsp_base {
     {
     #ifdef INTERPRETER_TRACE
         if (!fInitialized) {
-            std::cout << "-------- DSP is not initialized ! --------" << std::endl;
+            std::cout << "======== DSP is not initialized ! ========" << std::endl;
         } else
     #endif
         {
@@ -1118,14 +1162,14 @@ EXPORT std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_
 
 EXPORT std::vector<std::string> getAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& fbc_code, std::string& error_msg);
 
 EXPORT std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& fbc_code_path, std::string& error_msg);
 
 EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory,
-                                                    const std::string&       machine_code_path);
+                                                    const std::string&       fbc_code_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
 

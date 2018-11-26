@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <map>
+#include <cmath>
 #include <string>
 
 #include "exception.hh"

@@ -206,16 +206,17 @@ void deleteAllInterpreterDSPFactories();
 std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
- * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all
+ * Create a Faust DSP factory from a fbc code string. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code - the machine code string
+ * @param fbc_code - the fbc code string
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& fbc_code, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code string.
@@ -227,16 +228,17 @@ interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string&
 std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
 
 /**
- * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
+ * Create a Faust DSP factory from a fbc code file. Note that the library keeps an internal cache of all
  * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code_path - the machine code file pathname
+ * @param fbc_code_path - the fbc code file pathname
+ * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& fbc_code_path, std::string& error_msg);
 
 /**
  * Write a Faust DSP factory into a machine code file.

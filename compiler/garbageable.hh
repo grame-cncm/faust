@@ -27,6 +27,8 @@
 
 #include "exception.hh"
 
+// To be inherited by all garbageable classes
+
 class Garbageable {
    public:
     Garbageable();

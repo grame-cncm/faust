@@ -3,10 +3,10 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.13.1)
+set (VERSION 2.13.4)
 set (VERSION_MAJOR 2)
 set (VERSION_MINOR 13)
-set (VERSION_PATCH 1)
+set (VERSION_PATCH 4)
 set (SOVERS 2)
 
 get_filename_component(ROOT ${CMAKE_CURRENT_SOURCE_DIR} DIRECTORY)
@@ -29,6 +29,7 @@ option ( INCLUDE_DYNAMIC    "Include dynamic library"	off )
 option ( INCLUDE_OSC    	"Include Faust OSC library"	on )
 option ( INCLUDE_HTTP    	"Include Faust HTTPD library"	on )
 option ( INCLUDE_ITP    	"Include Faust Machine library"	off )
+option ( INCLUDE_EMCC    	"Include emcc targets"	on )
 option ( MSVC_STATIC		"Use static runtimes with MSVC" off)
 
 if (NOT DEFINED DEPLOYMENT_TARGET_VERSION)
@@ -204,10 +205,11 @@ endif()
 ####################################
 # add sub projects (emcc, osclib, interpreter)
 ####################################
-if (NOT (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC))
+if (${CMAKE_GENERATOR} STREQUAL Xcode OR ${CMAKE_CXX_COMPILER_ID} STREQUAL MSVC OR IOS)
+	set (INCLUDE_EMCC off)
+endif()
+if (INCLUDE_EMCC)
 	add_subdirectory (emcc)
-elseif (NOT IOS)
-	message ("WARNING Targets asmjslib and wasmlib are not included with Xcode or Visual Studio")
 endif()
 if (INCLUDE_OSC OR OSCDYNAMIC)
 	add_subdirectory (osc)

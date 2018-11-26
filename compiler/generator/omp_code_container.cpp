@@ -42,6 +42,36 @@ struct StackVarAnalyser : public DispatchVisitor {
     }
 };
 
+void OpenMPCodeContainer::generateLocalInputs(BlockInst* loop_code, const string& index)
+{
+    // Generates line like: FAUSTFLOAT* input0 = &input0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
+    for (int i = 0; i < inputs(); i++) {
+        string name1 = subst("input$0", T(i));
+        string name2 = subst("input$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
+            name1,
+            type,
+            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+    }
+}
+
+void OpenMPCodeContainer::generateLocalOutputs(BlockInst* loop_code, const string& index)
+{
+    // Generates line like: FAUSTFLOAT* ouput0 = &output0_ptr[index];
+    Typed* type = InstBuilder::genArrayTyped(InstBuilder::genBasicTyped(Typed::kFloatMacro), 0);
+    
+    for (int i = 0; i < outputs(); i++) {
+        string name1 = subst("output$0", T(i));
+        string name2 = subst("output$0_ptr", T(i));
+        loop_code->pushBackInst(InstBuilder::genDecStackVar(
+            name1,
+            type,
+            InstBuilder::genLoadArrayStackVarAddress(name2, InstBuilder::genLoadLoopVar(index))));
+    }
+}
+
 // LabelInst are used to add OMP directive in the code
 StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
 {
@@ -85,7 +115,7 @@ StatementInst* OpenMPCodeContainer::generateDAGLoopOMP(const string& counter)
     min_fun_args.push_back(InstBuilder::genInt32NumInst(gGlobal->gVecSize));
     min_fun_args.push_back(init2);
     ValueInst*      init3     = InstBuilder::genFunCallInst("min", min_fun_args);
-    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("count", InstBuilder::genBasicTyped(Typed::kInt32), init3);
+    DeclareVarInst* count_dec = InstBuilder::genDecStackVar("vsize", InstBuilder::genBasicTyped(Typed::kInt32), init3);
     loop_code->pushBackInst(count_dec);
 
     // Generates the loop DAG

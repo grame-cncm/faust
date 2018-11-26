@@ -116,22 +116,23 @@ static dsp_poly_factory* createPolyDSPFactoryFromFile(const std::string& filenam
  *
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling
  * createDSPFactory can possibly be used.
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, int opt_level = -1)
+static dsp_poly_factory* readPolyDSPFactoryFromBitcodeFile(const std::string& bit_code_path, const std::string& target, std::string& error_msg, int opt_level = -1)
 {
     std::string process_path = bit_code_path + "_bitcode_process";
     std::string effect_path = bit_code_path + "_bicode_effect";
-    llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, opt_level);
-    llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, opt_level);
+    llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(process_path, target, error_msg, opt_level);
+    llvm_dsp_factory* effect_factory = readDSPFactoryFromBitcodeFile(effect_path, target, error_msg, opt_level);
     if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
     } else {
-        llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, opt_level);
+        llvm_dsp_factory* process_factory = readDSPFactoryFromBitcodeFile(bit_code_path, target, error_msg, opt_level);
         return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
@@ -162,22 +163,23 @@ static void writePolyDSPFactoryToBitcodeFile(dsp_poly_factory* factory, const st
  *
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling
  * createDSPFactory can possibly be used.
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, int opt_level = -1)
+static dsp_poly_factory* readPolyDSPFactoryFromIRFile(const std::string& ir_code_path, const std::string& target, std::string& error_msg, int opt_level = -1)
 {
     std::string process_path = ir_code_path + "_ir_process";
     std::string effect_path = ir_code_path + "_ir_process";
-    llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(process_path, target, opt_level);
-    llvm_dsp_factory* effect_factory = readDSPFactoryFromIRFile(effect_path, target, opt_level);
+    llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(process_path, target, error_msg, opt_level);
+    llvm_dsp_factory* effect_factory = readDSPFactoryFromIRFile(effect_path, target, error_msg, opt_level);
     if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
     } else {
-        llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(ir_code_path, target, opt_level);
+        llvm_dsp_factory* process_factory = readDSPFactoryFromIRFile(ir_code_path, target, error_msg, opt_level);
         return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }
@@ -208,22 +210,23 @@ static void writePolyDSPFactoryToIRFile(dsp_poly_factory* factory, const std::st
  *
  * @param bit_code_path - the LLVM bitcode file pathname
  * @param target - the LLVM machine target (using empty string will takes current machine settings)
+ * @param error_msg - the error string to be filled
  * @param opt_level - LLVM IR to IR optimization level (from -1 to 4, -1 means 'maximum possible value'
  * since the maximum value may change with new LLVM versions). A higher value than the one used when calling
  * createDSPFactory can possibly be used.
  *
  * @return the Polyphonic DSP factory on success, otherwise a null pointer.
  */
-static dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, const std::string& target)
+static dsp_poly_factory* readPolyDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg, const std::string& target)
 {
     std::string process_path = machine_code_path + "_machine_process";
     std::string effect_path = machine_code_path + "_machine_process";
-    llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(process_path, target);
-    llvm_dsp_factory* effect_factory = readDSPFactoryFromMachineFile(effect_path, target);
+    llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(process_path, target, error_msg);
+    llvm_dsp_factory* effect_factory = readDSPFactoryFromMachineFile(effect_path, target, error_msg);
     if (process_factory) {
         return new dsp_poly_factory(process_factory, effect_factory);
     } else {
-        llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(machine_code_path, target);
+        llvm_dsp_factory* process_factory = readDSPFactoryFromMachineFile(machine_code_path, target, error_msg);
         return (process_factory) ? new dsp_poly_factory(process_factory, NULL) : NULL;
     }
 }

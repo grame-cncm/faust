@@ -292,6 +292,9 @@ struct LocalVariableCounter : public DispatchVisitor {
     {
         string         name = inst->fAddress->getName();
         Typed::VarType type = inst->fType->getType();
+        
+        //std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
+        faustassert(fLocalVarTable.find(name) == fLocalVarTable.end());
 
         // stack/loop variables accessed by [var_num, type] pairs
         if (inst->fAddress->getAccess() & Address::kStack || inst->fAddress->getAccess() & Address::kLoop) {
@@ -459,10 +462,11 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
-
+        string name = inst->fAddress->getName();
+      
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] =
+                fFieldTable[name] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
@@ -471,7 +475,7 @@ struct FunAndTypeCounter : public DispatchVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
             } else {
@@ -814,10 +818,14 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         bool is_struct =
             (inst->fAddress->getAccess() & Address::kStruct) || (inst->fAddress->getAccess() & Address::kStaticStruct);
         ArrayTyped* array_typed = dynamic_cast<ArrayTyped*>(inst->fType);
+        string name = inst->fAddress->getName();
+        
+        //std::cout << "WASMInstVisitor::DeclareVarInst " << name << std::endl;
+        faustassert(fFieldTable.find(name) == fFieldTable.end());
 
         if (array_typed && array_typed->fSize > 1) {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] =
+                fFieldTable[name] =
                     MemoryDesc(fStructOffset, array_typed->fSize, array_typed->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += (array_typed->fSize * audioSampleSize());
@@ -826,7 +834,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             }
         } else {
             if (is_struct) {
-                fFieldTable[inst->fAddress->getName()] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
+                fFieldTable[name] = MemoryDesc(fStructOffset, 1, inst->fType->getType());
                 // Always use biggest size so that int/real access are correctly aligned
                 fStructOffset += audioSampleSize();
             } else {
@@ -877,6 +885,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         fTypingVisitor.visit(inst);
         Typed::VarType type = fTypingVisitor.fCurType;
+        string         name = inst->fAddress->getName();
 
         if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
@@ -898,23 +907,25 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             generateMemoryAccess(offset);
 
         } else {
-            faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
-            LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+            faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
+            LocalVarDesc local = fLocalVarTable[name];
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
         }
     }
 
     virtual void visit(TeeVarInst* inst)
     {
-        faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
-        LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+        string name = inst->fAddress->getName();
+        
+        faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
+        LocalVarDesc local = fLocalVarTable[name];
 
         // 'tee_local' is generated the first time the variable is used
         // All future access simply use a get_local
-        if (fTeeMap.find(inst->fAddress->getName()) == fTeeMap.end()) {
+        if (fTeeMap.find(name) == fTeeMap.end()) {
             inst->fValue->accept(this);
             *fOut << int8_t(BinaryConsts::TeeLocal) << U32LEB(local.fIndex);
-            fTeeMap[inst->fAddress->getName()] = true;
+            fTeeMap[name] = true;
         } else {
             *fOut << int8_t(BinaryConsts::GetLocal) << U32LEB(local.fIndex);
         }
@@ -924,6 +935,7 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
     {
         inst->fValue->accept(&fTypingVisitor);
         Typed::VarType type = fTypingVisitor.fCurType;
+        string name = inst->fAddress->getName();
 
         if (inst->fAddress->getAccess() & Address::kStruct || inst->fAddress->getAccess() & Address::kStaticStruct ||
             dynamic_cast<IndexedAddress*>(inst->fAddress)) {
@@ -946,8 +958,8 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
             generateMemoryAccess(offset);
 
         } else {
-            faustassert(fLocalVarTable.find(inst->fAddress->getName()) != fLocalVarTable.end());
-            LocalVarDesc local = fLocalVarTable[inst->fAddress->getName()];
+            faustassert(fLocalVarTable.find(name) != fLocalVarTable.end());
+            LocalVarDesc local = fLocalVarTable[name];
             inst->fValue->accept(this);
             *fOut << int8_t(BinaryConsts::SetLocal) << U32LEB(local.fIndex);
         }
@@ -1286,8 +1298,10 @@ class WASMInstVisitor : public DispatchVisitor, public WASInst {
         }
         *fOut << int8_t(BinaryConsts::If) << int8_t(BinaryConsts::Empty);
         inst->fThen->accept(this);
-        *fOut << int8_t(BinaryConsts::Else);
-        inst->fElse->accept(this);
+        if (inst->fElse->fCode.size() > 0) {
+            *fOut << int8_t(BinaryConsts::Else);
+            inst->fElse->accept(this);
+        }
         // End of if
         *fOut << int8_t(BinaryConsts::End);
 

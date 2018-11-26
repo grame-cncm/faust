@@ -111,7 +111,8 @@ CodeContainer* InterpreterCodeContainer<T>::createContainer(const string& name, 
     } else if (gGlobal->gSchedulerSwitch) {
         throw faustexception("ERROR : Scheduler mode not supported for Interpreter\n");
     } else if (gGlobal->gVectorSwitch) {
-        throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
+        //throw faustexception("ERROR : Vector mode not supported for Interpreter\n");
+        container = new InterpreterVectorCodeContainer<T>(name, numInputs, numOutputs);
     } else {
         container = new InterpreterScalarCodeContainer<T>(name, numInputs, numOutputs, kInt);
     }
@@ -163,12 +164,14 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fStaticInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
     // Keep "init_static_block"
     FBCBlockInstruction<T>* init_static_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>());
 
     // Rename 'sig' in 'dsp', remove 'dsp' allocation, inline subcontainers 'instanceInit' and 'fill' function call
     inlineSubcontainersFunCalls(fInitInstructions)->accept(gGlobal->gInterpreterVisitor);
+    
     // Keep "init_block"
     FBCBlockInstruction<T>* init_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>);
@@ -193,11 +196,8 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     FBCBlockInstruction<T>* compute_control_block = getCurrentBlock<T>();
     setCurrentBlock<T>(new FBCBlockInstruction<T>);
 
-    // Generate one single scalar loop
-    ForLoopInst* loop = fCurLoop->generateScalarLoop(fFullCount);
-
-    loop->accept(gGlobal->gInterpreterVisitor);
-    FBCBlockInstruction<T>* compute_dsp_block = getCurrentBlock<T>();
+    // Keep "compute_dsp_block"
+    FBCBlockInstruction<T>* compute_dsp_block = generateCompute();
 
     // Generate metadata block and name
     string                   name;
@@ -206,11 +206,15 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
     // Then create factory depending of the trace mode
     const char* trace = getenv("FAUST_INTERP_TRACE");
     int         mode  = (trace) ? std::atoi(trace) : 0;
+    
+    // Prepare compilation options
+    stringstream compile_options;
+    gGlobal->printCompilationOptions(compile_options);
 
     switch (mode) {
         case 1:
             return new interpreter_dsp_factory_aux<T, 1>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -219,7 +223,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 2:
             return new interpreter_dsp_factory_aux<T, 2>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -228,7 +232,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 3:
             return new interpreter_dsp_factory_aux<T, 3>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -237,7 +241,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 4:
             return new interpreter_dsp_factory_aux<T, 4>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -246,7 +250,7 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
 
         case 5:
             return new interpreter_dsp_factory_aux<T, 5>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
@@ -256,13 +260,31 @@ dsp_factory_base* InterpreterCodeContainer<T>::produceFactory()
         default:
             // Default case, no trace...
             return new interpreter_dsp_factory_aux<T, 0>(
-                name, "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
+                name, compile_options.str(), "", INTERP_FILE_VERSION, fNumInputs, fNumOutputs, getInterpreterVisitor<T>()->fIntHeapOffset,
                 getInterpreterVisitor<T>()->fRealHeapOffset, getInterpreterVisitor<T>()->fSoundHeapOffset,
                 getInterpreterVisitor<T>()->getFieldOffset("fSamplingFreq"),
                 getInterpreterVisitor<T>()->getFieldOffset("count"), getInterpreterVisitor<T>()->getFieldOffset("IOTA"),
                 INTER_MAX_OPT_LEVEL, metadata_block, getInterpreterVisitor<T>()->fUserInterfaceBlock, init_static_block,
                 init_block, resetui_block, clear_block, compute_control_block, compute_dsp_block);
     }
+}
+
+template <class T>
+FBCBlockInstruction<T>* InterpreterScalarCodeContainer<T>::generateCompute()
+{
+    // Generate one single scalar loop
+    ForLoopInst* loop = this->fCurLoop->generateScalarLoop(this->fFullCount);
+    
+    loop->accept(gGlobal->gInterpreterVisitor);
+    return getCurrentBlock<T>();
+}
+
+template <class T>
+FBCBlockInstruction<T>* InterpreterVectorCodeContainer<T>::generateCompute()
+{
+    // Generates the DSP loop
+    this->fDAGBlock->accept(gGlobal->gInterpreterVisitor);
+    return getCurrentBlock<T>();
 }
 
 template <class T>

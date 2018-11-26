@@ -1,21 +1,22 @@
 # faust2juce
 
-faust2juce transforms a Faust DSP program into a fully working JUCE standalone application or plugin, which can possibly be controlled with MIDI or OSC messages. Polyphonic instruments are automatically created from polyphonic aware Faust DSP code, which contains interface parameters with the following `freq`, `gain` and `gate` names. The metadata **declare nvoices "8";** kind of line with a desired value of voices can be added in the source code. See [Creating polyphonic instruments](http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html). 
+**faust2juce** transforms a Faust DSP program into a fully working JUCE standalone application or plugin, which can possibly be controlled with MIDI or OSC messages. Polyphonic instruments are automatically created from polyphonic aware Faust DSP code, which contains interface parameters with the following `freq`, `gain` and `gate` names. The metadata **declare nvoices "8";** kind of line with a desired value of voices can be added in the source code. See [Creating polyphonic instruments](http://faust.grame.fr/news/2016/01/13/polyphonic-instruments.html). 
 
 Polyphonic synthesiser can be created using JUCE Synthesiser model or Faust own polyphonic architecture file (using the 'mydsp_poly' class). The `-jsynth` parameter has to be used to choose the JUCE model.
 
-faust2juce uses several UI interfaces, subclasses of the base UI class (defined in architecture/faust/gui/UI.h header) to link to various JUCE components:
+**faust2juce** uses several UI interfaces, subclasses of the base UI class (defined in architecture/faust/gui/UI.h header) to link to various JUCE components:
 
  - `JuceGUI.h` : contains the main JuceGUI class (and additional helpers classes) to display Faust UI components (buttons, sliders, bargraphs...) using JUCE widgets
  - `JuceOSCUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE OSC messaging system, allowing to control them in both directions
  - `JuceParameterUI.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) with the JUCE AudioParameterFloat/AudioParameterFloat classes
  - `JuceStateUI.h` : allows to save/restore Faust UI components (buttons, sliders, bargraphs...) values using the JUCE state management system (MemoryInputStream/MemoryOutputStream classes)
 - `JuceReader.h` : contains code to load audio files using the JUCE handling code, that will be used when the `soundfile` primitive is used in the code
+- `juce-midi.h` : allows to link Faust UI components (buttons, sliders, bargraphs...) to the JUCE MIDI messaging system (for inputs and outputs) 
 
 
 ## How to use
 
-faust2juce is used with the following command: 
+**faust2juce** is used with the following command: 
 
 `faust2juce [-standalone] [-nvoices <num>] [-effect <effect.dsp>] [-jsynth]  [-midi] [-osc] [-soundfile] file.dsp` 
 

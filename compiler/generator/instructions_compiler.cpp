@@ -552,7 +552,7 @@ ValueInst* InstructionsCompiler::generateCode(Tree sig)
         error << "ERROR when compiling, unrecognized signal : " << ppsig(sig) << endl;
         throw faustexception(error.str());
     }
-    return InstBuilder::genNullInst();
+    return InstBuilder::genNullValueInst();
 }
 
 /*****************************************************************************
@@ -869,7 +869,7 @@ ValueInst* InstructionsCompiler::generateVariableStore(Tree sig, ValueInst* exp)
             }
 
         default:
-            return InstBuilder::genNullInst();
+            return InstBuilder::genNullValueInst();
     }
 }
 
@@ -1394,7 +1394,7 @@ ValueInst* InstructionsCompiler::generateRecProj(Tree sig, Tree r, int i)
         res = generateRec(r, var, le, i);
         ensure(getVectorNameProperty(sig, vname));
     } else {
-        res = InstBuilder::genNullInst();  // Result not used
+        res = InstBuilder::genNullValueInst();  // Result not used
     }
     return res;
 }
@@ -1474,7 +1474,7 @@ ValueInst* InstructionsCompiler::generatePrefix(Tree sig, Tree x, Tree e)
 ValueInst* InstructionsCompiler::generateIota(Tree sig, Tree arg)
 {
     // Result not used
-    return InstBuilder::genNullInst();
+    return InstBuilder::genNullValueInst();
 }
 
 /**
@@ -1572,7 +1572,7 @@ ValueInst* InstructionsCompiler::generateSelect3(Tree sig, Tree sel, Tree s1, Tr
 {
     // Done at signal level
     faustassert(false);
-    return InstBuilder::genNullInst();
+    return InstBuilder::genNullValueInst();
 }
 
 /*****************************************************************************

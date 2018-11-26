@@ -225,8 +225,9 @@ class CodeContainer : public virtual Garbageable {
     void computeForwardDAG(lclgraph dag, int& loop_count, vector<int>& ready_loop);
     void sortDeepFirstDAG(CodeLoop* l, set<CodeLoop*>& visited, list<CodeLoop*>& result);
 
-    void generateLocalInputs(BlockInst* loop_code, const string& index);
-    void generateLocalOutputs(BlockInst* loop_code, const string& index);
+    // Should be implemented in subclasses
+    virtual void generateLocalInputs(BlockInst* loop_code, const string& index) { faustassert(false); }
+    virtual void generateLocalOutputs(BlockInst* loop_code, const string& index) { faustassert(false); }
 
     DeclareFunInst* generateGetIO(const string& name, const string& obj, int io, bool ismethod, bool isvirtual);
     DeclareFunInst* generateGetInputs(const string& name, const string& obj, bool ismethod, bool isvirtual);

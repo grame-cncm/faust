@@ -19,39 +19,24 @@
  ************************************************************************
  ************************************************************************/
 
-#ifndef _WSS_CODE_CONTAINER_H
-#define _WSS_CODE_CONTAINER_H
+#ifndef _FBC_EXECUTOR_H
+#define _FBC_EXECUTOR_H
 
-#include "code_container.hh"
+#include "faust/gui/CGlue.h"
+#include "interpreter_bytecode.hh"
 
-class WSSCodeContainer : public virtual CodeContainer {
-   private:
-    string fObjName;
-
-    void moveCompute2ComputeThread();
-
-    void generateLocalInputs(BlockInst* loop_code, const string& index_string);
-    void generateLocalOutputs(BlockInst* loop_code, const string& index_string);
-
-    BlockInst* generateDAGLoopWSS(lclgraph dag);
-    void       generateDAGLoopWSSAux1(lclgraph dag, BlockInst* loop_code, int cur_thread = 0);
-    void       generateDAGLoopWSSAux2(lclgraph dag, const string& counter);
-    void       generateDAGLoopWSSAux3(int loop_count, const vector<int>& ready_loop);
-
-    void       processFIR(void);
-    BlockInst* flattenFIR(void);
-
-   protected:
-    BlockInst* fThreadLoopBlock;
-    BlockInst* fComputeThreadBlockInstructions;
-
-   public:
-    WSSCodeContainer(int numInputs, int numOutputs, string const& objName)
-        : fObjName(objName), fComputeThreadBlockInstructions(InstBuilder::genBlockInst())
-    {
-        initializeCodeContainer(numInputs, numOutputs);
-        fFullCount = "count";
-    }
+template <class T>
+struct FBCExecutor {
+    
+    virtual void ExecuteBuildUserInterface(FIRUserInterfaceBlockInstruction<T>* block, UITemplate* glue) {};
+    virtual void ExecuteBlock(FBCBlockInstruction<T>* block) {};
+    
+    virtual void setIntValue(int offset, int value) {}
+    virtual int getIntValue(int offset) { return -1; }
+    
+    virtual void setInput(int offset, T* buffer) {}
+    virtual void setOutput(int offset, T* buffer) {}
+    
 };
 
 #endif

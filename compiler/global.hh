@@ -141,7 +141,8 @@ struct global {
     bool gInlineArchSwitch;
 
     bool gDSPStruct;
-    bool gLightMode;
+    bool gLightMode;         // do not generate the entire DSP API (to be used with Emscripten to generate a light DSP module for JavaScript)
+    bool gClang;             // when compiled with clang/clang++, adds specific #pragma for auto-vectorization
 
     string gClassName;       // name of the generated dsp class, by default 'mydsp'
     string gSuperClassName;  // name of the root class the generated dsp class inherits from, by default 'dsp'
@@ -162,6 +163,7 @@ struct global {
     bool   gHasTeeLocal;           // For wast/wasm backends
     bool   gFastMath;              // Faster version of some mathematical functions (pow/exp/log)
     bool   gNeedManualPow;         // If manual pow(x, y) generation when y is an integer is needed
+    bool   gRemoveVarAddress;      // If used of variable addresses (like &foo or &foo[n]) have to be removed
     string gFastMathLib;           // The fastmath code mapping file
 
     map<string, string> gFastMathLibTable;  // Mapping table for fastmath functions

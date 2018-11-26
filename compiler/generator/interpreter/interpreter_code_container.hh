@@ -23,6 +23,7 @@
 #define _INTERPRETER_CODE_CONTAINER_H
 
 #include "code_container.hh"
+#include "vec_code_container.hh"
 #include "fir_to_fir.hh"
 #include "instructions_compiler.hh"
 #include "interpreter_dsp_aux.hh"
@@ -43,6 +44,9 @@ class InterpreterCodeContainer : public virtual CodeContainer {
             pushDeclare(InstBuilder::genDecStructVar("fSamplingFreq", InstBuilder::genBasicTyped(Typed::kInt32)));
         }
     }
+    
+    // To be implemented in each InterpreterScalarCodeContainer and InterpreterVectorCodeContainer classes
+    virtual FBCBlockInstruction<T>* generateCompute() = 0;
 
    public:
     InterpreterCodeContainer(const string& name, int numInputs, int numOutputs);
@@ -59,15 +63,30 @@ class InterpreterCodeContainer : public virtual CodeContainer {
 
 template <class T>
 class InterpreterScalarCodeContainer : public InterpreterCodeContainer<T> {
+    
    protected:
+    virtual FBCBlockInstruction<T>* generateCompute();
+    
    public:
     InterpreterScalarCodeContainer(const string& name, int numInputs, int numOutputs, int sub_container_type);
     virtual ~InterpreterScalarCodeContainer();
-
-    void generateCompute(int tab);
 };
 
+template <class T>
+class InterpreterVectorCodeContainer : public VectorCodeContainer, public InterpreterCodeContainer<T> {
+    
+    protected:
+      virtual FBCBlockInstruction<T>* generateCompute();
+    
+    public:
+    InterpreterVectorCodeContainer(const string& name, int numInputs, int numOutputs)
+        : VectorCodeContainer(numInputs, numOutputs), InterpreterCodeContainer<T>(name, numInputs, numOutputs)
+    {}
+    virtual ~InterpreterVectorCodeContainer() {}
+ };
+
 class InterpreterInstructionsCompiler : public virtual InstructionsCompiler {
+    
    public:
     InterpreterInstructionsCompiler(CodeContainer* container) : InstructionsCompiler(container) {}
 

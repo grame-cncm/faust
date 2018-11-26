@@ -98,7 +98,7 @@ faust1 uses a loop size of 512, but 512 makes faust2 crash (stack allocation err
 So we use a lower value here.
 */
 
-global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
+global::global():TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 {
     CTree::init();
     Symbol::init();
@@ -146,6 +146,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
 
     gDSPStruct = false;
     gLightMode = false;
+    gClang     = false;
 
     gClassName      = "mydsp";
     gSuperClassName = "dsp";
@@ -168,6 +169,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gHasTeeLocal          = false;
     gFastMath             = false;
     gNeedManualPow        = true;
+    gRemoveVarAddress     = false;
     gFastMathLib          = "default";
 
     // Fastmath mapping float version
@@ -420,7 +422,7 @@ global::global() : TABBER(1), gLoopDetector(1024, 400), gNextFreeColor(1)
     gArchFile         = "";
     gExportDSP        = false;
 
-    gTimeout = 120;  // time out to abort compiler (in seconds)
+    gTimeout = 120;  // Time out to abort compiler (in seconds)
 
     // Globals to transfer results in thread based evaluation
     gProcessTree  = 0;
@@ -443,9 +445,9 @@ void global::init()
     gSymListProp           = new property<Tree>();
 
     // Essential predefined types
-
     gMemoizedTypes   = new property<AudioType*>();
     gAllocationCount = 0;
+    
     // True by default but only usable with -lang ocpp backend
     gEnableFlag = true;
 
@@ -460,8 +462,7 @@ void global::init()
     TINIT = makeSimpleType(kInt, kKonst, kInit, kVect, kNum, interval());
     TEXEC = makeSimpleType(kInt, kKonst, kExec, kVect, kNum, interval());
 
-    // more predefined types
-
+    // More predefined types
     TINPUT   = makeSimpleType(kReal, kSamp, kExec, kVect, kNum, interval());
     TGUI     = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval());
     TGUI01   = makeSimpleType(kReal, kBlock, kExec, kVect, kNum, interval(0, 1));
@@ -469,11 +470,11 @@ void global::init()
 
     TREC = makeSimpleType(kInt, kSamp, kInit, kScal, kNum, interval());
 
-    // predefined symbols CONS and NIL
+    // Predefined symbols CONS and NIL
     CONS = symbol("cons");
     NIL  = symbol("nil");
 
-    // predefined nil tree
+    // Predefined nil tree
     nil = tree(NIL);
 
     PROCESS = symbol("process");
@@ -549,7 +550,7 @@ void global::init()
     // (workaround for a bug in bitcode generation : http://lists.cs.uiuc.edu/pipermail/llvmbugs/2012-May/023530.html)
     setlocale(LC_ALL, "C");
 
-    // source file injection
+    // Source file injection
     gInjectFlag = false;  // inject an external source file into the architecture file
     gInjectFile = "";     // instead of a compiled dsp file
 

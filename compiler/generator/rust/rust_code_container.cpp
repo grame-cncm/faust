@@ -455,7 +455,7 @@ void RustVectorCodeContainer::generateCompute(int n)
     // Generates local variables declaration and setup
     generateComputeBlock(&fCodeProducer);
 
-    // Generates DSP loop
+    // Generates the DSP loop
     fDAGBlock->accept(&fCodeProducer);
 
     tab(n, *fOut);

@@ -168,7 +168,7 @@ int main(int argc, char* argv[])
         // argc : without the filename (last element);
         factory = createInterpreterDSPFactoryFromFile(argv[argc-1], argc1, argv1, error_msg);
         if (!factory) {
-            factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1]);
+            factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1], error_msg);
         }
     }
     
