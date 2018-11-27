@@ -46,12 +46,10 @@ class jack_midi_handler : public midi_handler {
 
         void writeMessage(double date, unsigned char* buffer, size_t size)
         {
-            if (fOutBuffer) {
-                size_t res;
-                DatedMessage dated_message(date, buffer, size);
-                if ((res = ringbuffer_write(fOutBuffer, (const char*)&dated_message, sizeof(DatedMessage))) != sizeof(DatedMessage)) {
-                    std::cerr << "ringbuffer_write error DatedMessage" << std::endl;
-                }
+            size_t res;
+            DatedMessage dated_message(date, buffer, size);
+            if ((res = ringbuffer_write(fOutBuffer, (const char*)&dated_message, sizeof(DatedMessage))) != sizeof(DatedMessage)) {
+                std::cerr << "ringbuffer_write error DatedMessage" << std::endl;
             }
         }
 

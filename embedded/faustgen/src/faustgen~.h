@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2012-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -216,14 +216,14 @@ class faustgen : public MspCpp5<faustgen> {
         faustgen_factory* fDSPfactory;
         map<string, vector<t_object*> > fOutputTable;
         
-        mspUI* fDSPUI;              // Control UI
-        MidiUI* fMidiUI;            // Midi UI
-        OSCUI* fOSCUI;              // OSC UI
+        mspUI* fDSPUI;                  // Control UI
+        MidiUI* fMidiUI;                // Midi UI
+        OSCUI* fOSCUI;                  // OSC UI
     
-        ::dsp* fDSP;                // LLVM Faust dsp
-        t_object* fEditor;          // text editor object
-        bool fMute;                 // DSP mute state
-        static t_jrgba gDefaultColor;  // Color of the object to be used when restoring default color
+        ::dsp* fDSP;                    // LLVM Faust dsp
+        t_object* fEditor;              // text editor object
+        bool fMute;                     // DSP mute state
+        static t_jrgba gDefaultColor;   // color of the object to be used when restoring default color
          
         // Display DSP text source
         void display_dsp_source();

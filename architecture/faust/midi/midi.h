@@ -150,7 +150,9 @@ class midi_handler : public midi {
 
         std::vector<midi*> fMidiInputs;
         std::string fName;
-
+    
+        int range(int min, int max, int val) { return (val < min) ? min : ((val >= max) ? max : val); }
+  
     public:
 
         midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}

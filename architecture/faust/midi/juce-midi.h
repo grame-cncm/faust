@@ -162,7 +162,7 @@ class juce_midi_handler : public midi_handler {
         
         void pitchWheel(int channel, int wheel)
         {
-            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, wheel), 0);
+            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)), 0);
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -265,7 +265,7 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
    
         void pitchWheel(int channel, int wheel) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, wheel));
+            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)));
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -290,7 +290,7 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
     
         void sysEx(double date, std::vector<unsigned char>* message)
         {
-            fMidiOut->sendMessageNow(MidiMessage::createSysExMessage(message->data() + 1, (const int)message->size() - 1));
+            fMidiOut->sendMessageNow(MidiMessage(message->data(), (int)message->size()));
         }
     
 };
