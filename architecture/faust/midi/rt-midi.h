@@ -60,7 +60,7 @@ class rt_midi : public midi_handler {
             } else if (nBytes == 3) {
                 midi->handleData2(time, type, channel, (int)message->at(1), (int)message->at(2));
             } else {
-                midi->handleMessage(time, (int)message->at(0), message);
+                midi->handleMessage(time, (int)message->at(0), *message);
             }
         }
         
@@ -266,9 +266,9 @@ class rt_midi : public midi_handler {
             sendMessage(message);
         }
     
-        void sysEx(double, std::vector<unsigned char>* message)
+        void sysEx(double, std::vector<unsigned char>& message)
         {
-            sendMessage(*message);
+            sendMessage(message);
         }
     
 };

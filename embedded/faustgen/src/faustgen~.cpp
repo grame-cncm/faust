@@ -1,6 +1,6 @@
 /************************************************************************
     FAUST Architecture File
-    Copyright (C) 2010-2015 GRAME, Centre National de Creation Musicale
+    Copyright (C) 2012-2018 GRAME, Centre National de Creation Musicale
     ---------------------------------------------------------------------
     This Architecture section is free software; you can redistribute it
     and/or modify it under the terms of the GNU General Public License
@@ -27,10 +27,6 @@
 
 #define LLVM_DSP
 #include "faust/dsp/poly-dsp.h"
-
-#ifndef WIN32
-//#include "faust/sound-file.h"
-#endif
 
 int faustgen_factory::gFaustCounter = NULL;
 map<string, faustgen_factory*> faustgen_factory::gFactoryMap;
@@ -172,7 +168,7 @@ faustgen_factory::faustgen_factory(const string& name)
     fPolyphonic = false;
     fSoundUI = NULL;
     
-    fMidiHandler.start_midi();
+    fMidiHandler.startMidi();
     
 #ifdef __APPLE__
     // OSX only : access to the fautgen~ bundle
@@ -229,7 +225,7 @@ faustgen_factory::~faustgen_factory()
     free_sourcecode();
     free_bitcode();
     
-    fMidiHandler.stop_midi();
+    fMidiHandler.stopMidi();
    
     remove_svg();
     systhread_mutex_free(fDSPMutex);
@@ -274,14 +270,14 @@ llvm_dsp_factory* faustgen_factory::create_factory_from_bitcode()
 {
     //return readDSPFactoryFromBitcode(*fBitCode, getTarget(), fOptLevel);
     
-    // Alternate model using machine code
-    string error_msg;
-    return readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
-    
     /*
     // Alternate model using LLVM IR
     return readDSPFactoryFromIR(*fBitCode, getTarget(), fOptLevel);
     */
+    
+    // Alternate model using machine code
+    string error_msg;
+    return readDSPFactoryFromMachine(*fBitCode, getTarget(), error_msg);
 }
 
 llvm_dsp_factory* faustgen_factory::create_factory_from_sourcecode()
@@ -551,20 +547,15 @@ void faustgen_factory::getfromdictionary(t_dictionary* d)
     }
     
     // If OK read bitcode
-    
-    //post("read bitcode fBitCodeSize %d\n", fBitCodeSize);
-    
     fBitCode = sysmem_newhandleclear(fBitCodeSize + 1);             // We need to use a size larger by one for the null terminator
     const char* bitcode;
-    err = dictionary_getstring(d, gensym("machinecode"), &bitcode);     // The retrieved pointer references the string in the dictionary, it is not a copy.
+    err = dictionary_getstring(d, gensym("machinecode"), &bitcode); // The retrieved pointer references the string in the dictionary, it is not a copy.
     sysmem_copyptr(bitcode, *fBitCode, fBitCodeSize);
     if (err != MAX_ERR_NONE) {
         fBitCodeSize = 0;
     }
     
-    //post("read bitcode fBitCodeSize OK %d\n", fBitCodeSize);
-
-read_sourcecode:    
+read_sourcecode:
 
     // Read sourcecode size key
     err = dictionary_getlong(d, gensym("sourcecode_size"), (t_atom_long*)&fSourceCodeSize); 
@@ -613,12 +604,12 @@ void faustgen_factory::appendtodictionary(t_dictionary* d)
         
         // Alternate model using LLVM IR
         // string ircode = writeDSPFactoryToIR(fDSPfactory);
-    
-        // Alternate model using machine code
-        string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
         
         //dictionary_appendlong(d, gensym("bitcode_size"), bitcode.size());
         //dictionary_appendstring(d, gensym("bitcode"), bitcode.c_str());
+        
+        // Alternate model using machine code
+        string machinecode = writeDSPFactoryToMachine(fDSPfactory, getTarget());
         
         dictionary_appendlong(d, gensym("machinecode_size"), machinecode.size());
         dictionary_appendstring(d, gensym("machinecode"), machinecode.c_str());
@@ -978,15 +969,12 @@ void faustgen_factory::compileoptions(long inlet, t_symbol* s, long argc, t_atom
     
     /*
     if (optimize) {
- 
         post("Start looking for optimal compilation options...");
-         
     #ifdef __APPLE__
         double best;
         dsp_optimizer optimizer(string(*fSourceCode), (*fLibraryPath.begin()).c_str(), getTarget(), sys_getblksize());
         fOptions = optimizer.findOptimizedParameters(best);
     #endif
-        
         post("Optimal compilation options found");
     }
     */
@@ -1708,17 +1696,6 @@ void faustgen::mute(long inlet, long mute)
 {
     fMute = mute;
 }
-
-/*
-// To force libsndfile linking
-static SoundFileReader* __foo__reader = 0;
-
-static int __foo__create() { if (!__foo__reader) __foo__reader = createSFR("foo.wav"); }
-static int __foo__size() { return sizeSFR(__foo__reader); }
-static float __foo__sample(int channel, int index) { return sampleSFR(__foo__reader, channel, index); }
-static int __foo__channels() { return channelsSFR(__foo__reader); }
-static void __foo__destroy() { return destroySFR(__foo__reader); }
-*/
 
 /*
 // For Max 6

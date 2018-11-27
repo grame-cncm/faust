@@ -87,7 +87,7 @@ class midi {
             progChange(channel, pgm);
         }
     
-        virtual void sysEx(double, std::vector<unsigned char>* message)
+        virtual void sysEx(double, std::vector<unsigned char>& message)
         {
             sysEx(message);
         }
@@ -106,7 +106,7 @@ class midi {
         virtual void ctrlChange14bits(int channel, int ctrl, int value) {}
         virtual void pitchWheel(int channel, int wheel)                 {}
         virtual void progChange(int channel, int pgm)                   {}
-        virtual void sysEx(std::vector<unsigned char>* message)         {}
+        virtual void sysEx(std::vector<unsigned char>& message)         {}
 
         enum MidiStatus {
 
@@ -150,7 +150,9 @@ class midi_handler : public midi {
 
         std::vector<midi*> fMidiInputs;
         std::string fName;
-
+    
+        int range(int min, int max, int val) { return (val < min) ? min : ((val >= max) ? max : val); }
+  
     public:
 
         midi_handler(const std::string& name = "MIDIHandler"):fName(name) {}
@@ -226,7 +228,7 @@ class midi_handler : public midi {
             }
         }
     
-        void handleMessage(double time, int type, std::vector<unsigned char>* message)
+        void handleMessage(double time, int type, std::vector<unsigned char>& message)
         {
             if (type == MIDI_SYSEX_START) {
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {

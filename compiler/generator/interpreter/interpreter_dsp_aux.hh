@@ -1162,14 +1162,14 @@ EXPORT std::vector<std::string> getInterpreterDSPFactoryLibraryList(interpreter_
 
 EXPORT std::vector<std::string> getAllInterpreterDSPFactories();
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& fbc_code, std::string& error_msg);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
 
-EXPORT std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
+EXPORT std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& fbc_code_path, std::string& error_msg);
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path, std::string& error_msg);
 
-EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory,
-                                                    const std::string&       fbc_code_path);
+EXPORT void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory,
+                                                    const std::string&       bitcode_path);
 
 EXPORT void deleteAllInterpreterDSPFactories();
 

@@ -90,7 +90,7 @@ class juce_midi_handler : public midi_handler {
             } else if (message.isSysEx()) {
                 std::vector<unsigned char> sysex(data, data + message.getRawDataSize());
                 for (unsigned int i = 0; i < fMidiInputs.size(); i++) {
-                    fMidiInputs[i]->sysEx(message.getTimeStamp(), &sysex);
+                    fMidiInputs[i]->sysEx(message.getTimeStamp(), sysex);
                 }
             } else {
                 std::cerr << "Unused MIDI message" << std::endl;
@@ -162,7 +162,7 @@ class juce_midi_handler : public midi_handler {
         
         void pitchWheel(int channel, int wheel)
         {
-            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, wheel), 0);
+            fOutputBuffer.addEvent(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)), 0);
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -185,9 +185,9 @@ class juce_midi_handler : public midi_handler {
             fOutputBuffer.addEvent(MidiMessage::midiClock(), 0);
         }
     
-        void sysEx(double date, std::vector<unsigned char>* message)
+        void sysEx(double date, std::vector<unsigned char>& message)
         {
-            fOutputBuffer.addEvent(MidiMessage::createSysExMessage(message->data() + 1, (const int)message->size() - 1), 0);
+            fOutputBuffer.addEvent(MidiMessage(message.data(), (int)message.size()), 0);
         }
 
 };
@@ -265,7 +265,7 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
    
         void pitchWheel(int channel, int wheel) 
         {
-            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, wheel));
+            fMidiOut->sendMessageNow(MidiMessage::pitchWheel(channel + 1, range(0, 16383, wheel)));
         }
         
         void ctrlChange14bits(int channel, int ctrl, int value)
@@ -288,9 +288,9 @@ class juce_midi : public juce_midi_handler, public MidiInputCallback {
             fMidiOut->sendMessageNow(MidiMessage::midiClock());
         }
     
-        void sysEx(double date, std::vector<unsigned char>* message)
+        void sysEx(double date, std::vector<unsigned char>& message)
         {
-            fMidiOut->sendMessageNow(MidiMessage::createSysExMessage(message->data() + 1, (const int)message->size() - 1));
+            fMidiOut->sendMessageNow(MidiMessage(message.data(), (int)message.size()));
         }
     
 };

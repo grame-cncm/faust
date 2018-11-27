@@ -121,12 +121,12 @@ static string read_real_type(istream* in)
     return type;
 }
 
-static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(const string& fbc_code, string& error_msg)
+static interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeAux(const string& bitcode, string& error_msg)
 {
     try {
         dsp_factory_table<SDsp_factory>::factory_iterator it;
         interpreter_dsp_factory* factory = 0;
-        string sha_key = generateSHA1(fbc_code);
+        string sha_key = generateSHA1(bitcode);
         
         if (gInterpreterFactoryTable.getFactory(sha_key, it)) {
             SDsp_factory sfactory = (*it).first;
@@ -134,7 +134,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(const st
             return sfactory;
         } else {
             interpreter_dsp_factory* factory = nullptr;
-            stringstream reader(fbc_code);
+            stringstream reader(bitcode);
             string type = read_real_type(&reader);
       
             if (type == "float") {
@@ -147,7 +147,7 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(const st
 
             gInterpreterFactoryTable.setFactory(factory);
             factory->setSHAKey(sha_key);
-            factory->setDSPCode(fbc_code);
+            factory->setDSPCode(bitcode);
             return factory;
         }
     } catch (faustexception& e) {
@@ -156,30 +156,30 @@ static interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineAux(const st
     }
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const string& fbc_code, string& error_msg)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const string& bitcode, string& error_msg)
 {
-    return readInterpreterDSPFactoryFromMachineAux(fbc_code, error_msg);
+    return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
 }
 
-EXPORT string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory)
+EXPORT string writeInterpreterDSPFactoryToBicode(interpreter_dsp_factory* factory)
 {
     stringstream writer;
     factory->write(&writer, true);
     return writer.str();
 }
 
-EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const string& fbc_code_path, string& error_msg)
+EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const string& bitcode_path, string& error_msg)
 {
-    string base = basename((char*)fbc_code_path.c_str());
-    size_t pos  = fbc_code_path.find(".fbc");
+    string base = basename((char*)bitcode_path.c_str());
+    size_t pos  = bitcode_path.find(".fbc");
 
     if (pos != string::npos) {
-        ifstream reader(fbc_code_path.c_str());
+        ifstream reader(bitcode_path.c_str());
         if (reader.is_open()) {
-            string fbc_code(istreambuf_iterator<char>(reader), {});
-            return readInterpreterDSPFactoryFromMachineAux(fbc_code, error_msg);
+            string bitcode(istreambuf_iterator<char>(reader), {});
+            return readInterpreterDSPFactoryFromBitcodeAux(bitcode, error_msg);
         } else {
-            error_msg = "ERROR opening file '" + fbc_code_path + "'\n";
+            error_msg = "ERROR opening file '" + bitcode_path + "'\n";
             return nullptr;
         }
     } else {
@@ -188,9 +188,9 @@ EXPORT interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const s
     }
 }
 
-EXPORT void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const string& fbc_code_path)
+EXPORT void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const string& bitcode_path)
 {
-    ofstream writer(fbc_code_path.c_str());
+    ofstream writer(bitcode_path.c_str());
     factory->write(&writer, true);
 }
 

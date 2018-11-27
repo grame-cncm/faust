@@ -120,7 +120,7 @@ class bela_midi : public midi_handler {
                                 // std::vector<unsigned char> sysex(message.getData(), message.getData() + message.getNumDataBytes());
                                 
                                 for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
-                                    midi->fMidiInputs[i]->sysEx(&sysex);
+                                    midi->fMidiInputs[i]->sysEx(sysex);
                                 }
                                 break;
                             default:
@@ -248,9 +248,9 @@ class bela_midi : public midi_handler {
             fBelaMidi.writeOutput(buffer, 1);
         }
     
-        void sysEx(double date, std::vector<unsigned char>* message)
+        void sysEx(double date, std::vector<unsigned char>& message)
         {
-            fBelaMidi.writeOutput(message->data(), message->size());
+            fBelaMidi.writeOutput(message.data(), message.size());
         }
     
 };

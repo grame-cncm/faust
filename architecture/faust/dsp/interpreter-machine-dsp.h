@@ -171,48 +171,48 @@ void deleteAllInterpreterDSPFactories();
 std::vector<std::string> getAllInterpreterDSPFactories();
 
 /**
- * Create a Faust DSP factory from a machine code string. Note that the library keeps an internal cache of all
- * allocated factories so that the compilation of the same DSP code (that is the same machine code string) will return
+ * Create a Faust DSP factory from a bitcode string. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same bitcode code string) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code - the machine code string
+ * @param bitcode_code - the bitcode string
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachine(const std::string& machine_code, std::string& error_msg);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcode(const std::string& bitcode, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code string.
+ * Write a Faust DSP factory into a bitcode string.
  *
  * @param factory - the DSP factory
  *
- * @return the machine code as a string.
+ * @return the bitcode as a string.
  */
-std::string writeInterpreterDSPFactoryToMachine(interpreter_dsp_factory* factory);
+std::string writeInterpreterDSPFactoryToBitcode(interpreter_dsp_factory* factory);
 
 /**
- * Create a Faust DSP factory from a machine code file. Note that the library keeps an internal cache of all
- * allocated factories so that the compilation of the same DSP code (that is the same machine code file) will return
+ * Create a Faust DSP factory from a bitcode file. Note that the library keeps an internal cache of all
+ * allocated factories so that the compilation of the same DSP code (that is the same Bitcode file) will return
  * the same (reference counted) factory pointer. You will have to explicitly use deleteInterpreterDSPFactory to properly
  * decrement reference counter when the factory is no more needed.
  *
- * @param machine_code_path - the machine code file pathname
+ * @param bitcode_path - the bitcode file pathname
  * @param error_msg - the error string to be filled
  *
  * @return the DSP factory on success, otherwise a null pointer.
  */
-interpreter_dsp_factory* readInterpreterDSPFactoryFromMachineFile(const std::string& machine_code_path, std::string& error_msg);
+interpreter_dsp_factory* readInterpreterDSPFactoryFromBitcodeFile(const std::string& bitcode_path, std::string& error_msg);
 
 /**
- * Write a Faust DSP factory into a machine code file.
+ * Write a Faust DSP factory into a bitcode file.
  *
  * @param factory - the DSP factory
- * @param machine_code_path - the machine code file pathname
+ * @param bitcode_path - the bitcode file pathname
  *
  */
-void writeInterpreterDSPFactoryToMachineFile(interpreter_dsp_factory* factory, const std::string& machine_code_path);
+void writeInterpreterDSPFactoryToBitcodeFile(interpreter_dsp_factory* factory, const std::string& bitcode_path);
 
 /*!
  @}

@@ -22,7 +22,11 @@
 
  ************************************************************************/
 
+#include <iostream>
+#include <fstream>
+
 #include "faust/dsp/llvm-dsp.h"
+#include "faust/dsp/libfaust.h"
 #include "faust/audio/dummy-audio.h"
 #include "faust/misc.h"
 
@@ -33,6 +37,26 @@ static void printList(const vector<string>& list)
     for (int i = 0; i < list.size(); i++) {
         std::cout << "item: " << list[i] << "\n";
     }
+}
+
+static std::string pathToContent(const std::string& path)
+{
+    std::ifstream file(path.c_str(), std::ifstream::binary);
+    
+    file.seekg(0, file.end);
+    int size = int(file.tellg());
+    file.seekg(0, file.beg);
+    
+    // And allocate buffer to that a single line can be read...
+    char* buffer = new char[size + 1];
+    file.read(buffer, size);
+    
+    // Terminate the string
+    buffer[size] = 0;
+    std::string result = buffer;
+    file.close();
+    delete [] buffer;
+    return result;
 }
 
 int main(int argc, char* argv[])
@@ -75,6 +99,40 @@ int main(int argc, char* argv[])
     
     delete DSP;
     deleteDSPFactory(static_cast<llvm_dsp_factory*>(factory));
+    
+    // Test generateAuxFilesFromFile/generateAuxFilesFromString
+    int argc2 = 0;
+    const char* argv2[64];
+    argv2[argc2++] = "-svg";
+    argv2[argc2++] = "-O";
+    argv2[argc2++] = "/private/var/tmp";
+    argv2[argc2] = 0;  // NULL terminated argv
+    
+    {
+        cout << "Test generateAuxFilesFromFile\n";
+        if (!generateAuxFilesFromFile(argv[argc-1], argc2, argv2, error_msg)) {
+            cout << "ERROR in generateAuxFilesFromFile : " << error_msg;
+        } else {
+            string pathname = "private/var/tmp" + string(argv[argc-1]) + "-svg";
+            ifstream reader(pathname.c_str());
+            if (!reader.is_open()) {
+                cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+            }
+        }
+    }
+    
+    {
+        cout << "Test generateAuxFilesFromString\n";
+        if (!generateAuxFilesFromString("FaustDSP", pathToContent(argv[argc-1]), argc2, argv2, error_msg)) {
+            cout << "generateAuxFilesFromString error : " << error_msg;
+        } else {
+            string pathname = "/private/var/tmp/FaustDSP-svg";
+            ifstream reader(pathname.c_str());
+            if (!reader.is_open()) {
+                cout << "ERROR in generateAuxFilesFromString error : " << pathname << " cannot be opened\n";
+            }
+        }
+    }
     
     return 0;
 }

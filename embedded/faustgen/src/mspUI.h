@@ -27,7 +27,7 @@
 //  mspUI.h for faustgen
 //
 //  Created by Martin Di Rollo on 18/04/12.
-//  Copyright (c) 2012-2014 Grame. All rights reserved.
+//  Copyright (c) 2012-2018 Grame. All rights reserved.
 //
 
 #ifndef faustgen_mspUI_h
