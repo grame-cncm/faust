@@ -123,7 +123,7 @@ int main(int argc, char* argv[])
     argv1[argc1] = 0;  // NULL terminated argv
     
     //factory = readDSPFactoryFromMachineFile(argv[1], "");
-    factory = readInterpreterDSPFactoryFromMachineFile(argv[argc-1], error_msg);
+    factory = readInterpreterDSPFactoryFromBitcodeFile(argv[argc-1], error_msg);
     
     if (!factory) {
         cerr << "Cannot create factory : " << error_msg;
