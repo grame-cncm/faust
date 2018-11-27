@@ -1908,7 +1908,6 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
     *****************************************************************/
     initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
-    initDocumentNames();
 
     /****************************************************************
      2 - parse source files
@@ -1917,6 +1916,7 @@ static string expandDSPInternal(int argc, const char* argv[], const char* name, 
         gGlobal->gInputString = dsp_content;
         gGlobal->gInputFiles.push_back(name);
     }
+    initDocumentNames();
     initFaustFloat();
 
     parseSourceFiles();
@@ -1955,7 +1955,6 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
     *****************************************************************/
     initFaustDirectories(argc, argv);
     processCmdline(argc, argv);
-    initDocumentNames();
 
     if (gGlobal->gHelpSwitch) {
         printHelp();
@@ -2013,6 +2012,7 @@ static void compileFaustFactoryAux(int argc, const char* argv[], const char* nam
         gGlobal->gInputFiles.push_back(name);
     }
 
+    initDocumentNames();
     initFaustFloat();
 
     parseSourceFiles();

@@ -73,7 +73,7 @@ class jack_midi_handler : public midi_handler {
                         handleData2(time, type, channel, (int)event.buffer[1], (int)event.buffer[2]);
                     } else {
                         std::vector<unsigned char> message(event.buffer, event.buffer + event.size);
-                        handleMessage(time, type, &message);
+                        handleMessage(time, type, message);
                     }
                 }
             }
@@ -196,9 +196,9 @@ class jack_midi_handler : public midi_handler {
             writeMessage(date, buffer, 1);
         }
     
-        void sysEx(double date, std::vector<unsigned char>* message)
+        void sysEx(double date, std::vector<unsigned char>& message)
         {
-            writeMessage(date, message->data(), (int)message->size());
+            writeMessage(date, message.data(), (int)message.size());
         }
 
 };
