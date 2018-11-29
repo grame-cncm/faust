@@ -1674,9 +1674,23 @@ public:
     
     bool getParamType(APIUI::Type type)
     {
-        list<uiCocoaItem*>::iterator i;
-        for (i = fWidgetList.begin(); i != fWidgetList.end(); i++) {
-            if (getParamType((*i)->getItemCount()) == type) {
+        /* 
+            29/11/18: used by startMotion to activate the accelerometer and/or gyroscope
+            correction bo make it work even if screen mode is activated
+        */
+        
+        /*
+         list<uiCocoaItem*>::iterator i;
+         for (i = fWidgetList.begin(); i != fWidgetList.end(); i++) {
+         if (getParamType((*i)->getItemCount()) == type) {
+         return true;
+         }
+         }
+         return false;
+         */
+        
+        for (int i = 0; i < fAPIUI.getParamsCount(); i++) {
+            if (fAPIUI.getParamType(i) == type) {
                 return true;
             }
         }

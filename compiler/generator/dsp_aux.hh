@@ -322,7 +322,7 @@ struct Soundfile {
         for (int part = 0; part < MAX_SOUNDFILE_PARTS; part++) {
             fLength[part]     = BUFFER_SIZE;
             fSampleRate[part] = SAMPLE_RATE;
-            fOffset[part]     = part * BUFFER_SIZE;
+            fOffset[part]     = 0;
         }
 
         // Allocate 1 channel
