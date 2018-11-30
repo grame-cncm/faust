@@ -39,12 +39,12 @@ This is an overview of the content of the top-level folders of the Faust distrib
 	debian/                : files for Debian installation
 	documentation/         : Faust developer's documentation
 	examples/              : Faust programs examples organized by categories
-	installer/             : various instalers for Linux distribution
+	installer/             : various installers for Linux distribution
 	libraries/             : DSP libraries
 	syntax-highlighting/   : support for syntax highlighting for several editors
 	tests/                 : various tests
 	tools/                 : additional easy-to-use scripts (faust2...) to produce binaries and plugins
-	windows/               : Windows related ressources
+	windows/               : Windows related resources
 
 ## Libraries
 

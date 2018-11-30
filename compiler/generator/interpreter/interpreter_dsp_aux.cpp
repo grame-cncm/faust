@@ -38,9 +38,6 @@ void faustassertaux(bool cond, const string& file, int line)
         throw faustexception(str.str());
     }
 }
-
-//int CPPBlock::gCurrentBlockIndex = 0;
-
 #endif
 
 dsp_factory_table<SDsp_factory> gInterpreterFactoryTable;
