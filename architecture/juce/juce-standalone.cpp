@@ -54,7 +54,8 @@
 #endif
 
 #if defined(POLY2)
-#include "dsp_effect.cpp"
+#include "faust/dsp/dsp-combiner.h"
+#include "effect.cpp"
 #endif 
 
 <<includeIntrinsic>>
@@ -82,12 +83,12 @@ class FaustComponent : public AudioAppComponent, private Timer
                 
         #if MIDICTRL
             if (midi_sync) {
-                fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new dsp_effect()));
+                fDSP = new timed_dsp(new dsp_sequencer(dsp_poly, new effect()));
             } else {
-                fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+                fDSP = new dsp_sequencer(dsp_poly, new effect());
             }
         #else
-            fDSP = new dsp_sequencer(dsp_poly, new dsp_effect());
+            fDSP = new dsp_sequencer(dsp_poly, new effect());
         #endif
                 
         #else
