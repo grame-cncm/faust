@@ -37,8 +37,8 @@
 #include "interpreter_optimizer.hh"
 
 #ifdef MACHINE
-#include "fbc_llvm_compiler.hh"
 //#include "fbc_cpp_compiler.hh"
+#include "fbc_llvm_compiler.hh"
 #endif
 
 #include "fbc_interpreter.hh"
@@ -125,6 +125,8 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
     FBCExecutor<T>* createFBCExecutor()
     {
 #ifdef MACHINE
+        //FBCCPPGenerator<T> cpp_generator(this);
+        //cpp_generator.generateCode(std::cout);
         return new FBCCompiler<T>(this, fCompiledBlocks);
 #else
         optimize();
