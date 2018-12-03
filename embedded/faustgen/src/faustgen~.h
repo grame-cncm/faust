@@ -60,7 +60,7 @@
 #include "ext_drag.h"
 
 #define DEFAULT_SOURCE_CODE "import(\"stdfaust.lib\");\nprocess=_,_;"
-#define FAUSTGEN_VERSION "1.31"
+#define FAUSTGEN_VERSION "1.32"
 #define FAUST_PDF_DOCUMENTATION "faust-quick-reference.pdf"
 #define FAUST_PDF_LIBRARY "library.pdf"
 
@@ -91,6 +91,8 @@ class faustgen;
 class faustgen_factory {
 
     typedef vector<string>::const_iterator StringVectorIt;
+    typedef set<string>::const_iterator StringSetIt;
+
     friend class faustgen;
 
     private:
@@ -106,7 +108,7 @@ class faustgen_factory {
         long fBitCodeSize;              // length of the bitcode string
         char** fBitCode;                // bitcode string
         
-        vector<string> fLibraryPath;    // path towards the Faust libraries
+        set<string> fLibraryPath;       // path towards the Faust libraries
         string fDrawPath;               // path where to put SVG files
         
         vector<string> fOptions;        // options set in the 'compileoptions' message

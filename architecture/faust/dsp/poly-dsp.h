@@ -33,6 +33,7 @@
 #include <vector>
 #include <limits.h>
 #include <float.h>
+#include <assert.h>
 
 #include "faust/midi/midi.h"
 #include "faust/dsp/dsp-combiner.h"
@@ -533,6 +534,7 @@ class mydsp_poly : public dsp_voice_group, public dsp_poly {
             fDate = 0;
 
             // Create voices
+            assert(nvoices > 0);
             for (int i = 0; i < nvoices; i++) {
                 addVoice(new dsp_voice(dsp->clone()));
             }
