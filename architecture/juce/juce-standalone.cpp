@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <algorithm>
+#include <assert.h>
 
 #if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
@@ -78,6 +79,7 @@ class FaustComponent : public AudioAppComponent, private Timer
             delete tmp_dsp;
             
         #ifdef POLY2
+            assert(nvoices > 0);
             std::cout << "Started with " << nvoices << " voices\n";
             dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
                 

@@ -24,6 +24,7 @@
  ************************************************************************/
 
 #include <algorithm>
+#include <assert.h>
 
 #if JUCE_WINDOWS
 #define JUCE_CORE_INCLUDE_NATIVE_HEADERS 1
@@ -322,6 +323,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     delete tmp_dsp;
     
 #ifdef JUCE_POLY
+    assert(nvoices > 0);
     fSynth = new FaustSynthesiser();
     for (int i = 0; i < nvoices; i++) {
         fSynth->addVoice(new FaustVoice(new mydsp()));
@@ -334,6 +336,7 @@ FaustPlugInAudioProcessor::FaustPlugInAudioProcessor()
     mydsp_poly* dsp_poly = nullptr;
     
 #ifdef POLY2
+    assert(nvoices > 0);
     std::cout << "Started with " << nvoices << " voices\n";
     dsp_poly = new mydsp_poly(new mydsp(), nvoices, true, group);
     

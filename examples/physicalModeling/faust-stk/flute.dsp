@@ -83,13 +83,13 @@ boreDelayLength = ma.SR/freq-2;
 embouchureDelay = de.fdelay(4096,embouchureDelayLength);
 boreDelay = de.fdelay(4096,boreDelayLength);
 
-//Polinomial
+//Polynomial
 poly = _ <: _ - _*_*_;
 
 //jet filter is a lowpass filter (declared in miscfilter.lib)
 reflexionFilter = fi.lowpass(1,2000);
 
-//stereoizer is declared in instruments.lib and implement a stereo spacialisation in function of 
+//stereoizer is declared in instruments.lib and implement a stereo spatialisation in function of 
 //the frequency period in number of samples 
 stereo = stereoizer(ma.SR/freq);
 

@@ -578,8 +578,10 @@ EXPORT string writeDSPFactoryToBitcode(llvm_dsp_factory* factory)
 // Bitcode <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromBitcodeFile(const string& bit_code_path, const string& target, string& error_msg, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(bit_code_path);
+    
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : readDSPFactoryFromBitcodeFile failed : " + ec.message() + "\n";
         return nullptr;
@@ -600,7 +602,8 @@ EXPORT void writeDSPFactoryToBitcodeFile(llvm_dsp_factory* factory, const string
 
 static llvm_dsp_factory* readDSPFactoryFromIRAux(MEMORY_BUFFER buffer, const string& target, string& error_msg, int opt_level)
 {
-    string                                            sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    string sha_key = generateSHA1(MEMORY_BUFFER_GET(buffer).str());
+    
     dsp_factory_table<SDsp_factory>::factory_iterator it;
 
     if (llvm_dsp_factory_aux::gLLVMFactoryTable.getFactory(sha_key, it)) {
@@ -655,8 +658,10 @@ EXPORT string writeDSPFactoryToIR(llvm_dsp_factory* factory)
 // IR <==> file
 EXPORT llvm_dsp_factory* readDSPFactoryFromIRFile(const string& ir_code_path, const string& target, string& error_msg, int opt_level)
 {
-    TLock                            lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    TLock lock(llvm_dsp_factory_aux::gDSPFactoriesLock);
+    
     ErrorOr<OwningPtr<MemoryBuffer>> buffer = MemoryBuffer::getFileOrSTDIN(ir_code_path);
+    
     if (error_code ec = buffer.getError()) {
         error_msg = "ERROR : readDSPFactoryFromIRFile failed : " + ec.message() + "\n";
         return nullptr;

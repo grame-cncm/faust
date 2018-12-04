@@ -3,9 +3,9 @@ project (faust)
 
 #######################################
 # versions management
-set (VERSION 2.3.10)
+set (VERSION 2.13.10)
 set (VERSION_MAJOR 2)
-set (VERSION_MINOR 3)
+set (VERSION_MINOR 13)
 set (VERSION_PATCH 10)
 set (SOVERS 2)
 
