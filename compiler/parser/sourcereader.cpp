@@ -250,6 +250,9 @@ void SourceReader::checkName()
  * @return the list of definitions it contains
  */
 
+inline bool isURL(const char* name) { return (strstr(name, "http://") != 0) || (strstr(name, "https://") != 0); }
+inline bool isFILE(const char* name) { return strstr(name, "file://") != 0; }
+
 Tree SourceReader::parseFile(const char* fname)
 {
     yyerr = 0;
@@ -258,7 +261,7 @@ Tree SourceReader::parseFile(const char* fname)
     string fullpath;
 
     // We are requested to parse an URL file
-    if (strstr(yyfilename, "http://") != 0 || strstr(yyfilename, "https://") != 0) {
+    if (isURL(yyfilename)) {
         char* buffer = 0;
     #ifdef EMCC
         // Call JS code to load URL
@@ -301,18 +304,20 @@ Tree SourceReader::parseFile(const char* fname)
     } else {
 
         // Test for local url
-		if (strstr(yyfilename, "file://") != 0) {
-			yyfilename = &yyfilename[7]; // skip 'file://'
+		if (isFILE(yyfilename)) {
+            yyfilename = &yyfilename[7]; // skip 'file://'
 		}
 
     #ifdef EMCC
         // Try to open with the complete URL
         Tree res = 0;
-        for (vector<string>::iterator i = gGlobal->gImportDirList.begin(); i != gGlobal->gImportDirList.end(); i++) {
-            // Keep the created filename in the global state, so that the 'yyfilename'
-            // global variable always points to a valid string
-            gGlobal->gImportFilename = *i + fname;
-            if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
+        for (int i = 0; i < gGlobal->gImportDirList.size(); i++) {
+            if (isURL(gGlobal->gImportDirList[i].c_str())) {
+                // Keep the created filename in the global state, so that the 'yyfilename'
+                // global variable always points to a valid string
+                gGlobal->gImportFilename = gGlobal->gImportDirList[i] + fname;
+                if ((res = parseFile(gGlobal->gImportFilename.c_str()))) return res;
+            }
         }
         stringstream error;
         error << "ERROR : unable to open file " << yyfilename << endl;

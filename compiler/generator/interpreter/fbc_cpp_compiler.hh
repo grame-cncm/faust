@@ -39,7 +39,7 @@ static void tab(int n, ostream& fout)
     while (n--) fout << '\t';
 }
 
-#define dispatchReturn_() \
+#define dispatchReturn() \
     {                     \
         it = popAddr();   \
     }
@@ -551,7 +551,7 @@ class FBCCPPCompiler {
                         //fCurrentBlock->endBlock();
                         end = true;
                     } else {
-                        dispatchReturn_();
+                        dispatchReturn();
                     }
                     break;
 
