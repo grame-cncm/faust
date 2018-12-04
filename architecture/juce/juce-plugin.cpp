@@ -57,7 +57,7 @@
 
 #if defined(POLY2)
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif 
 
 <<includeIntrinsic>>

@@ -84,7 +84,7 @@ using namespace std;
 // for polyphonic synths with FX
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 const char* const pinNamesStrings[] =

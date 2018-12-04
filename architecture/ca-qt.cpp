@@ -90,7 +90,7 @@ static void osc_compute_callback(void* arg)
 
 #ifdef POLY2
 #include "faust/dsp/dsp-combiner.h"
-#include "effect.cpp"
+#include "effect.h"
 #endif
 
 dsp* DSP;

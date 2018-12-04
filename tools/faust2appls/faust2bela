@@ -25,16 +25,16 @@ do
 
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bela [-osc] [-midi] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-tobela] <file.dsp>"
+        echo "faust2bela [-midi] [-gui] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-osc] [-tobela] <file.dsp>"
         echo "Use '-midi' to activate MIDI control"
-        echo "Use '-osc' to activate OSC control"
         echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"
         echo "Polyphonic mode means MIDI instrument with at least 1 voice, so include monophonic instrument. Use no arguments for a simple effect."
-        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
         echo "Use '-effect <effect.dsp>' to produce a polyphonic DSP connected to a global output effect, ready to be used with MIDI"
         echo "Use '-effect auto' to produce a polyphonic DSP connected to a global output effect defined as 'effect' in <file.dsp>, ready to be used with MIDI"
-        echo "Use '-tobela' to send C++ file into bela, and run it."
+        echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
+        echo "Use '-osc' to activate OSC control"
+	    echo "Use '-tobela' to send C++ file into bela, and run it."
         exit
     fi
 
@@ -88,17 +88,15 @@ PROJECTDIR="$CUR/$TMP"
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
             adapt(2,1) = _,_ :> _;
-
             adaptor(F,G) = adapt(outputs(F),inputs(G));
-
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
             faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$TMP/effect.dsp" -o "$TMP/effect.h" || exit
             #rm "$TMP/effect.dsp"
         else
             faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$TMP/effect.h" || exit
         fi
     else
         faust -i -a $ARCHFILE $OPTIONS "$SRCDIR/$f" -o "$TMP/render.cpp" || exit

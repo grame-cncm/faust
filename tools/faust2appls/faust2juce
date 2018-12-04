@@ -169,15 +169,13 @@ for p in $FILES; do
             adapt(2,2) = _,_;
             adapt(1,2) = _ <: _,_;
             adapt(2,1) = _,_ :> _;
-
             adaptor(F,G) = adapt(outputs(F),inputs(G));
-
             process = adaptor(library("$SRCDIR/$f").process, library("$SRCDIR/$f").effect) : library("$SRCDIR/$f").effect;
 EndOfCode
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$dspName/effect.dsp" -o "$SRCDIR/$dspName/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$dspName/effect.dsp" -o "$SRCDIR/$dspName/effect.h" || exit
             rm "$SRCDIR/$dspName/effect.dsp"
         else
-            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/effect.cpp" || exit
+            faust -i -cn effect -a minimal-effect.cpp "$SRCDIR/$EFFECT" -o "$SRCDIR/$dspName/effect.h" || exit
         fi
     fi
 
