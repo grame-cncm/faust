@@ -35,12 +35,12 @@ The various options of `faust2api` can be displayed at any point by running:
 
 Common options for all platforms:
 
-- `opt native|generic`: to activate the best compilation options for the native or generic CPU.
-- `nvoices <num>` : creates a polyphonic object with <num> voices.
-- `effect <effect.dsp>`: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified).
-- `effect auto`: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified).
-- `nodoc` : prevents documentation from being generated.
-- `nozip` : prevents generated files to be put in a zip file.
+- `-opt native|generic`: to activate the best compilation options for the native or generic CPU.
+- `-nvoices <num>` : creates a polyphonic object with <num> voices.
+- `-effect <effect.dsp>`: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified).
+- `-effect auto`: adds an effect (extracted automatically from the dsp file) to the polyphonic synth (this option is ignored if -nvoices is not specified).
+- `-nodoc` : prevents documentation from being generated.
+- `-nozip` : prevents generated files to be put in a zip file.
 
 
 ### Android Support

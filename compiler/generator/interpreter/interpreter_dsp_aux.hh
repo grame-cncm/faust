@@ -127,6 +127,7 @@ struct interpreter_dsp_factory_aux : public dsp_factory_imp {
 #ifdef MACHINE
         //FBCCPPGenerator<T> cpp_generator(this);
         //cpp_generator.generateCode(std::cout);
+        
         return new FBCCompiler<T>(this, fCompiledBlocks);
 #else
         optimize();
