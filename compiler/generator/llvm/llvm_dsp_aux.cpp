@@ -38,7 +38,7 @@
 #include <llvm/Support/FileSystem.h>
 #include <llvm/Support/TargetSelect.h>
 
-#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70)
+#if defined(LLVM_40) || defined(LLVM_50) || defined(LLVM_60) || defined(LLVM_70) || defined(LLVM_80)
 #include <llvm/Bitcode/BitcodeReader.h>
 #include <llvm/Bitcode/BitcodeWriter.h>
 #else
