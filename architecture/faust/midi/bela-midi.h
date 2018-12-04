@@ -111,6 +111,7 @@ class bela_midi : public midi_handler {
                                 }
                                 break;
                             case MIDI_SYSEX_START:
+#if 0 // this is not implemented on Bela yet
                                 std::vector<unsigned char> sysex;
                                 for (unsigned int j = 0; j < message.getNumDataBytes(); j++) {
                                     sysex.push_back(message.getDataByte(j));
@@ -122,6 +123,7 @@ class bela_midi : public midi_handler {
                                 for (unsigned int i = 0; i < midi->fMidiInputs.size(); i++) {
                                     midi->fMidiInputs[i]->sysEx(sysex);
                                 }
+#endif
                                 break;
                             default:
                                 break;
@@ -143,7 +145,7 @@ class bela_midi : public midi_handler {
     
         virtual ~bela_midi()
         {
-            stop_midi();
+            stopMidi();
         }
     
         bool startMidi()
