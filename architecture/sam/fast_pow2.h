@@ -1,4 +1,4 @@
- #ifndef FAST_POW2
+#ifndef FAST_POW2
 #define FAST_POW2
 
 // Copied from fastexp.h
