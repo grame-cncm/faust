@@ -10,7 +10,7 @@ LINECUT=$(echo "$PHTML" | awk '/<ul>/{ print NR; exit }')
 
 # Getting rid of pandoc header
 #! PHTML=$(echo "$PHTML" | tail -n +$LINECUT | head -n -2)
-PHTML=$(echo "$PHTML" | tail -n +$LINECUT | awk 'NR > 2 { print }')
+PHTML=$(echo "$PHTML" | tail -n +$LINECUT | awk "NR > 2 { print }")
 
 # Adding elements for CSS, etc.
 PHTML=$(echo "<div class=\"container-fluid\"><div class=\"row faust-doc\"><nav id=\"TOC\" class=\"col-3 faust-doc-content\"><div style=\"height: 100%;overflow-y: scroll;\"><ul class=\"nav flex-column\">$PHTML")
