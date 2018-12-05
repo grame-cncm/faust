@@ -96,9 +96,11 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
     loop_code->pushBackInst(count_dec1);
     
     // Debug code
+    /*
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    */
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, count_dec1);
@@ -136,10 +138,12 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant0(const string& counter)
 
     then_block->pushBackInst(count_dec2);
     
-    // Debug
+    // Debug code
+    /*
     then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
     then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
     then_block->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    */
 
     // Generates the loop DAG
     generateDAGLoop(then_block, count_dec2);
@@ -169,10 +173,12 @@ BlockInst* VectorCodeContainer::generateDAGLoopVariant1(const string& counter)
     DeclareVarInst* count_dec = InstBuilder::genDecStackVar(count, InstBuilder::genBasicTyped(Typed::kInt32), init3);
     loop_code->pushBackInst(count_dec);
     
-    // debug
+    // Debug code
+    /*
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vsize << std::endl;"));
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << fullcount << std::endl;"));
     loop_code->pushBackInst(InstBuilder::genLabelInst("std::cout << vindex << std::endl;"));
+    */
 
     // Generates the loop DAG
     generateDAGLoop(loop_code, count_dec);
