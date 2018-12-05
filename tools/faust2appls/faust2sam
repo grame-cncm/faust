@@ -37,7 +37,7 @@ echoHelp ()
     echo ""
     echo "Global options:"
     echo "   -midi"
-    echo "   -nvoices N : creates a polyphonic object with N voices."
+    echo "   -nvoices <num> : creates a polyphonic object with <num> voices."
     echo "   -effect <effect.dsp>: adds an effect to the polyphonic synth (this option is ignored if -nvoices is not specified)."
     echo "" 
 }

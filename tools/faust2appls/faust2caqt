@@ -4,7 +4,7 @@ set -e
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to core audio-qt            #
+#               Compiles Faust programs to CoreAudio and QT         #
 #               (c) Grame, 2012-2018                                #
 #                                                                   #
 #####################################################################
@@ -41,7 +41,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] <file.dsp>"
+        echo "faust2caqt [-opt native|generic] [-httpd] [-qrcode] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-preset auto|<directory>] [-debug] [-deploy] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-opt native' to activate the best compilation options for the native CPU"
         echo "Use '-opt generic' to activate the best compilation options for a generic CPU"
         echo "Use '-httpd' to activate HTTP control"

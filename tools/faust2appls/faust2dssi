@@ -1,7 +1,5 @@
 #! /bin/bash -e
 
-OSCDEFS=""
-
 #####################################################################
 #                                                                   #
 #               Compiles Faust programs to dssi plugins             #
@@ -13,6 +11,7 @@ OSCDEFS=""
 . faustoptflags
 
 CXXFLAGS=$MYGCCFLAGS
+OSCDEFS=""
 
 #-------------------------------------------------------------------
 # Analyze command arguments :

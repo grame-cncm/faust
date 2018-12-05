@@ -54,16 +54,14 @@ for p in $@; do
     elif [ "$p" = "-noagc" ]; then
         NOAGC="1"
 	elif [ $p = "-h" ]; then
-        echo "Usage: faust2android faustFile.dsp"
-        echo "OPTIONS:"
-        echo "-install: once compilation is over, installs the generated app on the Android device connected to the computer."
-        echo "-source: creates an eclipse project of the app in the current directory."
-        echo "Any other options are considered as Faust options. To get a list of the Faust options type: faust -h."
-        echo "-swig: regenerate the C++ and the JAVA interface for the native portion of the app."
-        echo "-faust: only carries out the Faust compilation and install the generated C++ file in the JNI folder."
-        echo "-reuse: keep build directory and reuse it to speedup compilation."
+        echo "Usage: faust2android [-install] [-source] [-swig] [-faust] [-reuse] [-soundfile] [-debug] [additional Faust options (-vec -vs 8...)] <file.dsp>"
+        echo "Use '-install' once compilation is over, installs the generated app on the Android device connected to the computer."
+        echo "Use '-source' creates an eclipse project of the app in the current directory."
+        echo "Use '-swig' regenerate the C++ and the JAVA interface for the native portion of the app."
+        echo "Use '-faust' only carries out the Faust compilation and install the generated C++ file in the JNI folder."
+        echo "Use '-reuse' keep build directory and reuse it to speedup compilation."
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
-        echo "-debug: verbose output."
+        echo "Use '-debug' verbose output."
 		exit
     elif [ ${p:0:1} = "-" ]; then
         OPTIONS="$OPTIONS $p"

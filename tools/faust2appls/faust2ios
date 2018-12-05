@@ -28,7 +28,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-soundfile] <file.dsp>"
+        echo "faust2ios [-xcode] [-xcodeproj] [-archive] [-32bits] [-noagc] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [-soundfile] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-xcode' to compile and keep the intermediate Xcode project"
         echo "Use '-xcodeproj' to produce the intermediate Xcode project"
         echo "Use '-archive' to generate the archive for Apple Store"

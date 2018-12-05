@@ -7,8 +7,8 @@
 #  (c) Grame, 2017                                                                      #
 #                                                                                       #
 #########################################################################################
-#
-#
+
+
 #   This script shouldn't be used on its own, use the "faust2unity" script instead
 #   The libraries are firstly wrapped by the unityplugin.cpp architecture file
 #   They have to be used in the Unity environment
@@ -117,7 +117,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2osxiosunity [-ios] <file1.dsp> [<file2.dsp>]"
+        echo "faust2osxiosunity [-ios] [additional Faust options (-vec -vs 8...)] <file1.dsp> [<file2.dsp>]"
         echo "Use '-ios' to create an iOS static library"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI"
         echo "Use 'faust2unity -osx -ios' to also create the c# and JSON files"

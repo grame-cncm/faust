@@ -2,10 +2,10 @@
 
 #####################################################################
 #                                                                   #
-#               Cross-compiles Faust programs to puredata           #
-#			from 	: Linux				    #
-#			to	: Windows 32			    #
-#               (c) Grame, 2014                                     #
+#               Cross-compiles Faust programs to PureData           #
+#                      from : Linux or OSX                          #
+#                        to : Windows 32                            #
+#                       (c) Grame, 2011                             #
 #                                                                   #
 #####################################################################
 

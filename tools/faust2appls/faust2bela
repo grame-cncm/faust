@@ -25,7 +25,7 @@ do
 
     # HELP:
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2bela [-midi] [-gui] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-osc] [-tobela] <file.dsp>"
+        echo "faust2bela [-midi] [-gui] [-nvoices <num>] [-effect <auto or file.dsp>] [-soundfile] [-osc] [-tobela] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-midi' to activate MIDI control"
         echo "Use '-gui' to activate a self-hosted GUI interface. This requires that you installed libmicrohttpd and libHTTPDFaust."
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, it must need -midi option also"

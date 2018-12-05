@@ -36,7 +36,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] <file.dsp>"
+        echo "faust2jack [-httpd] [-soundfile] [-nvoices <num>] [-effect auto|<effect.dsp>] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-soundfile' when compiling DSP using 'soundfile' primitive, to add needed resources"
    	    echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"

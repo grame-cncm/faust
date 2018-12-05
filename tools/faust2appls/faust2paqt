@@ -2,7 +2,7 @@
 
 #####################################################################
 #                                                                   #
-#               Compiles Faust programs to PortAudio-qt             #
+#               Compiles Faust programs to PortAudio and QT         #
 #               (c) Grame, 2009                                     #
 #                                                                   #
 #####################################################################
@@ -37,7 +37,7 @@ do
     p=$1
 
     if [ $p = "-help" ] || [ $p = "-h" ]; then
-        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] <file.dsp>"
+        echo "faust2paqt [-httpd] [-qrcode] [-poly] [-midi] [-osc] [additional Faust options (-vec -vs 8...)] <file.dsp>"
         echo "Use '-httpd' to activate HTTP control"
         echo "Use '-qrcode' to activate QR code generation"
         echo "Use '-nvoices <num>' to produce a polyphonic self-contained DSP with <num> voices, ready to be used with MIDI or OSC"
