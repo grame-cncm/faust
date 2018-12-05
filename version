@@ -60,10 +60,6 @@ mv -f TMP$$ $MAKEF
 CMAKE=$ROOT/build/CMakeLists.txt
 echo " updating $CMAKE"
 sed "s/set (VERSION[ 	]*[0-9].*)/set (VERSION $VERSION)/" $CMAKE > TMP$$
-sed "s/set (VERSION_MAJOR[ 	]*[0-9].*)/set (VERSION_MAJOR $MAJOR)/" TMP$$ > $CMAKE
-sed "s/set (VERSION_MINOR[ 	]*[0-9].*)/set (VERSION_MINOR $MINOR)/" $CMAKE > TMP$$
-sed "s/set (VERSION_PATCH[ 	]*[0-9].*)/set (VERSION_PATCH $PATCH)/" TMP$$ > $CMAKE
-sed "s/set (SOVERS[ 	]*[0-9].*)/set (SOVERS $MAJOR)/" $CMAKE > TMP$$
 mv TMP$$ $CMAKE
 
 FAUST=$ROOT/compiler/generator/export.hh
